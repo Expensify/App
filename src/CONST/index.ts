@@ -4,15 +4,16 @@ import {sub as dateSubtract} from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
-import type ResponsiveLayoutResult from './hooks/useResponsiveLayout/types';
-import type {Video} from './libs/actions/Report';
-import type {MileageRate} from './libs/DistanceRequestUtils';
-import BankAccount from './libs/models/BankAccount';
-import {addTrailingForwardSlash} from './libs/Url';
-import ONYXKEYS from './ONYXKEYS';
-import SCREENS from './SCREENS';
-import variables from './styles/variables';
-import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
+import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import type {Video} from '@libs/actions/Report';
+import type {MileageRate} from '@libs/DistanceRequestUtils';
+import BankAccount from '@libs/models/BankAccount';
+import {addTrailingForwardSlash} from '@libs/Url';
+import variables from '@styles/variables';
+import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
+import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
+import {LANGUAGES, LOCALES} from './LOCALES';
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
@@ -810,6 +811,7 @@ const CONST = {
     },
     BETAS: {
         ALL: 'all',
+        AUTO_SUBMIT: 'autoSubmit',
         DEFAULT_ROOMS: 'defaultRooms',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
@@ -820,11 +822,6 @@ const CONST = {
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         CUSTOM_RULES: 'customRules',
-        /**
-         * Deprecated - do not use this beta in new code anymore.
-         * This will be fully cleaned up in https://github.com/Expensify/App/issues/63254
-         * */
-        TABLE_REPORT_VIEW: 'tableReportView',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         RETRACT_NEWDOT: 'retractNewDot',
@@ -835,7 +832,6 @@ const CONST = {
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         NATIVE_CONTACT_IMPORT: 'nativeContactImport',
         TRACK_FLOWS: 'trackFlows',
-        NEW_DOT_SPLITS: 'newDotSplits',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1099,6 +1095,7 @@ const CONST = {
     NEWHELP_URL: 'https://help.expensify.com',
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     IMPORT_TAGS_EXPENSIFY_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
+    IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#multi-level-tags',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
     DENIED_CAMERA_ACCESS_INSTRUCTIONS_URL:
         'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense#:~:text=How%20can%20I%20enable%20camera%20permission%20for%20a%20website%20on%20mobile%20browsers%3F',
@@ -1150,10 +1147,10 @@ const CONST = {
         COMPLETED: 'completed',
     },
     STORYLANE: {
-        ADMIN_TOUR_PRODUCTION: 'https://app.storylane.io/demo/0bhwdna0isb3?embed=inline',
-        ADMIN_TOUR_MOBILE_PRODUCTION: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
-        ADMIN_TOUR_STAGING: 'https://app.storylane.io/demo/0bhwdna0isb3?embed=inline',
-        ADMIN_TOUR_MOBILE_STAGING: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
+        ADMIN_TOUR: 'https://app.storylane.io/demo/0bhwdna0isb3?embed=inline',
+        ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
+        TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/agmsfwgasaed?embed=inline',
+        TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -1349,6 +1346,7 @@ const CONST = {
                 TASK_COMPLETED: 'TASKCOMPLETED',
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
+                TRAVEL_UPDATE: 'TRAVEL_TRIP_ROOM_UPDATE',
                 TRIP_PREVIEW: 'TRIPPREVIEW',
                 UNAPPROVED: 'UNAPPROVED',
                 UNHOLD: 'UNHOLD',
@@ -2037,7 +2035,10 @@ const CONST = {
         AV01: 'video/av01',
         VIDEO: 'video/*',
         TXT: 'txt',
+        CSV: 'text/csv',
     },
+
+    MULTI_LEVEL_TAGS_FILE_NAME: 'MultiLevelTags.csv',
 
     ATTACHMENT_TYPE: {
         REPORT: 'r',
@@ -2881,16 +2882,8 @@ const CONST = {
         DURATION_LONG: 3500,
     },
 
-    LOCALES: {
-        EN: 'en',
-        ES: 'es',
-        ES_ES: 'es-ES',
-        ES_ES_ONFIDO: 'es_ES',
-
-        DEFAULT: 'en',
-    },
-
-    LANGUAGES: ['en', 'es'],
+    LOCALES,
+    LANGUAGES,
 
     PRONOUNS_LIST: [
         'coCos',
@@ -3010,6 +3003,8 @@ const CONST = {
             DELETE: 'delete',
             DISABLE: 'disable',
             ENABLE: 'enable',
+            REQUIRE: 'require',
+            NOT_REQUIRED: 'notRequired',
         },
         MORE_FEATURES: {
             ARE_CATEGORIES_ENABLED: 'areCategoriesEnabled',
@@ -5614,7 +5609,8 @@ const CONST = {
             ],
         },
         [onboardingChoices.TRACK_WORKSPACE]: {
-            message: 'Here are some important tasks to help get your workspace set up.',
+            message:
+                '# Let’s get you set up\n👋 I’m here to help! To get you started, I’ve tailored your workspace settings for sole proprietors and similar businesses. You can adjust your workspace by clicking the link below!\n\nHere’s how to track your spend in a few clicks:',
             video: {
                 url: `${CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
                 thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
@@ -5624,26 +5620,21 @@ const CONST = {
             },
             tasks: [
                 createWorkspaceTask,
-                setupCategoriesTask,
+                testDriveAdminTask,
                 {
-                    type: 'inviteAccountant',
+                    type: 'createReport',
                     autoCompleted: false,
                     mediaAttributes: {},
-                    title: ({workspaceMembersLink}) => `Invite your [accountant](${workspaceMembersLink})`,
-                    description: ({workspaceMembersLink}) =>
-                        '*Invite your accountant* to Expensify and share your expenses with them to make tax time easier.\n' +
+                    title: 'Create your first report',
+                    description:
+                        'Here’s how to create a report:\n' +
                         '\n' +
-                        '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces*.\n' +
-                        '3. Select your workspace.\n' +
-                        '4. Click *Members* > Invite member.\n' +
-                        '5. Enter their email or phone number.\n' +
-                        '6. Add an invite message if you’d like.\n' +
-                        '7. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
+                        '1. Click the green *+* button.\n' +
+                        '2. Choose *Create report*.\n' +
+                        '3. Click *Add expense*.\n' +
+                        '4. Add your first expense.\n' +
                         '\n' +
-                        'That’s it, happy expensing! 😄\n' +
-                        '\n' +
-                        `[View your workspace members](${workspaceMembersLink}).`,
+                        'And you’re done!',
                 },
             ],
         },
@@ -7151,6 +7142,28 @@ const CONST = {
         PROVISIONING: {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
         },
+        UPDATE_OPERATION_TYPE: {
+            BOOKING_TICKETED: 'BOOKING_TICKETED',
+            TICKET_VOIDED: 'TICKET_VOIDED',
+            TICKET_REFUNDED: 'TICKET_REFUNDED',
+            FLIGHT_CANCELLED: 'FLIGHT_CANCELLED',
+            FLIGHT_SCHEDULE_CHANGE_PENDING: 'FLIGHT_SCHEDULE_CHANGE_PENDING',
+            FLIGHT_SCHEDULE_CHANGE_CLOSED: 'FLIGHT_SCHEDULE_CHANGE_CLOSED',
+            FLIGHT_CHANGED: 'FLIGHT_CHANGED',
+            FLIGHT_CABIN_CHANGED: 'FLIGHT_CABIN_CHANGED',
+            FLIGHT_SEAT_CONFIRMED: 'FLIGHT_SEAT_CONFIRMED',
+            FLIGHT_SEAT_CHANGED: 'FLIGHT_SEAT_CHANGED',
+            FLIGHT_SEAT_CANCELLED: 'FLIGHT_SEAT_CANCELLED',
+            PAYMENT_DECLINED: 'PAYMENT_DECLINED',
+            BOOKING_CANCELED_BY_TRAVELER: 'BOOKING_CANCELED_BY_TRAVELER',
+            BOOKING_CANCELED_BY_VENDOR: 'BOOKING_CANCELED_BY_VENDOR',
+            BOOKING_REBOOKED: 'BOOKING_REBOOKED',
+            BOOKING_UPDATED: 'BOOKING_UPDATED',
+            TRIP_UPDATED: 'TRIP_UPDATED',
+            BOOKING_OTHER_UPDATE: 'BOOKING_OTHER_UPDATE',
+            REFUND: 'REFUND',
+            EXCHANGE: 'EXCHANGE',
+        },
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
@@ -7197,6 +7210,8 @@ const CONST = {
         RESCHEDULED: 'rescheduled',
         CANCELLED: 'cancelled',
     },
+
+    SIGNIN_ROUTE: '/signin',
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

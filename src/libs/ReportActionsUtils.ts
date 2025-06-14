@@ -1,3 +1,4 @@
+import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import clone from 'lodash/clone';
 import lodashFindLast from 'lodash/findLast';
@@ -10,7 +11,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, Locale, OnyxInputOrEntry, OriginalMessageIOU, PrivatePersonalDetails} from '@src/types/onyx';
+import type {Card, Locale, OnyxInputOrEntry, OriginalMessageIOU, Policy, PrivatePersonalDetails} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -129,7 +130,17 @@ const SALESFORCE_EXPENSES_URL_PREFIX = 'https://login.salesforce.com/';
  */
 const QBO_EXPENSES_URL = 'https://qbo.intuit.com/app/expenses';
 
-const POLICY_CHANGE_LOG_ARRAY = Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG);
+const POLICY_CHANGE_LOG_ARRAY = new Set<ReportActionName>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG));
+
+const ROOM_CHANGE_LOG_ARRAY = new Set<ReportActionName>(Object.values(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG));
+
+const MEMBER_CHANGE_ARRAY = new Set<ReportActionName>([
+    CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
+    CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY,
+]);
 
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
@@ -219,8 +230,12 @@ function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): 
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
 }
 
+function isMovedTransactionAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION);
+}
+
 function isPolicyChangeLogAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>> {
-    return isActionOfType(reportAction, ...POLICY_CHANGE_LOG_ARRAY);
+    return reportAction?.actionName ? POLICY_CHANGE_LOG_ARRAY.has(reportAction.actionName) : false;
 }
 
 function isChronosOOOListAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST> {
@@ -239,22 +254,8 @@ function isTripPreview(reportAction: OnyxInputOrEntry<ReportAction>): reportActi
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW);
 }
 
-function isActionOfType<T extends ReportActionName[]>(
-    action: OnyxInputOrEntry<ReportAction>,
-    ...actionNames: T
-): action is {
-    [K in keyof T]: ReportAction<T[K]>;
-}[number] {
-    const actionName = action?.actionName as T[number];
-
-    // This is purely a performance optimization to limit the 'includes()' calls on Hermes
-    for (const i of actionNames) {
-        if (i === actionName) {
-            return true;
-        }
-    }
-
-    return false;
+function isActionOfType<T extends ReportActionName>(action: OnyxInputOrEntry<ReportAction>, actionName: T): action is ReportAction<T> {
+    return action?.actionName === actionName;
 }
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
@@ -272,6 +273,10 @@ function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>)
 
 function isIntegrationMessageAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE> {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE;
+}
+
+function isTravelUpdate(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE);
 }
 
 /**
@@ -328,20 +333,13 @@ function isReimbursementQueuedAction(reportAction: OnyxInputOrEntry<ReportAction
 function isMemberChangeAction(
     reportAction: OnyxInputOrEntry<ReportAction>,
 ): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>> {
-    return isActionOfType(
-        reportAction,
-        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY,
-    );
+    return reportAction?.actionName ? MEMBER_CHANGE_ARRAY.has(reportAction.actionName) : false;
 }
 
 function isInviteMemberAction(
     reportAction: OnyxEntry<ReportAction>,
 ): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM);
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM);
 }
 
 function isLeavePolicyAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY> {
@@ -375,18 +373,17 @@ function isReopenedAction(reportAction: OnyxEntry<ReportAction>): reportAction i
 }
 
 function isRoomChangeLogAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
-    return isActionOfType(reportAction, ...Object.values(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG));
+    return reportAction?.actionName ? ROOM_CHANGE_LOG_ARRAY.has(reportAction.actionName) : false;
 }
 
 function isInviteOrRemovedAction(
     reportAction: OnyxInputOrEntry<ReportAction>,
 ): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG | typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>> {
-    return isActionOfType(
-        reportAction,
-        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM,
-        CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM,
+    return (
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM)
     );
 }
 
@@ -476,7 +473,6 @@ function getCombinedReportActions(
     transactionThreadReportID: string | null,
     transactionThreadReportActions: ReportAction[],
     reportID?: string,
-    shouldFilterIOUAction = true,
 ): ReportAction[] {
     const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
 
@@ -504,7 +500,7 @@ function getCombinedReportActions(
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...filteredParentReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
-        if (!isMoneyRequestAction(action) || !shouldFilterIOUAction) {
+        if (!isMoneyRequestAction(action)) {
             return true;
         }
         const actionType = getOriginalMessage(action)?.type ?? '';
@@ -828,7 +824,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    if (isTripPreview(reportAction)) {
+    if (isTripPreview(reportAction) || isTravelUpdate(reportAction)) {
         return true;
     }
 
@@ -1120,7 +1116,7 @@ function isMessageDeleted(reportAction: OnyxInputOrEntry<ReportAction>): boolean
 /**
  * Simple hook to check whether the PureReportActionItem should return item based on whether the ReportPreview was recently deleted and the PureReportActionItem has not yet unloaded
  */
-function useNewTableReportViewActionRenderConditionals({childMoneyRequestCount, childVisibleActionCount, pendingAction, actionName}: ReportAction) {
+function useTableReportViewActionRenderConditionals({childMoneyRequestCount, childVisibleActionCount, pendingAction, actionName}: ReportAction) {
     const previousChildMoneyRequestCount = usePrevious(childMoneyRequestCount);
 
     const isActionAReportPreview = actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
@@ -1188,8 +1184,8 @@ function isTagModificationAction(actionName: string): boolean {
  * Used for Send Money flow, which is a special case where we have no IOU create action and only one IOU pay action.
  * In other reports, pay actions do not count as a transactions, but this is an exception to this rule.
  */
-function getSendMoneyFlowOneTransactionThreadID(actions: OnyxEntry<ReportActions> | ReportAction[], chatReportID?: string) {
-    if (!chatReportID) {
+function getSendMoneyFlowOneTransactionThreadID(actions: OnyxEntry<ReportActions> | ReportAction[], chatReport: OnyxEntry<Report>) {
+    if (!chatReport) {
         return undefined;
     }
 
@@ -1203,7 +1199,7 @@ function getSendMoneyFlowOneTransactionThreadID(actions: OnyxEntry<ReportActions
     // ...which is 'pay'...
     const isFirstActionPay = getOriginalMessage(iouActions.at(0))?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
 
-    const {type, chatType, parentReportID, parentReportActionID} = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? {};
+    const {type, chatType, parentReportID, parentReportActionID} = chatReport;
 
     // ...and can only be triggered on DM chats
     const isDM = type === CONST.REPORT.TYPE.CHAT && !chatType && !(parentReportID && parentReportActionID);
@@ -1247,13 +1243,13 @@ const isIOUActionMatchingTransactionList = (
  * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
  */
 function getOneTransactionThreadReportID(
-    reportID: string | undefined,
+    report: OnyxEntry<Report>,
+    chatReport: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions> | ReportAction[],
     isOffline: boolean | undefined = undefined,
     reportTransactionIDs?: string[],
 ): string | undefined {
     // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
         return;
     }
@@ -1263,7 +1259,7 @@ function getOneTransactionThreadReportID(
         return;
     }
 
-    const sendMoneyFlowID = getSendMoneyFlowOneTransactionThreadID(reportActions, report?.chatReportID);
+    const sendMoneyFlowID = getSendMoneyFlowOneTransactionThreadID(reportActions, chatReport);
 
     if (sendMoneyFlowID) {
         return sendMoneyFlowID;
@@ -1560,6 +1556,170 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
     }
 }
 
+function getTravelUpdateMessage(action: ReportAction<'TRAVEL_TRIP_ROOM_UPDATE'>, formatDate?: (datetime: string, includeTimezone: boolean, isLowercase?: boolean | undefined) => string) {
+    const details = getOriginalMessage(action);
+    const formattedStartDate = formatDate?.(details?.start.date ?? '', false) ?? format(details?.start.date ?? '', CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+
+    switch (details?.operation) {
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_TICKETED:
+            return translateLocal('travel.updates.bookingTicketed', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+                confirmationID: details.confirmations?.at(0)?.value,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.TICKET_VOIDED:
+            return translateLocal('travel.updates.ticketVoided', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.TICKET_REFUNDED:
+            return translateLocal('travel.updates.ticketRefunded', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CANCELLED:
+            return translateLocal('travel.updates.flightCancelled', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SCHEDULE_CHANGE_PENDING:
+            return translateLocal('travel.updates.flightScheduleChangePending', {
+                airlineCode: details.route?.airlineCode ?? '',
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SCHEDULE_CHANGE_CLOSED:
+            return translateLocal('travel.updates.flightScheduleChangeClosed', {
+                airlineCode: details.route?.airlineCode ?? '',
+                startDate: formattedStartDate,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CHANGED:
+            return translateLocal('travel.updates.flightUpdated', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CABIN_CHANGED:
+            return translateLocal('travel.updates.flightCabinChanged', {
+                airlineCode: details.route?.airlineCode ?? '',
+                cabinClass: details.route?.class ?? '',
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SEAT_CONFIRMED:
+            return translateLocal('travel.updates.flightSeatConfirmed', {
+                airlineCode: details.route?.airlineCode ?? '',
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SEAT_CHANGED:
+            return translateLocal('travel.updates.flightSeatChanged', {
+                airlineCode: details.route?.airlineCode ?? '',
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SEAT_CANCELLED:
+            return translateLocal('travel.updates.flightSeatCancelled', {
+                airlineCode: details.route?.airlineCode ?? '',
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.PAYMENT_DECLINED:
+            return translateLocal('travel.updates.paymentDeclined');
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_CANCELED_BY_TRAVELER:
+            return translateLocal('travel.updates.bookingCancelledByTraveler', {
+                type: details.type,
+                id: details.reservationID,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_CANCELED_BY_VENDOR:
+            return translateLocal('travel.updates.bookingCancelledByVendor', {
+                type: details.type,
+                id: details.reservationID,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_REBOOKED:
+            return translateLocal('travel.updates.bookingRebooked', {
+                type: details.type,
+                id: details.confirmations?.at(0)?.value,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_UPDATED:
+            return translateLocal('travel.updates.bookingUpdated', {
+                type: details.type,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.TRIP_UPDATED:
+            if (details.type === CONST.RESERVATION_TYPE.CAR || details.type === CONST.RESERVATION_TYPE.HOTEL) {
+                return translateLocal('travel.updates.defaultUpdate', {
+                    type: details.type,
+                });
+            }
+            if (details.type === CONST.RESERVATION_TYPE.TRAIN) {
+                return translateLocal('travel.updates.railTicketUpdate', {
+                    origin: details.start.cityName ?? details.start.shortName ?? '',
+                    destination: details.end.cityName ?? details.end.shortName ?? '',
+                    startDate: formattedStartDate,
+                });
+            }
+            return translateLocal('travel.updates.flightUpdated', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_OTHER_UPDATE:
+            if (details.type === CONST.RESERVATION_TYPE.CAR || details.type === CONST.RESERVATION_TYPE.HOTEL) {
+                return translateLocal('travel.updates.defaultUpdate', {
+                    type: details.type,
+                });
+            }
+            if (details.type === CONST.RESERVATION_TYPE.TRAIN) {
+                return translateLocal('travel.updates.railTicketUpdate', {
+                    origin: details.start.cityName ?? details.start.shortName ?? '',
+                    destination: details.end.cityName ?? details.end.shortName ?? '',
+                    startDate: formattedStartDate,
+                });
+            }
+            return translateLocal('travel.updates.flightUpdated', {
+                airlineCode: details.route?.airlineCode ?? '',
+                origin: details.start.shortName ?? '',
+                destination: details.end?.shortName ?? '',
+                startDate: formattedStartDate,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.REFUND:
+            return translateLocal('travel.updates.railTicketRefund', {
+                origin: details.start.cityName ?? details.start.shortName ?? '',
+                destination: details.end.cityName ?? details.end.shortName ?? '',
+                startDate: formattedStartDate,
+            });
+
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.EXCHANGE:
+            return translateLocal('travel.updates.railTicketExchange', {
+                origin: details.start.cityName ?? details.start.shortName ?? '',
+                destination: details.end.cityName ?? details.end.shortName ?? '',
+                startDate: formattedStartDate,
+            });
+
+        default:
+            return translateLocal('travel.updates.defaultUpdate', {
+                type: details?.type ?? '',
+            });
+    }
+}
+
 function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): Message {
     const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction, getReportNameCallback);
     const html = messageElements
@@ -1628,6 +1788,11 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
         const message = getReopenedMessage();
+        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    }
+
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
+        const message = getTravelUpdateMessage(action);
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
@@ -2063,7 +2228,7 @@ function getWorkspaceFrequencyUpdateMessage(action: ReportAction): string {
     });
 }
 
-function getWorkspaceCategoryUpdateMessage(action: ReportAction, policyID?: string): string {
+function getWorkspaceCategoryUpdateMessage(action: ReportAction, policy?: OnyxEntry<Policy>): string {
     const {categoryName, oldValue, newName, oldName, updatedField, newValue, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
@@ -2135,10 +2300,6 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction, policyID?: stri
         }
 
         if (updatedField === 'maxAmountNoReceipt' && typeof oldValue !== 'boolean' && typeof newValue !== 'boolean') {
-            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-            // eslint-disable-next-line deprecation/deprecation
-            const policy = getPolicy(policyID);
-
             const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoReceipt;
 
             const formatAmount = () => convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD);
@@ -2626,13 +2787,19 @@ function getUpdatedManualApprovalThresholdMessage(reportAction: OnyxEntry<Report
     return translateLocal('workspaceActions.updatedManualApprovalThreshold', {oldLimit: convertToDisplayString(oldLimit, currency), newLimit: convertToDisplayString(newLimit, currency)});
 }
 
-function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
-    return isActionOfType(
-        reportAction,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
-        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
+function isCardIssuedAction(
+    reportAction: OnyxEntry<ReportAction>,
+): reportAction is ReportAction<
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
+> {
+    return (
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED)
     );
 }
 
@@ -2668,15 +2835,7 @@ function getCardIssuedMessage({
     policyID?: string;
     card?: Card;
 }) {
-    const cardIssuedActionOriginalMessage = isActionOfType(
-        reportAction,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
-        CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
-        CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
-    )
-        ? getOriginalMessage(reportAction)
-        : undefined;
+    const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
 
     const assigneeAccountID = cardIssuedActionOriginalMessage?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const cardID = cardIssuedActionOriginalMessage?.cardID ?? CONST.DEFAULT_NUMBER_ID;
@@ -2835,8 +2994,9 @@ export {
     isExportIntegrationAction,
     isIntegrationMessageAction,
     isMessageDeleted,
-    useNewTableReportViewActionRenderConditionals,
+    useTableReportViewActionRenderConditionals,
     isModifiedExpenseAction,
+    isMovedTransactionAction,
     isMoneyRequestAction,
     isNotifiableReportAction,
     isOldDotReportAction,
@@ -2897,6 +3057,7 @@ export {
     wasMessageReceivedWhileOffline,
     shouldShowAddMissingDetails,
     getJoinRequestMessage,
+    getTravelUpdateMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     getWorkspaceCurrencyUpdateMessage,

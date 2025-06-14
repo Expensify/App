@@ -241,6 +241,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                             renderItem={renderItem}
                             ListHeaderComponent={renderListHeader}
                             contentContainerStyle={bottomSafeAreaPaddingStyle}
+                            keyboardShouldPersistTaps="handled"
                         />
                     </View>
                     <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
