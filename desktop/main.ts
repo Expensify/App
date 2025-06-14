@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
 import type {Locale} from '@src/types/onyx';
+import TranslationStore from '@src/languages/TranslationStore';
 import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueue';
 import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
@@ -665,10 +666,12 @@ const mainWindow = (): Promise<void> => {
                 // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
                 // So we track preferredLocale separately via ELECTRON_EVENTS.LOCALE_UPDATED
                 ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale: Locale) => {
-                    preferredLocale = updatedLocale;
-                    Menu.setApplicationMenu(Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, updatedLocale)));
-                    disposeContextMenu?.();
-                    disposeContextMenu = createContextMenu(updatedLocale);
+                    TranslationStore.load(updatedLocale).then(() => {
+                        preferredLocale = updatedLocale;
+                        Menu.setApplicationMenu(Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, updatedLocale)));
+                        disposeContextMenu?.();
+                        disposeContextMenu = createContextMenu(updatedLocale);
+                    });
                 });
 
                 ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {

@@ -10,7 +10,6 @@ import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/lan
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import LocaleListener from './LocaleListener';
 
 // Current user mail is needed for handling missing translations
 let userEmail = '';
@@ -23,9 +22,6 @@ Onyx.connect({
         userEmail = val?.email ?? '';
     },
 });
-
-// Listener when an update in Onyx happens so we use the updated locale when translating/localizing items.
-LocaleListener.connect();
 
 // Note: This has to be initialized inside a function and not at the top level of the file, because Intl is polyfilled,
 // and if React Native executes this code upon import, then the polyfill will not be available yet and it will barf
@@ -136,13 +132,13 @@ function translate<TPath extends TranslationPaths>(desiredLanguage: 'en' | 'es' 
     // on development throw an error
     if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
         const phraseString = Array.isArray(path) ? path.join('.') : path;
-        Log.alert(`${phraseString} was not found in the en locale`);
+        Log.alert(`${phraseString} was not found in the ${language} locale`);
         if (userEmail.includes(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
             return CONST.MISSING_TRANSLATION;
         }
         return phraseString;
     }
-    throw new Error(`${path} was not found in the ${desiredLanguage} language`);
+    throw new Error(`${path} was not found in the ${language} locale`);
 }
 
 /**

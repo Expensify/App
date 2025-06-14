@@ -27,6 +27,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
+import localeEventCallback from '@libs/Localize/localeEventCallback';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
@@ -67,6 +68,7 @@ Onyx.connect({
             importEmojiLocale(preferredLocale as Locale).then(() => {
                 buildEmojisTrie(preferredLocale as Locale);
             });
+            localeEventCallback(val);
         }
     },
 });
