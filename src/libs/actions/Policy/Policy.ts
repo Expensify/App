@@ -1130,7 +1130,13 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
             ownerAccountID: cleanAccountID,
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         });
-
+        
+        if (optimisticReport.participants) {
+            optimisticReport.participants[cleanAccountID] = {
+                ...optimisticReport.participants[cleanAccountID],
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            };
+        }
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(login);
 
         workspaceMembersChats.reportCreationData[login] = {
