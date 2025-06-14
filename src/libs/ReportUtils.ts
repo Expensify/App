@@ -1086,6 +1086,21 @@ Onyx.connect({
     },
 });
 
+let hiddenTranslation = '';
+let unavailableTranslation = '';
+
+Onyx.connect({
+    key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+    initWithStoredValues: false,
+    callback: (value) => {
+        if (value ?? true) {
+            return;
+        }
+        hiddenTranslation = translateLocal('common.hidden');
+        unavailableTranslation = translateLocal('workspace.common.unavailable');
+    },
+});
+
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
@@ -1228,7 +1243,6 @@ function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollectio
     return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.type ?? '';
 }
 
-const unavailableTranslation = translateLocal('workspace.common.unavailable');
 /**
  * Get the policy name from a given report
  */
@@ -2670,8 +2684,6 @@ function getPersonalDetailsForAccountID(accountID: number | undefined, personalD
 function getPersonalDetailsOrDefault(personalDetails: Partial<PersonalDetails> | undefined | null): Partial<PersonalDetails> {
     return personalDetails ?? {isOptimisticPersonalDetail: true};
 }
-
-const hiddenTranslation = translateLocal('common.hidden');
 
 const phoneNumberCache: Record<string, string> = {};
 
