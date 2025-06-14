@@ -34,9 +34,11 @@ import {
     isIndividualInvoiceRoom,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom,
+    isIOUReport,
     isOptimisticPersonalDetail,
     isPolicyExpenseChat,
     isTripRoom as isTripRoomReportUtils,
+    reportTransactionsSelector,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -118,18 +120,29 @@ function ReportActionItemSingle({
     const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const [visibleIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.reportID)}`, {
-        selector: (reportActions: OnyxEntry<ReportActions>) => {
-            const visibleReportAction = getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(iouReport), false);
-            return visibleReportAction.filter((reportAction) => isMoneyRequestAction(reportAction));
-        },
+    const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (_transactions) => reportTransactionsSelector(_transactions, iouReport?.reportID),
         canBeMissing: true,
     });
-    const actorAccountIDsFromReportActions = [...new Set(visibleIOUReportActions?.map((reportAction) => reportAction.actorAccountID).filter((accountID) => !!accountID))];
-    // Ensure that if all expenses are from a single sender, the sender is displayed.
-    const actorAccountID =
-        // eslint-disable-next-line rulesdir/prefer-at
-        actorAccountIDsFromReportActions.length === 1 ? actorAccountIDsFromReportActions[0] : getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
+
+    const isFromBothParties = useMemo(() => {
+        if (!isIOUReport(iouReport) && action?.childType !== CONST.REPORT.TYPE.IOU || transactions.length < 2) {
+            return false;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
+    }, [transactions, action?.childType, iouReport]);
+
+    const actorAccountID = useMemo(() => {
+        const childActorAccountID = action?.childLastActorAccountID ?? action?.actorAccountID ?? 0;
+        // Ensure that if all expenses are from a single sender, the sender is displayed.
+        if (isReportPreviewAction && (action?.childMoneyRequestCount === 1 || !isFromBothParties)) {
+            return childActorAccountID;
+        }
+
+        return getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
+    }, [action, iouReport, report, delegatePersonalDetails, isReportPreviewAction]);
 
     const invoiceReceiverPolicy =
         report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? activePolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
@@ -140,7 +153,7 @@ function ReportActionItemSingle({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = isTripRoomReportUtils(report);
-    const displayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report) && actorAccountIDsFromReportActions.length > 1;
+    const displayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report) && isFromBothParties;
     const isInvoiceReport = isInvoiceReportUtils(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
 
