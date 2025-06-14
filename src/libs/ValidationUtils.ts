@@ -1,4 +1,3 @@
-import {Buffer} from 'buffer';
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
 import {PUBLIC_DOMAINS_SET, Str, Url} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
@@ -663,7 +662,7 @@ function isValidRegistrationNumber(registrationNumber: string, country: Country 
  * returning `isValid` (boolean) and `byteLength` (number) to be used in dynamic error copy.
  */
 function isValidInputLength(inputValue: string, byteLength: number) {
-    const valueByteLength = Buffer.from(inputValue).length;
+    const valueByteLength = StringUtils.getUTF8ByteLength(inputValue);
     return {isValid: valueByteLength > byteLength, byteLength: valueByteLength};
 }
 
