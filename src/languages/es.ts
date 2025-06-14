@@ -2035,7 +2035,7 @@ const translations = {
         language: 'Idioma',
         languages: {
             en: {
-                label: 'Inglés',
+                label: 'English',
             },
             es: {
                 label: 'Español',
@@ -3081,6 +3081,7 @@ const translations = {
             companyCards: 'Tarjetas de empresa',
             workflows: 'Flujos de trabajo',
             workspace: 'Espacio de trabajo',
+            findWorkspace: 'Encontrar espacio de trabajo',
             edit: 'Editar espacio de trabajo',
             enabled: 'Activada',
             disabled: 'Desactivada',
@@ -4384,6 +4385,9 @@ const translations = {
             customTagName: 'Nombre de etiqueta personalizada',
             enableTag: 'Habilitar etiqueta',
             enableTags: 'Habilitar etiquetas',
+            requireTag: 'Requerir etiqueta',
+            requireTags: 'Requerir etiquetas',
+            notRequireTags: 'No requerir etiquetas',
             disableTag: 'Desactivar etiqueta',
             disableTags: 'Desactivar etiquetas',
             addTag: 'Añadir etiqueta',
@@ -4391,6 +4395,13 @@ const translations = {
             editTags: 'Editar etiquetas',
             findTag: 'Encontrar etiquetas',
             subtitle: 'Las etiquetas añaden formas más detalladas de clasificar los costos.',
+            dependentMultiLevelTagsSubtitle: {
+                phrase1: ' Estás usando ',
+                phrase2: 'etiquetas dependientes',
+                phrase3: '. Puedes ',
+                phrase4: 'reimportar una hoja de cálculo',
+                phrase5: ' para actualizar tus etiquetas.',
+            },
             emptyTags: {
                 title: 'No has creado ninguna etiqueta',
                 subtitle: 'Añade una etiqueta para realizar el seguimiento de proyectos, ubicaciones, departamentos y otros.',
