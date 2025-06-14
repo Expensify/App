@@ -33,7 +33,7 @@ function PreferencesPage() {
     const isPlatformMuted = mutedPlatforms[platform];
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME, {canBeMissing: true});
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const [preferredLocale = CONST.LOCALES.DEFAULT] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const personalPolicy = usePolicy(getPersonalPolicy()?.id);
 
     const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -41,9 +41,9 @@ function PreferencesPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {canUseStaticAiTranslations} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
-    const isSelectedLanguageBehindBeta = !!canUseStaticAiTranslations && !['en', 'es'].includes(LocaleUtils.getLanguageFromLocale(preferredLocale));
+    const isSelectedLanguageBehindBeta = isBetaEnabled(CONST.BETAS.STATIC_AI_TRANSLATIONS) && !['en', 'es'].includes(LocaleUtils.getLanguageFromLocale(preferredLocale));
 
     return (
         <ScreenWrapper

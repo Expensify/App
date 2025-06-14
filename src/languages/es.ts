@@ -2050,6 +2050,9 @@ const translations = {
             de: {
                 label: 'Deutsch',
             },
+            pl: {
+                label: 'Polski',
+            },
             fr: {
                 label: 'Français',
             },

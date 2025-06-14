@@ -1,5 +1,4 @@
 import React, {useRef} from 'react';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -22,7 +21,7 @@ function LanguagePage() {
     const isOptionSelected = useRef(false);
 
     const {isBetaEnabled} = usePermissions();
-    const localesToLanguages: LanguageEntry[] = LANGUAGES.map((language: SupportedLanguage) => ({
+    const localesToLanguages: LanguageEntry[] = LANGUAGES.map((language) => ({
         value: language,
         text: translate(`languagePage.languages.${language}.label`),
         keyForList: language,
@@ -32,7 +31,7 @@ function LanguagePage() {
 
     if (isBetaEnabled(CONST.BETAS.STATIC_AI_TRANSLATIONS)) {
         localesToLanguages.push(
-            ...UPCOMING_LANGUAGES.map((language: SupportedLanguage) => ({
+            ...UPCOMING_LANGUAGES.map((language) => ({
                 value: language,
                 text: translate(`languagePage.languages.${language}.label`),
                 keyForList: language,

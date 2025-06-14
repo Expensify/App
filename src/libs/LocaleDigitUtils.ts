@@ -1,11 +1,8 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import type {Locale} from '@src/CONST/LOCALES';
 import type {TranslationPaths} from '@src/languages/types';
 import * as Localize from './Localize';
 import memoize from './memoize';
 import * as NumberFormatUtils from './NumberFormatUtils';
-
-type Locale = ValueOf<typeof CONST.LOCALES>;
 
 const STANDARD_DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-', ','];
 
