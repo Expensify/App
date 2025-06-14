@@ -72,7 +72,7 @@ function ReportCardLostPage({
     const [isReasonConfirmed, setIsReasonConfirmed] = useState(false);
     const [shouldShowAddressError, setShouldShowAddressError] = useState(false);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
-    const [newCardID, setNewCardID] = useState<string>();
+    const [newCardID, setNewCardID] = useState<string>('');
     const [isSuccess, setIsSuccess] = useState(false);
 
     const physicalCard = cardList?.[cardID];
@@ -98,7 +98,7 @@ function ReportCardLostPage({
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
     useEffect(() => {
-        if (!isEmptyObject(physicalCard?.errors) || !(prevIsLoading && !formData?.isLoading) || !newCardID) {
+        if (!isEmptyObject(physicalCard?.errors) || !newCardID) {
             return;
         }
 
@@ -127,7 +127,7 @@ function ReportCardLostPage({
         [physicalCard, reason?.key],
     );
 
-    if (isEmptyObject(physicalCard)) {
+    if (isEmptyObject(physicalCard) && !newCardID) {
         return <NotFoundPage />;
     }
 
@@ -238,7 +238,7 @@ function ReportCardLostPage({
                     )}
                 </View>
             )}
-            {isSuccess && <SuccessReportCardLost cardID={newCardID ?? ''} />}
+            {isSuccess && <SuccessReportCardLost cardID={newCardID} />}
         </ScreenWrapper>
     );
 }
