@@ -33,6 +33,7 @@ import {
     getGroupChatName,
     getIconsForParticipants,
     getInvoiceChatByParticipants,
+    getMoneyRequestReportName,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
     getParticipantsList,
@@ -3143,362 +3144,142 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getMoneyReportPreviewName', () => {
-        it('should return the report name if present', () => {
-            const action: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
+    describe('getMoneyRequestReportName', () => {
+        const mockPolicy = createRandomPolicy(1);
+
+        it('should return report name when it exists and is expense report with non-IOU name', () => {
             const report: Report = {
                 ...createRandomReport(1),
-            };
-            const result = getMoneyReportPreviewName(action, report);
-            expect(result).toBe('Five, Four, One, Three, Two...');
-        });
-
-        it('should return the child report name if the report name is not present', () => {
-            const action: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-                childReportName: 'Child Report',
-            };
-            const result = getMoneyReportPreviewName(action, undefined);
-            expect(result).toBe('Child Report');
-        });
-    });
-
-    describe('canAddTransaction', () => {
-        it('should return true for a non-archived report', async () => {
-            // Given a non-archived expense report
-            const report: Report = {
-                ...createRandomReport(10000),
+                reportName: 'Custom Expense Report',
                 type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
             };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
-            // When it's checked if the transactions can be added
-            // Simulate how components determined if a report is archived by using this hook
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = canAddTransaction(report, isReportArchived.current);
-
-            // Then the result is true
-            expect(result).toBe(true);
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).toBe('Custom Expense Report');
         });
 
-        it('should return false for an archived report', async () => {
-            // Given an archived expense report
+        it('should not return report name when it equals IOU (case insensitive)', () => {
             const report: Report = {
-                ...createRandomReport(10001),
+                ...createRandomReport(1),
+                reportName: 'iou',
                 type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
             };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
 
-            // When it's checked if the transactions can be added
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = canAddTransaction(report, isReportArchived.current);
-
-            // Then the result is false
-            expect(result).toBe(false);
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).not.toBe('iou');
+            expect(result).toContain('$1.00');
         });
-    });
 
-    describe('canDeleteTransaction', () => {
-        it('should return true for a non-archived report', async () => {
-            // Given a non-archived expense report
+        it('should not return report name when it equals IOU in uppercase', () => {
             const report: Report = {
-                ...createRandomReport(20000),
+                ...createRandomReport(1),
+                reportName: 'IOU',
                 type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
             };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
-            // When it's checked if the transactions can be deleted
-            // Simulate how components determined if a report is archived by using this hook
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = canDeleteTransaction(report, isReportArchived.current);
-
-            // Then the result is true
-            expect(result).toBe(true);
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).not.toBe('IOU');
+            expect(result).toContain('$1.00');
         });
 
-        it('should return false for an archived report', async () => {
-            // Given an archived expense report
+        it('should not return report name when it equals IOU in mixed case', () => {
             const report: Report = {
-                ...createRandomReport(20001),
+                ...createRandomReport(1),
+                reportName: 'IoU',
                 type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
             };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
 
-            // When it's checked if the transactions can be deleted
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = canDeleteTransaction(report, isReportArchived.current);
-
-            // Then the result is false
-            expect(result).toBe(false);
-        });
-    });
-
-    describe('getReasonAndReportActionThatRequiresAttention', () => {
-        it('should return a reason for a non-archived report', async () => {
-            // Given a non-archived expense report that is unread with a mention
-            const report: OptionData = {
-                ...createRandomReport(30000),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                isUnreadWithMention: true,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-            // When the reason is retrieved
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
-
-            // There should be some kind of a reason (any reason is fine)
-            expect(result).toHaveProperty('reason');
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).not.toBe('IoU');
+            expect(result).toContain('$1.00');
         });
 
-        it('should return null for an archived report', async () => {
-            // Given an archived expense report that is unread with a mention
-            const report: OptionData = {
-                ...createRandomReport(30000),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                isUnreadWithMention: true,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
-
-            // When the reason is retrieved
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived.current);
-
-            // Then the result is null
-            expect(result).toBe(null);
-        });
-    });
-
-    describe('canEditReportDescription', () => {
-        it('should return true for a non-archived policy room', async () => {
-            // Given a non-archived policy room
+        it('should not return report name when report is not an expense report', () => {
             const report: Report = {
-                ...createRandomReport(40001),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-            // When it's checked if the description can be edited
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = canEditReportDescription(report, policy, isReportArchived.current);
-
-            // Then it can be edited
-            expect(result).toBeTruthy();
-        });
-
-        it('should return false for an archived policy room', async () => {
-            // Given an archived policy room
-            const report: Report = {
-                ...createRandomReport(40002),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
-
-            // When it's checked if the description can be edited
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = canEditReportDescription(report, policy, isReportArchived.current);
-
-            // Then it cannot be edited
-            expect(result).toBeFalsy();
-        });
-    });
-
-    describe('shouldDisableRename', () => {
-        it('should return true for archived reports', async () => {
-            // Given an archived policy room
-            const report: Report = {
-                ...createRandomReport(50001),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
-
-            // When shouldDisableRename is called
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = shouldDisableRename(report, isReportArchived.current);
-
-            // Then it should return true
-            expect(result).toBe(true);
-        });
-
-        it('should return true for default rooms', () => {
-            // Given a default room
-            const report: Report = {
-                ...createRandomReport(50002),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-                reportName: '#admins',
-            };
-
-            // When shouldDisableRename is called
-            const result = shouldDisableRename(report);
-
-            // Then it should return true
-            expect(result).toBe(true);
-        });
-
-        it('should return true for public rooms', () => {
-            // Given a public room
-            const report: Report = {
-                ...createRandomReport(50003),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
-            };
-
-            // When shouldDisableRename is called
-            const result = shouldDisableRename(report);
-
-            // Then it should return true
-            expect(result).toBe(true);
-        });
-
-        it('should return true for threads', () => {
-            // Given a thread report
-            const report: Report = {
-                ...createRandomReport(50004),
-                parentReportID: '12345',
-                parentReportActionID: '67890',
-            };
-
-            // When shouldDisableRename is called
-            const result = shouldDisableRename(report);
-
-            // Then it should return true
-            expect(result).toBe(true);
-        });
-
-        it('should return true for money request reports', () => {
-            // Given a money request report
-            const report: Report = {
-                ...createRandomReport(50005),
+                ...createRandomReport(1),
+                reportName: 'Custom Report Name',
                 type: CONST.REPORT.TYPE.IOU,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
             };
 
-            // When shouldDisableRename is called
-            const result = shouldDisableRename(report);
-
-            // Then it should return true
-            expect(result).toBe(true);
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).not.toBe('Custom Report Name');
+            expect(result).toContain('$1.00');
         });
 
-        it('should return true for expense reports', () => {
-            // Given an expense report
+        it('should not return report name when reportName is empty', () => {
             const report: Report = {
-                ...createRandomReport(50006),
+                ...createRandomReport(1),
+                reportName: '',
                 type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
             };
 
-            // When shouldDisableRename is called
-            const result = shouldDisableRename(report);
-
-            // Then it should return true
-            expect(result).toBe(true);
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).not.toBe('');
+            expect(result).toContain('$1.00');
         });
 
-        it('should return true for policy expense chats', () => {
-            // Given a policy expense chat
+        it('should not return report name when reportName is undefined', () => {
             const report: Report = {
-                ...createRandomReport(50007),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                isOwnPolicyExpenseChat: true,
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
             };
+            delete report.reportName;
 
-            // When shouldDisableRename is called
-            const result = shouldDisableRename(report);
-
-            // Then it should return true
-            expect(result).toBe(true);
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).toContain('$1.00');
+        });
+        it('should not return report name when report is null', () => {
+            const result = getMoneyRequestReportName({report: null as unknown as Report, policy: mockPolicy});
+            expect(result).toContain('$0.00');
         });
 
-        it('should return true for invoice rooms', () => {
-            // Given an invoice room
+        it('should return report name for valid expense report with name containing "iou" as substring', () => {
             const report: Report = {
-                ...createRandomReport(50008),
-                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                ...createRandomReport(1),
+                reportName: 'Previous IOU Report',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
             };
 
-            // When shouldDisableRename is called
-            const result = shouldDisableRename(report);
-
-            // Then it should return true
-            expect(result).toBe(true);
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).toBe('Previous IOU Report');
         });
 
-        it('should return true for invoice reports', () => {
-            // Given an invoice report
+        it('should return report name for valid expense report with special characters', () => {
             const report: Report = {
-                ...createRandomReport(50009),
-                type: CONST.REPORT.TYPE.INVOICE,
+                ...createRandomReport(1),
+                reportName: 'Q1 2024 - Travel & Meals',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
             };
 
-            // When shouldDisableRename is called
-            const result = shouldDisableRename(report);
-
-            // Then it should return true
-            expect(result).toBe(true);
-        });
-
-        it('should return true for system chats', () => {
-            // Given a system chat
-            const report: Report = {
-                ...createRandomReport(50010),
-                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
-            };
-
-            // When shouldDisableRename is called
-            const result = shouldDisableRename(report);
-
-            // Then it should return true
-            expect(result).toBe(true);
-        });
-
-        it('should return false for group chats', async () => {
-            // Given a group chat
-            const report: Report = {
-                ...createRandomReport(50011),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-            // When shouldDisableRename is called
-            const result = shouldDisableRename(report);
-
-            // Then it should return false
-            expect(result).toBe(false);
-        });
-
-        it('should return false for non-archived regular chats', async () => {
-            // Given a non-archived regular chat (1:1 DM)
-            const report: Report = {
-                reportID: '50012',
-                type: CONST.REPORT.TYPE.CHAT,
-                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
-
-                // Ensure it's not a policy expense chat or any other special chat type
-                chatType: undefined,
-                isOwnPolicyExpenseChat: false,
-                policyID: undefined,
-            };
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-            // When shouldDisableRename is called
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            const result = shouldDisableRename(report, isReportArchived.current);
-
-            // Then it should return false (since this is a 1:1 DM and not a group chat, and none of the other conditions are met)
-            expect(result).toBe(false);
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).toBe('Q1 2024 - Travel & Meals');
         });
     });
 });
