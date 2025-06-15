@@ -35,6 +35,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
     const {translate} = useLocalize();
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
@@ -52,10 +53,10 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
             } else if (isIOUReport(reportID) && isPolicyMember(session?.email, policyID)) {
                 moveIOUReportToPolicy(reportID, policyID);
             } else {
-                changeReportPolicy(reportID, policyID);
+                changeReportPolicy(reportID, policyID, reportNextStep);
             }
         },
-        [session?.email, report, reportID],
+        [session?.email, report, reportID, reportNextStep],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
