@@ -10842,6 +10842,12 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
  */
 function buildOptimisticRemoveReportAction(amount: string, reportID: string, merchant?: string, created = DateUtils.getDBTime()): OptimisticDeclineReportAction {
     const linkToReport = `${environmentURL}/${ROUTES.SEARCH_REPORT.getRoute({reportID})}`;
+    const htmlForComment = translateLocal('iou.decline.reportActions.removedFromReport', {
+        amount,
+        merchant,
+        linkToReport
+    });
+    const textForComment = Parser.htmlToText(htmlForComment);
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.DECLINEDTRANSACTION_THREAD,
@@ -10849,13 +10855,9 @@ function buildOptimisticRemoveReportAction(amount: string, reportID: string, mer
         actorAccountID: currentUserAccountID,
         message: [
             {
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                style: 'normal',
-                text: translateLocal('iou.decline.reportActions.removedFromReport', {
-                    amount,
-                    merchant,
-                    linkToReport
-                }),
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                html: htmlForComment,
+                text: textForComment
             },
         ],
         person: [

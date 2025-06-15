@@ -11432,12 +11432,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
 
     const currentUserAccountID = getCurrentUserAccountID();
 
-    console.log('Policy Instant Submit', {
-        isPolicyInstantSubmit,
-        hasMultipleExpenses,
-        accountID: reportAction?.accountID
-    });
-
     if (isPolicyInstantSubmit) {
         if (hasMultipleExpenses) {
             // For reports with multiple expenses: Update report total
@@ -11520,24 +11514,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 },
             ],
         });
-
-        const optimisticRemoveReportAction = buildOptimisticRemoveReportAction(convertToDisplayString(transaction?.amount ?? 0, transaction?.currency ?? ''), reportID, transaction?.merchant ?? '');
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [optimisticRemoveReportAction.reportActionID]: optimisticRemoveReportAction,
-            },
-        });    
-
-        console.log('RTER', {
-            transactionID,
-            reportID,
-            childReportID,
-            reportAction,
-            movedToReportID,
-            movedToReport,
-        })
     }
 
     // Create system messages in both expense report and expense thread
@@ -11559,6 +11535,15 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: {
             lastReadTime,
+        },
+    });
+
+    const optimisticRemoveReportAction = buildOptimisticRemoveReportAction(convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency ?? ''), reportID, transaction?.merchant ?? '');
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {
+            [optimisticRemoveReportAction.reportActionID]: optimisticRemoveReportAction,
         },
     });
 
