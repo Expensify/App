@@ -4,7 +4,7 @@ import type {PressableRef} from './GenericPressable/types';
 import type PressableProps from './GenericPressable/types';
 
 function PressableWithoutFeedback(
-    {pressStyle, hoverStyle, focusStyle, screenReaderActiveStyle, shouldUseHapticsOnPress, shouldUseHapticsOnLongPress = false, ...rest}: PressableProps,
+    {pressStyle, focusStyle, screenReaderActiveStyle, shouldUseHapticsOnPress, shouldUseHapticsOnLongPress = false, ...rest}: PressableProps,
     ref: PressableRef,
 ) {
     return (
