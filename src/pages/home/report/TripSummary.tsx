@@ -22,7 +22,7 @@ function TripSummary({reportID}: TripSummaryProps) {
     return (
         <OfflineWithFeedback pendingAction={report?.pendingAction}>
             <TripDetailsView
-                tripRoomReportID={reportID}
+                tripRoomReport={report}
                 tripTransactions={tripTransactions}
                 shouldShowHorizontalRule={false}
             />
