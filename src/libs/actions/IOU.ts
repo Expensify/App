@@ -128,7 +128,6 @@ import {
     buildOptimisticUnHoldReportAction,
     canBeAutoReimbursed,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    generateReportID,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
     getAllPolicyReports,
     getApprovalChain,
@@ -11411,7 +11410,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
 
     const autoAddedActionReportActionID = NumberUtils.rand64();
     const removedFromReportActionID = NumberUtils.rand64();
-    let movedToReportID;
     let movedToReport;
     let urlToNavigateBack;
 
@@ -11462,8 +11460,14 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         // 1. Update report total
         // 2. Remove expense from report
         // 3. Add to existing draft report or create new one
-        movedToReportID = generateReportID();
-        movedToReport = buildOptimisticExpenseReport(movedToReportID, policy?.id, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, 0, transaction?.currency ?? '');
+        const transactionOwner = reportAction?.actorAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+        movedToReport = buildOptimisticExpenseReport(
+            report.chatReportID, 
+            policy?.id, 
+            transactionOwner, 
+            0, 
+            transaction?.currency ?? ''
+        );
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -11474,7 +11478,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
                 value: {
                     ...movedToReport,
                     total: (movedToReport?.total ?? 0) + (transaction?.amount ?? 0),
@@ -11484,7 +11488,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
-                    reportID: movedToReportID,
+                    reportID: movedToReport?.reportID,
                 },
             },
         );
@@ -11563,7 +11567,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         transactionID,
         reportID,
         comment,
-        movedToReportID,
+        movedToReportID: movedToReport?.reportID,
         autoAddedActionReportActionID,
         removedFromReportActionID,
         declinedActionReportActionID: optimisticDeclineReportAction.reportActionID,
@@ -11783,7 +11787,7 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
 }
 
 /**
- * Append a new split expense entry to the draft transaction’s splitExpenses array
+ * Append a new split expense entry to the draft transaction's splitExpenses array
  */
 function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, draftTransaction: OnyxEntry<OnyxTypes.Transaction>) {
     if (!transaction || !draftTransaction) {
