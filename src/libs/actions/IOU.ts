@@ -11521,6 +11521,15 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
             ],
         });
 
+        const optimisticRemoveReportAction = buildOptimisticRemoveReportAction(convertToDisplayString(transaction?.amount ?? 0, transaction?.currency ?? ''), `${reportID}`, transaction?.merchant ?? '');
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticRemoveReportAction.reportActionID]: optimisticRemoveReportAction,
+            },
+        });    
+
         console.log('RTER', {
             transactionID,
             reportID,
@@ -11534,8 +11543,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     // Create system messages in both expense report and expense thread
     const optimisticDeclineReportAction = buildOptimisticDeclineReportAction();
     const optimisticDeclineReportActionComment = buildOptimisticDeclinedReportActionComment(comment);
-    const optimisticRemoveReportAction = buildOptimisticRemoveReportAction(convertToDisplayString(transaction?.amount ?? 0, transaction?.currency ?? ''), `${reportID}`, transaction?.merchant ?? '');
-
+    
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
@@ -11544,15 +11552,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
             [optimisticDeclineReportActionComment.reportActionID]: optimisticDeclineReportActionComment,
         },
     });
-
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: {
-            [optimisticRemoveReportAction.reportActionID]: optimisticRemoveReportAction,
-        },
-    });
-
 
     const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticDeclineReportAction.created, 1);
     optimisticData.push({
