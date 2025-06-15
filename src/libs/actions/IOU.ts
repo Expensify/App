@@ -11396,11 +11396,15 @@ function dismissDeclineUseExplanation() {
     });
 }
 
-function declineMoneyRequest(transactionID: string, reportID: string, comment: string) {
+function declineMoneyRequest(transactionID: string, reportID: string, comment: string): Route | undefined {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isPolicyInstantSubmit = policy ? isInstantSubmitEnabled(policy) : false;
+
+    if (!report || !transaction) {
+        return undefined;
+    }
 
     const reportAction = getIOUActionForReportID(reportID, transactionID);
     const childReportID = reportAction?.childReportID;
@@ -11409,6 +11413,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     const removedFromReportActionID = NumberUtils.rand64();
     let movedToReportID;
     let movedToReport;
+    let urlToNavigateBack;
 
     const hasMultipleExpenses = (() => {
         let count = 0;
@@ -11442,6 +11447,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                     total: (report?.total ?? 0) - (transaction?.amount ?? 0),
                 },
             });
+            urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(childReportID);
         } else {
             // For reports with single expense: Delete the report
             optimisticData.push({
@@ -11449,6 +11455,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: null,
             });
+            urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
         }
     } else if (hasMultipleExpenses) {
         // For reports with multiple expenses:
@@ -11481,6 +11488,8 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 },
             },
         );
+
+        urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(childReportID);
     } else {
         // For reports with single expense: Change report state to DRAFT
         optimisticData.push({
@@ -11495,6 +11504,8 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 ...report,
             },
         });
+
+        urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
     }
 
     // Add rter transaction violation
@@ -11561,6 +11572,8 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
 
     // Make API call
     API.write(WRITE_COMMANDS.DECLINE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
+
+    return urlToNavigateBack;
 }
 
 function markDeclineViolationAsResolved(transactionID: string) {

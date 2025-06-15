@@ -22,8 +22,8 @@ function DeclineReasonPage({route}: DeclineReasonPageProps) {
     const {transactionID, reportID, backTo} = route.params;
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DECLINE_FORM>) => {
-        IOU.declineMoneyRequest(transactionID, reportID, values.comment);
-        Navigation.goBack(backTo);
+        const urlToNavigateBack = IOU.declineMoneyRequest(transactionID, reportID, values.comment);
+        Navigation.navigate(urlToNavigateBack ?? backTo);
     };
 
     const validate = useCallback(
