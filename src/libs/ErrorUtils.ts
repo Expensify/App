@@ -8,7 +8,7 @@ import type {ReceiptError} from '@src/types/onyx/Transaction';
 import arrayFirstElement from '@src/utils/arrayFirstElement';
 import arrayLastElement from '@src/utils/arrayLastElement';
 import DateUtils from './DateUtils';
-import * as Localize from './Localize';
+import {translateLocal} from './Localize';
 
 function getAuthenticateErrorMessage(response: Response): TranslationPaths {
     switch (response.jsonCode) {
@@ -44,7 +44,7 @@ function getAuthenticateErrorMessage(response: Response): TranslationPaths {
  * @param error - The translation key for the error message.
  */
 function getMicroSecondOnyxErrorWithTranslationKey(error: TranslationPaths, errorKey?: number): Errors {
-    return {[errorKey ?? DateUtils.getMicroseconds()]: Localize.translateLocal(error)};
+    return {[errorKey ?? DateUtils.getMicroseconds()]: translateLocal(error)};
 }
 
 /**
