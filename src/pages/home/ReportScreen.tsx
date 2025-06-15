@@ -390,6 +390,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             <MoneyRequestHeader
                 report={report}
                 policy={policy}
+                backTo={backTo}
                 parentReportAction={parentReportAction}
                 onBackButtonPress={onBackButtonPress}
             />
