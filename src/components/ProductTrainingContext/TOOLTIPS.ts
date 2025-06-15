@@ -132,8 +132,8 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [SCAN_TEST_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.scanTestTooltip.part1', isBold: false},
-            {text: 'productTrainingTooltip.scanTestTooltip.part2', isBold: true},
+            {text: 'productTrainingTooltip.scanTestTooltip.part1', isBold: true},
+            {text: 'productTrainingTooltip.scanTestTooltip.part2', isBold: false},
         ],
         onHideTooltip: () => dismissProductTraining(SCAN_TEST_TOOLTIP),
         name: SCAN_TEST_TOOLTIP,
