@@ -22,6 +22,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
+import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {toLocaleOrdinal} from './LocaleDigitUtils';
@@ -170,12 +171,14 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
  * appears inside the report action message so as to identify attachments with identical source inside a report action.
  */
 function getHtmlWithAttachmentID(html: string, reportActionID: string | undefined) {
-    if (!reportActionID) {
+    const {sourceURL} = getAttachmentDetails(html);
+    const attachmentID = sourceURL?.match(CONST.REGEX.ATTACHMENT_SOURCE_ID)?.[1];
+    if (attachmentID) {
         return html;
     }
 
-    let attachmentID = 0;
-    return html.replace(/<img |<video /g, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++attachmentID}" `));
+    let index = 0;
+    return html.replace(/<img |<video /g, (m) => m.concat(`${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}_${++index}" `));
 }
 
 function getReportActionMessage(reportAction: PartialReportAction) {
