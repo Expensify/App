@@ -205,6 +205,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         return '';
     }, [accountManagerReportID, accountManagerReport, personalDetails, translate]);
 
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportIDFromRoute}`, {canBeMissing: true});
+
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
      * passing in only the required props.
@@ -221,6 +223,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                       reportID: reportIDFromRoute,
                       parentReportID: parentReportIDFromRoute,
                       parentReportActionID: parentReportActionIDFromRoute,
+                      policyID: parentReport?.policyID,
+                      type: CONST.REPORT.TYPE.CHAT,
                   } as OnyxTypes.Report)
                 : reportOnyx && {
                       lastReadTime: reportOnyx.lastReadTime,
@@ -263,7 +267,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                       invoiceReceiver: reportOnyx.invoiceReceiver,
                       policyAvatar: reportOnyx.policyAvatar,
                   },
-        [parentReportIDFromRoute, parentReportActionIDFromRoute, reportIDFromRoute, reportOnyx, reportNameValuePairsOnyx?.private_isArchived, permissions],
+        [parentReportIDFromRoute, parentReportActionIDFromRoute, reportOnyx, reportIDFromRoute, parentReport?.policyID, reportNameValuePairsOnyx?.private_isArchived, permissions],
     );
     const reportID = report?.reportID;
 
@@ -314,7 +318,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? parentReport?.policyID}`];
     const isTopMostReportId = currentReportIDValue?.currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
     const isTransactionThreadView = isReportTransactionThread(report);
