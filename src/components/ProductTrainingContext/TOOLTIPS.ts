@@ -1,7 +1,13 @@
+import React, {useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
+// import type {TranslationPaths} from '@src/languages/types';
+import RenderHTML from '@components/RenderHTML';
+import useLocalize from '@hooks/useLocalize';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+
+type RenderHTML = /*unresolved*/ any;
 
 const {
     CONCIERGE_LHN_GBR,
@@ -29,8 +35,10 @@ type ShouldShowConditionProps = {
     hasBeenAddedToNudgeMigration: boolean;
 };
 
+type TooltipContentItem = {text: TranslationPaths; isBold: boolean} | {text: () => React.ReactNode};
+
 type TooltipData = {
-    content: Array<{text: TranslationPaths; isBold: boolean}>;
+    content: TooltipContentItem[];
     onHideTooltip: (isDismissedUsingCloseButton?: boolean) => void;
     name: ProductTrainingTooltipName;
     priority: number;
@@ -171,12 +179,17 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(OUTSTANDING_FILTER),
         name: OUTSTANDING_FILTER,
         priority: 1925,
-        shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
+        shouldShow: () => true,
     },
     [SCAN_TEST_DRIVE_CONFIRMATION]: {
         content: [
-            {text: 'productTrainingTooltip.scanTestDriveTooltip.part1', isBold: false},
-            {text: 'productTrainingTooltip.scanTestDriveTooltip.part2', isBold: true},
+            {
+                // This will be rendered as HTML using the translation key
+                text: () => {
+                    const {translate} = useLocalize();
+                    return React.createElement(RenderHTML, {html: translate('productTrainingTooltip.scanTestDriveTooltip')});
+                },
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_DRIVE_CONFIRMATION, isDismissedUsingCloseButton),
         name: SCAN_TEST_DRIVE_CONFIRMATION,
