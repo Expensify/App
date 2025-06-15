@@ -61,6 +61,8 @@ type ReportActionsViewProps = {
 
     /** If the report has older actions to load */
     hasOlderActions: boolean;
+
+    isReportTransactionThread?: boolean;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -73,6 +75,7 @@ function ReportActionsView({
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
+    isReportTransactionThread,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -130,6 +133,12 @@ function ReportActionsView({
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
         if (!isMoneyRequestReport(report) || !allReportActions?.length) {
+            if (!allReportActions?.length && isReportTransactionThread) {
+                const optimisticCreatedReportAction = buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_EMAIL_FAKE);
+                optimisticCreatedReportAction.pendingAction = null;
+                return [optimisticCreatedReportAction];
+            }
+
             return allReportActions;
         }
 
@@ -196,13 +205,15 @@ function ReportActionsView({
     const canPerformWriteAction = canUserPerformWriteAction(report);
     const visibleReportActions = useMemo(
         () =>
-            reportActions.filter(
-                (reportAction) =>
-                    (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
-                    shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction) &&
-                    isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs),
-            ),
-        [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
+            isReportTransactionThread
+                ? reportActions
+                : reportActions.filter(
+                      (reportAction) =>
+                          (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
+                          shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction) &&
+                          isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs),
+                  ),
+        [isReportTransactionThread, reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
     );
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);

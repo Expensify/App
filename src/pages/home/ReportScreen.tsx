@@ -135,6 +135,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {translate} = useLocalize();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const reportActionIDFromRoute = route?.params?.reportActionID;
+    const parentReportIDFromRoute = route?.params?.parentReportID;
+    const parentReportActionIDFromRoute = route?.params?.parentReportActionID;
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const firstRenderRef = useRef(true);
@@ -155,9 +157,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: false});
-    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportOnyx?.parentReportID)}`, {
+    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportOnyx?.parentReportID ?? parentReportIDFromRoute)}`, {
         canEvict: false,
-        selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID),
+        selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID ?? parentReportActionIDFromRoute),
         canBeMissing: true,
     });
     const deletedParentAction = isDeletedParentAction(parentReportAction);
@@ -213,48 +215,55 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
      */
     const report = useMemo(
         () =>
-            reportOnyx && {
-                lastReadTime: reportOnyx.lastReadTime,
-                reportID: reportOnyx.reportID,
-                policyID: reportOnyx.policyID,
-                lastVisibleActionCreated: reportOnyx.lastVisibleActionCreated,
-                statusNum: reportOnyx.statusNum,
-                stateNum: reportOnyx.stateNum,
-                writeCapability: reportOnyx.writeCapability,
-                type: reportOnyx.type,
-                errorFields: reportOnyx.errorFields,
-                parentReportID: reportOnyx.parentReportID,
-                parentReportActionID: reportOnyx.parentReportActionID,
-                chatType: reportOnyx.chatType,
-                pendingFields: reportOnyx.pendingFields,
-                isDeletedParentAction: reportOnyx.isDeletedParentAction,
-                reportName: reportOnyx.reportName,
-                description: reportOnyx.description,
-                managerID: reportOnyx.managerID,
-                total: reportOnyx.total,
-                nonReimbursableTotal: reportOnyx.nonReimbursableTotal,
-                fieldList: reportOnyx.fieldList,
-                ownerAccountID: reportOnyx.ownerAccountID,
-                currency: reportOnyx.currency,
-                unheldTotal: reportOnyx.unheldTotal,
-                unheldNonReimbursableTotal: reportOnyx.unheldNonReimbursableTotal,
-                participants: reportOnyx.participants,
-                isWaitingOnBankAccount: reportOnyx.isWaitingOnBankAccount,
-                iouReportID: reportOnyx.iouReportID,
-                isOwnPolicyExpenseChat: reportOnyx.isOwnPolicyExpenseChat,
-                isPinned: reportOnyx.isPinned,
-                chatReportID: reportOnyx.chatReportID,
-                visibility: reportOnyx.visibility,
-                oldPolicyName: reportOnyx.oldPolicyName,
-                policyName: reportOnyx.policyName,
-                private_isArchived: reportNameValuePairsOnyx?.private_isArchived,
-                lastMentionedTime: reportOnyx.lastMentionedTime,
-                avatarUrl: reportOnyx.avatarUrl,
-                permissions,
-                invoiceReceiver: reportOnyx.invoiceReceiver,
-                policyAvatar: reportOnyx.policyAvatar,
-            },
-        [reportOnyx, reportNameValuePairsOnyx, permissions],
+            parentReportIDFromRoute && parentReportActionIDFromRoute
+                ? ({
+                      ...reportOnyx,
+                      reportID: reportIDFromRoute,
+                      parentReportID: parentReportIDFromRoute,
+                      parentReportActionID: parentReportActionIDFromRoute,
+                  } as OnyxTypes.Report)
+                : reportOnyx && {
+                      lastReadTime: reportOnyx.lastReadTime,
+                      reportID: reportOnyx.reportID,
+                      policyID: reportOnyx.policyID,
+                      lastVisibleActionCreated: reportOnyx.lastVisibleActionCreated,
+                      statusNum: reportOnyx.statusNum,
+                      stateNum: reportOnyx.stateNum,
+                      writeCapability: reportOnyx.writeCapability,
+                      type: reportOnyx.type,
+                      errorFields: reportOnyx.errorFields,
+                      parentReportID: reportOnyx.parentReportID,
+                      parentReportActionID: reportOnyx.parentReportActionID,
+                      chatType: reportOnyx.chatType,
+                      pendingFields: reportOnyx.pendingFields,
+                      isDeletedParentAction: reportOnyx.isDeletedParentAction,
+                      reportName: reportOnyx.reportName,
+                      description: reportOnyx.description,
+                      managerID: reportOnyx.managerID,
+                      total: reportOnyx.total,
+                      nonReimbursableTotal: reportOnyx.nonReimbursableTotal,
+                      fieldList: reportOnyx.fieldList,
+                      ownerAccountID: reportOnyx.ownerAccountID,
+                      currency: reportOnyx.currency,
+                      unheldTotal: reportOnyx.unheldTotal,
+                      unheldNonReimbursableTotal: reportOnyx.unheldNonReimbursableTotal,
+                      participants: reportOnyx.participants,
+                      isWaitingOnBankAccount: reportOnyx.isWaitingOnBankAccount,
+                      iouReportID: reportOnyx.iouReportID,
+                      isOwnPolicyExpenseChat: reportOnyx.isOwnPolicyExpenseChat,
+                      isPinned: reportOnyx.isPinned,
+                      chatReportID: reportOnyx.chatReportID,
+                      visibility: reportOnyx.visibility,
+                      oldPolicyName: reportOnyx.oldPolicyName,
+                      policyName: reportOnyx.policyName,
+                      private_isArchived: reportNameValuePairsOnyx?.private_isArchived,
+                      lastMentionedTime: reportOnyx.lastMentionedTime,
+                      avatarUrl: reportOnyx.avatarUrl,
+                      permissions,
+                      invoiceReceiver: reportOnyx.invoiceReceiver,
+                      policyAvatar: reportOnyx.policyAvatar,
+                  },
+        [parentReportIDFromRoute, parentReportActionIDFromRoute, reportIDFromRoute, reportOnyx, reportNameValuePairsOnyx?.private_isArchived, permissions],
     );
     const reportID = report?.reportID;
 
@@ -819,15 +828,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 testID="report-actions-view-wrapper"
                             >
                                 {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
-                                {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                {!shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
-                                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+                                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions && !isTransactionThreadView}
                                         hasNewerActions={hasNewerActions}
                                         hasOlderActions={hasOlderActions}
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
+                                        isReportTransactionThread={isTransactionThreadView}
                                     />
                                 ) : null}
                                 {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
