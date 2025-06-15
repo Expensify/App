@@ -85,7 +85,7 @@ function CloseAccountPage() {
                 // Phone number comparison - normalize to E.164
                 const storedE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(userEmailOrPhone));
                 const inputE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(values.phoneOrEmail));
-                
+
                 // Only compare if both numbers could be formatted to E.164
                 if (storedE164Phone && inputE164Phone) {
                     isValid = storedE164Phone === inputE164Phone;
