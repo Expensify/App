@@ -2,10 +2,10 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
+import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import DropZoneUI from '@components/DropZoneUI';
+import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -36,6 +36,7 @@ import Performance from '@libs/Performance';
 import {generateReportID, getBankAccountRoute, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, isScanRequest} from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
 import {
     checkIfScanFileCanBeRead,
@@ -1040,7 +1041,7 @@ function IOURequestStepConfirmation({
                     {PDFThumbnailView}
                     {/* TODO: remove beta check after the feature is enabled */}
                     {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
-                        <DropZoneUI
+                        <DragAndDropConsumer
                             onDrop={(e) => {
                                 const file = e?.dataTransfer?.files[0];
                                 if (file) {
@@ -1048,12 +1049,15 @@ function IOURequestStepConfirmation({
                                     setReceiptOnDrop(file);
                                 }
                             }}
-                            icon={Expensicons.ReplaceReceipt}
-                            dropStyles={styles.receiptDropOverlay}
-                            dropTitle={translate('dropzone.replaceReceipt')}
-                            dropTextStyles={styles.receiptDropText}
-                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper}
-                        />
+                        >
+                            <DropZoneUI
+                                icon={Expensicons.ReplaceReceipt}
+                                dropStyles={styles.receiptDropOverlay(true)}
+                                dropTitle={translate('dropzone.replaceReceipt')}
+                                dropTextStyles={styles.receiptDropText}
+                                dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                            />
+                        </DragAndDropConsumer>
                     ) : (
                         <ReceiptDropUI
                             onDrop={(e) => {

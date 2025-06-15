@@ -6,6 +6,7 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectableListItem from '@components/SelectionList/SelectableListItem';
 import useLocalize from '@hooks/useLocalize';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
+import getMatchScore from '@libs/getMatchScore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CurrencyListItem, CurrencySelectionListProps} from './types';
@@ -20,7 +21,7 @@ function CurrencySelectionList({
     excludedCurrencies = [],
     ...restProps
 }: CurrencySelectionListProps) {
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
     const getUnselectedOptions = useCallback((options: CurrencyListItem[]) => options.filter((option) => !option.isSelected), []);
@@ -54,7 +55,10 @@ function CurrencySelectionList({
             : [];
 
         const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim()), 'i');
-        const filteredCurrencies = currencyOptions.filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName));
+        const filteredCurrencies = currencyOptions
+            .filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName))
+            .sort((currency1, currency2) => getMatchScore(currency2.text ?? '', searchValue) - getMatchScore(currency1.text ?? '', searchValue));
+
         const isEmpty = searchValue.trim() && !filteredCurrencies.length;
         const shouldDisplayRecentlyOptions = !isEmptyObject(recentlyUsedCurrencyOptions) && !searchValue;
         const selectedOptions = filteredCurrencies.filter((option) => option.isSelected);

@@ -11515,11 +11515,21 @@ function getTestBuildMessage(appPr, mobileExpensifyPr) {
             acc[platform] = { link: 'N/A', qrCode: 'N/A' };
             return acc;
         }
-        const isSuccess = input === 'success';
-        const link = isSuccess ? core.getInput(`${platform}_LINK`) : '❌ FAILED ❌';
-        const qrCode = isSuccess
-            ? `![${names[platform]}](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${link})`
-            : `The QR code can't be generated, because the ${names[platform]} build failed`;
+        let link = '';
+        let qrCode = '';
+        switch (input) {
+            case 'success':
+                link = core.getInput(`${platform}_LINK`);
+                qrCode = `![${names[platform]}](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${link})`;
+                break;
+            case 'skipped':
+                link = '⏩ SKIPPED ⏩';
+                qrCode = `The build for ${names[platform]} was skipped`;
+                break;
+            default:
+                link = '❌ FAILED ❌';
+                qrCode = `The QR code can't be generated, because the ${names[platform]} build failed`;
+        }
         acc[platform] = {
             link,
             qrCode,
@@ -11532,12 +11542,12 @@ Built from${appPr ? ` App PR Expensify/App#${appPr}` : ''}${mobileExpensifyPr ? 
 | ------------- | ------------- |
 | ${result.ANDROID.link}  | ${result.IOS.link}  |
 | ${result.ANDROID.qrCode}  | ${result.IOS.qrCode}  |
-${appPr
-        ? `\n| Desktop :computer: | Web :spider_web: |
+
+| Desktop :computer: | Web :spider_web: |
 | ------------- | ------------- |
 | ${result.DESKTOP.link}  | ${result.WEB.link}  |
-| ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |\n`
-        : ''}
+| ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |
+
 ---
 
 :eyes: [View the workflow run that generated this build](https://github.com/${github_1.context.repo.owner}/${github_1.context.repo.repo}/actions/runs/${github_1.context.runId}) :eyes:
@@ -11632,12 +11642,7 @@ const CONST = {
     EVENTS: {
         ISSUE_COMMENT: 'issue_comment',
     },
-    OPENAI_ROLES: {
-        USER: 'user',
-        ASSISTANT: 'assistant',
-    },
     PROPOSAL_KEYWORD: 'Proposal',
-    OPENAI_THREAD_COMPLETED: 'completed',
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
     ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
@@ -11648,8 +11653,6 @@ const CONST = {
     NO_ACTION: 'NO_ACTION',
     ACTION_EDIT: 'ACTION_EDIT',
     ACTION_REQUIRED: 'ACTION_REQUIRED',
-    OPENAI_POLL_RATE: 1500,
-    OPENAI_POLL_TIMEOUT: 90000,
 };
 exports["default"] = CONST;
 

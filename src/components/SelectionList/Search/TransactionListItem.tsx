@@ -57,8 +57,12 @@ function TransactionListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
-    const dateColumnSize = useMemo(() => {
-        return transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
+        return {
+            amountColumnSize: transactionItem.isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            taxAmountColumnSize: transactionItem.isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            dateColumnSize: transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+        };
     }, [transactionItem]);
 
     const columns = useMemo(
@@ -122,6 +126,8 @@ function TransactionListItem<TItem extends ListItem>({
                         isActionLoading={isLoading ?? transactionItem.isActionLoading}
                         isSelected={!!transactionItem.isSelected}
                         dateColumnSize={dateColumnSize}
+                        amountColumnSize={amountColumnSize}
+                        taxAmountColumnSize={taxAmountColumnSize}
                         shouldShowCheckbox={!!canSelectMultiple}
                     />
                 </>
