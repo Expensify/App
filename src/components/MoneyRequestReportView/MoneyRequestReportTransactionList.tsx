@@ -203,7 +203,9 @@ function MoneyRequestReportTransactionList({
             const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
             setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs);
 
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo, parentReportID: activeTransaction.reportID, parentReportActionID: iouAction?.reportActionID}));
+            Navigation.navigate(
+                ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo, parentReportID: activeTransaction.reportID, parentReportActionID: iouAction?.reportActionID}),
+            );
         },
         [reportActions, sortedTransactions],
     );

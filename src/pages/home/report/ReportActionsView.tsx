@@ -185,7 +185,7 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-    }, [allReportActions, report, transactionThreadReport, reportPreviewAction]);
+    }, [report, allReportActions, reportPreviewAction?.childMoneyRequestCount, transactionThreadReport, isReportTransactionThread]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
