@@ -10,6 +10,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobileChrome} from '@libs/Browser';
 import {parseFSAttributes} from '@libs/Fullstory';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -374,7 +375,7 @@ function FeatureTrainingModal({
             }}
         >
             <Wrapper
-                style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width)]}
+                style={[onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), shouldUseScrollView && isMobileChrome() && {maxHeight: '100dvh'}]}
                 contentContainerStyle={shouldUseScrollView ? styles.pb5 : undefined}
                 keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
                 fsClass={CONST.FULL_STORY.UNMASK}

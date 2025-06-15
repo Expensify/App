@@ -16,6 +16,9 @@ type KeyboardStateContextValue = {
     /** Height of the keyboard in pixels */
     keyboardHeight: number;
 
+    /** Future or present height of the keyboard in pixels. Available together with isKeyboardActive. */
+    keyboardActiveHeight: number;
+
     /** Ref to check if the keyboard is animating */
     isKeyboardAnimatingRef: MutableRefObject<boolean>;
 };
@@ -24,12 +27,14 @@ const KeyboardStateContext = createContext<KeyboardStateContextValue>({
     isKeyboardShown: false,
     isKeyboardActive: false,
     keyboardHeight: 0,
+    keyboardActiveHeight: 0,
     isKeyboardAnimatingRef: {current: false},
 });
 
 function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
     const {bottom} = useSafeAreaInsets();
     const [keyboardHeight, setKeyboardHeight] = useState(0);
+    const [keyboardActiveHeight, setKeyboardActiveHeight] = useState(0);
     const isKeyboardAnimatingRef = useRef(false);
     const [isKeyboardActive, setIsKeyboardActive] = useState(false);
 
@@ -42,11 +47,13 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
             setKeyboardHeight(0);
             setIsKeyboardActive(false);
         });
-        const keyboardWillShowListener = KeyboardEvents.addListener('keyboardWillShow', () => {
+        const keyboardWillShowListener = KeyboardEvents.addListener('keyboardWillShow', (e) => {
             setIsKeyboardActive(true);
+            setKeyboardActiveHeight(e.height);
         });
         const keyboardWillHideListener = KeyboardEvents.addListener('keyboardWillHide', () => {
             setIsKeyboardActive(false);
+            setKeyboardActiveHeight(0);
         });
 
         return () => {
@@ -80,11 +87,12 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
     const contextValue = useMemo(
         () => ({
             keyboardHeight,
+            keyboardActiveHeight,
             isKeyboardShown: keyboardHeight !== 0,
             isKeyboardAnimatingRef,
             isKeyboardActive,
         }),
-        [isKeyboardActive, keyboardHeight],
+        [isKeyboardActive, keyboardActiveHeight, keyboardHeight],
     );
     return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
 }
