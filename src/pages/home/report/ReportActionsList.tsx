@@ -168,6 +168,18 @@ function ReportActionsList({
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
+
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`, {canBeMissing: false});
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
+        {canBeMissing: true},
+    );
+    const [invoiceReceiverPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetails) =>
+            personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
+        canBeMissing: true,
+    });
+
     const participantsContext = useContext(PersonalDetailsContext);
 
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
@@ -584,6 +596,7 @@ function ReportActionsList({
                     parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                     index={index}
                     report={report}
+                    chatReport={chatReport}
                     transactionThreadReport={transactionThreadReport}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={
@@ -596,12 +609,15 @@ function ReportActionsList({
                     shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                    invoiceReceiverPolicy={invoiceReceiverPolicy}
+                    invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
                 />
             );
         },
         [
             report,
             allReports,
+            chatReport,
             linkedReportActionID,
             sortedVisibleReportActions,
             mostRecentIOUReportActionID,
@@ -613,6 +629,8 @@ function ReportActionsList({
             shouldUseThreadDividerLine,
             firstVisibleReportActionID,
             unreadMarkerReportActionID,
+            invoiceReceiverPolicy,
+            invoiceReceiverPersonalDetail
         ],
     );
 

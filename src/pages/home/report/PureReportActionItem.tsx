@@ -188,6 +188,9 @@ type PureReportActionItemProps = {
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    /** The associated chatReport */
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+
     /** Policy for this action */
     policy?: OnyxEntry<OnyxTypes.Policy>;
 
@@ -358,6 +361,12 @@ type PureReportActionItemProps = {
 
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
+
+    /** Invoice receiver policy for the chat report */
+    invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Invoice receiver personal details for the chat report */
+    invoiceReceiverPersonalDetail: OnyxEntry<OnyxTypes.PersonalDetails>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -374,6 +383,7 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 function PureReportActionItem({
     action,
     report,
+    chatReport,
     policy,
     transactionThreadReport,
     linkedReportActionID,
@@ -422,6 +432,8 @@ function PureReportActionItem({
     userBillingFundID,
     policies,
     shouldShowBorder,
+    invoiceReceiverPolicy,
+    invoiceReceiverPersonalDetail,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -912,7 +924,7 @@ function PureReportActionItem({
                 <MoneyRequestReportPreview
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
                     policyID={report?.policyID}
-                    chatReportID={reportID}
+                    chatReport={chatReport}
                     action={action}
                     contextMenuAnchor={popoverAnchorRef.current}
                     isHovered={hovered}
@@ -923,6 +935,8 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
                     shouldShowBorder={shouldShowBorder}
+                    invoiceReceiverPolicy={invoiceReceiverPolicy}
+                    invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
                 />
             );
         } else if (isTaskAction(action)) {

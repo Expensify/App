@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -28,6 +28,9 @@ type ReportActionsListItemRendererProps = {
 
     /** Report for this action */
     report: OnyxEntry<Report>;
+
+    /** The associated chatReport */
+    chatReport: OnyxEntry<Report>;
 
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport: OnyxEntry<Report>;
@@ -55,6 +58,12 @@ type ReportActionsListItemRendererProps = {
 
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
+
+    /** Invoice receiver policy for the chat report */
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
+
+    /** Invoice receiver personal details for the chat report */
+    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;
 };
 
 function ReportActionsListItemRenderer({
@@ -64,6 +73,7 @@ function ReportActionsListItemRenderer({
     parentReportAction,
     index,
     report,
+    chatReport,
     transactionThreadReport,
     displayAsGroup,
     mostRecentIOUReportActionID = '',
@@ -74,6 +84,8 @@ function ReportActionsListItemRenderer({
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
     parentReportActionForTransactionThread,
+    invoiceReceiverPolicy,
+    invoiceReceiverPersonalDetail,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -157,11 +169,14 @@ function ReportActionsListItemRenderer({
                 parentReportAction={parentReportAction}
                 reportID={report.reportID}
                 report={report}
+                chatReport={chatReport}
                 reportActions={reportActions}
                 transactionThreadReport={transactionThreadReport}
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                invoiceReceiverPolicy={invoiceReceiverPolicy}
+                invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             />
         );
     }
@@ -172,6 +187,7 @@ function ReportActionsListItemRenderer({
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             parentReportAction={parentReportAction}
             report={report}
+            chatReport={chatReport}
             transactionThreadReport={transactionThreadReport}
             parentReportActionForTransactionThread={parentReportActionForTransactionThread}
             action={action}
@@ -193,6 +209,8 @@ function ReportActionsListItemRenderer({
             index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+            invoiceReceiverPolicy={invoiceReceiverPolicy}
+            invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
         />
     );
 }

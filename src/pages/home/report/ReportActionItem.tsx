@@ -40,7 +40,7 @@ type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'lin
     shouldShowDraftMessage?: boolean;
 };
 
-function ReportActionItem({allReports, action, report, shouldShowDraftMessage = true, ...props}: ReportActionItemProps) {
+function ReportActionItem({allReports, action, report, chatReport, shouldShowDraftMessage = true, ...props}: ReportActionItemProps) {
     const reportID = report?.reportID;
     const originalMessage = getOriginalMessage(action);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -88,6 +88,7 @@ function ReportActionItem({allReports, action, report, shouldShowDraftMessage = 
             {...props}
             action={action}
             report={report}
+            chatReport={chatReport}
             policy={policy}
             draftMessage={draftMessage}
             iouReport={iouReport}

@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import usePolicy from '@hooks/usePolicy';
@@ -16,7 +15,6 @@ import Navigation from '@navigation/Navigation';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
@@ -25,7 +23,7 @@ import type {MoneyRequestReportPreviewProps} from './types';
 function MoneyRequestReportPreview({
     iouReportID,
     policyID,
-    chatReportID,
+    chatReport,
     action,
     contextMenuAnchor,
     isHovered = false,
@@ -36,20 +34,12 @@ function MoneyRequestReportPreview({
     shouldDisplayContextMenu = true,
     isInvoice = false,
     shouldShowBorder,
+    invoiceReceiverPolicy,
+    invoiceReceiverPersonalDetail,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
-    const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
-        {canBeMissing: true},
-    );
-    const [invoiceReceiverPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetails) =>
-            personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
-        canBeMissing: true,
-    });
     const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
@@ -85,7 +75,7 @@ function MoneyRequestReportPreview({
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
-            chatReportID={chatReportID}
+            chatReportID={chatReport?.reportID}
             action={getIOUActionForReportID(item.reportID, item.transactionID)}
             contextAction={action}
             reportID={item.reportID}
@@ -108,7 +98,7 @@ function MoneyRequestReportPreview({
     return (
         <MoneyRequestReportPreviewContent
             iouReportID={iouReportID}
-            chatReportID={chatReportID}
+            chatReportID={chatReport?.reportID}
             iouReport={iouReport}
             chatReport={chatReport}
             action={action}

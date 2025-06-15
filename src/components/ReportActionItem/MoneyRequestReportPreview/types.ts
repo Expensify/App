@@ -24,8 +24,11 @@ type MoneyRequestReportPreviewProps = {
     /** All the data of the action */
     action: ReportAction;
 
+    /** The associated chatReport id */
+    chatReportID?: string | undefined
+
     /** The associated chatReport */
-    chatReportID: string | undefined;
+    chatReport: OnyxEntry<Report>;
 
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
@@ -56,6 +59,12 @@ type MoneyRequestReportPreviewProps = {
 
     /** Whether to show a border to separate Reports Chat Item and Money Request Report Preview */
     shouldShowBorder?: boolean;
+
+    /** Invoice receiver policy for the chat report */
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
+
+    /** Invoice receiver personal details for the chat report */
+    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {

@@ -40,6 +40,9 @@ type ReportActionItemParentActionProps = {
     /** The current report is displayed */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    /** The associated chatReport */
+    chatReport: OnyxEntry<OnyxTypes.Report>;
+
     /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
@@ -57,11 +60,18 @@ type ReportActionItemParentActionProps = {
 
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
+
+    /** Invoice receiver policy for the chat report */
+    invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Invoice receiver personal details for the chat report */
+    invoiceReceiverPersonalDetail: OnyxEntry<OnyxTypes.PersonalDetails>;
 };
 
 function ReportActionItemParentAction({
     allReports,
     report,
+    chatReport,
     transactionThreadReport,
     reportActions,
     parentReportAction,
@@ -70,6 +80,8 @@ function ReportActionItemParentAction({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
+    invoiceReceiverPolicy,
+    invoiceReceiverPersonalDetail,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
@@ -145,6 +157,7 @@ function ReportActionItemParentAction({
                             }
                             parentReportAction={parentReportAction}
                             report={ancestor.report}
+                            chatReport={chatReport}
                             reportActions={reportActions}
                             transactionThreadReport={transactionThreadReport}
                             action={ancestor.reportAction}
@@ -155,6 +168,8 @@ function ReportActionItemParentAction({
                             isFirstVisibleReportAction={isFirstVisibleReportAction}
                             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                             isThreadReportParentAction
+                            invoiceReceiverPolicy={invoiceReceiverPolicy}
+                            invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
                         />
                     </OfflineWithFeedback>
                 );
