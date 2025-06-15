@@ -13,6 +13,61 @@ type Pnr = {
     data: PnrData;
 };
 
+/**
+ *
+ */
+type PnrTraveler = {
+    /** User ID associated with the traveler. */
+    userId: {
+        /** ID of the user. */
+        id: string;
+    };
+
+    /** Traveler-specific information. */
+    travelerInfo: Record<string, unknown>;
+
+    /** Personal information of the traveler. */
+    personalInfo: {
+        /** Addresses of the traveler. */
+        addresses: unknown[];
+
+        /** Phone numbers of the traveler. */
+        phoneNumbers: unknown[];
+
+        /** Email of the traveler. */
+        email: string;
+
+        /** Name details of the traveler. */
+        name: {
+            /** Family name part 1. */
+            family1: string;
+            /** Family name part 2. */
+            family2: string;
+            /** Given name. */
+            given: string;
+            /** Middle name. */
+            middle: string;
+            /** Preferred name. */
+            preferred: string;
+        };
+    };
+
+    /** Loyalty information for the traveler. */
+    loyalties: unknown[];
+
+    /** Persona of the traveler (e.g., EMPLOYEE, GUEST). */
+    persona: string;
+
+    /** Business information of the traveler. */
+    businessInfo: {
+        /** Attributes specified by the company. */
+        companySpecifiedAttributes: unknown[];
+    };
+
+    /** Tier of the traveler (e.g., loyalty tier). */
+    tier: string;
+};
+
 /** Represents the structure of PnrData. */
 type PnrData = {
     /** Version of the PNR data. */
@@ -73,57 +128,7 @@ type PnrData = {
     }>;
 
     /** List of PNR travelers. */
-    pnrTravelers: Array<{
-        /** User ID associated with the traveler. */
-        userId: {
-            /** ID of the user. */
-            id: string;
-        };
-
-        /** Traveler-specific information. */
-        travelerInfo: Record<string, unknown>;
-
-        /** Personal information of the traveler. */
-        personalInfo: {
-            /** Addresses of the traveler. */
-            addresses: unknown[];
-
-            /** Phone numbers of the traveler. */
-            phoneNumbers: unknown[];
-
-            /** Email of the traveler. */
-            email: string;
-
-            /** Name details of the traveler. */
-            name: {
-                /** Family name part 1. */
-                family1: string;
-                /** Family name part 2. */
-                family2: string;
-                /** Given name. */
-                given: string;
-                /** Middle name. */
-                middle: string;
-                /** Preferred name. */
-                preferred: string;
-            };
-        };
-
-        /** Loyalty information for the traveler. */
-        loyalties: unknown[];
-
-        /** Persona of the traveler (e.g., EMPLOYEE, GUEST). */
-        persona: string;
-
-        /** Business information of the traveler. */
-        businessInfo: {
-            /** Attributes specified by the company. */
-            companySpecifiedAttributes: unknown[];
-        };
-
-        /** Tier of the traveler (e.g., loyalty tier). */
-        tier: string;
-    }>;
+    pnrTravelers: PnrTraveler[];
 
     /** List of transactions associated with the PNR. */
     transactions: Array<{
@@ -144,22 +149,22 @@ type PnrData = {
     }>;
 
     /** Air PNR information. */
-    airPnr: AirPnr;
+    airPnr?: AirPnr;
 
     /** Hotel PNR information. */
-    hotelPnr: HotelPnr;
+    hotelPnr?: HotelPnr;
 
     /** Car PNR information. */
-    carPnr: CarPnr;
+    carPnr?: CarPnr;
 
     /** Rail PNR information. */
-    railPnr: RailPnr;
+    railPnr?: RailPnr;
 
     /** Limo PNR information. */
-    limoPnr: LimoPnr;
+    limoPnr?: LimoPnr;
 
     /** Miscellaneous PNR information. */
-    miscPnr: MiscPnr;
+    miscPnr?: MiscPnr;
 
     /** Additional metadata for the PNR. */
     additionalMetadata: {
@@ -2245,4 +2250,4 @@ type MiscPnr = {
     sourceStatus: string;
 };
 
-export type {TripData, PnrData, AirPnr, HotelPnr, CarPnr, RailPnr, LimoPnr, MiscPnr};
+export type {TripData, Pnr, PnrTraveler, PnrData, AirPnr, HotelPnr, CarPnr, RailPnr, LimoPnr, MiscPnr};

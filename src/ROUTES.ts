@@ -1941,7 +1941,7 @@ const ROUTES = {
         route: 'r/:reportID/trip/:transactionID',
         getRoute: (reportID: string | undefined, transactionID: string | undefined, backTo?: string) => {
             if (!reportID || !transactionID) {
-                Log.warn('Invalid reportID, transactionID is used to build the TRAVEL_TRIP_SUMMARY route');
+                Log.warn('Invalid reportID or transactionID is used to build the TRAVEL_TRIP_SUMMARY route');
             }
             return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}`, backTo);
         },
