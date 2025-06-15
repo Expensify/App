@@ -1,19 +1,18 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import {PressableWithFeedback} from '@components/Pressable';
+import RenderHTML from '@components/RenderHTML';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import {getEarlyDiscountInfo} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
@@ -40,8 +39,6 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
-    const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
@@ -120,27 +117,18 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
         return null;
     }
 
-    const title = isSubscriptionPage ? (
-        <RenderHtml
-            contentWidth={windowWidth}
-            systemFonts={systemFonts}
-            source={{
-                html: translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle.full', {
-                    discountType: discountInfo?.discountType,
-                }),
-            }}
+    const title = !isSubscriptionPage ? (
+        <RenderHTML
+            html={translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle', {
+                discountType: discountInfo?.discountType,
+            })}
         />
     ) : (
         <View style={[styles.justifyContentBetween, styles.flexRow]}>
-            <RenderHtml
-                contentWidth={windowWidth}
-                systemFonts={systemFonts}
-                source={{
-                    html: translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle.full', {
-                        discountType: discountInfo?.discountType,
-                    }),
-                }}
-                baseStyle={{...styles.textStrong, ...styles.flexShrink1}}
+            <RenderHTML
+                html={`<strong>${translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle', {
+                    discountType: discountInfo?.discountType,
+                })}</strong>`}
             />
             {shouldUseNarrowLayout && dismissButton}
         </View>

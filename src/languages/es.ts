@@ -6791,12 +6791,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'Solicitar oferta',
                 noThanks: 'No, gracias',
-                subscriptionPageTitle: {
-                    full: ({discountType}: EarlyDiscountTitleParams) => `¡${discountType}% de descuento en tu primer año! ¡Solo añade una tarjeta de pago y comienza una suscripción anual!`,
-                },
-                onboardingChatTitle: {
-                    full: ({discountType}: EarlyDiscountTitleParams) => `Oferta por tiempo limitado: ¡${discountType}% de descuento en tu primer año!`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>¡${discountType}% de descuento en tu primer año!</strong> ¡Solo añade una tarjeta de pago y comienza una suscripción anual!`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Oferta por tiempo limitado: ¡${discountType}% de descuento en tu primer año!`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Solicítala en ${days > 0 ? `${days}d : ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
         },
