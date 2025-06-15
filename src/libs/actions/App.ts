@@ -20,6 +20,7 @@ import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
+import type {Locale, SupportedLanguage} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -36,8 +37,6 @@ import Timing from './Timing';
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
 };
-
-type Locale = ValueOf<typeof CONST.LOCALES>;
 
 let currentUserAccountID: number | undefined;
 let currentUserEmail: string;
@@ -62,7 +61,7 @@ Onyx.connect({
     callback: (val) => {
         preferredLocale = val;
         if (preferredLocale) {
-            importEmojiLocale(preferredLocale as Locale).then(() => {
+            importEmojiLocale(preferredLocale as SupportedLanguage).then(() => {
                 buildEmojisTrie(preferredLocale as Locale);
             });
         }

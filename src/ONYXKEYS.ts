@@ -2,6 +2,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {OnboardingCompanySize} from './CONST';
+import type {Locale} from './CONST/LOCALES';
 import type Platform from './libs/getPlatform/types';
 import type * as FormTypes from './types/form';
 import type * as OnyxTypes from './types/onyx';
@@ -1074,7 +1075,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PLAID_LINK_TOKEN]: string;
     [ONYXKEYS.ONFIDO_TOKEN]: string;
     [ONYXKEYS.ONFIDO_APPLICANT_ID]: string;
-    [ONYXKEYS.NVP_PREFERRED_LOCALE]: OnyxTypes.Locale;
+    [ONYXKEYS.NVP_PREFERRED_LOCALE]: Locale;
     [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: string;
     [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
     [ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING]: boolean;
