@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
@@ -10,6 +10,8 @@ import {
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasUpdatedTotal,
+    isInvoiceReport,
+    isMoneyRequestReport,
     isReportTransactionThread,
 } from './ReportUtils';
 
@@ -91,59 +93,18 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
     return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
 }
 
-/* This function is a legacy used for old version of MoneyReportHeader & ReportPreview, do not use it in new versions or anywhere else */
-/**
- * Determines the appropriate button type for the IOU Report Preview based on the given flags.
- *
- * @param flags - An object containing boolean flags indicating button visibility options.
- * @param flags.shouldShowSubmitButton - Flag indicating if the submit button should be shown.
- * @param flags.shouldShowExportIntegrationButton - Flag indicating if the export integration button should be shown.
- * @param flags.shouldShowRBR - Flag indicating if the RBR button should be shown.
- * @param flags.shouldShowSettlementButton - Flag indicating if the settlement button should be shown.
- * @param flags.shouldShowPayButton - Flag indicating if the pay button should be shown.
- * @param flags.shouldShowApproveButton - Flag indicating if the approve button should be shown.
- * @returns - Returns the type of button that should be displayed based on the input flags.
- */
-const getIOUReportPreviewButtonType = ({
-    shouldShowSubmitButton,
-    shouldShowExportIntegrationButton,
-    shouldShowApproveButton,
-    shouldShowSettlementButton,
-    shouldShowPayButton,
-    shouldShowRBR,
-}: {
-    shouldShowSubmitButton: boolean;
-    shouldShowExportIntegrationButton: boolean;
-    shouldShowRBR: boolean;
-    shouldShowSettlementButton: boolean;
-    shouldShowPayButton: boolean;
-    shouldShowApproveButton: boolean;
-}): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> => {
-    const shouldShowSettlementWithoutRBR = shouldShowSettlementButton && !shouldShowRBR;
-    const shouldShowSettlementOrRBR = shouldShowSettlementButton || shouldShowRBR;
-    const shouldShowSettlementOrExport = shouldShowSettlementButton || shouldShowExportIntegrationButton;
-
-    if (shouldShowSettlementWithoutRBR && shouldShowPayButton) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
-    }
-    if (shouldShowSettlementWithoutRBR && shouldShowApproveButton) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
-    }
-
-    if (!shouldShowSettlementOrRBR && shouldShowExportIntegrationButton) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
-    }
-
-    if (shouldShowRBR && !shouldShowSubmitButton && shouldShowSettlementOrExport) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
-    }
-
-    if (shouldShowSubmitButton) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
-    }
-
-    return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
-};
+function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportMetadata: OnyxEntry<ReportMetadata>) {
+    const isTransactionDataReady = transactions !== undefined;
+    const isTransactionThreadView = isReportTransactionThread(report);
+    const isStillLoadingData = !!reportMetadata?.isLoadingInitialReportActions || !!reportMetadata?.isLoadingOlderReportActions || !!reportMetadata?.isLoadingNewerReportActions;
+    return (
+        (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
+        (!isTransactionDataReady || (isStillLoadingData && transactions?.length === 0)) &&
+        !isTransactionThreadView &&
+        report?.pendingFields?.createReport !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+        !reportMetadata?.hasOnceLoadedReportActions
+    );
+}
 
 /**
  * Determines the total amount to be displayed based on the selected button type in the IOU Report Preview.
@@ -186,7 +147,7 @@ export {
     getThreadReportIDsForTransactions,
     getTotalAmountForIOUReportPreviewButton,
     selectAllTransactionsForReport,
-    getIOUReportPreviewButtonType,
     isSingleTransactionReport,
     shouldDisplayReportTableView,
+    shouldWaitForTransactions,
 };

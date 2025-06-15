@@ -93,7 +93,7 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     currency: string,
     isDeleting = false,
     isUpdating = false,
-    isOnhold = false,
+    isOnHold = false,
 ): TReport {
     // For the update case, we have calculated the diff amount in the calculateDiffAmount function so there is no need to compare currencies here
     if ((currency !== iouReport?.currency && !isUpdating) || !iouReport) {
@@ -109,12 +109,12 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
 
     if (actorAccountID === iouReport.ownerAccountID) {
         iouReportUpdate.total += isDeleting ? -amount : amount;
-        if (!isOnhold) {
+        if (!isOnHold) {
             iouReportUpdate.unheldTotal += isDeleting ? -amount : amount;
         }
     } else {
         iouReportUpdate.total += isDeleting ? amount : -amount;
-        if (!isOnhold) {
+        if (!isOnHold) {
             iouReportUpdate.unheldTotal += isDeleting ? amount : -amount;
         }
     }
@@ -148,6 +148,7 @@ function isValidMoneyRequestType(iouType: string): boolean {
         CONST.IOU.TYPE.REQUEST,
         CONST.IOU.TYPE.SUBMIT,
         CONST.IOU.TYPE.SPLIT,
+        CONST.IOU.TYPE.SPLIT_EXPENSE,
         CONST.IOU.TYPE.SEND,
         CONST.IOU.TYPE.PAY,
         CONST.IOU.TYPE.TRACK,
@@ -185,8 +186,8 @@ function isMovingTransactionFromTrackExpense(action?: IOUAction) {
     return false;
 }
 
-function shouldUseTransactionDraft(action: IOUAction | undefined) {
-    return action === CONST.IOU.ACTION.CREATE || isMovingTransactionFromTrackExpense(action);
+function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType) {
+    return action === CONST.IOU.ACTION.CREATE || type === CONST.IOU.TYPE.SPLIT_EXPENSE || isMovingTransactionFromTrackExpense(action);
 }
 
 function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: string) {

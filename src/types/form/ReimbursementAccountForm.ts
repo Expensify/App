@@ -1,4 +1,4 @@
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {Country} from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type Form from './Form';
@@ -147,6 +147,7 @@ const INPUT_IDS = {
             SIGNER_EMAIL: 'signerEmail',
             SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'signerCompleteResidentialAddress',
             SECOND_SIGNER_EMAIL: 'secondSignerEmail',
+            DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
         },
     },
 } as const;

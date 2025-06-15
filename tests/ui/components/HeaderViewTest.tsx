@@ -15,7 +15,8 @@ jest.mock('@react-navigation/native', () => {
         useRoute: () => jest.fn(),
     };
 });
-jest.mock('@components/ConfirmedRoute.tsx');
+
+jest.mock('@hooks/useCurrentUserPersonalDetails');
 
 describe('HeaderView', () => {
     afterEach(() => {
