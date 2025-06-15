@@ -10840,7 +10840,8 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
  * Returns the necessary reportAction onyx data to indicate that the transaction has been removed from the report
  * @param [created] - Action created time
  */
-function buildOptimisticRemoveReportAction(amount: string, linkToReport: string, merchant?: string, created = DateUtils.getDBTime()): OptimisticDeclineReportAction {
+function buildOptimisticRemoveReportAction(amount: string, reportID: string, merchant?: string, created = DateUtils.getDBTime()): OptimisticDeclineReportAction {
+    const linkToReport = `${environmentURL}/${ROUTES.SEARCH_REPORT.getRoute({reportID})}`;
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.DECLINEDTRANSACTION_THREAD,
