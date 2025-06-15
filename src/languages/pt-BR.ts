@@ -4430,6 +4430,18 @@ const translations = {
             editTags: 'Editar tags',
             findTag: 'Encontrar tag',
             subtitle: 'As etiquetas adicionam maneiras mais detalhadas de classificar custos.',
+            requireTag: 'Exigir tag',
+            requireTags: 'Exigir tags',
+            notRequireTags: 'Não exigir',
+
+            dependentMultiLevelTagsSubtitle: {
+                phrase1: ' Você está usando ',
+                phrase2: 'tags dependentes',
+                phrase3: '. Você pode ',
+                phrase4: 'reimportar uma planilha',
+                phrase5: ' para atualizar suas tags.',
+            },
+
             emptyTags: {
                 title: 'Voc\u00EA n\u00E3o criou nenhuma tag',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
