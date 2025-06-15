@@ -2030,7 +2030,7 @@ const translations = {
                 label: 'English',
             },
             es: {
-                label: 'Spanish',
+                label: 'Español',
             },
         },
     },
@@ -4333,6 +4333,9 @@ const translations = {
             customTagName: 'Custom tag name',
             enableTag: 'Enable tag',
             enableTags: 'Enable tags',
+            requireTag: 'Require tag',
+            requireTags: 'Require tags',
+            notRequireTags: 'Don’t require',
             disableTag: 'Disable tag',
             disableTags: 'Disable tags',
             addTag: 'Add tag',
@@ -4340,6 +4343,13 @@ const translations = {
             editTags: 'Edit tags',
             findTag: 'Find tag',
             subtitle: 'Tags add more detailed ways to classify costs.',
+            dependentMultiLevelTagsSubtitle: {
+                phrase1: ' You are using ',
+                phrase2: 'dependent tags',
+                phrase3: '. You can ',
+                phrase4: 'reimport a spreadsheet',
+                phrase5: ' to update your tags.',
+            },
             emptyTags: {
                 title: "You haven't created any tags",
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
@@ -6701,4 +6711,6 @@ const translations = {
     },
 };
 
+// IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
+// so if you change it here, please update it there as well.
 export default translations satisfies TranslationDeepObject<typeof translations>;
