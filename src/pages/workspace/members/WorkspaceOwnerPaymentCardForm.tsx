@@ -1,19 +1,18 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import type {FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import RenderHTML from '@components/RenderHTML';
 import Section, {CARD_LAYOUT} from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getMCardNumberString, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '@libs/CardUtils';
 import {clearPaymentCardFormErrorAndSubmit} from '@userActions/PaymentMethods';
 import {addBillingCardAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
@@ -28,8 +27,6 @@ type WorkspaceOwnerPaymentCardFormProps = {
 
 function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormProps) {
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
-    const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
     const theme = useTheme();
     const styles = useThemeStyles();
     const [shouldShowPaymentCardForm, setShouldShowPaymentCardForm] = useState(false);
@@ -87,15 +84,10 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
             headerContent={<Text style={[styles.textHeadline, styles.mt3, styles.mb2, styles.ph5]}>{translate('workspace.changeOwner.addPaymentCardTitle')}</Text>}
             footerContent={
                 <>
-                    <RenderHtml
-                        contentWidth={windowWidth}
-                        source={{html: translate('workspace.changeOwner.addPaymentCardReadAndAcceptText')}}
-                        systemFonts={systemFonts}
-                        tagsStyles={{
-                            a: {...styles.textMicroSupporting, ...styles.link, textDecorationLine: 'none'},
-                            body: {...styles.textMicroSupporting, ...styles.mt5},
-                        }}
-                    />
+                    <View style={[styles.textMicroSupporting, styles.mt5]}>
+                        <RenderHTML html={translate('workspace.changeOwner.addPaymentCardReadAndAcceptText')} />
+                    </View>
+
                     <Section
                         icon={Illustrations.ShieldYellow}
                         cardLayout={CARD_LAYOUT.ICON_ON_LEFT}
