@@ -84,9 +84,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
             headerContent={<Text style={[styles.textHeadline, styles.mt3, styles.mb2, styles.ph5]}>{translate('workspace.changeOwner.addPaymentCardTitle')}</Text>}
             footerContent={
                 <>
-                    <View style={[styles.textMicroSupporting, styles.mt5]}>
-                        <RenderHTML html={translate('workspace.changeOwner.addPaymentCardReadAndAcceptText')} />
-                    </View>
+                    <RenderHTML html={`<muted-text-label>${translate('workspace.changeOwner.addPaymentCardReadAndAcceptText')} </muted-text-label>`} />
 
                     <Section
                         icon={Illustrations.ShieldYellow}
