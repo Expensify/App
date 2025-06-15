@@ -1,4 +1,5 @@
 import {addDays, format, startOfDay, subYears} from 'date-fns';
+import {TextEncoder} from 'util';
 import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import {
@@ -18,6 +19,8 @@ import {
     meetsMaximumAgeRequirement,
     meetsMinimumAgeRequirement,
 } from '@src/libs/ValidationUtils';
+
+global.TextEncoder = TextEncoder;
 
 describe('ValidationUtils', () => {
     describe('isValidDate', () => {
