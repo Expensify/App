@@ -174,6 +174,7 @@ import {
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
+    buildOptimisticRemoveReportAction,
     buildOptimisticDeclineReportAction,
     buildOptimisticDeclinedReportActionComment,
 } from '@libs/ReportUtils';
@@ -11397,10 +11398,12 @@ function dismissDeclineUseExplanation() {
 
 function declineMoneyRequest(transactionID: string, reportID: string, comment: string) {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isPolicyInstantSubmit = policy ? isInstantSubmitEnabled(policy) : false;
+
+    const reportAction = getIOUActionForReportID(reportID, transactionID);
+    const childReportID = reportAction?.childReportID;
 
     const autoAddedActionReportActionID = NumberUtils.rand64();
     const removedFromReportActionID = NumberUtils.rand64();
@@ -11427,6 +11430,14 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
+    const currentUserAccountID = getCurrentUserAccountID();
+
+    console.log('Policy Instant Submit', {
+        isPolicyInstantSubmit,
+        hasMultipleExpenses,
+        accountID: reportAction?.accountID
+    });
+
     if (isPolicyInstantSubmit) {
         if (hasMultipleExpenses) {
             // For reports with multiple expenses: Update report total
@@ -11451,7 +11462,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         // 2. Remove expense from report
         // 3. Add to existing draft report or create new one
         movedToReportID = generateReportID();
-        movedToReport = buildOptimisticExpenseReport(movedToReportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, 0, transaction?.currency ?? '');
+        movedToReport = buildOptimisticExpenseReport(movedToReportID, policy?.id, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, 0, transaction?.currency ?? '');
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -11509,20 +11520,39 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 },
             ],
         });
+
+        console.log('RTER', {
+            transactionID,
+            reportID,
+            childReportID,
+            reportAction,
+            movedToReportID,
+            movedToReport,
+        })
     }
 
     // Create system messages in both expense report and expense thread
     const optimisticDeclineReportAction = buildOptimisticDeclineReportAction();
     const optimisticDeclineReportActionComment = buildOptimisticDeclinedReportActionComment(comment);
+    const optimisticRemoveReportAction = buildOptimisticRemoveReportAction(convertToDisplayString(transaction?.amount ?? 0, transaction?.currency ?? ''), `${reportID}`, transaction?.merchant ?? '');
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
         value: {
             [optimisticDeclineReportAction.reportActionID]: optimisticDeclineReportAction,
             [optimisticDeclineReportActionComment.reportActionID]: optimisticDeclineReportActionComment,
         },
     });
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: {
+            [optimisticRemoveReportAction.reportActionID]: optimisticRemoveReportAction,
+        },
+    });
+
 
     const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(optimisticDeclineReportAction.created, 1);
     optimisticData.push({
@@ -11580,9 +11610,7 @@ function markDeclineViolationAsResolved(transactionID: string) {
                     message: [
                         {
                             type: 'TEXT',
-                            text: Localize.translateLocal('iou.decline.reportActions.markedAsResolved', {
-                                user: currentUser,
-                            }),
+                            text: Localize.translateLocal('iou.decline.reportActions.markedAsResolved'),
                         },
                     ],
                     person: [

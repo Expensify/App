@@ -10837,6 +10837,41 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
 }
 
 /**
+ * Returns the necessary reportAction onyx data to indicate that the transaction has been removed from the report
+ * @param [created] - Action created time
+ */
+function buildOptimisticRemoveReportAction(amount: string, linkToReport: string, merchant?: string, created = DateUtils.getDBTime()): OptimisticDeclineReportAction {
+    return {
+        reportActionID: rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.DECLINEDTRANSACTION_THREAD,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: translateLocal('iou.decline.reportActions.removedFromReport', {
+                    amount,
+                    merchant,
+                    linkToReport
+                }),
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+            },
+        ],
+        automatic: false,
+        avatar: getCurrentUserAvatar(),
+        created,
+        shouldShow: true,
+    };
+}
+
+/**
  * Returns the necessary reportAction onyx data to indicate that the transaction has been declined optimistically
  * @param [created] - Action created time
  */
@@ -10938,6 +10973,7 @@ export {
     buildOptimisticWorkspaceChats,
     buildOptimisticCardAssignedReportAction,
     buildOptimisticDetachReceipt,
+    buildOptimisticRemoveReportAction,
     buildOptimisticDeclineReportAction,
     buildOptimisticDeclinedReportActionComment,
     buildParticipantsFromAccountIDs,

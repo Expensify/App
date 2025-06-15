@@ -1296,7 +1296,8 @@ const translations = {
             declineReason: 'Decline reason',
             markAsResolved: 'Mark as resolved',
             reportActions: {
-                removedFromReport: ({amount, merchant}: {amount: string; merchant?: string}) => `removed ${amount} ${merchant ? `from ${merchant}` : ``}`,
+                removedFromReport: ({ amount, linkToReport, merchant }: { amount: string; linkToReport: string; merchant?: string }) =>
+                    `removed <a href="${linkToReport}">${amount}${merchant ? ` from ${merchant}` : ''}</a>`,
                 declinedExpense: 'declined this expense',
                 markedAsResolved: 'marked the decline reason as resolved',
                 autoAddedToReport: ({amount, merchant}: {amount: string; merchant?: string}) => `added ${amount} ${merchant ? `from ${merchant}` : ``}`,
