@@ -22,8 +22,8 @@ import {
     canDeleteReportAction,
     canDeleteTransaction,
     canEditReportDescription,
-    canEditWriteCapability,
     canEditRoomVisibility,
+    canEditWriteCapability,
     canHoldUnholdReportAction,
     findLastAccessedReport,
     getAllAncestorReportActions,
@@ -2479,7 +2479,7 @@ describe('ReportUtils', () => {
         });
     });
 
-     describe('canEditRoomVisibility', () => {
+    describe('canEditRoomVisibility', () => {
         it('should return true for policy admins', () => {
             expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.ADMIN})).toBe(true);
             expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.AUDITOR})).toBe(false);
@@ -2490,7 +2490,6 @@ describe('ReportUtils', () => {
             expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.ADMIN}, true)).toBe(false);
             expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.AUDITOR}, true)).toBe(false);
             expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.USER}, true)).toBe(false);
-
         });
     });
 
