@@ -117,7 +117,7 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
         return null;
     }
 
-    const title = !isSubscriptionPage ? (
+    const title = isSubscriptionPage ? (
         <RenderHTML
             html={translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle', {
                 discountType: discountInfo?.discountType,
