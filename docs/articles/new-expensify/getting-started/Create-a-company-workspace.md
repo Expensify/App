@@ -6,19 +6,17 @@ description: Get started with Expensify by creating a workspace for your company
 
 Setting up an Expensify workspace is the first step to managing company expenses efficiently. Follow this guide to create and configure your workspace, invite members, and enable key features. Your first workspace comes with a free 30-day trial and access to a <b>Setup Specialist</b> for assistance. Reach out via the <b>#admins chat room</b> or <b>Concierge</b> in your Inbox.
 
-# 1. Create a workspace 
+# Step 1: Create a Workspace 
 
 Workspaces help manage company expenses, enforce policies, and integrate with accounting software. Each workspace has its own set of rules, settings, company card feeds, and integrations. Once invited to a workspace, members can submit expenses according to its rules.
 
 ## Steps to Create a Workspace:
-<ol type="a">
-   <li>Click your profile photo or icon in the bottom left menu.</li>
-   <li>Scroll down and click <b>Workspaces</b> in the left menu.</li>
-   <li>Click <b>New workspace</b>.</li>
-   <li>Click the Edit pencil icon next to your workspace image or icon and select <b>Upload Image</b> to choose an image from your saved files.</li>
-   <li>Click <b>Name</b> to enter a new name for the workspace.</li>
-   <li>Click <b>Default Currency</b> to set the currency for all expenses submitted under the workspace. Expensify automatically converts all other currencies to your default currency.</li>
-</ol>
+1. Click your **profile picture** in the bottom left corner.
+2. From the left-hand menu, select **Workspaces**.
+3. Click **New workspace**.
+4. To upload a custom image, click the pencil icon beside the default image and choose **Upload Image**.
+5. Click **Name** to set a workspace name.
+6. Click **Default currency** to define your default expense currency.
 
 ![Click your profile photo or icon]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_1.png){:width="100%"}
 
@@ -26,53 +24,55 @@ Workspaces help manage company expenses, enforce policies, and integrate with ac
 
 ![Options to make changes like a custom workspace name]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_3.png){:width="100%"}
 
-# 2. Connect to your accounting software
+---
 
-If you use <b>QuickBooks Online (QBO)</b>, <b>Xero</b>, <b>NetSuite</b>, or <b>Sage Intacct</b>, connect your workspace for seamless imports and exports.
+# Step 2: Connect Accounting Software
 
-## Benefits of Connecting:
+If your team uses **QuickBooks Online**, **Xero**, **NetSuite**, or **Sage Intacct**, connect your workspace for seamless imports and exports.
 
-<b>Import</b>: Expensify syncs your chart of accounts for accurate expense coding.
-<b>Export</b>: Approved expense reports are sent directly to your accounting software.
+**Benefits of connecting an accounting integration to Expensify:**
+- **Import:** Sync your chart of accounts for accurate coding.
+- **Export:** Automatically send approved expense reports to your accounting system.
 
-## Integration Guides:
+### Accounting Integration Setup Guides
 
-<ol type="a">
-   <li><a href='https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online'>Connect to QuickBooks Online</a></li>
-   <li><a href='https://help.expensify.com/articles/new-expensify/connections/xero/Connect-to-Xero'>Connect to Xero</a></li>
-   <li><a href='https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-To-NetSuite'>Connect to NetSuite</a></li> 
-   <li><a href='https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Connect-to-Sage-Intacct'>Connect to Sage Intacct</a></li> 
-</ol>
+- [Connect to QuickBooks Online](https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online)
+- [Connect to Xero](https://help.expensify.com/articles/new-expensify/connections/xero/Connect-to-Xero)
+- [Connect to NetSuite](https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-To-NetSuite)
+- [Connect to Sage Intacct](https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Connect-to-Sage-Intacct)
 
-# 3. Add categories
+---
 
-Categories help organize expenses. If you connected to accounting software, Expensify imports your chart of accounts automatically.
+# Step 3: Add Categories
 
-## Steps to Manage Categories:
+Categories help organize and track expenses. If connected to accounting software, your chart of accounts will import automatically.
 
-<ol type="a">
-   <li>Click <b>Categories</b> in the left menu.</li>
-   <li>Enable or disable categories:</li>
-   <li>Disable: Click a category and toggle it off.</li>
-   <li>Add: Click <b>Add Category</b>, enter a name, and click <b>Save</b>.</li>
-</ol>
+## How to Manage Categories
 
-[Learn more about expense categories](https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-categories).
+1. In the left-hand menu, select **Categories**.
+2. Toggle categories on or off as needed.
+3. To create a new one, click **Add category**, name it, and click **Save**.
+
+**Note:** To disable all categories, go to **More features** in the left-hand menu and toggle **Categories** off.
+
+✅ [Learn more about expense categories](https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-categories).
 
 {% include info.html %}
 Categories are enabled by default. However, if you want to completely disable all categories, you can do so by clicking **More Features** in the left menu and clicking the Categories toggle to disable it.
 {% include end-info.html %}
 
-# 4. Invite members
+---
+
+# Step 4: Invite Members
+
+Bring your team into the workspace so they can start submitting expenses.
 
 ## Steps to Invite Team Members:
 
-<ol type="a">
-   <li>Click <b>Members</b> in the left menu.</li>
-   <li>Click <b>Invite Member</b>.</li>
-   <li>Search by name, email, or phone number (multiple selections allowed).</li>
-   <li>Click <b>Next</b>, optionally add a message, and click <b>Invite</b>.</li>
-</ol>
+1. In the left-hand menu, click **Members**.
+2. Click **Invite member**.
+3. Enter names, emails, or phone numbers (multiple entries allowed).
+4. Click **Next**, add an optional message, and click **Invite**.
 
 {% include info.html %}
 You can also invite members on the workspace’s Profile page by clicking **Share** to share the workspace’s URL or QR code.
@@ -84,7 +84,9 @@ You can also invite members on the workspace’s Profile page by clicking **Shar
 
 ![Enter a custom message into the Message field]({{site.url}}/assets/images/ExpensifyHelp_InviteMembers_3.png){:width="100%"}
 
-# 5. Assign admins
+---
+
+# Step 5: Assign Admins
 
 Admins manage workspace settings, reports, and approvals. The table below shows key differences between members and admins:
 
@@ -98,65 +100,57 @@ Admins manage workspace settings, reports, and approvals. The table below shows 
 
 ## Steps to Assign Admins:
 
-<ol type="a">
-   <li>Click <b>Members</b> in the left menu.</li>
-   <li>Select a member’s name.</li>
-   <li>Click <b>Role</b> and set them as <b>Admin</b>.</li>
-</ol>
+1. Click **Members** in the left menu.
+2. Select a member’s name.
+3. Click **Role** and set them as an **Admin**.
 
-# 6. Set Up Approval Workflows
+---
 
-Approval workflows streamline expense review and reimbursement.
+# Step 6: Set Up Approval Workflows
 
-## Enable Approvals:
+Approval workflows control who reviews and approves submitted expenses.
 
-<ol type="a">
-    <li>Click <b>Workflows</b> in the left menu.</li>
-    <li>Toggle <b>Add Approvals</b> on.</li>
-</ol>
+## Enable approvals
+
+1. In the left-hand menu, go to **Workflows**.
+2. Toggle **Add approvals** on.
 
 ## Configure a Default Approval Workflow:
 
-<ol type="a">
-   <li>Click <b>Workflow</b>s in the left menu.</li>
-   <li>Under <b>Expenses from Everyone</b>, set a <b>First Approver</b>.</li>
-   <li>Add additional approvers if needed.</li>
-   <li>Click <b>Save</b>.</li>
-</ol>
+1. Under **Expenses from everyone**, set a **First approver**.
+2. Add more approvers as needed.
+3. Click **Save**.
 
-Note: A default approval workflow is required when approvals are enabled.
+**Note:** A default approval workflow is required when approvals are enabled.
 
 ## Configure Custom Workflows for Specific Members:
 
-<ol type="a">
-   <li>Click <b>Workflows</b> in the left menu.</li>
-   <li>Click <b>Add Approval Workflow</b>.</li>
-   <li>Select a member and their first approver.</li>
-   <li>Click <b>Next</b> and continue adding approvers.</li>
-   <li>Click <b>Add Workflow</b> to save.</li>
-</ol>
+1. Click **Add approval workflow**.
+2. Choose a member and assign their first approver.
+3. Add more approvers if needed.
+4. Click **Add workflow** to save.
 
-# 7. Enable Additional Features
+---
+
+# Step 7: Enable Additional Features
 
 You can customize your workspace by enabling features such as:
 
 - [Expensify Cards](https://help.expensify.com/new-expensify/hubs/expensify-card/)
-- [Rules](https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules)
-- [Distance rates](https://help.expensify.com/articles/new-expensify/workspaces/Set-distance-rates)
+- [Workspace Settings](https://help.expensify.com/new-expensify/hubs/workspaces/)
 - [Workflows - Payments](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account)
 - [Workflows - Delayed submission](https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows)
-- [Tags](https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags)
-- [Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-taxes)
+- [Connect Company Cards](https://help.expensify.com/new-expensify/hubs/connect-credit-cards/)
 
 ## Steps to Enable Features:
 
-<ol type="a">
-   <li>Click <b>More Features</b> in the left menu.</li>
-   <li>Enable desired features.</li>
-   <li>Click the new menu item to configure settings.</li>
-</ol>
+1. Click More Features in the left menu.
+2. Enable desired features.
+3. Click the new menu item to configure settings.
 
-# 8. Monitor Your Free Trial
+---
+
+# Step 8: Monitor Your Free Trial
 
 Track your Free Trial start date and remaining days on the Subscription page.
 
