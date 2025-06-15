@@ -98,7 +98,7 @@ import {
     getDowngradeWorkspaceMessage,
     getIcons,
     getMoneyRequestSpendBreakdown,
-    getMovedTransactionMessage,
+    getMovedTransactionMessageUsingDependencyData,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeMessage,
     getPolicyName,
@@ -779,7 +779,7 @@ function getLastMessageTextForReport(
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction});
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
-        lastMessageTextFromReport = getMovedTransactionMessage(lastReportAction);
+        lastMessageTextFromReport = getMovedTransactionMessageUsingDependencyData(lastReportAction);
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
