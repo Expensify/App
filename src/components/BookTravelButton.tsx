@@ -93,14 +93,14 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
                         style={[StyleUtils.getDotIndicatorTextStyles(true), styles.link]}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
                     >
-                        <RenderHTML html={translate('travel.phoneError')} />
+                        <RenderHTML html={`<alert-text>${translate('travel.phoneError')}</alert-text>`} />
                     </TextLink>
                 ) : (
                     <TextLink
                         style={[StyleUtils.getDotIndicatorTextStyles(true), styles.link]}
                         href={`${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute())}`}
                     >
-                        <RenderHTML html={translate('travel.phoneError')} />
+                        <RenderHTML html={`<alert-text>${translate('travel.phoneError')}</alert-text>`} />
                     </TextLink>
                 ),
             );
