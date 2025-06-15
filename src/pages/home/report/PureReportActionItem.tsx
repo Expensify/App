@@ -821,6 +821,8 @@ function PureReportActionItem({
         isBetaEnabled,
     ]);
 
+    const movedIOUReport = isExpenseReport(parentReport) ? parentReport : report;
+
     /**
      * Get the content of ReportActionItem
      * @param hovered whether the ReportActionItem is hovered
@@ -1064,7 +1066,7 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(parentReportAction, parentReport)}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(parentReportAction, movedIOUReport)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {

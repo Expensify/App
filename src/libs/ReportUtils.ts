@@ -5862,9 +5862,9 @@ function getMovedTransactionMessageUsingDependencyData(action: ReportAction) {
     return message;
 }
 
-function getMovedTransactionMessage(parentReportAction: OnyxEntry<ReportAction>, parentReport?: Report) {
-    const reportName = getReportName(parentReport, undefined, parentReportAction) ?? parentReport?.reportName ?? '';
-    const reportUrl = getReportUrl(parentReport?.reportID);
+function getMovedTransactionMessage(parentReportAction: OnyxEntry<ReportAction>, movedIOUReport?: Report) {
+    const reportName = getReportName(movedIOUReport, undefined, parentReportAction) ?? movedIOUReport?.reportName ?? '';
+    const reportUrl = getReportUrl(movedIOUReport?.reportID);
     const message = translateLocal('iou.movedTransaction', {
         reportUrl,
         reportName,
