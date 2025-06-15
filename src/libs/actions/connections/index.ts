@@ -34,6 +34,8 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
 
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = PolicyUtils.getPolicy(policyID);
     const supportedConnections: PolicyConnectionName[] = [CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.XERO];
 

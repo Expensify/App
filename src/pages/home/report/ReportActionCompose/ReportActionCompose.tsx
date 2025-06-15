@@ -8,7 +8,6 @@ import {useOnyx} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
-import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
@@ -60,6 +59,7 @@ import Navigation from '@navigation/Navigation';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
 import {initMoneyRequest, replaceReceipt, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {addAttachment as addAttachmentReportActions, setIsComposerFullSize} from '@userActions/Report';
@@ -416,12 +416,29 @@ function ReportActionCompose({
     // eslint-disable-next-line react-compiler/react-compiler
     onSubmitAction = handleSendMessage;
 
+    const emojiPositionValues = useMemo(
+        () => ({
+            secondaryRowHeight: styles.chatItemComposeSecondaryRow.height,
+            secondaryRowMarginTop: styles.chatItemComposeSecondaryRow.marginTop,
+            secondaryRowMarginBottom: styles.chatItemComposeSecondaryRow.marginBottom,
+            composeBoxMinHeight: styles.chatItemComposeBox.minHeight,
+            emojiButtonHeight: styles.chatItemEmojiButton.height,
+        }),
+        [
+            styles.chatItemComposeSecondaryRow.height,
+            styles.chatItemComposeSecondaryRow.marginTop,
+            styles.chatItemComposeSecondaryRow.marginBottom,
+            styles.chatItemComposeBox.minHeight,
+            styles.chatItemEmojiButton.height,
+        ],
+    );
+
     const emojiShiftVertical = useMemo(() => {
-        const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
-        const reportActionComposeHeight = styles.chatItemComposeBox.minHeight + chatItemComposeSecondaryRowHeight;
-        const emojiOffsetWithComposeBox = (styles.chatItemComposeBox.minHeight - styles.chatItemEmojiButton.height) / 2;
+        const chatItemComposeSecondaryRowHeight = emojiPositionValues.secondaryRowHeight + emojiPositionValues.secondaryRowMarginTop + emojiPositionValues.secondaryRowMarginBottom;
+        const reportActionComposeHeight = emojiPositionValues.composeBoxMinHeight + chatItemComposeSecondaryRowHeight;
+        const emojiOffsetWithComposeBox = (emojiPositionValues.composeBoxMinHeight - emojiPositionValues.emojiButtonHeight) / 2;
         return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
-    }, [styles]);
+    }, [emojiPositionValues]);
 
     const validateMaxLength = useCallback(
         (value: string) => {
