@@ -63,6 +63,8 @@ function CloseAccountPage() {
         setReasonForLeaving(values.reasonForLeaving);
     };
 
+    const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
+
     /**
      * Removes spaces and transform the input string to lowercase.
      * @param phoneOrEmail - The input string to be sanitized.
@@ -71,7 +73,6 @@ function CloseAccountPage() {
     const sanitizePhoneOrEmail = (phoneOrEmail: string): string => phoneOrEmail.replace(/\s+/g, '').toLowerCase();
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM> => {
-        const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
         const errors = getFieldRequiredErrors(values, ['phoneOrEmail']);
 
         if (values.phoneOrEmail && userEmailOrPhone) {
@@ -82,9 +83,13 @@ function CloseAccountPage() {
                 isValid = sanitizePhoneOrEmail(userEmailOrPhone) === sanitizePhoneOrEmail(values.phoneOrEmail);
             } else {
                 // Phone number comparison - normalize to E.164
-                const normalizedStored = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(userEmailOrPhone)) ?? '';
-                const normalizedInput = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(values.phoneOrEmail)) ?? '';
-                isValid = normalizedStored === normalizedInput;
+                const storedE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(userEmailOrPhone));
+                const inputE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(values.phoneOrEmail));
+                
+                // Only compare if both numbers could be formatted to E.164
+                if (storedE164Phone && inputE164Phone) {
+                    isValid = storedE164Phone === inputE164Phone;
+                }
             }
 
             if (!isValid) {
@@ -94,8 +99,6 @@ function CloseAccountPage() {
 
         return errors;
     };
-
-    const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
 
     return (
         <ScreenWrapper
