@@ -89,6 +89,8 @@ const ROUTES = {
         }: {
             reportID: string | undefined;
             reportActionID?: string;
+            parentReportID?: string;
+            parentReportActionID?: string;
             backTo?: string;
             moneyRequestReportActionID?: string;
             transactionID?: string;
