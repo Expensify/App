@@ -548,8 +548,8 @@ function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): 
         return null;
     }
 
-    const lastsortedReportAction = arrayLastElement(iouRequestActions, getSortedReportActionsComparator);
-    return lastsortedReportAction?.reportActionID ?? null;
+    const lastSortedReportAction = arrayLastElement(iouRequestActions, getSortedReportActionsComparator);
+    return lastSortedReportAction?.reportActionID ?? null;
 }
 
 /**
