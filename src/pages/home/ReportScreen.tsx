@@ -832,7 +832,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 testID="report-actions-view-wrapper"
                             >
                                 {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
-                                {!shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
