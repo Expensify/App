@@ -16,11 +16,11 @@ import {
     canEditWriteCapability,
     getReportNotificationPreference,
     isAdminRoom,
-    isHiddenForCurrentUser,
-    isSelfDM,
     isExpenseReport,
     isExpenseRequest,
+    isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportUtils,
+    isSelfDM,
 } from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
@@ -38,7 +38,7 @@ function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isReportArchived = useReportIsArchived(reportID);
-    const isArchivedNonExpenseReport = isReportArchived && !(isExpenseReport(report) || isExpenseRequest(report))
+    const isArchivedNonExpenseReport = isReportArchived && !(isExpenseReport(report) || isExpenseRequest(report));
     // The workspace the report is on, null if the user isn't a member of the workspace
     const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID), [policies, report?.policyID]);
     const isMoneyRequestReport = isMoneyRequestReportUtils(report);
