@@ -5,12 +5,10 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -22,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
 import {clearPersonalDetailsDraft, setPersonalDetails} from '@userActions/Onboarding';
-import {setDisplayName} from '@userActions/PersonalDetails';
+import {setDisplayName, updateDisplayName} from '@userActions/PersonalDetails';
 import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -49,10 +47,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
-    const {canUseDefaultRooms, canUsePrivateDomainOnboarding} = usePermissions();
-    const {activeWorkspaceID} = useActiveWorkspace();
+    const {isBetaEnabled} = usePermissions();
 
-    const isPrivateDomainAndHasAccesiblePolicies = canUsePrivateDomainOnboarding && !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
+    const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
     const isValidated = isCurrentUserValidated(loginList);
 
     useEffect(() => {
@@ -77,9 +74,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
 
-            navigateAfterOnboarding(onboardingPurposeSelected, isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, mergedAccountConciergeReportID);
+            navigateAfterOnboarding(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), onboardingPolicyID, mergedAccountConciergeReportID);
         },
-        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, activeWorkspaceID, canUseDefaultRooms, isSmallScreenWidth, mergedAccountConciergeReportID],
+        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, isBetaEnabled, isSmallScreenWidth, mergedAccountConciergeReportID],
     );
 
     const handleSubmit = useCallback(
@@ -91,15 +88,21 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             clearPersonalDetailsDraft();
             setPersonalDetails(firstName, lastName);
 
-            if (isPrivateDomainAndHasAccesiblePolicies && !onboardingPurposeSelected) {
+            if (isPrivateDomainAndHasAccessiblePolicies && !onboardingPurposeSelected) {
                 const nextRoute = isValidated ? ROUTES.ONBOARDING_WORKSPACES : ROUTES.ONBOARDING_PRIVATE_DOMAIN;
                 Navigation.navigate(nextRoute.getRoute(route.params?.backTo));
                 return;
             }
 
+            if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
+                updateDisplayName(firstName, lastName);
+                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE.getRoute(route.params?.backTo));
+                return;
+            }
+
             completeOnboarding(firstName, lastName);
         },
-        [isPrivateDomainAndHasAccesiblePolicies, onboardingPurposeSelected, isValidated, route.params?.backTo, completeOnboarding],
+        [isPrivateDomainAndHasAccessiblePolicies, onboardingPurposeSelected, isValidated, route.params?.backTo, completeOnboarding],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -138,14 +141,13 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            shouldShowOfflineIndicator={false}
             includeSafeAreaPaddingBottom
             testID="BaseOnboardingPersonalDetails"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
-                shouldShowBackButton={!isPrivateDomainAndHasAccesiblePolicies}
-                progressBarPercentage={isPrivateDomainAndHasAccesiblePolicies ? 20 : 80}
+                shouldShowBackButton={!isPrivateDomainAndHasAccessiblePolicies}
+                progressBarPercentage={isPrivateDomainAndHasAccessiblePolicies ? 20 : 80}
                 onBackButtonPress={Navigation.goBack}
             />
             <FormProvider
@@ -193,7 +195,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     />
                 </View>
             </FormProvider>
-            {isSmallScreenWidth && <OfflineIndicator />}
         </ScreenWrapper>
     );
 }

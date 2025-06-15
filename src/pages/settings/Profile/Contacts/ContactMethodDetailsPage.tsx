@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -9,6 +9,7 @@ import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Star, Trashcan} from '@components/Icon/Expensicons';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -60,6 +61,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const {formatPhoneNumber, translate} = useLocalize();
     const theme = useTheme();
@@ -212,6 +214,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const hasMagicCodeBeenSent = !!loginData.validateCodeSent;
     const isFailedAddContactMethod = !!loginData.errorFields?.addedLogin;
     const isFailedRemovedContactMethod = !!loginData.errorFields?.deletedLogin;
+    const shouldSkipInitialValidation = route.params?.shouldSkipInitialValidation === 'true';
 
     const getDeleteConfirmationModal = () => (
         <ConfirmModal
@@ -242,7 +245,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     <MenuItem
                         title={translate('contacts.setAsDefault')}
                         icon={Star}
-                        onPress={setAsDefault}
+                        onPress={isAccountLocked ? showLockedAccountModal : setAsDefault}
                     />
                 </OfflineWithFeedback>
             ) : null}
@@ -269,6 +272,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         onPress={() => {
                             if (isActingAsDelegate) {
                                 setIsNoDelegateAccessMenuVisible(true);
+                                return;
+                            }
+                            if (isAccountLocked) {
+                                showLockedAccountModal();
                                 return;
                             }
                             toggleDeleteModal(true);
@@ -347,6 +354,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         sendValidateCode={() => requestContactMethodValidateCode(contactMethod)}
                         descriptionPrimary={translate('contacts.enterMagicCode', {contactMethod: formattedContactMethod})}
                         forwardedRef={validateCodeFormRef}
+                        shouldSkipInitialValidation={shouldSkipInitialValidation}
                     />
                 )}
 

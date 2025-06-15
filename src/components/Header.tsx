@@ -76,7 +76,7 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
                     ? !!title && (
                           <Text
                               numberOfLines={numberOfTitleLines}
-                              style={[styles.headerText, styles.textLarge, textStyles]}
+                              style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
                           >
                               {title}
                           </Text>

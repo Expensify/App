@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import {PUBLIC_DOMAINS, Str} from 'expensify-common';
+import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -11,7 +11,6 @@ import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
-import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -28,6 +27,7 @@ import {AddWorkEmail} from '@userActions/Session';
 import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import Log from '@src/libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
@@ -48,9 +48,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, {canBeMissing: true});
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
-    // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
     const {isOffline} = useNetwork();
@@ -79,7 +77,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             return;
         }
 
-        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+        Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
     }, [onboardingValues?.shouldValidate, isVsb, isFocused, onboardingValues?.isMergeAccountStepCompleted]);
 
     const submitWorkEmail = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
@@ -96,7 +94,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         const emailParts = userEmail.split('@');
         const domain = emailParts.at(1) ?? '';
 
-        if ((PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase()) || !Str.isValidEmail(userEmail)) && !isOffline) {
+        if ((PUBLIC_DOMAINS_SET.has(domain.toLowerCase()) || !Str.isValidEmail(userEmail)) && !isOffline) {
+            Log.hmmm('User is trying to add an invalid work email', {userEmail, domain});
             addErrorMessage(errors, INPUT_IDS.ONBOARDING_WORK_EMAIL, translate('onboarding.workEmailValidationError.publicEmail'));
         }
 
@@ -126,7 +125,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            shouldShowOfflineIndicator={false}
             includeSafeAreaPaddingBottom={isOffline}
             testID="BaseOnboardingWorkEmail"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
@@ -232,7 +230,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                     />
                 </View>
             </FormProvider>
-            {isSmallScreenWidth && <OfflineIndicator />}
         </ScreenWrapper>
     );
 }

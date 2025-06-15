@@ -13,6 +13,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const {
     COMPANY_NAME,
+    COMPANY_WEBSITE,
     BUSINESS_REGISTRATION_INCORPORATION_NUMBER,
     TAX_ID_EIN_NUMBER,
     COMPANY_COUNTRY_CODE,
@@ -48,9 +49,9 @@ const displayIncorporationLocation = (country: string, state: string) => {
 function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
+    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: false});
     const error = getLatestErrorMessage(reimbursementAccount);
 
     const values = useMemo(() => getSubStepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
@@ -83,11 +84,19 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 },
             },
             {
+                title: values[COMPANY_WEBSITE],
+                description: translate('businessInfoStep.companyWebsite'),
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(1);
+                },
+            },
+            {
                 title: values[BUSINESS_REGISTRATION_INCORPORATION_NUMBER],
                 description: translate('businessInfoStep.registrationNumber'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(3);
+                    onMove(4);
                 },
             },
             {
@@ -95,7 +104,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 description: translate('businessInfoStep.taxIDEIN'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(4);
+                    onMove(5);
                 },
             },
             {
@@ -103,7 +112,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 description: translate('businessInfoStep.businessAddress'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(1);
+                    onMove(2);
                 },
             },
             {
@@ -111,7 +120,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 description: translate('common.phoneNumber'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(2);
+                    onMove(3);
                 },
             },
             {
@@ -119,7 +128,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 description: translate('common.email'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(2);
+                    onMove(3);
                 },
             },
             {
@@ -127,7 +136,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 description: translate('businessInfoStep.businessType'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(6);
+                    onMove(7);
                 },
             },
             {
@@ -135,7 +144,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 description: translate('businessInfoStep.incorporation'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(5);
+                    onMove(6);
                 },
             },
             {
@@ -143,7 +152,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 description: translate('businessInfoStep.businessCategory'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(6);
+                    onMove(7);
                 },
             },
             {
@@ -151,7 +160,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 description: translate('businessInfoStep.annualPaymentVolume'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(7);
+                    onMove(8);
                 },
             },
             {
@@ -159,7 +168,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
                 description: translate('businessInfoStep.averageReimbursementAmount'),
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(8);
+                    onMove(9);
                 },
             },
         ],

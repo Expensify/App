@@ -8,13 +8,14 @@ import ImageSVG from '@components/ImageSVG';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import usePageRefresh from '@hooks/usePageRefresh';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import * as Session from '@userActions/Session';
+import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ErrorBodyText from './ErrorBodyText';
 
@@ -22,6 +23,7 @@ function GenericErrorPage({error}: {error?: Error}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const isAuthenticated = useIsAuthenticated();
     const {translate} = useLocalize();
     const isChunkLoadError = error?.name === CONST.CHUNK_LOAD_ERROR || /Loading chunk [\d]+ failed/.test(error?.message ?? '');
     const refreshPage = usePageRefresh();
@@ -63,13 +65,15 @@ function GenericErrorPage({error}: {error?: Error}) {
                                         style={styles.mr3}
                                         onPress={() => refreshPage(isChunkLoadError)}
                                     />
-                                    <Button
-                                        text={translate('initialSettingsPage.signOut')}
-                                        onPress={() => {
-                                            Session.signOutAndRedirectToSignIn();
-                                            refreshPage();
-                                        }}
-                                    />
+                                    {isAuthenticated && (
+                                        <Button
+                                            text={translate('initialSettingsPage.signOut')}
+                                            onPress={() => {
+                                                signOutAndRedirectToSignIn();
+                                                refreshPage();
+                                            }}
+                                        />
+                                    )}
                                 </View>
                             </View>
                         </View>

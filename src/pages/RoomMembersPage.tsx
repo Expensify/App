@@ -132,9 +132,9 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             removeFromRoom(report.reportID, selectedMembers);
         }
         setSearchValue('');
-        setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
+            setSelectedMembers([]);
             clearUserSearchPhrase();
         });
     };

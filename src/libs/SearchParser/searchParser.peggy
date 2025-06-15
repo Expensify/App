@@ -123,6 +123,8 @@ key "key"
       / taxRate
       / cardID
       / from
+      / payer
+      / exporter
       / expenseType
       / submitted
       / approved
@@ -130,6 +132,9 @@ key "key"
       / exported
       / posted
       / feed
+      / title
+      / assignee
+      / createdBy
       / reimbursable
       / billable
     )

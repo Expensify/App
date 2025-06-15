@@ -9,9 +9,10 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 import {getLinkedTransactionID} from './ReportActionsUtils';
-import {getReasonAndReportActionThatRequiresAttention, getReportNameValuePairs, isArchivedReport, reasonForReportToBeInOptionList, shouldDisplayViolationsRBRInLHN} from './ReportUtils';
+import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList, shouldDisplayViolationsRBRInLHN} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
 import {getTransactionID as TransactionUtilsGetTransactionID} from './TransactionUtils';
 
@@ -53,11 +54,12 @@ type ArrayElement<TOnyx extends Record<string, unknown>, K extends keyof TOnyx> 
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 
-type ObjectElement<TOnyx, K extends keyof TOnyx, TCollectionKey extends string | number | undefined = undefined> = Required<TOnyx>[K] extends Record<string | number, infer ValueType>
-    ? TCollectionKey extends string | number
-        ? {[ValueTypeKey in KeysOfUnion<ValueType>]: ValueType[ValueTypeKey]}
-        : {[ElementKey in KeysOfUnion<Required<TOnyx>[K]>]: Required<Required<TOnyx>[K]>[ElementKey]}
-    : never;
+type ObjectElement<TOnyx, K extends keyof TOnyx, TCollectionKey extends string | number | undefined = undefined> =
+    Required<TOnyx>[K] extends Record<string | number, infer ValueType>
+        ? TCollectionKey extends string | number
+            ? {[ValueTypeKey in KeysOfUnion<ValueType>]: ValueType[ValueTypeKey]}
+            : {[ElementKey in KeysOfUnion<Required<TOnyx>[K]>]: Required<Required<TOnyx>[K]>[ElementKey]}
+        : never;
 
 const OPTIONAL_BOOLEAN_STRINGS = ['true', 'false', 'undefined'];
 
@@ -226,7 +228,7 @@ function onyxDataToDraftData(data: OnyxEntry<Record<string, unknown>>) {
 /**
  * Whether a string representation is an empty value
  *
- * @param value - string representantion
+ * @param value - string representation
  * @returns whether the value is an empty value
  */
 function isEmptyValue(value: string): boolean {
@@ -299,8 +301,8 @@ function validateArray<T extends 'string' | 'number' | 'boolean' | Record<string
     arrayType: T extends Record<string, unknown>
         ? Record<keyof T, 'string' | 'number' | 'object' | 'boolean' | 'array' | PropertyTypes | ConstantEnum>
         : T extends 'constantEnum'
-        ? ConstantEnum
-        : T,
+          ? ConstantEnum
+          : T,
 ) {
     if (isEmptyValue(value)) {
         return;
@@ -566,6 +568,22 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 endDate: 'string',
                 tripID: 'string',
             });
+        case 'calendlySchedule':
+            return validateObject<ObjectElement<ReportNameValuePairs, 'calendlySchedule'>>(value, {
+                isLoading: 'boolean',
+                data: 'object',
+                errors: 'object',
+            });
+        case 'calendlyCalls':
+            return validateArray<ArrayElement<ReportNameValuePairs, 'calendlyCalls'>>(value, {
+                status: 'string',
+                host: 'number',
+                eventTime: 'string',
+                eventURI: 'string',
+                inserted: 'string',
+            });
+        case 'agentZeroProcessingRequestIndicator':
+            return validateString(value);
         case 'pendingAction':
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':
@@ -630,6 +648,9 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 exportFailedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                calendlySchedule: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                calendlyCalls: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                agentZeroProcessingRequestIndicator: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
@@ -758,6 +779,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 filename: 'string',
                 reservationList: 'string',
                 isTestReceipt: 'boolean',
+                isTestDriveReceipt: 'boolean',
             });
         case 'childRecentReceiptTransactionIDs':
             return validateObject<ObjectElement<ReportAction, 'childRecentReceiptTransactionIDs'>>(value, {}, 'string');
@@ -967,6 +989,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 iouType: CONST.IOU.TYPE,
                 ownerAccountID: 'number',
                 icons: 'array',
+                avatar: 'string',
                 item: 'string',
             });
         case 'errors':
@@ -1053,6 +1076,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     posted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     inserted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     accountant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    splitExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1066,6 +1090,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 receiptID: 'number',
                 reservationList: 'array',
                 isTestReceipt: 'boolean',
+                isTestDriveReceipt: 'boolean',
             });
         case 'taxRate':
             return validateObject<ObjectElement<Transaction, 'taxRate'>>(value, {
@@ -1089,6 +1114,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 liabilityType: CONST.TRANSACTION.LIABILITY_TYPE,
                 splits: 'array',
                 dismissedViolations: 'object',
+                splitExpenses: 'array',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
@@ -1299,7 +1325,7 @@ function validateTransactionViolationJSON(json: string) {
 /**
  * Gets the reason for showing LHN row
  */
-function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR = false): TranslationPaths | null {
+function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, chatReport: OnyxEntry<Report>, hasRBR = false, isReportArchived = false): TranslationPaths | null {
     if (!report) {
         return null;
     }
@@ -1308,6 +1334,7 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR = false):
 
     const reason = reasonForReportToBeInOptionList({
         report,
+        chatReport,
         // We can't pass report.reportID because it will cause reason to always be isFocused
         currentReportId: '-1',
         isInFocusMode: !!isInFocusMode,
@@ -1316,6 +1343,7 @@ function getReasonForShowingRowInLHN(report: OnyxEntry<Report>, hasRBR = false):
         excludeEmptyChats: true,
         doesReportHaveViolations,
         includeSelfDM: true,
+        isReportArchived,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {
@@ -1339,12 +1367,12 @@ type GBRReasonAndReportAction = {
 /**
  * Gets the reason and report action that is causing the GBR to show up in LHN row
  */
-function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>): GBRReasonAndReportAction | null {
+function getReasonAndReportActionForGBRInLHNRow(report: OnyxEntry<Report>, isReportArchived = false): GBRReasonAndReportAction | null {
     if (!report) {
         return null;
     }
 
-    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report) ?? {};
+    const {reason, reportAction} = getReasonAndReportActionThatRequiresAttention(report, undefined, isReportArchived) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonGBR.${reason}`, reportAction};
@@ -1361,13 +1389,17 @@ type RBRReasonAndReportAction = {
 /**
  * Gets the report action that is causing the RBR to show up in LHN
  */
-function getReasonAndReportActionForRBRInLHNRow(report: Report, reportActions: OnyxEntry<ReportActions>, hasViolations: boolean): RBRReasonAndReportAction | null {
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-
+function getReasonAndReportActionForRBRInLHNRow(
+    report: Report,
+    chatReport: OnyxEntry<Report>,
+    reportActions: OnyxEntry<ReportActions>,
+    transactions: OnyxCollection<Transaction>,
+    hasViolations: boolean,
+    reportErrors: Errors,
+    isArchivedReport = false,
+): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
-        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActions, hasViolations, transactionViolations, isArchivedReport(reportNameValuePairs)) ?? {};
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, chatReport, reportActions, hasViolations, reportErrors, transactions, transactionViolations, isArchivedReport) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};

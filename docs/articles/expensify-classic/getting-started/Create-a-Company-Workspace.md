@@ -97,7 +97,7 @@ You can flag rule violations for:
    - **Expense violations** – Set limits and thresholds.
    - **Cash expenses** – Define policies.
    - **Rebilling** – Enable/disable rebilling.
-   - **eReceipts** – Turn on automatic receipts for non-loding expenses under $75 (_**Note:** eReceipts are IRS-compliant for expenses under $75. Additionally, all lodging expenses require a paper receipt_.
+   - **eReceipts** – Turn on automatic receipts for non-loading expenses under $75 (_**Note:** eReceipts are IRS-compliant for expenses under $75. Additionally, all lodging expenses require a paper receipt_.
    - **Receipt visibility** – Set access controls.
    - **Time expenses** – Enable time tracking if needed.
 3. Go to **Settings > Workspace > [Workspace Name] > Distance rates** to set mileage reimbursement rates.

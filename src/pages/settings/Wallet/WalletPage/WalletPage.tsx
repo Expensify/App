@@ -1,9 +1,9 @@
 import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {ActivityIndicator, Dimensions, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import ConfirmModal from '@components/ConfirmModal';
@@ -15,6 +15,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import KYCWall from '@components/KYCWall';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -65,6 +66,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
     const isActingAsDelegate = !!userAccount?.delegatedAccess?.delegate || false;
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
@@ -72,7 +74,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const network = useNetwork();
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
@@ -190,6 +192,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         }
         if (isActingAsDelegate) {
             setIsNoDelegateAccessMenuVisible(true);
+            return;
+        }
+        if (isAccountLocked) {
+            showLockedAccountModal();
             return;
         }
         setShouldShowAddPaymentMenu(true);
@@ -319,26 +325,19 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     }, [network.isOffline]);
 
     useLayoutEffect(() => {
-        if (!shouldListenForResize) {
+        if (!shouldListenForResize || (!shouldShowAddPaymentMenu && !shouldShowDefaultDeleteMenu && !shouldShowCardMenu)) {
             return;
         }
-        const popoverPositionListener = Dimensions.addEventListener('change', () => {
-            if (!shouldShowAddPaymentMenu && !shouldShowDefaultDeleteMenu && !shouldShowCardMenu) {
-                return;
-            }
-            if (shouldShowAddPaymentMenu) {
-                debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
-                return;
-            }
-            setMenuPosition();
-        });
-        return () => {
-            if (!popoverPositionListener) {
-                return;
-            }
-            popoverPositionListener.remove();
-        };
-    }, [shouldShowAddPaymentMenu, shouldShowDefaultDeleteMenu, shouldShowCardMenu, setMenuPosition, shouldListenForResize]);
+
+        if (shouldShowAddPaymentMenu) {
+            debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
+            return;
+        }
+        setMenuPosition();
+
+        // This effect is intended to update menu position only on window dimension change.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [windowWidth, windowHeight]);
 
     useEffect(() => {
         if (!shouldShowDefaultDeleteMenu) {
@@ -389,7 +388,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
-            onBackButtonPress={() => Navigation.goBack(undefined, {shouldPopToTop: true})}
+            onBackButtonPress={Navigation.popToSidebar}
         />
     );
 
@@ -482,13 +481,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     titleStyles={styles.accountSettingsSectionTitle}
                                 >
                                     <>
-                                        {shouldShowLoadingSpinner ? (
+                                        {shouldShowLoadingSpinner && (
                                             <ActivityIndicator
                                                 color={theme.spinner}
                                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                                 style={[styles.mt7, styles.mb5]}
                                             />
-                                        ) : (
+                                        )}
+                                        {!shouldShowLoadingSpinner && hasActivatedWallet && (
                                             <OfflineWithFeedback
                                                 pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
                                                 errors={walletTerms?.errors}
@@ -517,7 +517,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                 setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
                                             }}
                                             enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
-                                            addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT}
+                                            addBankAccountRoute={ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route}
                                             addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
                                             source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
                                             shouldIncludeDebitCard={hasActivatedWallet}
@@ -581,9 +581,15 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                                 setIsNoDelegateAccessMenuVisible(true);
                                                                 return;
                                                             }
+                                                            if (isAccountLocked) {
+                                                                showLockedAccountModal();
+                                                                return;
+                                                            }
 
                                                             if (!isUserValidated) {
-                                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_WALLET, ROUTES.SETTINGS_ENABLE_PAYMENTS));
+                                                                Navigation.navigate(
+                                                                    ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(ROUTES.SETTINGS_WALLET, ROUTES.SETTINGS_ENABLE_PAYMENTS),
+                                                                );
                                                                 return;
                                                             }
                                                             Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
@@ -648,6 +654,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                             });
                                             return;
                                         }
+                                        if (isAccountLocked) {
+                                            closeModal(() => showLockedAccountModal());
+                                            return;
+                                        }
                                         makeDefaultPaymentMethod();
                                         setShouldShowDefaultDeleteMenu(false);
                                     }}
@@ -663,6 +673,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         closeModal(() => {
                                             setIsNoDelegateAccessMenuVisible(true);
                                         });
+                                        return;
+                                    }
+                                    if (isAccountLocked) {
+                                        closeModal(() => showLockedAccountModal());
                                         return;
                                     }
                                     closeModal(() => setShowConfirmDeleteModal(true));

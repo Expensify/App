@@ -97,7 +97,7 @@ To create an **Advanced Custom Report** in Workday:
    - `lastName`
    - `employeeEmail`
    - `managerEmail`
-   - `workspaceID`
+   - `policyID`
    - `domainGroupID`
    - `approvesTo`
 

@@ -1,11 +1,12 @@
 /* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useLocalize from '@hooks/useLocalize';
@@ -52,6 +53,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         horizontal: 0,
         vertical: 0,
     });
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
 
     const instanceIDRef = useRef('');
 
@@ -65,7 +67,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
     const [isThreadReportParentAction, setIsThreadReportParentAction] = useState(false);
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
-    const [shouldSwitchPositionIfOverflow, setShoudSwitchPositionIfOverflow] = useState(false);
+    const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -147,8 +149,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
      * @param contextMenuAnchor - popoverAnchor
      * @param reportID - Active Report Id
      * @param reportActionID - ReportAction for ContextMenu
-     * @param originalReportID - The currrent Report Id of the reportAction
-     * @param draftMessage - ReportAction Draftmessage
+     * @param originalReportID - The current Report Id of the reportAction
+     * @param draftMessage - ReportAction draft message
      * @param [onShow] - Run a callback when Menu is shown
      * @param [onHide] - Run a callback when Menu is hidden
      * @param isArchivedRoom - Whether the provided report is an archived room
@@ -221,7 +223,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             setIsChatPinned(isPinnedChat);
             setHasUnreadMessages(isUnreadChat);
             setIsThreadReportParentAction(isThreadReportParentActionParam);
-            setShoudSwitchPositionIfOverflow(isOverflowMenu);
+            setShouldSwitchPositionIfOverflow(isOverflowMenu);
         });
     };
 
@@ -266,6 +268,10 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             onPopoverHideActionCallback.current = onHideActionCallback;
         }
 
+        actionSheetAwareScrollViewContext.transitionActionSheetState({
+            type: Actions.CLOSE_POPOVER,
+        });
+        selectionRef.current = '';
         reportActionDraftMessageRef.current = undefined;
         setIsPopoverVisible(false);
     };
@@ -341,7 +347,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
                 shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
-                shouldUseNewModal
             >
                 <BaseReportActionContextMenu
                     isVisible={isPopoverVisible}

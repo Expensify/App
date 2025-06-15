@@ -19,22 +19,21 @@ const base26LookupTable = new Array<number[]>();
  * Converts a number to a base26 representation.
  */
 function convertToBase26(num: number): number[] {
-    if (base26LookupTable[num]) {
-        return base26LookupTable[num];
-    }
     if (num < 0) {
         throw new Error('convertToBase26: Input must be a non-negative integer');
     }
+    if (base26LookupTable[num]) {
+        return base26LookupTable[num];
+    }
 
     const result: number[] = [];
+    let workingNum = num;
 
     do {
-        // eslint-disable-next-line no-param-reassign
-        num--;
-        result.unshift(num % 26);
-        // eslint-disable-next-line no-bitwise, no-param-reassign
-        num >>= 5; // Equivalent to Math.floor(num / 26), but faster
-    } while (num > 0);
+        workingNum--;
+        result.unshift(workingNum % 26);
+        workingNum = Math.floor(workingNum / 26);
+    } while (workingNum > 0);
 
     base26LookupTable[num] = result;
     return result;
@@ -112,4 +111,4 @@ function stringToNumeric(
     };
 }
 
-export {stringToNumeric, ALPHABET, ALPHABET_SIZE, SPECIAL_CHAR_CODE, DELIMITER_CHAR_CODE, END_CHAR_CODE};
+export {stringToNumeric, convertToBase26, ALPHABET, ALPHABET_SIZE, SPECIAL_CHAR_CODE, DELIMITER_CHAR_CODE, END_CHAR_CODE};

@@ -27,6 +27,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+
     const delegateEmail = account?.delegatedAccess?.delegate ?? '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const emojiStatus = currentUserPersonalDetails?.status?.emojiCode ?? '';

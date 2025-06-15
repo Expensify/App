@@ -3,7 +3,7 @@ import type {SearchStatus} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from './OnyxCommon';
@@ -21,15 +21,17 @@ type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
 type ListItemType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
     ? typeof ChatListItem
     : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-    ? typeof TransactionListItem
-    : typeof ReportListItem;
+      ? typeof TransactionListItem
+      : typeof ReportListItem;
 
 /** Model of search list item data type */
 type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
     ? ReportActionListItemType[]
-    : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-    ? TransactionListItemType[]
-    : ReportListItemType[];
+    : C extends typeof CONST.SEARCH.DATA_TYPES.TASK
+      ? TaskListItemType[]
+      : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
+        ? TransactionListItemType[]
+        : ReportListItemType[];
 
 /** Model of columns to show for search results */
 type ColumnsToShow = {
@@ -232,6 +234,12 @@ type SearchPolicy = {
     /** Whether the rules feature is enabled */
     areRulesEnabled?: boolean;
 
+    /** Scheduled submit data */
+    harvesting?: {
+        /** Whether the scheduled submit is enabled */
+        enabled: boolean;
+    };
+
     /**
      * The scheduled submit frequency set up on this policy.
      * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
@@ -272,12 +280,12 @@ type SearchPolicy = {
     /** The approver of the policy */
     approver?: string;
 
-    /** A set of rules related to the workpsace */
+    /** A set of rules related to the workspace */
     rules?: {
-        /** A set of rules related to the workpsace approvals */
+        /** A set of rules related to the workspace approvals */
         approvalRules?: ApprovalRule[];
 
-        /** A set of rules related to the workpsace expenses */
+        /** A set of rules related to the workspace expenses */
         expenseRules?: ExpenseRule[];
     };
 };
@@ -402,6 +410,39 @@ type SearchTransaction = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
+/** Model of tasks search result */
+type SearchTask = {
+    /** The type of the response */
+    type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
+
+    /** The account ID of the user who created the task */
+    accountID: number;
+
+    /** When the task was created */
+    created: string;
+
+    /** The description of the task that needs to be done */
+    description: string;
+
+    /** The person the task was assigned to */
+    managerID: number;
+
+    /** The chat report that the task was created in */
+    parentReportID: string;
+
+    /** The ID of the report that the task is associated with */
+    reportID: string;
+
+    /** The title of the task */
+    reportName: string;
+
+    /** The state of the task */
+    stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM>;
+
+    /** The status of the task */
+    statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+};
+
 /** Types of searchable transactions */
 type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
@@ -438,6 +479,7 @@ export default SearchResults;
 export type {
     ListItemType,
     ListItemDataType,
+    SearchTask,
     SearchTransaction,
     SearchTransactionType,
     SearchTransactionAction,

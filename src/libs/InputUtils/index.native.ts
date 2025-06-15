@@ -1,7 +1,7 @@
-import type {MoveSelectiontoEnd, ScrollInput} from './types';
+import type {MoveSelectionToEnd, ScrollInput} from './types';
 
 const scrollToBottom: ScrollInput = () => {};
 const scrollToRight: ScrollInput = () => {};
-const moveSelectionToEnd: MoveSelectiontoEnd = () => {};
+const moveSelectionToEnd: MoveSelectionToEnd = () => {};
 
 export {scrollToBottom, moveSelectionToEnd, scrollToRight};

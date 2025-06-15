@@ -64,6 +64,10 @@ autocompleteKey "key"
       / to
       / taxRate
       / from
+      / payer
+      / exporter
+      / createdBy
+      / assignee
       / expenseType
       / type
       / status

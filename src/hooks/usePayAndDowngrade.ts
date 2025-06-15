@@ -1,5 +1,6 @@
 import {useEffect, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -19,7 +20,7 @@ function usePayAndDowngrade(setIsDeleteModalOpen: (value: boolean) => void) {
         }
 
         if (!shouldBillWhenDowngrading) {
-            setIsDeleteModalOpen(true);
+            close(() => setIsDeleteModalOpen(true));
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.getRoute(Navigation.getActiveRoute()));
         }

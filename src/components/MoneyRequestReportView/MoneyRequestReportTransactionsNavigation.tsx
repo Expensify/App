@@ -1,5 +1,5 @@
-import {findFocusedRoute, useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import {findFocusedRoute} from '@react-navigation/native';
+import React, {useEffect} from 'react';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -21,7 +21,7 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
     const theme = useTheme();
 
     const reportIDsList = getActiveTransactionThreadIDs();
-    const {prevReportID, nextReportID} = useMemo(() => {
+    const {prevReportID, nextReportID} = (() => {
         if (!reportIDsList) {
             return {prevReportID: undefined, nextReportID: undefined};
         }
@@ -32,24 +32,23 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
         const nextID = currentReportIndex <= reportIDsList.length - 1 ? reportIDsList.at(currentReportIndex + 1) : undefined;
 
         return {prevReportID: prevID, nextReportID: nextID};
-    }, [currentReportID, reportIDsList]);
+    })();
 
     const backTo = Navigation.getActiveRoute();
 
     /**
-     * We clear the sibling transactionThreadIDs when unfocusing this component
-     * only when the focus actually goes to a different SCREEN (and not a different version of the same SCREEN)
+     * We clear the sibling transactionThreadIDs when unmounting this component
+     * only when the mount actually goes to a different SCREEN (and not a different version of the same SCREEN)
      */
-    useFocusEffect(
-        useCallback(() => {
-            return () => {
-                const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-                if (focusedRoute?.name !== SCREENS.SEARCH.REPORT_RHP) {
-                    clearActiveTransactionThreadIDs();
-                }
-            };
-        }, []),
-    );
+    useEffect(() => {
+        return () => {
+            const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+            if (focusedRoute?.name === SCREENS.SEARCH.REPORT_RHP) {
+                return;
+            }
+            clearActiveTransactionThreadIDs();
+        };
+    }, []);
 
     if (reportIDsList.length < 2) {
         return;

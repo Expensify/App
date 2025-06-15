@@ -1,5 +1,4 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -38,7 +37,6 @@ import {
     isPolicyExpenseChat,
     isSystemChat,
     isThread,
-    requiresAttentionFromCurrentUser,
 } from '@libs/ReportUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
@@ -52,7 +50,7 @@ import type {OptionRowLHNProps} from './types';
 
 function OptionRowLHN({
     reportID,
-    isFocused = false,
+    isOptionFocused = false,
     onSelectRow = () => {},
     optionItem,
     viewMode = 'default',
@@ -60,12 +58,12 @@ function OptionRowLHN({
     onLayout = () => {},
     hasDraftComment,
     shouldShowRBRorGBRTooltip,
+    isScreenFocused = false,
 }: OptionRowLHNProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
     const StyleUtils = useStyleUtils();
-    const [isScreenFocused, setIsScreenFocused] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID}`, {canBeMissing: true});
@@ -106,15 +104,6 @@ function OptionRowLHN({
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
-    useFocusEffect(
-        useCallback(() => {
-            setIsScreenFocused(true);
-            return () => {
-                setIsScreenFocused(false);
-            };
-        }, []),
-    );
-
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
         isInFocusMode
@@ -122,7 +111,7 @@ function OptionRowLHN({
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
 
-    if (!optionItem && !isFocused) {
+    if (!optionItem && !isOptionFocused) {
         // rendering null as a render item causes the FlashList to render all
         // its children and consume significant memory on the first render. We can avoid this by
         // rendering a placeholder view instead. This behaviour is only observed when we
@@ -140,9 +129,8 @@ function OptionRowLHN({
         return null;
     }
 
-    const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const shouldShowGreenDotIndicator = !hasBrickError && requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
-    const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
+    const brickRoadIndicator = optionItem.brickRoadIndicator;
+    const textStyle = isOptionFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
     const alternateTextStyle = isInFocusMode
@@ -190,7 +178,7 @@ function OptionRowLHN({
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
     const isStatusVisible = !!emojiCode && isOneOnOneChat(!isEmptyObject(report) ? report : undefined);
 
-    const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
+    const subscriptAvatarBorderColor = isOptionFocused ? focusedBackgroundColor : theme.sidebar;
     const firstIcon = optionItem.icons?.at(0);
 
     const onOptionPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
@@ -258,8 +246,8 @@ function OptionRowLHN({
                                     styles.sidebarLink,
                                     styles.sidebarLinkInnerLHN,
                                     StyleUtils.getBackgroundColorStyle(theme.sidebar),
-                                    isFocused ? styles.sidebarLinkActive : null,
-                                    (hovered || isContextMenuActive) && !isFocused ? styles.sidebarLinkHover : null,
+                                    isOptionFocused ? styles.sidebarLinkActive : null,
+                                    (hovered || isContextMenuActive) && !isOptionFocused ? styles.sidebarLinkHover : null,
                                 ]}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${
@@ -274,7 +262,7 @@ function OptionRowLHN({
                                             firstIcon &&
                                             (optionItem.shouldShowSubscript ? (
                                                 <SubscriptAvatar
-                                                    backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                                    backgroundColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                                     mainAvatar={firstIcon}
                                                     secondaryAvatar={optionItem.icons.at(1)}
                                                     size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
@@ -286,8 +274,8 @@ function OptionRowLHN({
                                                     size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                                     secondAvatarStyle={[
                                                         StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                                        isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                                        hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                                        isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                                        hovered && !isOptionFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                                     ]}
                                                     shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
                                                 />
@@ -337,7 +325,7 @@ function OptionRowLHN({
                                                 <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
                                             </View>
                                         ) : null}
-                                        {hasBrickError && (
+                                        {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                             <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                                 <Icon
                                                     testID="RBR Icon"
@@ -352,7 +340,7 @@ function OptionRowLHN({
                                     style={[styles.flexRow, styles.alignItemsCenter]}
                                     accessible={false}
                                 >
-                                    {shouldShowGreenDotIndicator && (
+                                    {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
                                         <View style={styles.ml2}>
                                             <Icon
                                                 testID="GBR Icon"
@@ -373,7 +361,7 @@ function OptionRowLHN({
                                             />
                                         </View>
                                     )}
-                                    {!shouldShowGreenDotIndicator && !hasBrickError && !!optionItem.isPinned && (
+                                    {!brickRoadIndicator && !!optionItem.isPinned && (
                                         <View
                                             style={styles.ml2}
                                             accessibilityLabel={translate('sidebarScreen.chatPinned')}

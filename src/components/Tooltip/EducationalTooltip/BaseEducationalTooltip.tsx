@@ -40,20 +40,26 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
 
         getTooltipCoordinates(tooltipElementRef.current, (bounds) => {
             updateTargetBounds(bounds);
-            const {y, height} = bounds;
+            const {x, y, width: elementWidth, height} = bounds;
 
             const offset = 10; // Tooltip hides when content moves 10px past header/footer.
             const dimensions = Dimensions.get('window');
             const top = y - (insets.top || 0);
             const bottom = y + height + insets.bottom || 0;
-
+            const left = x - (insets.left || 0);
+            const right = x + elementWidth + (insets.right || 0);
             // Calculate the available space at the top, considering the header height and offset
             const availableHeightForTop = top - (variables.contentHeaderHeight - offset);
 
             // Calculate the total height available after accounting for the bottom tab and offset
             const availableHeightForBottom = dimensions.height - (bottom + variables.bottomTabHeight - offset);
 
-            if (availableHeightForTop < 0 || availableHeightForBottom < 0) {
+            // Calculate available horizontal space, taking into account safe-area insets
+            const availableWidthForLeft = left - offset;
+            const availableWidthForRight = dimensions.width - (right - offset);
+
+            // Hide if the element scrolled out vertically or horizontally
+            if (availableHeightForTop < 0 || availableHeightForBottom < 0 || availableWidthForLeft < 0 || availableWidthForRight < 0) {
                 hideTooltip();
             } else {
                 showTooltip();

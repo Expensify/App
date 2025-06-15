@@ -18,12 +18,12 @@ import AttachmentCarouselPager from './Pager';
 import type {AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownloadButtonVisibility, onClose, type, accountID}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownloadButtonVisibility, onClose, type, accountID, onAttachmentError}: AttachmentCarouselProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false, canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, canBeMissing: true});
     const [page, setPage] = useState<number>();
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
@@ -144,6 +144,7 @@ function AttachmentCarousel({report, source, attachmentID, onNavigate, setDownlo
                     <AttachmentCarouselPager
                         items={attachments}
                         initialPage={page}
+                        onAttachmentError={onAttachmentError}
                         activeAttachmentID={activeAttachmentID}
                         setShouldShowArrows={setShouldShowArrows}
                         onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}

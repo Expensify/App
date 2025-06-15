@@ -6,6 +6,7 @@ import {InteractionManager, Keyboard, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -27,8 +28,6 @@ import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
 import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
-import ReportPreview from '@components/ReportActionItem/ReportPreview';
-import ReportPreviewOld from '@components/ReportActionItem/ReportPreviewOld';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
@@ -58,26 +57,40 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
+    getAddedApprovalRuleMessage,
+    getAddedConnectionMessage,
+    getDeletedApprovalRuleMessage,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
+    getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
+    getJoinRequestMessage,
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
-    getPolicyChangeLogChangeRoleMessage,
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
-    getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
+    getPolicyChangeLogUpdateEmployee,
     getRemovedConnectionMessage,
     getRemovedFromApprovalChainMessage,
     getRenamedAction,
+    getReopenedMessage,
     getReportActionMessage,
     getReportActionText,
+    getTagListNameUpdatedMessage,
+    getTravelUpdateMessage,
+    getUpdatedApprovalRuleMessage,
+    getUpdatedAuditRateMessage,
+    getUpdatedManualApprovalThresholdMessage,
     getWhisperedTo,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
+    getWorkspaceCustomUnitRateDeletedMessage,
+    getWorkspaceCustomUnitRateUpdatedMessage,
+    getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
@@ -90,6 +103,7 @@ import {
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
     isActionOfType,
+    isCardIssuedAction,
     isChronosOOOListAction,
     isConciergeCategoryOptions,
     isCreatedTaskReportAction,
@@ -111,7 +125,7 @@ import {
     isTripPreview,
     isUnapprovedAction,
     isWhisperActionTargetedToOthers,
-    useNewTableReportViewActionRenderConditionals,
+    useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
 import type {MissingPaymentMethod} from '@libs/ReportUtils';
 import {
@@ -122,22 +136,16 @@ import {
     getDisplayNamesWithTooltips,
     getDowngradeWorkspaceMessage,
     getIconsForParticipants,
-    getIOUApprovedMessage,
-    getIOUForwardedMessage,
-    getIOUSubmittedMessage,
-    getIOUUnapprovedMessage,
     getMovedTransactionMessage,
     getPolicyChangeMessage,
     getRejectedReportMessage,
-    getReportAutomaticallyApprovedMessage,
-    getReportAutomaticallySubmittedMessage,
-    getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getWhisperDisplayNames,
     getWorkspaceNameUpdatedMessage,
     isArchivedNonExpenseReport,
     isChatThread,
     isCompletedTaskReport,
+    isExpenseReport,
     isTaskReport,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
@@ -179,6 +187,9 @@ import TripSummary from './TripSummary';
 type PureReportActionItemProps = {
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
+
+    /** Policy for this action */
+    policy?: OnyxEntry<OnyxTypes.Policy>;
 
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
@@ -237,11 +248,20 @@ type PureReportActionItemProps = {
     /** Whether context menu should be displayed */
     shouldDisplayContextMenu?: boolean;
 
-    /** ReportAction Draftmessage */
+    /** ReportAction draft message */
     draftMessage?: string;
 
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxTypes.Report;
+
+    /** The task report associated with this action, if any */
+    taskReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** The linked report associated with this action, if any */
+    linkedReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** The iou report associated with the linked report, if any */
+    iouReportOfLinkedReport: OnyxEntry<OnyxTypes.Report>;
 
     /** All the emoji reactions for the report action. */
     emojiReactions?: OnyxTypes.ReportActionReactions;
@@ -333,9 +353,6 @@ type PureReportActionItemProps = {
     /** User payment card ID */
     userBillingFundID?: number;
 
-    /** A message related to a report action that has been automatically forwarded */
-    reportAutomaticallyForwardedMessage?: string;
-
     /** Policies */
     policies?: OnyxCollection<OnyxTypes.Policy>;
 
@@ -357,6 +374,7 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 function PureReportActionItem({
     action,
     report,
+    policy,
     transactionThreadReport,
     linkedReportActionID,
     displayAsGroup,
@@ -374,6 +392,9 @@ function PureReportActionItem({
     parentReportActionForTransactionThread,
     draftMessage,
     iouReport,
+    taskReport,
+    linkedReport,
+    iouReportOfLinkedReport,
     emojiReactions,
     linkedTransactionRouteError,
     reportNameValuePairs,
@@ -399,11 +420,11 @@ function PureReportActionItem({
     clearAllRelatedReportActionErrors = () => {},
     dismissTrackExpenseActionableWhisper = () => {},
     userBillingFundID,
-    reportAutomaticallyForwardedMessage,
     policies,
     shouldShowBorder,
 }: PureReportActionItemProps) {
-    const {translate} = useLocalize();
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+    const {translate, datetimeToCalendarTime} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
     const theme = useTheme();
@@ -412,8 +433,8 @@ function PureReportActionItem({
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
-    const {canUseTableReportView} = usePermissions();
-    const shouldRenderViewBasedOnAction = useNewTableReportViewActionRenderConditionals(action);
+    const {isBetaEnabled} = usePermissions();
+    const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
@@ -431,7 +452,7 @@ function PureReportActionItem({
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
 
-    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, undefined, true);
+    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1, undefined, undefined);
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
 
@@ -555,6 +576,29 @@ function PureReportActionItem({
         setIsContextMenuActive(isActiveReportAction(action.reportActionID));
     }, [action.reportActionID]);
 
+    const handleShowContextMenu = useCallback(
+        (callback: () => void) => {
+            if (!(popoverAnchorRef.current && 'measureInWindow' in popoverAnchorRef.current)) {
+                return;
+            }
+
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            popoverAnchorRef.current?.measureInWindow((_fx, frameY, _width, height) => {
+                actionSheetAwareScrollViewContext.transitionActionSheetState({
+                    type: ActionSheetAwareScrollView.Actions.OPEN_POPOVER,
+                    payload: {
+                        popoverHeight: 0,
+                        frameY,
+                        height,
+                    },
+                });
+
+                callback();
+            });
+        },
+        [actionSheetAwareScrollViewContext],
+    );
+
     const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
 
     /**
@@ -569,30 +613,32 @@ function PureReportActionItem({
                 return;
             }
 
-            setIsContextMenuActive(true);
-            const selection = SelectionScraper.getCurrentSelection();
-            showContextMenu({
-                type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
-                event,
-                selection,
-                contextMenuAnchor: popoverAnchorRef.current,
-                report: {
-                    reportID,
-                    originalReportID,
-                    isArchivedRoom,
-                    isChronos: isChronosReport,
-                },
-                reportAction: {
-                    reportActionID: action.reportActionID,
-                    draftMessage,
-                    isThreadReportParentAction,
-                },
-                callbacks: {
-                    onShow: toggleContextMenuFromActiveReportAction,
-                    onHide: toggleContextMenuFromActiveReportAction,
-                    setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
-                },
-                disabledOptions: disabledActions,
+            handleShowContextMenu(() => {
+                setIsContextMenuActive(true);
+                const selection = SelectionScraper.getCurrentSelection();
+                showContextMenu({
+                    type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+                    event,
+                    selection,
+                    contextMenuAnchor: popoverAnchorRef.current,
+                    report: {
+                        reportID,
+                        originalReportID,
+                        isArchivedRoom,
+                        isChronos: isChronosReport,
+                    },
+                    reportAction: {
+                        reportActionID: action.reportActionID,
+                        draftMessage,
+                        isThreadReportParentAction,
+                    },
+                    callbacks: {
+                        onShow: toggleContextMenuFromActiveReportAction,
+                        onHide: toggleContextMenuFromActiveReportAction,
+                        setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
+                    },
+                    disabledOptions: disabledActions,
+                });
             });
         },
         [
@@ -605,6 +651,7 @@ function PureReportActionItem({
             disabledActions,
             isArchivedRoom,
             isChronosReport,
+            handleShowContextMenu,
             isThreadReportParentAction,
         ],
     );
@@ -624,10 +671,11 @@ function PureReportActionItem({
             action,
             transactionThreadReport,
             checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+            onShowContextMenu: handleShowContextMenu,
             isDisabled: false,
             shouldDisplayContextMenu,
         }),
-        [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs, shouldDisplayContextMenu],
+        [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, handleShowContextMenu, reportNameValuePairs, shouldDisplayContextMenu],
     );
 
     const attachmentContextValue = useMemo(() => {
@@ -647,7 +695,6 @@ function PureReportActionItem({
                     onPress: () => {
                         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
                     },
-                    isMediumSized: true,
                     isPrimary: true,
                 },
             ];
@@ -658,14 +705,17 @@ function PureReportActionItem({
             if (!options) {
                 return [];
             }
-            const isResolved = isResolvedConciergeCategoryOptions(action);
+
+            if (isResolvedConciergeCategoryOptions(action)) {
+                return [];
+            }
+
             return options.map((option, i) => ({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
                     addComment(originalReportID, option);
                 },
-                isDisabled: isResolved,
             }));
         }
 
@@ -675,40 +725,42 @@ function PureReportActionItem({
 
         if (isActionableTrackExpense(action)) {
             const transactionID = getOriginalMessage(action)?.transactionID;
-            return [
+            const options = [
                 {
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
                     },
-                    isMediumSized: true,
-                },
-                {
-                    text: 'actionableMentionTrackExpense.categorize',
-                    key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
-                    onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
-                    },
-                    isMediumSized: true,
-                },
-                {
-                    text: 'actionableMentionTrackExpense.share',
-                    key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
-                    onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
-                    },
-                    isMediumSized: true,
-                },
-                {
-                    text: 'actionableMentionTrackExpense.nothing',
-                    key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
-                    onPress: () => {
-                        dismissTrackExpenseActionableWhisper(reportID, action);
-                    },
-                    isMediumSized: true,
                 },
             ];
+
+            if (isBetaEnabled(CONST.BETAS.TRACK_FLOWS)) {
+                options.push(
+                    {
+                        text: 'actionableMentionTrackExpense.categorize',
+                        key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
+                        onPress: () => {
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
+                        },
+                    },
+                    {
+                        text: 'actionableMentionTrackExpense.share',
+                        key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
+                        onPress: () => {
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
+                        },
+                    },
+                );
+            }
+            options.push({
+                text: 'actionableMentionTrackExpense.nothing',
+                key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
+                onPress: () => {
+                    dismissTrackExpenseActionableWhisper(reportID, action);
+                },
+            });
+            return options;
         }
 
         if (isActionableJoinRequest(action)) {
@@ -766,6 +818,7 @@ function PureReportActionItem({
         resolveActionableReportMentionWhisper,
         resolveActionableMentionWhisper,
         originalReportID,
+        isBetaEnabled,
     ]);
 
     /**
@@ -780,9 +833,11 @@ function PureReportActionItem({
         const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
         const moneyRequestActionType = moneyRequestOriginalMessage?.type;
 
-        // Show the MoneyRequestPreview for when expense is present
+        // Show the preview for when expense is present
         if (isIOURequestReportAction(action)) {
             const isSplitInGroupChat = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && report?.chatType === CONST.REPORT.CHAT_TYPE.GROUP;
+            const isSplitScanWithNoAmount = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && moneyRequestOriginalMessage?.amount === 0;
+            const shouldShowSplitPreview = isSplitInGroupChat || isSplitScanWithNoAmount;
             const chatReportID = moneyRequestOriginalMessage?.IOUReportID ? report?.chatReportID : reportID;
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = moneyRequestOriginalMessage?.IOUReportID?.toString();
@@ -803,9 +858,8 @@ function PureReportActionItem({
                 />
             );
 
-            // Table Report View does not display these components as separate messages, except for self-DM
-            if (canUseTableReportView && report?.type === CONST.REPORT.TYPE.CHAT) {
-                if ((report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM && !isDeletedAction(action)) || isSplitInGroupChat) {
+            if (report?.type === CONST.REPORT.TYPE.CHAT) {
+                if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM || shouldShowSplitPreview) {
                     children = (
                         <View style={[styles.mt1, styles.w100]}>
                             <TransactionPreview
@@ -815,11 +869,11 @@ function PureReportActionItem({
                                 action={action}
                                 shouldDisplayContextMenu={shouldDisplayContextMenu}
                                 isBillSplit={isSplitBillActionReportActionsUtils(action)}
-                                transactionID={isSplitInGroupChat ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
+                                transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
                                 containerStyles={[shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle, styles.mt1]}
                                 transactionPreviewWidth={shouldUseNarrowLayout ? styles.w100.width : reportPreviewStyles.transactionPreviewStyle.width}
                                 onPreviewPressed={() => {
-                                    if (isSplitInGroupChat) {
+                                    if (shouldShowSplitPreview) {
                                         Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
                                         return;
                                     }
@@ -828,7 +882,7 @@ function PureReportActionItem({
                                         return;
                                     }
 
-                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID));
+                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
                                 }}
                                 isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
                             />
@@ -842,7 +896,8 @@ function PureReportActionItem({
             children = (
                 <TripRoomPreview
                     action={action}
-                    chatReportID={getOriginalMessage(action)?.linkedReportID}
+                    chatReport={linkedReport}
+                    iouReport={iouReportOfLinkedReport}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
@@ -852,7 +907,7 @@ function PureReportActionItem({
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
             children = <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && canUseTableReportView && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
             children = (
                 <MoneyRequestReportPreview
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
@@ -870,38 +925,6 @@ function PureReportActionItem({
                     shouldShowBorder={shouldShowBorder}
                 />
             );
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-            children = canUseTableReportView ? (
-                <ReportPreview
-                    iouReportID={getIOUReportIDFromReportActionPreview(action)}
-                    chatReportID={reportID}
-                    policyID={report?.policyID}
-                    containerStyles={displayAsGroup ? [] : [styles.mt2]}
-                    action={action}
-                    isHovered={hovered}
-                    contextMenuAnchor={popoverAnchorRef.current}
-                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                    onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
-                    onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
-                    isWhisper={isWhisper}
-                    shouldDisplayContextMenu={shouldDisplayContextMenu}
-                />
-            ) : (
-                <ReportPreviewOld
-                    iouReportID={getIOUReportIDFromReportActionPreview(action)}
-                    chatReportID={reportID}
-                    policyID={report?.policyID}
-                    containerStyles={displayAsGroup ? [] : [styles.mt2]}
-                    action={action}
-                    isHovered={hovered}
-                    contextMenuAnchor={popoverAnchorRef.current}
-                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                    onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
-                    onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
-                    isWhisper={isWhisper}
-                    shouldDisplayContextMenu={shouldDisplayContextMenu}
-                />
-            );
         } else if (isTaskAction(action)) {
             children = <TaskAction action={action} />;
         } else if (isCreatedTaskReportAction(action)) {
@@ -909,10 +932,11 @@ function PureReportActionItem({
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <TaskPreview
                         style={displayAsGroup ? [] : [styles.mt1]}
-                        taskReportID={getOriginalMessage(action)?.taskReportID?.toString()}
+                        taskReport={taskReport}
                         chatReportID={reportID}
                         action={action}
                         isHovered={hovered}
+                        onShowContextMenu={handleShowContextMenu}
                         contextMenuAnchor={popoverAnchorRef.current}
                         checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                         policyID={report?.policyID}
@@ -921,8 +945,8 @@ function PureReportActionItem({
                 </ShowContextMenuContext.Provider>
             );
         } else if (isReimbursementQueuedAction(action)) {
-            const linkedReport = isChatThread(report) ? parentReport : report;
-            const submitterDisplayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails?.[linkedReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]));
+            const targetReport = isChatThread(report) ? parentReport : report;
+            const submitterDisplayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails?.[targetReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]));
             const paymentType = getOriginalMessage(action)?.paymentType ?? '';
 
             children = (
@@ -935,7 +959,7 @@ function PureReportActionItem({
                                 success
                                 style={[styles.w100, styles.requestPreviewBox]}
                                 text={translate('bankAccount.addBankAccount')}
-                                onPress={() => openPersonalBankAccountSetupView(Navigation.getTopmostReportId() ?? linkedReport?.reportID, undefined, undefined, isUserValidated)}
+                                onPress={() => openPersonalBankAccountSetupView(Navigation.getTopmostReportId() ?? targetReport?.reportID, undefined, undefined, isUserValidated)}
                                 pressOnEnter
                                 large
                             />
@@ -946,7 +970,7 @@ function PureReportActionItem({
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
                                 addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                chatReportID={linkedReport?.reportID}
+                                chatReportID={targetReport?.reportID}
                                 iouReport={iouReport}
                             >
                                 {(triggerKYCFlow, buttonRef) => (
@@ -969,39 +993,53 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
             children = <ReportActionItemBasicMessage message={modifiedExpenseMessage} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
-            const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? getOriginalMessage(action)?.harvesting ?? false : false;
+            const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
             if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallySubmittedMessage(action)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallySubmitted')}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={getIOUSubmittedMessage(action)} />;
+                children = <ReportActionItemBasicMessage message={translate('iou.submitted')} />;
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
             const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoApproved) {
                 children = (
                     <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${getReportAutomaticallyApprovedMessage(action)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyApproved')}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={getIOUApprovedMessage(action)} />;
+                children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
+            }
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
+            const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
+            const paymentType = getOriginalMessage(action)?.paymentType;
+            if (paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
+            } else if (wasAutoPaid) {
+                children = (
+                    <ReportActionItemBasicMessage>
+                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyPaidWithExpensify')}</muted-text></comment>`} />
+                    </ReportActionItemBasicMessage>
+                );
+            } else {
+                children = <ReportActionItemBasicMessage message={translate('iou.paidWithExpensify')} />;
             }
         } else if (isUnapprovedAction(action)) {
-            children = <ReportActionItemBasicMessage message={getIOUUnapprovedMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
             const wasAutoForwarded = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoForwarded) {
                 children = (
                     <ReportActionItemBasicMessage>
-                        <RenderHTML html={`<comment><muted-text>${reportAutomaticallyForwardedMessage}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallyForwarded')}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={getIOUForwardedMessage(action, report)} />;
+                children = <ReportActionItemBasicMessage message={translate('iou.forwarded')} />;
             }
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
             children = <ReportActionItemBasicMessage message={getRejectedReportMessage()} />;
@@ -1015,6 +1053,10 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getReportActionText(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
+            children = <ReportActionItemBasicMessage message={translate('iou.retracted')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
+            children = <ReportActionItemBasicMessage message={getReopenedMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
@@ -1025,12 +1067,14 @@ function PureReportActionItem({
                     <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getUnreportedTransactionMessage(action)}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getTravelUpdateMessage(action, datetimeToCalendarTime)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
+            children = <ReportActionItemBasicMessage message={translate('iou.unreportedTransaction')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
@@ -1049,11 +1093,19 @@ function PureReportActionItem({
             action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY ||
             action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME
         ) {
-            children = <ReportActionItemBasicMessage message={getWorkspaceCategoryUpdateMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getWorkspaceCategoryUpdateMessage(action, policy)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME) {
+            children = <ReportActionItemBasicMessage message={getCleanedTagName(getTagListNameUpdatedMessage(action))} />;
         } else if (isTagModificationAction(action.actionName)) {
             children = <ReportActionItemBasicMessage message={getCleanedTagName(getWorkspaceTagUpdateMessage(action))} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitUpdatedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE) {
             children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitRateAddedMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitRateUpdatedMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceCustomUnitRateDeletedMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD) {
             children = <ReportActionItemBasicMessage message={getWorkspaceReportFieldAddMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD) {
@@ -1063,7 +1115,7 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD)) {
             children = <ReportActionItemBasicMessage message={getWorkspaceUpdateFieldMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
-            children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpenseAmountMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE)) {
@@ -1073,22 +1125,33 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogAddEmployeeMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
-            children = <ReportActionItemBasicMessage message={getPolicyChangeLogChangeRoleMessage(action)} />;
+            children = <ReportActionItemBasicMessage message={getPolicyChangeLogUpdateEmployee(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogDeleteMemberMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE)) {
+            children = <ReportActionItemBasicMessage message={getAddedApprovalRuleMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_APPROVER_RULE)) {
+            children = <ReportActionItemBasicMessage message={getDeletedApprovalRuleMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE)) {
+            children = <ReportActionItemBasicMessage message={getUpdatedApprovalRuleMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
             children = <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(action)} />;
+        } else if (isActionableJoinRequest(action)) {
+            children = (
+                <View>
+                    <ReportActionItemBasicMessage message={getJoinRequestMessage(action)} />
+                    {actionableItemButtons.length > 0 && (
+                        <ActionableItemButtons
+                            items={actionableItemButtons}
+                            shouldUseLocalization
+                            layout={isActionableTrackExpense(action) ? 'vertical' : 'horizontal'}
+                        />
+                    )}
+                </View>
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE)) {
             children = <ReportActionItemBasicMessage message={getDemotedFromWorkspaceMessage(action)} />;
-        } else if (
-            isActionOfType(
-                action,
-                CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED,
-                CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
-                CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
-                CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED,
-            )
-        ) {
+        } else if (isCardIssuedAction(action)) {
             children = (
                 <IssueCardMessage
                     action={action}
@@ -1098,13 +1161,18 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (isRenamedAction(action)) {
-            const message = getRenamedAction(action);
+            const message = getRenamedAction(action, isExpenseReport(report));
             children = <ReportActionItemBasicMessage message={message} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
-            const {label, errorMessage} = getOriginalMessage(action) ?? {label: '', errorMessage: ''};
-            children = <ReportActionItemBasicMessage message={translate('report.actions.type.integrationSyncFailed', {label, errorMessage})} />;
+            children = <ReportActionItemBasicMessage message={getIntegrationSyncFailedMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION)) {
+            children = <ReportActionItemBasicMessage message={getAddedConnectionMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
             children = <ReportActionItemBasicMessage message={getRemovedConnectionMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE)) {
+            children = <ReportActionItemBasicMessage message={getUpdatedAuditRateMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
+            children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action);
@@ -1237,7 +1305,7 @@ function PureReportActionItem({
     const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean): React.JSX.Element => {
         const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
 
-        if (canUseTableReportView && (isEmptyHTML(content) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses))) {
+        if (isEmptyHTML(content) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses)) {
             return emptyHTML;
         }
 
@@ -1271,7 +1339,6 @@ function PureReportActionItem({
 
         return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
-
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         const transactionID = isMoneyRequestAction(parentReportActionForTransactionThread) ? getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID : undefined;
 
@@ -1279,6 +1346,7 @@ function PureReportActionItem({
             <ReportActionItemContentCreated
                 contextValue={contextValue}
                 parentReportAction={parentReportAction}
+                parentReport={parentReport}
                 transactionID={transactionID}
                 draftMessage={draftMessage}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
@@ -1414,10 +1482,10 @@ function PureReportActionItem({
                                 dismissError={dismissError}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={
-                                    draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
+                                    draftMessage !== undefined ? undefined : (action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined))
                                 }
-                                shouldHideOnDelete={!isThreadReportParentAction}
-                                errors={linkedTransactionRouteError ?? !isOnSearch ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
+                                shouldHideOnDelete={!isDeletedParentAction}
+                                errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
                                 shouldDisableStrikeThrough
@@ -1525,7 +1593,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         lodashIsEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
-        prevProps.userBillingFundID === nextProps.userBillingFundID &&
-        prevProps.reportAutomaticallyForwardedMessage === nextProps.reportAutomaticallyForwardedMessage
+        prevProps.userBillingFundID === nextProps.userBillingFundID
     );
 });

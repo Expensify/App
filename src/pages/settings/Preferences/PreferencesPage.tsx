@@ -32,12 +32,13 @@ function PreferencesPage() {
     const isPlatformMuted = mutedPlatforms[platform];
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME, {canBeMissing: true});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const personalPolicy = usePolicy(getPersonalPolicy()?.id);
 
     const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
@@ -53,7 +54,7 @@ function PreferencesPage() {
                 shouldUseHeadlineHeader
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                onBackButtonPress={() => Navigation.goBack(undefined, {shouldPopToTop: true})}
+                onBackButtonPress={Navigation.popToSidebar}
             />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -97,7 +98,7 @@ function PreferencesPage() {
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={translate(`languagePage.languages.${LocaleUtils.getLanguageFromLocale(preferredLocale)}.label`)}
+                                title={preferredLocale ? translate(`languagePage.languages.${LocaleUtils.getLanguageFromLocale(preferredLocale)}.label`) : undefined}
                                 description={translate('languagePage.language')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}

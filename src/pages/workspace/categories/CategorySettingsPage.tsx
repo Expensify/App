@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -20,6 +21,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -35,17 +37,20 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
-type CategorySettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_SETTINGS>;
+type CategorySettingsPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_SETTINGS>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS>;
 
 function CategorySettingsPage({
     route: {
         params: {backTo, policyID, categoryName},
+        name,
     },
     navigation,
 }: CategorySettingsPageProps) {
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
@@ -55,19 +60,23 @@ function CategorySettingsPage({
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
+    const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
+    const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [policyCategory]);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
-    const isQuickSettingsFlow = !!backTo;
+    const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS;
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
     };
 
+    const isFocused = useIsFocused();
+
     useEffect(() => {
-        if (policyCategory?.name === categoryName || !policyCategory) {
+        if (policyCategory?.name === categoryName || !isFocused) {
             return;
         }
         navigation.setParams({categoryName: policyCategory?.name});
-    }, [categoryName, navigation, policyCategory]);
+    }, [categoryName, navigation, policyCategory?.name, isFocused]);
 
     const flagAmountsOverText = useMemo(() => {
         if (policyCategory?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policyCategory?.maxExpenseAmount) {
@@ -112,7 +121,11 @@ function CategorySettingsPage({
         return <NotFoundPage />;
     }
 
-    const updateWorkspaceRequiresCategory = (value: boolean) => {
+    const updateWorkspaceCategoryEnabled = (value: boolean) => {
+        if (shouldPreventDisableOrDelete) {
+            setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+            return;
+        }
         setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}});
     };
 
@@ -157,6 +170,15 @@ function CategorySettingsPage({
                     cancelText={translate('common.cancel')}
                     danger
                 />
+                <ConfirmModal
+                    isVisible={isCannotDeleteOrDisableLastCategoryModalVisible}
+                    onConfirm={() => setIsCannotDeleteOrDisableLastCategoryModalVisible(false)}
+                    onCancel={() => setIsCannotDeleteOrDisableLastCategoryModalVisible(false)}
+                    title={translate('workspace.categories.cannotDeleteOrDisableAllCategories.title')}
+                    prompt={translate('workspace.categories.cannotDeleteOrDisableAllCategories.description')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
                 <ScrollView
                     contentContainerStyle={[styles.flexGrow1]}
                     addBottomSafeAreaPadding
@@ -173,7 +195,8 @@ function CategorySettingsPage({
                                 <Switch
                                     isOn={policyCategory.enabled}
                                     accessibilityLabel={translate('workspace.categories.enableCategory')}
-                                    onToggle={updateWorkspaceRequiresCategory}
+                                    onToggle={updateWorkspaceCategoryEnabled}
+                                    showLockIcon={shouldPreventDisableOrDelete}
                                 />
                             </View>
                         </View>
@@ -265,7 +288,7 @@ function CategorySettingsPage({
                                         title={policyCategory?.commentHint}
                                         description={translate('workspace.rules.categoryRules.descriptionHint')}
                                         onPress={() => {
-                                            Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
+                                            Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
                                         }}
                                         shouldShowRightIcon
                                     />
@@ -275,7 +298,7 @@ function CategorySettingsPage({
                                 title={approverText}
                                 description={translate('workspace.rules.categoryRules.approver')}
                                 onPress={() => {
-                                    Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
+                                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
                                 }}
                                 shouldShowRightIcon
                                 // disabled={approverDisabled}
@@ -297,7 +320,7 @@ function CategorySettingsPage({
                                     title={defaultTaxRateText}
                                     description={translate('workspace.rules.categoryRules.defaultTaxRate')}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DEFAULT_TAX_RATE.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.getRoute(policyID, policyCategory.name));
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -308,7 +331,7 @@ function CategorySettingsPage({
                                     title={flagAmountsOverText}
                                     description={translate('workspace.rules.categoryRules.flagAmountsOver')}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_FLAG_AMOUNTS_OVER.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.getRoute(policyID, policyCategory.name));
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -318,19 +341,24 @@ function CategorySettingsPage({
                                     title={requireReceiptsOverText}
                                     description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
                                     }}
                                     shouldShowRightIcon
                                 />
                             </OfflineWithFeedback>
                         </>
                     )}
-
                     {!isThereAnyAccountingConnection && (
                         <MenuItem
                             icon={Trashcan}
                             title={translate('common.delete')}
-                            onPress={() => setDeleteCategoryConfirmModalVisible(true)}
+                            onPress={() => {
+                                if (shouldPreventDisableOrDelete) {
+                                    setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                                    return;
+                                }
+                                setDeleteCategoryConfirmModalVisible(true);
+                            }}
                         />
                     )}
                 </ScrollView>

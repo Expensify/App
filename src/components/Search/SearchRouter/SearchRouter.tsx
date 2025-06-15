@@ -2,7 +2,7 @@ import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import isEqual from 'lodash/isEqual';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
-import {InteractionManager, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -21,6 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {scrollToRight} from '@libs/InputUtils';
+import backHistory from '@libs/Navigation/helpers/backHistory';
 import type {SearchOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
@@ -29,7 +30,7 @@ import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import {navigateToAndOpenReport} from '@userActions/Report';
+import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -218,8 +219,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 return;
             }
 
-            onRouterClose();
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+            backHistory(() => {
+                onRouterClose();
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+            });
 
             setTextInputValue('');
             setAutocompleteQueryValue('');
@@ -283,12 +286,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     submitSearch(item.searchQuery);
                 }
             } else {
-                onRouterClose();
-                if (item?.reportID) {
-                    Navigation.navigateToReportWithPolicyCheck({reportID: item?.reportID});
-                } else if ('login' in item) {
-                    navigateToAndOpenReport(item.login ? [item.login] : [], false);
-                }
+                backHistory(() => {
+                    onRouterClose();
+                    if (item?.reportID) {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
+                    } else if ('login' in item) {
+                        navigateToAndOpenReport(item.login ? [item.login] : [], false);
+                    }
+                });
             }
         },
         [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue],
@@ -318,6 +323,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
             testID={SearchRouter.displayName}
             ref={ref}
+            onStartShouldSetResponder={() => true}
+            onResponderRelease={Keyboard.dismiss}
         >
             {shouldUseNarrowLayout && (
                 <HeaderWithBackButton
@@ -355,6 +362,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     />
                     <SearchAutocompleteList
                         autocompleteQueryValue={autocompleteQueryValue || textInputValue}
+                        handleSearch={searchInServer}
                         searchQueryItem={searchQueryItem}
                         getAdditionalSections={getAdditionalSections}
                         onListItemPress={onListItemPress}
@@ -362,6 +370,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                         onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
                         ref={listRef}
+                        textInputRef={textInputRef}
                     />
                 </>
             )}

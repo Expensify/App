@@ -1,8 +1,9 @@
+import {useIsFocused} from '@react-navigation/native';
 import isEqual from 'lodash/isEqual';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
-import type {ReportActionListItemType, ReportListItemType, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportListItemType, SearchListItem, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
 import {search} from '@libs/actions/Search';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -24,6 +25,7 @@ type UseSearchHighlightAndScroll = {
  * Hook used to trigger a search when a new transaction or report action is added and handle highlighting and scrolling.
  */
 function useSearchHighlightAndScroll({searchResults, transactions, previousTransactions, reportActions, previousReportActions, queryJSON, offset}: UseSearchHighlightAndScroll) {
+    const isFocused = useIsFocused();
     // Ref to track if the search was triggered by this hook
     const triggeredByHookRef = useRef(false);
     const searchTriggeredRef = useRef(false);
@@ -33,6 +35,13 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
     const highlightedIDs = useRef<Set<string>>(new Set());
     const initializedRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
+
+    const existingSearchResultIDs = useMemo(() => {
+        if (!searchResults?.data) {
+            return [];
+        }
+        return isChat ? extractReportActionIDsFromSearchResults(searchResults.data) : extractTransactionIDsFromSearchResults(searchResults.data);
+    }, [searchResults?.data, isChat]);
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
@@ -46,14 +55,33 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             .map((actions) => Object.keys(actions ?? {}))
             .flat();
 
-        if (searchTriggeredRef.current) {
+        // Only proceed if we have previous data to compare against
+        // This prevents triggering on initial data load
+        if (previousTransactionsIDs.length === 0 && previousReportActionsIDs.length === 0) {
             return;
         }
+
         const hasTransactionsIDsChange = !isEqual(transactionsIDs, previousTransactionsIDs);
         const hasReportActionsIDsChange = !isEqual(reportActionsIDs, previousReportActionsIDs);
 
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {
+            // If we're not focused, don't trigger search
+            if (!isFocused) {
+                return;
+            }
+
+            const newIDs = isChat ? reportActionsIDs : transactionsIDs;
+            const hasAGenuinelyNewID = newIDs.some((id) => !existingSearchResultIDs.includes(id));
+
+            // Only skip search if there are no new items AND search results aren't empty
+            // This ensures deletions that result in empty data still trigger search
+            if (!hasAGenuinelyNewID && existingSearchResultIDs.length > 0) {
+                const hasDeletedID = existingSearchResultIDs.some((id) => !newIDs.includes(id));
+                if (!hasDeletedID) {
+                    return;
+                }
+            }
             // We only want to highlight new items if the addition of transactions or report actions triggered the search.
             // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
             // We don't want to highlight these old items, even if they appear new in the current search results.
@@ -68,12 +96,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             // Set the ref to prevent further triggers until reset
             searchTriggeredRef.current = true;
         }
-
-        // Reset the ref when transactions or report actions in chat search type are updated
-        return () => {
-            searchTriggeredRef.current = false;
-        };
-    }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat]);
+    }, [isFocused, transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat, searchResults?.data, existingSearchResultIDs]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {
@@ -81,10 +104,9 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             return;
         }
 
-        const existingIDs = isChat ? extractReportActionIDsFromSearchResults(searchResults.data) : extractTransactionIDsFromSearchResults(searchResults.data);
-        highlightedIDs.current = new Set(existingIDs);
+        highlightedIDs.current = new Set(existingSearchResultIDs);
         initializedRef.current = true;
-    }, [searchResults?.data, isChat]);
+    }, [searchResults?.data, isChat, existingSearchResultIDs]);
 
     // Detect new items (transactions or report actions)
     useEffect(() => {
@@ -143,7 +165,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
      * Callback to handle scrolling to the new search result.
      */
     const handleSelectionListScroll = useCallback(
-        (data: Array<TransactionListItemType | ReportActionListItemType | ReportListItemType>) => (ref: SelectionListHandle | null) => {
+        (data: SearchListItem[], ref: SelectionListHandle | null) => {
             // Early return if there's no ref, new transaction wasn't brought in by this hook
             // or there's no new search result key
             if (!ref || !triggeredByHookRef.current || newSearchResultKey === null) {
