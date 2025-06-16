@@ -18,8 +18,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedKey, getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import memoize from '@libs/memoize';
-import type {Options, SearchOption} from '@libs/OptionsListUtils';
-import {combineOrderingOfReportsAndPersonalDetails, getMostRecentOptions, getSearchOptions, getValidPersonalDetailOptions, recentReportComparator} from '@libs/OptionsListUtils';
+import {
+    combineOrderingOfReportsAndPersonalDetails,
+    createOptionListFromPersonalDetails,
+    getMostRecentOptions,
+    getSearchOptions,
+    getValidPersonalDetailOptions,
+    Options,
+    recentReportComparator,
+} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -204,22 +211,21 @@ function SearchAutocompleteList(
     const getParticipantsAutocompleteList = useMemo(
         () =>
             memoize(() => {
+                //todo: repair
                 if (!areOptionsInitialized) {
                     return [];
                 }
 
                 const currentUserRef = {
-                    current: undefined as OptionData | undefined,
+                    current: undefined as PersonalDetails | undefined,
                 };
                 const filteredOptions = getValidPersonalDetailOptions(options.personalDetails, {
                     loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
-                    shouldBoldTitleByDefault: false,
                     currentUserRef,
                 });
 
                 // This cast is needed as something is incorrect in types OptionsListUtils.getOptions around l1490 and includeRecentReports types
-                const personalDetailsFromOptions = filteredOptions.map((option) => (option as SearchOption<PersonalDetails>).item);
-                const autocompleteOptions = Object.values(personalDetailsFromOptions)
+                return filteredOptions
                     .filter((details): details is NonNullable<PersonalDetails> => !!details?.login)
                     .map((details) => {
                         return {
@@ -227,8 +233,6 @@ function SearchAutocompleteList(
                             accountID: details.accountID.toString(),
                         };
                     });
-
-                return autocompleteOptions;
             }),
         [areOptionsInitialized, options.personalDetails],
     );
@@ -353,7 +357,6 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
-                // const orderedReportOptions = orderReportOptions(searchOptions.recentReports);
                 const filterChats = (chat: OptionData) => chat.text?.toLowerCase()?.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(chat.text.toLowerCase());
                 const filteredChats = getMostRecentOptions(searchOptions.recentReports, 10, recentReportComparator, filterChats);
 
@@ -476,21 +479,21 @@ function SearchAutocompleteList(
         workspaceList,
     ]);
 
-    const sortedRecentSearches = useMemo(() => {
-        return Object.values(recentSearches ?? {}).sort((a, b) => b.timestamp.localeCompare(a.timestamp));
-    }, [recentSearches]);
-
-    const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
-        const searchQueryJSON = buildSearchQueryJSON(query);
-        return {
-            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies) : query,
-            singleIcon: Expensicons.History,
-            searchQuery: query,
-            keyForList: timestamp,
-            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
-        };
-    });
-
+    const recentSearchesData = useMemo(() => {
+        return Object.values(recentSearches ?? {})
+            .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+            .slice(0, 5)
+            .map(({query, timestamp}) => {
+                const searchQueryJSON = buildSearchQueryJSON(query);
+                return {
+                    text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies) : query,
+                    singleIcon: Expensicons.History,
+                    searchQuery: query,
+                    keyForList: timestamp,
+                    searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
+                };
+            });
+    }, [allCards, cardFeedNamesWithType, personalDetails, policies, recentSearches, reports, taxRates]);
     /**
      * Builds a suffix tree and returns a function to search in it.
      */
@@ -511,7 +514,8 @@ function SearchAutocompleteList(
         });
         Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
-        const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
+        const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...createOptionListFromPersonalDetails(orderedOptions.personalDetails, false)];
+
         if (filteredOptions.userToInvite) {
             reportOptions.push(filteredOptions.userToInvite);
         }
@@ -528,48 +532,50 @@ function SearchAutocompleteList(
         return () => clearTimeout(timeout);
     }, [autocompleteQueryWithoutFilters, handleSearch]);
 
-    /* Sections generation */
-    const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
-
-    if (searchQueryItem) {
-        sections.push({data: [searchQueryItem]});
-    }
-
-    const additionalSections = useMemo(() => {
-        return getAdditionalSections?.(searchOptions);
-    }, [getAdditionalSections, searchOptions]);
-
-    if (additionalSections) {
-        sections.push(...additionalSections);
-    }
-
-    if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
-        sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
-    }
-
     const styledRecentReports = recentReportsOptions.map((item) => ({
         ...item,
         pressableStyle: styles.br2,
         text: StringUtils.lineBreaksToSpaces(item.text),
         wrapperStyle: [styles.pr3, styles.pl3],
     }));
-    sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
 
-    if (autocompleteSuggestions.length > 0) {
-        const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
-            return {
-                text: getAutocompleteDisplayText(filterKey, text),
-                mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
-                singleIcon: Expensicons.MagnifyingGlass,
-                searchQuery: text,
-                autocompleteID,
-                keyForList: autocompleteID ?? text, // in case we have a unique identifier then use it because text might not be unique
-                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION,
-            };
-        });
+    const sections = useMemo(() => {
+        /* Sections generation */
+        const result: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
 
-        sections.push({title: translate('search.suggestions'), data: autocompleteData});
-    }
+        if (searchQueryItem) {
+            result.push({data: [searchQueryItem]});
+        }
+
+        const additionalSections = getAdditionalSections?.(searchOptions);
+
+        if (additionalSections) {
+            result.push(...additionalSections);
+        }
+
+        if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
+            result.push({title: translate('search.recentSearches'), data: recentSearchesData});
+        }
+
+        result.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
+
+        if (autocompleteSuggestions.length > 0) {
+            const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
+                return {
+                    text: getAutocompleteDisplayText(filterKey, text),
+                    mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
+                    singleIcon: Expensicons.MagnifyingGlass,
+                    searchQuery: text,
+                    autocompleteID,
+                    keyForList: autocompleteID ?? text, // in case we have a unique identifier then use it because text might not be unique
+                    searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION,
+                };
+            });
+
+            result.push({title: translate('search.suggestions'), data: autocompleteData});
+        }
+        return result;
+    }, [searchQueryItem, getAdditionalSections, searchOptions, autocompleteQueryValue, recentSearchesData, translate, autocompleteSuggestions, styledRecentReports]);
 
     const onArrowFocus = useCallback(
         (focusedItem: OptionData | SearchQueryItem) => {

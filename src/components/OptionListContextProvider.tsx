@@ -1,9 +1,10 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
+import type {RawOptionList, SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport, createOptionList, processReport, shallowOptionsListCompare} from '@libs/OptionsListUtils';
-import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
@@ -11,7 +12,7 @@ import {usePersonalDetails} from './OnyxProvider';
 
 type OptionsListContextProps = {
     /** List of options for reports and personal details */
-    options: OptionList;
+    options: RawOptionList;
     /** Function to initialize the options */
     initializeOptions: () => void;
     /** Flag to check if the options are initialized */
@@ -42,8 +43,8 @@ const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails, personalDeta
     prevPersonalDetail?.displayName === personalDetail?.displayName;
 
 function OptionsListContextProvider({children}: OptionsListProviderProps) {
-    const areOptionsInitialized = useRef(false);
-    const [options, setOptions] = useState<OptionList>({
+    const [areOptionsInitialized, setAreOptionsInitialized] = useState(false);
+    const [options, setOptions] = useState<RawOptionList>({
         reports: [],
         personalDetails: [],
     });
@@ -61,18 +62,18 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             reports: optionLists.reports,
             personalDetails: optionLists.personalDetails,
         });
-    }, [personalDetails, reports]);
+    }, [reports, personalDetails]);
 
     /**
      * This effect is responsible for generating the options list when their data is not yet initialized
      */
     useEffect(() => {
-        if (!areOptionsInitialized.current || !reports || hasInitialData) {
+        if (!areOptionsInitialized || !reports || hasInitialData) {
             return;
         }
 
         loadOptions();
-    }, [reports, personalDetails, hasInitialData, loadOptions]);
+    }, [reports, personalDetails, hasInitialData, loadOptions, areOptionsInitialized]);
 
     /**
      * This effect is responsible for generating the options list when the locale changes
@@ -102,7 +103,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
      * This effect is responsible for updating the options only for changed reports
      */
     useEffect(() => {
-        if (!changedReportsEntries || !areOptionsInitialized.current) {
+        if (!changedReportsEntries || !areOptionsInitialized) {
             return;
         }
 
@@ -130,10 +131,10 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportsEntries, personalDetails]);
+    }, [changedReportsEntries, personalDetails, areOptionsInitialized]);
 
     useEffect(() => {
-        if (!changedReportActions || !areOptionsInitialized.current) {
+        if (!changedReportActions || !areOptionsInitialized) {
             return;
         }
 
@@ -162,14 +163,14 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportActions, personalDetails]);
+    }, [changedReportActions, personalDetails, areOptionsInitialized]);
 
     /**
      * This effect is used to update the options list when personal details change.
      */
     useEffect(() => {
         // there is no need to update the options if the options are not initialized
-        if (!areOptionsInitialized.current) {
+        if (!areOptionsInitialized) {
             return;
         }
 
@@ -229,28 +230,32 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
 
         // This effect is used to update the options list when personal details change so we ignore all dependencies except personalDetails
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [personalDetails]);
+    }, [personalDetails, areOptionsInitialized]);
 
     const initializeOptions = useCallback(() => {
         loadOptions();
-        areOptionsInitialized.current = true;
+        // setAreOptionsInitialized(true)
+        InteractionManager.runAfterInteractions(() => setAreOptionsInitialized(true));
     }, [loadOptions]);
 
     const resetOptions = useCallback(() => {
-        if (!areOptionsInitialized.current) {
+        if (!areOptionsInitialized) {
             return;
         }
 
-        areOptionsInitialized.current = false;
+        setAreOptionsInitialized(false);
         setOptions({
             reports: [],
             personalDetails: [],
         });
-    }, []);
+    }, [areOptionsInitialized]);
 
     return (
         <OptionsListContext.Provider // eslint-disable-next-line react-compiler/react-compiler
-            value={useMemo(() => ({options, initializeOptions, areOptionsInitialized: areOptionsInitialized.current, resetOptions}), [options, initializeOptions, resetOptions])}
+            value={useMemo(
+                () => ({options, initializeOptions, areOptionsInitialized: areOptionsInitialized, resetOptions}),
+                [options, initializeOptions, resetOptions, areOptionsInitialized],
+            )}
         >
             {children}
         </OptionsListContext.Provider>
@@ -264,8 +269,8 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
     const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-    const [internalOptions, setInternalOptions] = useState<OptionList>(optionsList);
-    const prevOptions = useRef<OptionList>();
+    const [internalOptions, setInternalOptions] = useState<RawOptionList>(optionsList);
+    const prevOptions = useRef<RawOptionList>();
 
     useEffect(() => {
         if (!prevOptions.current) {
@@ -282,7 +287,7 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     }, [optionsList]);
 
     useEffect(() => {
-        if (!shouldInitialize || areOptionsInitialized || isLoadingApp) {
+        if (!shouldInitialize || areOptionsInitialized) {
             return;
         }
 

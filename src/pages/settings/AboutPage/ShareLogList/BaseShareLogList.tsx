@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {BaseShareLogListProps} from './types';
+import {createOptionListFromPersonalDetails} from '@libs/OptionsListUtils';
 
 function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -81,7 +82,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
 
         sectionsList.push({
             title: translate('common.contacts'),
-            data: searchOptions.personalDetails,
+            data: createOptionListFromPersonalDetails(searchOptions.personalDetails, true),
             shouldShow: searchOptions.personalDetails?.length > 0,
         });
 

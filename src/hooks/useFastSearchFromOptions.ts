@@ -187,7 +187,7 @@ function shallowCompareOptions(prev: ReportAndPersonalDetailOptions, next: Repor
     Performance.markStart(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
 
     for (let i = 0; i < prev.personalDetails.length; i++) {
-        if (prev.personalDetails.at(i)?.keyForList !== next.personalDetails.at(i)?.keyForList) {
+        if (prev.personalDetails.at(i)?.accountID !== next.personalDetails.at(i)?.accountID) {
             Timing.end(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
             Performance.markEnd(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
             return false;
