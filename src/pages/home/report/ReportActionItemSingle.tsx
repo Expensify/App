@@ -356,8 +356,8 @@ function ReportActionItemSingle({
                 {!!vacationer && !!submittedTo && (
                     <Text style={[styles.chatDelegateMessage]}>
                         {translate('statusPage.toAsVacationDelegate', {
-                            submittedToName: submittedToDetails?.displayName ?? '',
-                            vacationDelegateName: vacationDelegateDetailsForSubmit?.displayName ?? '',
+                            submittedToName: submittedToDetails?.displayName ?? submittedTo ?? '',
+                            vacationDelegateName: vacationDelegateDetailsForSubmit?.displayName ?? vacationer ?? '',
                         })}
                     </Text>
                 )}
