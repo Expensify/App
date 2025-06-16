@@ -1854,6 +1854,7 @@ const translations = {
         virtualCardNumber: 'Numer karty wirtualnej',
         travelCardCvv: 'CVV karty podr\u00F3\u017Cnej',
         physicalCardNumber: 'Numer fizycznej karty',
+        physicalCardPin: 'PIN',
         getPhysicalCard: 'Zdob\u0105d\u017A fizyczn\u0105 kart\u0119',
         reportFraud: 'Zg\u0142o\u015B oszustwo zwi\u0105zane z kart\u0105 wirtualn\u0105',
         reportTravelFraud: 'Zg\u0142o\u015B oszustwo zwi\u0105zane z kart\u0105 podr\u00F3\u017Cn\u0105',

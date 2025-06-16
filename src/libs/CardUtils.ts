@@ -259,6 +259,13 @@ function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY
     }
 }
 
+function maskPin(pin = ''): string {
+    if (!pin) {
+        return '••••';
+    }
+    return pin;
+}
+
 function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountList>) {
     if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
         return [];
@@ -703,6 +710,7 @@ export {
     getCardDescription,
     getMCardNumberString,
     getTranslationKeyForLimitType,
+    maskPin,
     getEligibleBankAccountsForCard,
     sortCardsByCardholderName,
     isCurrencySupportECards,

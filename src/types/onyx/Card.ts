@@ -37,6 +37,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Last four Primary Account Number digits */
     lastFourPAN?: string;
 
+    /** Pin of the card */
+    pin?: string;
+
     /** Card number */
     cardNumber?: string;
 

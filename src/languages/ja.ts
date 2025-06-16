@@ -2027,6 +2027,7 @@ const translations = {
         virtualCardNumber: '\u30D0\u30FC\u30C1\u30E3\u30EB\u30AB\u30FC\u30C9\u756A\u53F7',
         travelCardCvv: '\u30C8\u30E9\u30D9\u30EB\u30AB\u30FC\u30C9CVV',
         physicalCardNumber: '\u7269\u7406\u30AB\u30FC\u30C9\u756A\u53F7',
+        physicalCardPin: 'PIN',
         getPhysicalCard: '\u7269\u7406\u30AB\u30FC\u30C9\u3092\u53D6\u5F97',
         reportFraud: '\u30D0\u30FC\u30C1\u30E3\u30EB\u30AB\u30FC\u30C9\u8A50\u6B3A\u3092\u5831\u544A\u3059\u308B',
         reportTravelFraud: '\u30C8\u30E9\u30D9\u30EB\u30AB\u30FC\u30C9\u8A50\u6B3A\u3092\u5831\u544A\u3059\u308B',

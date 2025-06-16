@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Currency} from '@src/types/onyx';
+import type {Currency, CurrencyList} from '@src/types/onyx';
 import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import {format, formatToParts} from './NumberFormatUtils';
 
@@ -208,11 +208,24 @@ function sanitizeCurrencyCode(currencyCode: string): string {
     return isValidCurrencyCode(currencyCode) ? currencyCode : CONST.CURRENCY.USD;
 }
 
+function getCurrencyKeyByCountryCode(currencies?: CurrencyList, countryCode?: string): string {
+    if (!currencies || !countryCode) {
+        return CONST.CURRENCY.USD;
+    }
+    for (const [key, value] of Object.entries(currencies)) {
+        if (value?.countries?.includes(countryCode)) {
+            return key;
+        }
+    }
+    return CONST.CURRENCY.USD;
+}
+
 export {
     getCurrencyDecimals,
     getCurrencyUnit,
     getLocalizedCurrencySymbol,
     getCurrencySymbol,
+    getCurrencyKeyByCountryCode,
     isCurrencySymbolLTR,
     convertToBackendAmount,
     convertToFrontendAmountAsInteger,

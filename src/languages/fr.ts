@@ -1848,6 +1848,7 @@ const translations = {
         virtualCardNumber: 'Num\u00E9ro de carte virtuelle',
         travelCardCvv: 'CVV de la carte de voyage',
         physicalCardNumber: 'Num\u00E9ro de carte physique',
+        physicalCardPin: 'PIN',
         getPhysicalCard: 'Obtenir une carte physique',
         reportFraud: 'Signaler une fraude sur une carte virtuelle',
         reportTravelFraud: 'Signaler une fraude \u00E0 la carte de voyage',

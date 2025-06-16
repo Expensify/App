@@ -152,6 +152,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                                 InputComponent={AmountForm}
                                 defaultValue={convertToFrontendAmountAsString(card?.nameValuePairs?.unapprovedExpenseLimit, currency, false)}
                                 isCurrencyPressable={false}
+                                currency={currency}
                                 inputID={INPUT_IDS.LIMIT}
                                 ref={inputCallbackRef}
                             />

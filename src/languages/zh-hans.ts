@@ -1887,6 +1887,7 @@ const translations = {
         virtualCardNumber: '\u865A\u62DF\u5361\u53F7',
         travelCardCvv: '\u65C5\u884C\u5361CVV',
         physicalCardNumber: '\u5B9E\u4F53\u5361\u53F7',
+        physicalCardPin: 'PIN',
         getPhysicalCard: '\u83B7\u53D6\u5B9E\u4F53\u5361',
         reportFraud: '\u62A5\u544A\u865A\u62DF\u5361\u6B3A\u8BC8\u884C\u4E3A',
         reportTravelFraud: '\u62A5\u544A\u65C5\u884C\u5361\u6B3A\u8BC8\u884C\u4E3A',
