@@ -4,10 +4,11 @@ import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
@@ -37,6 +38,7 @@ type SearchFiltersParticipantsSelectorProps = {
 };
 
 function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}: SearchFiltersParticipantsSelectorProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -128,6 +130,17 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         };
     }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, translate]);
 
+    const resetChanges = useCallback(() => {
+        setSelectedOptions([]);
+    }, []);
+
+    const applyChanges = useCallback(() => {
+        const selectedAccountIDs = selectedOptions.map((option) => (option.accountID ? option.accountID.toString() : undefined)).filter(Boolean) as string[];
+        onFiltersUpdate(selectedAccountIDs);
+
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+    }, [onFiltersUpdate, selectedOptions]);
+
     // This effect handles setting initial selectedOptions based on accountIDs saved in onyx form
     useEffect(() => {
         if (!initialAccountIDs || initialAccountIDs.length === 0 || !personalDetails) {
@@ -180,18 +193,22 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     );
 
     const footerContent = (
-        <Button
-            success
-            text={translate('common.save')}
-            pressOnEnter
-            onPress={() => {
-                const selectedAccountIDs = selectedOptions.map((option) => (option.accountID ? option.accountID.toString() : undefined)).filter(Boolean) as string[];
-                onFiltersUpdate(selectedAccountIDs);
-
-                Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-            }}
-            large
-        />
+        <>
+            <Button
+                large
+                style={[styles.mt4]}
+                text={translate('common.reset')}
+                onPress={resetChanges}
+            />
+            <Button
+                large
+                success
+                pressOnEnter
+                style={[styles.mt4]}
+                text={translate('common.save')}
+                onPress={applyChanges}
+            />
+        </>
     );
 
     const isLoadingNewOptions = !!isSearchingForReports;
@@ -201,7 +218,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         <SelectionList
             canSelectMultiple
             sections={sections}
-            ListItem={InviteMemberListItem}
+            ListItem={UserSelectionListItem}
             textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
             headerMessage={headerMessage}
             textInputValue={searchTerm}
