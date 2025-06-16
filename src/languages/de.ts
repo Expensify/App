@@ -4430,6 +4430,9 @@ const translations = {
             customTagName: 'Benutzerdefinierter Tag-Name',
             enableTag: 'Tag aktivieren',
             enableTags: 'Tags aktivieren',
+            requireTag: 'Erforderlich',
+            requireTags: 'Erforderlich',
+            notRequireTags: 'Nicht erforderlich',
             disableTag: 'Tag deaktivieren',
             disableTags: 'Tags deaktivieren',
             addTag: 'Tag hinzuf\u00FCgen',
@@ -4437,6 +4440,14 @@ const translations = {
             editTags: 'Tags bearbeiten',
             findTag: 'Tag finden',
             subtitle: 'Tags bieten detailliertere M\u00F6glichkeiten, Kosten zu klassifizieren.',
+            dependentMultiLevelTagsSubtitle: {
+                phrase1: ' Sie verwenden ',
+                phrase2: 'abhängige Tags',
+                phrase3: '. Sie können ',
+                phrase4: 'eine Tabelle erneut importieren',
+                phrase5: ', um Ihre Tags zu aktualisieren.',
+            },
+
             emptyTags: {
                 title: 'Sie haben noch keine Tags erstellt',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
