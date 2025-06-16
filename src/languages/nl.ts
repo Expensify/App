@@ -192,6 +192,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -243,6 +244,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -2368,6 +2370,11 @@ const translations = {
         time: 'Tijd',
         clearAfter: 'Wissen na',
         whenClearStatus: 'Wanneer moeten we je status wissen?',
+        vacationDelegate: 'Vakantievervanger',
+        setVacationDelegate: `Stel een vakantievervanger in om rapporten namens jou goed te keuren terwijl je afwezig bent.`,
+        vacationDelegateError: 'Er is een fout opgetreden bij het bijwerken van je vakantievervanger.',
+        asVacationDelegate: ({managerName}: VacationDelegateParams) => `als vakantievervanger van ${managerName}`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `aan ${submittedToName} als vakantievervanger van ${vacationDelegateName}`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Stap ${step}`;

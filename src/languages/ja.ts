@@ -192,6 +192,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -243,6 +244,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -2640,6 +2642,11 @@ const translations = {
         time: '\u6642\u9593',
         clearAfter: '\u5F8C\u3067\u30AF\u30EA\u30A2',
         whenClearStatus: '\u3044\u3064\u30B9\u30C6\u30FC\u30BF\u30B9\u3092\u30AF\u30EA\u30A2\u3059\u3079\u304D\u3067\u3059\u304B\uFF1F',
+        vacationDelegate: '休暇代理人',
+        setVacationDelegate: `不在中にレポートを承認してもらうため、休暇代理人を設定してください。`,
+        vacationDelegateError: '休暇代理人の更新中にエラーが発生しました。',
+        asVacationDelegate: ({managerName}: VacationDelegateParams) => `${managerName}の休暇代理人として`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `${submittedToName}へ、${vacationDelegateName}の休暇代理人として`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `\u30B9\u30C6\u30C3\u30D7${step}`;

@@ -192,6 +192,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -243,6 +244,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -2396,6 +2398,11 @@ const translations = {
         time: 'Zeit',
         clearAfter: 'Nach dem L\u00F6schen',
         whenClearStatus: 'Wann sollten wir Ihren Status l\u00F6schen?',
+        vacationDelegate: 'Urlaubsvertretung',
+        setVacationDelegate: `Legen Sie eine Urlaubsvertretung fest, die Berichte in Ihrer Abwesenheit genehmigt.`,
+        vacationDelegateError: 'Beim Aktualisieren Ihrer Urlaubsvertretung ist ein Fehler aufgetreten.',
+        asVacationDelegate: ({managerName}: VacationDelegateParams) => `als Urlaubsvertretung von ${managerName}`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `an ${submittedToName} als Urlaubsvertretung von ${vacationDelegateName}`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Schritt ${step}`;

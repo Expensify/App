@@ -192,6 +192,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -243,6 +244,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -2417,6 +2419,11 @@ const translations = {
         time: 'Czas',
         clearAfter: 'Wyczy\u015B\u0107 po',
         whenClearStatus: 'Kiedy powinni\u015Bmy wyczy\u015Bci\u0107 Tw\u00F3j status?',
+        vacationDelegate: 'Zastępca urlopowy',
+        setVacationDelegate: `Ustaw zastępcę urlopowego, który będzie zatwierdzał raporty w twoim imieniu podczas twojej nieobecności.`,
+        vacationDelegateError: 'Wystąpił błąd podczas aktualizacji twojego zastępcy urlopowego.',
+        asVacationDelegate: ({managerName}: VacationDelegateParams) => `jako zastępca urlopowy ${managerName}`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `do ${submittedToName} jako zastępca urlopowy ${vacationDelegateName}`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Krok ${step}`;

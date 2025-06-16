@@ -192,6 +192,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -243,6 +244,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -2461,6 +2463,12 @@ const translations = {
         time: '\u65F6\u95F4',
         clearAfter: '\u6E05\u9664\u540E',
         whenClearStatus: '\u6211\u4EEC\u5E94\u8BE5\u4F55\u65F6\u6E05\u9664\u60A8\u7684\u72B6\u6001\uFF1F',
+        vacationDelegate: '\u4F11\u5047\u4EE3\u7406\u4EBA',
+        setVacationDelegate: '\u8BBE\u7F6E\u4E00\u4F4D\u4F11\u5047\u4EE3\u7406\u4EBA\uFF0C\u5728\u60A8\u5916\u51FA\u65F6\u4EE3\u60A8\u6279\u51C6\u62A5\u544A\u3002',
+        vacationDelegateError: '\u66F4\u65B0\u4F11\u5047\u4EE3\u7406\u4EBA\u65F6\u51FA\u9519\u3002',
+        asVacationDelegate: ({managerName}: VacationDelegateParams) => `\u4F5C\u4E3A ${managerName} \u7684\u4F11\u5047\u4EE3\u7406\u4EBA`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) =>
+            `\u53D1\u9001\u7ED9 ${submittedToName}\uFF0C\u4F5C\u4E3A ${vacationDelegateName} \u7684\u4F11\u5047\u4EE3\u7406\u4EBA`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `\u6B65\u9AA4 ${step}`;

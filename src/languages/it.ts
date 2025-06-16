@@ -192,6 +192,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -243,6 +244,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -2371,6 +2373,11 @@ const translations = {
         time: 'Tempo',
         clearAfter: 'Cancella dopo',
         whenClearStatus: 'Quando dovremmo cancellare il tuo stato?',
+        vacationDelegate: 'Delegato per le vacanze',
+        setVacationDelegate: `Imposta un delegato per le vacanze per approvare i report al tuo posto mentre sei fuori ufficio.`,
+        vacationDelegateError: 'Si è verificato un errore durante l’aggiornamento del delegato per le vacanze.',
+        asVacationDelegate: ({managerName}: VacationDelegateParams) => `come delegato per le vacanze di ${managerName}`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `a ${submittedToName} come delegato per le vacanze di ${vacationDelegateName}`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Passo ${step}`;
