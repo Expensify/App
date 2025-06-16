@@ -7,7 +7,7 @@ const tests = [
         query: parserCommonTests.simple,
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: null,
@@ -17,7 +17,7 @@ const tests = [
         query: parserCommonTests.userFriendlyNames,
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -55,7 +55,7 @@ const tests = [
         query: parserCommonTests.oldNames,
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -93,7 +93,7 @@ const tests = [
         query: parserCommonTests.complex,
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -139,7 +139,7 @@ const tests = [
         query: parserCommonTests.quotesIOS,
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -153,7 +153,7 @@ const tests = [
         query: ',',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -167,7 +167,7 @@ const tests = [
         query: 'currency:,',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -181,7 +181,7 @@ const tests = [
         query: 'tag:,,travel,',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -195,7 +195,7 @@ const tests = [
         query: 'category:',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -209,7 +209,7 @@ const tests = [
         query: 'in:123333 currency:USD merchant:marriott',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -239,7 +239,7 @@ const tests = [
         query: 'date>2024-01-01 date<2024-06-01 merchant:"McDonald\'s"',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -269,7 +269,7 @@ const tests = [
         query: 'from:usera@user.com to:userb@user.com date>2024-01-01',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -300,7 +300,7 @@ const tests = [
         query: 'amount>100 amount<200 from:usera@user.com tax-rate:1234 card:1234 reportid:12345 tag:ecx date>2023-01-01',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -370,7 +370,7 @@ const tests = [
         query: 'amount>200 las vegas',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -392,7 +392,7 @@ const tests = [
         query: 'amount>200 las vegas category:"Hotel : Marriott"',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -422,7 +422,7 @@ const tests = [
         query: 'amount>200 las vegas category:"Hotel : Marriott" date:2024-01-01,2024-02-01 merchant:"Expensify, Inc." tag:hotel,travel,"meals & entertainment"',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {

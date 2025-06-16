@@ -219,7 +219,6 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toEqual({
                 type: 'expense',
-                status: '',
                 category: ['Maintenance', 'none,Uncategorized'],
             });
         });
