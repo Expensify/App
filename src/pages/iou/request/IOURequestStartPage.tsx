@@ -131,7 +131,7 @@ function IOURequestStartPage({
         useCallback(() => {
             // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
             if (
-                (transaction?.reportID === reportID && iouType !== CONST.IOU.TYPE.CREATE && iouType !== CONST.IOU.TYPE.SUBMIT) ||
+                transaction?.reportID === reportID ||
                 isLoadingSelectedTab ||
                 !transactionRequestType ||
                 prevTransactionReportID !== transaction?.reportID
@@ -139,7 +139,7 @@ function IOURequestStartPage({
                 return;
             }
             resetIOUTypeIfChanged(transactionRequestType);
-        }, [transaction?.reportID, reportID, iouType, resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID]),
+        }, [transaction?.reportID, reportID, resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID]),
     );
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
