@@ -27,6 +27,15 @@ function canUseAutoSubmit(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.AUTO_SUBMIT) || canUseAllBetas(betas);
 }
 
+/**
+ * Checks if the user can use the export templates feature
+ * @param betas
+ * @returns
+ */
+function canUseExportTemplates(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.EXPORT_TEMPLATES) || canUseAllBetas(betas);
+}
+
 function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(beta) || canUseAllBetas(betas);
 }
@@ -36,4 +45,5 @@ export default {
     isBlockedFromSpotnanaTravel,
     isBetaEnabled,
     canUseAutoSubmit,
+    canUseExportTemplates,
 };
