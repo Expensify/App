@@ -2049,7 +2049,10 @@ const translations = {
         lastMemberWarning: 'Aangezien je de laatste persoon hier bent, zal het verlaten van deze chat deze ontoegankelijk maken voor alle leden. Weet je zeker dat je wilt vertrekken?',
         defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `Groepschat van ${displayName}`,
     },
-    language: 'Taal',
+    languagePage: {
+        language: 'Taal',
+        aiGenerated: 'De vertalingen voor deze taal worden automatisch gegenereerd en kunnen fouten bevatten.',
+    },
     themePage: {
         theme: 'Thema',
         themes: {

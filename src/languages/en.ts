@@ -2028,7 +2028,10 @@ const translations = {
         lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all members. Are you sure you want to leave?",
         defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `${displayName}'s group chat`,
     },
-    language: 'Language',
+    languagePage: {
+        language: 'Language',
+        aiGenerated: 'The translations for this language are generated automatically and may contain errors.',
+    },
     themePage: {
         theme: 'Theme',
         themes: {

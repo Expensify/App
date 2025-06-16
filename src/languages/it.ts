@@ -2053,7 +2053,10 @@ const translations = {
         lastMemberWarning: "Poich\u00E9 sei l'ultima persona qui, uscire render\u00E0 questa chat inaccessibile a tutti i membri. Sei sicuro di voler uscire?",
         defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `Chat di gruppo di ${displayName}`,
     },
-    language: 'Lingua',
+    languagePage: {
+        language: 'Lingua',
+        aiGenerated: 'Le traduzioni per questa lingua sono generate automaticamente e possono contenere errori.',
+    },
     themePage: {
         theme: 'Tema',
         themes: {

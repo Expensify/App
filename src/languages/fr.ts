@@ -2075,7 +2075,10 @@ const translations = {
         lastMemberWarning: 'Puisque vous \u00EAtes la derni\u00E8re personne ici, partir rendra ce chat inaccessible \u00E0 tous les membres. \u00CAtes-vous s\u00FBr de vouloir partir ?',
         defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `Discussion de groupe de ${displayName}`,
     },
-    language: 'Langue',
+    languagePage: {
+        language: 'Langue',
+        aiGenerated: 'Les traductions pour cette langue sont générées automatiquement et peuvent contenir des erreurs.',
+    },
     themePage: {
         theme: 'Th\u00E8me',
         themes: {

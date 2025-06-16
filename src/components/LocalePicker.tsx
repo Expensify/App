@@ -39,7 +39,7 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
 
     return (
         <Picker
-            label={size === 'normal' ? translate('language') : null}
+            label={size === 'normal' ? translate('languagePage.language') : null}
             onInputChange={(locale) => {
                 if (locale === preferredLocale) {
                     return;

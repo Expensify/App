@@ -20,7 +20,7 @@ import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
-import {LOCALE_TO_LANGUAGE_STRING} from '@src/CONST/LOCALES';
+import {isFullySupportedLocale, LOCALE_TO_LANGUAGE_STRING} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -99,9 +99,10 @@ function PreferencesPage() {
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
                                 title={preferredLocale ? LOCALE_TO_LANGUAGE_STRING[preferredLocale] : undefined}
-                                description={translate('language')}
+                                description={translate('languagePage.language')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
+                                hintText={!preferredLocale || !isFullySupportedLocale(preferredLocale) ? translate('languagePage.aiGenerated') : ''}
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon

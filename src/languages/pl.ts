@@ -2086,7 +2086,10 @@ const translations = {
             'Poniewa\u017C jeste\u015B ostatni\u0105 osob\u0105 tutaj, opuszczenie spowoduje, \u017Ce ten czat stanie si\u0119 niedost\u0119pny dla wszystkich cz\u0142onk\u00F3w. Czy na pewno chcesz opu\u015Bci\u0107?',
         defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `Czat grupowy ${displayName}`,
     },
-    language: 'J\u0119zyk',
+    languagePage: {
+        language: 'J\u0119zyk',
+        aiGenerated: 'Tłumaczenia dla tego języka są generowane automatycznie i mogą zawierać błędy.',
+    },
     themePage: {
         theme: 'Motyw',
         themes: {

@@ -2119,7 +2119,10 @@ const translations = {
             '\u7531\u4E8E\u60A8\u662F\u8FD9\u91CC\u7684\u6700\u540E\u4E00\u4E2A\u4EBA\uFF0C\u79BB\u5F00\u5C06\u4F7F\u6240\u6709\u6210\u5458\u65E0\u6CD5\u8BBF\u95EE\u6B64\u804A\u5929\u3002\u60A8\u786E\u5B9A\u8981\u79BB\u5F00\u5417\uFF1F',
         defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `${displayName}\u7684\u7FA4\u804A`,
     },
-    language: '\u8BED\u8A00',
+    languagePage: {
+        language: '\u8BED\u8A00',
+        aiGenerated: '该语言的翻译是自动生成的，可能包含错误。',
+    },
     themePage: {
         theme: '\u4E3B\u9898',
         themes: {
