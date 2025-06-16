@@ -69,6 +69,9 @@ type ReportActionItemParentActionProps = {
 
     /** Session account ID */
     sessionAccountID?: number;
+
+    /** Personal details list */
+    personalDetailsList?: OnyxTypes.PersonalDetailsList;
 };
 
 function ReportActionItemParentAction({
@@ -86,6 +89,7 @@ function ReportActionItemParentAction({
     invoiceReceiverPolicy,
     invoiceReceiverPersonalDetail,
     sessionAccountID,
+    personalDetailsList,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
@@ -175,6 +179,7 @@ function ReportActionItemParentAction({
                             invoiceReceiverPolicy={invoiceReceiverPolicy}
                             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
                             sessionAccountID={sessionAccountID}
+                            personalDetailsList={personalDetailsList}
                         />
                     </OfflineWithFeedback>
                 );

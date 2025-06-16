@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -67,6 +67,9 @@ type ReportActionsListItemRendererProps = {
 
     /** Session account ID */
     sessionAccountID?: number;
+
+    /** Personal details list */
+    personalDetailsList?: PersonalDetailsList;
 };
 
 function ReportActionsListItemRenderer({
@@ -90,6 +93,7 @@ function ReportActionsListItemRenderer({
     invoiceReceiverPolicy,
     invoiceReceiverPersonalDetail,
     sessionAccountID,
+    personalDetailsList,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -182,6 +186,7 @@ function ReportActionsListItemRenderer({
                 invoiceReceiverPolicy={invoiceReceiverPolicy}
                 invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
                 sessionAccountID={sessionAccountID}
+                personalDetailsList={personalDetailsList}
             />
         );
     }
@@ -217,6 +222,7 @@ function ReportActionsListItemRenderer({
             invoiceReceiverPolicy={invoiceReceiverPolicy}
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             sessionAccountID={sessionAccountID}
+            personalDetailsList={personalDetailsList}
         />
     );
 }

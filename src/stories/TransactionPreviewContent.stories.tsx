@@ -101,7 +101,7 @@ const story: Meta<typeof TransactionPreviewContent> = {
         isWhisper: false,
         isHovered: false,
         chatReport: chatReportR14932,
-        personalDetails,
+        personalDetailsList: personalDetails,
         iouReport: iouReportR14932,
         transaction: transactionR14932,
         violations: [],

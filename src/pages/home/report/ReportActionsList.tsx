@@ -612,6 +612,7 @@ function ReportActionsList({
                     invoiceReceiverPolicy={invoiceReceiverPolicy}
                     invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
                     sessionAccountID={accountID}
+                    personalDetailsList={personalDetailsList}
                 />
             );
         },
@@ -633,6 +634,7 @@ function ReportActionsList({
             invoiceReceiverPolicy,
             invoiceReceiverPersonalDetail,
             accountID,
+            personalDetailsList,
         ],
     );
 

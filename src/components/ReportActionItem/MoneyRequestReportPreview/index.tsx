@@ -38,6 +38,7 @@ function MoneyRequestReportPreview({
     invoiceReceiverPolicy,
     invoiceReceiverPersonalDetail,
     sessionAccountID,
+    personalDetailsList,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -96,6 +97,7 @@ function MoneyRequestReportPreview({
             onPreviewPressed={openReportFromPreview}
             shouldShowIOUData={shouldShowIOUData}
             sessionAccountID={sessionAccountID}
+            personalDetailsList={personalDetailsList}
         />
     );
 

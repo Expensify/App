@@ -282,7 +282,7 @@ type PureReportActionItemProps = {
     parentReport?: OnyxTypes.Report;
 
     /** Personal details list */
-    personalDetails?: OnyxTypes.PersonalDetailsList;
+    personalDetailsList?: OnyxTypes.PersonalDetailsList;
 
     /** Whether or not the user is blocked from concierge */
     blockedFromConcierge?: OnyxTypes.BlockedFromConcierge;
@@ -413,7 +413,7 @@ function PureReportActionItem({
     reportNameValuePairs,
     isUserValidated,
     parentReport,
-    personalDetails,
+    personalDetailsList,
     blockedFromConcierge,
     originalReportID = '-1',
     deleteReportActionDraft = () => {},
@@ -944,6 +944,7 @@ function PureReportActionItem({
                     invoiceReceiverPolicy={invoiceReceiverPolicy}
                     invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
                     sessionAccountID={sessionAccountID}
+                    personalDetailsList={personalDetailsList}
                 />
             );
         } else if (isTaskAction(action)) {
@@ -967,7 +968,7 @@ function PureReportActionItem({
             );
         } else if (isReimbursementQueuedAction(action)) {
             const targetReport = isChatThread(report) ? parentReport : report;
-            const submitterDisplayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails?.[targetReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]));
+            const submitterDisplayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetailsList?.[targetReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]));
             const paymentType = getOriginalMessage(action)?.paymentType ?? '';
 
             children = (
@@ -1303,7 +1304,7 @@ function PureReportActionItem({
                             numberOfReplies={numberOfThreadReplies}
                             mostRecentReply={`${action.childLastVisibleActionCreated}`}
                             isHovered={hovered || isContextMenuActive}
-                            icons={getIconsForParticipants(oldestFourAccountIDs, personalDetails)}
+                            icons={getIconsForParticipants(oldestFourAccountIDs, personalDetailsList)}
                             onSecondaryInteraction={showPopover}
                             isActive={isReportActionActive && !isContextMenuActive}
                         />
@@ -1409,7 +1410,7 @@ function PureReportActionItem({
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0;
     const whisperedToPersonalDetails = isWhisper
-        ? (Object.values(personalDetails ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? CONST.DEFAULT_NUMBER_ID)) as OnyxTypes.PersonalDetails[])
+        ? (Object.values(personalDetailsList ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? CONST.DEFAULT_NUMBER_ID)) as OnyxTypes.PersonalDetails[])
         : [];
     const isWhisperOnlyVisibleByUser = isWhisper && isCurrentUserTheOnlyParticipant(whisperedTo);
     const displayNamesWithTooltips = isWhisper ? getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
@@ -1605,7 +1606,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         lodashIsEqual(prevProps.reportNameValuePairs, nextProps.reportNameValuePairs) &&
         prevProps.isUserValidated === nextProps.isUserValidated &&
         prevProps.parentReport?.reportID === nextProps.parentReport?.reportID &&
-        lodashIsEqual(prevProps.personalDetails, nextProps.personalDetails) &&
+        lodashIsEqual(prevProps.personalDetailsList, nextProps.personalDetailsList) &&
         lodashIsEqual(prevProps.blockedFromConcierge, nextProps.blockedFromConcierge) &&
         prevProps.originalReportID === nextProps.originalReportID &&
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&

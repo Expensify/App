@@ -40,7 +40,7 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         isWhisper={false}
         isHovered={false}
         chatReport={chatReportR14932}
-        personalDetails={personalDetails}
+        personalDetailsList={personalDetails}
         iouReport={iouReportR14932}
         transaction={item}
         violations={item.errors ? violationsR14932 : []}

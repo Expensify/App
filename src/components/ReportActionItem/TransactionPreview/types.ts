@@ -75,6 +75,9 @@ type TransactionPreviewProps = {
 
     /** Session account ID */
     sessionAccountID?: number;
+
+    /** Personal details list */
+    personalDetailsList?: PersonalDetailsList;
 };
 
 type TransactionPreviewContentProps = {
@@ -117,8 +120,8 @@ type TransactionPreviewContentProps = {
     /** Holds the chat report entry from Onyx */
     chatReport?: Report;
 
-    /** Optional details about people involved in the transaction */
-    personalDetails?: PersonalDetailsList;
+    /** Personal details list */
+    personalDetailsList?: PersonalDetailsList;
 
     /** Indicates whether the transaction consists of duplicates */
     areThereDuplicates: boolean;
