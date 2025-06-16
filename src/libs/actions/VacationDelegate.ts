@@ -54,7 +54,7 @@ function setVacationDelegate(creator: string, delegate: string) {
 
     const parameters: SetVacationDelegateParams = {
         creator,
-        delegate,
+        vacationDelegateEmail: delegate,
     };
 
     API.write(WRITE_COMMANDS.SET_VACATION_DELEGATE, parameters, {optimisticData, successData, failureData});

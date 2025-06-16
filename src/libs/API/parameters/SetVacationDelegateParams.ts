@@ -1,6 +1,6 @@
 type SetVacationDelegateParams = {
     creator: string;
-    delegate: string;
+    vacationDelegateEmail: string;
 };
 
 export default SetVacationDelegateParams;
