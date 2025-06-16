@@ -19,7 +19,7 @@ Report actions guide the submitter, approver, and payer regarding the report's s
 | **Action Type** | **What It Means** | **Examples** |
 |------------------|------------------|-------------|
 | **Primary actions** | Actions that require your attention and drive the report forward. These are always visible at the top of a report or in the reports list. | Submit, Approve, Pay, Export |
-| **Secondary actions (More menu)** | Optional tools and adjustments that help manage or troubleshoot a report. Appear in the More menu depending on report state, role, or integration settings. | Hold, Delete, Change workspace, Mark as exported |
+| **Secondary actions (More menu)** | Optional tools and adjustments that help manage or troubleshoot an expense or report. Appear in the More menu depending on the state, role, or integration settings. | Hold, Delete, Change workspace, Mark as exported |
 
 ---
 
@@ -27,11 +27,11 @@ Report actions guide the submitter, approver, and payer regarding the report's s
 
 | **Action** | **When It Appears** | **Who Can See It** | **What It Does** |
 |------------|---------------------|---------------------|------------------|
-| **Submit** | For open/unsubmitted reports | Submitter | Sends the report into the approval workflow |
-| **Approve** | When the report is submitted and pending approval | Approver | Confirms the report is accurate and ready to move to payment |
-| **Pay** | After report is approved | Payer | Initiates payment via Expensify or logs a manual payment |
-| **Export** | When report is approved and not yet exported | Admin, Exporter | Sends report data to an integrated accounting system |
-| **Review** | When a report has violations (duplicate expenses, a missing receipt, etc.) | All roles | Prompts the user to resolve issues before submitting, approving, or paying |
+| **Submit** | For draft/unsubmitted reports | Submitter | Sends the report into the approval workflow |
+| **Approve** | When the report is submitted and pending approval | Approver | Confirms the report is accurate and ready to move to payment or to the next approver |
+| **Pay** | After the report is approved | Payer | Initiates payment via Expensify or logs a manual payment |
+| **Export** | When the report is approved and not yet exported | Admin, Exporter | Sends report data to an integrated accounting system |
+| **Review** | When a report has violations (duplicate expenses, a missing receipt, etc.) | All roles | Prompts to resolve issues before submitting, approving, or paying |
 
 ---
 
@@ -39,17 +39,17 @@ Report actions guide the submitter, approver, and payer regarding the report's s
 
 | **Action** | **When It Appears** | **Who Can See It** | **What It Does** |
 |------------|---------------------|---------------------|------------------|
-| **Hold** | On submitted reports | Approver | Pauses the approval process temporarily |
-| **Change workspace** | Before report is paid or exported | Submitter, Approver, Admin | Moves the report to a different workspace |
-| **Delete** | Only on open/unsubmitted reports | Submitter | Permanently removes the report |
+| **Hold** | On draft, submitted, or approved reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
+| **Change workspace** | Before report is exported | Submitter, Approver, Admin | Moves the report to a different workspace |
+| **Delete** | Only on draft/unsubmitted reports | Submitter | Permanently removes the report |
 | **Unapprove** | After approval, before payment | Approver | Reverts the approval if the report hasn’t been re-approved or paid |
-| **Mark as exported** | After exporting manually | Admin, Exporter | Tags the report as exported for tracking purposes |
+| **Mark as exported** | On approved/paid reports when integrated to an accounting system| Admin, Exporter | Marks the report as manually exported for tracking purposes |
 | **Export to [accounting system]** | When an accounting system is connected | Admin, Exporter | Sends the report to an external system such as Xero or QuickBooks Online |
 | **Download** | Any report state | All roles | Downloads a copy of the report as a PDF |
-| **Submit** | For open reports | Admin (on behalf of submitter) | Sends report for approval |
-| **Approve** | For processing reports | Admin | Skips review step, moves forward to payment |
-| **View details** | Any report | All roles | Opens detailed view of report history, expenses, and comments |
-| **Cancel payment** | After payment is initiated, but before the payment has been processed, or for a manual payment | Payer | Cancels pending payment |
+| **Submit** | For draft reports | Submitter, Admin (on behalf of submitter) | Kicks off report approval workflow |
+| **Approve** | For outstanding reports | Admin | Skips current approver  |
+| **View details** | Any report | All roles | Opens details view with options to share, pin, view members |
+| **Cancel payment** | After payment is initiated, but before the payment has been processed, or always for a manual payment | Payer | Cancels pending payment |
 
 ---
 
