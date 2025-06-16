@@ -1,14 +1,14 @@
-import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
-import {renderScrollComponent} from '@components/ActionSheetAwareScrollView';
+import type { ListRenderItemInfo } from '@react-native/virtualized-lists/Lists/VirtualizedList';
+import { useIsFocused, useRoute } from '@react-navigation/native';
+import React, { memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import { DeviceEventEmitter, InteractionManager, View } from 'react-native';
+import type { OnyxEntry } from 'react-native-onyx';
+import { useOnyx } from 'react-native-onyx';
+import { renderScrollComponent } from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/InvertedFlatList';
-import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import { AUTOSCROLL_TO_TOP_THRESHOLD } from '@components/InvertedFlatList/BaseInvertedFlatList';
+import { usePersonalDetails } from '@components/OnyxProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -18,42 +18,20 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {isSafari} from '@libs/Browser';
+import { isSafari } from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
-import {getChatFSAttributes, parseFSAttributes} from '@libs/Fullstory';
+import { getChatFSAttributes, parseFSAttributes } from '@libs/Fullstory';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {
-    getFirstVisibleReportActionID,
-    isConsecutiveActionMadeByPreviousActor,
-    isConsecutiveChronosAutomaticTimerAction,
-    isCurrentActionUnread,
-    isDeletedParentAction,
-    isReportPreviewAction,
-    isReversedTransaction,
-    isTransactionThread,
-    wasMessageReceivedWhileOffline,
-} from '@libs/ReportActionsUtils';
-import {
-    canShowReportRecipientLocalTime,
-    canUserPerformWriteAction,
-    chatIncludesChronosWithID,
-    getReportLastVisibleActionCreated,
-    isArchivedNonExpenseReport,
-    isCanceledTaskReport,
-    isExpenseReport,
-    isInvoiceReport,
-    isIOUReport,
-    isTaskReport,
-    isUnread,
-} from '@libs/ReportUtils';
+import type { PlatformStackRouteProp } from '@libs/Navigation/PlatformStackNavigation/types';
+import { getFirstVisibleReportActionID, isConsecutiveActionMadeByPreviousActor, isConsecutiveChronosAutomaticTimerAction, isCurrentActionUnread, isDeletedParentAction, isReportPreviewAction, isReversedTransaction, isTransactionThread, wasMessageReceivedWhileOffline } from '@libs/ReportActionsUtils';
+import { canShowReportRecipientLocalTime, canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isArchivedNonExpenseReport, isCanceledTaskReport, isExpenseReport, isInvoiceReport, isIOUReport, isTaskReport, isUnread } from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
-import type {ReportsSplitNavigatorParamList} from '@navigation/types';
+import type { ReportsSplitNavigatorParamList } from '@navigation/types';
 import variables from '@styles/variables';
-import {getCurrentUserAccountID, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
-import {PersonalDetailsContext} from '@src/components/OnyxProvider';
+import { getCurrentUserAccountID, openReport, readNewestAction, subscribeToNewActionEvent } from '@userActions/Report';
+import { PersonalDetailsContext } from '@src/components/OnyxProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -65,6 +43,7 @@ import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import shouldDisplayNewMarkerOnReportAction from './shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
+
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
@@ -181,6 +160,10 @@ function ReportActionsList({
     });
 
     const participantsContext = useContext(PersonalDetailsContext);
+    const [walletTermsErrors] = useOnyx(ONYXKEYS.WALLET_TERMS, {
+        selector: (walletTerms) => walletTerms?.errors,
+        canBeMissing: true,
+    });
 
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
@@ -613,6 +596,7 @@ function ReportActionsList({
                     invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
                     sessionAccountID={accountID}
                     personalDetailsList={personalDetailsList}
+                    walletTermsErrors={walletTermsErrors}
                 />
             );
         },
@@ -635,6 +619,7 @@ function ReportActionsList({
             invoiceReceiverPersonalDetail,
             accountID,
             personalDetailsList,
+            walletTermsErrors,
         ],
     );
 

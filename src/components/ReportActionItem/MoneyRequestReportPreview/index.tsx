@@ -39,6 +39,7 @@ function MoneyRequestReportPreview({
     invoiceReceiverPersonalDetail,
     sessionAccountID,
     personalDetailsList,
+    walletTermsErrors,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -98,6 +99,7 @@ function MoneyRequestReportPreview({
             shouldShowIOUData={shouldShowIOUData}
             sessionAccountID={sessionAccountID}
             personalDetailsList={personalDetailsList}
+            walletTermsErrors={walletTermsErrors}
         />
     );
 

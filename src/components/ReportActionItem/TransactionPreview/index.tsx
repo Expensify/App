@@ -41,6 +41,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         contextAction,
         sessionAccountID,
         personalDetailsList,
+        walletTermsErrors,
     } = props;
 
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
@@ -49,7 +50,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const violations = useTransactionViolations(transaction?.transactionID);
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
     const allDuplicates = useMemo(() => violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [], [violations]);
@@ -115,7 +115,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     navigateToReviewFields={navigateToReviewFields}
                     areThereDuplicates={areThereDuplicates}
                     sessionAccountID={sessionAccountID}
-                    walletTermsErrors={walletTerms?.errors}
+                    walletTermsErrors={walletTermsErrors}
                     routeName={route.name}
                     isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
                 />
@@ -138,7 +138,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             navigateToReviewFields={navigateToReviewFields}
             areThereDuplicates={areThereDuplicates}
             sessionAccountID={sessionAccountID}
-            walletTermsErrors={walletTerms?.errors}
+            walletTermsErrors={walletTermsErrors}
             routeName={route.name}
             reportPreviewAction={reportPreviewAction}
             isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}

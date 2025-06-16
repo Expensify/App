@@ -18,6 +18,7 @@ import {
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type { Errors } from '@src/types/onyx/OnyxCommon';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
@@ -72,6 +73,9 @@ type ReportActionItemParentActionProps = {
 
     /** Personal details list */
     personalDetailsList?: OnyxTypes.PersonalDetailsList;
+
+    /** Records any errors related to wallet terms. */
+    walletTermsErrors?: Errors | undefined;
 };
 
 function ReportActionItemParentAction({
@@ -90,6 +94,7 @@ function ReportActionItemParentAction({
     invoiceReceiverPersonalDetail,
     sessionAccountID,
     personalDetailsList,
+    walletTermsErrors,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
@@ -180,6 +185,7 @@ function ReportActionItemParentAction({
                             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
                             sessionAccountID={sessionAccountID}
                             personalDetailsList={personalDetailsList}
+                            walletTermsErrors={walletTermsErrors}
                         />
                     </OfflineWithFeedback>
                 );

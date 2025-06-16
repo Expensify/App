@@ -4,6 +4,7 @@ import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '
 import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
+import type { Errors } from '@src/types/onyx/OnyxCommon';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -70,6 +71,9 @@ type ReportActionsListItemRendererProps = {
 
     /** Personal details list */
     personalDetailsList?: PersonalDetailsList;
+
+    /** Records any errors related to wallet terms. */
+    walletTermsErrors?: Errors | undefined;
 };
 
 function ReportActionsListItemRenderer({
@@ -94,6 +98,7 @@ function ReportActionsListItemRenderer({
     invoiceReceiverPersonalDetail,
     sessionAccountID,
     personalDetailsList,
+    walletTermsErrors,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -187,6 +192,7 @@ function ReportActionsListItemRenderer({
                 invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
                 sessionAccountID={sessionAccountID}
                 personalDetailsList={personalDetailsList}
+                walletTermsErrors={walletTermsErrors}
             />
         );
     }
@@ -223,6 +229,7 @@ function ReportActionsListItemRenderer({
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             sessionAccountID={sessionAccountID}
             personalDetailsList={personalDetailsList}
+            walletTermsErrors={walletTermsErrors}
         />
     );
 }

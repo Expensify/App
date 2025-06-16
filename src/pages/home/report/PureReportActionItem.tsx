@@ -370,6 +370,9 @@ type PureReportActionItemProps = {
 
     /** Session account ID */
     sessionAccountID?: number;
+
+    /** Records any errors related to wallet terms. */
+    walletTermsErrors?: Errors | undefined;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -438,6 +441,7 @@ function PureReportActionItem({
     invoiceReceiverPolicy,
     invoiceReceiverPersonalDetail,
     sessionAccountID,
+    walletTermsErrors,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -902,6 +906,9 @@ function PureReportActionItem({
                                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
                                 }}
                                 isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
+                                sessionAccountID={sessionAccountID}
+                                personalDetailsList={personalDetailsList}
+                                walletTermsErrors={walletTermsErrors}
                             />
                         </View>
                     );
@@ -945,6 +952,7 @@ function PureReportActionItem({
                     invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
                     sessionAccountID={sessionAccountID}
                     personalDetailsList={personalDetailsList}
+                    walletTermsErrors={walletTermsErrors}
                 />
             );
         } else if (isTaskAction(action)) {

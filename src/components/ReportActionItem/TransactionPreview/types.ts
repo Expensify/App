@@ -78,6 +78,9 @@ type TransactionPreviewProps = {
 
     /** Personal details list */
     personalDetailsList?: PersonalDetailsList;
+
+    /** Records any errors related to wallet terms. */
+    walletTermsErrors?: Errors | undefined;    
 };
 
 type TransactionPreviewContentProps = {

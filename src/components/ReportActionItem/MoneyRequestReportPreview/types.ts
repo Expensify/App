@@ -3,6 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type { Errors } from '@src/types/onyx/OnyxCommon';
 
 type TransactionPreviewStyle = {
     [key in keyof TransactionPreviewStyleType]: number;
@@ -74,6 +75,9 @@ type MoneyRequestReportPreviewProps = {
 
     /** Personal details list */
     personalDetailsList?: PersonalDetailsList;
+
+    /** Records any errors related to wallet terms. */
+    walletTermsErrors?: Errors | undefined;
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {
