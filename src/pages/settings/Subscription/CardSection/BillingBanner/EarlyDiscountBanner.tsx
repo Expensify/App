@@ -126,9 +126,9 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
     ) : (
         <View style={[styles.justifyContentBetween, styles.flexRow]}>
             <RenderHTML
-                html={`<strong>${translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle', {
+                html={translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle', {
                     discountType: discountInfo?.discountType,
-                })}</strong>`}
+                })}
             />
             {shouldUseNarrowLayout && dismissButton}
         </View>
