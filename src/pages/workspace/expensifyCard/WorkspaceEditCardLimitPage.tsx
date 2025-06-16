@@ -8,13 +8,13 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useExpensifyCardEuSupported from '@hooks/useExpensifyCardEuSupported';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {updateExpensifyCardLimit} from '@libs/actions/Card';
-import {filterInactiveCards, isCurrencySupportECards} from '@libs/CardUtils';
+import {filterInactiveCards} from '@libs/CardUtils';
 import {convertToDisplayString, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -41,10 +41,9 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     const styles = useThemeStyles();
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const {isBetaEnabled} = usePermissions();
     const policy = usePolicy(policyID);
 
-    const isEuCurrencySupported = isCurrencySupportECards(policy?.outputCurrency) && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK);
+    const isEuCurrencySupported = useExpensifyCardEuSupported(policyID);
     const currency = isEuCurrencySupported ? policy?.outputCurrency : CONST.CURRENCY.USD;
 
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});

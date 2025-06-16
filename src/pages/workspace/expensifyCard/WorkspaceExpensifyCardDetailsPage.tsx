@@ -15,13 +15,13 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useExpensifyCardEuSupported from '@hooks/useExpensifyCardEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterInactiveCards, getTranslationKeyForLimitType, isCurrencySupportECards, maskCard} from '@libs/CardUtils';
+import {filterInactiveCards, getTranslationKeyForLimitType, maskCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -62,8 +62,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         selector: filterInactiveCards,
         canBeMissing: true,
     });
-    const {isBetaEnabled} = usePermissions();
-    const isEuCurrencySupported = isCurrencySupportECards(policy?.outputCurrency) && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK);
+    const isEuCurrencySupported = useExpensifyCardEuSupported(policyID);
 
     const isWorkspaceCardRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS;
     const card = cardsList?.[cardID];

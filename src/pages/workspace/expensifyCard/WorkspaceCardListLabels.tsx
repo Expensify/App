@@ -1,12 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import usePermissions from '@hooks/usePermissions';
-import usePolicy from '@hooks/usePolicy';
+import useExpensifyCardEuSupported from '@hooks/useExpensifyCardEuSupported';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {isCurrencySupportECards} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardSettings} from '@src/types/onyx';
@@ -24,11 +22,7 @@ function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabe
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
-    const policy = usePolicy(policyID);
-
-    const isEuCurrencySupported = isCurrencySupportECards(policy?.outputCurrency) && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK);
-
+    const isEuCurrencySupported = useExpensifyCardEuSupported(policyID);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`, {canBeMissing: true});

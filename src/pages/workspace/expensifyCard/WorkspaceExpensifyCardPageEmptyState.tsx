@@ -9,16 +9,12 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import Text from '@components/Text';
 import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
+import useExpensifyCardEuSupported from '@hooks/useExpensifyCardEuSupported';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {
-    getEligibleBankAccountsForCard,
-    getEligibleBankAccountsForEuUkCard,
-    isCurrencySupportECards
-} from '@libs/CardUtils';
+import {getEligibleBankAccountsForCard, getEligibleBankAccountsForEuUkCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
@@ -67,8 +63,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
 
     const reimbursementAccountStatus = reimbursementAccount?.achData?.state ?? '';
     const isSetupUnfinished = isEmptyObject(bankAccountList) && reimbursementAccountStatus && reimbursementAccountStatus !== CONST.BANK_ACCOUNT.STATE.OPEN;
-    const {isBetaEnabled} = usePermissions();
-    const isEuCurrencySupported = isCurrencySupportECards(policy?.outputCurrency) && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK);
+    const isEuCurrencySupported = useExpensifyCardEuSupported(policy?.id);
     const eligibleBankAccounts = isEuCurrencySupported ? getEligibleBankAccountsForEuUkCard(bankAccountList) : getEligibleBankAccountsForCard(bankAccountList);
 
     const startFlow = useCallback(() => {
