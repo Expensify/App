@@ -1,5 +1,5 @@
 import {format} from 'date-fns';
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -1549,8 +1549,7 @@ describe('actions/IOU', () => {
                     .then(mockFetch?.succeed)
             );
         });
-        it('does not trigger notifyNewAction when doing the money request in a money request report and has a canUseTableReportView permission', async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
+        it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
             requestMoney({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participantParams: {
@@ -1570,8 +1569,7 @@ describe('actions/IOU', () => {
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
 
-        it('trigger notifyNewAction when doing the money request in a chat report', async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
+        it('trigger notifyNewAction when doing the money request in a chat report', () => {
             requestMoney({
                 report: {reportID: '123'},
                 participantParams: {
@@ -1593,8 +1591,7 @@ describe('actions/IOU', () => {
     });
 
     describe('createDistanceRequest', () => {
-        it('does not trigger notifyNewAction when doing the money request in a money request report and has a canUseTableReportView permission', async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
+        it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
             createDistanceRequest({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participants: [],
@@ -1611,8 +1608,7 @@ describe('actions/IOU', () => {
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
 
-        it('trigger notifyNewAction when doing the money request in a chat report', async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
+        it('trigger notifyNewAction when doing the money request in a chat report', () => {
             createDistanceRequest({
                 report: {reportID: '123'},
                 participants: [],
@@ -1835,7 +1831,8 @@ describe('actions/IOU', () => {
                                     // 5. The chat report with Rory + Vit (new)
                                     vitChatReport = Object.values(allReports ?? {}).find(
                                         (report) =>
-                                            report?.type === CONST.REPORT.TYPE.CHAT && isEqual(report.participants, {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [VIT_ACCOUNT_ID]: VIT_PARTICIPANT}),
+                                            report?.type === CONST.REPORT.TYPE.CHAT &&
+                                            deepEqual(report.participants, {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [VIT_ACCOUNT_ID]: VIT_PARTICIPANT}),
                                     );
                                     expect(isEmptyObject(vitChatReport)).toBe(false);
                                     expect(vitChatReport?.pendingFields).toStrictEqual({createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
@@ -1849,7 +1846,7 @@ describe('actions/IOU', () => {
                                     groupChat = Object.values(allReports ?? {}).find(
                                         (report) =>
                                             report?.type === CONST.REPORT.TYPE.CHAT &&
-                                            isEqual(report.participants, {
+                                            deepEqual(report.participants, {
                                                 [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT,
                                                 [JULES_ACCOUNT_ID]: JULES_PARTICIPANT,
                                                 [VIT_ACCOUNT_ID]: VIT_PARTICIPANT,
