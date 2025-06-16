@@ -21,6 +21,7 @@ import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
@@ -312,31 +313,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
 
-    const prevTransactions = usePrevious(reportMetadata?.hasOnceLoadedReportActions ? reportTransactions : undefined);
-
-    const skipFirstTransactionsChange = useRef<boolean>(!!reportMetadata?.hasOnceLoadedReportActions);
-    const newTransactions = useMemo(() => {
-        if (reportTransactions === undefined || prevTransactions === undefined || reportTransactions.length <= prevTransactions.length) {
-            return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
-        }
-        if (!skipFirstTransactionsChange.current) {
-            skipFirstTransactionsChange.current = true;
-            return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
-        }
-        return reportTransactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
-        // Depending only on transactions is enough because prevTransactions is a helper object.
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportTransactions]);
-
-    useEffect(() => {
-        if (!reportMetadata?.hasOnceLoadedReportActions) {
-            return;
-        }
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            skipFirstTransactionsChange.current = true;
-        });
-    }, [reportMetadata?.hasOnceLoadedReportActions]);
+    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
