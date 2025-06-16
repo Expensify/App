@@ -15,9 +15,12 @@ import * as ReportActions from '@libs/actions/Report';
 import {deleteVacationDelegate, setVacationDelegate} from '@libs/actions/VacationDelegate';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import type {OptionData} from '@libs/ReportUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {Participant} from '@src/types/onyx/IOU';
 
 function useOptions() {
@@ -27,7 +30,13 @@ function useOptions() {
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const currentVacationDelegate = vacationDelegate?.delegate;
-    const [selectedOption, setSelectedOption] = useState<OptionData>();
+    const excludeLogins = useMemo(
+        () => ({
+            ...CONST.EXPENSIFY_EMAILS_OBJECT,
+            [currentVacationDelegate ?? '']: true,
+        }),
+        [currentVacationDelegate],
+    );
 
     const defaultOptions = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getValidOptions(
@@ -37,7 +46,7 @@ function useOptions() {
             },
             {
                 betas,
-                excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT},
+                excludeLogins,
             },
         );
 
@@ -55,11 +64,11 @@ function useOptions() {
             currentUserOption,
             headerMessage,
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, excludeLogins, isLoading]);
 
     const options = useMemo(() => {
         const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
-            excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT},
+            excludeLogins,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -72,7 +81,7 @@ function useOptions() {
             ...filteredOptions,
             headerMessage,
         };
-    }, [debouncedSearchValue, defaultOptions]);
+    }, [debouncedSearchValue, defaultOptions, excludeLogins]);
 
     return {...options, currentVacationDelegate, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }
@@ -84,10 +93,37 @@ function VacationDelegatePage() {
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {currentVacationDelegate, userToInvite, recentReports, personalDetails, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
-    // const delegateOption = personalDetails.filter((option) => option.login === currentVacationDelegate).at(0);
+    const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
 
     const sections = useMemo(() => {
         const sectionsList = [];
+
+        if (currentVacationDelegate && delegatePersonalDetails) {
+            sectionsList.push({
+                title: undefined,
+                data: [
+                    {
+                        ...delegatePersonalDetails,
+                        text: delegatePersonalDetails?.displayName ?? '',
+                        alternateText: delegatePersonalDetails?.login ?? undefined,
+                        login: delegatePersonalDetails.login ?? undefined,
+                        keyForList: `vacationDelegate-${delegatePersonalDetails.login}`,
+                        isDisabled: false,
+                        isSelected: true,
+                        shouldShowSubscript: undefined,
+                        icons: [
+                            {
+                                source: delegatePersonalDetails?.avatar ?? Expensicons.FallbackAvatar,
+                                name: formatPhoneNumber(delegatePersonalDetails?.login ?? ''),
+                                type: CONST.ICON_TYPE_AVATAR,
+                                id: delegatePersonalDetails?.accountID,
+                            },
+                        ],
+                    },
+                ],
+                shouldShow: true,
+            });
+        }
 
         sectionsList.push({
             title: translate('common.recents'),
@@ -117,22 +153,23 @@ function VacationDelegatePage() {
                 alternateText: option?.alternateText ?? option?.login ?? undefined,
                 keyForList: option.keyForList ?? '',
                 isDisabled: option.isDisabled ?? undefined,
+                isSelected: option.isSelected ?? undefined,
                 login: option.login ?? undefined,
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [personalDetails, recentReports, translate, userToInvite]);
+    }, [currentVacationDelegate, delegatePersonalDetails, personalDetails, recentReports, translate, userToInvite]);
 
     const onSelectRow = useCallback(
         (option: Participant) => {
             if (option?.login === currentVacationDelegate) {
                 deleteVacationDelegate();
-                Navigation.goBack();
+                Navigation.goBack(ROUTES.SETTINGS_STATUS);
                 return;
             }
 
             setVacationDelegate(currentUserLogin ?? '', option?.login ?? '');
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.SETTINGS_STATUS);
         },
         [currentUserLogin, currentVacationDelegate],
     );
