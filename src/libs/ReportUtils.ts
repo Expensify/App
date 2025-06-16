@@ -1,10 +1,10 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
+import {deepEqual} from 'fast-equals';
 import lodashEscape from 'lodash/escape';
 import lodashIntersection from 'lodash/intersection';
 import isEmpty from 'lodash/isEmpty';
-import lodashIsEqual from 'lodash/isEqual';
 import isNumber from 'lodash/isNumber';
 import mapValues from 'lodash/mapValues';
 import lodashMaxBy from 'lodash/maxBy';
@@ -8063,7 +8063,7 @@ function getChatByParticipants(
         const sortedParticipantsAccountIDs = participantAccountIDs.map(Number).sort();
 
         // Only return the chat if it has all the participants
-        return lodashIsEqual(sortedNewParticipantList, sortedParticipantsAccountIDs);
+        return deepEqual(sortedNewParticipantList, sortedParticipantsAccountIDs);
     });
 }
 
@@ -9736,12 +9736,7 @@ function getOutstandingReportsForUser(
         return [];
     }
     return Object.values(reports)
-        .filter(
-            (report) =>
-                report?.ownerAccountID === reportOwnerAccountID &&
-                report?.policyID === policyID &&
-                canAddTransaction(report, !!reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]?.private_isArchived),
-        )
+        .filter((report) => isReportOutstanding(report, policyID, reportNameValuePairs) && report?.ownerAccountID === reportOwnerAccountID)
         .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0);
 }
 
