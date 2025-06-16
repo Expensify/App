@@ -97,11 +97,19 @@ function getTravelerName(traveler: ArrayValues<PnrData['pnrTravelers']>['persona
     return name.trim();
 }
 
-function getAddressFromLocation(location: {addressLines?: string[]; postalCode?: string; locality?: string; administrativeArea?: string; regionCode?: string}): string {
+function getAddressFromLocation(
+    location: {addressLines?: string[]; postalCode?: string; locality?: string; administrativeArea?: string; regionCode?: string},
+    type?: ReservationType,
+): string {
     let address = '';
     if (location.addressLines) {
         address += location.addressLines.join(', ');
     }
+
+    if (type === CONST.RESERVATION_TYPE.CAR) {
+        return address.trim();
+    }
+
     if (location.postalCode) {
         address += ` ${location.postalCode}`;
     }
@@ -249,8 +257,8 @@ function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): Reservation[]
         duration: 0,
         numberOfRooms: pnrData.numberOfRooms,
         roomClass: pnrData.room.roomName,
-        cancellationPolicy: pnrData.room.cancellationPolicy?.policy,
-        cancellationDeadline: pnrData.room.cancellationPolicy?.deadline?.iso8601,
+        cancellationPolicy: pnrData.room.cancellationPolicy?.policy ?? null,
+        cancellationDeadline: pnrData.room.cancellationPolicy?.deadline?.iso8601 ?? null,
         confirmations,
         travelerPersonalInfo: {
             name: getTravelerName(traveler),
@@ -270,6 +278,8 @@ function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): Reservation[] {
 
     const pnrData: CarPnr = pnr.data.carPnr;
 
+    console.debug('pnrData', pnr);
+
     const confirmations = [
         {
             name: 'Confirmation Number',
@@ -284,18 +294,18 @@ function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): Reservation[] {
         reservationID: pnr.pnrId,
         start: {
             date: pnrData.pickupDateTime?.iso8601,
-            location: getAddressFromLocation(pickupLocation),
+            location: getAddressFromLocation(pickupLocation, CONST.RESERVATION_TYPE.CAR),
         },
         end: {
             date: pnrData.dropOffDateTime?.iso8601,
-            location: getAddressFromLocation(dropLocation),
+            location: getAddressFromLocation(dropLocation, CONST.RESERVATION_TYPE.CAR),
         },
         type: CONST.RESERVATION_TYPE.CAR,
         confirmations,
         vendor: pnrData.carInfo.vendor.name,
         carInfo: {name: pnrData.carInfo.carSpec.displayName, engine: pnrData.carInfo.carSpec.engineType},
-        cancellationPolicy: pnrData.cancellationPolicy?.policy,
-        cancellationDeadline: pnrData.cancellationPolicy?.deadline.iso8601,
+        cancellationPolicy: pnrData.cancellationPolicy?.policy ?? null,
+        cancellationDeadline: pnrData.cancellationPolicy?.deadline.iso8601 ?? null,
         duration: 0,
         travelerPersonalInfo: {
             name: getTravelerName(traveler),
