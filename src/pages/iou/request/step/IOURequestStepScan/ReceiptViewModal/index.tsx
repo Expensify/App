@@ -87,6 +87,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
             >
                 <HeaderWithBackButton
                     title={translate('common.receipt')}
+                    shouldDisplayHelpButton={false}
                     onBackButtonPress={handleGoBack}
                     shouldShowThreeDotsButton
                     threeDotsMenuIcon={Expensicons.Trashcan}
