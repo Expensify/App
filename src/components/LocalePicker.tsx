@@ -5,7 +5,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {setLocale} from '@userActions/App';
-import CONST from '@src/CONST';
+import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Picker from './Picker';
 import type {PickerSize} from './Picker/types';
@@ -21,11 +21,11 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const {translate} = useLocalize();
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const localesToLanguages = CONST.LANGUAGES.map((language) => ({
-        value: language,
-        label: translate(`languagePage.languages.${language}.label`),
-        keyForList: language,
-        isSelected: preferredLocale === language,
+    const localesToLanguages = SORTED_LOCALES.map((locale) => ({
+        value: locale,
+        label: LOCALE_TO_LANGUAGE_STRING[locale],
+        keyForList: locale,
+        isSelected: preferredLocale === locale,
     }));
     const shouldDisablePicker = AccountUtils.isValidateCodeFormSubmitting(account);
 
