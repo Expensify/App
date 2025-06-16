@@ -4117,6 +4117,7 @@ const translations = {
             verifyingTheDetails: 'Weryfikujemy kilka szczeg\u00F3\u0142\u00F3w. Concierge poinformuje Ci\u0119, gdy karty Expensify b\u0119d\u0105 gotowe do wydania.',
             disclaimer:
                 'Karta Expensify Visa\u00AE Commercial jest wydawana przez The Bancorp Bank, N.A., cz\u0142onka FDIC, na podstawie licencji od Visa U.S.A. Inc. i mo\u017Ce nie by\u0107 akceptowana u wszystkich sprzedawc\u00F3w, kt\u00F3rzy przyjmuj\u0105 karty Visa. Apple\u00AE i logo Apple\u00AE s\u0105 znakami towarowymi Apple Inc., zarejestrowanymi w USA i innych krajach. App Store jest znakiem us\u0142ugowym Apple Inc. Google Play i logo Google Play s\u0105 znakami towarowymi Google LLC.',
+            euDisclaimer: 'TBD',
             issueCard: 'Wydaj kart\u0119',
             findCard: 'Znajd\u017A kart\u0119',
             newCard: 'Nowa karta',

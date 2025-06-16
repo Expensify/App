@@ -4216,6 +4216,7 @@ const translations = {
             verifyingTheDetails: '\u6211\u4EEC\u6B63\u5728\u9A8C\u8BC1\u4E00\u4E9B\u7EC6\u8282\u3002Concierge \u4F1A\u901A\u77E5\u60A8 Expensify Cards \u51C6\u5907\u597D\u53D1\u884C\u3002',
             disclaimer:
                 'Expensify Visa\u00AE \u5546\u4E1A\u5361\u7531 The Bancorp Bank, N.A. \u53D1\u884C\uFF0CFDIC \u6210\u5458\uFF0C\u6839\u636E Visa U.S.A. Inc. \u7684\u8BB8\u53EF\uFF0C\u5E76\u4E14\u53EF\u80FD\u65E0\u6CD5\u5728\u6240\u6709\u63A5\u53D7 Visa \u5361\u7684\u5546\u5BB6\u4F7F\u7528\u3002Apple\u00AE \u548C Apple \u6807\u5FD7\u00AE \u662F Apple Inc. \u5728\u7F8E\u56FD\u548C\u5176\u4ED6\u56FD\u5BB6\u6CE8\u518C\u7684\u5546\u6807\u3002App Store \u662F Apple Inc. \u7684\u670D\u52A1\u6807\u5FD7\u3002Google Play \u548C Google Play \u6807\u5FD7\u662F Google LLC \u7684\u5546\u6807\u3002',
+            euDisclaimer: 'TBD',
             issueCard: '\u53D1\u653E\u5361\u7247',
             findCard: '\u67E5\u627E\u5361\u7247',
             newCard: '\u65B0\u5361\u7247',

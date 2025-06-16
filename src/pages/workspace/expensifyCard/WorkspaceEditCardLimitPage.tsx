@@ -46,7 +46,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     const isEuCurrencySupported = useExpensifyCardEuSupported(policyID);
     const currency = isEuCurrencySupported ? policy?.outputCurrency : CONST.CURRENCY.USD;
 
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards, canBeMissing: true});
     const card = cardsList?.[cardID];
 
     const getPromptTextKey = useMemo((): ConfirmationWarningTranslationPaths => {

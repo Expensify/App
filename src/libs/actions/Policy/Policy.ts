@@ -258,7 +258,11 @@ function isCurrencySupportedForDirectReimbursement(currency: string) {
 /**
  * Checks if the currency is supported for global reimbursement
  */
-function isCurrencySupportedForGlobalReimbursement(currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>, canUseGlobalReimbursementsOnND: boolean, canUseExpensifyCardEuUk: boolean) {
+function isCurrencySupportedForGlobalReimbursement(
+    currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>,
+    canUseGlobalReimbursementsOnND: boolean,
+    canUseExpensifyCardEuUk: boolean,
+) {
     if (canUseGlobalReimbursementsOnND) {
         return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency);
     }

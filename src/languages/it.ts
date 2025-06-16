@@ -4060,6 +4060,7 @@ const translations = {
             verifyingTheDetails: 'Stiamo verificando alcuni dettagli. Concierge ti informer\u00E0 quando le Expensify Cards saranno pronte per essere emesse.',
             disclaimer:
                 'La Expensify Visa\u00AE Commercial Card \u00E8 emessa da The Bancorp Bank, N.A., Membro FDIC, in base a una licenza di Visa U.S.A. Inc. e potrebbe non essere accettata da tutti i commercianti che accettano carte Visa. Apple\u00AE e il logo Apple\u00AE sono marchi di Apple Inc., registrati negli Stati Uniti e in altri paesi. App Store \u00E8 un marchio di servizio di Apple Inc. Google Play e il logo Google Play sono marchi di Google LLC.',
+            euDisclaimer: 'TBD',
             issueCard: 'Emetti carta',
             findCard: 'Trova carta',
             newCard: 'Nuova carta',
