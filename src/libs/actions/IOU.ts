@@ -228,7 +228,7 @@ import {buildOptimisticPolicyRecentlyUsedDestinations} from './Policy/PerDiem';
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy/Tag';
 import type {GuidedSetupData} from './Report';
-import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
+import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction, createNewReport} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
@@ -11412,6 +11412,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     const autoAddedActionReportActionID = NumberUtils.rand64();
     const removedFromReportActionID = NumberUtils.rand64();
     let movedToReport;
+    let movedToReportID;
     let urlToNavigateBack;
 
     const hasMultipleExpenses = (() => {
@@ -11469,15 +11470,22 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
 
         if (existingOpenReport) {
             movedToReport = existingOpenReport;
+            movedToReportID = existingOpenReport.reportID;
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
+                value: {
+                    ...movedToReport,
+                    total: (movedToReport?.total ?? 0) + (transaction?.amount ?? 0),
+                },
+            });
         } else {
             const transactionOwner = reportAction?.actorAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
-            movedToReport = buildOptimisticExpenseReport(
-                report.chatReportID, 
-                policy?.id, 
-                transactionOwner, 
-                0, 
-                transaction?.currency ?? ''
-            );
+            const personalDetails = getPersonalDetailsForAccountID(transactionOwner);
+            if (!personalDetails) {
+                return;
+            }
+            movedToReportID = createNewReport(personalDetails as OnyxTypes.PersonalDetails, policy?.id);
         }
         optimisticData.push(
             {
@@ -11489,37 +11497,24 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${movedToReport?.reportID}`,
-                value: {
-                    ...movedToReport,
-                    total: (movedToReport?.total ?? 0) + (transaction?.amount ?? 0),
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
-                    reportID: movedToReport?.reportID,
+                    reportID: movedToReportID,
                 },
             },
         );
 
         urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(childReportID);
     } else {
-        // For reports with single expense: Change report state to DRAFT
+        // For reports with single expense
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: null,
-        });
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`,
             value: {
-                ...report,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             },
         });
-
         urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
     }
 
@@ -11578,7 +11573,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         transactionID,
         reportID,
         comment,
-        movedToReportID: movedToReport?.reportID,
+        movedToReportID,
         autoAddedActionReportActionID,
         removedFromReportActionID,
         declinedActionReportActionID: optimisticDeclineReportAction.reportActionID,
