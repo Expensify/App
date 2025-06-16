@@ -14,7 +14,6 @@ import {
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
     isPreferredExporter,
-    isSubmitAndClose as isSubmitAndCloseUtils,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
 import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
