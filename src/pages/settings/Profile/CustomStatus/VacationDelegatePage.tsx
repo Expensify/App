@@ -91,7 +91,7 @@ function VacationDelegatePage() {
     const styles = useThemeStyles();
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
     const {currentVacationDelegate, userToInvite, recentReports, personalDetails, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
     const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
 
