@@ -1,7 +1,7 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import {actionR14932 as mockAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
@@ -45,8 +45,8 @@ jest.mock('@react-native-community/geolocation', () => ({
 }));
 
 jest.mock('@src/hooks/useReportWithTransactionsAndViolations', () =>
-    jest.fn((): [OnyxEntry<Report>, Transaction[], OnyxCollection<TransactionViolation[]>] => {
-        return [mockChatReport, [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID}], {violations: mockViolations}];
+    jest.fn((): [Transaction[], OnyxCollection<TransactionViolation[]>] => {
+        return [[mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID}], {violations: mockViolations}];
     }),
 );
 
@@ -70,6 +70,7 @@ const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = n
                             policyID={mockChatReport.policyID}
                             action={mockAction}
                             iouReportID={mockIOUReport.iouReportID}
+                            iouReport={mockIOUReport}
                             chatReportID={mockChatReport.chatReportID}
                             contextMenuAnchor={contextMenuAnchor}
                             checkIfContextMenuActive={() => {}}
@@ -143,7 +144,7 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
         setCurrentWidth();
         await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions).then(waitForBatchedUpdates);
-        const {reportName: moneyRequestReportPreviewName = ''} = mockChatReport;
+        const {reportName: moneyRequestReportPreviewName = ''} = mockIOUReport;
         for (const transaction of arrayOfTransactions) {
             const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
 
