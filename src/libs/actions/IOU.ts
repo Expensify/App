@@ -9671,8 +9671,6 @@ function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
         reportActionID: optimisticRetractReportAction.reportActionID,
     };
 
-    console.log('>>>>>>>>>>>>>', optimisticData);
-
     API.write(WRITE_COMMANDS.RETRACT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
