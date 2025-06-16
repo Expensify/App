@@ -362,12 +362,14 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
         tagName: string;
         backTo?: Routes;
+        parentTagsFilter?: string;
     };
     [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
         backTo?: Routes;
+        parentTagsFilter?: string;
     };
     [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
         policyID: string;
@@ -1610,6 +1612,7 @@ type SignInNavigatorParamList = {
 type FeatureTrainingNavigatorParamList = {
     [SCREENS.FEATURE_TRAINING_ROOT]: undefined;
     [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: undefined;
+    [SCREENS.AUTO_SUBMIT_ROOT]: undefined;
     [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: undefined;
 };
 
