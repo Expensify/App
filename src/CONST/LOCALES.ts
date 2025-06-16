@@ -48,6 +48,9 @@ const LOCALES = {
  */
 const {EN, ...TRANSLATION_TARGET_LOCALES} = {...LOCALES} as const;
 
+/**
+ * These strings are never translated.
+ */
 const LOCALE_TO_LANGUAGE_STRING = {
     [FULLY_SUPPORTED_LOCALES.EN]: 'English',
     [FULLY_SUPPORTED_LOCALES.ES]: 'Español',

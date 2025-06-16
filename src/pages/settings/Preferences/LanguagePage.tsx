@@ -39,7 +39,7 @@ function LanguagePage() {
             testID={LanguagePage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('languagePage.language')}
+                title={translate('language')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <SelectionList

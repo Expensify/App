@@ -21,6 +21,7 @@ import LocaleUtils from '@libs/LocaleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import {LOCALE_TO_LANGUAGE_STRING} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -98,8 +99,8 @@ function PreferencesPage() {
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={preferredLocale ? translate(`languagePage.languages.${LocaleUtils.getLanguageFromLocale(preferredLocale)}.label`) : undefined}
-                                description={translate('languagePage.language')}
+                                title={preferredLocale ? LOCALE_TO_LANGUAGE_STRING[preferredLocale] : undefined}
+                                description={translate('language')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                             />

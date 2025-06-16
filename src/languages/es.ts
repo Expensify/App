@@ -2030,17 +2030,7 @@ const translations = {
         lastMemberWarning: 'Ya que eres la última persona aquí, si te vas, este chat quedará inaccesible para todos los miembros. ¿Estás seguro de que quieres salir del chat?',
         defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `Chat de grupo de ${displayName}`,
     },
-    languagePage: {
-        language: 'Idioma',
-        languages: {
-            en: {
-                label: 'English',
-            },
-            es: {
-                label: 'Español',
-            },
-        },
-    },
+    language: 'Idioma',
     themePage: {
         theme: 'Tema',
         themes: {

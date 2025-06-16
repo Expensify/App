@@ -2069,17 +2069,7 @@ const translations = {
             'Da Sie die letzte Person hier sind, wird das Verlassen diesen Chat f\u00FCr alle Mitglieder unzug\u00E4nglich machen. Sind Sie sicher, dass Sie verlassen m\u00F6chten?',
         defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `Gruppenchat von ${displayName}`,
     },
-    languagePage: {
-        language: 'Sprache',
-        languages: {
-            en: {
-                label: 'Englisch',
-            },
-            es: {
-                label: 'Spanisch',
-            },
-        },
-    },
+    language: 'Sprache',
     themePage: {
         theme: 'Thema',
         themes: {

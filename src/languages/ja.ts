@@ -2276,17 +2276,7 @@ const translations = {
             '\u3042\u306A\u305F\u304C\u6700\u5F8C\u306E\u4EBA\u306A\u306E\u3067\u3001\u9000\u51FA\u3059\u308B\u3068\u3053\u306E\u30C1\u30E3\u30C3\u30C8\u306F\u3059\u3079\u3066\u306E\u30E1\u30F3\u30D0\u30FC\u306B\u30A2\u30AF\u30BB\u30B9\u3067\u304D\u306A\u304F\u306A\u308A\u307E\u3059\u3002\u672C\u5F53\u306B\u9000\u51FA\u3057\u307E\u3059\u304B\uFF1F',
         defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `${displayName}\u306E\u30B0\u30EB\u30FC\u30D7\u30C1\u30E3\u30C3\u30C8`,
     },
-    languagePage: {
-        language: '\u8A00\u8A9E',
-        languages: {
-            en: {
-                label: '\u82F1\u8A9E',
-            },
-            es: {
-                label: 'Espa\u00F1ol',
-            },
-        },
-    },
+    language: '\u8A00\u8A9E',
     themePage: {
         theme: '\u30C6\u30FC\u30DE',
         themes: {

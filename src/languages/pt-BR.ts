@@ -2059,17 +2059,7 @@ const translations = {
         lastMemberWarning: 'Como voc\u00EA \u00E9 a \u00FAltima pessoa aqui, sair tornar\u00E1 este chat inacess\u00EDvel para todos os membros. Tem certeza de que deseja sair?',
         defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `Chat em grupo de ${displayName}`,
     },
-    languagePage: {
-        language: 'Idioma',
-        languages: {
-            en: {
-                label: 'Ingl\u00EAs',
-            },
-            es: {
-                label: 'Portugu\u00EAs (BR)',
-            },
-        },
-    },
+    language: 'Idioma',
     themePage: {
         theme: 'Tema',
         themes: {
