@@ -254,6 +254,10 @@ type TransactionListItemType = ListItem &
          */
         shouldShowYear: boolean;
 
+        isAmountColumnWide: boolean;
+
+        isTaxAmountColumnWide: boolean;
+
         /** Key used internally by React */
         keyForList: string;
 
@@ -453,6 +457,9 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** The policies which the user has access to */
     policies?: OnyxCollection<Policy>;
+
+    /** All the data of the report collection */
+    allReports?: OnyxCollection<Report>;
 };
 
 type ValidListItem =

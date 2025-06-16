@@ -2,9 +2,11 @@ import React from 'react';
 import {View} from 'react-native';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@navigation/Navigation';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Button from './Button';
 import RecordTroubleshootDataToolMenu from './RecordTroubleshootDataToolMenu';
@@ -23,6 +25,7 @@ function TestToolsModalPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const activeRoute = Navigation.getActiveRoute();
+    const [shouldStoreLogs = false] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const isAuthenticated = useIsAuthenticated();
     const route = getRouteBasedOnAuthStatus(isAuthenticated, activeRoute);
 
@@ -40,7 +43,7 @@ function TestToolsModalPage() {
                             {translate('initialSettingsPage.troubleshoot.releaseOptions')}
                         </Text>
                         <RecordTroubleshootDataToolMenu />
-                        {!!false && (
+                        {!!shouldStoreLogs && (
                             <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
                                 <Button
                                     small
