@@ -17,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {togglePlatformMute, updateNewsletterSubscription} from '@libs/actions/User';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import getPlatform from '@libs/getPlatform';
-import LocaleUtils from '@libs/LocaleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
