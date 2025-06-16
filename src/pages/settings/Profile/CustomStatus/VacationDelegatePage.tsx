@@ -15,7 +15,6 @@ import * as ReportActions from '@libs/actions/Report';
 import {deleteVacationDelegate, setVacationDelegate} from '@libs/actions/VacationDelegate';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -126,10 +125,16 @@ function VacationDelegatePage() {
 
     const onSelectRow = useCallback(
         (option: Participant) => {
-            setVacationDelegate(option?.login ?? '', currentUserLogin ?? '');
+            if (option?.login === currentVacationDelegate) {
+                deleteVacationDelegate();
+                Navigation.goBack();
+                return;
+            }
+
+            setVacationDelegate(currentUserLogin ?? '', option?.login ?? '');
             Navigation.goBack();
         },
-        [currentUserLogin],
+        [currentUserLogin, currentVacationDelegate],
     );
 
     useEffect(() => {

@@ -66,7 +66,7 @@ function ProfilePage() {
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const publicOptions = [
         {
             description: translate('displayNamePage.headerTitle'),
@@ -83,6 +83,7 @@ function ProfilePage() {
             description: translate('statusPage.status'),
             title: emojiCode ? `${emojiCode} ${currentUserPersonalDetails?.status?.text ?? ''}` : '',
             pageRoute: ROUTES.SETTINGS_STATUS,
+            brickRoadIndicator: isEmptyObject(vacationDelegate?.errors) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
         },
         {
             description: translate('pronounsPage.pronouns'),

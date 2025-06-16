@@ -47,10 +47,7 @@ function setVacationDelegate(creator: string, delegate: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE,
             value: {
-                creator: null,
-                delegate: null,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('statusPage.vacationDelegateError'),
-                pendingAction: null,
             },
         },
     ];
@@ -101,7 +98,6 @@ function deleteVacationDelegate() {
                 creator,
                 delegate,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('statusPage.vacationDelegateError'),
-                pendingAction: null,
             },
         },
     ];
@@ -109,4 +105,13 @@ function deleteVacationDelegate() {
     API.write(WRITE_COMMANDS.DELETE_VACATION_DELEGATE, null, {optimisticData, successData, failureData});
 }
 
-export {setVacationDelegate, deleteVacationDelegate};
+function clearVacationDelegateError() {
+    Onyx.merge(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {
+        errors: null,
+        pendingAction: null,
+        delegate: null,
+        creator: null,
+    });
+}
+
+export {setVacationDelegate, deleteVacationDelegate, clearVacationDelegateError};
