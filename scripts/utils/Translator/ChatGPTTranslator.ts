@@ -1,7 +1,7 @@
 import dedent from '@libs/StringUtils/dedent';
 import getBasePrompt from '@prompts/translation/base';
 import getContextPrompt from '@prompts/translation/context';
-import type {TranslationTargetLanguage} from '@src/CONST/LOCALES';
+import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import OpenAIUtils from '../OpenAIUtils';
 import Translator from './Translator';
 
@@ -21,7 +21,7 @@ class ChatGPTTranslator extends Translator {
         this.openai = new OpenAIUtils(apiKey);
     }
 
-    protected async performTranslation(targetLang: TranslationTargetLanguage, text: string, context?: string): Promise<string> {
+    protected async performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string> {
         const systemPrompt = dedent(`
             ${getBasePrompt(targetLang)}
             ${getContextPrompt(context)}
