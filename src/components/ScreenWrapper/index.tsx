@@ -1,4 +1,3 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {createContext, forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -28,6 +27,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {closeReactNativeApp} from '@libs/actions/Session';
 import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Navigation from '@libs/Navigation/Navigation';
@@ -231,7 +231,7 @@ function ScreenWrapper(
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
-        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
+        closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
     });
 
     const panResponder = useRef(

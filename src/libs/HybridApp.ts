@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, HybridApp, Session, TryNewDot} from '@src/types/onyx';
 import {setNewDotSignInState, setReadyToShowAuthScreens, setUseNewDotSignInPage} from './actions/HybridApp';
+import {closeReactNativeApp} from './actions/Session';
 import Log from './Log';
 import {getCurrentUserEmail} from './Network/NetworkStore';
 
@@ -86,7 +87,7 @@ function handleChangeInHybridAppSignInFlow(hybridApp: OnyxEntry<HybridApp>, tryN
         });
         setUseNewDotSignInPage(false).then(() => {
             if (shouldUseOD) {
-                HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
+                closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
             } else {
                 Log.info('[HybridApp] The user should see NewDot. There is no need to block the user on the `SignInPage` until the sign-in process is completed on the OldDot side.');
                 setReadyToShowAuthScreens(true);

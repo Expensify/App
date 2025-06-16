@@ -1,4 +1,3 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
 import React, {useCallback, useEffect, useState} from 'react';
@@ -10,6 +9,7 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openTravelDotLink} from '@libs/actions/Link';
+import {closeReactNativeApp} from '@libs/actions/Session';
 import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -135,7 +135,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
 
                     // Close NewDot if it was opened only for Travel, as its purpose is now fulfilled.
                     Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-                    HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
+                    closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
                 })
                 ?.catch(() => {
                     setErrorMessage(translate('travel.errorMessage'));

@@ -1,4 +1,3 @@
-import {setClosingReactNativeApp} from '@userActions/HybridApp';
 import ReactNativeHybridApp from './NativeReactNativeHybridApp';
 import type HybridAppModuleType from './types';
 
@@ -10,7 +9,6 @@ const HybridAppModule: HybridAppModuleType = {
         ReactNativeHybridApp.shouldUseStaging(isStaging);
     },
     closeReactNativeApp({shouldSignOut, shouldSetNVP}) {
-        setClosingReactNativeApp(true);
         ReactNativeHybridApp.closeReactNativeApp(shouldSignOut, shouldSetNVP);
     },
     completeOnboarding({status}) {
