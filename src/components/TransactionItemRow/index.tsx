@@ -44,7 +44,6 @@ import TagCell from './DataCells/TagCell';
 import TaxCell from './DataCells/TaxCell';
 import TotalCell from './DataCells/TotalCell';
 import TypeCell from './DataCells/TypeCell';
-import TransactionItemRowRBR from './TransactionItemRowRBR';
 import TransactionItemRowRBRWithOnyx from './TransactionItemRowRBRWithOnyx';
 
 type ColumnComponents = {
@@ -89,6 +88,8 @@ type TransactionItemRowProps = {
     isSelected: boolean;
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
+    amountColumnSize: TableColumnSize;
+    taxAmountColumnSize: TableColumnSize;
     onCheckboxPress: (transactionID: string) => void;
     shouldShowCheckbox: boolean;
     columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
@@ -99,6 +100,7 @@ type TransactionItemRowProps = {
     isReportItemChild?: boolean;
     isActionLoading?: boolean;
     isInReportTableView?: boolean;
+    isInSingleTransactionReport?: boolean;
 };
 
 /** If merchant name is empty or (none), then it falls back to description if screen is narrow */
@@ -125,6 +127,8 @@ function TransactionItemRow({
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
+    amountColumnSize,
+    taxAmountColumnSize,
     onCheckboxPress,
     shouldShowCheckbox = false,
     columns,
@@ -135,6 +139,7 @@ function TransactionItemRow({
     isReportItemChild = false,
     isActionLoading,
     isInReportTableView = false,
+    isInSingleTransactionReport = false,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -148,6 +153,8 @@ function TransactionItemRow({
     const createdAt = getTransactionCreated(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: transactionItem.shouldBeHighlighted ?? false,
@@ -291,11 +298,14 @@ function TransactionItemRow({
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS)]}>
-                    <ChatBubbleCell transaction={transactionItem} />
+                    <ChatBubbleCell
+                        transaction={transactionItem}
+                        isInSingleTransactionReport={isInSingleTransactionReport}
+                    />
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, undefined, isAmountColumnWide)]}>
                     <TotalCell
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
@@ -304,7 +314,7 @@ function TransactionItemRow({
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAX]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, undefined, undefined, isTaxAmountColumnWide)]}>
                     <TaxCell
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
@@ -318,6 +328,9 @@ function TransactionItemRow({
             isActionLoading,
             isReportItemChild,
             isDateColumnWide,
+            isAmountColumnWide,
+            isTaxAmountColumnWide,
+            isInSingleTransactionReport,
             isSelected,
             merchantOrDescriptionName,
             onButtonPress,
@@ -421,6 +434,7 @@ function TransactionItemRow({
                                 <ChatBubbleCell
                                     transaction={transactionItem}
                                     containerStyles={[styles.mt2]}
+                                    isInSingleTransactionReport={isInSingleTransactionReport}
                                 />
                             </View>
                         </View>
@@ -441,18 +455,10 @@ function TransactionItemRow({
                                 </View>
                                 {columns?.map((column) => columnComponent[column])}
                             </View>
-                            {}
-                            {isInReportTableView ? (
-                                <TransactionItemRowRBRWithOnyx
-                                    transaction={transactionItem}
-                                    missingFieldError={missingFieldError}
-                                />
-                            ) : (
-                                <TransactionItemRowRBR
-                                    transactionViolations={transactionItem.violations}
-                                    missingFieldError={missingFieldError}
-                                /> // We are rendering this component only if we are not in the report table view for performance reasons
-                            )}
+                            <TransactionItemRowRBRWithOnyx
+                                transaction={transactionItem}
+                                missingFieldError={missingFieldError}
+                            />
                         </View>
                     </Animated.View>
                 )}
