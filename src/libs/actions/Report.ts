@@ -3389,7 +3389,7 @@ function openReportFromDeepLink(url: string) {
             // We want to check if the reportID exists and if the account can access this report first.
             // Then, decide whether to navigate to this deeplink or not.
             let openReportPromise = Promise.resolve();
-            let shouldForceNavigatingToRoute = {value: false};
+            const shouldForceNavigatingToRoute = {value: false};
             if (reportID && !isAuthenticated) {
                 openReport(reportID, '', [], undefined, '0', true);
 
@@ -3398,10 +3398,10 @@ function openReportFromDeepLink(url: string) {
                     openReportResolve = resolve;
                 });
                 const connection = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
-                    callback: (value) => {
-                        const report = value?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    // eslint-disable-next-line rulesdir/prefer-early-return
+                    callback: (report) => {
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         if (report?.errorFields?.notFound || report?.reportID) {
                             Onyx.disconnect(connection);
                             openReportResolve();
@@ -3481,8 +3481,12 @@ function openReportFromDeepLink(url: string) {
                                     hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
                                     isUserFromPublicDomain: !!account?.isFromPublicDomain,
                                 }),
-                            onCompleted: () => openReportPromise.then(() => handleDeeplinkNavigation()),
-                            onCanceled: () => openReportPromise.then(() => handleDeeplinkNavigation()),
+                            onCompleted: () => {
+                                openReportPromise.then(() => handleDeeplinkNavigation());
+                            },
+                            onCanceled: () => {
+                                openReportPromise.then(() => handleDeeplinkNavigation());
+                            },
                         });
                     });
                 },
