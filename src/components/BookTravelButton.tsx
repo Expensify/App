@@ -70,7 +70,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
     // Flag indicating whether NewDot was launched exclusively for Travel,
     // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: false});
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
 
     const hidePreventionModal = () => setPreventionModalVisibility(false);
     const hideVerificationModal = () => setVerificationModalVisibility(false);
