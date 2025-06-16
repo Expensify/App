@@ -39,8 +39,6 @@ type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
 };
 
-type Locale = ValueOf<typeof CONST.LOCALES>;
-
 let currentUserAccountID: number | undefined;
 let currentUserEmail: string;
 Onyx.connect({
@@ -64,9 +62,9 @@ Onyx.connect({
     callback: (val) => {
         preferredLocale = val;
         if (preferredLocale) {
-            TranslationStore.load(preferredLocale as Locale);
-            importEmojiLocale(preferredLocale as Locale).then(() => {
-                buildEmojisTrie(preferredLocale as Locale);
+            TranslationStore.load(preferredLocale as OnyxTypes.Locale);
+            importEmojiLocale(preferredLocale as OnyxTypes.Locale).then(() => {
+                buildEmojisTrie(preferredLocale as OnyxTypes.Locale);
             });
             localeEventCallback(val);
         }
@@ -183,7 +181,7 @@ function getNonOptimisticPolicyIDs(policies: OnyxCollection<OnyxTypes.Policy>): 
         .filter((id): id is string => !!id);
 }
 
-function setLocale(locale: Locale) {
+function setLocale(locale: OnyxTypes.Locale) {
     if (locale === preferredLocale) {
         return;
     }
@@ -210,7 +208,7 @@ function setLocale(locale: Locale) {
     API.write(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, parameters, {optimisticData});
 }
 
-function setLocaleAndNavigate(locale: Locale) {
+function setLocaleAndNavigate(locale: OnyxTypes.Locale) {
     setLocale(locale);
     Navigation.goBack();
 }
