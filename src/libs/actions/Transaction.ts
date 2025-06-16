@@ -27,6 +27,7 @@ import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessa
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
+import arrayLastElement from '@src/utils/arrayLastElement';
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
@@ -493,8 +494,8 @@ function clearError(transactionID: string) {
 
 function getLastModifiedExpense(reportID?: string): OriginalMessageModifiedExpense | undefined {
     const modifiedExpenseActions = Object.values(getAllReportActions(reportID)).filter(isModifiedExpenseAction);
-    modifiedExpenseActions.sort((a, b) => Number(a.reportActionID) - Number(b.reportActionID));
-    return getOriginalMessage(modifiedExpenseActions.at(-1));
+    const lastModifiedExpenseActions = arrayLastElement(modifiedExpenseActions, (a, b) => Number(a.reportActionID) - Number(b.reportActionID));
+    return getOriginalMessage(lastModifiedExpenseActions);
 }
 
 function revert(transactionID?: string, originalMessage?: OriginalMessageModifiedExpense | undefined) {
