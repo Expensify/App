@@ -88,6 +88,9 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        canBeMissing: true,
+    });
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
@@ -288,7 +291,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                if (!hasResults) {
+                if (!hasResults || Object.values(transactions ?? {}).length === 0) {
                     return {
                         ...defaultViewItemHeader,
                         title: translate('search.searchResults.emptyExpenseResults.title'),
