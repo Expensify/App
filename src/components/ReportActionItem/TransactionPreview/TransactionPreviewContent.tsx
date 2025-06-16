@@ -148,7 +148,7 @@ function TransactionPreviewContent({
             };
         }
 
-        // For IOU, we want the unprocessed amount, because it is important whether the amount was positive or negative
+        // For IOU, we want the unprocessed amount because it is important whether the amount was positive or negative
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const transactionRawAmount = (transaction?.modifiedAmount || transaction?.amount) ?? 0;
         const payerAndReceiver = getIOUPayerAndReceiver(managerID, ownerAccountID, personalDetails, transactionRawAmount);
