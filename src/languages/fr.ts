@@ -2406,7 +2406,7 @@ const translations = {
         whenClearStatus: 'Quand devrions-nous effacer votre statut ?',
         vacationDelegate: 'D\u00E9l\u00E9gu\u00E9 de vacances',
         setVacationDelegate: 'D\u00E9finir un d\u00E9l\u00E9gu\u00E9 de vacances pour approuver les rapports en votre nom pendant votre absence.',
-        vacationDelegateError: 'Une erreur s\'est produite lors de la mise \u00E0 jour de votre d\u00E9l\u00E9gu\u00E9 de vacances.',
+        vacationDelegateError: "Une erreur s'est produite lors de la mise \u00E0 jour de votre d\u00E9l\u00E9gu\u00E9 de vacances.",
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `\u00C9tape ${step}`;
