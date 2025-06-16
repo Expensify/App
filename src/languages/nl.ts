@@ -2059,6 +2059,7 @@ const translations = {
                 label: 'Spaans',
             },
         },
+        aiLanguageHelperText: 'De vertalingen voor deze taal worden automatisch gegenereerd en kunnen fouten bevatten.',
     },
     themePage: {
         theme: 'Thema',

@@ -2129,6 +2129,7 @@ const translations = {
                 label: 'Espa\u00F1ol',
             },
         },
+        aiLanguageHelperText: '此语言的翻译是自动生成的，可能包含错误。',
     },
     themePage: {
         theme: '\u4E3B\u9898',

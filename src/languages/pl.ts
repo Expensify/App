@@ -2096,6 +2096,7 @@ const translations = {
                 label: 'Spanish',
             },
         },
+        aiLanguageHelperText: 'Tłumaczenia dla tego języka są generowane automatycznie i mogą zawierać błędy.',
     },
     themePage: {
         theme: 'Motyw',

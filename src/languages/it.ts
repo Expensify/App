@@ -2063,6 +2063,7 @@ const translations = {
                 label: 'Spagnolo',
             },
         },
+        aiLanguageHelperText: 'Le traduzioni per questa lingua sono generate automaticamente e potrebbero contenere errori.',
     },
     themePage: {
         theme: 'Tema',

@@ -2085,6 +2085,7 @@ const translations = {
                 label: 'Espagnol',
             },
         },
+        aiLanguageHelperText: 'Les traductions pour cette langue sont générées automatiquement et peuvent contenir des erreurs.',
     },
     themePage: {
         theme: 'Th\u00E8me',

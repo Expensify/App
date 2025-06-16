@@ -2079,6 +2079,7 @@ const translations = {
                 label: 'Spanisch',
             },
         },
+        aiLanguageHelperText: 'Die Übersetzungen für diese Sprache werden automatisch erstellt und können Fehler enthalten.',
     },
     themePage: {
         theme: 'Thema',

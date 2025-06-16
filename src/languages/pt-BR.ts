@@ -2069,6 +2069,7 @@ const translations = {
                 label: 'Portugu\u00EAs (BR)',
             },
         },
+        aiLanguageHelperText: 'As traduções para este idioma são geradas automaticamente e podem conter erros.',
     },
     themePage: {
         theme: 'Tema',
