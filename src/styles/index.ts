@@ -5896,10 +5896,6 @@ const styles = (theme: ThemeColors) =>
             borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
 
-        unreportedExpenseCreateExpenseButton: {
-            ...flex.alignSelfStart,
-        },
-
         testDriveBannerGap: {
             height: CONST.DESKTOP_HEADER_PADDING * 2,
         },
@@ -5924,6 +5920,27 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             paddingHorizontal: 0,
             aspectRatio: 1.7,
+        },
+
+        getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
+            flex: 1,
+            justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
+            alignItems: 'center',
+        }),
+
+        getTestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
+            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
+            const defaultHeight = shouldUseNarrowLayout ? '78%' : '75%';
+            const height = isAuthenticated ? defaultHeight : '55%';
+
+            return {
+                width: shouldUseNarrowLayout ? '100%' : '91%',
+                height,
+                borderRadius: variables.componentBorderRadiusLarge,
+                borderBottomRightRadius: borderBottomRadius,
+                borderBottomLeftRadius: borderBottomRadius,
+                overflow: 'hidden',
+            };
         },
     }) satisfies Styles;
 
