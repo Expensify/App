@@ -156,11 +156,11 @@ function ScreenWrapper(
     const displayWideScreenOfflineIndicator = !shouldUseNarrowLayout && (shouldShowWideScreenOfflineIndicator ?? showOnWideScreens ?? false);
 
     /** In edge-to-edge mode, we always want to apply the bottom safe area padding to the mobile offline indicator. */
-    const addSmallScrenOfflineIndicatorBottomSafeAreaPadding = isUsingEdgeToEdgeMode ? enableEdgeToEdgeBottomSafeAreaPadding : !includeSafeAreaPaddingBottom;
+    const addSmallScreenOfflineIndicatorBottomSafeAreaPadding = isUsingEdgeToEdgeMode ? enableEdgeToEdgeBottomSafeAreaPadding : !includeSafeAreaPaddingBottom;
 
     /** If we currently show the offline indicator and it has bottom safe area padding, we need to offset the bottom safe area padding in the KeyboardAvoidingView. */
     const {isOffline} = useNetwork();
-    const shouldOffsetMobileOfflineIndicator = displaySmallScreenOfflineIndicator && addSmallScrenOfflineIndicatorBottomSafeAreaPadding && isOffline;
+    const shouldOffsetMobileOfflineIndicator = displaySmallScreenOfflineIndicator && addSmallScreenOfflineIndicatorBottomSafeAreaPadding && isOffline;
 
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {initialURL} = useContext(InitialURLContext);
@@ -251,7 +251,7 @@ function ScreenWrapper(
                         shouldSmallScreenOfflineIndicatorStickToBottom={displayStickyMobileOfflineIndicator}
                         isOfflineIndicatorTranslucent={isOfflineIndicatorTranslucent}
                         extraContent={extraContent}
-                        addBottomSafeAreaPadding={addSmallScrenOfflineIndicatorBottomSafeAreaPadding}
+                        addBottomSafeAreaPadding={addSmallScreenOfflineIndicatorBottomSafeAreaPadding}
                     />
                 </ScreenWrapperOfflineIndicatorContext.Provider>
             </ScreenWrapperStatusContext.Provider>
