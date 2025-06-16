@@ -38,7 +38,7 @@ type ScreenWrapperChildrenProps = {
     didScreenTransitionEnd: boolean;
 };
 
-type ScreenWrapperProps = ScreenWrapperContainerProps &
+type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
     Omit<ScreenWrapperOfflineIndicatorsProps, 'addBottomSafeAreaPadding' | 'addWideScreenBottomSafeAreaPadding'> & {
         /**
          * The navigation prop is passed by the navigator. It is used to trigger the onEntryTransitionEnd callback
