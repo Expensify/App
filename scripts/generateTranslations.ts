@@ -10,7 +10,7 @@ import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
 import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
-import {LANGUAGES, UPCOMING_LANGUAGES} from '@src/CONST/LOCALES';
+import {isTranslationTargetLocale, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import CLI from './utils/CLI';
 import Prettier from './utils/Prettier';
@@ -426,10 +426,6 @@ class TranslationGenerator {
     }
 }
 
-function isTranslationTargetLocale(str: string): str is TranslationTargetLocale {
-    return (LANGUAGES as readonly string[]).includes(str) || (UPCOMING_LANGUAGES as readonly string[]).includes(str);
-}
-
 /**
  * The main function mostly contains CLI and file I/O logic, while TS parsing and translation logic is encapsulated in TranslationGenerator.
  */
@@ -445,7 +441,7 @@ async function main(): Promise<void> {
             // By default, generate translations for all supported languages. Can be overridden with the --locales flag
             locales: {
                 description: 'Locales to generate translations for.',
-                default: UPCOMING_LANGUAGES as unknown as TranslationTargetLocale[],
+                default: TRANSLATION_TARGET_LOCALES,
                 parse: (val: string): TranslationTargetLocale[] => {
                     const rawLocales = val.split(',');
                     const validatedLocales: TranslationTargetLocale[] = [];

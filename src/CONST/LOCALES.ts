@@ -74,5 +74,19 @@ function isFullySupportedLocale(locale: Locale): locale is FullySupportedLocale 
     return (Object.values(FULLY_SUPPORTED_LOCALES) as Locale[]).includes(locale);
 }
 
-export {BETA_LOCALES, EXTENDED_LOCALES, FULLY_SUPPORTED_LOCALES, LOCALES, LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES, TRANSLATION_TARGET_LOCALES, isFullySupportedLocale};
+function isTranslationTargetLocale(locale: string): locale is TranslationTargetLocale {
+    return (Object.values(TRANSLATION_TARGET_LOCALES) as readonly string[]).includes(locale);
+}
+
+export {
+    BETA_LOCALES,
+    EXTENDED_LOCALES,
+    FULLY_SUPPORTED_LOCALES,
+    LOCALES,
+    LOCALE_TO_LANGUAGE_STRING,
+    SORTED_LOCALES,
+    TRANSLATION_TARGET_LOCALES,
+    isFullySupportedLocale,
+    isTranslationTargetLocale,
+};
 export type {FullySupportedLocale, Locale, TranslationTargetLocale};
