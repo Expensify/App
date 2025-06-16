@@ -35,6 +35,7 @@ const SCREENS = {
         DOMAIN_PERMISSION_INFO: 'Travel_DomainPermissionInfo',
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
         WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
+        TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
     },
     SEARCH: {
         ROOT: 'Search_Root',
@@ -681,7 +682,6 @@ const SCREENS = {
     TEST_DRIVE_MODAL: {
         ROOT: 'TestDrive_Modal_Root',
     },
-
     TEST_DRIVE_DEMO: {
         ROOT: 'TestDrive_Demo_Root',
     },
@@ -697,6 +697,7 @@ const SCREENS = {
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
     PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
+    AUTO_SUBMIT_ROOT: 'AutoSubmit_Modal_Root',
     CHANGE_POLICY_EDUCATIONAL_ROOT: 'ChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
     REPORT_PARTICIPANTS: {

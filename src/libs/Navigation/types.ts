@@ -362,12 +362,14 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
         tagName: string;
         backTo?: Routes;
+        parentTagsFilter?: string;
     };
     [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS]: {
         policyID: string;
         orderWeight: number;
         tagName: string;
         backTo?: Routes;
+        parentTagsFilter?: string;
     };
     [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
         policyID: string;
@@ -1610,6 +1612,7 @@ type SignInNavigatorParamList = {
 type FeatureTrainingNavigatorParamList = {
     [SCREENS.FEATURE_TRAINING_ROOT]: undefined;
     [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: undefined;
+    [SCREENS.AUTO_SUBMIT_ROOT]: undefined;
     [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: undefined;
 };
 
@@ -1714,6 +1717,10 @@ type RightModalNavigatorParamList = {
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
+    [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: {
+        token: string;
+        isTestAccount?: boolean;
+    };
     [SCREENS.TRAVEL.TRIP_SUMMARY]: {
         reportID: string;
         transactionID: string;
