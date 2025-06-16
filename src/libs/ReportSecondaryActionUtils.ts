@@ -443,12 +443,11 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
-    const isSubmitAndClose = isSubmitAndCloseUtils(policy);
 
     // This should be removed after we change how instant submit works
     const isInstantSubmit = isInstantSubmitEnabled(policy);
 
-    if (!isExpenseReport || isSubmitAndClose || isInstantSubmit) {
+    if (!isExpenseReport || isInstantSubmit) {
         return false;
     }
 
