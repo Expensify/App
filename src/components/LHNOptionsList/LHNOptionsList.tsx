@@ -289,6 +289,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             transactions,
             isOffline,
             isScreenFocused,
+            isReportsSplitNavigatorLast,
         ],
         [
             reportActions,
@@ -305,6 +306,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             transactions,
             isOffline,
             isScreenFocused,
+            isReportsSplitNavigatorLast,
         ],
     );
 
