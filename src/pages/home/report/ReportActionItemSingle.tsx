@@ -123,6 +123,8 @@ function ReportActionItemSingle({
     let displayName = getDisplayNameForParticipant({accountID: actorAccountID, personalDetailsData: personalDetails});
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
+    const vacationDelegateDetails = getPersonalDetailByEmail(action?.managerOnVacation ?? '');
+
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = isTripRoomReportUtils(report);
@@ -342,6 +344,9 @@ function ReportActionItemSingle({
                     <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>
                 )}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
+                {!!action?.managerOnVacation && (
+                    <Text style={[styles.chatDelegateMessage]}>{translate('statusPage.asVacationDelegate', {managerName: vacationDelegateDetails?.displayName ?? ''})}</Text>
+                )}
             </View>
         </View>
     );

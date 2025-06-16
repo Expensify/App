@@ -555,6 +555,8 @@ type DelegateRoleParams = {role: DelegateRole};
 
 type DelegatorParams = {delegator: string};
 
+type VacationDelegateParams = {managerName: string};
+
 type RoleNamesParams = {role: string};
 
 type AssignCardParams = {
@@ -790,6 +792,7 @@ export type {
     SpreadCategoriesParams,
     DelegateRoleParams,
     DelegatorParams,
+    VacationDelegateParams,
     ReconciliationWorksParams,
     LastSyncAccountingParams,
     SyncStageNameConnectionsParams,
