@@ -113,7 +113,6 @@ type TransactionCustomUnit = {
 
     /** Full Rate of the custom unit */
     customUnitRate?: Array<{
-
         /** ID of the custom unit sub rate */
         id: string;
 
