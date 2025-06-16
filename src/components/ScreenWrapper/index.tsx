@@ -72,7 +72,7 @@ function ScreenWrapper(
         navigation: navigationProp,
         children,
         style,
-        extraContent,
+        bottomContent,
         headerGapStyles,
         offlineIndicatorStyle,
         disableOfflineIndicatorSafeAreaPadding,
@@ -151,7 +151,7 @@ function ScreenWrapper(
     }, [addSafeAreaPadding, disableOfflineIndicatorSafeAreaPadding, isInNarrowPane, isSmallScreenWidth, originalValues, showOnSmallScreens, showOnWideScreens]);
 
     /** If there is no bottom content, the mobile offline indicator will stick to the bottom of the screen by default. */
-    const displayStickyMobileOfflineIndicator = shouldSmallScreenOfflineIndicatorStickToBottom && !extraContent;
+    const displayStickyMobileOfflineIndicator = shouldSmallScreenOfflineIndicatorStickToBottom && !bottomContent;
     const displaySmallScreenOfflineIndicator = isSmallScreenWidth && (shouldShowSmallScreenOfflineIndicator ?? showOnSmallScreens ?? true);
     const displayWideScreenOfflineIndicator = !shouldUseNarrowLayout && (shouldShowWideScreenOfflineIndicator ?? showOnWideScreens ?? false);
 
@@ -220,7 +220,7 @@ function ScreenWrapper(
         <ScreenWrapperContainer
             forwardedRef={ref}
             style={[styles.flex1, style]}
-            extraContent={extraContent}
+            bottomContent={bottomContent}
             didScreenTransitionEnd={didScreenTransitionEnd}
             shouldKeyboardOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding || shouldOffsetMobileOfflineIndicator}
             enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPaddingProp}
@@ -250,7 +250,7 @@ function ScreenWrapper(
                         shouldShowOfflineIndicatorInWideScreen={displayWideScreenOfflineIndicator}
                         shouldSmallScreenOfflineIndicatorStickToBottom={displayStickyMobileOfflineIndicator}
                         isOfflineIndicatorTranslucent={isOfflineIndicatorTranslucent}
-                        extraContent={extraContent}
+                        extraContent={bottomContent}
                         addBottomSafeAreaPadding={addSmallScreenOfflineIndicatorBottomSafeAreaPadding}
                     />
                 </ScreenWrapperOfflineIndicatorContext.Provider>

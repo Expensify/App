@@ -19,7 +19,7 @@ import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 
 type ScreenWrapperContainerProps = React.PropsWithChildren<{
-    /** Additional styles for extra content */
+    /** Ref for the screen wrapper container */
     forwardedRef?: ForwardedRef<View>;
 
     /** A unique ID to find the screen wrapper in tests */
@@ -29,10 +29,10 @@ type ScreenWrapperContainerProps = React.PropsWithChildren<{
     style?: StyleProp<ViewStyle>;
 
     /** Content to display under the offline indicator */
-    extraContent?: ReactNode;
+    bottomContent?: ReactNode;
 
     /** Additional styles for extra content */
-    extraContentStyle?: StyleProp<ViewStyle>;
+    bottomContentStyle?: StyleProp<ViewStyle>;
 
     /** Whether the screen wrapper has finished the transition */
     didScreenTransitionEnd?: boolean;
@@ -87,8 +87,8 @@ function ScreenWrapperContainer({
     children,
     style,
     testID,
-    extraContent,
-    extraContentStyle: extraContentStyleProp,
+    bottomContent,
+    bottomContentStyle: bottomContentStyleProp,
     keyboardAvoidingViewBehavior = 'padding',
     keyboardVerticalOffset,
     shouldEnableKeyboardAvoidingView = true,
@@ -116,7 +116,7 @@ function ScreenWrapperContainer({
     const shouldKeyboardOffsetBottomSafeAreaPadding = shouldKeyboardOffsetBottomSafeAreaPaddingProp ?? isUsingEdgeToEdgeMode;
     const {paddingTop, paddingBottom, unmodifiedPaddings} = useSafeAreaPaddings(isUsingEdgeToEdgeMode);
 
-    const showExtraContent = isUsingEdgeToEdgeMode ? !!extraContent : true;
+    const showBottomContent = isUsingEdgeToEdgeMode ? !!bottomContent : true;
     const edgeToEdgeExtraContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
 
     // since Modals are drawn in separate native view hierarchy we should always add paddings
@@ -149,9 +149,9 @@ function ScreenWrapperContainer({
         };
     }, [ignoreInsetsConsumption, includeSafeAreaPaddingBottom, paddingBottom, unmodifiedPaddings.bottom]);
 
-    const extraContentStyle = useMemo(
-        () => [isUsingEdgeToEdgeMode ? edgeToEdgeExtraContentStyle : legacyExtraContentStyle, extraContentStyleProp],
-        [isUsingEdgeToEdgeMode, edgeToEdgeExtraContentStyle, legacyExtraContentStyle, extraContentStyleProp],
+    const bottomContentStyle = useMemo(
+        () => [isUsingEdgeToEdgeMode ? edgeToEdgeExtraContentStyle : legacyExtraContentStyle, bottomContentStyleProp],
+        [isUsingEdgeToEdgeMode, edgeToEdgeExtraContentStyle, legacyExtraContentStyle, bottomContentStyleProp],
     );
 
     const panResponder = useRef(
@@ -225,7 +225,7 @@ function ScreenWrapperContainer({
                     </PickerAvoidingView>
                 </KeyboardAvoidingView>
             </View>
-            {showExtraContent && <View style={extraContentStyle}>{extraContent}</View>}
+            {showBottomContent && <View style={bottomContentStyle}>{bottomContent}</View>}
         </View>
     );
 }
