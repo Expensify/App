@@ -31,7 +31,7 @@ const defaultSearchContext: SearchRouterContext = {
 
 const Context = React.createContext<SearchRouterContext>(defaultSearchContext);
 
-const supportsHistoryAPI = typeof window !== 'undefined' && typeof window.history !== 'undefined';
+const isBrowserWithHistory = typeof window !== 'undefined' && typeof window.history !== 'undefined';
 const canListenPopState = typeof window !== 'undefined' && typeof window.addEventListener === 'function';
 
 function SearchRouterContextProvider({children}: ChildrenProps) {
@@ -44,6 +44,14 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
             return;
         }
 
+        /**
+         * Handle browser back/forward navigation
+         * When user clicks back/forward, we check the history state:
+         * - If state has isSearchModalOpen=true, we show the modal
+         * - If state has isSearchModalOpen=false or no state, we hide the modal
+         * This creates a proper browser history integration where modal state
+         * is part of the navigation history
+         */
         const handlePopState = (event: PopStateEvent) => {
             const state = event.state as HistoryState | null;
             if (state?.isSearchModalOpen) {
@@ -61,13 +69,13 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
 
     const routerContext = useMemo(() => {
         const openSearchRouter = () => {
+            if (isBrowserWithHistory) {
+                window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '');
+            }
             close(
                 () => {
                     setIsSearchRouterDisplayed(true);
                     searchRouterDisplayedRef.current = true;
-                    if (supportsHistoryAPI) {
-                        window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '');
-                    }
                 },
                 false,
                 true,
@@ -76,10 +84,10 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         const closeSearchRouter = () => {
             setIsSearchRouterDisplayed(false);
             searchRouterDisplayedRef.current = false;
-            if (supportsHistoryAPI) {
+            if (isBrowserWithHistory) {
                 const state = window.history.state as HistoryState | null;
                 if (state?.isSearchModalOpen) {
-                    window.history.back();
+                    window.history.replaceState({isSearchModalOpen: false} satisfies HistoryState, '');
                 }
             }
         };

@@ -24,17 +24,17 @@ type EarlyDiscountBannerProps = {
     /** Whether the banner is being displayed on the subscription page. */
     isSubscriptionPage: boolean;
 
-    /** The guide booking button to display */
-    GuideBookingButton?: React.JSX.Element;
-
-    /** The talk to sales button to display */
-    TalkToSalesButton?: React.JSX.Element;
+    /** The Onboarding help dropdown button to display */
+    onboardingHelpDropdownButton?: React.JSX.Element;
 
     /** Function to trigger when the discount banner is dismissed */
     onDismissedDiscountBanner?: () => void;
+
+    /** Has user active Schedule call with guide */
+    hasActiveScheduledCall?: boolean;
 };
 
-function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSalesButton, onDismissedDiscountBanner}: EarlyDiscountBannerProps) {
+function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, onDismissedDiscountBanner, hasActiveScheduledCall}: EarlyDiscountBannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -82,11 +82,10 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
         const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.justifyContentCenter] : [];
         return (
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle, styles.alignItemsCenter]}>
-                {TalkToSalesButton}
-                {GuideBookingButton}
+                {onboardingHelpDropdownButton}
                 <Button
-                    success
-                    style={shouldUseNarrowLayout ? styles.earlyDiscountButton : styles.mr2}
+                    success={!hasActiveScheduledCall}
+                    style={shouldUseNarrowLayout ? [styles.earlyDiscountButton, styles.flexGrow2] : styles.mr2}
                     text={translate('subscription.billingBanner.earlyDiscount.claimOffer')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
                 />
@@ -95,6 +94,7 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
         );
     }, [
         shouldUseNarrowLayout,
+        hasActiveScheduledCall,
         styles.flex0,
         styles.flexBasis100,
         styles.justifyContentCenter,
@@ -102,9 +102,9 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
         styles.gap2,
         styles.alignItemsCenter,
         styles.earlyDiscountButton,
+        styles.flexGrow2,
         styles.mr2,
-        TalkToSalesButton,
-        GuideBookingButton,
+        onboardingHelpDropdownButton,
         translate,
         dismissButton,
     ]);

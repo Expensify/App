@@ -45,6 +45,8 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                 return;
             }
             Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+            // eslint-disable-next-line deprecation/deprecation
             if (isIOUReport(reportID) && isPolicyAdmin(getPolicy(policyID)) && report.ownerAccountID && !isPolicyMember(getLoginByAccountID(report.ownerAccountID), policyID)) {
                 moveIOUReportToPolicyAndInviteSubmitter(reportID, policyID);
             } else if (isIOUReport(reportID) && isPolicyMember(session?.email, policyID)) {
@@ -56,17 +58,16 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
         [session?.email, report, reportID],
     );
 
-    const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
         selectedPolicyID: report.policyID,
         searchTerm: debouncedSearchTerm,
-        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, session, reportPolicy),
+        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policies),
     });
 
-    if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report) || (!report.total && !report.unheldTotal)) {
+    if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report)) {
         return <NotFoundPage />;
     }
 

@@ -129,9 +129,8 @@ type MovedTransactionParams = {
     reportName?: string;
 };
 
-type UnreportedTransactionParams = {
-    reportUrl: string;
-    reportName?: string;
+type MovedFromReportParams = {
+    reportName: string;
 };
 
 type SettleExpensifyCardParams = {
@@ -158,8 +157,6 @@ type PayerPaidAmountParams = {payer?: string; amount: number | string};
 
 type ApprovedAmountParams = {amount: number | string};
 
-type ForwardedAmountParams = {amount: number | string};
-
 type ManagerApprovedParams = {manager: string};
 
 type ManagerApprovedAmountParams = {manager: string; amount: number | string};
@@ -176,9 +173,9 @@ type AdminCanceledRequestParams = {manager: string; amount: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
-type PaidElsewhereWithAmountParams = {payer?: string; amount: string};
+type PaidElsewhereParams = {payer?: string} | undefined;
 
-type PaidWithExpensifyWithAmountParams = {payer?: string; amount: string};
+type PaidWithExpensifyParams = {payer?: string} | undefined;
 
 type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
 
@@ -315,7 +312,17 @@ type UpdatedPolicyDescriptionParams = {oldDescription: string; newDescription: s
 
 type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
 
-type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
+type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean | string | number; newValue?: boolean | string | number};
+
+type UpdatedPolicyCategoryDescriptionHintTypeParams = {categoryName: string; oldValue?: string; newValue?: string};
+
+type UpdatedPolicyCategoryGLCodeParams = {categoryName: string; oldValue?: string; newValue?: string};
+
+type UpdatedPolicyCategoryMaxExpenseAmountParams = {categoryName: string; oldAmount?: string; newAmount?: string};
+
+type UpdatedPolicyCategoryExpenseLimitTypeParams = {categoryName: string; oldValue?: string; newValue: string};
+
+type UpdatedPolicyCategoryMaxAmountNoReceiptParams = {categoryName: string; oldValue?: string; newValue: string};
 
 type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean; count?: string};
 
@@ -325,11 +332,31 @@ type UpdatedPolicyTagFieldParams = {oldValue?: string; newValue: string; tagName
 
 type UpdatedPolicyCategoryNameParams = {oldName: string; newName?: string};
 
-type AddedPolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
+type UpdatePolicyCustomUnitTaxEnabledParams = {newValue: boolean};
+
+type UpdatePolicyCustomUnitParams = {oldValue: string; newValue: string; customUnitName: string; updatedField: string};
+
+type AddOrDeletePolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
+
+type UpdatedPolicyCustomUnitRateParams = {customUnitName: string; customUnitRateName: string; oldValue: string; newValue: string; updatedField: string};
+
+type UpdatedPolicyCustomUnitTaxRateExternalIDParams = {customUnitRateName: string; newValue: string; newTaxPercentage: string; oldValue?: string; oldTaxPercentage?: string};
+
+type UpdatedPolicyCustomUnitTaxClaimablePercentageParams = {customUnitRateName: string; newValue: number; oldValue?: number};
 
 type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
 
 type UpdatedPolicyReportFieldDefaultValueParams = {fieldName?: string; defaultValue?: string};
+
+type PolicyAddedReportFieldOptionParams = {fieldName?: string; optionName: string};
+
+type PolicyDisabledReportFieldOptionParams = {fieldName: string; optionName: string; optionEnabled: boolean};
+
+type PolicyDisabledReportFieldAllOptionsParams = {fieldName: string; optionName: string; allEnabled: boolean; toggledOptionsCount?: number};
+
+type AddedPolicyApprovalRuleParams = {approverEmail: string; approverName: string; field: string; name: string};
+
+type UpdatedPolicyApprovalRuleParams = {oldApproverEmail: string; oldApproverName?: string; newApproverEmail: string; newApproverName?: string; field: string; name: string};
 
 type UpdatedPolicyPreventSelfApprovalParams = {oldValue: string; newValue: string};
 
@@ -338,6 +365,10 @@ type UpdatedPolicyFieldWithNewAndOldValueParams = {oldValue: string; newValue: s
 type UpdatedPolicyFieldWithValueParam = {value: boolean};
 
 type UpdatedPolicyFrequencyParams = {oldFrequency: string; newFrequency: string};
+
+type UpdatedPolicyAuditRateParams = {oldAuditRate: number; newAuditRate: number};
+
+type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
 
 type ChangeTypeParams = {oldType: string; newType: string};
 
@@ -369,8 +400,6 @@ type ShareParams = {to: string};
 type UnshareParams = {to: string};
 
 type StripePaidParams = {amount: string; currency: string};
-
-type UnapprovedParams = {amount: string};
 
 type RemoveMembersWarningPrompt = {
     memberName: string;
@@ -415,6 +444,8 @@ type IntegrationSyncFailedParams = {label: string; errorMessage: string; linkTex
 type AddEmployeeParams = {email: string; role: string};
 
 type UpdateRoleParams = {email: string; currentRole: string; newRole: string};
+
+type UpdatedCustomFieldParams = {email: string; previousValue: string; newValue: string};
 
 type LeftWorkspaceParams = {nameOrEmail: string};
 
@@ -591,7 +622,7 @@ type InvalidValueParams = {
     expectedValues: string;
 };
 
-type ImportTagsSuccessfullDescriptionParams = {
+type ImportTagsSuccessfulDescriptionParams = {
     tags: number;
 };
 
@@ -599,12 +630,12 @@ type ImportedTagsMessageParams = {
     columnCounts: number;
 };
 
-type ImportMembersSuccessfullDescriptionParams = {
+type ImportMembersSuccessfulDescriptionParams = {
     added: number;
     updated: number;
 };
 
-type ImportPerDiemRatesSuccessfullDescriptionParams = {
+type ImportPerDiemRatesSuccessfulDescriptionParams = {
     rates: number;
 };
 
@@ -636,10 +667,6 @@ type WorkspaceMemberList = {
 
 type FileLimitParams = {
     fileLimit: number;
-};
-
-type LastFourDigitsParams = {
-    lastFourDigits: string;
 };
 
 type CompanyCardBankName = {
@@ -695,11 +722,57 @@ type CurrencyInputDisabledTextParams = {
     currency: string;
 };
 
+type SplitExpenseSubtitleParams = {
+    amount: string;
+    merchant: string;
+};
+
+type SplitExpenseEditTitleParams = {
+    amount: string;
+    merchant: string;
+};
+
+type TotalAmountGreaterOrLessThanOriginalParams = {
+    amount: string;
+};
+
+type EmployeeInviteMessageParams = {
+    name: string;
+};
+
+type FlightParams = {
+    startDate: string;
+    airlineCode: string;
+    origin: string;
+    destination: string;
+    confirmationID?: string;
+};
+
+type AirlineParams = {
+    airlineCode: string;
+    startDate?: string;
+    cabinClass?: string;
+};
+
+type RailTicketParams = {
+    origin: string;
+    destination: string;
+    startDate: string;
+};
+
+type TravelTypeParams = {
+    type: string;
+    id?: string;
+};
+
 export type {
+    SplitExpenseEditTitleParams,
+    SplitExpenseSubtitleParams,
+    TotalAmountGreaterOrLessThanOriginalParams,
     AuthenticationErrorParams,
-    ImportMembersSuccessfullDescriptionParams,
+    ImportMembersSuccessfulDescriptionParams,
     ImportedTagsMessageParams,
-    ImportTagsSuccessfullDescriptionParams,
+    ImportTagsSuccessfulDescriptionParams,
     MissingPropertyParams,
     InvalidPropertyParams,
     InvalidValueParams,
@@ -783,13 +856,11 @@ export type {
     ElectronicFundsParams,
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
-    ForwardedAmountParams,
     GoBackMessageParams,
     GoToRoomParams,
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
-    LastFourDigitsParams,
     LocalTimeParams,
     LogSizeParams,
     LoggedInAsParams,
@@ -803,8 +874,8 @@ export type {
     OOOEventSummaryFullDayParams,
     OOOEventSummaryPartialDayParams,
     OurEmailProviderParams,
-    PaidElsewhereWithAmountParams,
-    PaidWithExpensifyWithAmountParams,
+    PaidElsewhereParams,
+    PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
     PaySomeoneParams,
     PayerOwesAmountParams,
@@ -815,6 +886,7 @@ export type {
     PayerPaidParams,
     PayerSettledParams,
     RemovedTheRequestParams,
+    MovedFromReportParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
@@ -825,7 +897,6 @@ export type {
     RequestCountParams,
     DeleteTransactionParams,
     MovedTransactionParams,
-    UnreportedTransactionParams,
     RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
@@ -884,7 +955,6 @@ export type {
     ShareParams,
     UnshareParams,
     StripePaidParams,
-    UnapprovedParams,
     RemoveMembersWarningPrompt,
     ApprovalWorkflowErrorParams,
     ConnectionNameParams,
@@ -894,6 +964,7 @@ export type {
     IntegrationSyncFailedParams,
     AddEmployeeParams,
     UpdateRoleParams,
+    UpdatedCustomFieldParams,
     LeftWorkspaceParams,
     RemoveMemberParams,
     DateParams,
@@ -908,7 +979,7 @@ export type {
     ImportedTypesParams,
     WorkspaceYouMayJoin,
     WorkspaceMemberList,
-    ImportPerDiemRatesSuccessfullDescriptionParams,
+    ImportPerDiemRatesSuccessfulDescriptionParams,
     CurrencyCodeParams,
     WorkspaceLockedPlanTypeParams,
     CompanyNameParams,
@@ -917,6 +988,7 @@ export type {
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyCategoryParams,
+    UpdatedPolicyCategoryDescriptionHintTypeParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
@@ -928,17 +1000,38 @@ export type {
     WorkEmailMergingBlockedParams,
     NewWorkspaceNameParams,
     AddedOrDeletedPolicyReportFieldParams,
-    AddedPolicyCustomUnitRateParams,
+    UpdatedPolicyCustomUnitRateParams,
+    UpdatedPolicyCustomUnitTaxRateExternalIDParams,
+    UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyTagParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyReportFieldDefaultValueParams,
+    PolicyAddedReportFieldOptionParams,
+    PolicyDisabledReportFieldOptionParams,
+    PolicyDisabledReportFieldAllOptionsParams,
     SubmitsToParams,
     SettlementDateParams,
     PolicyExpenseChatNameParams,
     YourPlanPriceValueParams,
     NeedCategoryForExportToIntegrationParams,
+    UpdatedPolicyAuditRateParams,
+    UpdatedPolicyManualApprovalThresholdParams,
+    UpdatePolicyCustomUnitTaxEnabledParams,
+    UpdatePolicyCustomUnitParams,
+    AddOrDeletePolicyCustomUnitRateParams,
+    AddedPolicyApprovalRuleParams,
+    UpdatedPolicyApprovalRuleParams,
+    UpdatedPolicyCategoryGLCodeParams,
+    UpdatedPolicyCategoryMaxExpenseAmountParams,
+    UpdatedPolicyCategoryExpenseLimitTypeParams,
+    UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     SubscriptionSettingsSummaryParams,
     ReviewParams,
     CurrencyInputDisabledTextParams,
+    EmployeeInviteMessageParams,
+    FlightParams,
+    AirlineParams,
+    RailTicketParams,
+    TravelTypeParams,
 };

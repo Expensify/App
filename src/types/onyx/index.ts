@@ -12,13 +12,13 @@ import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
-import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
+import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
 import type CardFeeds from './CardFeeds';
 import type {AddNewCompanyCardFeed, CompanyCardFeed, FundID} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
-import type CorpayOnboardingFields from './CorpayOnboardingFields';
+import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
@@ -40,6 +40,7 @@ import type LastExportMethod from './LastExportMethod';
 import type {LastPaymentMethod, LastPaymentMethodType} from './LastPaymentMethod';
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
+import type LockAccountDetails from './LockAccountDetails';
 import type {LoginList} from './Login';
 import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
@@ -100,7 +101,6 @@ import type Session from './Session';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
-import type TalkToAISales from './TalkToAISales';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
@@ -133,6 +133,7 @@ export type {
     Card,
     CardList,
     CardOnWaitlist,
+    ProvisioningCardData,
     Credentials,
     CorpayOnboardingFields,
     Currency,
@@ -153,6 +154,7 @@ export type {
     CompanyCardFeed,
     LastExportMethod,
     Locale,
+    LockAccountDetails,
     Login,
     LoginList,
     PendingContactAction,
@@ -259,7 +261,6 @@ export type {
     SidePanel,
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
-    TalkToAISales,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,

@@ -27,7 +27,6 @@ function MoneyRequestReportPreview({
     policyID,
     chatReportID,
     action,
-    containerStyles,
     contextMenuAnchor,
     isHovered = false,
     isWhisper = false,
@@ -58,10 +57,11 @@ function MoneyRequestReportPreview({
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
-    const [currentWidth, setCurrentWidth] = useState(256);
+    const [currentWidth, setCurrentWidth] = useState<number>(0);
+    const [currentWrapperWidth, setCurrentWrapperWidth] = useState<number>(0);
     const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, currentWidth, transactions.length === 1),
-        [StyleUtils, currentWidth, shouldUseNarrowLayout, transactions.length],
+        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, currentWidth, currentWrapperWidth),
+        [StyleUtils, currentWidth, currentWrapperWidth, shouldUseNarrowLayout, transactions.length],
     );
 
     const shouldShowIOUData = useMemo(() => {
@@ -95,7 +95,7 @@ function MoneyRequestReportPreview({
             isWhisper={isWhisper}
             isHovered={isHovered}
             iouReportID={iouReportID}
-            containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewStyle, containerStyles]}
+            containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewStyle]}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewStyle.width}
             transactionID={item.transactionID}
@@ -112,7 +112,7 @@ function MoneyRequestReportPreview({
             iouReport={iouReport}
             chatReport={chatReport}
             action={action}
-            containerStyles={[reportPreviewStyles.componentStyle, containerStyles]}
+            containerStyles={[reportPreviewStyles.componentStyle]}
             contextMenuAnchor={contextMenuAnchor}
             isHovered={isHovered}
             isWhisper={isWhisper}
@@ -127,8 +127,11 @@ function MoneyRequestReportPreview({
             lastTransactionViolations={lastTransactionViolations}
             isDelegateAccessRestricted={isDelegateAccessRestricted}
             renderTransactionItem={renderItem}
-            onLayout={(e: LayoutChangeEvent) => {
-                setCurrentWidth(e.nativeEvent.layout.width ?? 255);
+            onCarouselLayout={(e: LayoutChangeEvent) => {
+                setCurrentWidth(e.nativeEvent.layout.width);
+            }}
+            onWrapperLayout={(e: LayoutChangeEvent) => {
+                setCurrentWrapperWidth(e.nativeEvent.layout.width);
             }}
             currentWidth={currentWidth}
             reportPreviewStyles={reportPreviewStyles}

@@ -8,7 +8,6 @@ import RNFetchBlob from 'react-native-blob-util';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';
-import type {FileObject, ImagePickerResponse as FileResponse} from '@components/AttachmentModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
@@ -20,6 +19,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import type {FileObject, ImagePickerResponse as FileResponse} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -457,7 +457,7 @@ function AttachmentPicker({
                 isVisible={isVisible}
                 anchorRef={popoverRef}
                 // eslint-disable-next-line react-compiler/react-compiler
-                onModalHide={onModalHide.current}
+                onModalHide={() => onModalHide.current?.()}
             >
                 <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
                     {menuItemData.map((item, menuIndex) => (

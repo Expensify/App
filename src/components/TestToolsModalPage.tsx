@@ -2,10 +2,12 @@ import React from 'react';
 import {View} from 'react-native';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@navigation/Navigation';
 import {shouldShowProfileTool} from '@userActions/TestTool';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Button from './Button';
 import ClientSideLoggingToolMenu from './ClientSideLoggingToolMenu';
@@ -25,6 +27,7 @@ function TestToolsModalPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const activeRoute = Navigation.getActiveRoute();
+    const [shouldStoreLogs = false] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const isAuthenticated = useIsAuthenticated();
     const route = getRouteBasedOnAuthStatus(isAuthenticated, activeRoute);
 
@@ -33,7 +36,7 @@ function TestToolsModalPage() {
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
-                <View style={[{maxHeight}, styles.h100, styles.pt4, styles.defaultModalContainer, safeAreaPaddingBottomStyle]}>
+                <View style={[{maxHeight}, styles.h100, styles.defaultModalContainer, safeAreaPaddingBottomStyle]}>
                     <ScrollView style={[styles.flex1, styles.flexGrow1, styles.ph5]}>
                         <Text
                             style={[styles.textLabelSupporting, styles.mt5, styles.mb3]}
@@ -43,7 +46,7 @@ function TestToolsModalPage() {
                         </Text>
                         {shouldShowProfileTool() && <ProfilingToolMenu />}
                         <ClientSideLoggingToolMenu />
-                        {!!false && (
+                        {!!shouldStoreLogs && (
                             <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
                                 <Button
                                     small

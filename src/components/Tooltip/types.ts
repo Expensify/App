@@ -45,6 +45,9 @@ type SharedTooltipProps = {
 
     /** Callback when tooltip is clicked */
     onTooltipPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
+
+    /** Whether to compute horizontal shift for native */
+    computeHorizontalShiftForNative?: boolean;
 };
 
 type GenericTooltipState = {
@@ -78,6 +81,9 @@ type TooltipProps = ChildrenProps &
     SharedTooltipProps & {
         /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
         shouldHandleScroll?: boolean;
+
+        /** Whether the current screen or component is actively focused via navigation */
+        isFocused?: boolean;
     };
 
 type EducationalTooltipProps = ChildrenProps &

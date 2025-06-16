@@ -7,7 +7,6 @@ import Onyx, {useOnyx} from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
-import FocusModeNotification from './components/FocusModeNotification';
 import GrowlNotification from './components/GrowlNotification';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
@@ -80,9 +79,6 @@ type ExpensifyProps = {
     /** True when the user must update to the latest minimum version of the app */
     updateRequired: OnyxEntry<boolean>;
 
-    /** Whether we should display the notification alerting the user that focus mode has been auto-enabled */
-    focusModeNotification: OnyxEntry<boolean>;
-
     /** Last visited path in the app */
     lastVisitedPath: OnyxEntry<string | undefined>;
 };
@@ -94,16 +90,15 @@ function Expensify() {
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, {canBeMissing: true});
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA, {canBeMissing: true});
-    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: false});
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false, canBeMissing: false});
-    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false, canBeMissing: false});
-    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: false});
+    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: true});
+    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false, canBeMissing: true});
+    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false, canBeMissing: true});
+    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST, {canBeMissing: true});
-    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false, canBeMissing: false});
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: false});
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
     useDebugShortcut();
 
@@ -182,7 +177,6 @@ function Expensify() {
                     updateAvailable,
                     isSidebarLoaded,
                     screenShareRequest,
-                    focusModeNotification,
                     isAuthenticated,
                     lastVisitedPath,
                 };
@@ -214,6 +208,10 @@ function Expensify() {
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
+            // We use custom deeplink handler in setup/hybridApp
+            if (CONFIG.IS_HYBRID_APP) {
+                return;
+            }
             Report.openReportFromDeepLink(state.url);
         });
 
@@ -291,7 +289,6 @@ function Expensify() {
                             isVisible
                         />
                     ) : null}
-                    {focusModeNotification ? <FocusModeNotification /> : null}
                 </>
             )}
 
