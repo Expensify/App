@@ -22,16 +22,27 @@ function SelectFeedType() {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
     const [hasError, setHasError] = useState(false);
-    const {canUsePlaidCompanyCards} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const isCountrySupportPlaid = addNewCard?.data?.selectedCountry ? CONST.PLAID_SUPPORT_COUNTRIES.includes(addNewCard.data.selectedCountry) : false;
+    const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
 
     const submit = () => {
         if (!typeSelected) {
             setHasError(true);
             return;
         }
+        const isDirectSelected = typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT;
+
+        if (!isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) || !isDirectSelected) {
+            setAddNewCompanyCardStepAndData({
+                step: isDirectSelected ? CONST.COMPANY_CARDS.STEP.BANK_CONNECTION : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+                data: {selectedFeedType: typeSelected},
+            });
+            return;
+        }
+        const step = isUSCountry ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION;
         setAddNewCompanyCardStepAndData({
-            step: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT ? CONST.COMPANY_CARDS.STEP.BANK_CONNECTION : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+            step,
             data: {selectedFeedType: typeSelected},
         });
     };
@@ -47,14 +58,16 @@ function SelectFeedType() {
     }, [addNewCard?.data.selectedFeedType, isCountrySupportPlaid]);
 
     const handleBackButtonPress = () => {
-        setAddNewCompanyCardStepAndData({step: canUsePlaidCompanyCards ? CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY : CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+        setAddNewCompanyCardStepAndData({step: isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY : CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
     const data = [
         {
             value: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
             text: translate('workspace.companyCards.commercialFeed'),
-            alternateText: translate(canUsePlaidCompanyCards ? 'workspace.companyCards.addNewCard.commercialFeedPlaidDetails' : 'workspace.companyCards.addNewCard.commercialFeedDetails'),
+            alternateText: translate(
+                isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? 'workspace.companyCards.addNewCard.commercialFeedPlaidDetails' : 'workspace.companyCards.addNewCard.commercialFeedDetails',
+            ),
             keyForList: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
             isSelected: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
         },
@@ -68,7 +81,7 @@ function SelectFeedType() {
     ];
 
     const getFinalData = () => {
-        if (!canUsePlaidCompanyCards) {
+        if (!isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)) {
             return data;
         }
         if (isCountrySupportPlaid) {

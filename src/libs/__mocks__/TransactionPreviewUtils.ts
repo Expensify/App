@@ -34,7 +34,6 @@ export {
     getTransactionPreviewTextAndTranslationPaths,
     createTransactionPreviewConditionals,
     getReviewNavigationRoute,
-    getOriginalTransactionIfBillIsSplit,
     getViolationTranslatePath,
     getUniqueActionErrors,
 } from '../TransactionPreviewUtils';

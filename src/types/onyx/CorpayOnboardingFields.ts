@@ -32,4 +32,4 @@ type CorpayOnboardingFields = {
     picklists: Record<ValueOf<typeof CONST.NON_USD_BANK_ACCOUNT.BUSINESS_INFO_STEP.PICKLIST>, Picklist>;
 };
 
-export default CorpayOnboardingFields;
+export type {CorpayOnboardingFields, Picklist};

@@ -94,7 +94,7 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL]}>{formTitle}</Text>
-                {!!formDisclaimer && <Text style={[styles.textSupporting]}>{formDisclaimer}</Text>}
+                {!!formDisclaimer && <Text style={[styles.textSupporting, styles.mt3]}>{formDisclaimer}</Text>}
                 <View style={[styles.flex1]}>
                     <InputWrapper
                         InputComponent={TextInput}

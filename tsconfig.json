@@ -19,12 +19,30 @@
             "@libs/*": ["./src/libs/*"],
             "@navigation/*": ["./src/libs/Navigation/*"],
             "@pages/*": ["./src/pages/*"],
+            "@prompts/*": ["./prompts/*"],
             "@scripts/*": ["./scripts/*", "./.github/scripts/*"],
             "@styles/*": ["./src/styles/*"],
             "@src/*": ["./src/*"],
             "@userActions/*": ["./src/libs/actions/*"]
         }
     },
-    "include": ["src", "desktop", "web", "website", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*", "scripts", "modules"],
+    "include": [
+        "src",
+        "desktop",
+        "web",
+        "website",
+        "docs",
+        "assets",
+        "config",
+        "tests",
+        "jest",
+        "__mocks__",
+        ".github/**/*",
+        ".storybook/**/*",
+        "scripts",
+        "modules",
+        "**/*.nitro/*.ts",
+        "**/*.nitro/*.tsx"
+    ],
     "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"]
 }

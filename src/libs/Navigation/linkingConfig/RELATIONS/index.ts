@@ -3,9 +3,16 @@ import SEARCH_TO_RHP from './SEARCH_TO_RHP';
 import SETTINGS_TO_RHP from './SETTINGS_TO_RHP';
 import SIDEBAR_TO_RHP from './SIDEBAR_TO_RHP';
 import SIDEBAR_TO_SPLIT from './SIDEBAR_TO_SPLIT';
-import WORKSPACE_HUB_TO_RHP from './WORKSPACE_HUB_TO_RHP';
 import WORKSPACE_TO_RHP from './WORKSPACE_TO_RHP';
 
+/**
+ * This module manages the relationships between different fullscreen navigators and screens in the app.
+ * It defines how screens in fullscreen navigator relate to screens in another navigator, particularly
+ * for handling RHP (Right Hand Panel) navigation.
+ *
+ * For detailed information about setting the correct screen underneath RHP,
+ * see the NAVIGATION.md documentation.
+ */
 function createInverseRelation<T extends string, K extends string>(relations: Partial<Record<T, K | K[]>>): Record<K, T> {
     const reversedRelations = {} as Record<K, T>;
 
@@ -19,7 +26,6 @@ function createInverseRelation<T extends string, K extends string>(relations: Pa
 }
 
 const RHP_TO_SETTINGS = createInverseRelation(SETTINGS_TO_RHP);
-const RHP_TO_WORKSPACE_HUB = createInverseRelation(WORKSPACE_HUB_TO_RHP);
 const RHP_TO_WORKSPACE = createInverseRelation(WORKSPACE_TO_RHP);
 const RHP_TO_SIDEBAR = createInverseRelation(SIDEBAR_TO_RHP);
 const SPLIT_TO_SIDEBAR = createInverseRelation(SIDEBAR_TO_SPLIT);
@@ -34,8 +40,6 @@ export {
     SEARCH_TO_RHP,
     SIDEBAR_TO_RHP,
     WORKSPACE_TO_RHP,
-    WORKSPACE_HUB_TO_RHP,
-    RHP_TO_WORKSPACE_HUB,
     SIDEBAR_TO_SPLIT,
     SPLIT_TO_SIDEBAR,
     FULLSCREEN_TO_TAB,

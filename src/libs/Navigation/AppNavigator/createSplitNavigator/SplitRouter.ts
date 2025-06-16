@@ -24,6 +24,19 @@ function getRoutePolicyID(route: NavigationPartialRoute): string | undefined {
     return (route?.params as Record<string, string> | undefined)?.policyID;
 }
 
+/**
+ * Adapts the navigation state of a SplitNavigator to ensure proper screen layout and navigation flow.
+ * This function handles both narrow and wide layouts, ensuring that:
+ * 1. On narrow layout, it manages sidebar visibility appropriately
+ * 2. On wide layout, it ensures both sidebar and central screens are present
+ * 3. Handles policy-specific navigation states
+ *
+ * For detailed information about SplitNavigator state adaptation and navigation patterns,
+ * see the NAVIGATION.md documentation.
+ *
+ * @param state - The current navigation state to adapt
+ * @param options - Configuration options including sidebarScreen, defaultCentralScreen, and parentRoute
+ */
 function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralScreen, parentRoute}}: AdaptStateIfNecessaryArgs) {
     const isNarrowLayout = getIsNarrowLayout();
     const rootState = navigationRef.getRootState();

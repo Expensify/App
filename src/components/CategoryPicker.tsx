@@ -4,9 +4,10 @@ import {useOnyx} from 'react-native-onyx';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import * as CategoryOptionsListUtils from '@libs/CategoryOptionListUtils';
+import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
 import type {Category} from '@libs/CategoryOptionListUtils';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -27,9 +28,9 @@ type CategoryPickerProps = {
 };
 
 function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeAreaPadding = false, contentContainerStyle}: CategoryPickerProps) {
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
     const {isOffline} = useNetwork();
 
     const {translate} = useLocalize();
@@ -53,7 +54,7 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
     const [sections, headerMessage, shouldShowTextInput] = useMemo(() => {
         const categories = policyCategories ?? policyCategoriesDraft ?? {};
         const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter?.((p) => !isEmptyObject(p));
-        const categoryOptions = CategoryOptionsListUtils.getCategoryListSections({
+        const categoryOptions = getCategoryListSections({
             searchValue: debouncedSearchValue,
             selectedOptions,
             categories,
@@ -61,8 +62,8 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         });
 
         const categoryData = categoryOptions?.at(0)?.data ?? [];
-        const header = OptionsListUtils.getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue);
-        const categoriesCount = OptionsListUtils.getEnabledCategoriesCount(categories);
+        const header = getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue);
+        const categoriesCount = getEnabledCategoriesCount(categories);
         const isCategoriesCountBelowThreshold = categoriesCount < CONST.STANDARD_LIST_ITEM_LIMIT;
         const showInput = !isCategoriesCountBelowThreshold;
 

@@ -19,7 +19,7 @@ type WorkspaceAvatarOnyxProps = {
 type WorkspaceAvatarProps = WorkspaceAvatarOnyxProps & PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_AVATAR>;
 
 function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
-    const avatarURL = policy?.avatarURL ?? '' ? policy?.avatarURL ?? '' : ReportUtils.getDefaultWorkspaceAvatar(policy?.name ?? '');
+    const avatarURL = (policy?.avatarURL ?? '') ? (policy?.avatarURL ?? '') : ReportUtils.getDefaultWorkspaceAvatar(policy?.name ?? '');
 
     return (
         <AttachmentModal

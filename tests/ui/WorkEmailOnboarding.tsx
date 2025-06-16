@@ -289,7 +289,7 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to Onboarding purpose page when email is entered but shouldValidate is set to false', async () => {
+    it('should navigate to Onboarding private domain page when email is entered but shouldValidate is set to false', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -307,7 +307,7 @@ describe('OnboardingWorkEmail Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
         });
 
         unmount();
@@ -452,7 +452,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should navigate to Onboarding purpose page when validate code step is successful and there is no signupQualifier', async () => {
+    it('should navigate to Onboarding workspaces page when validate code step is successful and there is no signupQualifier', async () => {
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -474,7 +474,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
         });
 
         unmount();

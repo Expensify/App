@@ -80,11 +80,11 @@ function QRCode({
             logo={logo}
             logoSVG={svgLogo}
             logoColor={svgLogoFillColor}
-            logoBackgroundColor={logoBackgroundColor ?? theme.highlightBG}
+            logoBackgroundColor={logoBackgroundColor ?? theme.appBG}
             logoSize={size * logoRatio}
             logoMargin={size * logoMarginRatio}
             logoBorderRadius={size}
-            backgroundColor={backgroundColor ?? theme.highlightBG}
+            backgroundColor={backgroundColor ?? theme.appBG}
             color={color ?? theme.text}
         />
     );

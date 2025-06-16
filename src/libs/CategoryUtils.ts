@@ -1,8 +1,8 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {Policy, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
+import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
-import * as CurrencyUtils from './CurrencyUtils';
+import {convertToShortDisplayString} from './CurrencyUtils';
 
 function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
     const taxRateText = `${taxRate.name} ${CONST.DOT_SEPARATOR} ${taxRate.value}`;
@@ -39,7 +39,7 @@ function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'
     const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoReceipt;
 
     return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, {
-        defaultAmount: CurrencyUtils.convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
+        defaultAmount: convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
     });
 }
 
@@ -83,4 +83,22 @@ function updateCategoryInMccGroup(mccGroups: Record<string, MccGroup>, oldCatego
     return updatedGroups;
 }
 
-export {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryExpenseRule, getCategoryDefaultTaxRate, updateCategoryInMccGroup};
+/**
+ * Calculates count of all enabled options
+ */
+function getEnabledCategoriesCount(policyCategories: PolicyCategories | undefined): number {
+    if (policyCategories === undefined) {
+        return 0;
+    }
+    return Object.values(policyCategories).filter((policyCategory) => policyCategory.enabled).length;
+}
+
+export {
+    formatDefaultTaxRateText,
+    formatRequireReceiptsOverText,
+    getCategoryApproverRule,
+    getCategoryExpenseRule,
+    getCategoryDefaultTaxRate,
+    updateCategoryInMccGroup,
+    getEnabledCategoriesCount,
+};

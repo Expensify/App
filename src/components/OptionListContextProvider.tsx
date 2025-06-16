@@ -1,5 +1,6 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
 import {createOptionFromReport, createOptionList, processReport} from '@libs/OptionsListUtils';
 import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
@@ -49,6 +50,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true});
     const prevReportAttributesLocale = usePrevious(reportAttributes?.locale);
     const [reports, {sourceValue: changedReports}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [, {sourceValue: changedReportActions}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
@@ -84,23 +86,35 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         loadOptions();
     }, [prevReportAttributesLocale, loadOptions, reportAttributes?.locale]);
 
+    const changedReportsEntries = useMemo(() => {
+        const result: OnyxCollection<Report> = {};
+
+        Object.keys(changedReports ?? {}).forEach((key) => {
+            const report = reports?.[key];
+            if (report) {
+                result[key] = report;
+            }
+        });
+        return result;
+    }, [changedReports, reports]);
+
     /**
      * This effect is responsible for updating the options only for changed reports
      */
     useEffect(() => {
-        if (!changedReports || !areOptionsInitialized.current) {
+        if (!changedReportsEntries || !areOptionsInitialized.current) {
             return;
         }
 
         setOptions((prevOptions) => {
-            const changedReportKeys = Object.keys(changedReports);
+            const changedReportKeys = Object.keys(changedReportsEntries);
             if (changedReportKeys.length === 0) {
                 return prevOptions;
             }
 
             const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
             changedReportKeys.forEach((reportKey) => {
-                const report = changedReports[reportKey];
+                const report = changedReportsEntries[reportKey];
                 const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
                 const {reportOption} = processReport(report, personalDetails);
 
@@ -116,7 +130,39 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReports, personalDetails]);
+    }, [changedReportsEntries, personalDetails]);
+
+    useEffect(() => {
+        if (!changedReportActions || !areOptionsInitialized.current) {
+            return;
+        }
+
+        setOptions((prevOptions) => {
+            const changedReportActionsEntries = Object.entries(changedReportActions);
+            if (changedReportActionsEntries.length === 0) {
+                return prevOptions;
+            }
+
+            const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
+            changedReportActionsEntries.forEach(([key, reportAction]) => {
+                if (!reportAction) {
+                    return;
+                }
+
+                const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+                const {reportOption} = processReport(updatedReportsMap.get(reportID)?.item, personalDetails);
+
+                if (reportOption) {
+                    updatedReportsMap.set(reportID, reportOption);
+                }
+            });
+
+            return {
+                ...prevOptions,
+                reports: Array.from(updatedReportsMap.values()),
+            };
+        });
+    }, [changedReportActions, personalDetails]);
 
     /**
      * This effect is used to update the options list when personal details change.

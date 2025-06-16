@@ -135,12 +135,8 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
             const hintText = translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
-
-            await act(async () => {
-                await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
-            });
-            return waitForBatchedUpdatesWithAct();
         })
+        .then(async () => TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A'))
         .then(() => {
             subscribeToUserEvents();
             return waitForBatchedUpdates();
@@ -220,7 +216,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
-                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
 
                 // That the report actions are visible along with the created action
                 const welcomeMessageHintText = translateLocal('accessibilityHints.chatWelcomeMessage');
@@ -244,8 +240,8 @@ describe('Unread Indicators', () => {
         signInAndGetAppWithUnreadChat()
             // Navigate to the unread chat from the sidebar
             .then(() => navigateToSidebarOption(0))
-            .then(async () => {
-                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+            .then(() => {
+                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify the unread indicator is present
                 const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
@@ -366,8 +362,8 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(waitForBatchedUpdates)
-            .then(async () => {
-                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+            .then(() => {
+                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
                 const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
@@ -444,7 +440,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
-                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);

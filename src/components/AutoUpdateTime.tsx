@@ -4,22 +4,22 @@
  */
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import type {Timezone} from '@src/types/onyx/PersonalDetails';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import type {WithLocalizeProps} from './withLocalize';
-import withLocalize from './withLocalize';
 
-type AutoUpdateTimeProps = WithLocalizeProps & {
+type AutoUpdateTimeProps = {
     /** Timezone of the user from their personal details */
     timezone: Timezone;
 };
 
-function AutoUpdateTime({timezone, preferredLocale, translate}: AutoUpdateTimeProps) {
+function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
+    const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
     /** @returns Returns the locale Date object */
-    const getCurrentUserLocalTime = useCallback(() => DateUtils.getLocalDateFromDatetime(preferredLocale, undefined, timezone.selected), [preferredLocale, timezone.selected]);
+    const getCurrentUserLocalTime = useCallback(() => getLocalDateFromDatetime(undefined, timezone.selected), [getLocalDateFromDatetime, timezone.selected]);
 
     const [currentUserLocalTime, setCurrentUserLocalTime] = useState(getCurrentUserLocalTime);
     const minuteRef = useRef(new Date().getMinutes());
@@ -59,4 +59,4 @@ function AutoUpdateTime({timezone, preferredLocale, translate}: AutoUpdateTimePr
 }
 
 AutoUpdateTime.displayName = 'AutoUpdateTime';
-export default withLocalize(AutoUpdateTime);
+export default AutoUpdateTime;

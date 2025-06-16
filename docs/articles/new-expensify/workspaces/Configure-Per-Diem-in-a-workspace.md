@@ -1,52 +1,75 @@
 ---
-title: Configure Per Diem expenses within a workspace
-description: Learn how to set up and edit per diem rates within a workspace
+title: Configure Per Diem Expenses Within a Workspace
+description: Learn how to set up and manage per diem rates within a workspace in New Expensify.
+keywords: [New Expensify, per diem, expense settings, daily rate, import per diem, configure per diem, edit per diem rates]
 ---
+
 <div id="new-expensify" markdown="1">
 
-# Configuring Per Diem in a workspace
+Per Diem allows workspace admins to assign fixed daily rates for travel or other recurring allowances. Once enabled, it appears as its own menu item in the workspace settings, giving you full control over importing, editing, and categorizing daily allowances.
 
-Per Diem is available as a feature under the **Spend** section within **More Features** in the workspace settings. Once enabled, it will appear as a dedicated menu item in the workspace settings LHN.
+---
+
+# Enable Per Diem in a Workspace
+
+To enable the Per Diem feature:
+
+1. In the **left-hand navigation bar**, click **Workspaces**.
+2. Click your **workspace name** to open settings.
+3. Click **More Features** in the left menu.
+4. Under the **Spend** section, toggle on **Per Diem**.
+
+Once enabled, **Per Diem** will appear as a dedicated item in the left-hand menu under the workspace settings.
 
 ![Enable Per Diem under the Spend section of the workspace settings]({{site.url}}/assets/images/perdiem_01.png){:width="100%"}
+
+---
   
-## Uploading and exporting Per Diem rates
+# Upload or Export Per Diem Rates
 
-Admins can manage Per Diem rates by uploading or exporting data.
+Admins can manage rates by uploading a spreadsheet or exporting existing ones.
 
-- To upload rates, use the **Import spreadsheet** option.
-- To download existing rates, use the **Download CSV** option.
+- **Import spreadsheet** – Upload a CSV to add or update rates.
+- **Download CSV** – Export your current Per Diem rate list.
 
-Both options are accessible from the **three-dot menu** in the page header.
+Both options are found in the **three-dot menu** at the top-right corner of the Per Diem page.
 
 ![Use the three dot menu to upload or export per diem rates]({{site.url}}/assets/images/perdiem_02.png){:width="100%"}
   
-## Editing or deleting Per Diem rates
+---
 
-Each Per Diem rate is listed as an individual line item. Admins can:
+# Edit or Delete Per Diem Rates
 
-- Select a **single** rate or **multiple** rates.
-- Edit a rate by clicking on it and adjusting the details.
-- Delete rates using the **"X selected" drop-down menu**.
+Each rate is listed as a line item. You can:
+
+- Select one or more rates to edit or delete.
+- Click a rate to adjust its details.
+- Use the **X selected** dropdown to apply bulk actions like delete.
 
 ![Edit rates using the right-hand panel]({{site.url}}/assets/images/perdiem_03.png){:width="100%"}
 
-## Setting the default Per Diem category
+---
 
-Admins can assign a default category to Per Diem expenses:
+# Set a Default Category for Per Diem
 
-1. Click the **Settings** button in the top-right corner.
-2. In the right-hand panel, select **Default category**.
-3. Choose from the available categories.
+You can assign a default expense category to all Per Diem entries:
+
+1. Click the **Settings** button in the upper-right corner of the Per Diem page.
+2. In the right-hand panel, click **Default category**.
+3. Choose a category from the list.
 
 ![Assign the default category in the right-hand panel]({{site.url}}/assets/images/perdiem_04.png){:width="100%"}
 
+---
 
 # FAQ
 
-## Why don’t I see the Per Diem option when submitting an expense?
-The Per Diem option is only available if you are a member of a workspace with Per Diem enabled. If you are submitting an expense outside a workspace (such as in a group chat or DM), the option will not appear.
+## Why Don’t I See the Per Diem Option When Submitting an Expense?
 
-## Can I bulk-edit or delete Per Diem rates?
-Yes, you can select multiple rates at once and apply bulk actions such as editing or deleting.
+Per Diem is only available when submitting expenses within a workspace where the feature is enabled. It will not appear in DMs, group chats, or expenses submitted outside a workspace.
 
+## Can I Bulk-Edit or Delete Per Diem Rates?
+
+Yes. You can select multiple rates at once and apply bulk actions, such as editing or deleting them from the list view.
+
+</div>

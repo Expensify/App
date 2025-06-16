@@ -8,6 +8,7 @@ import {useOnyx} from 'react-native-onyx';
 import {useInputBlurContext} from '@components/InputBlurContext';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import {isSafari} from '@libs/Browser';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
@@ -18,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
@@ -87,6 +89,15 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
 
     /** Whether the submit button should stick to the bottom of the screen. */
     shouldSubmitButtonStickToBottom?: boolean;
+
+    /** Fires at most once per frame during scrolling. */
+    onScroll?: () => void;
+
+    /** Use stricter HTML-like tag validation (e.g. blocks <✓>, <123>). */
+    shouldUseStrictHtmlTagValidation?: boolean;
+
+    /** Prevents the submit button from triggering blur on mouse down. */
+    shouldPreventDefaultFocusOnPressSubmit?: boolean;
 };
 
 function FormProvider(
@@ -102,17 +113,28 @@ function FormProvider(
         allowHTML = false,
         isLoading = false,
         shouldRenderFooterAboveSubmit = false,
+        shouldUseStrictHtmlTagValidation = false,
+        shouldPreventDefaultFocusOnPressSubmit = false,
         ...rest
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
 ) {
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
     const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`, {canBeMissing: true});
-    const [draftValues] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`, {canBeMissing: true});
+    const [draftValues, draftValuesMetadata] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`, {canBeMissing: true});
     const {preferredLocale, translate} = useLocalize();
     const inputRefs = useRef<InputRefs>({});
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
+    const isLoadingDraftValues = isLoadingOnyxValue(draftValuesMetadata);
+    const prevIsLoadingDraftValues = usePrevious(isLoadingDraftValues);
+
+    useEffect(() => {
+        if (isLoadingDraftValues || !prevIsLoadingDraftValues) {
+            return;
+        }
+        setInputValues({...draftValues});
+    }, [isLoadingDraftValues, draftValues, prevIsLoadingDraftValues]);
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
     const {setIsBlurred} = useInputBlurContext();
@@ -135,7 +157,8 @@ function FormProvider(
                     if (!inputValue || typeof inputValue !== 'string') {
                         return;
                     }
-                    const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                    const validateForHtmlTagRegex = shouldUseStrictHtmlTagValidation ? CONST.STRICT_VALIDATE_FOR_HTML_TAG_REGEX : CONST.VALIDATE_FOR_HTML_TAG_REGEX;
+                    const foundHtmlTagIndex = inputValue.search(validateForHtmlTagRegex);
                     const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX);
 
                     // Return early if there are no HTML characters
@@ -143,7 +166,7 @@ function FormProvider(
                         return;
                     }
 
-                    const matchedHtmlTags = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                    const matchedHtmlTags = inputValue.match(validateForHtmlTagRegex);
                     let isMatch = CONST.WHITELISTED_TAGS.some((regex) => regex.test(inputValue));
                     // Check for any matches that the original regex (foundHtmlTagIndex) matched
                     if (matchedHtmlTags) {
@@ -177,7 +200,7 @@ function FormProvider(
 
             return touchedInputErrors;
         },
-        [shouldTrimValues, formID, validate, errors, translate, allowHTML],
+        [shouldTrimValues, formID, validate, errors, translate, allowHTML, shouldUseStrictHtmlTagValidation],
     );
 
     // When locales change from another session of the same account,
@@ -435,6 +458,7 @@ function FormProvider(
                 isLoading={isLoading}
                 enabledWhenOffline={enabledWhenOffline}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
+                shouldPreventDefaultFocusOnPressSubmit={shouldPreventDefaultFocusOnPressSubmit}
             >
                 {typeof children === 'function' ? children({inputValues}) : children}
             </FormWrapper>

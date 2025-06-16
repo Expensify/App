@@ -138,6 +138,9 @@ type BackdropProps = {
 
     /** Opacity of the backdrop */
     backdropOpacity?: number;
+
+    /** Shows backdrop content */
+    isBackdropVisible: boolean;
 };
 
 type ContainerProps = {

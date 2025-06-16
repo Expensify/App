@@ -78,9 +78,13 @@ type ThemeColors = {
     dropWrapperBG: Color;
     fileDropUIBG: Color;
     attachmentDropUIBG: Color;
+    attachmentDropUIBGActive: Color;
     attachmentDropBorderColor: Color;
+    attachmentDropBorderColorActive: Color;
     receiptDropUIBG: Color;
+    receiptDropUIBGActive: Color;
     receiptDropBorderColor: Color;
+    receiptDropBorderColorActive: Color;
     checkBox: Color;
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;
@@ -107,6 +111,7 @@ type ThemeColors = {
     transparentWhite: Color;
     emptyFolderBG: Color;
     travelBG: Color;
+    todoBG: Color;
     trialTimer: Color;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;

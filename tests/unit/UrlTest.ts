@@ -26,6 +26,7 @@ describe('Url', () => {
                     // eslint-disable-next-line max-len
                     'https://www.expensify.com/_devportal/tools/logSearch/#query=request_id:(%22Ufjjim%22)+AND+timestamp:[2021-01-08T03:48:10.389Z+TO+2021-01-08T05:48:10.389Z]&index=logs_expensify-008878)',
                 ),
+                // cspell:disable-next-line
             ).toEqual('_devportal/tools/logSearch/#query=request_id:(%22Ufjjim%22)+AND+timestamp:[2021-01-08T03:48:10.389Z+TO+2021-01-08T05:48:10.389Z]&index=logs_expensify-008878)');
             expect(Url.getPathFromURL('http://necolas.github.io/react-native-web/docs/?path=/docs/components-pressable--disabled ')).toEqual(
                 'react-native-web/docs/?path=/docs/components-pressable--disabled',

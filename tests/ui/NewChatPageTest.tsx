@@ -17,7 +17,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native');
-jest.mock('@components/ConfirmedRoute.tsx');
 jest.mock('@src/libs/Navigation/navigationRef');
 
 const wrapper = ({children}: {children: React.ReactNode}) => (
@@ -48,7 +47,7 @@ describe('NewChatPage', () => {
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
         render(<NewChatPage />, {wrapper});
         await waitForBatchedUpdatesWithAct();
-        await act(() => {
+        act(() => {
             (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
         });
         const spy = jest.spyOn(SectionList.prototype, 'scrollToLocation');
@@ -73,7 +72,7 @@ describe('NewChatPage', () => {
             // And NewChatPage is opened
             render(<NewChatPage />, {wrapper});
             await waitForBatchedUpdatesWithAct();
-            await act(() => {
+            act(() => {
                 (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
             });
 

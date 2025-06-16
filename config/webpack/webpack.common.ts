@@ -43,7 +43,6 @@ const includeModules = [
     'expo-av',
     'expo-image-manipulator',
     'expo-modules-core',
-    'react-native-webrtc-web-shim',
 ].join('|');
 
 const environmentToLogoSuffixMap: Record<string, string> = {
@@ -114,9 +113,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 {from: 'web/favicon-unread.png'},
                 {from: 'web/og-preview-image.png'},
                 {from: 'web/apple-touch-icon.png'},
+                {from: 'web/robots.txt'},
                 {from: 'assets/images/expensify-app-icon.svg'},
                 {from: 'web/manifest.json'},
-                {from: 'web/thirdPartyScripts.js'},
                 {from: 'assets/css', to: 'css'},
                 {from: 'assets/fonts/web', to: 'fonts'},
                 {from: 'assets/sounds', to: 'sounds'},
@@ -236,6 +235,15 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 test: /\.lottie$/,
                 type: 'asset/resource',
             },
+            // This prevents import error coming from react-native-tab-view/lib/module/TabView.js
+            // where Pager is imported without extension due to having platform-specific implementations
+            {
+                test: /\.js$/,
+                resolve: {
+                    fullySpecified: false,
+                },
+                include: [path.resolve(__dirname, '../../node_modules/react-native-tab-view/lib/module/TabView.js')],
+            },
         ],
     },
     resolve: {
@@ -259,6 +267,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             '@navigation': path.resolve(__dirname, '../../src/libs/Navigation/'),
             // eslint-disable-next-line @typescript-eslint/naming-convention
             '@pages': path.resolve(__dirname, '../../src/pages/'),
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            '@prompts': path.resolve(__dirname, '../../prompts'),
             // eslint-disable-next-line @typescript-eslint/naming-convention
             '@styles': path.resolve(__dirname, '../../src/styles/'),
             // This path is provide alias for files like `ONYXKEYS` and `CONST`.

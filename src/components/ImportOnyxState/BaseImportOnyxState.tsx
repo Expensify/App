@@ -1,5 +1,4 @@
 import React from 'react';
-import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import DecisionModal from '@components/DecisionModal';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -7,6 +6,7 @@ import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 
 function BaseImportOnyxState({
     onFileRead,

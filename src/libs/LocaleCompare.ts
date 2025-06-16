@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'base'};
+const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
 
 let collator = new Intl.Collator(CONST.LOCALES.DEFAULT, COLLATOR_OPTIONS);
 

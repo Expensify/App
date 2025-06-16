@@ -249,7 +249,7 @@ function convertApprovalWorkflowToPolicyEmployees({
 
     approvalWorkflow.approvers.forEach((approver, index) => {
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
-        const forwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : nextApprover?.email ?? '';
+        const forwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (nextApprover?.email ?? '');
 
         // For every approver, we check if the forwardsTo field has changed.
         // If it has, we update the employee list with the new forwardsTo value.
@@ -268,7 +268,7 @@ function convertApprovalWorkflowToPolicyEmployees({
     });
 
     approvalWorkflow.members.forEach(({email}) => {
-        const submitsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : firstApprover.email ?? '';
+        const submitsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (firstApprover.email ?? '');
 
         // For every member, we check if the submitsTo field has changed.
         // If it has, we update the employee list with the new submitsTo value.

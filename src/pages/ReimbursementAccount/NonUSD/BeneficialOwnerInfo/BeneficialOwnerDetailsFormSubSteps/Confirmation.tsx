@@ -111,7 +111,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             ...(isDocumentNeededStatus.isCodiceFiscaleNeeded
                 ? [
                       {
-                          title: values.codiceFisacle.map((file) => file.name).join(', '),
+                          title: values.codiceFiscale.map((file) => file.name).join(', '),
                           description: translate('ownershipInfoStep.codiceFiscale'),
                           shouldShowRightIcon: true,
                           onPress: () => {
@@ -131,7 +131,7 @@ function Confirmation({onNext, onMove, isEditing, ownerBeingModifiedID}: Confirm
             translate,
             values.addressProof,
             values.city,
-            values.codiceFisacle,
+            values.codiceFiscale,
             values.copyOfID,
             values.dob,
             values.firstName,

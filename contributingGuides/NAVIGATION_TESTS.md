@@ -15,13 +15,13 @@
 3. Verify that after pressing back arrow in the header you are on the settings root page.
 
 
-#### There is a proper split navigator under the overlay after refreshing page with RHP/LHP on wide screen
+#### There is a proper split navigator under the overlay after refreshing page with RHP on wide screen
 
 1. Open the browser on wide screen with url `/settings/profile/display-name`.
 2. Verify that you can see settings profile page under the overlay of RHP.
 
 
-#### There is a proper split navigator under the overlay after deeplinking to page with RHP/LHP on wide screen
+#### There is a proper split navigator under the overlay after deeplinking to page with RHP on wide screen
 
 1. Open the browser on wide screen.
 2. Open any report.
@@ -49,25 +49,6 @@
 5. Switch between tabs and open the settings tabs again.
 6. Verify that the last visited page in this tab is displayed.
 
-
-#### The Workspace selected in the application is reset when you select a chat that does not belong to the current policy
-
-1. Open the home page.
-2. Click on the Expensify icon in the upper left corner.
-3. Select any workspace.
-4. Click on the magnifying glass above the list of available chats. 
-5. Select a chat that does not belong to the workspace selected in the third step.
-6. Verify if the chat is opened and the global workspace is selected.
-
-
-#### The selected workspace is saved between Search and Inbox tabs
-
-1. Open the Inbox tab.
-2. Change the workspace using the workspace switcher.
-3. Switch to the Search tab and verify if the workspace selected in the second step is also selected in the Search.
-4. Change the workspace once again.
-5. Go back to the Inbox.
-6. Verify if the workspace selected in the fourth step is also selected in the Inbox tab.
 
 #### Going up to the workspace list page after refreshing on the workspace settings and pressing the up button
 
@@ -101,13 +82,6 @@ narrow layout :
 3. Reload the app.
 4. Verify that after pressing back arrow in the header you are on the report previously seen in the details page.
 
-#### Navigating back to the Workspace Switcher from the created workspace
-
-1. Open the app and go to the Inbox tab.
-2. Open the workspace switcher (Click on the button in the upper left corner).
-3. Create a new workspace by clicking on the + button.
-4. Navigate back using the back button in the app.
-5. Verify if the workspace switcher is displayed with the report screen below it
 
 #### Going up to the sidebar screen
 
