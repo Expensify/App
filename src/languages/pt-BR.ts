@@ -1045,6 +1045,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'Tire fotos de todos os seus recibos de uma vez, depois confirme os detalhes voc\u00EA mesmo ou deixe o SmartScan cuidar disso.',
         receiptScanInProgress: 'Digitaliza\u00E7\u00E3o do recibo em andamento',
         receiptScanInProgressDescription: 'Digitaliza\u00E7\u00E3o do recibo em andamento. Verifique mais tarde ou insira os detalhes agora.',
+        removeFromReport: 'Remover do relat\u00F3rio',
+        moveToPersonalSpace: 'Mover despesas para o espa\u00E7o pessoal',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Despesas duplicadas potenciais identificadas. Revise as duplicatas para permitir o envio.'

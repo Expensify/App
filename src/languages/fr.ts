@@ -1051,6 +1051,8 @@ const translations = {
         scanMultipleReceiptsDescription: "Prenez des photos de tous vos re\u00E7us en une seule fois, puis confirmez les d\u00E9tails vous-m\u00EAme ou laissez SmartScan s'en charger.",
         receiptScanInProgress: 'Num\u00E9risation du re\u00E7u en cours',
         receiptScanInProgressDescription: 'Num\u00E9risation du re\u00E7u en cours. Revenez plus tard ou saisissez les d\u00E9tails maintenant.',
+        removeFromReport: 'Supprimer du rapport',
+        moveToPersonalSpace: 'D\u00E9placer les d\u00E9penses vers votre espace personnel',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'D\u00E9penses potentiellement dupliqu\u00E9es identifi\u00E9es. V\u00E9rifiez les doublons pour permettre la soumission.'

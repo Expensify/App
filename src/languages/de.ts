@@ -1049,6 +1049,8 @@ const translations = {
         scanMultipleReceiptsDescription: 'Machen Sie Fotos von all Ihren Belegen auf einmal, dann best\u00E4tigen Sie die Details selbst oder lassen Sie SmartScan das \u00FCbernehmen.',
         receiptScanInProgress: 'Belegscan l\u00E4uft',
         receiptScanInProgressDescription: 'Belegscan l\u00E4uft. Sp\u00E4ter erneut pr\u00FCfen oder die Details jetzt eingeben.',
+        removeFromReport: 'Ausgabe aus Bericht entfernen',
+        moveToPersonalSpace: 'Ausgaben in pers\u00F6nlichen Bereich verschieben',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Potenzielle doppelte Ausgaben erkannt. \u00DCberpr\u00FCfen Sie die Duplikate, um die Einreichung zu erm\u00F6glichen.'

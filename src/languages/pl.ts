@@ -1051,6 +1051,8 @@ const translations = {
             'Zr\u00F3b zdj\u0119cia wszystkich swoich paragon\u00F3w naraz, a nast\u0119pnie potwierd\u017A szczeg\u00F3\u0142y samodzielnie lub pozw\u00F3l, aby SmartScan si\u0119 tym zaj\u0105\u0142.',
         receiptScanInProgress: 'Skanowanie paragonu w toku',
         receiptScanInProgressDescription: 'Skanowanie paragonu w toku. Sprawd\u017A p\u00F3\u017Aniej lub wprowad\u017A dane teraz.',
+        removeFromReport: 'Usu\u0144 z raportu',
+        moveToPersonalSpace: 'Przenie\u015B wydatek do przestrzeni osobistej',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? 'Zidentyfikowano potencjalne duplikaty wydatk\u00F3w. Przejrzyj duplikaty, aby umo\u017Cliwi\u0107 przes\u0142anie.'

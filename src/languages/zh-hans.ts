@@ -1063,6 +1063,8 @@ const translations = {
             '\u4E00\u6B21\u62CD\u6444\u6240\u6709\u6536\u636E\u7684\u7167\u7247\uFF0C\u7136\u540E\u81EA\u5DF1\u786E\u8BA4\u8BE6\u60C5\u6216\u8BA9SmartScan\u5904\u7406\u3002',
         receiptScanInProgress: '\u6536\u636E\u626B\u63CF\u4E2D',
         receiptScanInProgressDescription: '\u6536\u636E\u626B\u63CF\u4E2D\u3002\u7A0D\u540E\u67E5\u770B\u6216\u7ACB\u5373\u8F93\u5165\u8BE6\u7EC6\u4FE1\u606F\u3002',
+        removeFromReport: '\u4E0D\u5728\u62A5\u544A\u4E2D',
+        moveToPersonalSpace: '\u79FB\u52A8\u8D39\u7528\u5230\u4E2A\u4EBA\u7A7A\u95F4',
         duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
             !isSubmitted
                 ? '\u53D1\u73B0\u6F5C\u5728\u7684\u91CD\u590D\u8D39\u7528\u3002\u8BF7\u68C0\u67E5\u91CD\u590D\u9879\u4EE5\u542F\u7528\u63D0\u4EA4\u3002'
