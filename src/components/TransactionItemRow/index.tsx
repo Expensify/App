@@ -88,6 +88,8 @@ type TransactionItemRowProps = {
     isSelected: boolean;
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
+    amountColumnSize: TableColumnSize;
+    taxAmountColumnSize: TableColumnSize;
     onCheckboxPress: (transactionID: string) => void;
     shouldShowCheckbox: boolean;
     columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
@@ -125,6 +127,8 @@ function TransactionItemRow({
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
+    amountColumnSize,
+    taxAmountColumnSize,
     onCheckboxPress,
     shouldShowCheckbox = false,
     columns,
@@ -149,6 +153,8 @@ function TransactionItemRow({
     const createdAt = getTransactionCreated(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: transactionItem.shouldBeHighlighted ?? false,
@@ -331,7 +337,7 @@ function TransactionItemRow({
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: (
                 <View
                     key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, undefined, isAmountColumnWide)]}
                 >
                     <TotalCell
                         transactionItem={transactionItem}
@@ -343,7 +349,7 @@ function TransactionItemRow({
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAX]: (
                 <View
                     key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAX}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT)]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, undefined, undefined, isTaxAmountColumnWide)]}
                 >
                     <TaxCell
                         transactionItem={transactionItem}
@@ -358,6 +364,8 @@ function TransactionItemRow({
             isActionLoading,
             isReportItemChild,
             isDateColumnWide,
+            isAmountColumnWide,
+            isTaxAmountColumnWide,
             isInSingleTransactionReport,
             isSelected,
             merchantOrDescriptionName,
