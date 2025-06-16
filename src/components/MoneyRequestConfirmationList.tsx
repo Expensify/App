@@ -1,5 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import {MouseProvider} from '@hooks/useMouseContext';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
@@ -32,7 +33,6 @@ import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} from '@libs/OptionsListUtils';
-import Permissions from '@libs/Permissions';
 import {getDistanceRateCustomUnitRate, getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -231,7 +231,7 @@ function MoneyRequestConfirmationList({
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
+    const {isBetaEnabled} = usePermissions();
 
     const isTestReceipt = useMemo(() => {
         return transaction?.receipt?.isTestReceipt ?? false;
@@ -242,8 +242,8 @@ function MoneyRequestConfirmationList({
     }, [transaction?.receipt?.isTestDriveReceipt]);
 
     const isManagerMcTestReceipt = useMemo(() => {
-        return Permissions.canUseManagerMcTest(betas) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login));
-    }, [betas, selectedParticipantsProp]);
+        return isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login));
+    }, [isBetaEnabled, selectedParticipantsProp]);
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         isTestDriveReceipt ? CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION : CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION,
@@ -649,9 +649,9 @@ function MoneyRequestConfirmationList({
                     hideFocusedState={false}
                     hideCurrencySymbol
                     formatAmountOnBlur
-                    prefixContainerStyle={[styles.pv0, styles.h100]}
-                    inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
-                    containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
+                    prefixContainerStyle={[styles.pv0]}
+                    inputStyle={[styles.optionRowAmountInput]}
+                    containerStyle={[styles.textInputContainer]}
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
@@ -670,11 +670,8 @@ function MoneyRequestConfirmationList({
         selectedParticipants,
         styles.flexWrap,
         styles.pl2,
-        styles.pr1,
-        styles.h100,
         styles.textLabel,
         styles.pv0,
-        styles.lineHeightUndefined,
         styles.optionRowAmountInput,
         styles.textInputContainer,
         styles.ml3,
@@ -1060,7 +1057,6 @@ function MoneyRequestConfirmationList({
             isCategoryRequired={isCategoryRequired}
             isDistanceRequest={isDistanceRequest}
             isPerDiemRequest={isPerDiemRequest}
-            isEditingSplitBill={isEditingSplitBill}
             isMerchantEmpty={isMerchantEmpty}
             isMerchantRequired={isMerchantRequired}
             isPolicyExpenseChat={isPolicyExpenseChat}
@@ -1117,7 +1113,7 @@ MoneyRequestConfirmationList.displayName = 'MoneyRequestConfirmationList';
 export default memo(
     MoneyRequestConfirmationList,
     (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
+        deepEqual(prevProps.transaction, nextProps.transaction) &&
         prevProps.onSendMoney === nextProps.onSendMoney &&
         prevProps.onConfirm === nextProps.onConfirm &&
         prevProps.iouType === nextProps.iouType &&
@@ -1129,8 +1125,8 @@ export default memo(
         prevProps.isEditingSplitBill === nextProps.isEditingSplitBill &&
         prevProps.iouCurrencyCode === nextProps.iouCurrencyCode &&
         prevProps.iouMerchant === nextProps.iouMerchant &&
-        lodashIsEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
-        lodashIsEqual(prevProps.payeePersonalDetails, nextProps.payeePersonalDetails) &&
+        deepEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
+        deepEqual(prevProps.payeePersonalDetails, nextProps.payeePersonalDetails) &&
         prevProps.isReadOnly === nextProps.isReadOnly &&
         prevProps.bankAccountRoute === nextProps.bankAccountRoute &&
         prevProps.policyID === nextProps.policyID &&
@@ -1144,6 +1140,6 @@ export default memo(
         prevProps.onToggleBillable === nextProps.onToggleBillable &&
         prevProps.hasSmartScanFailed === nextProps.hasSmartScanFailed &&
         prevProps.reportActionID === nextProps.reportActionID &&
-        lodashIsEqual(prevProps.action, nextProps.action) &&
+        deepEqual(prevProps.action, nextProps.action) &&
         prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt,
 );

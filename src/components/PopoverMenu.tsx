@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -80,6 +80,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** Callback method fired when the modal is shown */
     onModalShow?: () => void;
+
+    /** Callback method fired when the modal is hidden */
+    onModalHide?: () => void;
 
     /** State that determines whether to display the modal or not */
     isVisible: boolean;
@@ -178,6 +181,7 @@ function PopoverMenu({
     onClose,
     onLayout,
     onModalShow,
+    onModalHide,
     headerText,
     fromSidebarMediumScreen,
     anchorAlignment = {
@@ -284,6 +288,7 @@ function PopoverMenu({
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
         const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, ...menuItemProps} = item;
+
         return (
             <OfflineWithFeedback
                 // eslint-disable-next-line react/no-array-index-key
@@ -357,7 +362,8 @@ function PopoverMenu({
     // can cause the parent view to scroll when the space bar is pressed.
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SPACE, keyboardShortcutSpaceCallback, {isActive: isWebOrDesktop && isVisible, shouldPreventDefault: false});
 
-    const onModalHide = () => {
+    const handleModalHide = () => {
+        onModalHide?.();
         setFocusedIndex(currentMenuItemsFocusedIndex);
     };
 
@@ -400,7 +406,7 @@ function PopoverMenu({
                 onClose();
             }}
             isVisible={isVisible}
-            onModalHide={onModalHide}
+            onModalHide={handleModalHide}
             onModalShow={onModalShow}
             animationIn={animationIn}
             animationOut={animationOut}
@@ -437,13 +443,13 @@ PopoverMenu.displayName = 'PopoverMenu';
 export default React.memo(
     PopoverMenu,
     (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.menuItems, nextProps.menuItems) &&
+        deepEqual(prevProps.menuItems, nextProps.menuItems) &&
         prevProps.isVisible === nextProps.isVisible &&
-        lodashIsEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
+        deepEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
         prevProps.anchorRef === nextProps.anchorRef &&
         prevProps.headerText === nextProps.headerText &&
         prevProps.fromSidebarMediumScreen === nextProps.fromSidebarMediumScreen &&
-        lodashIsEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
+        deepEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
         prevProps.animationIn === nextProps.animationIn &&
         prevProps.animationOut === nextProps.animationOut &&
         prevProps.animationInTiming === nextProps.animationInTiming &&

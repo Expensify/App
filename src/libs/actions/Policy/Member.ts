@@ -12,6 +12,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
+import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {translateLocal} from '@libs/Localize';
@@ -26,7 +27,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
@@ -80,6 +81,13 @@ Onyx.connect({
     },
 });
 
+let allReportActions: OnyxCollection<ReportActions>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
+    callback: (actions) => (allReportActions = actions),
+});
+
 let sessionEmail = '';
 let sessionAccountID = 0;
 Onyx.connect({
@@ -117,6 +125,7 @@ function isApprover(policy: OnyxEntry<Policy>, employeeAccountID: number) {
 
 /**
  * Returns the policy of the report
+ * @deprecated Get the data straight from Onyx - This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
  */
 function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
     if (!allPolicies || !policyID) {
@@ -316,6 +325,8 @@ function removeOptimisticRoomMembers(
  * @param [loginList] The logins of the users whose roles are being updated to non-admin role or are removed from a workspace
  */
 function resetAccountingPreferredExporter(policyID: string, loginList: string[]): OnyxDataReturnType {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     const owner = policy?.owner ?? ReportUtils.getPersonalDetailsForAccountID(policy?.ownerAccountID).login ?? '';
     const optimisticData: OnyxUpdate[] = [];
@@ -411,6 +422,8 @@ function removeMembers(accountIDs: number[], policyID: string) {
     }
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
 
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
@@ -542,6 +555,27 @@ function removeMembers(accountIDs: number[], policyID: string) {
                 },
             },
         );
+        const currentTime = DateUtils.getDBTime();
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
+        Object.values(reportActions).forEach((action) => {
+            if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
+                return;
+            }
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${action.childReportID}`,
+                value: {
+                    private_isArchived: currentTime,
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${action.childReportID}`,
+                value: {
+                    private_isArchived: null,
+                },
+            });
+        });
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
@@ -752,6 +786,8 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
 }
 
 function requestWorkspaceOwnerChange(policyID: string) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     const ownershipChecks = {...policyOwnershipChecks?.[policyID]};
 
@@ -960,6 +996,8 @@ type PolicyMember = {
 };
 
 function importPolicyMembers(policyID: string, members: PolicyMember[]) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     const {added, updated} = members.reduce(
         (acc, curr) => {
@@ -1180,13 +1218,14 @@ function acceptJoinRequest(reportID: string | undefined, reportAction: OnyxEntry
         },
     ];
     const accountIDToApprove = ReportActionsUtils.isActionableJoinRequest(reportAction)
-        ? ReportActionsUtils.getOriginalMessage(reportAction)?.accountID ?? reportAction?.actorAccountID
+        ? (ReportActionsUtils.getOriginalMessage(reportAction)?.accountID ?? reportAction?.actorAccountID)
         : CONST.DEFAULT_NUMBER_ID;
     const parameters = {
         requests: JSON.stringify({
-            [ReportActionsUtils.isActionableJoinRequest(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.policyID ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID]: {
-                requests: [{accountID: accountIDToApprove, adminsRoomMessageReportActionID: reportAction.reportActionID}],
-            },
+            [ReportActionsUtils.isActionableJoinRequest(reportAction) ? (ReportActionsUtils.getOriginalMessage(reportAction)?.policyID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID]:
+                {
+                    requests: [{accountID: accountIDToApprove, adminsRoomMessageReportActionID: reportAction.reportActionID}],
+                },
         }),
     };
 
@@ -1241,13 +1280,14 @@ function declineJoinRequest(reportID: string | undefined, reportAction: OnyxEntr
         },
     ];
     const accountIDToApprove = ReportActionsUtils.isActionableJoinRequest(reportAction)
-        ? ReportActionsUtils.getOriginalMessage(reportAction)?.accountID ?? reportAction?.actorAccountID
+        ? (ReportActionsUtils.getOriginalMessage(reportAction)?.accountID ?? reportAction?.actorAccountID)
         : CONST.DEFAULT_NUMBER_ID;
     const parameters = {
         requests: JSON.stringify({
-            [ReportActionsUtils.isActionableJoinRequest(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.policyID ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID]: {
-                requests: [{accountID: accountIDToApprove, adminsRoomMessageReportActionID: reportAction.reportActionID}],
-            },
+            [ReportActionsUtils.isActionableJoinRequest(reportAction) ? (ReportActionsUtils.getOriginalMessage(reportAction)?.policyID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID]:
+                {
+                    requests: [{accountID: accountIDToApprove, adminsRoomMessageReportActionID: reportAction.reportActionID}],
+                },
         }),
     };
 

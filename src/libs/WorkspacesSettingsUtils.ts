@@ -5,14 +5,12 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, ReimbursementAccount, Report, ReportActions, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Policy, ReimbursementAccount, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {PolicyConnectionSyncProgress, Unit} from '@src/types/onyx/Policy';
 import {isConnectionInProgress} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {convertToDisplayString} from './CurrencyUtils';
 import {isPolicyAdmin, shouldShowCustomUnitsError, shouldShowEmployeeListError, shouldShowPolicyError, shouldShowSyncError, shouldShowTaxRateError} from './PolicyUtils';
-import {getOneTransactionThreadReportID} from './ReportActionsUtils';
-import {isUnread} from './ReportUtils';
 
 type CheckingMethod = () => boolean;
 
@@ -150,33 +148,6 @@ function getWorkspacesBrickRoads(reports: OnyxCollection<Report>, policies: Onyx
 }
 
 /**
- * @returns a map where the keys are policyIDs and the values are truthy booleans if policy has unread content
- */
-function getWorkspacesUnreadStatuses(reports: OnyxCollection<Report>, reportActions: OnyxCollection<ReportActions>): Record<string, boolean> {
-    if (!reports) {
-        return {};
-    }
-
-    const workspacesUnreadStatuses: Record<string, boolean> = {};
-
-    Object.values(reports).forEach((report) => {
-        const policyID = report?.policyID;
-        if (!policyID || workspacesUnreadStatuses[policyID]) {
-            return;
-        }
-
-        const currentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
-        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, currentReportActions);
-        const oneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        // When the only message of a report is deleted lastVisibleActionCreated is not reset leading to wrongly
-        // setting it Unread so we add additional condition here to avoid read workspace indicator from being bold.
-        workspacesUnreadStatuses[policyID] = isUnread(report, oneTransactionThreadReport) && !!report.lastActorAccountID;
-    });
-
-    return workspacesUnreadStatuses;
-}
-
-/**
  * @param unit Unit
  * @returns translation key for the unit
  */
@@ -264,7 +235,6 @@ export {
     getChatTabBrickRoadReport,
     getBrickRoadForPolicy,
     getWorkspacesBrickRoads,
-    getWorkspacesUnreadStatuses,
     hasGlobalWorkspaceSettingsRBR,
     hasWorkspaceSettingsRBR,
     getChatTabBrickRoad,

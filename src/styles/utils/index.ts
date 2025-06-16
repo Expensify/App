@@ -607,7 +607,7 @@ function getModalPaddingStyles({
 
     // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
     // More info: issue #17376
-    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 && typeof modalContainerStyle.paddingTop === 'number' ? modalContainerStyle.paddingTop ?? 0 : safeAreaPaddingBottom;
+    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 && typeof modalContainerStyle.paddingTop === 'number' ? (modalContainerStyle.paddingTop ?? 0) : safeAreaPaddingBottom;
     return {
         marginTop: getCombinedSpacing(modalContainerStyle.marginTop, safeAreaPaddingTop, shouldAddTopSafeAreaMargin),
         marginBottom: getCombinedSpacing(modalContainerStyle.marginBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaMargin),
@@ -998,11 +998,22 @@ function getWrappingStyle(isExtraSmallScreenWidth: boolean): ViewStyle {
 }
 
 /**
- * Returns the text container styles for menu items depending on if the menu item container a small avatar
+ * Returns the text container styles for menu items depending on if the menu item container is in compact mode or not
  */
-function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu: boolean): ViewStyle {
+function getMenuItemTextContainerStyle(compactMode: boolean): ViewStyle {
     return {
-        minHeight: isSmallAvatarSubscriptMenu ? variables.avatarSizeSubscript : variables.componentSizeNormal,
+        minHeight: compactMode ? 20 : variables.componentSizeNormal,
+    };
+}
+
+/**
+ * Returns the style for a menu item's icon based on of the container is in compact mode or not
+ */
+function getMenuItemIconStyle(compactMode: boolean): ViewStyle {
+    return {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: compactMode ? 20 : variables.componentSizeNormal,
     };
 }
 
@@ -1230,6 +1241,7 @@ const staticStyleUtils = {
     getFontSizeStyle,
     getLineHeightStyle,
     getMenuItemTextContainerStyle,
+    getMenuItemIconStyle,
     getModalPaddingStyles,
     getOuterModalStyle,
     getPaymentMethodMenuWidth,
@@ -1315,7 +1327,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             ...styles.overflowHidden,
             // maxHeight is not of the input only but the of the whole input container
             // which also includes the top padding and bottom border
-            height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2,
+            height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
         };
     },
 
@@ -1336,7 +1348,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getMarkdownMaxHeight: (maxAutoGrowHeight: number | undefined): TextStyle => {
         // maxHeight is not of the input only but the of the whole input container
         // which also includes the top padding and bottom border
-        return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2} : {};
+        return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth} : {};
     },
 
     /**
@@ -1519,7 +1531,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Return the height of magic code input container
      */
-    getHeightOfMagicCodeInput: (): ViewStyle => ({height: styles.magicCodeInputContainer.height - styles.textInputContainer.borderWidth * 2}),
+    getHeightOfMagicCodeInput: (): ViewStyle => ({height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth}),
 
     /**
      * Generate fill color of an icon based on its state.
@@ -1620,7 +1632,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false): ViewStyle => {
+    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false, isAmountColumnWide = false, isTaxAmountColumnWide = false): ViewStyle => {
         let columnWidth;
         switch (columnName) {
             case CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS:
@@ -1634,7 +1646,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
             case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
-            case CONST.SEARCH.TABLE_COLUMNS.CREATED_BY:
             case CONST.SEARCH.TABLE_COLUMNS.TITLE:
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
             case CONST.SEARCH.TABLE_COLUMNS.IN:
@@ -1645,8 +1656,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
+                columnWidth = {...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
-                columnWidth = {...getWidthStyle(variables.w96), ...styles.alignItemsEnd};
+                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TYPE:
                 columnWidth = {...getWidthStyle(variables.w20), ...styles.alignItemsCenter};
