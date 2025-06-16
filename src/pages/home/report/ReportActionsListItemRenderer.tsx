@@ -64,6 +64,9 @@ type ReportActionsListItemRendererProps = {
 
     /** Invoice receiver personal details for the chat report */
     invoiceReceiverPersonalDetail?: OnyxEntry<PersonalDetails>;
+
+    /** Session account ID */
+    sessionAccountID?: number;
 };
 
 function ReportActionsListItemRenderer({
@@ -86,6 +89,7 @@ function ReportActionsListItemRenderer({
     parentReportActionForTransactionThread,
     invoiceReceiverPolicy,
     invoiceReceiverPersonalDetail,
+    sessionAccountID,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -177,6 +181,7 @@ function ReportActionsListItemRenderer({
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                 invoiceReceiverPolicy={invoiceReceiverPolicy}
                 invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
+                sessionAccountID={sessionAccountID}
             />
         );
     }
@@ -211,6 +216,7 @@ function ReportActionsListItemRenderer({
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             invoiceReceiverPolicy={invoiceReceiverPolicy}
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
+            sessionAccountID={sessionAccountID}
         />
     );
 }

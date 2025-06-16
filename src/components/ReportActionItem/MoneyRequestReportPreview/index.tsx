@@ -37,6 +37,7 @@ function MoneyRequestReportPreview({
     shouldShowBorder,
     invoiceReceiverPolicy,
     invoiceReceiverPersonalDetail,
+    sessionAccountID,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -94,6 +95,7 @@ function MoneyRequestReportPreview({
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
             shouldShowIOUData={shouldShowIOUData}
+            sessionAccountID={sessionAccountID}
         />
     );
 

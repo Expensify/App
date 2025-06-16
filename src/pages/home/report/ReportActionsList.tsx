@@ -611,6 +611,7 @@ function ReportActionsList({
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                     invoiceReceiverPolicy={invoiceReceiverPolicy}
                     invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
+                    sessionAccountID={accountID}
                 />
             );
         },
@@ -631,6 +632,7 @@ function ReportActionsList({
             unreadMarkerReportActionID,
             invoiceReceiverPolicy,
             invoiceReceiverPersonalDetail,
+            accountID,
         ],
     );
 

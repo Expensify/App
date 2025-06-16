@@ -66,6 +66,9 @@ type ReportActionItemParentActionProps = {
 
     /** Invoice receiver personal details for the chat report */
     invoiceReceiverPersonalDetail: OnyxEntry<OnyxTypes.PersonalDetails>;
+
+    /** Session account ID */
+    sessionAccountID?: number;
 };
 
 function ReportActionItemParentAction({
@@ -82,6 +85,7 @@ function ReportActionItemParentAction({
     shouldUseThreadDividerLine = false,
     invoiceReceiverPolicy,
     invoiceReceiverPersonalDetail,
+    sessionAccountID,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
@@ -170,6 +174,7 @@ function ReportActionItemParentAction({
                             isThreadReportParentAction
                             invoiceReceiverPolicy={invoiceReceiverPolicy}
                             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
+                            sessionAccountID={sessionAccountID}
                         />
                     </OfflineWithFeedback>
                 );

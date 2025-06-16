@@ -68,6 +68,9 @@ type MoneyRequestReportPreviewProps = {
 
     /** Invoice receiver personal details for the chat report */
     invoiceReceiverPersonalDetail?: OnyxEntry<PersonalDetails>;
+
+    /** Session account ID */
+    sessionAccountID?: number;
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {

@@ -367,6 +367,9 @@ type PureReportActionItemProps = {
 
     /** Invoice receiver personal details for the chat report */
     invoiceReceiverPersonalDetail?: OnyxEntry<OnyxTypes.PersonalDetails>;
+
+    /** Session account ID */
+    sessionAccountID?: number;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -434,6 +437,7 @@ function PureReportActionItem({
     shouldShowBorder,
     invoiceReceiverPolicy,
     invoiceReceiverPersonalDetail,
+    sessionAccountID,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -939,6 +943,7 @@ function PureReportActionItem({
                     shouldShowBorder={shouldShowBorder}
                     invoiceReceiverPolicy={invoiceReceiverPolicy}
                     invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
+                    sessionAccountID={sessionAccountID}
                 />
             );
         } else if (isTaskAction(action)) {

@@ -72,6 +72,9 @@ type TransactionPreviewProps = {
 
     /** In case we want to override context menu action */
     contextAction?: OnyxEntry<ReportAction>;
+
+    /** Session account ID */
+    sessionAccountID?: number;
 };
 
 type TransactionPreviewContentProps = {
