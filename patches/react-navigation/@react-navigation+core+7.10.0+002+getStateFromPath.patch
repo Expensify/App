@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/core/lib/module/getStateFromPath.js b/node_modules/@react-navigation/core/lib/module/getStateFromPath.js
-index 7132844..e296919 100644
+index 7132844..8af0a15 100644
 --- a/node_modules/@react-navigation/core/lib/module/getStateFromPath.js
 +++ b/node_modules/@react-navigation/core/lib/module/getStateFromPath.js
 @@ -29,31 +29,23 @@ import { validatePathConfig } from "./validatePathConfig.js";
@@ -144,20 +144,22 @@ index 7132844..e296919 100644
    if (routes !== undefined) {
      // This will always be empty if full path matched
      current = createNestedStateObject(path, routes, initialRoutes, configs);
-@@ -241,6 +309,12 @@ function getConfigsWithRegexes(configs) {
+@@ -241,6 +309,14 @@ function getConfigsWithRegexes(configs) {
      regex: c.regex ? new RegExp(c.regex.source + '$') : undefined
    }));
  }
++
 +const joinPaths = function () {
 +  for (var _len = arguments.length, paths = new Array(_len), _key = 0; _key < _len; _key++) {
 +    paths[_key] = arguments[_key];
 +  }
 +  return [].concat(...paths.map(p => p.split('/'))).filter(Boolean).join('/');
 +};
++
  const matchAgainstConfigs = (remaining, configs) => {
    let routes;
    let remainingPath = remaining;
-@@ -254,37 +328,34 @@ const matchAgainstConfigs = (remaining, configs) => {
+@@ -254,37 +330,34 @@ const matchAgainstConfigs = (remaining, configs) => {
 
      // If our regex matches, we need to extract params from the path
      if (match) {
@@ -214,7 +216,7 @@ index 7132844..e296919 100644
        break;
      }
    }
-@@ -293,61 +364,34 @@ const matchAgainstConfigs = (remaining, configs) => {
+@@ -293,61 +366,34 @@ const matchAgainstConfigs = (remaining, configs) => {
      remainingPath
    };
  };
@@ -293,7 +295,7 @@ index 7132844..e296919 100644
      }
      if (config.screens) {
        // property `initialRouteName` without `screens` has no purpose
-@@ -358,7 +402,7 @@ const createNormalizedConfigs = (screen, routeConfig, initials, paths, parentScr
+@@ -358,7 +404,7 @@ const createNormalizedConfigs = (screen, routeConfig, initials, paths, parentScr
          });
        }
        Object.keys(config.screens).forEach(nestedConfig => {
@@ -302,7 +304,7 @@ index 7132844..e296919 100644
          configs.push(...result);
        });
      }
-@@ -366,41 +410,27 @@ const createNormalizedConfigs = (screen, routeConfig, initials, paths, parentScr
+@@ -366,41 +412,27 @@ const createNormalizedConfigs = (screen, routeConfig, initials, paths, parentScr
    routeNames.pop();
    return configs;
  };
