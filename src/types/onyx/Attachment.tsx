@@ -2,7 +2,7 @@ type Attachment = {
     /** Attachment ID of the attachment */
     attachmentID: string;
 
-    /** Source url of the attachment either can be local or remote url */
+    /** Local source of the attachment */
     source?: string;
 
     /** Remote source url of the attachment */

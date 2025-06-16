@@ -172,8 +172,8 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
  */
 function getHtmlWithAttachmentID(html: string, reportActionID: string | undefined) {
     const {sourceURL} = getAttachmentDetails(html);
-    const attachmentID = sourceURL?.match(CONST.REGEX.ATTACHMENT_SOURCE_ID)?.[1];
-    if (attachmentID) {
+    const attachmentID = sourceURL?.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2];
+    if (attachmentID || !reportActionID) {
         return html;
     }
 

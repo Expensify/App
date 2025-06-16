@@ -4,17 +4,14 @@ import type {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
 
-let attachments: OnyxCollection<Attachment> | undefined;
+let attachments: OnyxCollection<Attachment>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.ATTACHMENT,
     waitForCollectionCallback: true,
     callback: (value) => (attachments = value ?? {}),
 });
 
-function storeAttachment(attachmentID: string, uri: string) {
-    if (!attachmentID || !uri) {
-        return;
-    }
+function cacheAttachment(attachmentID: string, uri: string) {
     if (uri.startsWith('file://')) {
         Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
             attachmentID,
@@ -44,24 +41,18 @@ function storeAttachment(attachmentID: string, uri: string) {
         });
 }
 
-function getAttachmentSource(attachmentID: string, currentSource: string) {
-    if (!attachmentID) {
-        return;
-    }
+function getCachedAttachment(attachmentID: string, currentSource: string) {
     const attachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
 
     if (attachment?.remoteSource && attachment.remoteSource !== currentSource) {
-        storeAttachment(attachmentID, currentSource);
+        cacheAttachment(attachmentID, currentSource);
         return currentSource;
     }
     return attachment?.source;
 }
 
-function deleteAttachment(attachmentID: string) {
-    if (!attachmentID) {
-        return;
-    }
+function removeCachedAttachment(attachmentID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
 }
 
-export {storeAttachment, getAttachmentSource, deleteAttachment};
+export {cacheAttachment, getCachedAttachment, removeCachedAttachment};

@@ -6,14 +6,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attachment} from '@src/types/onyx';
 
-let attachments: OnyxCollection<Attachment> | undefined;
+let attachments: OnyxCollection<Attachment>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.ATTACHMENT,
     waitForCollectionCallback: true,
     callback: (value) => (attachments = value ?? {}),
 });
 
-function storeAttachment(attachmentID: string, uri: string) {
+function cacheAttachment(attachmentID: string, uri: string) {
     if (!attachmentID || !uri) {
         return;
     }
@@ -33,14 +33,14 @@ function storeAttachment(attachmentID: string, uri: string) {
         });
 }
 
-function getAttachmentSource(attachmentID: string, currentSource: string) {
+function getCachedAttachment(attachmentID: string, currentSource: string) {
     if (!attachmentID) {
         return;
     }
     const attachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
 
     if (attachment?.remoteSource && attachment.remoteSource !== currentSource) {
-        storeAttachment(attachmentID, currentSource);
+        cacheAttachment(attachmentID, currentSource);
         return currentSource;
     }
 
@@ -60,13 +60,9 @@ function getAttachmentSource(attachmentID: string, currentSource: string) {
     });
 }
 
-function deleteAttachment(attachmentID: string) {
-    if (!attachmentID) {
-        return;
-    }
-
+function removeCachedAttachment(attachmentID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, null);
     CacheAPI.remove(CONST.CACHE_API_KEYS.ATTACHMENTS, attachmentID);
 }
 
-export {storeAttachment, getAttachmentSource, deleteAttachment};
+export {cacheAttachment, getCachedAttachment, removeCachedAttachment};

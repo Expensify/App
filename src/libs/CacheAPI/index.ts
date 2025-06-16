@@ -1,14 +1,14 @@
-function init(keys: string[]) {
-    if (!keys || keys.length === 0) {
-        return;
-    }
+import CONST from '@src/CONST';
+
+function init() {
     // Exit early if the Cache API is not supported in the current browser.
     if (!('caches' in window)) {
         throw new Error('Cache API is not supported');
     }
+    const keys = Object.values(CONST.CACHE_API_KEYS);
     keys.forEach((key) => {
         if (!key) {
-            return;
+            throw new Error('Failed to initialize cache, invalid key');
         }
         caches.has(key).then((isExist) => {
             if (isExist) {
@@ -19,8 +19,9 @@ function init(keys: string[]) {
     });
 }
 function put(cacheName: string, key: string, value: Response) {
-    if (!cacheName || !key || !value) {
-        return;
+    const cacheAPIKeys: string[] = Object.values(CONST.CACHE_API_KEYS);
+    if (!cacheAPIKeys.includes(cacheName)) {
+        throw new Error('Failed to cache, invalid cacheName');
     }
     caches.open(cacheName).then((cache) => {
         cache.put(key, value);
