@@ -30,7 +30,7 @@ type ReportActionsListItemRendererProps = {
     report: OnyxEntry<Report>;
 
     /** The associated chatReport */
-    chatReport: OnyxEntry<Report>;
+    chatReport?: OnyxEntry<Report>;
 
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport: OnyxEntry<Report>;
@@ -60,10 +60,10 @@ type ReportActionsListItemRendererProps = {
     shouldUseThreadDividerLine?: boolean;
 
     /** Invoice receiver policy for the chat report */
-    invoiceReceiverPolicy: OnyxEntry<Policy>;
+    invoiceReceiverPolicy?: OnyxEntry<Policy>;
 
     /** Invoice receiver personal details for the chat report */
-    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;
+    invoiceReceiverPersonalDetail?: OnyxEntry<PersonalDetails>;
 };
 
 function ReportActionsListItemRenderer({

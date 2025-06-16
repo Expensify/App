@@ -25,7 +25,7 @@ type MoneyRequestReportPreviewProps = {
     action: ReportAction;
 
     /** The associated chatReport id */
-    chatReportID?: string | undefined
+    chatReportID?: string | undefined;
 
     /** The associated chatReport */
     chatReport: OnyxEntry<Report>;

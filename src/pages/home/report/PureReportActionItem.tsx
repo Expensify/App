@@ -189,7 +189,7 @@ type PureReportActionItemProps = {
     report: OnyxEntry<OnyxTypes.Report>;
 
     /** The associated chatReport */
-    chatReport: OnyxEntry<OnyxTypes.Report>;
+    chatReport?: OnyxEntry<OnyxTypes.Report>;
 
     /** Policy for this action */
     policy?: OnyxEntry<OnyxTypes.Policy>;
@@ -363,10 +363,10 @@ type PureReportActionItemProps = {
     shouldShowBorder?: boolean;
 
     /** Invoice receiver policy for the chat report */
-    invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>;
+    invoiceReceiverPolicy?: OnyxEntry<OnyxTypes.Policy>;
 
     /** Invoice receiver personal details for the chat report */
-    invoiceReceiverPersonalDetail: OnyxEntry<OnyxTypes.PersonalDetails>;
+    invoiceReceiverPersonalDetail?: OnyxEntry<OnyxTypes.PersonalDetails>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type

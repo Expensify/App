@@ -630,7 +630,7 @@ function ReportActionsList({
             firstVisibleReportActionID,
             unreadMarkerReportActionID,
             invoiceReceiverPolicy,
-            invoiceReceiverPersonalDetail
+            invoiceReceiverPersonalDetail,
         ],
     );
 
