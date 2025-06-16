@@ -1,10 +1,10 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
+import {deepEqual} from 'fast-equals';
 import lodashEscape from 'lodash/escape';
 import lodashIntersection from 'lodash/intersection';
 import isEmpty from 'lodash/isEmpty';
-import lodashIsEqual from 'lodash/isEqual';
 import isNumber from 'lodash/isNumber';
 import mapValues from 'lodash/mapValues';
 import lodashMaxBy from 'lodash/maxBy';
@@ -7661,9 +7661,10 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     const potentialReports = reportsByPolicyID[report.policyID] ?? [];
     return potentialReports.some((potentialReport) => {
         return (
-            hasViolations(potentialReport.reportID, transactionViolations, true) ||
-            hasWarningTypeViolations(potentialReport.reportID, transactionViolations, true) ||
-            hasNoticeTypeViolations(potentialReport.reportID, transactionViolations, true)
+            !isInvoiceReport(potentialReport) &&
+            (hasViolations(potentialReport.reportID, transactionViolations, true) ||
+                hasWarningTypeViolations(potentialReport.reportID, transactionViolations, true) ||
+                hasNoticeTypeViolations(potentialReport.reportID, transactionViolations, true))
         );
     });
 }
@@ -8041,7 +8042,7 @@ function getChatByParticipants(
         const sortedParticipantsAccountIDs = participantAccountIDs.map(Number).sort();
 
         // Only return the chat if it has all the participants
-        return lodashIsEqual(sortedNewParticipantList, sortedParticipantsAccountIDs);
+        return deepEqual(sortedNewParticipantList, sortedParticipantsAccountIDs);
     });
 }
 
@@ -8676,12 +8677,10 @@ function getAllWorkspaceReports(policyID?: string): Array<OnyxEntry<Report>> {
 /**
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
-function shouldDisableRename(report: OnyxEntry<Report>): boolean {
+function shouldDisableRename(report: OnyxEntry<Report>, isReportArchived = false): boolean {
     if (
         isDefaultRoom(report) ||
-        // This will get removed as part of https://github.com/Expensify/App/issues/59961
-        // eslint-disable-next-line deprecation/deprecation
-        isArchivedReport(getReportNameValuePairs(report?.reportID)) ||
+        isReportArchived ||
         isPublicRoom(report) ||
         isThread(report) ||
         isMoneyRequest(report) ||
@@ -9716,12 +9715,7 @@ function getOutstandingReportsForUser(
         return [];
     }
     return Object.values(reports)
-        .filter(
-            (report) =>
-                report?.ownerAccountID === reportOwnerAccountID &&
-                report?.policyID === policyID &&
-                canAddTransaction(report, !!reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]?.private_isArchived),
-        )
+        .filter((report) => isReportOutstanding(report, policyID, reportNameValuePairs) && report?.ownerAccountID === reportOwnerAccountID)
         .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0);
 }
 
