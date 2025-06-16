@@ -219,6 +219,37 @@ function resolveEnableFeatureConflicts(
     };
 }
 
+/**
+ * Resolves conflicts for PUSHER_PING commands by deleting any existing PUSHER_PING requests
+ * and allowing the new request to be pushed onto the queue
+ */
+function resolvePusherPingConflictAction(persistedRequests: OnyxRequest[]): ConflictActionData {
+    const indicesToDelete: number[] = [];
+
+    persistedRequests.forEach((request, index) => {
+        if (request.command !== WRITE_COMMANDS.PUSHER_PING) {
+            return;
+        }
+        indicesToDelete.push(index);
+    });
+
+    if (indicesToDelete.length === 0) {
+        return {
+            conflictAction: {
+                type: 'push',
+            },
+        };
+    }
+
+    return {
+        conflictAction: {
+            type: 'delete',
+            indices: indicesToDelete,
+            pushNewRequest: true,
+        },
+    };
+}
+
 export {
     resolveDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
@@ -226,5 +257,6 @@ export {
     resolveEditCommentWithNewAddCommentRequest,
     createUpdateCommentMatcher,
     resolveEnableFeatureConflicts,
+    resolvePusherPingConflictAction,
     enablePolicyFeatureCommand,
 };
