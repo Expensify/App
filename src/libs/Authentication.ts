@@ -72,16 +72,32 @@ function Authenticate(parameters: Parameters): Promise<Response | void> {
  * @return {Promise<boolean>} Returns true if reauthentication was successful, false otherwise.
  */
 function reauthenticate(command = ''): Promise<boolean> {
+    Log.hmmm('Reauthenticate - Attempting re-authentication', {
+        command,
+    });
+
     // Prevent re-authentication if authentication with shortLiveToken is in progress
     if (isAuthenticatingWithShortLivedToken) {
+        Log.hmmm('Reauthenticate - Authentication with shortLivedToken is in progress. Re-authentication aborted.', {
+            command,
+        });
         return Promise.resolve(false);
     }
 
     // Prevent any more requests from being processed while authentication happens
     setIsAuthenticating(true);
 
+    Log.hmmm('Reauthenticate - Waiting for credentials', {
+        command,
+    });
+
     return hasReadRequiredDataFromStorage().then(() => {
         const credentials = getCredentials();
+
+        Log.hmmm('Reauthenticate - Starting authentication process', {
+            command,
+        });
+
         return Authenticate({
             useExpensifyLogin: false,
             partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
@@ -92,6 +108,11 @@ function reauthenticate(command = ''): Promise<boolean> {
             if (!response) {
                 return false;
             }
+
+            Log.hmmm('Reauthenticate - Processing authentication result', {
+                command,
+            });
+
             if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
                 // When a fetch() fails due to a network issue and an error is thrown we won't log the user out. Most likely they
                 // have a spotty connection and will need to retry reauthenticate when they come back online. Error so it can be handled by the retry mechanism.
@@ -128,6 +149,10 @@ function reauthenticate(command = ''): Promise<boolean> {
 
             // The authentication process is finished so the network can be unpaused to continue processing requests
             setIsAuthenticating(false);
+
+            Log.hmmm('Reauthenticate - Re-authentication successful', {
+                command,
+            });
 
             return true;
         });
