@@ -29,6 +29,7 @@ function PlaidCardFeedIcon({plaidUrl, style, isLarge}: PlaidCardFeedIconProps) {
             return;
         }
         setIsBrokenImage(false);
+        setLoading(true);
     }, [plaidUrl]);
 
     return (
