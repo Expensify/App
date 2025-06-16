@@ -13,7 +13,7 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
-import {LANGUAGES, LOCALES} from './LOCALES';
+import {LOCALES} from './LOCALES';
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
@@ -2883,7 +2883,6 @@ const CONST = {
     },
 
     LOCALES,
-    LANGUAGES,
 
     PRONOUNS_LIST: [
         'coCos',
