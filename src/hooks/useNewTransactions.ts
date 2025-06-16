@@ -11,9 +11,9 @@ function useNewTransactions(hasOnceLoadedReportActions: boolean | undefined, tra
     // If we haven't loaded report yet we set previous transactions to undefined.
     const prevTransactions = usePrevious(hasOnceLoadedReportActions ? transactions : undefined);
 
-    // We need to skip the first transactions change, if we load the report for the first time,
-    // to avoid highlighting transactions that were already present in the report, but weren't saved in Onyx yet.
-    const skipFirstTransactionsChange = useRef<boolean>(!hasOnceLoadedReportActions);
+    // We need to skip the first transactions change, to avoid highlighting transactions on the first load.
+    const skipFirstTransactionsChange = useRef(!hasOnceLoadedReportActions);
+
     const newTransactions = useMemo(() => {
         if (transactions === undefined || prevTransactions === undefined || transactions.length <= prevTransactions.length) {
             return CONST.EMPTY_ARRAY as unknown as Transaction[];
@@ -33,7 +33,7 @@ function useNewTransactions(hasOnceLoadedReportActions: boolean | undefined, tra
         if (!hasOnceLoadedReportActions) {
             return;
         }
-        // This is needed to ensure that the Onyx merge is done before we set skipFirstTransactionsChange to false.
+        // This is needed to ensure that set we skipFirstTransactionsChange to false only after the Onyx merge is done.
         new Promise<void>((resolve) => {
             resolve();
         }).then(() => {
