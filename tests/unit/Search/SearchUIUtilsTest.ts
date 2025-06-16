@@ -1254,9 +1254,9 @@ describe('SearchUIUtils', () => {
                 .flat();
 
             const expectedQueries = [
-                'type:expense status:all sortBy:date sortOrder:desc',
-                'type:expense status:all sortBy:date sortOrder:desc groupBy:reports',
-                'type:chat status:all sortBy:date sortOrder:desc',
+                'type:expense sortBy:date sortOrder:desc',
+                'type:expense sortBy:date sortOrder:desc groupBy:reports',
+                'type:chat sortBy:date sortOrder:desc',
             ];
 
             menuItems.forEach((item, index) => {

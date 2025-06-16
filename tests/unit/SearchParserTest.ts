@@ -483,7 +483,7 @@ const keywordTests = [
         query: '" " "  "', // Multiple whitespaces wrapped in quotes
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -497,7 +497,7 @@ const keywordTests = [
         query: '"https://expensify.com" "https://new.expensify.com"',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -511,7 +511,7 @@ const keywordTests = [
         query: '""https://expensify.com"" to ""https://new.expensify.com""', // Nested quotes with a colon
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -525,7 +525,7 @@ const keywordTests = [
         query: '"""https://expensify.com" to "https://new.expensify.com"""', // Mismatched quotes
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -539,7 +539,7 @@ const keywordTests = [
         query: 'date>2024-01-01 from:usera@user.com "https://expensify.com" "https://new.expensify.com"',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -569,7 +569,7 @@ const keywordTests = [
         query: 'from:““Rag” Dog”,"Bag ”Dog“",email@gmail.com,1605423 to:"""Unruly"" “““Glad””” """Dog"""',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
