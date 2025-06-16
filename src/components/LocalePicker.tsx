@@ -8,7 +8,7 @@ import AccountUtils from '@libs/AccountUtils';
 import {setLocale} from '@userActions/App';
 import CONST from '@src/CONST';
 import type {SupportedLanguage} from '@src/CONST/LOCALES';
-import {LANGUAGES, UPCOMING_LANGUAGES} from '@src/CONST/LOCALES';
+import {LANGUAGES, LOCALE_TO_LANGUAGE_STRING, UPCOMING_LANGUAGES} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Picker from './Picker';
 import type {PickerSize} from './Picker/types';
@@ -28,7 +28,7 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const {isBetaEnabled} = usePermissions();
     const localesToLanguages = LANGUAGES.map((language: SupportedLanguage) => ({
         value: language,
-        label: translate(`languagePage.languages.${language}.label`),
+        label: LOCALE_TO_LANGUAGE_STRING[language],
         keyForList: language,
         isSelected: preferredLocale === language,
     }));
@@ -37,7 +37,7 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
         localesToLanguages.push(
             ...UPCOMING_LANGUAGES.map((language: SupportedLanguage) => ({
                 value: language,
-                label: translate(`languagePage.languages.${language}.label`),
+                label: LOCALE_TO_LANGUAGE_STRING[language],
                 keyForList: language,
                 isSelected: preferredLocale === language,
             })),

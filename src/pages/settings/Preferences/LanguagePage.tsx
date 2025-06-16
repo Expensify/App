@@ -10,7 +10,7 @@ import {setLocaleAndNavigate} from '@userActions/App';
 import type {ListItem} from '@src/components/SelectionList/types';
 import CONST from '@src/CONST';
 import type {SupportedLanguage} from '@src/CONST/LOCALES';
-import {LANGUAGES, UPCOMING_LANGUAGES} from '@src/CONST/LOCALES';
+import {LANGUAGES, LOCALE_TO_LANGUAGE_STRING, UPCOMING_LANGUAGES} from '@src/CONST/LOCALES';
 
 type LanguageEntry = ListItem & {
     value: SupportedLanguage;
@@ -23,7 +23,7 @@ function LanguagePage() {
     const {isBetaEnabled} = usePermissions();
     const localesToLanguages: LanguageEntry[] = LANGUAGES.map((language) => ({
         value: language,
-        text: translate(`languagePage.languages.${language}.label`),
+        text: LOCALE_TO_LANGUAGE_STRING[language],
         keyForList: language,
         isSelected: preferredLocale === language,
         shouldShowRightIcon: true,
@@ -33,7 +33,7 @@ function LanguagePage() {
         localesToLanguages.push(
             ...UPCOMING_LANGUAGES.map((language) => ({
                 value: language,
-                text: translate(`languagePage.languages.${language}.label`),
+                text: LOCALE_TO_LANGUAGE_STRING[language],
                 keyForList: language,
                 isSelected: preferredLocale === language,
                 shouldShowRightIcon: true,

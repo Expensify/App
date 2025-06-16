@@ -2039,32 +2039,6 @@ const translations = {
             es: {
                 label: 'Español',
             },
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            'pt-BR': {
-                label: 'Português (BR)',
-            },
-            it: {
-                label: 'Italiano',
-            },
-            de: {
-                label: 'Deutsch',
-            },
-            pl: {
-                label: 'Polski',
-            },
-            fr: {
-                label: 'Français',
-            },
-            nl: {
-                label: 'Nederlands',
-            },
-            ja: {
-                label: '日本語',
-            },
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            'zh-hans': {
-                label: '中文 (简体)',
-            },
         },
         aiLanguageHelperText: 'Las traducciones para este idioma se generan automáticamente y pueden contener errores.',
     },

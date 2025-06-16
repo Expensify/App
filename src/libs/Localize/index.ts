@@ -122,7 +122,7 @@ const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
  */
 function translate<TPath extends TranslationPaths>(desiredLanguage: Locale, path: TPath, ...parameters: TranslationParameters<TPath>): string {
     // Search phrase in full locale e.g. es-ES
-    const language = ([CONST.LOCALES.ES_ES_ONFIDO, CONST.LOCALES.ES_ES] as string[]).includes(desiredLanguage) ? CONST.LOCALES.ES : (desiredLanguage as 'en' | 'es');
+    const language = ([CONST.LOCALES.ES_ES_ONFIDO, CONST.LOCALES.ES_ES] as string[]).includes(desiredLanguage) ? CONST.LOCALES.ES : desiredLanguage;
 
     const translatedPhrase = memoizedGetTranslatedPhrase(language, path, ...parameters);
     if (translatedPhrase !== null && translatedPhrase !== undefined) {
