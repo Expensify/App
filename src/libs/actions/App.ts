@@ -105,11 +105,17 @@ Onyx.connect({
     },
 });
 
+let resolveHasLoadedAppPromise: () => void;
+const hasLoadedAppPromise = new Promise<void>((resolve) => {
+    resolveHasLoadedAppPromise = resolve;
+});
+
 let hasLoadedApp: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.HAS_LOADED_APP,
     callback: (value) => {
         hasLoadedApp = value;
+        resolveHasLoadedAppPromise?.();
     },
 });
 
@@ -331,23 +337,25 @@ function openApp(shouldKeepPublicRooms = false) {
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  */
 function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
-    if (!hasLoadedApp) {
-        openApp();
-        return;
-    }
-    console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
-    getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        const params: ReconnectAppParams = policyParams;
-
-        // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
-        // Otherwise, a full set of app data will be returned.
-        if (updateIDFrom) {
-            params.updateIDFrom = updateIDFrom;
+    hasLoadedAppPromise.then(() => {
+        if (!hasLoadedApp) {
+            openApp();
+            return;
         }
+        console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
+        getPolicyParamsForOpenOrReconnect().then((policyParams) => {
+            const params: ReconnectAppParams = policyParams;
 
-        const isFullReconnect = !updateIDFrom;
-        API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect), {
-            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.RECONNECT_APP),
+            // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
+            // Otherwise, a full set of app data will be returned.
+            if (updateIDFrom) {
+                params.updateIDFrom = updateIDFrom;
+            }
+
+            const isFullReconnect = !updateIDFrom;
+            API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect), {
+                checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.RECONNECT_APP),
+            });
         });
     });
 }
