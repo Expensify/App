@@ -386,6 +386,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         shouldRedirectToExpensifyClassic,
         viewTourReport,
         viewTourReportID,
+        transactions,
     ]);
 
     return (
