@@ -176,6 +176,7 @@ import {
     buildOptimisticRemoveReportAction,
     buildOptimisticDeclineReportAction,
     buildOptimisticDeclinedReportActionComment,
+    isOpenReport,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSession} from '@libs/SessionUtils';
@@ -11460,14 +11461,24 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         // 1. Update report total
         // 2. Remove expense from report
         // 3. Add to existing draft report or create new one
-        const transactionOwner = reportAction?.actorAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
-        movedToReport = buildOptimisticExpenseReport(
-            report.chatReportID, 
-            policy?.id, 
-            transactionOwner, 
-            0, 
-            transaction?.currency ?? ''
+        const existingOpenReport = Object.values(allReports ?? {}).find(
+            (r) => r?.chatReportID === report.chatReportID && 
+            r?.type === CONST.REPORT.TYPE.EXPENSE && 
+            isOpenReport(r)
         );
+
+        if (existingOpenReport) {
+            movedToReport = existingOpenReport;
+        } else {
+            const transactionOwner = reportAction?.actorAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+            movedToReport = buildOptimisticExpenseReport(
+                report.chatReportID, 
+                policy?.id, 
+                transactionOwner, 
+                0, 
+                transaction?.currency ?? ''
+            );
+        }
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
