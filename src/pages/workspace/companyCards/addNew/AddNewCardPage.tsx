@@ -8,7 +8,7 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {openPolicyAddCardFeedPage} from '@userActions/CompanyCards';
+import {clearAddNewCardFlow, openPolicyAddCardFeedPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -32,6 +32,12 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
 
     const isAddCardFeedLoading = isLoadingOnyxValue(addNewCardFeedMetadata);
+
+    useEffect(() => {
+        return () => {
+            clearAddNewCardFlow();
+        };
+    }, []);
 
     useEffect(() => {
         // If the user only has a domain feed, a workspace account may not have been created yet.
