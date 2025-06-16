@@ -28,13 +28,13 @@ type MoneyRequestReportPreviewProps = {
     chatReportID?: string | undefined;
 
     /** The associated chatReport */
-    chatReport: OnyxEntry<Report>;
+    chatReport?: OnyxEntry<Report>;
 
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
 
     /** The IOU/Expense report */
-    iouReport: Report | undefined;
+    iouReport?: Report | undefined;
 
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor?: ContextMenuAnchor;
@@ -64,10 +64,10 @@ type MoneyRequestReportPreviewProps = {
     shouldShowBorder?: boolean;
 
     /** Invoice receiver policy for the chat report */
-    invoiceReceiverPolicy: OnyxEntry<Policy>;
+    invoiceReceiverPolicy?: OnyxEntry<Policy>;
 
     /** Invoice receiver personal details for the chat report */
-    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;
+    invoiceReceiverPersonalDetail?: OnyxEntry<PersonalDetails>;
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {
