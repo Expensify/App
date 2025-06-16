@@ -22,6 +22,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useOnyxCustomHook from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -138,6 +139,8 @@ function SearchList(
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
     });
+
+    const [allReports] = useOnyxCustomHook(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
 
     useEffect(() => {
         selectionRef.current = selectedItemsLength;
@@ -336,6 +339,7 @@ function SearchList(
                     queryJSONHash={queryJSONHash}
                     policies={policies}
                     isDisabled={isDisabled}
+                    allReports={allReports}
                 />
             );
         },
@@ -351,6 +355,7 @@ function SearchList(
             queryJSONHash,
             setFocusedIndex,
             shouldPreventDefaultFocusOnSelectRow,
+            allReports,
         ],
     );
 
