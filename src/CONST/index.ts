@@ -832,6 +832,7 @@ const CONST = {
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         NATIVE_CONTACT_IMPORT: 'nativeContactImport',
         TRACK_FLOWS: 'trackFlows',
+        STATIC_AI_TRANSLATIONS: 'staticAITranslations',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

@@ -1,13 +1,15 @@
-import React, {useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import Navigation from '@libs/Navigation/Navigation';
 import {setLocaleAndNavigate} from '@userActions/App';
 import type {ListItem} from '@src/components/SelectionList/types';
-import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
+import CONST from '@src/CONST';
+import {isFullySupportedLocale, LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
 import type Locale from '@src/types/onyx/Locale';
 
 type LanguageEntry = ListItem & {
@@ -17,13 +19,17 @@ type LanguageEntry = ListItem & {
 function LanguagePage() {
     const {translate, preferredLocale} = useLocalize();
     const isOptionSelected = useRef(false);
+    const {isBetaEnabled} = usePermissions();
 
-    const localesToLanguages = SORTED_LOCALES.map((locale) => ({
-        value: locale,
-        text: LOCALE_TO_LANGUAGE_STRING[locale],
-        keyForList: locale,
-        isSelected: preferredLocale === locale,
-    }));
+    const locales = useMemo(() => {
+        const sortedLocales = isBetaEnabled(CONST.BETAS.STATIC_AI_TRANSLATIONS) ? SORTED_LOCALES : SORTED_LOCALES.filter((locale) => isFullySupportedLocale(locale));
+        return sortedLocales.map((locale) => ({
+            value: locale,
+            label: LOCALE_TO_LANGUAGE_STRING[locale],
+            keyForList: locale,
+            isSelected: preferredLocale === locale,
+        }));
+    }, [isBetaEnabled, preferredLocale]);
 
     const updateLanguage = (selectedLanguage: LanguageEntry) => {
         if (isOptionSelected.current) {
@@ -43,11 +49,11 @@ function LanguagePage() {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <SelectionList
-                sections={[{data: localesToLanguages}]}
+                sections={[{data: locales}]}
                 ListItem={RadioListItem}
                 onSelectRow={updateLanguage}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={localesToLanguages.find((locale) => locale.isSelected)?.keyForList}
+                initiallyFocusedOptionKey={locales.find((locale) => locale.isSelected)?.keyForList}
             />
         </ScreenWrapper>
     );
