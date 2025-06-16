@@ -55,6 +55,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
             ) {
                 navigateToBankAccountRoute(policy.id, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy.id), {forceReplace: true});
                 return;
+            }
         }
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
