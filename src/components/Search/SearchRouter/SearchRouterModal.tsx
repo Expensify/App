@@ -4,7 +4,7 @@ import Modal from '@components/Modal';
 import ScreenWrapperContainer from '@components/ScreenWrapper/ScreenWrapperContainer';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
-import {isMobileChrome, isMobileIOS} from '@libs/Browser';
+import {isMobileIOS} from '@libs/Browser';
 import CONST from '@src/CONST';
 import SearchRouter from './SearchRouter';
 import {useSearchRouterContext} from './SearchRouterContext';
@@ -30,7 +30,6 @@ function SearchRouterModal() {
             fullscreen
             propagateSwipe
             swipeDirection={shouldUseNarrowLayout ? CONST.SWIPE_DIRECTION.RIGHT : undefined}
-            shouldHandleNavigationBack={isMobileChrome()}
             onClose={closeSearchRouter}
             onModalHide={() => setShouldHideInputCaret(isMobileWebIOS)}
             onModalShow={() => setShouldHideInputCaret(false)}

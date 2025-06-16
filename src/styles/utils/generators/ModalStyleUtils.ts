@@ -41,12 +41,21 @@ type GetModalStylesStyleUtil = {
         popoverAnchorPosition?: ViewStyle,
         innerContainerStyle?: ViewStyle,
         outerStyle?: ViewStyle,
+        shouldUseModalPaddingStyle?: boolean,
         enableEdgeToEdgeBottomSafeAreaPadding?: boolean,
     ) => GetModalStyles;
 };
 
 const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({theme, styles}) => ({
-    getModalStyles: (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}, enableEdgeToEdgeBottomSafeAreaPadding = false): GetModalStyles => {
+    getModalStyles: (
+        type,
+        windowDimensions,
+        popoverAnchorPosition = {},
+        innerContainerStyle = {},
+        outerStyle = {},
+        shouldUseModalPaddingStyle = true,
+        enableEdgeToEdgeBottomSafeAreaPadding = false,
+    ): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
         let modalStyle: GetModalStyles['modalStyle'] = {
@@ -213,11 +222,15 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     width: '100%',
                     borderTopLeftRadius: variables.componentBorderRadiusLarge,
                     borderTopRightRadius: variables.componentBorderRadiusLarge,
-                    paddingTop: variables.componentBorderRadiusLarge,
                     justifyContent: 'center',
                     overflow: 'hidden',
                     boxShadow: theme.shadow,
                 };
+
+                if (shouldUseModalPaddingStyle) {
+                    modalContainerStyle.paddingTop = variables.componentBorderRadiusLarge;
+                    modalContainerStyle.paddingBottom = variables.componentBorderRadiusLarge;
+                }
 
                 shouldAddBottomSafeAreaPadding = !enableEdgeToEdgeBottomSafeAreaPadding;
                 swipeDirection = undefined;
