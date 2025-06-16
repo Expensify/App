@@ -231,9 +231,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The accountID of the copilot who took this action on behalf of the user */
     delegateAccountID?: number;
 
-    /** The login of the user on vacation who the action was taken on behalf of */
-    managerOnVacation?: string;
-
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors | OnyxCommon.ErrorFields;
 

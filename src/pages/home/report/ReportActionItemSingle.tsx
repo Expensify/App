@@ -21,7 +21,7 @@ import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getReportActionMessage} from '@libs/ReportActionsUtils';
+import {getManagerOnVacation, getReportActionMessage} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
@@ -123,7 +123,8 @@ function ReportActionItemSingle({
     let displayName = getDisplayNameForParticipant({accountID: actorAccountID, personalDetailsData: personalDetails});
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
-    const vacationDelegateDetails = getPersonalDetailByEmail(action?.managerOnVacation ?? '');
+    const managerOnVacation = getManagerOnVacation(action);
+    const vacationDelegateDetails = getPersonalDetailByEmail(managerOnVacation ?? '');
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
@@ -286,6 +287,7 @@ function ReportActionItemSingle({
             </UserDetailsTooltip>
         );
     };
+
     const hasEmojiStatus = !displayAllActors && status?.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
     const statusText = status?.text ?? '';
@@ -343,10 +345,12 @@ function ReportActionItemSingle({
                 {!!action?.delegateAccountID && (
                     <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>
                 )}
-                <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
-                {!!action?.managerOnVacation && (
-                    <Text style={[styles.chatDelegateMessage]}>{translate('statusPage.asVacationDelegate', {managerName: vacationDelegateDetails?.displayName ?? ''})}</Text>
+                {!!managerOnVacation && (
+                    <Text style={[styles.chatDelegateMessage]}>
+                        {translate('statusPage.asVacationDelegate', {managerName: vacationDelegateDetails?.displayName ?? managerOnVacation ?? ''})}
+                    </Text>
                 )}
+                <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
             </View>
         </View>
     );
