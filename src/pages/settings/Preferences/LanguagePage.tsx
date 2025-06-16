@@ -1,5 +1,4 @@
 import React, {useRef} from 'react';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -8,21 +7,22 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {setLocaleAndNavigate} from '@userActions/App';
 import type {ListItem} from '@src/components/SelectionList/types';
-import CONST from '@src/CONST';
+import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
+import type {Locale} from '@src/types/onyx/Locale';
 
 type LanguageEntry = ListItem & {
-    value: ValueOf<typeof CONST.LOCALES>;
+    value: Locale;
 };
 
 function LanguagePage() {
     const {translate, preferredLocale} = useLocalize();
     const isOptionSelected = useRef(false);
 
-    const localesToLanguages = CONST.LANGUAGES.map((language) => ({
-        value: language,
-        text: translate(`languagePage.languages.${language}.label`),
-        keyForList: language,
-        isSelected: preferredLocale === language,
+    const localesToLanguages = SORTED_LOCALES.map((locale) => ({
+        value: locale,
+        text: LOCALE_TO_LANGUAGE_STRING[locale],
+        keyForList: locale,
+        isSelected: preferredLocale === locale,
     }));
 
     const updateLanguage = (selectedLanguage: LanguageEntry) => {
