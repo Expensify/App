@@ -1,10 +1,9 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import Button from '@components/Button';
-import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -99,7 +98,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -137,13 +135,12 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-            setRootStatusBarEnabled(false);
             return;
         }
         waitForIdle().then(() => {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
         });
-    }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
+    }, [isLoading, prevIsLoading]);
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
         const createAccountingOption = (integration: Integration): OnboardingListItem => ({
