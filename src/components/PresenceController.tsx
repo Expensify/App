@@ -24,7 +24,7 @@ export default function PresenceController() {
     }, [accountID]);
 
     const goActive = useCallback(
-        (reason: string, timeoutMs: number) => {
+        (activity: string, timeoutMs: number) => {
             if (!accountID) {
                 return;
             }
@@ -33,7 +33,7 @@ export default function PresenceController() {
                 clearTimeout(timeout.current);
             }
             timeout.current = setTimeout(() => {
-                Log.info('[PresenceController] Activity timed out');
+                Log.info('[PresenceController] Activity timed out', false, {lastActivty: activity, lastTimeout: timeoutMs});
                 goInactive();
             }, timeoutMs);
 
@@ -41,7 +41,7 @@ export default function PresenceController() {
                 return;
             }
 
-            Log.info('[PresenceController] Going active', false, {reason, timeoutMs});
+            Log.info('[PresenceController] Going active', false, {activity, timeoutMs});
             didJoinPresenceChannel.current = true;
             PusherUtils.joinPresenceChannel(accountID);
         },
