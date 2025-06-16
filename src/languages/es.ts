@@ -1476,7 +1476,7 @@ const translations = {
             invalidFile: 'Archivo inválido',
             invalidFileDescription: 'El archivo que ests intentando importar no es válido. Por favor, inténtalo de nuevo.',
             invalidateWithDelay: 'Invalidar con retraso',
-            recordTroubleshootData: 'Registrar datos de diagnóstico',
+            recordTroubleshootData: 'Registrar datos de resolución de problemas',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
