@@ -115,7 +115,7 @@ function Expensify() {
     const isAuthenticated = useIsAuthenticated();
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
-    const shouldInit = CONFIG.IS_HYBRID_APP ? !hybridApp?.loggedOutFromOldDot && isNavigationReady && hasAttemptedToOpenPublicRoom : isNavigationReady && hasAttemptedToOpenPublicRoom;
+    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && ( CONFIG.IS_HYBRID_APP ? !hybridApp?.loggedOutFromOldDot : true)
     const shouldHideSplash =
         shouldInit &&
         (CONFIG.IS_HYBRID_APP
