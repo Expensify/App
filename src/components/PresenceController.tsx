@@ -5,8 +5,8 @@ import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-const TIMEOUT_MOUSE_ACTIVITY = 1000 * 60 * 10;
-const TIMEOUT_FOCUS_TAB = 1000 * 60 * 1;
+const TIMEOUT_MOUSE_ACTIVITY = 600_000;
+const TIMEOUT_FOCUS_TAB = 60_000;
 
 export default function PresenceController() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
