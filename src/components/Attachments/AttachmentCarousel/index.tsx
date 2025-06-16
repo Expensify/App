@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {Attachment} from '@components/Attachments/types';
@@ -48,7 +48,7 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
             newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined, report});
         }
 
-        if (isEqual(attachments, newAttachments)) {
+        if (deepEqual(attachments, newAttachments)) {
             if (attachments.length === 0) {
                 setPage(-1);
                 setDownloadButtonVisibility?.(false);
