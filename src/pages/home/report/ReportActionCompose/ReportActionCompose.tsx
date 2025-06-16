@@ -230,7 +230,8 @@ function ReportActionCompose({
             !isConciergeChatReport(report) &&
             !isInvoiceReport(report) &&
             !isGroupChat(report) &&
-            !isSettled(parentReport),
+            !isSettled(parentReport) &&
+            !isSettled(report),
         [report, parentReport],
     );
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
