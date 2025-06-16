@@ -1,4 +1,4 @@
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 
 function isFileUploadable(file: FileObject | undefined): boolean {
     // Native platforms only require the object to include the `uri` property.
