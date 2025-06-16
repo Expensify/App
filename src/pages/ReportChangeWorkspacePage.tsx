@@ -58,17 +58,10 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                 const employeeList = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList;
                 changeReportPolicyAndInviteSubmitter(report, policyID, employeeList);
             } else {
-<<<<<<< HEAD
-                changeReportPolicy(report, policyID);
+                changeReportPolicy(report, policyID, reportNextStep);
             }
         },
-        [session?.email, report, reportID, policies],
-=======
-                changeReportPolicy(reportID, policyID, reportNextStep);
-            }
-        },
-        [session?.email, report, reportID, reportNextStep],
->>>>>>> main
+        [session?.email, report, reportID, reportNextStep, policies],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
