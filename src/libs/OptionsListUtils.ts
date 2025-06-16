@@ -859,7 +859,7 @@ function getLastMessageTextForReport(
 
     if (reportID) {
         const chatReport = getReportOrDraftReport(report.chatReportID);
-        // Return message text from last report action if the report is combined report
+        // If the expense report is the one expense report, get the last message text from the last report action
         const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allSortedReportActions[reportID]);
         if (transactionThreadReportID) {
             lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
