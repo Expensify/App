@@ -3987,6 +3987,11 @@ function flagComment(reportID: string | undefined, reportAction: OnyxEntry<Repor
     const updatedMessage: Message = {
         ...message,
         moderationDecision: updatedDecision,
+        translationKey: '',
+        type: 'COMMENT',
+        html: '',
+        text: '',
+        isEdited: true,
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -4002,6 +4007,37 @@ function flagComment(reportID: string | undefined, reportAction: OnyxEntry<Repor
         },
     ];
 
+    let optimisticReport: Partial<Report> = {
+        lastMessageText: '',
+        lastVisibleActionCreated: '',
+    };
+
+    const {lastMessageText = ''} = getLastVisibleMessage(originalReportID, {
+        [reportActionID]: {...reportAction, message: [updatedMessage], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+    } as ReportActions);
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
+    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report);
+    if (lastMessageText) {
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, canUserPerformWriteAction, {
+            [reportActionID]: {...reportAction, message: [updatedMessage], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+        } as ReportActions);
+        const lastVisibleActionCreated = lastVisibleAction?.created;
+        const lastActorAccountID = lastVisibleAction?.actorAccountID;
+        optimisticReport = {
+            lastMessageText,
+            lastVisibleActionCreated,
+            lastActorAccountID,
+        };
+    }
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`,
+        value: optimisticReport,
+    });
+
+    const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`];
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -4012,6 +4048,11 @@ function flagComment(reportID: string | undefined, reportAction: OnyxEntry<Repor
                     pendingAction: null,
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`,
+            value: originalReport,
         },
     ];
 
