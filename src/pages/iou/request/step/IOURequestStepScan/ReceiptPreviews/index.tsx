@@ -27,12 +27,9 @@ type ReceiptPreviewsProps = {
 
     /** If the receipts preview should be shown */
     isMultiScanEnabled: boolean;
-
-    /** Method to disable swipe between tabs */
-    setTabSwipeDisabled?: (isDisabled: boolean) => void;
 };
 
-function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: ReceiptPreviewsProps) {
+function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -128,8 +125,6 @@ function ReceiptPreviews({submit, setTabSwipeDisabled, isMultiScanEnabled}: Rece
                     keyExtractor={(_, index) => index.toString()}
                     renderItem={renderItem}
                     getItemLayout={(data, index) => ({length: previewItemWidth, offset: previewItemWidth * index, index})}
-                    onTouchStart={() => setTabSwipeDisabled?.(true)}
-                    onTouchEnd={() => setTabSwipeDisabled?.(false)}
                     style={styles.pv2}
                     scrollEnabled={isScrollEnabled}
                     showsHorizontalScrollIndicator={false}

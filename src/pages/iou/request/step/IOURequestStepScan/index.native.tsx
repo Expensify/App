@@ -88,7 +88,6 @@ function IOURequestStepScan({
     transaction: initialTransaction,
     currentUserPersonalDetails,
     onLayout,
-    setTabSwipeDisabled,
     isMultiScanEnabled = false,
     setIsMultiScanEnabled,
 }: IOURequestStepScanProps) {
@@ -962,7 +961,6 @@ function IOURequestStepScan({
                     <ReceiptPreviews
                         isMultiScanEnabled={isMultiScanEnabled}
                         submit={submitReceipts}
-                        setTabSwipeDisabled={setTabSwipeDisabled}
                     />
                 )}
 
