@@ -1,7 +1,7 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
-import React, {useCallback, useContext, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -33,6 +33,9 @@ type BookTravelButtonProps = {
 
     /** Whether to render the error message below the button */
     shouldRenderErrorMessageBelowButton?: boolean;
+
+    /** Function to set the shouldScrollToBottom state */
+    setShouldScrollToBottom?: (shouldScrollToBottom: boolean) => void;
 };
 
 const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
@@ -45,7 +48,7 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
     Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.TRAVEL_TCS.getRoute(domain)));
 };
 
-function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: BookTravelButtonProps) {
+function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, setShouldScrollToBottom}: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -60,7 +63,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
-    const {isBlockedFromSpotnanaTravel, isTravelVerified} = usePermissions();
+    const {isBlockedFromSpotnanaTravel, isBetaEnabled} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
     const [isVerificationModalVisible, setVerificationModalVisibility] = useState(false);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -73,6 +76,13 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
 
     const hidePreventionModal = () => setPreventionModalVisibility(false);
     const hideVerificationModal = () => setVerificationModalVisibility(false);
+
+    useEffect(() => {
+        if (!errorMessage) {
+            return;
+        }
+        setShouldScrollToBottom?.(true);
+    }, [errorMessage, setShouldScrollToBottom]);
 
     const bookATrip = useCallback(() => {
         setErrorMessage('');
@@ -101,12 +111,12 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
 
         const adminDomains = getAdminsPrivateEmailDomains(policy);
         if (adminDomains.length === 0) {
-            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR);
+            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(Navigation.getActiveRoute()));
             return;
         }
 
         if (groupPaidPolicies.length < 1) {
-            Navigation.navigate(ROUTES.TRAVEL_UPGRADE);
+            Navigation.navigate(ROUTES.TRAVEL_UPGRADE.getRoute(Navigation.getActiveRoute()));
             return;
         }
 
@@ -135,7 +145,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
                 });
         } else if (isPolicyProvisioned) {
             navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
-        } else if (!isTravelVerified) {
+        } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             setVerificationModalVisibility(true);
         }
         // Determine the domain to associate with the workspace during provisioning in Spotnana.
@@ -146,12 +156,12 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
             const domain = adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN;
             if (isEmptyObject(policy?.address)) {
                 // Spotnana requires an address anytime an entity is created for a policy
-                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain));
+                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()));
             } else {
                 navigateToAcceptTerms(domain, !!isUserValidated);
             }
         } else {
-            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
+            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(Navigation.getActiveRoute()));
         }
     }, [
         isBlockedFromSpotnanaTravel,
@@ -166,7 +176,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
         setRootStatusBarEnabled,
         isUserValidated,
         groupPaidPolicies.length,
-        isTravelVerified,
+        isBetaEnabled,
     ]);
 
     return (

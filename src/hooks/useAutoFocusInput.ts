@@ -5,6 +5,7 @@ import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
+import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
@@ -36,7 +37,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
             if (inputRef.current && isMultiline) {
                 moveSelectionToEnd(inputRef.current);
             }
-            inputRef.current?.focus();
+            isWindowReadyToFocus().then(() => inputRef.current?.focus());
             setIsScreenTransitionEnded(false);
         });
 

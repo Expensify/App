@@ -35,6 +35,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
     const {translate} = useLocalize();
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
@@ -45,15 +46,17 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                 return;
             }
             Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+            // eslint-disable-next-line deprecation/deprecation
             if (isIOUReport(reportID) && isPolicyAdmin(getPolicy(policyID)) && report.ownerAccountID && !isPolicyMember(getLoginByAccountID(report.ownerAccountID), policyID)) {
                 moveIOUReportToPolicyAndInviteSubmitter(reportID, policyID);
             } else if (isIOUReport(reportID) && isPolicyMember(session?.email, policyID)) {
                 moveIOUReportToPolicy(reportID, policyID);
             } else {
-                changeReportPolicy(reportID, policyID);
+                changeReportPolicy(reportID, policyID, reportNextStep);
             }
         },
-        [session?.email, report, reportID],
+        [session?.email, report, reportID, reportNextStep],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
