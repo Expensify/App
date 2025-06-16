@@ -693,6 +693,8 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
         case 'adminAccountID':
         case 'delegateAccountID':
             return validateNumber(value);
+        case 'managerOnVacation':
+            return validateString(value);
         case 'isLoading':
         case 'automatic':
         case 'shouldShow':
@@ -746,6 +748,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastModified: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 delegateAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                managerOnVacation: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 error: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 childRecentReceiptTransactionIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 linkMetadata: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1218,6 +1221,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 isAttachmentWithText: 'boolean',
                 lastModified: 'string',
                 delegateAccountID: 'number',
+                managerOnVacation: 'string',
                 childRecentReceiptTransactionIDs: 'object',
                 linkMetadata: 'array',
                 childReportNotificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE,
