@@ -1,16 +1,16 @@
 ---
-title: Report Actions
-description: Learn how report actions like Approve, Pay, Export, and Hold behave in New Expensify, based on user roles and report states.
+title: Expense and Report Actions
+description: Learn how actions such as Approve, Pay, Export, and Hold behave in Expensify based on member roles and report status.
 keywords: [New Expensify, report actions, approver actions, submitter actions]
 ---
 
 <div id="new-expensify" markdown="1">
 
-Report actions vary depending on your role (submitter, approver, payer, admin) and the report's status (draft, outstanding, approved, done, paid). This guide outlines what to expect when reviewing, approving, paying, exporting, or managing reports with different settings and violations.
+Expense and report actions vary depending on the member role (submitter, approver, payer, admin) and the report's status (draft, outstanding, approved, done, paid). This guide outlines what to expect when reviewing, approving, paying, exporting, or managing expenses and reports based on varying workspace settings and report status.
 
 ---
 
-# Report Actions
+# Expense and Report Actions
 
 Report actions guide the submitter, approver, and payer regarding the report's status and what actions need to be taken next. 
 
@@ -35,7 +35,7 @@ Report actions guide the submitter, approver, and payer regarding the report's s
 
 ---
 
-## Secondary (More Menu) Actions
+## Secondary (“More” menu) Actions
 
 | **Action** | **When It Appears** | **Who Can See It** | **What It Does** |
 |------------|---------------------|---------------------|------------------|
