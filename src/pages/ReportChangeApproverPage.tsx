@@ -18,13 +18,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type ReportChangeApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.ROOT>;
 
-function ReportChangeApproverPage({report, policies}: ReportChangeApproverPageProps) {
+function ReportChangeApproverPage({report, policies, isLoadingReportData}: ReportChangeApproverPageProps) {
     const reportID = report?.reportID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -83,7 +84,11 @@ function ReportChangeApproverPage({report, policies}: ReportChangeApproverPagePr
         return [{data}];
     }, [report, reportPolicy, selectedApproverType, translate]);
 
-    if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report)) {
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundView =
+        (isEmptyObject(reportPolicy) && !isLoadingReportData) || !isPolicyAdmin(reportPolicy) || !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
+
+    if (shouldShowNotFoundView) {
         return <NotFoundPage />;
     }
 
