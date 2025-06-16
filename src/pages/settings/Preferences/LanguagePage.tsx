@@ -8,7 +8,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {setLocaleAndNavigate} from '@userActions/App';
 import type {ListItem} from '@src/components/SelectionList/types';
 import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
-import type {Locale} from '@src/types/onyx/Locale';
+import type Locale from '@src/types/onyx/Locale';
 
 type LanguageEntry = ListItem & {
     value: Locale;
