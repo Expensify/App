@@ -1062,6 +1062,21 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
 }
 
 /**
+ * Set custom unit rateID for the transaction draft
+ */
+function setCustomUnitRate(transactionID: string, customUnitRate: string | undefined) {
+    const isFakeP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        comment: {
+            customUnit: {
+                customUnitRateID,
+                ...(!isFakeP2PRate && {defaultP2PRate: null}),
+            },
+        },
+    });
+}
+
+/**
  * Revert custom unit of the draft transaction to the original transaction's value
  */
 function resetDraftTransactionsCustomUnit(transactionID: string | undefined) {
