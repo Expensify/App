@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
@@ -62,6 +62,7 @@ function SidebarOrderedReportsContextProvider({
     const [, {sourceValue: reportsDraftsUpdates}] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}, canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
+    const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -69,7 +70,6 @@ function SidebarOrderedReportsContextProvider({
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
 
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
-    const reportsToDisplayRef = useRef<ReportsToDisplayInLHN>({});
     const prevBetas = usePrevious(betas);
     const prevPriorityMode = usePrevious(priorityMode);
 
@@ -124,14 +124,13 @@ function SidebarOrderedReportsContextProvider({
 
     const reportsToDisplayInLHN = useMemo(() => {
         const updatedReports = getUpdatedReports();
-        // eslint-disable-next-line react-compiler/react-compiler
-        const shouldDoIncrementalUpdate = updatedReports.length > 0 && Object.keys(reportsToDisplayRef.current).length > 0;
+        const shouldDoIncrementalUpdate = updatedReports.length > 0 && Object.keys(currentReportsToDisplay).length > 0;
+
         let reportsToDisplay = {};
 
         if (shouldDoIncrementalUpdate) {
             reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN(
-                // eslint-disable-next-line react-compiler/react-compiler
-                reportsToDisplayRef.current,
+                currentReportsToDisplay,
                 chatReports,
                 updatedReports,
                 derivedCurrentReportID,
@@ -155,14 +154,17 @@ function SidebarOrderedReportsContextProvider({
             );
         }
         return reportsToDisplay;
+        // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes]);
 
     useEffect(() => {
-        reportsToDisplayRef.current = reportsToDisplayInLHN;
+        setCurrentReportsToDisplay(reportsToDisplayInLHN);
     }, [reportsToDisplayInLHN]);
 
     const getOrderedReportIDs = useCallback(
         () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, reportNameValuePairs, reportAttributes),
+        // Rule disabled intentionally - reports should be sorted only when the reportsToDisplayInLHN changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [reportsToDisplayInLHN],
     );
