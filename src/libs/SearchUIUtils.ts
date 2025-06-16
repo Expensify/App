@@ -233,7 +233,7 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     return Object.keys(data).some((key) => {
         if (isTransactionEntry(key)) {
             const item = data[key];
-            const merchant = item.modifiedMerchant ? item.modifiedMerchant : (item.merchant ?? '');
+            const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
             return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
         }
         return false;
@@ -456,7 +456,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         const transactionViolations = getTransactionViolations(allViolations, transactionItem);
         // Use Map.get() for faster lookups with default values
         const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
-        const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
+        const to = transactionItem.managerID && !shouldShowBlankTo ? personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails : emptyPersonalDetails;
 
         const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
@@ -854,7 +854,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const transactionViolations = getTransactionViolations(allViolations, transactionItem);
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = transactionItem.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
+            const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
@@ -1145,7 +1145,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                     type: CONST.SEARCH.DATA_TYPES.CHAT,
                     icon: Expensicons.ChatBubbles,
                     getSearchQuery: (policyID?: string) => {
-                        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, policyID});
                         return queryString;
                     },
                 },
