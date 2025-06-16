@@ -37,7 +37,6 @@ import {
     search,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
-import {getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -461,7 +460,7 @@ function SearchPage({route}: SearchPageProps) {
             <>
                 {isLoadingReceipt && <FullScreenLoadingIndicator />}
                 <DragAndDropProvider isDisabled={!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
-                    {PDFThumbnailView}
+                    {PDFValidationComponent}
                     <SearchPageNarrow
                         queryJSON={queryJSON}
                         headerButtonsOptions={headerButtonsOptions}
@@ -478,15 +477,7 @@ function SearchPage({route}: SearchPageProps) {
                             dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
                         />
                     </DragAndDropConsumer>
-                    <ConfirmModal
-                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                        onConfirm={hideReceiptModal}
-                        onCancel={hideReceiptModal}
-                        isVisible={isAttachmentInvalid}
-                        prompt={getConfirmModalPrompt(attachmentInvalidReason)}
-                        confirmText={translate('common.close')}
-                        shouldShowCancelButton={false}
-                    />
+                    {ErrorModal}
                 </DragAndDropProvider>
                 {!!selectionMode && selectionMode?.isEnabled && (
                     <View>
