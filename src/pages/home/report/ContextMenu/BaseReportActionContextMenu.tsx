@@ -1,4 +1,4 @@
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import type {MutableRefObject, RefObject} from 'react';
 import React, {memo, useContext, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
@@ -395,6 +395,6 @@ function BaseReportActionContextMenu({
     );
 }
 
-export default memo(BaseReportActionContextMenu, lodashIsEqual);
+export default memo(BaseReportActionContextMenu, deepEqual);
 
 export type {BaseReportActionContextMenuProps};
