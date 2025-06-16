@@ -5385,54 +5385,54 @@ function dismissChangePolicyModal() {
 
 /**
  * @private
- * Builds a map of parentReportID to child report IDs for efficient traversal.	
+ * Builds a map of parentReportID to child report IDs for efficient traversal.
  */
-function buildReportIDToThreadsReportIDsMap(): Record<string, string[]> {	
-    const reportIDToThreadsReportIDsMap: Record<string, string[]> = {};	
-    Object.values(allReports ?? {}).forEach((report) => {	
-        if (!report?.parentReportID) {	
-            return;	
-        }	
-        if (!reportIDToThreadsReportIDsMap[report.parentReportID]) {	
-            reportIDToThreadsReportIDsMap[report.parentReportID] = [];	
-        }	
-        reportIDToThreadsReportIDsMap[report.parentReportID].push(report.reportID);	
-    });	
-    return reportIDToThreadsReportIDsMap;	
+function buildReportIDToThreadsReportIDsMap(): Record<string, string[]> {
+    const reportIDToThreadsReportIDsMap: Record<string, string[]> = {};
+    Object.values(allReports ?? {}).forEach((report) => {
+        if (!report?.parentReportID) {
+            return;
+        }
+        if (!reportIDToThreadsReportIDsMap[report.parentReportID]) {
+            reportIDToThreadsReportIDsMap[report.parentReportID] = [];
+        }
+        reportIDToThreadsReportIDsMap[report.parentReportID].push(report.reportID);
+    });
+    return reportIDToThreadsReportIDsMap;
 }
 
-/**	
- * @private	
- * Recursively updates the policyID for a report and all its child reports.	
- */	
-function updatePolicyIdForReportAndThreads(	
-    currentReportID: string,	
-    policyID: string,	
-    reportIDToThreadsReportIDsMap: Record<string, string[]>,	
-    optimisticData: OnyxUpdate[],	
-    failureData: OnyxUpdate[],	
-) {	
-    const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`];	
-    const originalPolicyID = currentReport?.policyID;	
+/**
+ * @private
+ * Recursively updates the policyID for a report and all its child reports.
+ */
+function updatePolicyIdForReportAndThreads(
+    currentReportID: string,
+    policyID: string,
+    reportIDToThreadsReportIDsMap: Record<string, string[]>,
+    optimisticData: OnyxUpdate[],
+    failureData: OnyxUpdate[],
+) {
+    const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`];
+    const originalPolicyID = currentReport?.policyID;
 
-    if (originalPolicyID) {	
-        optimisticData.push({	
-            onyxMethod: Onyx.METHOD.MERGE,	
-            key: `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,	
-            value: {policyID},	
-        });	
-        failureData.push({	
-            onyxMethod: Onyx.METHOD.MERGE,	
-            key: `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,	
-            value: {policyID: originalPolicyID},	
-        });	
-    }	
+    if (originalPolicyID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
+            value: {policyID},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
+            value: {policyID: originalPolicyID},
+        });
+    }
 
-    // Recursively process child reports for the current report	
-    const childReportIDs = reportIDToThreadsReportIDsMap[currentReportID] || [];	
-    childReportIDs.forEach((childReportID) => {	
-        updatePolicyIdForReportAndThreads(childReportID, policyID, reportIDToThreadsReportIDsMap, optimisticData, failureData);	
-    });	
+    // Recursively process child reports for the current report
+    const childReportIDs = reportIDToThreadsReportIDsMap[currentReportID] || [];
+    childReportIDs.forEach((childReportID) => {
+        updatePolicyIdForReportAndThreads(childReportID, policyID, reportIDToThreadsReportIDsMap, optimisticData, failureData);
+    });
 }
 
 function navigateToTrainingModal(dismissedProductTrainingNVP: OnyxEntry<DismissedProductTraining>, reportID: string) {
@@ -5635,7 +5635,6 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, repor
 
     return {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction};
 }
-
 
 /**
  * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
