@@ -560,6 +560,7 @@ function ReportActionCompose({
                                 <>
                                     <AttachmentPickerWithMenuItems
                                         displayFileInModal={displayFileInModal}
+                                        displayMultipleFilesInModal={displayMultipleFilesInModal}
                                         reportID={reportID}
                                         report={report}
                                         currentUserPersonalDetails={currentUserPersonalDetails}

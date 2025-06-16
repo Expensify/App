@@ -152,46 +152,70 @@ function AttachmentPicker({
 
                         return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
                     }
-                    // TODO: refactor this to use multiple files
-                    const targetAsset = response.assets?.[0];
-                    const targetAssetUri = targetAsset?.uri;
 
-                    if (!targetAssetUri) {
+                    const assets = response.assets;
+                    if (!assets || assets.length === 0) {
                         return resolve();
                     }
 
-                    if (targetAsset?.type?.startsWith('image')) {
-                        verifyFileFormat({fileUri: targetAssetUri, formatSignatures: CONST.HEIC_SIGNATURES})
-                            .then((isHEIC) => {
-                                // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
-                                if (isHEIC && targetAssetUri) {
-                                    ImageManipulator.manipulate(targetAssetUri)
-                                        .renderAsync()
-                                        .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
-                                        .then((manipulationResult) => {
-                                            const uri = manipulationResult.uri;
-                                            const convertedAsset = {
-                                                uri,
-                                                name: uri
-                                                    .substring(uri.lastIndexOf('/') + 1)
-                                                    .split('?')
-                                                    .at(0),
-                                                type: 'image/jpeg',
-                                                width: manipulationResult.width,
-                                                height: manipulationResult.height,
-                                            };
+                    // Process all assets
+                    const processedAssets: Asset[] = [];
+                    let processedCount = 0;
 
-                                            return resolve([convertedAsset]);
-                                        })
-                                        .catch((err) => reject(err));
-                                } else {
-                                    return resolve(response.assets);
-                                }
-                            })
-                            .catch((err) => reject(err));
-                    } else {
-                        return resolve(response.assets);
-                    }
+                    const checkAllProcessed = () => {
+                        processedCount++;
+                        if (processedCount === assets.length) {
+                            resolve(processedAssets.length > 0 ? processedAssets : undefined);
+                        }
+                    };
+
+                    assets.forEach((asset) => {
+                        if (!asset.uri) {
+                            checkAllProcessed();
+                            return;
+                        }
+
+                        if (asset.type?.startsWith('image')) {
+                            verifyFileFormat({fileUri: asset.uri, formatSignatures: CONST.HEIC_SIGNATURES})
+                                .then((isHEIC) => {
+                                    // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
+                                    if (isHEIC && asset.uri) {
+                                        ImageManipulator.manipulate(asset.uri)
+                                            .renderAsync()
+                                            .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
+                                            .then((manipulationResult) => {
+                                                const uri = manipulationResult.uri;
+                                                const convertedAsset = {
+                                                    uri,
+                                                    name: uri
+                                                        .substring(uri.lastIndexOf('/') + 1)
+                                                        .split('?')
+                                                        .at(0),
+                                                    type: 'image/jpeg',
+                                                    width: manipulationResult.width,
+                                                    height: manipulationResult.height,
+                                                };
+                                                processedAssets.push(convertedAsset);
+                                                checkAllProcessed();
+                                            })
+                                            .catch((err) => {
+                                                console.error(`Error processing HEIC asset: ${asset.uri}`, err);
+                                                checkAllProcessed();
+                                            });
+                                    } else {
+                                        processedAssets.push(asset);
+                                        checkAllProcessed();
+                                    }
+                                })
+                                .catch((err) => {
+                                    console.error(`Error verifying file format for asset: ${asset.uri}`, err);
+                                    checkAllProcessed();
+                                });
+                        } else {
+                            processedAssets.push(asset);
+                            checkAllProcessed();
+                        }
+                    });
                 });
             }),
         [fileLimit, showGeneralAlert, type],
@@ -313,16 +337,15 @@ function AttachmentPicker({
      * sends the selected attachment to the caller (parent component)
      */
     const pickAttachment = useCallback(
-        (attachments: Asset[] | LocalCopy[] | void = []): Promise<void[]> | undefined => {
+        (attachments: Asset[] | LocalCopy[] | void = []): Promise<void> | undefined => {
             if (!attachments || attachments.length === 0) {
                 onCanceled.current();
-                return Promise.resolve([]);
+                return Promise.resolve();
             }
 
             const filesToProcess = attachments.map((fileData) => {
                 if (!fileData) {
-                    onCanceled.current();
-                    return Promise.resolve();
+                    return Promise.resolve(null);
                 }
 
                 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
@@ -345,20 +368,10 @@ function AttachmentPicker({
                             fileDataObject.height = height;
                             return fileDataObject;
                         })
-                        .then((file) => {
-                            return getDataForUpload(file)
-                                .then((result) => completeAttachmentSelection.current([result]))
-                                .catch((error) => {
-                                    if (error instanceof Error) {
-                                        showGeneralAlert(error.message);
-                                    } else {
-                                        showGeneralAlert('An unknown error occurred');
-                                    }
-                                    throw error;
-                                });
-                        })
+                        .then((file) => getDataForUpload(file))
                         .catch(() => {
                             showImageCorruptionAlert();
+                            return null;
                         });
                 }
 
@@ -370,21 +383,53 @@ function AttachmentPicker({
 
                             if (fileDataObject.width <= 0 || fileDataObject.height <= 0) {
                                 showImageCorruptionAlert();
-                                return Promise.resolve(); // Skip processing this corrupted file
+                                return null;
                             }
 
-                            return validateAndCompleteAttachmentSelection(fileDataObject);
+                            // Check if the file dimensions indicate corruption
+                            if ((typeof fileDataObject.width === 'number' && fileDataObject.width <= 0) || (typeof fileDataObject.height === 'number' && fileDataObject.height <= 0)) {
+                                showImageCorruptionAlert();
+                                return null;
+                            }
+
+                            return getDataForUpload(fileDataObject);
                         })
                         .catch(() => {
                             showImageCorruptionAlert();
+                            return null;
                         });
                 }
-                return validateAndCompleteAttachmentSelection(fileDataObject);
+
+                // For non-image files
+                if ((typeof fileDataObject.width === 'number' && fileDataObject.width <= 0) || (typeof fileDataObject.height === 'number' && fileDataObject.height <= 0)) {
+                    showImageCorruptionAlert();
+                    return Promise.resolve(null);
+                }
+
+                return getDataForUpload(fileDataObject).catch((error: Error) => {
+                    showGeneralAlert(error.message);
+                    return null;
+                });
             });
 
-            return Promise.all(filesToProcess);
+            return Promise.all(filesToProcess)
+                .then((results) => {
+                    const validResults = results.filter((result): result is FileObject => result !== null);
+                    if (validResults.length > 0) {
+                        completeAttachmentSelection.current(validResults);
+                    } else {
+                        onCanceled.current();
+                    }
+                })
+                .catch((error) => {
+                    if (error instanceof Error) {
+                        showGeneralAlert(error.message);
+                    } else {
+                        showGeneralAlert('An unknown error occurred');
+                    }
+                });
         },
-        [shouldValidateImage, validateAndCompleteAttachmentSelection, showGeneralAlert, showImageCorruptionAlert],
+        [shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
     );
 
     /**

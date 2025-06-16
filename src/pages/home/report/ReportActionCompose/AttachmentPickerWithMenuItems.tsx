@@ -51,6 +51,9 @@ type AttachmentPickerWithMenuItemsProps = {
     /** Callback to open the file in the modal */
     displayFileInModal: (url: FileObject) => void;
 
+    /** Callback to open multiple files in the modal */
+    displayMultipleFilesInModal: (files: FileObject[]) => void;
+
     /** Whether or not the full size composer is available */
     isFullComposerAvailable: boolean;
 
@@ -108,6 +111,7 @@ function AttachmentPickerWithMenuItems({
     currentUserPersonalDetails,
     reportParticipantIDs,
     displayFileInModal,
+    displayMultipleFilesInModal,
     isFullComposerAvailable,
     isComposerFullSize,
     reportID,
@@ -281,16 +285,24 @@ function AttachmentPickerWithMenuItems({
     // 4. And the Create button is at the bottom.
     const createButtonContainerStyles = [styles.flexGrow0, styles.flexShrink0];
 
+    const isMultipleDragAndDropEnabled = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP);
+
     return (
         <AttachmentPicker
-            allowMultiple={isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}
-            fileLimit={isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
+            allowMultiple={isMultipleDragAndDropEnabled}
+            fileLimit={isMultipleDragAndDropEnabled ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
         >
             {({openPicker}) => {
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
                     openPicker({
-                        onPicked: (data) => displayFileInModal(data.at(0) ?? {}),
+                        onPicked: (data) => {
+                            if (data.length > 1 && isMultipleDragAndDropEnabled) {
+                                displayMultipleFilesInModal(data);
+                            } else {
+                                displayFileInModal(data.at(0) ?? {});
+                            }
+                        },
                         onCanceled: onCanceledAttachmentPicker,
                     });
                 };
