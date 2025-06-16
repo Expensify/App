@@ -663,7 +663,7 @@ function isValidRegistrationNumber(registrationNumber: string, country: Country 
  */
 function isValidInputLength(inputValue: string, byteLength: number) {
     const valueByteLength = StringUtils.getUTF8ByteLength(inputValue);
-    return {isValid: valueByteLength > byteLength, byteLength: valueByteLength};
+    return {isValid: valueByteLength <= byteLength, byteLength: valueByteLength};
 }
 
 export {

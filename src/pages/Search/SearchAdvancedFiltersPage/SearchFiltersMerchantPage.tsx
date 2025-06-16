@@ -36,7 +36,7 @@ function SearchFiltersMerchantPage() {
         const merchantValue = values.merchant.trim();
         const {isValid, byteLength} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
 
-        if (isValid) {
+        if (!isValid) {
             errors.merchant = translate('common.error.characterLimitExceedCounter', {length: byteLength, limit: CONST.MERCHANT_NAME_MAX_BYTES});
         }
 
