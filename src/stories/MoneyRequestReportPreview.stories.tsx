@@ -41,7 +41,7 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         isHovered={false}
         chatReport={chatReportR14932}
         personalDetails={personalDetails}
-        iouReport={iouReportR14932}
+        report={iouReportR14932}
         transaction={item}
         violations={item.errors ? violationsR14932 : []}
         offlineWithFeedbackOnClose={() => undefined}
