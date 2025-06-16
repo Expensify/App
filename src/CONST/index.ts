@@ -441,7 +441,7 @@ const CONST = {
         // Allowed extensions for receipts
         ALLOWED_RECEIPT_EXTENSIONS: ['heif', 'heic', 'jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
 
-        MAX_FILE_LIMIT: 2,
+        MAX_FILE_LIMIT: 30,
     },
 
     // Allowed extensions for spreadsheets import

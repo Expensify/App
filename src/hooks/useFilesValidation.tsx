@@ -27,6 +27,7 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
 
     const validatedPDFs = useRef<FileObject[]>([]);
     const validFiles = useRef<FileObject[]>([]);
+    const filesToValidate = useRef<FileObject[]>([]);
 
     const resetValidationState = () => {
         setIsAttachmentInvalid(false);
@@ -38,6 +39,7 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
         setInvalidFileExtension('');
         validatedPDFs.current = [];
         validFiles.current = [];
+        filesToValidate.current = [];
     };
 
     const hideModalAndReset = () => {
@@ -51,26 +53,20 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
             setInvalidFileExtension('');
             validatedPDFs.current = [];
             validFiles.current = [];
+            filesToValidate.current = [];
         });
     };
 
-    const onConfirm = () => {
-        if (validFilesToUpload.length) {
-            proceedWithFileAction(validFilesToUpload[0]);
-        }
-        hideModalAndReset();
-    };
-
     useEffect(() => {
-        if (fileError) {
+        if (isAttachmentInvalid) {
             return;
         }
-        if (validFilesToUpload.length && !fileError) {
+        if (validFilesToUpload.length && !isAttachmentInvalid) {
             // @ts-expect-error it won't be undefined
             proceedWithFileAction(validFilesToUpload.at(0));
             resetValidationState();
         }
-    }, [fileError, proceedWithFileAction, validFilesToUpload]);
+    }, [isAttachmentInvalid, proceedWithFileAction, validFilesToUpload]);
     /**
      * Sets the upload receipt error modal content when an invalid receipt is uploaded
      */
@@ -99,7 +95,7 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
             });
     };
 
-    const checkIfAllValidatedAndProceed = (shouldProceed: boolean) => {
+    const checkIfAllValidatedAndProceed = (hasError: boolean) => {
         if (!validatedPDFs.current || !validFiles.current) {
             return;
         }
@@ -108,15 +104,12 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
             return;
         }
 
-        if (!shouldProceed) {
+        if (!hasError) {
             setValidFilesToUpload(validFiles.current);
         }
     };
 
     const validateFiles = (files: FileObject[]) => {
-        if (files.length > 1) {
-            setIsValidatingMultipleFiles(true);
-        }
         Promise.all(files.map((file) => isValidFile(file, files.length > 1).then((isValid) => (isValid ? file : null))))
             .then((validationResults) => {
                 const filteredResults = validationResults.filter((result): result is FileObject => result !== null);
@@ -146,6 +139,30 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
                     setValidFilesToUpload(processedImages);
                 }
             });
+    };
+
+    const handleFilesValidation = (files: FileObject[]) => {
+        if (files.length > 1) {
+            setIsValidatingMultipleFiles(true);
+        }
+        if (files.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
+            filesToValidate.current = files.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
+            setUploadReceiptError(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
+        } else {
+            validateFiles(files);
+        }
+    };
+
+    const onConfirm = () => {
+        if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
+            setIsAttachmentInvalid(false);
+            validateFiles(filesToValidate.current);
+            return;
+        }
+        if (validFilesToUpload.length) {
+            proceedWithFileAction(validFilesToUpload[0]);
+        }
+        hideModalAndReset();
     };
 
     const PDFValidationComponent = pdfFilesToRender.length
@@ -206,7 +223,7 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
         isAttachmentInvalid,
         isLoadingReceipt,
         PDFValidationComponent,
-        validateFiles,
+        validateFiles: handleFilesValidation,
         ErrorModal,
     };
 }
