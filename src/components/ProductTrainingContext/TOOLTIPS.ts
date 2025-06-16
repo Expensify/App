@@ -1,4 +1,7 @@
+import {useWindowDimensions} from 'react-native';
+import RenderHtml from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
+import useLocalize from '@hooks/useLocalize';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -29,8 +32,10 @@ type ShouldShowConditionProps = {
     hasBeenAddedToNudgeMigration: boolean;
 };
 
+type TooltipContent = {text: TranslationPaths; isBold: boolean} | {text: () => JSX.Element; isBold?: boolean};
+
 type TooltipData = {
-    content: Array<{text: TranslationPaths; isBold: boolean}>;
+    content: Array<TooltipContent>;
     onHideTooltip: (isDismissedUsingCloseButton?: boolean) => void;
     name: ProductTrainingTooltipName;
     priority: number;
@@ -38,23 +43,36 @@ type TooltipData = {
     shouldRenderActionButtons?: boolean;
 };
 
+const {width} = useWindowDimensions();
+const {translate} = useLocalize();
+
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     [CONCIERGE_LHN_GBR]: {
         content: [
-            {text: 'productTrainingTooltip.conciergeLHNGBR.part1', isBold: false},
-            {text: 'productTrainingTooltip.conciergeLHNGBR.part2', isBold: true},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.conciergeLHNGBR.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONCIERGE_LHN_GBR, isDismissedUsingCloseButton),
         name: CONCIERGE_LHN_GBR,
         priority: 1300,
-        // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
-        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         shouldShow: () => false,
     },
     [RENAME_SAVED_SEARCH]: {
         content: [
-            {text: 'productTrainingTooltip.saveSearchTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.saveSearchTooltip.part2', isBold: false},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.saveSearchTooltip.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(RENAME_SAVED_SEARCH, isDismissedUsingCloseButton),
         name: RENAME_SAVED_SEARCH,
@@ -63,10 +81,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [GLOBAL_CREATE_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.globalCreateTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.globalCreateTooltip.part2', isBold: false},
-            {text: 'productTrainingTooltip.globalCreateTooltip.part3', isBold: false},
-            {text: 'productTrainingTooltip.globalCreateTooltip.part4', isBold: false},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.globalCreateTooltip.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(GLOBAL_CREATE_TOOLTIP, isDismissedUsingCloseButton),
         name: GLOBAL_CREATE_TOOLTIP,
@@ -75,10 +97,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [BOTTOM_NAV_INBOX_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part1', isBold: false},
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part2', isBold: true},
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part3', isBold: false},
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part4', isBold: true},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.bottomNavInboxTooltip.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(BOTTOM_NAV_INBOX_TOOLTIP, isDismissedUsingCloseButton),
         name: BOTTOM_NAV_INBOX_TOOLTIP,
@@ -87,8 +113,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [LHN_WORKSPACE_CHAT_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: false},
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: true},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.workspaceChatTooltip.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP, isDismissedUsingCloseButton),
         name: LHN_WORKSPACE_CHAT_TOOLTIP,
@@ -97,10 +129,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [GBR_RBR_CHAT]: {
         content: [
-            {text: 'productTrainingTooltip.GBRRBRChat.part1', isBold: false},
-            {text: 'productTrainingTooltip.GBRRBRChat.part2', isBold: true},
-            {text: 'productTrainingTooltip.GBRRBRChat.part3', isBold: false},
-            {text: 'productTrainingTooltip.GBRRBRChat.part4', isBold: true},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.GBRRBRChat.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: () => dismissProductTraining(GBR_RBR_CHAT),
         name: GBR_RBR_CHAT,
@@ -109,9 +145,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [ACCOUNT_SWITCHER]: {
         content: [
-            {text: 'productTrainingTooltip.accountSwitcher.part1', isBold: false},
-            {text: 'productTrainingTooltip.accountSwitcher.part2', isBold: true},
-            {text: 'productTrainingTooltip.accountSwitcher.part3', isBold: false},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.accountSwitcher.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: () => dismissProductTraining(ACCOUNT_SWITCHER),
         name: ACCOUNT_SWITCHER,
@@ -120,9 +161,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [EXPENSE_REPORTS_FILTER]: {
         content: [
-            {text: 'productTrainingTooltip.expenseReportsFilter.part1', isBold: false},
-            {text: 'productTrainingTooltip.expenseReportsFilter.part2', isBold: true},
-            {text: 'productTrainingTooltip.expenseReportsFilter.part3', isBold: false},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.expenseReportsFilter.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: () => dismissProductTraining(EXPENSE_REPORTS_FILTER),
         name: EXPENSE_REPORTS_FILTER,
@@ -132,8 +178,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [SCAN_TEST_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.scanTestTooltip.part1', isBold: false},
-            {text: 'productTrainingTooltip.scanTestTooltip.part2', isBold: true},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.scanTestTooltip.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: () => dismissProductTraining(SCAN_TEST_TOOLTIP),
         name: SCAN_TEST_TOOLTIP,
@@ -143,10 +195,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [SCAN_TEST_TOOLTIP_MANAGER]: {
         content: [
-            {text: 'productTrainingTooltip.scanTestTooltip.part3', isBold: false},
-            {text: 'productTrainingTooltip.scanTestTooltip.part4', isBold: true},
-            {text: 'productTrainingTooltip.scanTestTooltip.part5', isBold: false},
-        ],
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.scanTestTooltip.full')}</div>`}}
+                    />
+                ),
+            },
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_TOOLTIP_MANAGER, isDismissedUsingCloseButton),
         name: SCAN_TEST_TOOLTIP_MANAGER,
         priority: 1000,
@@ -154,9 +210,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [SCAN_TEST_CONFIRMATION]: {
         content: [
-            {text: 'productTrainingTooltip.scanTestTooltip.part6', isBold: false},
-            {text: 'productTrainingTooltip.scanTestTooltip.part7', isBold: true},
-            {text: 'productTrainingTooltip.scanTestTooltip.part8', isBold: false},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.scanTestTooltip.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_CONFIRMATION, isDismissedUsingCloseButton),
         name: SCAN_TEST_CONFIRMATION,
@@ -165,8 +226,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [OUTSTANDING_FILTER]: {
         content: [
-            {text: 'productTrainingTooltip.outstandingFilter.part1', isBold: false},
-            {text: 'productTrainingTooltip.outstandingFilter.part2', isBold: true},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.outstandingFilter.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: () => dismissProductTraining(OUTSTANDING_FILTER),
         name: OUTSTANDING_FILTER,
@@ -175,8 +242,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [SCAN_TEST_DRIVE_CONFIRMATION]: {
         content: [
-            {text: 'productTrainingTooltip.scanTestDriveTooltip.part1', isBold: false},
-            {text: 'productTrainingTooltip.scanTestDriveTooltip.part2', isBold: true},
+            {
+                text: () => (
+                    <RenderHtml
+                        contentWidth={width}
+                        source={{html: `<div>${translate('productTrainingTooltip.scanTestDriveTooltip.full')}</div>`}}
+                    />
+                ),
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_DRIVE_CONFIRMATION, isDismissedUsingCloseButton),
         name: SCAN_TEST_DRIVE_CONFIRMATION,
