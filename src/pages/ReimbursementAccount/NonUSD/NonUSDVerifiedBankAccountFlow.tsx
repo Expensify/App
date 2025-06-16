@@ -7,6 +7,7 @@ import BankInfo from './BankInfo/BankInfo';
 import BeneficialOwnerInfo from './BeneficialOwnerInfo/BeneficialOwnerInfo';
 import BusinessInfo from './BusinessInfo/BusinessInfo';
 import Country from './Country/Country';
+import Docusign from './Docusign/Docusign';
 import Finish from './Finish';
 import SignerInfo from './SignerInfo';
 
@@ -16,6 +17,7 @@ type NonUSDVerifiedBankAccountFlowProps = {
     setShouldShowContinueSetupButton: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
     policyID: string | undefined;
     shouldShowContinueSetupButtonValue: boolean;
+    policyCurrency: string | undefined;
 };
 
 function NonUSDVerifiedBankAccountFlow({
@@ -24,7 +26,10 @@ function NonUSDVerifiedBankAccountFlow({
     setShouldShowContinueSetupButton,
     policyID,
     shouldShowContinueSetupButtonValue,
+    policyCurrency,
 }: NonUSDVerifiedBankAccountFlowProps) {
+    const stepNames = policyCurrency === CONST.CURRENCY.CAD ? CONST.NON_USD_BANK_ACCOUNT.CA_STEP_NAMES : CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES;
+
     const handleNextNonUSDBankAccountStep = () => {
         switch (nonUSDBankAccountStep) {
             case CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY:
@@ -43,6 +48,9 @@ function NonUSDVerifiedBankAccountFlow({
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
                 break;
             case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
+                setNonUSDBankAccountStep(policyCurrency === CONST.CURRENCY.CAD ? CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN : CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
+                break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN:
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
                 break;
             default:
@@ -72,6 +80,9 @@ function NonUSDVerifiedBankAccountFlow({
             case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO);
                 break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN:
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
+                break;
             case CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH:
                 setShouldShowContinueSetupButton(true);
                 setNonUSDBankAccountStep(null);
@@ -88,6 +99,7 @@ function NonUSDVerifiedBankAccountFlow({
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
                     policyID={policyID}
+                    stepNames={stepNames}
                 />
             );
         case CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO:
@@ -96,6 +108,7 @@ function NonUSDVerifiedBankAccountFlow({
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
                     policyID={policyID}
+                    stepNames={stepNames}
                 />
             );
         case CONST.NON_USD_BANK_ACCOUNT.STEP.BUSINESS_INFO:
@@ -103,6 +116,7 @@ function NonUSDVerifiedBankAccountFlow({
                 <BusinessInfo
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
+                    stepNames={stepNames}
                 />
             );
         case CONST.NON_USD_BANK_ACCOUNT.STEP.BENEFICIAL_OWNER_INFO:
@@ -110,6 +124,7 @@ function NonUSDVerifiedBankAccountFlow({
                 <BeneficialOwnerInfo
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
+                    stepNames={stepNames}
                 />
             );
         case CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO:
@@ -117,6 +132,7 @@ function NonUSDVerifiedBankAccountFlow({
                 <SignerInfo
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
+                    stepNames={stepNames}
                 />
             );
         case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
@@ -124,6 +140,16 @@ function NonUSDVerifiedBankAccountFlow({
                 <Agreements
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
+                    stepNames={stepNames}
+                />
+            );
+        case CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN:
+            return (
+                <Docusign
+                    onBackButtonPress={nonUSDBankAccountsGoBack}
+                    onSubmit={handleNextNonUSDBankAccountStep}
+                    policyID={policyID}
+                    stepNames={stepNames}
                 />
             );
         case CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH:

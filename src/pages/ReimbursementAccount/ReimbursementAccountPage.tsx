@@ -97,7 +97,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
 
     const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : (achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
-    const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(null);
+    const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(null);
 
     function getBankAccountFields(fieldNames: InputID[]): Partial<ACHDataReimbursementAccount> {
@@ -453,6 +453,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
                 policyID={policyIDParam}
                 shouldShowContinueSetupButtonValue={shouldShowContinueSetupButtonValue}
+                policyCurrency={policyCurrency}
             />
         );
     }

@@ -2886,6 +2886,14 @@ const translations = {
             consent: 'Please consent to the privacy notice',
         },
     },
+    docusignStep: {
+        subheader: 'Docusign subheader',
+        pleaseComplete:
+            'Please complete the ACH authorization form with the Docusign link below and then upload that signed copy here so we can withdraw funds directly from your bank account.',
+        takeMeTo: 'Take me to docusign',
+        uploadAdditional: 'Upload additional documentation',
+        pleaseUpload: 'Please upload the DEFT form and Docusign signature page',
+    },
     finishStep: {
         connect: 'Connect bank account',
         letsFinish: "Let's finish in chat!",

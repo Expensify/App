@@ -28,6 +28,9 @@ type SignerInfoProps = {
 
     /** Handles submit button press */
     onSubmit: () => void;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
 };
 
 type SignerDetailsFormProps = SubStepProps;
@@ -39,7 +42,7 @@ const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORP
 const fullBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, DateOfBirth, Address, UploadDocuments, Confirmation];
 const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [JobTitle, UploadDocuments, Confirmation];
 
-function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
+function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
@@ -158,7 +161,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             wrapperID={SignerInfo.displayName}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('signerInfoStep.signerInfo')}
-            stepNames={CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES}
+            stepNames={stepNames}
             startStepIndex={4}
         >
             {currentSubStep === SUBSTEP.IS_DIRECTOR && (

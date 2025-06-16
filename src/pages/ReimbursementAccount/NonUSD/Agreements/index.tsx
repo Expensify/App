@@ -19,6 +19,9 @@ type AgreementsProps = {
 
     /** Handles submit button press */
     onSubmit: () => void;
+
+    /** Array of step names */
+    stepNames?: readonly string[];
 };
 
 const bodyContent: Array<ComponentType<SubStepProps>> = [Confirmation];
@@ -30,7 +33,7 @@ const INPUT_KEYS = {
     AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT,
 };
 
-function Agreements({onBackButtonPress, onSubmit}: AgreementsProps) {
+function Agreements({onBackButtonPress, onSubmit, stepNames}: AgreementsProps) {
     const {translate} = useLocalize();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
@@ -86,7 +89,7 @@ function Agreements({onBackButtonPress, onSubmit}: AgreementsProps) {
             wrapperID={Agreements.displayName}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('agreementsStep.agreements')}
-            stepNames={CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES}
+            stepNames={stepNames}
             startStepIndex={5}
         >
             <SubStep

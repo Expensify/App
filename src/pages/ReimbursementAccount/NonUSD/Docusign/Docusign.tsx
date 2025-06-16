@@ -5,10 +5,11 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {clearErrors} from '@userActions/FormActions';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Confirmation from './subSteps/Confirmation';
+import UploadPowerform from './subSteps/UploadPowerform';
 
-type CountryProps = {
+type DocusignProps = {
     /** Handles back button press */
     onBackButtonPress: () => void;
 
@@ -22,14 +23,14 @@ type CountryProps = {
     stepNames?: readonly string[];
 };
 
-type CountryStepProps = {
+type DocusignStepProps = {
     /** ID of current policy */
     policyID: string | undefined;
 } & SubStepProps;
 
-const bodyContent: Array<ComponentType<CountryStepProps>> = [Confirmation];
+const bodyContent: Array<ComponentType<DocusignStepProps>> = [UploadPowerform];
 
-function Country({onBackButtonPress, onSubmit, policyID, stepNames}: CountryProps) {
+function Docusign({onBackButtonPress, onSubmit, policyID, stepNames}: DocusignProps) {
     const {translate} = useLocalize();
 
     const submit = () => {
@@ -44,7 +45,7 @@ function Country({onBackButtonPress, onSubmit, policyID, stepNames}: CountryProp
         prevScreen,
         moveTo,
         goToTheLastStep,
-    } = useSubStep<CountryStepProps>({bodyContent, startFrom: 0, onFinished: submit});
+    } = useSubStep<DocusignStepProps>({bodyContent, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
@@ -62,11 +63,11 @@ function Country({onBackButtonPress, onSubmit, policyID, stepNames}: CountryProp
 
     return (
         <InteractiveStepWrapper
-            wrapperID={Country.displayName}
+            wrapperID={Docusign.displayName}
             handleBackButtonPress={handleBackButtonPress}
-            headerTitle={translate('countryStep.confirmCurrency')}
+            headerTitle={translate('docusignStep.subheader')}
             stepNames={stepNames}
-            startStepIndex={0}
+            startStepIndex={6}
         >
             <SubStep
                 isEditing={isEditing}
@@ -78,6 +79,6 @@ function Country({onBackButtonPress, onSubmit, policyID, stepNames}: CountryProp
     );
 }
 
-Country.displayName = 'Country';
+Docusign.displayName = 'Docusign';
 
-export default Country;
+export default Docusign;
