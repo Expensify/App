@@ -2371,6 +2371,9 @@ const translations = {
         time: 'Tempo',
         clearAfter: 'Cancella dopo',
         whenClearStatus: 'Quando dovremmo cancellare il tuo stato?',
+        vacationDelegate: 'Delegato per le vacanze',
+        setVacationDelegate: 'Imposta un delegato per le vacanze per approvare i report per tuo conto mentre sei fuori ufficio.',
+        vacationDelegateError: 'Si \u00E8 verificato un errore durante l\'aggiornamento del tuo delegato per le vacanze.',
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Passo ${step}`;
