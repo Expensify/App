@@ -1,10 +1,12 @@
+import type {FullySupportedLocale} from '@src/CONST/LOCALES';
+import {isFullySupportedLocale, LOCALES} from '@src/CONST/LOCALES';
 import type {Locale} from '@src/types/onyx';
 import emojis from './common';
 import type {Emoji, EmojisList} from './types';
 
 type EmojiTable = Record<string, Emoji>;
 
-type LocaleEmojis = Partial<Record<Locale, EmojisList>>;
+type LocaleEmojis = Partial<Record<FullySupportedLocale, EmojisList>>;
 
 const emojiNameTable = emojis.reduce<EmojiTable>((prev, cur) => {
     const newValue = prev;
@@ -33,7 +35,7 @@ const localeEmojis: LocaleEmojis = {
 };
 
 const importEmojiLocale = (locale: Locale) => {
-    const normalizedLocale = locale.toLowerCase().split('-').at(0) as Locale;
+    const normalizedLocale = isFullySupportedLocale(locale) ? locale : LOCALES.EN;
     if (!localeEmojis[normalizedLocale]) {
         const emojiImportPromise = normalizedLocale === 'en' ? import('./en') : import('./es');
         return emojiImportPromise.then((esEmojiModule) => {

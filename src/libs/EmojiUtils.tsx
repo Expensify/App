@@ -8,6 +8,7 @@ import * as Emojis from '@assets/emojis';
 import type {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
 import Text from '@components/Text';
 import CONST from '@src/CONST';
+import {isFullySupportedLocale} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
@@ -80,27 +81,18 @@ Onyx.connect({
     },
 });
 
-const getEmojiName = (emoji: Emoji, lang: Locale = CONST.LOCALES.DEFAULT): string => {
-    if (!emoji) {
-        return '';
-    }
-    if (lang === CONST.LOCALES.DEFAULT) {
-        return emoji.name;
-    }
-
-    return Emojis.localeEmojis?.[lang]?.[emoji.code]?.name ?? '';
-};
-
 /**
  * Given an English emoji name, get its localized version
  */
-const getLocalizedEmojiName = (name: string, lang: OnyxEntry<Locale>): string => {
-    if (lang === CONST.LOCALES.DEFAULT) {
+const getLocalizedEmojiName = (name: string, locale: OnyxEntry<Locale>): string => {
+    const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
+
+    if (normalizedLocale === CONST.LOCALES.DEFAULT) {
         return name;
     }
 
     const emojiCode = Emojis.emojiNameTable[name]?.code ?? '';
-    return (lang && Emojis.localeEmojis[lang]?.[emojiCode]?.name) ?? '';
+    return Emojis.localeEmojis[normalizedLocale]?.[emojiCode]?.name ?? '';
 };
 
 /**
@@ -676,7 +668,6 @@ export type {HeaderIndices, EmojiPickerList, EmojiPickerListItem};
 export {
     findEmojiByName,
     findEmojiByCode,
-    getEmojiName,
     getLocalizedEmojiName,
     getProcessedText,
     getHeaderEmojis,
