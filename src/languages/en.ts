@@ -180,6 +180,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -2347,6 +2348,7 @@ const translations = {
         setVacationDelegate: `Set a vacation delegate to approve reports on your behalf while you're out of office.`,
         vacationDelegateError: 'There was an error updating your vacation delegate.',
         asVacationDelegate: ({managerName}: VacationDelegateParams) => `as ${managerName}'s vacation delegate`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `to ${submittedToName} as vacation delegate for ${vacationDelegateName}`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Step ${step}`;

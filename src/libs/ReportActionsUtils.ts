@@ -2931,6 +2931,22 @@ function getManagerOnVacation(action: OnyxEntry<ReportAction>): string | undefin
     return getOriginalMessage(action)?.managerOnVacation;
 }
 
+function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isSubmittedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.vacationer;
+}
+
+function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isSubmittedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.to;
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -3096,6 +3112,8 @@ export {
     isReopenedAction,
     getIntegrationSyncFailedMessage,
     getManagerOnVacation,
+    getVacationer,
+    getSubmittedTo,
 };
 
 export type {LastVisibleMessage};

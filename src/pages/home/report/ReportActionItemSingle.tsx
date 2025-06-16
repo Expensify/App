@@ -21,7 +21,7 @@ import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getManagerOnVacation, getReportActionMessage} from '@libs/ReportActionsUtils';
+import {getManagerOnVacation, getReportActionMessage, getSubmittedTo, getVacationer} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
@@ -123,8 +123,16 @@ function ReportActionItemSingle({
     let displayName = getDisplayNameForParticipant({accountID: actorAccountID, personalDetailsData: personalDetails});
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
+
+    // Vacation delegate details for submitted action
+    const vacationer = getVacationer(action);
+    const submittedTo = getSubmittedTo(action);
+    const vacationDelegateDetailsForSubmit = getPersonalDetailByEmail(vacationer ?? '');
+    const submittedToDetails = getPersonalDetailByEmail(submittedTo ?? '');
+
+    // Vacation delegate details for approved action
     const managerOnVacation = getManagerOnVacation(action);
-    const vacationDelegateDetails = getPersonalDetailByEmail(managerOnVacation ?? '');
+    const vacationDelegateDetailsForApprove = getPersonalDetailByEmail(managerOnVacation ?? '');
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
@@ -345,9 +353,17 @@ function ReportActionItemSingle({
                 {!!action?.delegateAccountID && (
                     <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>
                 )}
+                {!!vacationer && !!submittedTo && (
+                    <Text style={[styles.chatDelegateMessage]}>
+                        {translate('statusPage.toAsVacationDelegate', {
+                            submittedToName: submittedToDetails?.displayName ?? '',
+                            vacationDelegateName: vacationDelegateDetailsForSubmit?.displayName ?? '',
+                        })}
+                    </Text>
+                )}
                 {!!managerOnVacation && (
                     <Text style={[styles.chatDelegateMessage]}>
-                        {translate('statusPage.asVacationDelegate', {managerName: vacationDelegateDetails?.displayName ?? managerOnVacation ?? ''})}
+                        {translate('statusPage.asVacationDelegate', {managerName: vacationDelegateDetailsForApprove?.displayName ?? managerOnVacation ?? ''})}
                     </Text>
                 )}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>

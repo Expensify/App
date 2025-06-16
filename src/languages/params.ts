@@ -557,6 +557,8 @@ type DelegatorParams = {delegator: string};
 
 type VacationDelegateParams = {managerName: string};
 
+type SubmittedToVacationDelegateParams = {submittedToName: string; vacationDelegateName: string};
+
 type RoleNamesParams = {role: string};
 
 type AssignCardParams = {
@@ -861,6 +863,7 @@ export type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
+    SubmittedToVacationDelegateParams,
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
