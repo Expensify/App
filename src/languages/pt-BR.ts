@@ -2381,9 +2381,6 @@ const translations = {
         time: 'Tempo',
         clearAfter: 'Limpar ap\u00F3s',
         whenClearStatus: 'Quando devemos limpar seu status?',
-        vacationDelegate: 'Delegado de f\u00E9rias',
-        vacationDelegateError: 'Ocorreu um erro ao atualizar seu delegado de f\u00E9rias.',
-        setVacationDelegate: 'Defina um delegado de f\u00E9rias para aprovar relat\u00F3rios em seu nome enquanto voc\u00EA estiver fora do escritório.',
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Etapa ${step}`;

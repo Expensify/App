@@ -2396,9 +2396,6 @@ const translations = {
         time: 'Zeit',
         clearAfter: 'Nach dem L\u00F6schen',
         whenClearStatus: 'Wann sollten wir Ihren Status l\u00F6schen?',
-        vacationDelegate: 'Urlaubsbeauftragter',
-        setVacationDelegate: 'Einen Urlaubsbeauftragten festlegen, um Berichte in Ihrem Namen zu genehmigen, w\u00E4hrend Sie nicht im B\u00FCro sind.',
-        vacationDelegateError: 'Beim Aktualisieren Ihres Urlaubsbeauftragten ist ein Fehler aufgetreten.',
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Schritt ${step}`;

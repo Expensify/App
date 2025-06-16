@@ -2417,9 +2417,6 @@ const translations = {
         time: 'Czas',
         clearAfter: 'Wyczy\u015B\u0107 po',
         whenClearStatus: 'Kiedy powinni\u015Bmy wyczy\u015Bci\u0107 Tw\u00F3j status?',
-        vacationDelegate: 'Delegat urlopowy',
-        vacationDelegateError: 'Wyst\u0105pi\u0142 b\u0142\u0105d podczas aktualizacji Twojego delegata urlopowego.',
-        setVacationDelegate: 'Ustaw delegata urlopowego, aby zatwierdza\u0107 raporty w Twoim imieniu podczas Twojej nieobecno\u015Bci.',
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Krok ${step}`;

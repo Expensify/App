@@ -2368,9 +2368,6 @@ const translations = {
         time: 'Tijd',
         clearAfter: 'Wissen na',
         whenClearStatus: 'Wanneer moeten we je status wissen?',
-        vacationDelegate: 'Vakantievertegenwoordiger',
-        vacationDelegateError: 'Er is een fout opgetreden bij het bijwerken van uw vakantievertegenwoordiger.',
-        setVacationDelegate: 'Stel een vakantievertegenwoordiger in om rapporten namens u goed te keuren terwijl u afwezig bent.',
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Stap ${step}`;

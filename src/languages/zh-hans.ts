@@ -2461,9 +2461,6 @@ const translations = {
         time: '\u65F6\u95F4',
         clearAfter: '\u6E05\u9664\u540E',
         whenClearStatus: '\u6211\u4EEC\u5E94\u8BE5\u4F55\u65F6\u6E05\u9664\u60A8\u7684\u72B6\u6001\uFF1F',
-        vacationDelegate: `\u5F85\u5047\u4EE3\u7406`,
-        setVacationDelegate: `\u8BBE\u7F6E\u4E00\u4E2A\u5047\u671F\u4EE3\u7406\uFF0C\u5728\u60A8\u79BB\u5F00\u804A\u5929\u65F6\u5B9E\u65F6\u5BA1\u6279\u62A5\u544A\u3002`,
-        vacationDelegateError: '\u8BBE\u7F6E\u5047\u671F\u4EE3\u7406\u65F6\u53D1\u751F\u9519\u8BEF\u3002',
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `\u6B65\u9AA4 ${step}`;
