@@ -9711,58 +9711,6 @@ function createDraftTransactionAndNavigateToParticipantSelector(
 }
 
 /**
- * @private
- * Builds a map of parentReportID to child report IDs for efficient traversal.
- */
-function buildReportIDToThreadsReportIDsMap(): Record<string, string[]> {
-    const reportIDToThreadsReportIDsMap: Record<string, string[]> = {};
-    Object.values(allReports ?? {}).forEach((report) => {
-        if (!report?.parentReportID) {
-            return;
-        }
-        if (!reportIDToThreadsReportIDsMap[report.parentReportID]) {
-            reportIDToThreadsReportIDsMap[report.parentReportID] = [];
-        }
-        reportIDToThreadsReportIDsMap[report.parentReportID].push(report.reportID);
-    });
-    return reportIDToThreadsReportIDsMap;
-}
-
-/**
- * @private
- * Recursively updates the policyID for a report and all its child reports.
- */
-function updatePolicyIDForReportAndThreads(
-    currentReportID: string,
-    policyID: string,
-    reportIDToThreadsReportIDsMap: Record<string, string[]>,
-    optimisticData: OnyxUpdate[],
-    failureData: OnyxUpdate[],
-) {
-    const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`];
-    const originalPolicyID = currentReport?.policyID;
-
-    if (originalPolicyID) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
-            value: {policyID},
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
-            value: {policyID: originalPolicyID},
-        });
-    }
-
-    // Recursively process child reports for the current report
-    const childReportIDs = reportIDToThreadsReportIDsMap[currentReportID] || [];
-    childReportIDs.forEach((childReportID) => {
-        updatePolicyIDForReportAndThreads(childReportID, policyID, reportIDToThreadsReportIDsMap, optimisticData, failureData);
-    });
-}
-
-/**
  * Check if a report has any forwarded actions
  */
 function hasForwardedAction(reportID: string): boolean {
@@ -10901,7 +10849,6 @@ export {
     addDomainToShortMention,
     completeShortMention,
     areAllRequestsBeingSmartScanned,
-    buildReportIDToThreadsReportIDsMap,
     buildOptimisticAddCommentReportAction,
     buildOptimisticApprovedReportAction,
     buildOptimisticUnapprovedReportAction,
@@ -11273,7 +11220,6 @@ export {
     hasReportBeenReopened,
     getMoneyReportPreviewName,
     getNextApproverAccountID,
-    updatePolicyIDForReportAndThreads,
 };
 
 export type {
