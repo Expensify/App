@@ -49,6 +49,7 @@ export default function PresenceController() {
     );
 
     const goActiveFromFocusing = useCallback(() => goActive('app focused', TIMEOUT_FOCUS_TAB), [goActive]);
+    const goActiveFromBlurring = useCallback(() => goActive('app blurred', TIMEOUT_FOCUS_TAB), [goActive]);
 
     // Go active on mount and go inactive on unmount
     useEffect(() => {
@@ -56,8 +57,15 @@ export default function PresenceController() {
         return () => goInactive();
     }, [goActiveFromFocusing, goInactive]);
 
-    // Go active when the tab is focused
+    // Go active when the tab is focused/blurred
     useAppFocusEvent(goActiveFromFocusing);
+    useEffect(() => {
+        window.addEventListener('blur', goActiveFromBlurring);
+
+        return () => {
+            window.removeEventListener('blur', goActiveFromBlurring);
+        };
+    }, [goActiveFromBlurring]);
 
     // Go active when mouse activity is detected
     useEffect(() => {
