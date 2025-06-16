@@ -30,7 +30,7 @@ Report actions guide the submitter, approver, and payer regarding the report's s
 | **Submit** | For open/unsubmitted reports | Submitter | Sends the report into the approval workflow |
 | **Approve** | When the report is submitted and pending approval | Approver | Confirms the report is accurate and ready to move to payment |
 | **Pay** | After report is approved | Payer | Initiates payment via Expensify or logs a manual payment |
-| **Export to...** | When report is approved and not yet exported | Admin, Exporter | Sends report data to an integrated accounting system |
+| **Export** | When report is approved and not yet exported | Admin, Exporter | Sends report data to an integrated accounting system |
 | **Review** | When a report has violations (duplicate expenses, a missing receipt, etc.) | All roles | Prompts the user to resolve issues before submitting, approving, or paying |
 
 ---
@@ -44,12 +44,12 @@ Report actions guide the submitter, approver, and payer regarding the report's s
 | **Delete** | Only on open/unsubmitted reports | Submitter | Permanently removes the report |
 | **Unapprove** | After approval, before payment | Approver | Reverts the approval if the report hasn’t been re-approved or paid |
 | **Mark as exported** | After exporting manually | Admin, Exporter | Tags the report as exported for tracking purposes |
-| **Export to [accounting system]** | When accounting system is connected | Admin, Exporter | Sends the report to external system like Xero or QBD |
+| **Export to [accounting system]** | When an accounting system is connected | Admin, Exporter | Sends the report to an external system such as Xero or QuickBooks Online |
 | **Download** | Any report state | All roles | Downloads a copy of the report as a PDF |
 | **Submit** | For open reports | Admin (on behalf of submitter) | Sends report for approval |
 | **Approve** | For processing reports | Admin | Skips review step, moves forward to payment |
 | **View details** | Any report | All roles | Opens detailed view of report history, expenses, and comments |
-| **Cancel payment** | After payment initiated, before processing | Payer | Cancels pending payment (manual or via Expensify Card) |
+| **Cancel payment** | After payment is initiated, but before the payment has been processed, or for a manual payment | Payer | Cancels pending payment |
 
 ---
 
@@ -69,7 +69,7 @@ The process works just like manual exports for automatic export issues, so you c
 
 ## Why can’t I cancel a payment?
 
-The **Cancel payment** option is only available for in-app payments and only before Expensify starts processing the withdrawal. This usually happens around 2 PM Pacific Time each day.
+The **Cancel payment** option is only available for in-app payments and only before Expensify starts processing the withdrawal. This is usually between 12 PM and 3 PM Pacific Time each day.
 
 This option won't be available if the payment was made manually outside of Expensify. In that case, use **Unapprove** instead.
 
