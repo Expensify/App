@@ -1,8 +1,3 @@
-# This patch is necessary to run Jest with the obligatory at the moment --experimental-vm-modules flag. 
-# Currently we transpile all the code to commonjs, but Jest looks up to individual package.jsons
-# to see whether the package is commonjs or ESModule. That causes a conflict, which can be solved
-# by removing {"type":"module"} from lib/module/package.json. 
-# More: https://github.com/react-navigation/react-navigation/issues/12637
 diff --git a/node_modules/@react-navigation/core/lib/module/package.json b/node_modules/@react-navigation/core/lib/module/package.json
 index 089153b..0967ef4 100644
 --- a/node_modules/@react-navigation/core/lib/module/package.json
