@@ -15,6 +15,7 @@ import {
     isMoneyRequestReport,
     isReportTransactionThread,
 } from './ReportUtils';
+import {isTransactionPendingDelete} from './TransactionUtils';
 
 /**
  * In MoneyRequestReport we filter out some IOU action types, because expense/transaction data is displayed in a separate list
@@ -46,6 +47,10 @@ function isActionVisibleOnMoneyRequestReport(action: ReportAction) {
 function getThreadReportIDsForTransactions(reportActions: ReportAction[], transactions: Transaction[]) {
     return transactions
         .map((transaction) => {
+            if (isTransactionPendingDelete(transaction)) {
+                return;
+            }
+
             const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
             return action?.childReportID;
         })
