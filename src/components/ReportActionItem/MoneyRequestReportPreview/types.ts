@@ -33,6 +33,9 @@ type MoneyRequestReportPreviewProps = {
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
 
+    /** The IOU/Expense report */
+    iouReport: Report | undefined;
+
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor?: ContextMenuAnchor;
 

@@ -1,14 +1,13 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import {reportTransactionsSelector} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Transaction, TransactionViolation} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
 const DEFAULT_TRANSACTIONS: Transaction[] = [];
 const DEFAULT_VIOLATIONS: Record<string, TransactionViolation[]> = {};
 
-function useReportWithTransactionsAndViolations(reportID?: string): [OnyxEntry<Report>, Transaction[], OnyxCollection<TransactionViolation[]>] {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
+function useReportWithTransactionsAndViolations(reportID?: string): [Transaction[], OnyxCollection<TransactionViolation[]>] {
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (_transactions) => reportTransactionsSelector(_transactions, reportID),
         canBeMissing: true,
@@ -26,7 +25,7 @@ function useReportWithTransactionsAndViolations(reportID?: string): [OnyxEntry<R
         },
         [transactions],
     );
-    return [report, transactions ?? DEFAULT_TRANSACTIONS, violations ?? DEFAULT_VIOLATIONS];
+    return [transactions ?? DEFAULT_TRANSACTIONS, violations ?? DEFAULT_VIOLATIONS];
 }
 
 export default useReportWithTransactionsAndViolations;

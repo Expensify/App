@@ -876,7 +876,8 @@ function PureReportActionItem({
                         <View style={[styles.mt1, styles.w100]}>
                             <TransactionPreview
                                 iouReportID={getIOUReportIDFromReportActionPreview(action)}
-                                chatReportID={reportID}
+                                iouReport={iouReport}
+                                chatReport={chatReport}
                                 reportID={reportID}
                                 action={action}
                                 shouldDisplayContextMenu={shouldDisplayContextMenu}
@@ -923,6 +924,7 @@ function PureReportActionItem({
             children = (
                 <MoneyRequestReportPreview
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
+                    iouReport={iouReport}
                     policyID={report?.policyID}
                     chatReport={chatReport}
                     action={action}

@@ -22,6 +22,7 @@ import type {MoneyRequestReportPreviewProps} from './types';
 
 function MoneyRequestReportPreview({
     iouReportID,
+    iouReport,
     policyID,
     chatReport,
     action,
@@ -40,7 +41,7 @@ function MoneyRequestReportPreview({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
+    const [transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
@@ -75,7 +76,7 @@ function MoneyRequestReportPreview({
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
-            chatReportID={chatReport?.reportID}
+            chatReport={chatReport}
             action={getIOUActionForReportID(item.reportID, item.transactionID)}
             contextAction={action}
             reportID={item.reportID}
@@ -85,6 +86,7 @@ function MoneyRequestReportPreview({
             isWhisper={isWhisper}
             isHovered={isHovered}
             iouReportID={iouReportID}
+            iouReport={iouReport}
             containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewStyle]}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewStyle.width}

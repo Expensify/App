@@ -14,8 +14,11 @@ type TransactionPreviewProps = {
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
 
+    /** The IOU/Expense report */
+    iouReport: Report | undefined;
+
     /** The associated chatReport */
-    chatReportID: string | undefined;
+    chatReport: OnyxEntry<Report>;
 
     /** The ID of the current report */
     reportID: string | undefined;
