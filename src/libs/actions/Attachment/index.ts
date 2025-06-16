@@ -14,9 +14,6 @@ Onyx.connect({
 });
 
 function cacheAttachment(attachmentID: string, uri: string) {
-    if (!attachmentID || !uri) {
-        return;
-    }
     fetch(uri)
         .then((response) => {
             if (!response.ok) {
@@ -34,9 +31,6 @@ function cacheAttachment(attachmentID: string, uri: string) {
 }
 
 function getCachedAttachment(attachmentID: string, currentSource: string) {
-    if (!attachmentID) {
-        return;
-    }
     const attachment = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
 
     if (attachment?.remoteSource && attachment.remoteSource !== currentSource) {

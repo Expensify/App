@@ -28,25 +28,17 @@ function put(cacheName: string, key: string, value: Response) {
     });
 }
 function get(cacheName: string, key: string) {
-    if (!cacheName || !key) {
-        return;
-    }
     return caches.open(cacheName).then((cache) => {
         return cache.match(key);
     });
 }
 function remove(cacheName: string, key: string) {
-    if (!cacheName || !key) {
-        return;
-    }
     caches.open(cacheName).then((cache) => {
         cache.delete(key);
     });
 }
-function clear(keys: string[]) {
-    if (!keys || keys.length === 0) {
-        return;
-    }
+function clear() {
+    const keys = Object.values(CONST.CACHE_API_KEYS);
     keys.forEach((key) => {
         if (!key) {
             return;
