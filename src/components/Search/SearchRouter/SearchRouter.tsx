@@ -1,8 +1,8 @@
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
-import {InteractionManager, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -198,7 +198,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setAutocompleteQueryValue(updatedUserQuery);
 
             const updatedSubstitutionsMap = getUpdatedSubstitutionsMap(singleLineUserQuery, autocompleteSubstitutions);
-            if (!isEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
+            if (!deepEqual(autocompleteSubstitutions, updatedSubstitutionsMap)) {
                 setAutocompleteSubstitutions(updatedSubstitutionsMap);
             }
 
@@ -323,6 +323,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
             testID={SearchRouter.displayName}
             ref={ref}
+            onStartShouldSetResponder={() => true}
+            onResponderRelease={Keyboard.dismiss}
         >
             {shouldUseNarrowLayout && (
                 <HeaderWithBackButton
