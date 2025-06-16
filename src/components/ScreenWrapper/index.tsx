@@ -164,7 +164,7 @@ function ScreenWrapper(
 
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {initialURL} = useContext(InitialURLContext);
-    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
+    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: true});
     UNSTABLE_usePreventRemove((isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
@@ -261,4 +261,4 @@ function ScreenWrapper(
 ScreenWrapper.displayName = 'ScreenWrapper';
 
 export default withNavigationFallback(forwardRef(ScreenWrapper));
-export type {ScreenWrapperProps};
+export type {ScreenWrapperProps, ScreenWrapperChildrenProps};
