@@ -6186,8 +6186,6 @@ function buildOptimisticMovedReportAction(
     movedReportID: string,
     policyName: string,
     isIouReport = false,
-    reportID?: string,
-    reportActionID?: string,
 ): ReportAction {
     const originalMessage = {
         fromPolicyID,
