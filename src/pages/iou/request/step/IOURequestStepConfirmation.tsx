@@ -32,6 +32,7 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {generateReportID, getBankAccountRoute, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
@@ -484,8 +485,9 @@ function IOURequestStepConfirmation({
             }
 
             const optimisticChatReportID = generateReportID();
+            const optimisticCreatedReportActionID = rand64();
             const optimisticIOUReportID = generateReportID();
-            const optimisticReportPreviewActionID = generateReportID();
+            const optimisticReportPreviewActionID = rand64();
 
             transactions.forEach((item, index) => {
                 const receipt = receiptFiles[item.transactionID];
@@ -499,6 +501,7 @@ function IOURequestStepConfirmation({
                 requestMoneyIOUActions({
                     report,
                     optimisticChatReportID,
+                    optimisticCreatedReportActionID,
                     optimisticIOUReportID,
                     optimisticReportPreviewActionID,
                     participantParams: {

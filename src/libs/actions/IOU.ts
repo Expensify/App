@@ -428,6 +428,7 @@ type RequestMoneyInformation = {
     shouldHandleNavigation?: boolean;
     backToReport?: string;
     optimisticChatReportID?: string;
+    optimisticCreatedReportActionID?: string;
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
 };
@@ -444,6 +445,7 @@ type MoneyRequestInformationParams = {
     isSplitExpense?: boolean;
     testDriveCommentReportActionID?: string;
     optimisticChatReportID?: string;
+    optimisticCreatedReportActionID?: string;
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
 };
@@ -3246,6 +3248,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isSplitExpense,
         testDriveCommentReportActionID,
         optimisticChatReportID,
+        optimisticCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
     } = moneyRequestInformation;
@@ -3388,6 +3391,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             transactionID: optimisticTransaction.transactionID,
             paymentType: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
             existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
+            optimisticCreatedReportActionID,
             linkedTrackedExpenseReportAction,
         });
 
@@ -5198,6 +5202,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         backToReport,
         shouldPlaySound = true,
         optimisticChatReportID,
+        optimisticCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
     } = requestMoneyInformation;
@@ -5279,6 +5284,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         retryParams,
         testDriveCommentReportActionID,
         optimisticChatReportID,
+        optimisticCreatedReportActionID,
         optimisticIOUReportID,
         optimisticReportPreviewActionID,
     });
