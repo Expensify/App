@@ -376,7 +376,7 @@ function AttachmentModal({
         [getModalType, setSourceState, setFile, setModalType],
     );
 
-    const validateFiles = (data: FileObject[]) => {
+    const validateFiles = useCallback((data: FileObject[]) => {
         let validFiles: FileObject[] = [];
 
         Promise.all(data.map((fileToUpload) => isValidFile(fileToUpload, true).then((isValid) => (isValid ? fileToUpload : null)))).then((results) => {
@@ -390,7 +390,7 @@ function AttachmentModal({
                 }
             }
         });
-    };
+    }, [isValidFile, handleOpenModal]);
 
     const confirmAndContinue = () => {
         if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
