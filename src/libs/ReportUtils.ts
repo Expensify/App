@@ -3048,6 +3048,9 @@ function getIconsForExpenseReport(report: OnyxInputOrEntry<Report>, personalDeta
     return [memberIcon, workspaceIcon];
 }
 
+/**
+ * Helper function to get the icons for an iou report. Only to be used in getIcons().
+ */
 function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): Icon[] {
     if (!report) {
         return [];
