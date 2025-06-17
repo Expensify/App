@@ -3015,18 +3015,6 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
     }
 
     const accountIDs = new Set<number>();
-
-    // Get actors and delegates from money request actions, as they are the "owners" of the transactions.
-    const reportActions = Object.values(getAllReportActions(report.reportID));
-    const moneyRequestActions = reportActions.filter((action): action is ReportAction => !!action && isMoneyRequestAction(action));
-
-    moneyRequestActions.forEach((action) => {
-        const ownerID = action.delegateAccountID ?? action.actorAccountID;
-        if (ownerID) {
-            accountIDs.add(ownerID);
-        }
-    });
-
     // Uses attendees from transactions
     const transactions = getReportTransactions(report.reportID);
     if (transactions.length > 0) {
