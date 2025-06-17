@@ -34,10 +34,12 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
 }
 
 const CURRENT_USER_ID = 1;
-const FAKE_OPEN_REPORT_ID = '2';
-const FAKE_SELF_DM_REPORT_ID = '3';
-const openReport = {
-    reportID: FAKE_OPEN_REPORT_ID,
+const FAKE_NEW_REPORT_ID = '2';
+const FAKE_OLD_REPORT_ID = '3';
+const FAKE_SELF_DM_REPORT_ID = '4';
+
+const newReport = {
+    reportID: FAKE_NEW_REPORT_ID,
     ownerAccountID: CURRENT_USER_ID,
     type: CONST.REPORT.TYPE.EXPENSE,
     stateNum: CONST.REPORT.STATE_NUM.OPEN,
@@ -58,7 +60,7 @@ const transactionCollectionDataSet: TransactionCollectionDataSet = {
 };
 
 const reportCollectionDataSet: ReportCollectionDataSet = {
-    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`]: openReport,
+    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`]: newReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_SELF_DM_REPORT_ID}`]: selfDM,
 };
 
@@ -91,11 +93,42 @@ describe('Transaction', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], FAKE_OPEN_REPORT_ID);
+            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID);
 
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OPEN_REPORT_ID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_NEW_REPORT_ID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID)).toBeDefined();
+        });
+
+        it('correctly moves the iou action linked to the moved transaction to the new expense report', async () => {
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID);
+
+            const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_NEW_REPORT_ID}`,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
