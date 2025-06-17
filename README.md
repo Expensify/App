@@ -833,7 +833,7 @@ If you are unhappy with the results of an AI translation, there are currently tw
 1. If you are adding a string that can have an ambiguous meaning without proper context, you can add a context annotation in `en.ts`. This takes the form of a comment before your string starting with `@context`.
 2. The base prompt(s) can be found in `prompts/translation`, and can be adjusted if necessary.
 
-----
+-----
 
 # Deploying
 ## QA and deploy cycles
