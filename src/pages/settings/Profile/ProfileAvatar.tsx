@@ -37,9 +37,7 @@ function ProfileAvatar({route}: ProfileAvatarProps) {
             headerTitle={formatPhoneNumber(displayName)}
             defaultOpen
             source={getFullSizeAvatar(avatarURL, accountID)}
-            onModalClose={() => {
-                Navigation.goBack(route.params?.backTo);
-            }}
+            onModalClose={() => Navigation.goBack(route.params?.backTo)}
             originalFileName={personalDetail?.originalFileName ?? ''}
             isLoading={!!isLoading}
             shouldShowNotFoundPage={!avatarURL}
