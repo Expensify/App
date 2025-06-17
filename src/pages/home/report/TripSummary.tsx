@@ -3,7 +3,6 @@ import {useOnyx} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TripDetailsView from '@components/ReportActionItem/TripDetailsView';
 import useTripTransactions from '@hooks/useTripTransactions';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type TripSummaryProps = {

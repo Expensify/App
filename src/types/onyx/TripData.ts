@@ -2,6 +2,25 @@
 type TripData = {
     /** List of Passenger Name Records (PNRs) associated with the trip. */
     pnrs: Pnr[];
+    /**
+     * Information about the payment for the trip, including the total fare.
+     */
+    tripPaymentInfo: {
+        /**
+         * The total fare for the trip, including the amount and currency code.
+         */
+        totalFare: {
+            /**
+             * The monetary amount of the total fare.
+             */
+            amount: number;
+
+            /**
+             * The currency code for the total fare (e.g., USD, EUR).
+             */
+            currencyCode: string;
+        };
+    };
 };
 
 /** Represents a Passenger Name Record (PNR). */
@@ -533,8 +552,6 @@ type AirPnr = {
                 number: number;
             }>;
         };
-        /** Created MCOs for the traveler. */
-        createdMcos: unknown[];
         /** Passenger type for the traveler. */
         paxType: string;
         /** Special service request information for the traveler. */
@@ -1643,7 +1660,7 @@ type CarPnr = {
 
     /** Rebook reference information for the car booking. */
     rebookReference: {
-        /** List of cancelled PNR IDs for rebooking. */
+        /** List of cancelled PNR IDs for re-booking. */
         cancelledPnrIds: Array<Record<string, unknown>>;
 
         /** Rebooked PNR ID. */

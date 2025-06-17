@@ -20,9 +20,8 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import type {ReservationData} from '@libs/TripReservationUtils';
-import {getReservationsFromTripReport, getTripReservationIcon} from '@libs/TripReservationUtils';
+import {getReservationsFromTripReport, getTripReservationIcon, getTripTotal} from '@libs/TripReservationUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -159,9 +158,10 @@ function TripRoomPreview({
         chatReport?.tripData?.startDate && chatReport?.tripData?.endDate
             ? DateUtils.getFormattedDateRange(new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate))
             : '';
-    const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(chatReport);
+    const reportCurrency = iouReport?.currency ?? chatReport?.currency;
 
-    const currency = iouReport?.currency ?? chatReport?.currency;
+    const {totalDisplaySpend = 0, currency = reportCurrency} = chatReport ? getTripTotal(chatReport) : {};
+
     const displayAmount = useMemo(() => {
         if (totalDisplaySpend) {
             return convertToDisplayString(totalDisplaySpend, currency);
@@ -181,6 +181,7 @@ function TripRoomPreview({
         />
     );
 
+    console.debug('displayAmount', totalDisplaySpend, displayAmount);
     return (
         <OfflineWithFeedback
             pendingAction={action?.pendingAction}

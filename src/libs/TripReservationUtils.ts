@@ -6,6 +6,7 @@ import type {Reservation, ReservationType} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {AirPnr, CarPnr, HotelPnr, Pnr, PnrData, PnrTraveler, RailPnr, TripData} from '@src/types/onyx/TripData';
 import type IconAsset from '@src/types/utils/IconAsset';
+import {getMoneyRequestSpendBreakdown} from './ReportUtils';
 
 function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
     switch (reservationType) {
@@ -419,5 +420,19 @@ function getReservationsFromTripReport(tripReport?: Report, transactions?: Trans
     return [];
 }
 
-export {getTripReservationIcon, getTripEReceiptIcon, getTripReservationCode, getReservationsFromTripReport};
+function getTripTotal(tripReport: Report): {
+    totalDisplaySpend: number;
+    currency?: string;
+} {
+    if (tripReport?.tripData?.payload) {
+        return {
+            totalDisplaySpend: tripReport.tripData.payload.tripPaymentInfo.totalFare.amount * 100,
+            currency: tripReport.tripData.payload.tripPaymentInfo.totalFare.currencyCode,
+        };
+    }
+
+    return getMoneyRequestSpendBreakdown(tripReport);
+}
+
+export {getTripReservationIcon, getTripEReceiptIcon, getTripReservationCode, getReservationsFromTripReport, getTripTotal};
 export type {ReservationData};
