@@ -199,14 +199,7 @@ function SearchAutocompleteList(
     const cardFeedNamesWithType = useMemo(() => {
         return getCardFeedNamesWithType({workspaceCardFeeds, translate});
     }, [translate, workspaceCardFeeds]);
-    const feedAutoCompleteList = useMemo(
-        () =>
-            Object.entries(cardFeedNamesWithType).map(([cardFeedKey, cardFeedName]) => ({
-                cardFeedKey,
-                cardFeedName,
-            })),
-        [cardFeedNamesWithType],
-    );
+    const feedAutoCompleteList = useMemo(() => Object.entries(cardFeedNamesWithType).map(([cardFeedKey, cardFeedName]) => ({cardFeedKey, cardFeedName})), [cardFeedNamesWithType]);
 
     const getParticipantsAutocompleteList = useMemo(
         () =>
@@ -635,7 +628,7 @@ function SearchAutocompleteList(
             onArrowFocus={onArrowFocus}
             ref={ref}
             initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
-            shouldScrollToFocusedIndex={isInitialRender}
+            shouldScrollToFocusedIndex={!isInitialRender}
             shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
             disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
         />
