@@ -693,7 +693,6 @@ https://help.expensify.com/articles/new-expensify/expenses-&-payments/Adding-Att
 https://help.expensify.com/articles/new-expensify/expenses-&-payments/Approve-expenses,https://help.expensify.com/articles/new-expensify/expenses-and-payments/Approve-expenses
 https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account,https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account
 https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Personal-Bank-Account,https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account
-https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-Per-Diem-expenses,https://help.expensify.com/articles/new-expensify/expenses-and-payments/Create-Per-Diem-expenses
 https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense,https://help.expensify.com/articles/new-expensify/expenses-and-payments/Create-an-expense
 https://help.expensify.com/articles/new-expensify/expenses-&-payments/Distance-Requests,https://help.expensify.com/articles/new-expensify/expenses-and-payments/Distance-Requests
 https://help.expensify.com/articles/new-expensify/expenses-&-payments/Duplicate-detection,https://help.expensify.com/articles/new-expensify/expenses-and-payments/Duplicate-detection
@@ -719,13 +718,13 @@ https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments
 https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Enable-Global-Reimbursements.html,https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Enable-Global-Reimbursement
 https://help.expensify.com/articles/expensify-classic/reports/Submit-or-retract-a-report.html,https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports
 https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-an-expense.html,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-expense
-https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-Per-Diem-expenses.html,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-Per-Diem-expenses
+https://help.expensify.com/articles/new-expensify/expenses-&-payments/Create-Per-Diem-expenses.html,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Per-Diem-Expenses
 https://help.expensify.com/articles/expensify-classic/reports/Add-expenses-to-a-report.html,https://help.expensify.com/articles/expensify-classic/reports/Edit-and-Submit-Expense-Reports#add-expenses-to-reports
 https://help.expensify.com/articles/new-expensify/expenses-&-payments/Approve-expenses.html,https://help.expensify.com/articles/new-expensify/expenses-and-payments/Approve-expenses
 https://help.expensify.com/articles/new-expensify/expenses-and-payments/Adding-Attendees,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Adding-Attendees
 https://help.expensify.com/articles/new-expensify/expenses-and-payments/Approve-expenses,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Approve-expenses
 https://help.expensify.com/articles/new-expensify/expenses-and-payments/Create-an-expense,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-expense
-https://help.expensify.com/articles/new-expensify/expenses-and-payments/Create-Per-Diem-expenses,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-Per-Diem-expenses
+https://help.expensify.com/articles/new-expensify/expenses-and-payments/Create-Per-Diem-expenses,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Per-Diem-Expenses
 https://help.expensify.com/articles/new-expensify/expenses-and-payments/Distance-Requests,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Requests
 https://help.expensify.com/articles/new-expensify/expenses-and-payments/Duplicate-detection,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Duplicate-detection
 https://help.expensify.com/articles/new-expensify/expenses-and-payments/Search-and-Download-Expenses,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Export-download-expenses
@@ -834,7 +833,7 @@ https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-c
 https://help.expensify.com/articles/expensify-classic/get-paid-back/reports/Create-A-Report.html,https://help.expensify.com/expensify-classic/hubs/reports/
 https://help.expensify.com/articles/new-expensify/account-settings/Security.html,https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security
 https://help.expensify.com/articles/expensify-classic/travel/Configure-travel-policy-and-preferences.html,https://help.expensify.com/articles/expensify-classic/travel/Configure-travel-policy-and-preferences
-https://help.expensify.com/articles/new-expensify/expenses-&-payments/create-per-diem-expense.html,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-Per-Diem-expenses
+https://help.expensify.com/articles/new-expensify/expenses-&-payments/create-per-diem-expense.html,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Per-Diem-Expenses
 https://help.expensify.com/articles/expensify-classic/expensify-billing/Out-of-date-Billing.html,https://help.expensify.com/articles/expensify-classic/expensify-billing/Out-of-Date-Billing
 https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot,https://help.expensify.com/articles/new-expensify/settings/Copilot-Access
 https://help.expensify.com/articles/new-expensify/settings/Change-or-add-email-address,https://help.expensify.com/articles/new-expensify/settings/Update-Email-Address
@@ -842,7 +841,9 @@ https://help.expensify.com/articles/new-expensify/settings/Enable-Two-Factor-Aut
 https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts,https://help.expensify.com/articles/expensify-classic/settings/Merge-Accounts
 https://help.expensify.com/articles/new-expensify/settings/Close-account,https://help.expensify.com/articles/new-expensify/settings/Close-Account
 https://help.expensify.com/articles/new-expensify/settings/Manage-Profile-and-Account-Preferences,https://help.expensify.com/articles/new-expensify/settings/Account-Settings
-https://help.expensify.com/articles/expensify-classic/settings/Locked-Account-Tool,https://help.expensify.com/articles/expensify-classic/settings/Lock-Account-Tool
+https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-expense,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense
+https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-Per-Diem-expenses,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Per-Diem-Expenses
+https://help.expensify.com/articles/new-expensify/reports-and-expenses/Approve-expenses,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Approve-Expenses
 https://help.expensify.com/articles/new-expensify/chat/Expensify-Chat-rooms-for-admins,https://help.expensify.com/articles/new-expensify/chat/Expensify-Chat-Rooms-for-Admins
 https://help.expensify.com/articles/new-expensify/chat/assign-a-task,https://help.expensify.com/articles/new-expensify/chat/Assign-a-Task
 https://help.expensify.com/articles/new-expensify/chat/Create-a-new-chat,https://help.expensify.com/articles/new-expensify/chat/Create-a-New-Chat
@@ -853,6 +854,12 @@ https://help.expensify.com/articles/new-expensify/chat/Flag-chat-messages,https:
 https://help.expensify.com/articles/new-expensify/chat/Leave-a-chat-room,https://help.expensify.com/articles/new-expensify/chat/Chat-Features-and-Moderation-Tools
 https://help.expensify.com/articles/new-expensify/chat/Send-and-format-chat-messages,https://help.expensify.com/articles/new-expensify/chat/Chat-Features-and-Moderation-Tools
 https://help.expensify.com/articles/new-expensify/chat/Start-a-conversation-thread,https://help.expensify.com/articles/new-expensify/chat/Chat-Features-and-Moderation-Tools
+https://help.expensify.com/articles/new-expensify/expensify-card/Set-up-the-Expensify-Card,https://help.expensify.com/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card
+https://help.expensify.com/articles/new-expensify/expensify-card/Update-your-Expensify-Card-mailing-address, https://help.expensify.com/articles/new-expensify/expensify-card/Update-Your-Expensify-Card-Mailing-Address
 https://help.expensify.com/articles/new-expensify/reports-and-expenses/Send-an-invoice,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Send-an-Invoice
 https://help.expensify.com/articles/new-expensify/reports-and-expenses/Split-an-expense,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Split-Expenses
 https://help.expensify.com/articles/new-expensify/reports-and-expenses/Track-expenses,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Track-Expenses
+https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Requests,https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Expenses
+https://help.expensify.com/articles/new-expensify/travel/Expensify-Travel-demo-video,https://help.expensify.com/articles/expensify-classic/travel/Expensify-Travel-Tutorial
+https://help.expensify.com/articles/new-expensify/expensify-card/Check-Expensify-Card-limit,https://help.expensify.com/articles/new-expensify/expensify-card/Cardholder-Settings-and-Features#view-your-smart-limit
+https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards,https://help.expensify.com/articles/new-expensify/expensify-card/Set-Up-and-Manage-the-Expensify-Card

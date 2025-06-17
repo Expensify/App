@@ -50,6 +50,7 @@ function ButtonWithDropdownMenu<IValueType>({
     testID,
     secondLineText = '',
     icon,
+    shouldUseModalPaddingStyle = true,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -61,7 +62,9 @@ function ButtonWithDropdownMenu<IValueType>({
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const dropdownAnchor = useRef<View | null>(null);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     // eslint-disable-next-line react-compiler/react-compiler
     const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, dropdownAnchor);
     const selectedItem = options.at(selectedItemIndex) ?? options.at(0);
@@ -220,6 +223,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         setIsMenuVisible(false);
                         onOptionsMenuHide?.();
                     }}
+                    shouldHandleNavigationBack
                     onModalShow={onOptionsMenuShow}
                     onItemSelected={(selectedSubitem, index, event) => {
                         onSubItemSelected?.(selectedSubitem, index, event);
@@ -231,8 +235,8 @@ function ButtonWithDropdownMenu<IValueType>({
                     anchorRef={nullCheckRef(dropdownAnchor)}
                     withoutOverlay
                     shouldUseScrollView
-                    scrollContainerStyle={shouldUseNarrowLayout && styles.pv4}
-                    shouldUseModalPaddingStyle={false}
+                    scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && styles.pv4}
+                    shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
                     anchorAlignment={anchorAlignment}
                     headerText={menuHeaderText}
                     menuItems={options.map((item, index) => ({
