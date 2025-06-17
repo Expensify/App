@@ -1,14 +1,13 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/MultiSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
+import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 type SearchMultipleSelectionPickerItem = {
     name: string;
@@ -25,7 +24,6 @@ type SearchMultipleSelectionPickerProps = {
 
 function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchMultipleSelectionPickerProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
@@ -98,24 +96,12 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
 
     const footerContent = useMemo(
         () => (
-            <>
-                <Button
-                    large
-                    style={[styles.mt4]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                />
-                <Button
-                    success
-                    large
-                    pressOnEnter
-                    style={[styles.mt4]}
-                    text={translate('common.save')}
-                    onPress={applyChanges}
-                />
-            </>
+            <SearchFilterPageFooterButtons
+                applyChanges={applyChanges}
+                resetChanges={resetChanges}
+            />
         ),
-        [styles.mt4, translate, resetChanges, applyChanges],
+        [resetChanges, applyChanges],
     );
     return (
         <SelectionList

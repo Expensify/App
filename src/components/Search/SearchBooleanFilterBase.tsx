@@ -2,8 +2,6 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import Button from '@components/Button';
-import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -17,6 +15,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 import type {SearchBooleanFilterKeys} from './types';
 
 type BooleanFilterItem = ListItem & {
@@ -88,22 +87,10 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
                     onSelectRow={updateFilter}
                 />
             </View>
-            <FixedFooter style={styles.mtAuto}>
-                <Button
-                    large
-                    style={[styles.mt4]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                />
-                <Button
-                    large
-                    success
-                    pressOnEnter
-                    style={[styles.mt4]}
-                    text={translate('common.save')}
-                    onPress={applyChanges}
-                />
-            </FixedFooter>
+            <SearchFilterPageFooterButtons
+                applyChanges={applyChanges}
+                resetChanges={resetChanges}
+            />
         </ScreenWrapper>
     );
 }

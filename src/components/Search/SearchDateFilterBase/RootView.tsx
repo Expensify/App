@@ -1,10 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
-import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -66,22 +65,10 @@ function SearchDateFilterBaseRootView({titleKey, value, applyChanges, resetChang
                 />
             </View>
 
-            <FixedFooter style={styles.mtAuto}>
-                <Button
-                    large
-                    style={[styles.mt4]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                />
-                <Button
-                    large
-                    success
-                    pressOnEnter
-                    style={[styles.mt4]}
-                    text={translate('common.save')}
-                    onPress={applyChanges}
-                />
-            </FixedFooter>
+            <SearchFilterPageFooterButtons
+                applyChanges={applyChanges}
+                resetChanges={resetChanges}
+            />
         </ScreenWrapper>
     );
 }

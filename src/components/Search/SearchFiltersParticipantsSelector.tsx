@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
@@ -8,7 +7,6 @@ import UserSelectionListItem from '@components/SelectionList/Search/UserSelectio
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {filterAndOrderOptions, formatSectionsFromSearchTerm, getValidOptions} from '@libs/OptionsListUtils';
 import type {Option, Section} from '@libs/OptionsListUtils';
@@ -19,6 +17,7 @@ import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 const defaultListOptions = {
     userToInvite: null,
@@ -39,7 +38,6 @@ type SearchFiltersParticipantsSelectorProps = {
 };
 
 function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}: SearchFiltersParticipantsSelectorProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -186,23 +184,14 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         [selectedOptions],
     );
 
-    const footerContent = (
-        <>
-            <Button
-                large
-                style={[styles.mt4]}
-                text={translate('common.reset')}
-                onPress={resetChanges}
+    const footerContent = useMemo(
+        () => (
+            <SearchFilterPageFooterButtons
+                applyChanges={applyChanges}
+                resetChanges={resetChanges}
             />
-            <Button
-                large
-                success
-                pressOnEnter
-                style={[styles.mt4]}
-                text={translate('common.save')}
-                onPress={applyChanges}
-            />
-        </>
+        ),
+        [applyChanges, resetChanges],
     );
 
     const isLoadingNewOptions = !!isSearchingForReports;

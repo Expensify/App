@@ -1,9 +1,8 @@
 import React, {useState} from 'react';
-import Button from '@components/Button';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
-import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
@@ -55,22 +54,10 @@ function SearchDateFilterBaseCalendarView({view, value, navigateBack, setValue}:
                 minDate={CONST.CALENDAR_PICKER.MIN_DATE}
             />
 
-            <FixedFooter style={styles.mtAuto}>
-                <Button
-                    large
-                    style={[styles.mt4]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                />
-                <Button
-                    large
-                    success
-                    pressOnEnter
-                    style={[styles.mt4]}
-                    text={translate('common.save')}
-                    onPress={applyChanges}
-                />
-            </FixedFooter>
+            <SearchFilterPageFooterButtons
+                applyChanges={applyChanges}
+                resetChanges={resetChanges}
+            />
         </ScreenWrapper>
     );
 }
