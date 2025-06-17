@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -8,14 +9,15 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCurrentXeroOrganizationName, settingsPendingAction} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, getCurrentXeroOrganizationName, settingsPendingAction} from '@libs/PolicyUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {updateXeroAutoSync, updateXeroSyncSyncReimbursedReports} from '@userActions/connections/Xero';
+import {updateXeroSyncSyncReimbursedReports} from '@userActions/connections/Xero';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 
 function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
@@ -24,9 +26,10 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const policyID = policy?.id ?? '-1';
     const xeroConfig = policy?.connections?.xero?.config;
-    const {autoSync, pendingFields, errorFields, sync} = xeroConfig ?? {};
+    const {pendingFields, errorFields, sync} = xeroConfig ?? {};
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const {invoiceCollectionsAccountID, reimbursementAccountID} = sync ?? {};
+    const accountingMethod = xeroConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
 
     const getSelectedAccountName = useMemo(
         () => (accountID: string) => {
@@ -54,27 +57,26 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
             contentContainerStyle={[styles.pb2, styles.ph5]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
-            <ToggleSettingOptionRow
-                key={translate('workspace.accounting.autoSync')}
-                title={translate('workspace.accounting.autoSync')}
-                subtitle={translate('workspace.xero.advancedConfig.autoSyncDescription')}
-                switchAccessibilityLabel={translate('workspace.xero.advancedConfig.autoSyncDescription')}
-                shouldPlaceSubtitleBelowSwitch
-                wrapperStyle={styles.mv3}
-                isActive={!!autoSync?.enabled}
-                onToggle={() =>
-                    updateXeroAutoSync(
-                        policyID,
-                        {
-                            enabled: !autoSync?.enabled,
-                        },
-                        {enabled: autoSync?.enabled ?? undefined},
-                    )
-                }
-                pendingAction={settingsPendingAction([CONST.XERO_CONFIG.ENABLED], pendingFields)}
-                errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.ENABLED)}
-                onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.ENABLED)}
-            />
+            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.XERO_CONFIG.AUTO_SYNC, CONST.XERO_CONFIG.ACCOUNTING_METHOD], xeroConfig?.pendingFields)}>
+                <MenuItemWithTopDescription
+                    title={xeroConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
+                    description={translate('workspace.accounting.autoSync')}
+                    shouldShowRightIcon
+                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.getRoute(policyID))}
+                    brickRoadIndicator={
+                        areSettingsInErrorFields([CONST.XERO_CONFIG.AUTO_SYNC, CONST.XERO_CONFIG.ACCOUNTING_METHOD], xeroConfig?.errorFields)
+                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                            : undefined
+                    }
+                    hintText={(() => {
+                        if (!xeroConfig?.autoSync?.enabled) {
+                            return undefined;
+                        }
+                        return translate(`workspace.xero.accountingMethods.alternateText.${accountingMethod}` as TranslationPaths);
+                    })()}
+                />
+            </OfflineWithFeedback>
             <ToggleSettingOptionRow
                 key={translate('workspace.accounting.reimbursedReports')}
                 title={translate('workspace.accounting.reimbursedReports')}

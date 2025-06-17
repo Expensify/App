@@ -2159,6 +2159,16 @@ const ROUTES = {
             return `settings/workspaces/${policyID}/accounting/xero/advanced` as const;
         },
     },
+    POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
+        route: 'settings/workspaces/:policyID/accounting/xero/advanced/autosync',
+        getRoute: (policyID: string | undefined, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/xero/advanced/autosync` as const, backTo),
+    },
+    POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD: {
+        route: 'settings/workspaces/:policyID/accounting/xero/advanced/autosync/accounting-method',
+        getRoute: (policyID: string, backTo?: string) => 
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/xero/advanced/autosync/accounting-method` as const, backTo),
+    },
     POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/xero/export/purchase-bill-status-selector',
         getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/xero/export/purchase-bill-status-selector` as const, backTo),
