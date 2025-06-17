@@ -1476,6 +1476,7 @@ const translations = {
             noLogsToShare: 'Nessun registro da condividere',
             useProfiling: 'Usa il profiling',
             profileTrace: 'Traccia del profilo',
+            results: 'Risultati',
             releaseOptions: 'Opzioni di rilascio',
             testingPreferences: 'Preferenze di test',
             useStagingServer: 'Usa il server di staging',
@@ -1496,6 +1497,7 @@ const translations = {
             invalidFile: 'File non valido',
             invalidFileDescription: 'Il file che stai tentando di importare non \u00E8 valido. Per favore riprova.',
             invalidateWithDelay: 'Invalidare con ritardo',
+            recordTroubleshootData: 'Registrazione dei dati di risoluzione dei problemi',
         },
         debugConsole: {
             saveLog: 'Salva registro',

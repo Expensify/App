@@ -1487,6 +1487,7 @@ const translations = {
             noLogsToShare: 'Keine Protokolle zum Teilen',
             useProfiling: 'Profiling verwenden',
             profileTrace: 'Profilverlauf',
+            results: 'Ergebnisse',
             releaseOptions: 'Freigabeoptionen',
             testingPreferences: 'Pr\u00E4ferenzen testen',
             useStagingServer: 'Staging-Server verwenden',
@@ -1507,6 +1508,7 @@ const translations = {
             invalidFile: 'Ung\u00FCltige Datei',
             invalidFileDescription: 'Die Datei, die Sie importieren m\u00F6chten, ist ung\u00FCltig. Bitte versuchen Sie es erneut.',
             invalidateWithDelay: 'Mit Verz\u00F6gerung ung\u00FCltig machen',
+            recordTroubleshootData: 'Daten zur Fehlerbehebung aufzeichnen',
         },
         debugConsole: {
             saveLog: 'Protokoll speichern',

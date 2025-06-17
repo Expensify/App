@@ -1495,6 +1495,7 @@ const translations = {
             noLogsToShare: 'Brak dziennik\u00F3w do udost\u0119pnienia',
             useProfiling: 'U\u017Cyj profilowania',
             profileTrace: '\u015Alad profilu',
+            results: 'Wyniki',
             releaseOptions: 'Opcje wydania',
             testingPreferences: 'Testowanie preferencji',
             useStagingServer: 'U\u017Cyj serwera Staging',
@@ -1515,6 +1516,7 @@ const translations = {
             invalidFile: 'Nieprawid\u0142owy plik',
             invalidFileDescription: 'Plik, kt\u00F3ry pr\u00F3bujesz zaimportowa\u0107, jest nieprawid\u0142owy. Spr\u00F3buj ponownie.',
             invalidateWithDelay: 'Uniewa\u017Cnij z op\u00F3\u017Anieniem',
+            recordTroubleshootData: 'Rejestrowanie danych rozwi\u0105zywania problem\u00f3w',
         },
         debugConsole: {
             saveLog: 'Zapisz dziennik',

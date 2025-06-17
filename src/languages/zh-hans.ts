@@ -1519,6 +1519,7 @@ const translations = {
             noLogsToShare: '\u6CA1\u6709\u65E5\u5FD7\u53EF\u5206\u4EAB',
             useProfiling: '\u4F7F\u7528\u5206\u6790\u5DE5\u5177',
             profileTrace: '\u4E2A\u4EBA\u8D44\u6599\u8FFD\u8E2A',
+            results: '\u6210\u679c',
             releaseOptions: '\u53D1\u5E03\u9009\u9879',
             testingPreferences: '\u6D4B\u8BD5\u504F\u597D\u8BBE\u7F6E',
             useStagingServer: '\u4F7F\u7528\u6682\u5B58\u670D\u52A1\u5668',
@@ -1539,6 +1540,7 @@ const translations = {
             invalidFile: '\u65E0\u6548\u6587\u4EF6',
             invalidFileDescription: '\u60A8\u5C1D\u8BD5\u5BFC\u5165\u7684\u6587\u4EF6\u65E0\u6548\u3002\u8BF7\u518D\u8BD5\u4E00\u6B21\u3002',
             invalidateWithDelay: '\u5EF6\u8FDF\u5931\u6548',
+            recordTroubleshootData: '\u8bb0\u5f55\u6545\u969c\u6392\u9664\u6570\u636e',
         },
         debugConsole: {
             saveLog: '\u4FDD\u5B58\u65E5\u5FD7',

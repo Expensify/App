@@ -1482,6 +1482,7 @@ const translations = {
             noLogsToShare: 'Nenhum registro para compartilhar',
             useProfiling: 'Use o perfilamento',
             profileTrace: 'Rastreamento de perfil',
+            results: 'Resultados',
             releaseOptions: 'Op\u00E7\u00F5es de lan\u00E7amento',
             testingPreferences: 'Testando prefer\u00EAncias',
             useStagingServer: 'Usar Servidor de Staging',
@@ -1502,6 +1503,7 @@ const translations = {
             invalidFile: 'Arquivo inv\u00E1lido',
             invalidFileDescription: 'O arquivo que voc\u00EA est\u00E1 tentando importar n\u00E3o \u00E9 v\u00E1lido. Por favor, tente novamente.',
             invalidateWithDelay: 'Invalidar com atraso',
+            recordTroubleshootData: 'Registro de dados de solu\u00e7\u00e3o de problemas',
         },
         debugConsole: {
             saveLog: 'Salvar log',
