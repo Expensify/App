@@ -2073,14 +2073,7 @@ const translations = {
     },
     languagePage: {
         language: 'Sprache',
-        languages: {
-            en: {
-                label: 'Englisch',
-            },
-            es: {
-                label: 'Spanisch',
-            },
-        },
+        aiGenerated: 'Die Übersetzungen für diese Sprache werden automatisch erstellt und können Fehler enthalten.',
     },
     themePage: {
         theme: 'Thema',

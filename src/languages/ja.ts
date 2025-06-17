@@ -2280,14 +2280,7 @@ const translations = {
     },
     languagePage: {
         language: '\u8A00\u8A9E',
-        languages: {
-            en: {
-                label: '\u82F1\u8A9E',
-            },
-            es: {
-                label: 'Espa\u00F1ol',
-            },
-        },
+        aiGenerated: 'この言語の翻訳は自動生成されており、誤りが含まれている可能性があります。',
     },
     themePage: {
         theme: '\u30C6\u30FC\u30DE',

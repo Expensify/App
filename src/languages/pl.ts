@@ -2090,14 +2090,7 @@ const translations = {
     },
     languagePage: {
         language: 'J\u0119zyk',
-        languages: {
-            en: {
-                label: 'Angielski',
-            },
-            es: {
-                label: 'Spanish',
-            },
-        },
+        aiGenerated: 'Tłumaczenia dla tego języka są generowane automatycznie i mogą zawierać błędy.',
     },
     themePage: {
         theme: 'Motyw',
