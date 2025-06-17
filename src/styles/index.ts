@@ -4068,7 +4068,7 @@ const styles = (theme: ThemeColors) =>
             marginRight: 8,
             width: variables.w44,
             borderRadius: variables.componentBorderRadiusSmall,
-            backgroundColor: colors.productLight300,
+            backgroundColor: theme.hoverComponentBG,
         },
 
         isDraggingOver: {

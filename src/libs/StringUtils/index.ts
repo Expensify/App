@@ -1,6 +1,8 @@
 import deburr from 'lodash/deburr';
+import {isSafari} from '@libs/Browser';
 import CONST from '@src/CONST';
-import {isSafari} from './Browser';
+import dedent from './dedent';
+import hash from './hash';
 
 /**
  * Removes diacritical marks and non-alphabetic and non-latin characters from a string.
@@ -138,36 +140,12 @@ function removePreCodeBlock(text = '') {
 }
 
 /**
- * Hash a string, plus some logic to increase entropy and reduce collisions.
- *
- * @param str - the string to generate a whole number hash from
- * @param max - the hash will not be more than this maximum. It defaults to 2^32 to prevent the hash from overflowing the max number space in JavaScript, which is 2^53
- *
- * @example
- * // deterministically choose an item from an array with an even distribution:
- * const avatars = [Avatar1, Avatar2, Avatar3, Avatar4];
- * const email = 'someone@gmail.com';
- * const defaultAvatarForEmail = avatars[StringUtils.hash(email, avatars.length)];
+ * Returns the number of bytes required to encode a string in UTF-8.
  */
-function hash(str: string, max: number = 2 ** 32): number {
-    if (max <= 0) {
-        throw new Error('max must be a positive integer');
-    }
-
-    // Create a rolling hash from the characters
-    let hashCode = 0;
-    for (let i = 0; i < str.length; i++) {
-        // Char code, weighted by position in the string (this way "act" and "cat" will produce different hashes)
-        const charCode = str.charCodeAt(i) * (i + 1);
-
-        // Multiplied and offset by prime numbers for more even distribution.
-        hashCode *= 31;
-        hashCode += charCode + 7;
-
-        // Continuously mod by the max to prevent max number overflow for large strings
-        hashCode %= max;
-    }
-    return Math.abs(hashCode);
+function getUTF8ByteLength(str: string) {
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(str);
+    return bytes.length;
 }
 
 export default {
@@ -182,5 +160,7 @@ export default {
     removeDoubleQuotes,
     removePreCodeBlock,
     sortStringArrayByLength,
+    dedent,
     hash,
+    getUTF8ByteLength,
 };
