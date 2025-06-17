@@ -4921,6 +4921,7 @@ const translations = {
         invite: {
             member: 'Mitglied einladen',
             members: 'Mitglieder einladen',
+            inviteNewMember: 'Neues Mitglied einladen',
             invitePeople: 'Neue Mitglieder einladen',
             genericFailureMessage: 'Beim Einladen des Mitglieds in den Workspace ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
             pleaseEnterValidLogin: `Bitte stellen Sie sicher, dass die E-Mail-Adresse oder Telefonnummer g\u00FCltig ist (z. B. ${CONST.EXAMPLE_PHONE_NUMBER}).`,

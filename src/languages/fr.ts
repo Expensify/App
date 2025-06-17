@@ -4950,6 +4950,7 @@ const translations = {
         invite: {
             member: 'Inviter un membre',
             members: 'Inviter des membres',
+            inviteNewMember: 'Inviter un nouveau membre',
             invitePeople: 'Inviter de nouveaux membres',
             genericFailureMessage: "Une erreur s'est produite lors de l'invitation du membre \u00E0 l'espace de travail. Veuillez r\u00E9essayer.",
             pleaseEnterValidLogin: `Veuillez vous assurer que l'email ou le num\u00E9ro de t\u00E9l\u00E9phone est valide (par exemple, ${CONST.EXAMPLE_PHONE_NUMBER}).`,

@@ -5069,6 +5069,7 @@ const translations = {
         invite: {
             member: '\u9080\u8BF7\u6210\u5458',
             members: '\u9080\u8BF7\u6210\u5458',
+            inviteNewMember: '邀请新成员',
             invitePeople: '\u9080\u8BF7\u65B0\u6210\u5458',
             genericFailureMessage: '\u9080\u8BF7\u6210\u5458\u52A0\u5165\u5DE5\u4F5C\u533A\u65F6\u53D1\u751F\u9519\u8BEF\u3002\u8BF7\u518D\u8BD5\u4E00\u6B21\u3002',
             pleaseEnterValidLogin: `\u8BF7\u786E\u4FDD\u7535\u5B50\u90AE\u4EF6\u6216\u7535\u8BDD\u53F7\u7801\u6709\u6548\uFF08\u4F8B\u5982\uFF1A${CONST.EXAMPLE_PHONE_NUMBER}\uFF09\u3002`,

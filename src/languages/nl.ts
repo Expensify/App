@@ -4869,6 +4869,7 @@ const translations = {
         invite: {
             member: 'Lid uitnodigen',
             members: 'Leden uitnodigen',
+            inviteNewMember: 'Nieuw lid uitnodigen',
             invitePeople: 'Nieuwe leden uitnodigen',
             genericFailureMessage: 'Er is een fout opgetreden bij het uitnodigen van het lid voor de werkruimte. Probeer het opnieuw.',
             pleaseEnterValidLogin: `Zorg ervoor dat het e-mailadres of telefoonnummer geldig is (bijv. ${CONST.EXAMPLE_PHONE_NUMBER}).`,

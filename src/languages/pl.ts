@@ -4953,6 +4953,7 @@ const translations = {
         invite: {
             member: 'Zapro\u015B cz\u0142onka',
             members: 'Zapro\u015B cz\u0142onk\u00F3w',
+            inviteNewMember: 'Zaproś nowego członka',
             invitePeople: 'Zapro\u015B nowych cz\u0142onk\u00F3w',
             genericFailureMessage: 'Wyst\u0105pi\u0142 b\u0142\u0105d podczas zapraszania cz\u0142onka do przestrzeni roboczej. Prosz\u0119 spr\u00F3bowa\u0107 ponownie.',
             pleaseEnterValidLogin: `Prosz\u0119 upewni\u0107 si\u0119, \u017Ce adres e-mail lub numer telefonu jest prawid\u0142owy (np. ${CONST.EXAMPLE_PHONE_NUMBER}).`,

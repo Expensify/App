@@ -4885,6 +4885,7 @@ const translations = {
         invite: {
             member: 'Invita membro',
             members: 'Invita membri',
+            inviteNewMember: 'Invita nuovo membro',
             invitePeople: 'Invita nuovi membri',
             genericFailureMessage: "Si \u00E8 verificato un errore durante l'invito del membro allo spazio di lavoro. Per favore riprova.",
             pleaseEnterValidLogin: `Assicurati che l'email o il numero di telefono siano validi (ad es. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
