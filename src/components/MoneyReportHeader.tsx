@@ -33,6 +33,7 @@ import {
     getBankAccountRoute,
     getIntegrationIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
+    getNextApproverAccountID,
     getNonHeldAndFullAmount,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
@@ -69,7 +70,6 @@ import {
     deleteMoneyRequest,
     dismissDeclineUseExplanation,
     getNavigationUrlOnMoneyRequestDelete,
-    getNextApproverAccountID,
     initSplitExpense,
     payInvoice,
     payMoneyRequest,
@@ -446,6 +446,7 @@ function MoneyReportHeader({
         }
         return getReportPrimaryAction({
             report: moneyRequestReport,
+            chatReport,
             reportTransactions: transactions,
             violations,
             policy,
@@ -453,7 +454,7 @@ function MoneyReportHeader({
             reportActions,
             isChatReportArchived,
         });
-    }, [isPaidAnimationRunning, moneyRequestReport, reportNameValuePairs, policy, transactions, violations, reportActions, isChatReportArchived]);
+    }, [isPaidAnimationRunning, moneyRequestReport, reportNameValuePairs, policy, transactions, violations, reportActions, isChatReportArchived, chatReport]);
 
     const confirmExport = useCallback(() => {
         setExportModalStatus(null);
@@ -645,18 +646,19 @@ function MoneyReportHeader({
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryReportActions(
-            moneyRequestReport,
-            transactions,
+        return getSecondaryReportActions({
+            report: moneyRequestReport,
+            chatReport,
+            reportTransactions: transactions,
             violations,
             policy,
             reportNameValuePairs,
             reportActions,
             policies,
-            isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
+            canUseRetractNewDot: isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
             isChatReportArchived,
-        );
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled, isChatReportArchived]);
+        });
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled, chatReport, isChatReportArchived]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
@@ -882,9 +884,9 @@ function MoneyReportHeader({
             subMenuItems: Object.values(paymentButtonOptions),
         },
     };
-
-    const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action) => action?.shouldShow !== false);
-
+    const applicableSecondaryActions = secondaryActions
+        .map((action) => secondaryActionsImplementation[action])
+        .filter((action) => action?.shouldShow !== false && action?.value !== primaryAction);
     useEffect(() => {
         if (!transactionThreadReportID) {
             return;
@@ -1125,8 +1127,10 @@ function MoneyReportHeader({
                 onConfirm={() => {
                     setIsDeleteReportModalVisible(false);
 
-                    deleteAppReport(moneyRequestReport?.reportID);
                     Navigation.goBack();
+                    InteractionManager.runAfterInteractions(() => {
+                        deleteAppReport(moneyRequestReport?.reportID);
+                    });
                 }}
                 onCancel={() => setIsDeleteReportModalVisible(false)}
                 prompt={translate('iou.deleteReportConfirmation')}
