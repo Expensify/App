@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
 import {setDeviceID} from '@userActions/Device';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import initLocale from '@userActions/Locale';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import addUtilsToWindow from './addUtilsToWindow';
@@ -51,6 +52,9 @@ export default function () {
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
     });
+
+    // Init locale early to avoid rendering translations keys instead of real translations
+    initLocale();
 
     initOnyxDerivedValues();
 
