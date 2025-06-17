@@ -1,4 +1,4 @@
-# `@react-navigation` patches
+# `react-navigation` patches
 
 ### [@react-navigation+core+7.10.0+001+fix-failing-jest-by-disabling-esmodule](@react-navigation+core+7.10.0+001+fix-failing-jest-by-disabling-esmodule.patch)
 
