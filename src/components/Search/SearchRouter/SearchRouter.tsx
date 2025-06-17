@@ -320,7 +320,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     });
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
-
+    const shouldShowSearchList = areOptionsInitialized && isRecentSearchesDataLoaded;
     return (
         <View
             style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
@@ -360,7 +360,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     substitutionMap={autocompleteSubstitutions}
                     ref={textInputRef}
                 />
-const shouldShowSearchList = areOptionsInitialized && isRecentSearchesDataLoaded
+                {shouldShowSearchList && (
                     <SearchAutocompleteList
                         autocompleteQueryValue={autocompleteQueryValue || textInputValue}
                         handleSearch={searchInServer}
