@@ -5208,7 +5208,7 @@ const translations = {
                     daily: 'カテゴリ合計',
                     dailySubtitle: '経費報告書ごとにカテゴリ別の合計支出をフラグ付けします。',
                 },
-                requireReceiptsOver: 'Require receipts over',
+                requireReceiptsOver: 'を超える領収書を必須にする',
                 requireReceiptsOverList: {
                     default: ({defaultAmount}: DefaultAmountParams) => `${defaultAmount} ${CONST.DOT_SEPARATOR} デフォルト`,
                     never: '領収書を要求しない',
