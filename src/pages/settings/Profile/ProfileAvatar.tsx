@@ -38,7 +38,7 @@ function ProfileAvatar({route}: ProfileAvatarProps) {
             defaultOpen
             source={getFullSizeAvatar(avatarURL, accountID)}
             onModalClose={() => {
-                Navigation.goBack(route.params?.backTo ?? undefined);
+                Navigation.goBack(route.params?.backTo);
             }}
             originalFileName={personalDetail?.originalFileName ?? ''}
             isLoading={!!isLoading}
