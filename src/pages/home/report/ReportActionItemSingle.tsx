@@ -205,12 +205,15 @@ function ReportActionItemSingle({
         id: avatarId,
     };
 
+    console.log('>>> isReportPreviewAction', {isReportPreviewAction});
+
     let isTwoAvatarsReportPreview = false;
     if (isReportPreviewAction) {
         const reportPreviewIcons = getIcons(iouReport, personalDetails, undefined, undefined, undefined, policy);
         icon = reportPreviewIcons.at(0) ?? {name: '', source: '', type: 'avatar'};
         secondaryAvatar = reportPreviewIcons.at(1) ?? {name: '', source: '', type: 'avatar'};
         isTwoAvatarsReportPreview = reportPreviewIcons.length > 1;
+        console.log('>>> isTwoAvatarsReportPreview', {isTwoAvatarsReportPreview, reportPreviewIcons});
     }
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments

@@ -3055,7 +3055,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
     // Fallback for older reports or reports without transactions/attendees info
     const managerIcon = getParticipantIcon(report.managerID, personalDetails, true);
     const ownerIcon = getParticipantIcon(report.ownerAccountID, personalDetails, true);
-    const isManager = currentUserAccountID === report.managerID;
+    const isManager = currentUserAccountID === report?.managerID;
     return isManager ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
 }
 
