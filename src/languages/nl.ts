@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
@@ -1010,6 +1011,7 @@ const translations = {
         share: 'Delen',
         participants: 'Deelnemers',
         createExpense: 'Uitgave aanmaken',
+        createExpenses: ({expensesNumber}: CreateExpensesParams) => `Maak ${expensesNumber} uitgaven aan`,
         addExpense: 'Uitgave toevoegen',
         chooseRecipient: 'Kies ontvanger',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Maak ${amount} uitgave aan`,
@@ -2051,14 +2053,7 @@ const translations = {
     },
     languagePage: {
         language: 'Taal',
-        languages: {
-            en: {
-                label: 'Engels',
-            },
-            es: {
-                label: 'Spaans',
-            },
-        },
+        aiGenerated: 'De vertalingen voor deze taal worden automatisch gegenereerd en kunnen fouten bevatten.',
     },
     themePage: {
         theme: 'Thema',

@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
@@ -1012,6 +1013,7 @@ const translations = {
         share: 'Condividi',
         participants: 'Partecipanti',
         createExpense: 'Crea spesa',
+        createExpenses: ({expensesNumber}: CreateExpensesParams) => `Crea ${expensesNumber} spese`,
         addExpense: 'Aggiungi spesa',
         chooseRecipient: 'Scegli destinatario',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Crea ${amount} spesa`,
@@ -2055,14 +2057,7 @@ const translations = {
     },
     languagePage: {
         language: 'Lingua',
-        languages: {
-            en: {
-                label: 'Inglese',
-            },
-            es: {
-                label: 'Spagnolo',
-            },
-        },
+        aiGenerated: 'Le traduzioni per questa lingua sono generate automaticamente e possono contenere errori.',
     },
     themePage: {
         theme: 'Tema',
