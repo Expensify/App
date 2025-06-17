@@ -22,7 +22,7 @@ import type SpendCategorySelectorListItem from '@pages/workspace/categories/Spen
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -108,7 +108,7 @@ type ExtendedTargetedEvent = TargetedEvent & {
     };
 };
 
-type ListItem = {
+type ListItem<K extends string | number = string> = {
     /** Text to display */
     text?: string;
 
@@ -116,7 +116,7 @@ type ListItem = {
     alternateText?: string | null;
 
     /** Key used internally by React */
-    keyForList?: string | null;
+    keyForList?: K | null;
 
     /** Whether this option is selected */
     isSelected?: boolean;
@@ -254,11 +254,18 @@ type TransactionListItemType = ListItem &
          */
         shouldShowYear: boolean;
 
+        isAmountColumnWide: boolean;
+
+        isTaxAmountColumnWide: boolean;
+
         /** Key used internally by React */
         keyForList: string;
 
         /** Attendees in the transaction */
         attendees?: Attendee[];
+
+        /** Precomputed violations */
+        violations?: TransactionViolation[];
     };
 
 type ReportActionListItemType = ListItem &
@@ -443,16 +450,16 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
 };
 
-type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    /** Callback to fire when the item is pressed */
-    onSelectRow: (item: TItem, isOpenedAsReport?: boolean) => void;
-};
+type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     queryJSONHash?: number;
 
     /** The policies which the user has access to */
     policies?: OnyxCollection<Policy>;
+
+    /** All the data of the report collection */
+    allReports?: OnyxCollection<Report>;
 };
 
 type ValidListItem =
@@ -535,6 +542,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Label for the text input */
     textInputLabel?: string;
+
+    /** Style for the text input */
+    textInputStyle?: StyleProp<ViewStyle>;
 
     /** Placeholder for the text input */
     textInputPlaceholder?: string;
@@ -637,6 +647,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
     listFooterContent?: React.JSX.Element | null;
+
+    /** Custom content to display above the pagination */
+    footerContentAbovePagination?: React.JSX.Element | null;
 
     /** Custom content to display when the list is empty after finish loading */
     listEmptyContent?: React.JSX.Element | null;
@@ -816,6 +829,12 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
     someSelected: boolean;
 };
 
+type UnreportedExpenseListItemType = Transaction & {
+    isDisabled: boolean;
+    keyForList: string;
+    errors?: Errors;
+};
+
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
 type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWithIndexOffset<TItem>> = SectionListData<TItem, TSection> & {
@@ -861,4 +880,5 @@ export type {
     SplitListItemProps,
     SplitListItemType,
     SearchListItem,
+    UnreportedExpenseListItemType,
 };
