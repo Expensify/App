@@ -13,7 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
-import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -117,6 +117,13 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         return highestPriorityTooltip.name;
     }, [activeTooltips]);
 
+    const isUserInPaidPolicy = useMemo(() => {
+        if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
+            return false;
+        }
+        return getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies).length > 0;
+    }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
+
     const shouldTooltipBeVisible = useCallback(
         (tooltipName: ProductTrainingTooltipName) => {
             if (isLoadingOnyxValue(isOnboardingCompletedMetadata) || isLoadingApp) {
@@ -154,19 +161,10 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 isUserPolicyEmployee,
                 isUserPolicyAdmin,
                 hasBeenAddedToNudgeMigration,
+                isUserInPaidPolicy,
             });
         },
-        [
-            dismissedProductTraining,
-            hasBeenAddedToNudgeMigration,
-            isOnboardingCompleted,
-            isOnboardingCompletedMetadata,
-            shouldUseNarrowLayout,
-            isModalVisible,
-            isLoadingApp,
-            isUserPolicyEmployee,
-            isUserPolicyAdmin,
-        ],
+        [isOnboardingCompletedMetadata, isLoadingApp, dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, isModalVisible, shouldUseNarrowLayout, isUserPolicyEmployee, isUserPolicyAdmin, isUserInPaidPolicy],
     );
 
     const registerTooltip = useCallback(
