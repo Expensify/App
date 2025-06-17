@@ -287,7 +287,7 @@ function TimePicker(
                 newSelection = 0;
                 return;
             }
-            
+
             const candidate = trimmedText.substring(0, 2);
             if (/^\d\d$/.test(candidate)) {
                 // e.g. "05", "12"
