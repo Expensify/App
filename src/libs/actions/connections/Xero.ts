@@ -1,9 +1,12 @@
 import isObject from 'lodash/isObject';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {CONST as COMMON_CONST} from 'expensify-common';
+import type {ValueOf} from 'type-fest';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {ConnectPolicyToAccountingIntegrationParams, UpdateXeroGenericTypeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import type UpdateXeroAccountingMethodParams from '@libs/API/parameters/UpdateXeroAccountingMethodParams';
 import {getCommandURL} from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -543,6 +546,25 @@ function updateXeroSyncSyncReimbursedReports(
     API.write(WRITE_COMMANDS.UPDATE_XERO_SYNC_SYNC_REIMBURSED_REPORTS, parameters, {optimisticData, failureData, successData});
 }
 
+function updateXeroAccountingMethod(
+    policyID: string | undefined,
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
+    oldAccountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
+) {
+    if (!policyID) {
+        return;
+    }
+
+    const parameters: UpdateXeroAccountingMethodParams = {
+        policyID,
+        accountingMethod,
+    };
+
+    const {optimisticData, failureData, successData} = prepareXeroExportOptimisticData(policyID, CONST.XERO_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod);
+
+    API.write(WRITE_COMMANDS.UPDATE_XERO_ACCOUNTING_METHOD, parameters, {optimisticData, failureData, successData});
+}
+
 export {
     getXeroSetupLink,
     getTrackingCategories,
@@ -553,6 +575,7 @@ export {
     updateXeroImportCustomers,
     updateXeroEnableNewCategories,
     updateXeroAutoSync,
+    updateXeroAccountingMethod,
     updateXeroExportBillStatus,
     updateXeroExportExporter,
     updateXeroExportBillDate,

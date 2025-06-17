@@ -442,6 +442,7 @@ const WRITE_COMMANDS = {
     UPDATE_XERO_IMPORT_CUSTOMERS: 'UpdateXeroImportCustomers',
     UPDATE_XERO_ENABLE_NEW_CATEGORIES: 'UpdateXeroEnableNewCategories',
     UPDATE_XERO_AUTO_SYNC: 'UpdateXeroAutoSync',
+    UPDATE_XERO_ACCOUNTING_METHOD: 'UpdateXeroAccountingMethod',
     UPDATE_XERO_EXPORT_BILL_STATUS: 'UpdateXeroExportBillStatus',
     UPDATE_XERO_EXPORT_BILL_DATE: 'UpdateXeroExportBillDate',
     UPDATE_XERO_EXPORT_EXPORTER: 'UpdateXeroExportExporter',
