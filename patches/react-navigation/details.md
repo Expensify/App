@@ -46,3 +46,10 @@
 - E/App issue: [#22372](https://github.com/Expensify/App/issues/22372)
 - PR Introducing Patch: [#22437](https://github.com/Expensify/App/pull/22437)
 - PR Updating Patch: [#33280](https://github.com/Expensify/App/pull/33280) [#37421](https://github.com/Expensify/App/pull/37421) [#49539](https://github.com/Expensify/App/pull/49539) [#64155](https://github.com/Expensify/App/pull/64155)
+
+### [@react-navigation+core+7.10.0+002+getStateFromPath](@react-navigation+core+7.10.0+002+getStateFromPath.patch)
+- Reason: Make sure navigation state props retrieved from the path are available at all nesting levels to avoid undefined state.
+- Upstream PR/issue: N/A
+- E/App issue: N/A
+- PR Introducing Patch: N/A
+- PR Updating Patch: N/A
