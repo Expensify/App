@@ -5,11 +5,14 @@ import {AppState} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {importEmojiLocale} from '@assets/emojis';
 import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, OpenOldDotLinkParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
+import {buildEmojisTrie} from '@libs/EmojiTrie';
+import localeEventCallback from '@libs/Localize/localeEventCallback';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -18,6 +21,7 @@ import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -59,6 +63,13 @@ Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => {
         preferredLocale = val;
+        if (preferredLocale) {
+            TranslationStore.load(preferredLocale as Locale);
+            importEmojiLocale(preferredLocale as Locale).then(() => {
+                buildEmojisTrie(preferredLocale as Locale);
+            });
+            localeEventCallback(val);
+        }
     },
 });
 

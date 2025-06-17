@@ -4,7 +4,6 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx} from 'react-native-onyx';
-import {importEmojiLocale} from '@assets/emojis';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -17,7 +16,6 @@ import CONST from './CONST';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
-import TranslationStore from './languages/TranslationStore';
 import {updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
@@ -25,11 +23,9 @@ import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
-import {buildEmojisTrie} from './libs/EmojiTrie';
 import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
 import Growl, {growlRef} from './libs/Growl';
-import localeEventCallback from './libs/Localize/localeEventCallback';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
 import Navigation from './libs/Navigation/Navigation';
@@ -103,7 +99,6 @@ function Expensify() {
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST, {canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
-    const [preferredLocaleOnyx] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
 
     useDebugShortcut();
 
@@ -233,17 +228,6 @@ function Expensify() {
     useEffect(() => {
         Audio.setAudioModeAsync({playsInSilentModeIOS: true});
     }, []);
-
-    useEffect(() => {
-        if (!preferredLocaleOnyx) {
-            return;
-        }
-        TranslationStore.load(preferredLocaleOnyx);
-        importEmojiLocale(preferredLocaleOnyx).then(() => {
-            buildEmojisTrie(preferredLocaleOnyx);
-        });
-        localeEventCallback(preferredLocaleOnyx);
-    }, [preferredLocaleOnyx]);
 
     useLayoutEffect(() => {
         if (!isNavigationReady || !lastRoute) {
