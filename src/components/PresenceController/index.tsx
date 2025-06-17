@@ -10,7 +10,7 @@ const TIMEOUT_FOCUS_TAB = 60_000;
 
 export default function PresenceController() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
-    const timeout = useRef<NodeJS.Timeout | null>(null);
+    const timeout = useRef<NodeJS.Timeout | undefined>(undefined);
     const didJoinPresenceChannel = useRef(false);
 
     const goInactive = useCallback(() => {
@@ -29,9 +29,7 @@ export default function PresenceController() {
                 return;
             }
 
-            if (timeout.current) {
-                clearTimeout(timeout.current);
-            }
+            clearTimeout(timeout.current);
             timeout.current = setTimeout(() => {
                 Log.info('[PresenceController] Activity timed out', false, {lastActivty: activity, lastTimeout: timeoutMs});
                 goInactive();
