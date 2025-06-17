@@ -6574,6 +6574,9 @@ const CONST = {
             NORMAL: 'normal',
             WIDE: 'wide',
         },
+        EXPORT_STATUS: {
+            FAILED: 'failed',
+        },
         STATUS: {
             EXPENSE: {
                 ALL: 'all',
