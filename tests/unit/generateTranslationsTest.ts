@@ -408,4 +408,31 @@ describe('generateTranslations', () => {
             `)}`,
         );
     });
+
+    it('unescapes unicode', async () => {
+        fs.writeFileSync(
+            EN_PATH,
+            dedent(`
+                const strings = {
+                    hello: 'こんにちは',
+                    world: 'world',
+                };
+                export default strings;
+            `),
+            'utf8',
+        );
+        await generateTranslations();
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+        expect(itContent).toStrictEqual(
+            `${GENERATED_FILE_PREFIX}${dedent(`
+                import type en from './en';
+
+                const strings = {
+                    hello: '[it] こんにちは',
+                    world: '[it] world',
+                };
+                export default strings;
+            `)}`,
+        );
+    });
 });
