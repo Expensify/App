@@ -667,11 +667,11 @@ type WorkspaceMemberList = {
 
 type FileLimitParams = {
     fileLimit: number;
-}
+};
 
 type FileTypeParams = {
     fileType: string;
-}
+};
 
 type CompanyCardBankName = {
     bankName: string;

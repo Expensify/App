@@ -74,16 +74,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
-    const {
-        validateAndResizeFile,
-        setIsAttachmentInvalid,
-        isAttachmentInvalid,
-        setUploadReceiptError,
-        pdfFile,
-        setPdfFile,
-        isLoadingReceipt,
-        fileError
-    } = useFileValidation();
+    const {validateAndResizeFile, setIsAttachmentInvalid, isAttachmentInvalid, setUploadReceiptError, pdfFile, setPdfFile, isLoadingReceipt, fileError} = useFileValidation();
 
     const {q} = route.params;
 

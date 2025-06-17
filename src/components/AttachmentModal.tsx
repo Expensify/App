@@ -376,21 +376,24 @@ function AttachmentModal({
         [getModalType, setSourceState, setFile, setModalType],
     );
 
-    const validateFiles = useCallback((data: FileObject[]) => {
-        let validFiles: FileObject[] = [];
+    const validateFiles = useCallback(
+        (data: FileObject[]) => {
+            let validFiles: FileObject[] = [];
 
-        Promise.all(data.map((fileToUpload) => isValidFile(fileToUpload, true).then((isValid) => (isValid ? fileToUpload : null)))).then((results) => {
-            validFiles = results.filter((validFile): validFile is FileObject => validFile !== null);
-            setValidFilesToUpload(validFiles);
+            Promise.all(data.map((fileToUpload) => isValidFile(fileToUpload, true).then((isValid) => (isValid ? fileToUpload : null)))).then((results) => {
+                validFiles = results.filter((validFile): validFile is FileObject => validFile !== null);
+                setValidFilesToUpload(validFiles);
 
-            if (validFiles.length > 0) {
-                const fileToDisplay = validFiles.at(0);
-                if (fileToDisplay) {
-                    handleOpenModal(fileToDisplay.uri ?? '', fileToDisplay);
+                if (validFiles.length > 0) {
+                    const fileToDisplay = validFiles.at(0);
+                    if (fileToDisplay) {
+                        handleOpenModal(fileToDisplay.uri ?? '', fileToDisplay);
+                    }
                 }
-            }
-        });
-    }, [isValidFile, handleOpenModal]);
+            });
+        },
+        [isValidFile, handleOpenModal],
+    );
 
     const confirmAndContinue = () => {
         if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
