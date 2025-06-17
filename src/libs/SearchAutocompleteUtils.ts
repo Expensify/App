@@ -157,6 +157,8 @@ function filterOutRangesWithCorrectValue(
             return expenseTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
             return statusList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORT_STATUS:
+            return true;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY:
             return categoryList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:

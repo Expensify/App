@@ -552,7 +552,7 @@ function AdvancedSearchFilters() {
         .map((section) => {
             return section
                 .map((key) => {
-                    // 'feed', 'exporter', 'payer', and 'export-status' do not appear in advanced filters, they are created using suggested searches
+                    // 'feed', 'exporter', 'payer', 'reimburser' and 'export-status' do not appear in advanced filters, they are created using suggested searches
                     if (
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
