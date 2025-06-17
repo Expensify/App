@@ -36,8 +36,8 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
         setIsModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
             requestContactPermission().then((status) => {
+                onFocusTextInput();
                 if (status !== RESULTS.GRANTED) {
-                    onFocusTextInput();
                     return;
                 }
                 onGrant();
@@ -48,11 +48,13 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
     const handleDenyPermission = () => {
         onDeny(RESULTS.DENIED);
         setIsModalVisible(false);
+        onFocusTextInput();
     };
 
     const handleCloseModal = () => {
         setIsModalVisible(false);
         onDeny(RESULTS.DENIED);
+        onFocusTextInput();
     };
 
     if (!isModalVisible) {
