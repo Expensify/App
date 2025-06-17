@@ -183,6 +183,11 @@ class TranslationGenerator {
             return false;
         }
 
+        // Don't translate object keys
+        if (ts.isComputedPropertyName(node.parent)) {
+            return false;
+        }
+
         // Only translate string literals if they contain at least one real letter
         if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
             // \p{L} matches a-z, à-ö, Α-Ω, Ж, 文, …  – but NOT digits, emoji, punctuation, etc.

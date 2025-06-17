@@ -110,6 +110,12 @@ describe('generateTranslations', () => {
                         }
                     }
                 }
+                const strings = {
+                    [\`hello\`]: 'world',
+                };
+                const moreStrings = {
+                    [\`key\${strings.hello}\`]: 'more',
+                };
             `),
             'utf8',
         );
@@ -139,6 +145,12 @@ describe('generateTranslations', () => {
                         }
                     }
                 }
+                const strings = {
+                    [\`hello\`]: '[it] world',
+                };
+                const moreStrings = {
+                    [\`key\${strings.hello}\`]: '[it] more',
+                };
             `)}`,
         );
     });
