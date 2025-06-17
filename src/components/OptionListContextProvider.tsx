@@ -1,17 +1,16 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
+import getPlatform from '@libs/getPlatform';
 import {createOptionFromReport, createOptionList, processReport} from '@libs/OptionsListUtils';
 import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
 import {isSelfDM} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {usePersonalDetails} from './OnyxProvider';
-import {InteractionManager} from 'react-native';
-import {isMobile} from '@libs/Browser';
-import getPlatform from '@libs/getPlatform';
-import CONST from '@src/CONST';
 
 type OptionsListContextProps = {
     /** List of options for reports and personal details */
@@ -46,7 +45,7 @@ const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails, personalDeta
     prevPersonalDetail?.displayName === personalDetail?.displayName;
 
 function OptionsListContextProvider({children}: OptionsListProviderProps) {
-    const [areOptionsInitialized, setAreOptionsInitialized] = useState(false)
+    const [areOptionsInitialized, setAreOptionsInitialized] = useState(false);
 
     const [options, setOptions] = useState<OptionList>({
         reports: [],
@@ -240,11 +239,11 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         loadOptions();
         if (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
             InteractionManager.runAfterInteractions(() => {
-                setAreOptionsInitialized(true)
-            })
+                setAreOptionsInitialized(true);
+            });
             return;
         }
-        setAreOptionsInitialized(true)
+        setAreOptionsInitialized(true);
     }, [loadOptions]);
 
     const resetOptions = useCallback(() => {

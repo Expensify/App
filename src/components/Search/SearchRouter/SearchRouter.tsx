@@ -7,6 +7,8 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useOptionsList} from '@components/OptionListContextProvider';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
@@ -39,8 +41,6 @@ import type Report from '@src/types/onyx/Report';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
-import {useOptionsList} from "@components/OptionListContextProvider";
-import OptionsListSkeletonView from "@components/OptionsListSkeletonView";
 
 function getContextualSearchAutocompleteKey(item: SearchQueryItem) {
     if (item.roomType === CONST.SEARCH.DATA_TYPES.INVOICE) {
@@ -358,19 +358,19 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     ref={textInputRef}
                 />
                 {areOptionsInitialized && (
-                        <SearchAutocompleteList
-                            autocompleteQueryValue={autocompleteQueryValue || textInputValue}
-                            handleSearch={searchInServer}
-                            searchQueryItem={searchQueryItem}
-                            getAdditionalSections={getAdditionalSections}
-                            onListItemPress={onListItemPress}
-                            setTextQuery={setTextAndUpdateSelection}
-                            updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                            onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
-                            ref={listRef}
-                            textInputRef={textInputRef}
-                        />
-                    )}
+                    <SearchAutocompleteList
+                        autocompleteQueryValue={autocompleteQueryValue || textInputValue}
+                        handleSearch={searchInServer}
+                        searchQueryItem={searchQueryItem}
+                        getAdditionalSections={getAdditionalSections}
+                        onListItemPress={onListItemPress}
+                        setTextQuery={setTextAndUpdateSelection}
+                        updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                        onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
+                        ref={listRef}
+                        textInputRef={textInputRef}
+                    />
+                )}
                 {!areOptionsInitialized && (
                     <OptionsListSkeletonView
                         fixedNumItems={4}
