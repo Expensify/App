@@ -55,7 +55,7 @@ describe('MinHeap', () => {
 
     it('should work with getCompareValue', () => {
         type Obj = {v: number};
-        const objHeap = new MinHeap<Obj>(item => item.v);
+        const objHeap = new MinHeap<Obj>((item) => item.v);
         objHeap.push({v: 5}).push({v: 2}).push({v: 7});
         expect(objHeap.pop()).toEqual({v: 2});
         expect(objHeap.pop()).toEqual({v: 5});

@@ -55,7 +55,7 @@ describe('Heap', () => {
     });
 
     it('should throw error if compare is not a function', () => {
-        // @ts-expect-error
+        // @ts-expect-error We are testing invalid input
         expect(() => new Heap()).toThrow();
     });
 });
