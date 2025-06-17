@@ -152,7 +152,6 @@ function ReportActionItemSingle({
         avatarSource = personalDetails?.[ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.avatar;
         avatarId = ownerAccountID;
     }
-    const icons = getIcons(iouReport, personalDetails, undefined, undefined, undefined, policy);
     // If this is a report preview, display names and avatars of both people involved
     let secondaryAvatar: Icon;
     const primaryDisplayName = displayName;
@@ -208,7 +207,7 @@ function ReportActionItemSingle({
 
     let isTwoAvatarsReportPreview = false;
     if (isReportPreviewAction) {
-        const reportPreviewIcons = getReportPreviewIcons(iouReport, personalDetails, policy);
+        const reportPreviewIcons = getIcons(iouReport, personalDetails, undefined, undefined, undefined, policy);
         icon = reportPreviewIcons.at(0) ?? {name: '', source: '', type: 'avatar'};
         secondaryAvatar = reportPreviewIcons.at(1) ?? {name: '', source: '', type: 'avatar'};
         isTwoAvatarsReportPreview = reportPreviewIcons.length > 1;

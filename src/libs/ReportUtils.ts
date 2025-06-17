@@ -2227,7 +2227,7 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): bo
 function isOneTransactionReport(report: OnyxEntry<Report>): boolean {
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? ([] as ReportAction[]);
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-    return getOneTransactionThreadReportID(report, chatReport, reportActions) !== undefined;
+    return getOneTransactionThreadReportID(report, chatReport, reportActions) !== null;
 }
 
 /*
@@ -3030,27 +3030,22 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
     // Uses attendees from transactions
     const transactions = getReportTransactions(report.reportID);
     if (transactions.length > 0) {
-        const attendeeEmails = new Set<string>();
         transactions.forEach((transaction) => {
             const attendees = getAttendees(transaction);
             attendees.forEach((attendee) => {
                 if (attendee.accountID) {
                     accountIDs.add(attendee.accountID);
-                } else if (attendee.email) {
-                    attendeeEmails.add(attendee.email);
+                } else if (attendee.email && personalDetails) {
+                    // Look up accountID from email using the passed personalDetails
+                    const matchingDetail = Object.values(personalDetails).find(
+                        (detail) => detail?.login?.toLowerCase() === attendee.email?.toLowerCase()
+                    );
+                    if (matchingDetail?.accountID) {
+                        accountIDs.add(matchingDetail.accountID);
+                    }
                 }
             });
         });
-
-        if (attendeeEmails.size > 0) {
-            const attendeeAccountIDs = getAccountIDsByLogins(Array.from(attendeeEmails));
-            attendeeAccountIDs.forEach((id) => {
-                if (!id) {
-                    return;
-                }
-                accountIDs.add(id);
-            });
-        }
     }
 
     if (accountIDs.size > 0) {
@@ -8607,7 +8602,7 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
         return true;
     }
 
-    if (isExpenseReport(report)) {
+    if (isExpenseReport(report) && isOneTransactionReport(report)) {
         return true;
     }
 
