@@ -15,7 +15,7 @@ type PopoverWithoutOverlayProps = ChildrenProps &
         };
 
         /** The anchor ref of the popover */
-        anchorRef: RefObject<View | HTMLDivElement | Text>;
+        anchorRef: RefObject<View | HTMLDivElement | Text | null>;
 
         /** A react-native-animatable animation timing for the modal display animation */
         animationInTiming?: number;
@@ -24,7 +24,7 @@ type PopoverWithoutOverlayProps = ChildrenProps &
         disableAnimation?: boolean;
 
         /** The ref of the popover */
-        withoutOverlayRef: RefObject<View | HTMLDivElement>;
+        withoutOverlayRef: RefObject<View | HTMLDivElement | null>;
     };
 
 export default PopoverWithoutOverlayProps;

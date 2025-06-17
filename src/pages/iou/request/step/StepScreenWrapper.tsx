@@ -35,7 +35,7 @@ type StepScreenWrapperProps = {
     includeSafeAreaPaddingBottom?: boolean;
 
     /** Returns a function as a child to pass insets to or a node to render without insets */
-    children: ReactNode | React.FC<ScreenWrapperChildrenProps>;
+    children: ReactNode | ((props: ScreenWrapperChildrenProps) => ReactNode);
 
     /** Flag to indicate if the keyboard avoiding view should be enabled */
     shouldEnableKeyboardAvoidingView?: boolean;

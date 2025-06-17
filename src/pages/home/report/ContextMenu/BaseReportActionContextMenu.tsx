@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import type {MutableRefObject, RefObject} from 'react';
+import type {RefObject} from 'react';
 import React, {memo, useContext, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -74,7 +74,7 @@ type BaseReportActionContextMenuProps = {
     type?: ContextMenuType;
 
     /** Target node which is the target of ContentMenu */
-    anchor?: MutableRefObject<ContextMenuAnchor>;
+    anchor?: RefObject<ContextMenuAnchor>;
 
     /** Flag to check if the chat participant is Chronos */
     isChronosReport?: boolean;
@@ -95,7 +95,7 @@ type BaseReportActionContextMenuProps = {
     isThreadReportParentAction?: boolean;
 
     /** Content Ref */
-    contentRef?: RefObject<View>;
+    contentRef?: RefObject<View | null>;
 
     /** Function to check if context menu is active */
     checkIfContextMenuActive?: () => void;
@@ -288,7 +288,7 @@ function BaseReportActionContextMenu({
     );
     useRestoreInputFocus(isVisible);
 
-    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => {
+    const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>) => {
         showContextMenu({
             type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
