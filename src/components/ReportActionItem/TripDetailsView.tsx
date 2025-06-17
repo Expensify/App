@@ -171,8 +171,6 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
 
     const reservationsData: ReservationData[] = getReservationsFromTripReport(tripRoomReport, tripTransactions);
 
-    console.debug('reservationsData', reservationsData);
-
     return (
         <View>
             <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
