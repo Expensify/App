@@ -832,6 +832,7 @@ const CONST = {
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         NATIVE_CONTACT_IMPORT: 'nativeContactImport',
         TRACK_FLOWS: 'trackFlows',
+        EUR_BILLING: 'eurBilling',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
