@@ -548,6 +548,7 @@ const translations = {
         userID: '\u30E6\u30FC\u30B6\u30FCID',
         disable: '\u7121\u52B9\u306B\u3059\u308B',
         export: '\u30A8\u30AF\u30B9\u30DD\u30FC\u30C8',
+        basicExport: '\u57FA\u672C\u51FA\u529B',
         initialValue: '\u521D\u671F\u5024',
         currentDate: '\u73FE\u5728\u306E\u65E5\u4ED8',
         value: '\u5024\u6BB5',
@@ -3511,7 +3512,7 @@ const translations = {
                 '\u9818\u53CE\u66F8\u306E\u6255\u3044\u623B\u3057\u7533\u8ACB\u306B\u306FExpensify\u3092\u3054\u5229\u7528\u304F\u3060\u3055\u3044\u3002\u3042\u308A\u304C\u3068\u3046\u3054\u3056\u3044\u307E\u3059\uFF01',
             subscription: '\u30B5\u30D6\u30B9\u30AF\u30EA\u30D7\u30B7\u30E7\u30F3',
             markAsEntered: '\u624B\u52D5\u5165\u529B\u3068\u3057\u3066\u30DE\u30FC\u30AF\u3059\u308B',
-            markAsExported: '\u624B\u52D5\u3067\u30A8\u30AF\u30B9\u30DD\u30FC\u30C8\u6E08\u307F\u3068\u3057\u3066\u30DE\u30FC\u30AF',
+            markAsExported: '\u30A8\u30AF\u30B9\u30DD\u30FC\u30C8\u6E08\u307F\u3068\u3057\u3066\u30DE\u30FC\u30AF',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) =>
                 `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}\u306B\u30A8\u30AF\u30B9\u30DD\u30FC\u30C8`,
             letsDoubleCheck: '\u3059\u3079\u3066\u304C\u6B63\u3057\u3044\u304B\u3069\u3046\u304B\u3082\u3046\u4E00\u5EA6\u78BA\u8A8D\u3057\u307E\u3057\u3087\u3046\u3002',
