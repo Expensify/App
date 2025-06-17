@@ -1,10 +1,11 @@
 import {renderHook} from '@testing-library/react-native';
 import {format} from 'date-fns';
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import {
+    addSplitExpenseField,
     calculateDiffAmount,
     canApproveIOU,
     canCancelPayment,
@@ -14,6 +15,7 @@ import {
     createDistanceRequest,
     deleteMoneyRequest,
     initMoneyRequest,
+    initSplitExpense,
     payMoneyRequest,
     putOnHold,
     replaceReceipt,
@@ -28,6 +30,7 @@ import {
     unholdRequest,
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestCategory,
+    updateSplitExpenseAmountField,
 } from '@libs/actions/IOU';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {addComment, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
@@ -54,6 +57,7 @@ import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
@@ -92,6 +96,8 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     removeScreenByKey: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     getReportRouteByID: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(),
+    getActiveRoute: jest.fn(),
 }));
 
 jest.mock('@src/libs/Navigation/navigationRef', () => ({
@@ -113,13 +119,13 @@ jest.mock('@src/libs/actions/Report', () => {
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
-// This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
-jest.mock('@components/ConfirmedRoute.tsx');
-
 jest.mock('@src/libs/SearchQueryUtils', () => ({
     getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
         hash: 12345,
         query: 'test',
+        type: 'invoice',
+        status: 'all',
+        flatFilters: [],
     })),
 }));
 
@@ -146,6 +152,7 @@ describe('actions/IOU', () => {
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             },
         });
+        TranslationStore.load(CONST.LOCALES.EN);
     });
 
     let mockFetch: MockFetch;
@@ -783,6 +790,22 @@ describe('actions/IOU', () => {
 
                                     expect(transaction?.merchant).toBe(merchant);
 
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.SNAPSHOT,
+                                waitForCollectionCallback: true,
+                                callback: (snapshotData) => {
+                                    Onyx.disconnect(connection);
+
+                                    // Snapshot data shouldn't be updated optimistically for requestMoney when the current search query type is invoice.
+                                    expect(snapshotData).toBeUndefined();
                                     resolve();
                                 },
                             });
@@ -1546,8 +1569,7 @@ describe('actions/IOU', () => {
                     .then(mockFetch?.succeed)
             );
         });
-        it('does not trigger notifyNewAction when doing the money request in a money request report and has a canUseTableReportView permission', async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
+        it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
             requestMoney({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participantParams: {
@@ -1567,30 +1589,9 @@ describe('actions/IOU', () => {
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
 
-        it('trigger notifyNewAction when doing the money request in a chat report', async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
+        it('trigger notifyNewAction when doing the money request in a chat report', () => {
             requestMoney({
                 report: {reportID: '123'},
-                participantParams: {
-                    payeeEmail: RORY_EMAIL,
-                    payeeAccountID: RORY_ACCOUNT_ID,
-                    participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
-                },
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                },
-            });
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        });
-
-        it('trigger notifyNewAction when doing the money request without canUseTableReportView permission', () => {
-            requestMoney({
-                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participantParams: {
                     payeeEmail: RORY_EMAIL,
                     payeeAccountID: RORY_ACCOUNT_ID,
@@ -1610,8 +1611,7 @@ describe('actions/IOU', () => {
     });
 
     describe('createDistanceRequest', () => {
-        it('does not trigger notifyNewAction when doing the money request in a money request report and has a canUseTableReportView permission', async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
+        it('does not trigger notifyNewAction when doing the money request in a money request report', () => {
             createDistanceRequest({
                 report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participants: [],
@@ -1628,27 +1628,9 @@ describe('actions/IOU', () => {
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
 
-        it('trigger notifyNewAction when doing the money request in a chat report', async () => {
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.TABLE_REPORT_VIEW]);
+        it('trigger notifyNewAction when doing the money request in a chat report', () => {
             createDistanceRequest({
                 report: {reportID: '123'},
-                participants: [],
-                transactionParams: {
-                    amount: 1,
-                    attendees: [],
-                    currency: CONST.CURRENCY.USD,
-                    created: '',
-                    merchant: '',
-                    comment: '',
-                    validWaypoints: {},
-                },
-            });
-            expect(notifyNewAction).toHaveBeenCalledTimes(1);
-        });
-
-        it('trigger notifyNewAction when doing the money request without canUseTableReportView permission', () => {
-            createDistanceRequest({
-                report: {reportID: '123', type: CONST.REPORT.TYPE.EXPENSE},
                 participants: [],
                 transactionParams: {
                     amount: 1,
@@ -1869,7 +1851,8 @@ describe('actions/IOU', () => {
                                     // 5. The chat report with Rory + Vit (new)
                                     vitChatReport = Object.values(allReports ?? {}).find(
                                         (report) =>
-                                            report?.type === CONST.REPORT.TYPE.CHAT && isEqual(report.participants, {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [VIT_ACCOUNT_ID]: VIT_PARTICIPANT}),
+                                            report?.type === CONST.REPORT.TYPE.CHAT &&
+                                            deepEqual(report.participants, {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [VIT_ACCOUNT_ID]: VIT_PARTICIPANT}),
                                     );
                                     expect(isEmptyObject(vitChatReport)).toBe(false);
                                     expect(vitChatReport?.pendingFields).toStrictEqual({createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
@@ -1883,7 +1866,7 @@ describe('actions/IOU', () => {
                                     groupChat = Object.values(allReports ?? {}).find(
                                         (report) =>
                                             report?.type === CONST.REPORT.TYPE.CHAT &&
-                                            isEqual(report.participants, {
+                                            deepEqual(report.participants, {
                                                 [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT,
                                                 [JULES_ACCOUNT_ID]: JULES_PARTICIPANT,
                                                 [VIT_ACCOUNT_ID]: VIT_PARTICIPANT,
@@ -4043,12 +4026,10 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             let policy: OnyxEntry<Policy>;
-            // We set introSelected to TRACK_WORKSPACE to avoid workflows enabled by default on new workspaces created.
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
 
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.CHAT_SPLIT);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -4210,12 +4191,10 @@ describe('actions/IOU', () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             let policy: OnyxEntry<Policy>;
-            // We set introSelected to TRACK_WORKSPACE to avoid workflows enabled by default on new workspaces created.
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
 
             return waitForBatchedUpdates()
                 .then(() => {
-                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+                    createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", undefined, CONST.ONBOARDING_CHOICES.CHAT_SPLIT);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -5541,7 +5520,12 @@ describe('actions/IOU', () => {
         it('should merge transaction draft onyx value', async () => {
             await waitForBatchedUpdates()
                 .then(() => {
-                    initMoneyRequest(fakeReport.reportID, fakePolicy, true, undefined, CONST.IOU.REQUEST_TYPE.MANUAL);
+                    initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        policy: fakePolicy,
+                        isFromGlobalCreate: true,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    });
                 })
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual(transactionResult);
@@ -5551,7 +5535,13 @@ describe('actions/IOU', () => {
         it('should modify transaction draft when currentIouRequestType is different', async () => {
             await waitForBatchedUpdates()
                 .then(() => {
-                    return initMoneyRequest(fakeReport.reportID, fakePolicy, true, CONST.IOU.REQUEST_TYPE.MANUAL, CONST.IOU.REQUEST_TYPE.SCAN);
+                    return initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        policy: fakePolicy,
+                        isFromGlobalCreate: true,
+                        currentIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    });
                 })
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({
@@ -5563,7 +5553,11 @@ describe('actions/IOU', () => {
         it('should return personal currency when policy is missing', async () => {
             await waitForBatchedUpdates()
                 .then(() => {
-                    return initMoneyRequest(fakeReport.reportID, undefined, true, undefined, CONST.IOU.REQUEST_TYPE.MANUAL);
+                    return initMoneyRequest({
+                        reportID: fakeReport.reportID,
+                        isFromGlobalCreate: true,
+                        newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    });
                 })
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({
@@ -5852,6 +5846,164 @@ describe('actions/IOU', () => {
                     expect(action?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 },
             });
+        });
+    });
+
+    describe('initSplitExpense', () => {
+        it('should initialize split expense with correct transaction details', async () => {
+            const transaction: Transaction = {
+                transactionID: '123',
+                amount: 100,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    splitExpenses: [],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                tag: 'lunch',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            const reportID = '456';
+
+            initSplitExpense(transaction, reportID);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
+
+            expect(draftTransaction).toBeTruthy();
+
+            const splitExpenses = draftTransaction?.comment?.splitExpenses;
+            expect(splitExpenses).toHaveLength(2);
+            expect(draftTransaction?.amount).toBe(100);
+            expect(draftTransaction?.currency).toBe('USD');
+            expect(draftTransaction?.merchant).toBe('Test Merchant');
+            expect(draftTransaction?.reportID).toBe(reportID);
+
+            expect(splitExpenses?.[0].amount).toBe(50);
+            expect(splitExpenses?.[0].description).toBe('Test comment');
+            expect(splitExpenses?.[0].category).toBe('Food');
+            expect(splitExpenses?.[0].tags).toEqual(['lunch']);
+
+            expect(splitExpenses?.[1].amount).toBe(50);
+            expect(splitExpenses?.[1].description).toBe('Test comment');
+            expect(splitExpenses?.[1].category).toBe('Food');
+            expect(splitExpenses?.[1].tags).toEqual(['lunch']);
+        });
+        it('should not initialize split expense for null transaction', async () => {
+            const transaction: Transaction | undefined = undefined;
+            const reportID = '456';
+
+            initSplitExpense(transaction, reportID);
+            await waitForBatchedUpdates();
+
+            expect(transaction).toBeFalsy();
+        });
+    });
+
+    describe('addSplitExpenseField', () => {
+        it('should add new split expense field to draft transaction', async () => {
+            const transaction: Transaction = {
+                transactionID: '123',
+                amount: 100,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    splitExpenses: [],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                tag: 'lunch',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            const draftTransaction: Transaction = {
+                transactionID: '123',
+                amount: 100,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    splitExpenses: [
+                        {
+                            transactionID: '789',
+                            amount: 50,
+                            description: 'Test comment',
+                            category: 'Food',
+                            tags: ['lunch'],
+                            created: DateUtils.getDBTime(),
+                        },
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                tag: 'lunch',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            addSplitExpenseField(transaction, draftTransaction);
+            await waitForBatchedUpdates();
+
+            const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
+            expect(updatedDraftTransaction).toBeTruthy();
+
+            const splitExpenses = updatedDraftTransaction?.comment?.splitExpenses;
+            expect(splitExpenses).toHaveLength(2);
+            expect(splitExpenses?.[1].amount).toBe(0);
+            expect(splitExpenses?.[1].description).toBe('Test comment');
+            expect(splitExpenses?.[1].category).toBe('Food');
+            expect(splitExpenses?.[1].tags).toEqual(['lunch']);
+        });
+    });
+
+    describe('updateSplitExpenseAmountField', () => {
+        it('should update amount expense field to draft transaction', async () => {
+            const originalTransactionID = '123';
+            const currentTransactionID = '789';
+            const draftTransaction: Transaction = {
+                transactionID: '234',
+                amount: 100,
+                currency: 'USD',
+                merchant: 'Test Merchant',
+                comment: {
+                    comment: 'Test comment',
+                    originalTransactionID,
+                    splitExpenses: [
+                        {
+                            transactionID: currentTransactionID,
+                            amount: 50,
+                            description: 'Test comment',
+                            category: 'Food',
+                            tags: ['lunch'],
+                            created: DateUtils.getDBTime(),
+                        },
+                    ],
+                    attendees: [],
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                },
+                category: 'Food',
+                tag: 'lunch',
+                created: DateUtils.getDBTime(),
+                reportID: '456',
+            };
+
+            updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 20);
+            await waitForBatchedUpdates();
+
+            const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+            expect(updatedDraftTransaction).toBeTruthy();
+
+            const splitExpenses = updatedDraftTransaction?.comment?.splitExpenses;
+            expect(splitExpenses?.[0].amount).toBe(20);
         });
     });
 

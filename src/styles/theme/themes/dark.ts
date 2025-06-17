@@ -72,10 +72,14 @@ const darkTheme = {
     dropUIBG: 'rgba(6,27,9,0.92)',
     dropWrapperBG: 'rgba(26, 61, 50, 0.72)',
     fileDropUIBG: 'rgba(3, 212, 124, 0.84)',
-    attachmentDropUIBG: 'rgba(90, 176, 255, 0.9)',
-    attachmentDropBorderColor: colors.blue100,
-    receiptDropUIBG: 'rgba(3, 212, 124, 0.9)',
-    receiptDropBorderColor: colors.green100,
+    attachmentDropUIBG: 'rgba(90, 176, 255, 0.8)',
+    attachmentDropUIBGActive: 'rgba(90, 176, 255, 96)',
+    attachmentDropBorderColor: 'rgba(176, 217, 255, 0)',
+    attachmentDropBorderColorActive: colors.blue100,
+    receiptDropUIBG: 'rgba(3, 212, 124, 0.8)',
+    receiptDropUIBGActive: 'rgba(3, 212, 124, 96)',
+    receiptDropBorderColor: 'rgba(177, 242, 214, 0)',
+    receiptDropBorderColorActive: colors.green100,
     checkBox: colors.green400,
     imageCropBackgroundColor: colors.productDark700,
     fallbackIconColor: colors.green700,
@@ -102,6 +106,7 @@ const darkTheme = {
     transparentWhite: `${colors.white}51`,
     emptyFolderBG: colors.yellow600,
     travelBG: colors.blue600,
+    todoBG: colors.blue800,
     trialTimer: colors.green500,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
@@ -125,7 +130,7 @@ const darkTheme = {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.WORKSPACE_HUB.WORKSPACES]: {
+        [SCREENS.WORKSPACES_LIST]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
@@ -138,10 +143,6 @@ const darkTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.ROOT]: {
-            backgroundColor: colors.productDark100,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
-        },
-        [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },

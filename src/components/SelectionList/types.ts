@@ -22,8 +22,8 @@ import type SpendCategorySelectorListItem from '@pages/workspace/categories/Spen
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
-import type {Policy, Report} from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
+import type {Policy, Report, TransactionViolation} from '@src/types/onyx';
+import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -254,11 +254,18 @@ type TransactionListItemType = ListItem &
          */
         shouldShowYear: boolean;
 
+        isAmountColumnWide: boolean;
+
+        isTaxAmountColumnWide: boolean;
+
         /** Key used internally by React */
         keyForList: string;
 
         /** Attendees in the transaction */
         attendees?: Attendee[];
+
+        /** Precomputed violations */
+        violations?: TransactionViolation[];
     };
 
 type ReportActionListItemType = ListItem &
@@ -390,11 +397,46 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     FooterComponent?: ReactElement;
 };
 
+type SplitListItemType = ListItem &
+    SplitExpense & {
+        /** Item header text */
+        headerText: string;
+
+        /** Merchant or vendor name */
+        merchant: string;
+
+        /** Currency code */
+        currency: string;
+
+        /** ID of split expense */
+        transactionID: string;
+
+        /** Currency symbol */
+        currencySymbol: string;
+
+        /** Original amount before split */
+        originalAmount: number;
+
+        /** Indicates whether a split was opened through this transaction */
+        isTransactionLinked: boolean;
+
+        /** Function for updating amount */
+        onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
+    };
+
+type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
 type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem> & Transaction;
 
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
+type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
+
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type MultiSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -408,16 +450,16 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
 };
 
-type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    /** Callback to fire when the item is pressed */
-    onSelectRow: (item: TItem, isOpenedAsReport?: boolean) => void;
-};
+type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     queryJSONHash?: number;
 
     /** The policies which the user has access to */
     policies?: OnyxCollection<Policy>;
+
+    /** All the data of the report collection */
+    allReports?: OnyxCollection<Report>;
 };
 
 type ValidListItem =
@@ -457,6 +499,12 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
 
+    /** List of selected items */
+    selectedItems?: string[];
+
+    /** Whether the item is selected */
+    isSelected?: (item: TItem) => boolean;
+
     /** Default renderer for every item in the list */
     ListItem: ValidListItem;
 
@@ -494,6 +542,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Label for the text input */
     textInputLabel?: string;
+
+    /** Style for the text input */
+    textInputStyle?: StyleProp<ViewStyle>;
 
     /** Placeholder for the text input */
     textInputPlaceholder?: string;
@@ -597,6 +648,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
     listFooterContent?: React.JSX.Element | null;
 
+    /** Custom content to display above the pagination */
+    footerContentAbovePagination?: React.JSX.Element | null;
+
     /** Custom content to display when the list is empty after finish loading */
     listEmptyContent?: React.JSX.Element | null;
 
@@ -617,6 +671,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
+
+    /** Whether we should clear the search input when an item is selected */
+    shouldClearInputOnSelect?: boolean;
 
     /** Callback to fire when the text input changes */
     onArrowFocus?: (focusedItem: TItem) => void;
@@ -772,6 +829,12 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
     someSelected: boolean;
 };
 
+type UnreportedExpenseListItemType = Transaction & {
+    isDisabled: boolean;
+    keyForList: string;
+    errors?: Errors;
+};
+
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
 type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWithIndexOffset<TItem>> = SectionListData<TItem, TSection> & {
@@ -795,6 +858,8 @@ export type {
     ListItemProps,
     ListItemFocusEventHandler,
     RadioListItemProps,
+    SingleSelectListItemProps,
+    MultiSelectListItemProps,
     ReportListItemProps,
     ReportListItemType,
     Section,
@@ -808,8 +873,12 @@ export type {
     TransactionListItemType,
     TransactionSelectionListItem,
     UserListItemProps,
+    UserSelectionListItemProps,
     ReportActionListItemType,
     ChatListItemProps,
     SortableColumnName,
+    SplitListItemProps,
+    SplitListItemType,
     SearchListItem,
+    UnreportedExpenseListItemType,
 };

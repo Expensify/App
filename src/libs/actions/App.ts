@@ -12,6 +12,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
+import localeEventCallback from '@libs/Localize/localeEventCallback';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,6 +21,7 @@ import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -62,9 +64,11 @@ Onyx.connect({
     callback: (val) => {
         preferredLocale = val;
         if (preferredLocale) {
+            TranslationStore.load(preferredLocale as Locale);
             importEmojiLocale(preferredLocale as Locale).then(() => {
                 buildEmojisTrie(preferredLocale as Locale);
             });
+            localeEventCallback(val);
         }
     },
 });
@@ -106,11 +110,17 @@ Onyx.connect({
     },
 });
 
+let resolveHasLoadedAppPromise: () => void;
+const hasLoadedAppPromise = new Promise<void>((resolve) => {
+    resolveHasLoadedAppPromise = resolve;
+});
+
 let hasLoadedApp: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.HAS_LOADED_APP,
     callback: (value) => {
         hasLoadedApp = value;
+        resolveHasLoadedAppPromise?.();
     },
 });
 
@@ -162,6 +172,7 @@ const isReadyToOpenApp = new Promise<void>((resolve) => {
 });
 
 function confirmReadyToOpenApp() {
+    Timing.end(CONST.TIMING.OPEN_APP);
     resolveIsReadyPromise();
 }
 
@@ -196,10 +207,6 @@ function setLocale(locale: Locale) {
         value: locale,
     };
 
-    importEmojiLocale(locale).then(() => {
-        buildEmojisTrie(locale);
-    });
-
     API.write(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, parameters, {optimisticData});
 }
 
@@ -215,7 +222,6 @@ function setSidebarLoaded() {
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
     Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
-    Timing.end(CONST.TIMING.SIDEBAR_LOADED);
 }
 
 function setAppLoading(isLoading: boolean) {
@@ -332,23 +338,25 @@ function openApp(shouldKeepPublicRooms = false) {
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  */
 function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
-    if (!hasLoadedApp) {
-        openApp();
-        return;
-    }
-    console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
-    getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        const params: ReconnectAppParams = policyParams;
-
-        // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
-        // Otherwise, a full set of app data will be returned.
-        if (updateIDFrom) {
-            params.updateIDFrom = updateIDFrom;
+    hasLoadedAppPromise.then(() => {
+        if (!hasLoadedApp) {
+            openApp();
+            return;
         }
+        console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
+        getPolicyParamsForOpenOrReconnect().then((policyParams) => {
+            const params: ReconnectAppParams = policyParams;
 
-        const isFullReconnect = !updateIDFrom;
-        API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect), {
-            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.RECONNECT_APP),
+            // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
+            // Otherwise, a full set of app data will be returned.
+            if (updateIDFrom) {
+                params.updateIDFrom = updateIDFrom;
+            }
+
+            const isFullReconnect = !updateIDFrom;
+            API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, isFullReconnect), {
+                checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.RECONNECT_APP),
+            });
         });
     });
 }

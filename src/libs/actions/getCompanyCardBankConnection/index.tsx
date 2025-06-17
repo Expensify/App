@@ -11,7 +11,16 @@ type CompanyCardBankConnection = {
     isNewDot: string;
 };
 
-export default function getCompanyCardBankConnection(policyID?: string, bankName?: string) {
+type CompanyCardPlaidConnection = {
+    authToken: string;
+    publicToken: string;
+    domainName: string;
+    feedName: string;
+    feed: string;
+    country: string;
+};
+
+function getCompanyCardBankConnection(policyID?: string, bankName?: string) {
     const bankConnection = Object.keys(CONST.COMPANY_CARDS.BANKS).find((key) => CONST.COMPANY_CARDS.BANKS[key as keyof typeof CONST.COMPANY_CARDS.BANKS] === bankName);
 
     if (!bankName || !bankConnection || !policyID) {
@@ -38,3 +47,26 @@ export default function getCompanyCardBankConnection(policyID?: string, bankName
     );
     return `${commandURL}partners/banks/${bank}/oauth_callback.php?${new URLSearchParams(params).toString()}`;
 }
+
+function getCompanyCardPlaidConnection(policyID?: string, publicToken?: string, feed?: string, feedName?: string, country?: string) {
+    if (!policyID || !publicToken || !feed || !feedName || !country) {
+        return null;
+    }
+    const authToken = NetworkStore.getAuthToken();
+    const params: CompanyCardPlaidConnection = {
+        authToken: authToken ?? '',
+        feed,
+        feedName,
+        publicToken,
+        country,
+        domainName: PolicyUtils.getDomainNameForPolicy(policyID),
+    };
+
+    const commandURL = getApiRoot({
+        shouldSkipWebProxy: true,
+        command: '',
+    });
+    return `${commandURL}partners/banks/plaid/oauth_callback.php?${new URLSearchParams(params).toString()}`;
+}
+
+export {getCompanyCardPlaidConnection, getCompanyCardBankConnection};

@@ -25,14 +25,13 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 
-jest.mock('@components/ConfirmedRoute.tsx');
-
 describe('DebugReportActions', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
     });
 
     afterEach(async () => {
@@ -72,7 +71,7 @@ describe('DebugReportActions', () => {
         await waitForBatchedUpdatesWithAct();
 
         const input = screen.getByTestId('selection-list-text-input');
-        fireEvent.changeText(input, 'testtesttesttest');
+        fireEvent.changeText(input, 'Should show no results found');
         expect(await screen.findByText('No results found')).toBeOnTheScreen();
     });
 });

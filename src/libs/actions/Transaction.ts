@@ -1,7 +1,7 @@
 import {getUnixTime} from 'date-fns';
+import {deepEqual} from 'fast-equals';
 import lodashClone from 'lodash/clone';
 import lodashHas from 'lodash/has';
-import isEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -19,7 +19,7 @@ import {
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
 } from '@libs/ReportUtils';
-import {getAmount, getTransaction, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {getAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, RecentWaypoint, Report, ReportAction, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
@@ -133,7 +133,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
 
     // If current location is used, we would want to avoid saving it as a recent waypoint. This prevents the 'Your Location'
     // text from showing up in the address search suggestions
-    if (isEqual(waypoint?.address, CONST.YOUR_LOCATION_TEXT)) {
+    if (deepEqual(waypoint?.address, CONST.YOUR_LOCATION_TEXT)) {
         return;
     }
     const recentWaypointAlreadyExists = recentWaypoints.find((recentWaypoint) => recentWaypoint?.address === waypoint?.address);
@@ -498,7 +498,7 @@ function getLastModifiedExpense(reportID?: string): OriginalMessageModifiedExpen
 }
 
 function revert(transactionID?: string, originalMessage?: OriginalMessageModifiedExpense | undefined) {
-    const transaction = getTransaction(transactionID);
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
 
     if (transaction && originalMessage?.oldAmount && originalMessage.oldCurrency && 'amount' in originalMessage && 'currency' in originalMessage) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
@@ -611,17 +611,29 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     const failureData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
 
+    let transactionsMoved = false;
+
     transactions.forEach((transaction) => {
         const oldIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-        if (!transaction.reportID) {
+        if (!transaction.reportID || transaction.reportID === reportID) {
             return;
         }
+
+        transactionsMoved = true;
 
         const oldReportID = transaction.reportID;
         const oldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
 
         // 1. Optimistically change the reportID on the passed transactions
         optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: {
+                reportID,
+            },
+        });
+
+        successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
@@ -640,10 +652,10 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
         // 2. Keep track of the new report totals
         const transactionAmount = getAmount(transaction);
         if (oldReportID) {
-            updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : oldReport?.total ?? 0) + transactionAmount;
+            updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : (oldReport?.total ?? 0)) + transactionAmount;
         }
         if (reportID) {
-            updatedReportTotals[reportID] = (updatedReportTotals[reportID] ? updatedReportTotals[reportID] : newReport.total ?? 0) - transactionAmount;
+            updatedReportTotals[reportID] = (updatedReportTotals[reportID] ? updatedReportTotals[reportID] : (newReport.total ?? 0)) - transactionAmount;
         }
 
         // 3. Optimistically update the IOU action reportID
@@ -832,6 +844,10 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
                 : {}),
         };
     });
+
+    if (!transactionsMoved) {
+        return;
+    }
 
     // 7. Update the report totals
     Object.entries(updatedReportTotals).forEach(([reportIDToUpdate, total]) => {
