@@ -1622,6 +1622,11 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
-        prevProps.userBillingFundID === nextProps.userBillingFundID
+        prevProps.userBillingFundID === nextProps.userBillingFundID &&
+        prevProps.chatReport?.reportID === nextProps.chatReport?.reportID &&
+        deepEqual(prevProps.invoiceReceiverPolicy, nextProps.invoiceReceiverPolicy) &&
+        deepEqual(prevProps.invoiceReceiverPersonalDetail, nextProps.invoiceReceiverPersonalDetail) &&
+        prevProps.sessionAccountID === nextProps.sessionAccountID &&
+        deepEqual(prevProps.walletTermsErrors, nextProps.walletTermsErrors)
     );
 });
