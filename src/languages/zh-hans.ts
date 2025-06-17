@@ -1133,6 +1133,7 @@ const translations = {
             formattedAmount ? `\u5728\u5176\u4ED6\u5730\u65B9\u652F\u4ED8${formattedAmount}` : `\u5728\u5176\u4ED6\u5730\u65B9\u652F\u4ED8`,
         nextStep: '\u4E0B\u4E00\u6B65',
         finished: '\u5B8C\u6210',
+        flip: '\u7FFB\u8F6C',
         sendInvoice: ({amount}: RequestAmountParams) => `\u53D1\u9001 ${amount} \u53D1\u7968`,
         submitAmount: ({amount}: RequestAmountParams) => `\u63D0\u4EA4 ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `\u5BF9\u4E8E${comment}` : ''}`,

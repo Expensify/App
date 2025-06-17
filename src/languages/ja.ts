@@ -1201,6 +1201,7 @@ const translations = {
             formattedAmount ? `\u4ED6\u306E\u5834\u6240\u3067${formattedAmount}\u3092\u652F\u6255\u3046` : `\u4ED6\u306E\u5834\u6240\u3067\u652F\u6255\u3046`,
         nextStep: '\u6B21\u306E\u30B9\u30C6\u30C3\u30D7',
         finished: '\u5B8C\u4E86\u3057\u307E\u3057\u305F',
+        flip: '\u53CD\u8EE2',
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} \u306E\u8ACB\u6C42\u66F8\u3092\u9001\u4FE1`,
         submitAmount: ({amount}: RequestAmountParams) => `${amount}\u3092\u9001\u4FE1`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} \u306E\u305F\u3081\u306B` : ''}`,

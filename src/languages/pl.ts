@@ -1119,6 +1119,7 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Zap\u0142a\u0107 ${formattedAmount} gdzie indziej` : `Zap\u0142a\u0107 gdzie indziej`),
         nextStep: 'Nast\u0119pne kroki',
         finished: 'Zako\u0144czono',
+        flip: 'Odwr\u00F3\u0107',
         sendInvoice: ({amount}: RequestAmountParams) => `Wy\u015Blij faktur\u0119 na kwot\u0119 ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Prze\u015Blij ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `dla ${comment}` : ''}`,
