@@ -56,7 +56,6 @@ function IOURequestStartPage({
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID}`, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [isSwipeDisabled, setSwipeDisabled] = useState(false);
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}),
         canBeMissing: true,
@@ -207,7 +206,7 @@ function IOURequestStartPage({
                                 shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                                 renderProductTrainingTooltip={renderProductTrainingTooltip}
                                 lazyLoadEnabled
-                                disableSwipe={isSwipeDisabled}
+                                disableSwipe={isMultiScanEnabled && selectedTab === CONST.TAB_REQUEST.SCAN}
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (
@@ -229,7 +228,6 @@ function IOURequestStartPage({
                                                 onLayout={(setTestReceiptAndNavigate) => {
                                                     setTestReceiptAndNavigateRef.current = setTestReceiptAndNavigate;
                                                 }}
-                                                setTabSwipeDisabled={setSwipeDisabled}
                                                 isMultiScanEnabled={isMultiScanEnabled}
                                                 setIsMultiScanEnabled={setIsMultiScanEnabled}
                                             />
