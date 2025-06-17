@@ -38,6 +38,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Report from '@src/types/onyx/Report';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
@@ -81,6 +82,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
+    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
     const {areOptionsInitialized} = useOptionsList();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -357,7 +360,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     substitutionMap={autocompleteSubstitutions}
                     ref={textInputRef}
                 />
-                {areOptionsInitialized && (
+                {areOptionsInitialized && isRecentSearchesDataLoaded && (
                     <SearchAutocompleteList
                         autocompleteQueryValue={autocompleteQueryValue || textInputValue}
                         handleSearch={searchInServer}
@@ -371,13 +374,14 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         textInputRef={textInputRef}
                     />
                 )}
-                {!areOptionsInitialized && (
-                    <OptionsListSkeletonView
-                        fixedNumItems={4}
-                        shouldStyleAsTable
-                        speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                    />
-                )}
+                {!areOptionsInitialized ||
+                    (!isRecentSearchesDataLoaded && (
+                        <OptionsListSkeletonView
+                            fixedNumItems={4}
+                            shouldStyleAsTable
+                            speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                        />
+                    ))}
             </>
         </View>
     );

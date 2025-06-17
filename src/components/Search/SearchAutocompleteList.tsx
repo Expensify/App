@@ -616,7 +616,6 @@ function SearchAutocompleteList(
             shouldScrollToFocusedIndex={!areOptionsInitialized}
             shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
             disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
-            isReady={areOptionsInitialized}
         />
     );
 }
