@@ -77,6 +77,7 @@ import Log from '@libs/Log';
 import {registerPaginationConfig} from '@libs/Middleware/Pagination';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
+import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
@@ -121,6 +122,7 @@ import {
     getDefaultNotificationPreferenceForReport,
     getFieldViolation,
     getLastVisibleMessage,
+    getNextApproverAccountID,
     getOptimisticDataForParentReportAction,
     getOriginalReportID,
     getParsedComment,
@@ -143,6 +145,8 @@ import {
     isHiddenForCurrentUser,
     isIOUReportUsingReport,
     isMoneyRequestReport,
+    isOpenExpenseReport,
+    isProcessingReport,
     isSelfDM,
     isUnread,
     isValidReportIDFromPath,
@@ -178,6 +182,7 @@ import type {
     Report,
     ReportAction,
     ReportActionReactions,
+    ReportNextStep,
     ReportUserIsTyping,
     Transaction,
     TransactionViolations,
@@ -1597,7 +1602,16 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
         lastReadTime,
     };
 
-    API.write(WRITE_COMMANDS.READ_NEWEST_ACTION, parameters, {optimisticData});
+    API.write(
+        WRITE_COMMANDS.READ_NEWEST_ACTION,
+        parameters,
+        {optimisticData},
+        {
+            checkAndFixConflictingRequest: (persistedRequests) =>
+                resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.READ_NEWEST_ACTION && request.data?.reportID === parameters.reportID),
+        },
+    );
+
     if (shouldResetUnreadMarker) {
         DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
     }
@@ -3361,7 +3375,12 @@ function openReportFromDeepLink(url: string) {
         Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
     }
 
-    const route = getRouteFromLink(url);
+    let route = getRouteFromLink(url);
+
+    // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
+    if (normalizePath(route) === CONST.SIGNIN_ROUTE) {
+        route = '';
+    }
 
     // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
     if (!isAuthenticated && isPublicScreenRoute(route)) {
@@ -3374,7 +3393,7 @@ function openReportFromDeepLink(url: string) {
             const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_ONBOARDING,
                 callback: (val) => {
-                    if (!val) {
+                    if (!val && !isAnonymousUser()) {
                         return;
                     }
 
@@ -5418,7 +5437,7 @@ function updatePolicyIdForReportAndThreads(
 /**
  * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
  */
-function changeReportPolicy(reportID: string, policyID: string) {
+function changeReportPolicy(reportID: string, policyID: string, reportNextStep?: ReportNextStep) {
     if (!reportID || !policyID) {
         return;
     }
@@ -5438,6 +5457,45 @@ function changeReportPolicy(reportID: string, policyID: string) {
 
     // Recursively update the policyID of the report and all its child reports
     updatePolicyIdForReportAndThreads(reportID, policyID, reportIDToThreadsReportIDsMap, optimisticData, failureData);
+
+    // We reopen and reassign the report if the report is open/submitted and the manager is not a member of the new policy. This is to prevent the old manager from seeing a report that they can't action on.
+    const isOpenOrSubmitted = isOpenExpenseReport(reportToMove) || isProcessingReport(reportToMove);
+    const managerLogin = PersonalDetailsUtils.getLoginByAccountID(reportToMove.managerID ?? CONST.DEFAULT_NUMBER_ID);
+    if (isOpenOrSubmitted && managerLogin && !isPolicyMember(managerLogin, policyID)) {
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    managerID: getNextApproverAccountID(reportToMove, true),
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+                value: buildNextStep(reportToMove, CONST.REPORT.STATUS_NUM.OPEN),
+            },
+        );
+
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {
+                    stateNum: reportToMove.stateNum,
+                    statusNum: reportToMove.statusNum,
+                    managerID: reportToMove.managerID,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+                value: reportNextStep,
+            },
+        );
+    }
 
     // 2. If the old workspace had a expense chat, mark the report preview action as deleted
     if (reportToMove?.parentReportID && reportToMove?.parentReportActionID) {
