@@ -2128,7 +2128,7 @@ function isChildReport(report: OnyxEntry<Report>): boolean {
  * An Expense Request is a thread where the parent report is an Expense Report and
  * the parentReportAction is a transaction.
  */
-function isExpenseRequest(report: OnyxInputOrEntry<Report>): boolean {
+function isExpenseRequest(report: OnyxInputOrEntry<Report>): report is Thread {
     if (isThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const parentReport = getReport(report?.parentReportID, allReports);
@@ -3125,6 +3125,10 @@ function getIconsForInvoiceReport(
     return icons;
 }
 
+/**
+ * Returns the appropriate icons for the given chat report using the stored personalDetails.
+ * The Avatar sources can be URLs or Icon components according to the chat type.
+ */
 function getIcons(
     report: OnyxInputOrEntry<Report>,
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
@@ -3172,7 +3176,7 @@ function getIcons(
         return getIconsForIOUReport(report, personalDetails);
     }
     if (isSelfDM(report)) {
-        return getIconsForParticipants([currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID], personalDetails);
+        return getIconsForParticipants(currentUserAccountID ? [currentUserAccountID] : [], personalDetails);
     }
     if (isSystemChat(report)) {
         return getIconsForParticipants([CONST.ACCOUNT_ID.NOTIFICATIONS ?? 0], personalDetails);
