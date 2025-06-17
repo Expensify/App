@@ -56,7 +56,7 @@ import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
-import {resolvePusherPingConflictAction} from './RequestConflictUtils';
+import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
 import Timing from './Timing';
 
@@ -819,7 +819,7 @@ function pingPusher() {
         parameters,
         {},
         {
-            checkAndFixConflictingRequest: (persistedRequests) => resolvePusherPingConflictAction(persistedRequests),
+            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.PUSHER_PING),
         },
     );
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
