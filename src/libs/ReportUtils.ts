@@ -3030,10 +3030,6 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
         return [];
     }
 
-    if (isOneTransactionReport(report)) {
-        return [getParticipantIcon(report.ownerAccountID, personalDetails, true)];
-    }
-
     const accountIDs = new Set<number>();
 
     // Get actors and delegates from money request actions, as they are the "owners" of the transactions.
