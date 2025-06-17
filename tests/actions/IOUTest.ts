@@ -57,6 +57,7 @@ import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDi
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
@@ -122,6 +123,9 @@ jest.mock('@src/libs/SearchQueryUtils', () => ({
     getCurrentSearchQueryJSON: jest.fn().mockImplementation(() => ({
         hash: 12345,
         query: 'test',
+        type: 'invoice',
+        status: 'all',
+        flatFilters: [],
     })),
 }));
 
@@ -149,6 +153,7 @@ describe('actions/IOU', () => {
             },
         });
         initOnyxDerivedValues();
+        TranslationStore.load(CONST.LOCALES.EN);
     });
 
     let mockFetch: MockFetch;
@@ -786,6 +791,22 @@ describe('actions/IOU', () => {
 
                                     expect(transaction?.merchant).toBe(merchant);
 
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.SNAPSHOT,
+                                waitForCollectionCallback: true,
+                                callback: (snapshotData) => {
+                                    Onyx.disconnect(connection);
+
+                                    // Snapshot data shouldn't be updated optimistically for requestMoney when the current search query type is invoice.
+                                    expect(snapshotData).toBeUndefined();
                                     resolve();
                                 },
                             });

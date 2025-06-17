@@ -171,7 +171,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             const reportActionID = route?.params?.reportActionID;
             const isValidReportActionID = reportActionID && isNumeric(reportActionID);
             if (reportActionID && !isValidReportActionID) {
-                navigation.setParams({reportActionID: ''});
+                Navigation.isNavigationReady().then(() => navigation.setParams({reportActionID: ''}));
             }
             return;
         }
