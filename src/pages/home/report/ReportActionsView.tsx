@@ -61,6 +61,12 @@ type ReportActionsViewProps = {
 
     /** If the report has older actions to load */
     hasOlderActions: boolean;
+
+    /** Expand the view to show more older actions from Onyx */
+    expandOlderActions?: () => boolean;
+
+    /** Expand the view to show more newer actions from Onyx */
+    expandNewerActions?: () => boolean;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -73,6 +79,8 @@ function ReportActionsView({
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
+    expandOlderActions,
+    expandNewerActions,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -235,6 +243,8 @@ function ReportActionsView({
         transactionThreadReport,
         hasOlderActions,
         hasNewerActions,
+        expandOlderActions,
+        expandNewerActions,
     });
 
     /**
