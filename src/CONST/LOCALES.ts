@@ -46,7 +46,7 @@ const LOCALES = {
 /**
  * Locales that are valid translation targets. This does not include English, because it's used as the source of truth.
  */
-const {EN, ...TRANSLATION_TARGET_LOCALES} = {...LOCALES} as const;
+const {DEFAULT, EN, ...TRANSLATION_TARGET_LOCALES} = {...LOCALES} as const;
 
 /**
  * These strings are never translated.
