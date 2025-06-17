@@ -1,5 +1,4 @@
 import type {ArrayValues} from 'type-fest';
-import {unique} from 'webpack-merge';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
@@ -128,7 +127,7 @@ function getAddressFromLocation(
     return address.trim();
 }
 
-function findTravelerInfo(travelers: PnrTraveler[], userId: string) {
+function findTravelerInfo(travelers: PnrTraveler[], userId: string | undefined) {
     return travelers.find((travelerData) => travelerData.userId.id === userId)?.personalInfo;
 }
 
@@ -161,13 +160,13 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
                 };
 
                 const origin = flightObject?.origin;
-                const originAiport = airports.find((airport) => airport.airportCode === origin);
+                const originAirport = airports.find((airport) => airport.airportCode === origin);
                 const start = {
                     date: flightObject?.departureDateTime?.iso8601 ?? '',
                     timezoneOffset: '',
                     shortName: origin,
-                    longName: originAiport?.airportName ?? origin,
-                    cityName: `${originAiport?.cityName}, ${originAiport?.stateCode}, ${originAiport?.countryName}`,
+                    longName: originAirport?.airportName ?? origin,
+                    cityName: `${originAirport?.cityName}, ${originAirport?.stateCode}, ${originAirport?.countryName}`,
                 };
 
                 const dest = flightObject?.destination;
@@ -234,7 +233,7 @@ function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserv
         },
     ];
     const travelerInfo = pnrData.travelerInfos.at(0);
-    const traveler = findTravelerInfo(travelers, travelerInfo?.userId.id ?? '');
+    const traveler = findTravelerInfo(travelers, travelerInfo?.userId.id);
 
     reservationList.push({
         reservationIndex: 0,
@@ -336,7 +335,7 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserva
             const travelerIdx = ticket.passengerRefs.at(legIndex)!;
             const travelerInfo = pnrData.passengerInfos.at(travelerIdx);
 
-            const traveler = findTravelerInfo(travelers, travelerInfo?.userOrgId.userId.id ?? '');
+            const traveler = findTravelerInfo(travelers, travelerInfo?.userOrgId.userId.id);
 
             reservationList.push({
                 reservationIndex: legIndex,

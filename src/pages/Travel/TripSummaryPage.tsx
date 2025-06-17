@@ -40,14 +40,14 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
                     shouldShowBackButton
                 />
                 <ScrollView>
-                    {reservationsData.map(({reservation, transactionID, reservationIndex}) => {
+                    {reservationsData.map(({reservation, transactionID, sequenceIndex}) => {
                         return (
                             <OfflineWithFeedback>
                                 <ReservationView
                                     reservation={reservation}
                                     transactionID={transactionID}
                                     tripRoomReportID={route.params.reportID}
-                                    reservationIndex={reservationIndex}
+                                    sequenceIndex={sequenceIndex}
                                 />
                             </OfflineWithFeedback>
                         );

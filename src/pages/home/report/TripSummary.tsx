@@ -12,7 +12,7 @@ type TripSummaryProps = {
 };
 
 function TripSummary({reportID}: TripSummaryProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const tripTransactions = useTripTransactions(reportID);
 
     if (!reportID || tripTransactions.length === 0) {
