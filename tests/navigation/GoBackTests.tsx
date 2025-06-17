@@ -457,6 +457,7 @@ describe('Go back on the narrow layout', () => {
 });
 describe('Go back on the wide layout', () => {
     beforeEach(() => {
+        mockedGetIsNarrowLayout.mockReturnValue(false);
         mockedUseResponsiveLayout.mockReturnValue({
             ...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE,
             shouldUseNarrowLayout: false,
