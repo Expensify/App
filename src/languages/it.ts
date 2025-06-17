@@ -1625,14 +1625,14 @@ const translations = {
         mergeFailureGenericHeading: 'Impossibile unire gli account',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: '',
         lockAccount: 'Blocca account',
         unlockAccount: 'Sblocca account',
         compromisedDescription:
             "Se sospetti che il tuo account Expensify sia compromesso, puoi bloccarlo per impedire nuove transazioni con la carta Expensify e bloccare modifiche indesiderate all'account.",
-        domainAdminsDescriptionPartOne: 'Per gli amministratori di dominio,',
-        domainAdminsDescriptionPartTwo: 'questa azione interrompe tutte le attivit\u00E0 della Carta Expensify e le azioni amministrative',
-        domainAdminsDescriptionPartThree: 'attraverso il tuo dominio/i tuoi domini.',
-        warning: `Una volta che il tuo account \u00E8 bloccato, il nostro team indagher\u00E0 e rimuover\u00E0 qualsiasi accesso non autorizzato. Per riottenere l'accesso, dovrai collaborare con Concierge per mettere in sicurezza il tuo account.`,
+        domainAdminsDescription: 'Per gli amministratori di dominio,',
+        areYouSure: 'Are you sure you want to lock your Expensify account?',
+        ourTeamWill: "Our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge.",
     },
     failedToLockAccountPage: {
         failedToLockAccount: "Impossibile bloccare l'account",

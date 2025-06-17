@@ -1675,14 +1675,14 @@ const translations = {
         mergeFailureGenericHeading: '\u65E0\u6CD5\u5408\u5E76\u8D26\u6237',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: '',
         lockAccount: '\u9501\u5B9A\u8D26\u6237',
         unlockAccount: '\u89E3\u9501\u8D26\u6237',
         compromisedDescription:
             '\u5982\u679C\u60A8\u6000\u7591\u60A8\u7684Expensify\u8D26\u6237\u88AB\u76D7\u7528\uFF0C\u60A8\u53EF\u4EE5\u9501\u5B9A\u5B83\u4EE5\u9632\u6B62\u65B0\u7684Expensify\u5361\u4EA4\u6613\u5E76\u963B\u6B62\u4E0D\u5FC5\u8981\u7684\u8D26\u6237\u66F4\u6539\u3002',
-        domainAdminsDescriptionPartOne: '\u5BF9\u4E8E\u57DF\u7BA1\u7406\u5458\uFF0C',
-        domainAdminsDescriptionPartTwo: '\u6B64\u64CD\u4F5C\u5C06\u6682\u505C\u6240\u6709 Expensify Card \u6D3B\u52A8\u548C\u7BA1\u7406\u5458\u64CD\u4F5C\u3002',
-        domainAdminsDescriptionPartThree: '\u5728\u60A8\u7684\u57DF\u4E2D\u3002',
-        warning: `\u4E00\u65E6\u60A8\u7684\u8D26\u6237\u88AB\u9501\u5B9A\uFF0C\u6211\u4EEC\u7684\u56E2\u961F\u5C06\u8FDB\u884C\u8C03\u67E5\u5E76\u79FB\u9664\u4EFB\u4F55\u672A\u7ECF\u6388\u6743\u7684\u8BBF\u95EE\u3002\u8981\u91CD\u65B0\u83B7\u5F97\u8BBF\u95EE\u6743\u9650\uFF0C\u60A8\u9700\u8981\u4E0EConcierge\u5408\u4F5C\u4EE5\u786E\u4FDD\u60A8\u7684\u8D26\u6237\u5B89\u5168\u3002`,
+        domainAdminsDescription: '\u5BF9\u4E8E\u57DF\u7BA1\u7406\u5458\uFF0C',
+        areYouSure: 'Are you sure you want to lock your Expensify account?',
+        ourTeamWill: "Our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge.",
     },
     failedToLockAccountPage: {
         failedToLockAccount: '\u65E0\u6CD5\u9501\u5B9A\u8D26\u6237',

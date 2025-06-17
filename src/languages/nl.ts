@@ -1622,14 +1622,14 @@ const translations = {
         mergeFailureGenericHeading: 'Kan accounts niet samenvoegen',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: '',
         lockAccount: 'Account vergrendelen',
         unlockAccount: 'Account ontgrendelen',
         compromisedDescription:
             'Als u vermoedt dat uw Expensify-account is gecompromitteerd, kunt u het vergrendelen om nieuwe Expensify Card-transacties te voorkomen en ongewenste wijzigingen in het account te blokkeren.',
-        domainAdminsDescriptionPartOne: 'Voor domeinbeheerders,',
-        domainAdminsDescriptionPartTwo: 'deze actie stopt alle Expensify Card-activiteiten en beheerdersacties',
-        domainAdminsDescriptionPartThree: 'over uw domein(en).',
-        warning: `Zodra uw account is vergrendeld, zal ons team het onderzoeken en eventuele ongeautoriseerde toegang verwijderen. Om weer toegang te krijgen, moet u samenwerken met Concierge om uw account te beveiligen.`,
+        domainAdminsDescription: 'Voor domeinbeheerders,',
+        areYouSure: 'Are you sure you want to lock your Expensify account?',
+        ourTeamWill: "Our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge.",
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Kan account niet vergrendelen',
