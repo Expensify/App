@@ -1,5 +1,21 @@
 type CompareFn<T> = (a: T, b: T) => number;
 
+/**
+ * Heap is a generic binary heap implementation that supports both min-heap and max-heap behavior,
+ * depending on the comparison function provided at instantiation.
+ *
+ * It maintains the heap property using an array-based binary tree structure, enabling efficient
+ * `push` (insert), `pop` (remove top), and `peek` (inspect top) operations, each with O(log n) time complexity.
+ *
+ * The comparison function defines the ordering logic:
+ * - For a min-heap, the function should return a negative value when `a < b`.
+ * - For a max-heap, the function should return a negative value when `a > b`.
+ *
+ * This class serves as the underlying engine for more specialized heaps (like `MinHeap` or `MaxHeap`),
+ * and can be used directly for custom ordering logic (e.g. sorting by multiple fields).
+ *
+ * @template T - The type of elements in the heap, defaults to number.
+ */
 class Heap<T = number> {
     private compare: CompareFn<T>;
 
