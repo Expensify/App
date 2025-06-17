@@ -1956,12 +1956,12 @@ const ROUTES = {
         },
     },
     TRAVEL_TRIP_DETAILS: {
-        route: 'r/:reportID/trip/:transactionID/:pnr/:reservationIndex',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, pnr: string | undefined, reservationIndex: number, backTo?: string) => {
+        route: 'r/:reportID/trip/:transactionID/:pnr/:sequenceIndex',
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, pnr: string | undefined, sequenceIndex: number, backTo?: string) => {
             if (!reportID || !transactionID || !pnr) {
                 Log.warn('Invalid reportID, transactionID or pnr is used to build the TRAVEL_TRIP_DETAILS route');
             }
-            return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${pnr}/${reservationIndex}`, backTo);
+            return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${pnr}/${sequenceIndex}`, backTo);
         },
     },
     TRAVEL_DOMAIN_SELECTOR: {

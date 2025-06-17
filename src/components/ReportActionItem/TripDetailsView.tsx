@@ -29,10 +29,10 @@ type ReservationViewProps = {
     reservation: Reservation;
     transactionID: string;
     tripRoomReportID: string;
-    reservationIndex: number;
+    sequenceIndex: number;
 };
 
-function ReservationView({reservation, transactionID, tripRoomReportID, reservationIndex}: ReservationViewProps) {
+function ReservationView({reservation, transactionID, tripRoomReportID, sequenceIndex}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -143,7 +143,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, reservat
             secondaryIconFill={theme.icon}
             onPress={() =>
                 Navigation.navigate(
-                    ROUTES.TRAVEL_TRIP_DETAILS.getRoute(tripRoomReportID, transactionID, String(reservation.reservationID), reservationIndex, Navigation.getReportRHPActiveRoute()),
+                    ROUTES.TRAVEL_TRIP_DETAILS.getRoute(tripRoomReportID, transactionID, String(reservation.reservationID), sequenceIndex, Navigation.getReportRHPActiveRoute()),
                 )
             }
         />
@@ -171,6 +171,8 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
 
     const reservationsData: ReservationData[] = getReservationsFromTripReport(tripRoomReport, tripTransactions);
 
+    console.debug('reservationsData', reservationsData);
+
     return (
         <View>
             <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
@@ -184,14 +186,14 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
                 </View>
             </View>
             <>
-                {reservationsData.map(({reservation, transactionID, reservationIndex}) => {
+                {reservationsData.map(({reservation, transactionID, sequenceIndex}) => {
                     return (
                         <OfflineWithFeedback>
                             <ReservationView
                                 reservation={reservation}
                                 transactionID={transactionID}
                                 tripRoomReportID={tripRoomReport.reportID}
-                                reservationIndex={reservationIndex}
+                                sequenceIndex={sequenceIndex}
                             />
                         </OfflineWithFeedback>
                     );

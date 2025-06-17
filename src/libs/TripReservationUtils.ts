@@ -1,4 +1,5 @@
 import type {ArrayValues} from 'type-fest';
+import {unique} from 'webpack-merge';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
@@ -22,7 +23,7 @@ function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
     }
 }
 
-type ReservationData = {reservation: Reservation; transactionID: string; reportID: string | undefined; reservationIndex: number};
+type ReservationData = {reservation: Reservation; transactionID: string; reportID: string | undefined; reservationIndex: number; sequenceIndex: number};
 
 function getReservationsFromTripTransactions(transactions: Transaction[]): ReservationData[] {
     return transactions
@@ -33,6 +34,7 @@ function getReservationsFromTripTransactions(transactions: Transaction[]): Reser
                     transactionID: item.transactionID,
                     reportID: item.reportID,
                     reservationIndex,
+                    sequenceIndex: reservationIndex,
                 })) ?? [],
         )
         .sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
@@ -130,8 +132,8 @@ function findTravelerInfo(travelers: PnrTraveler[], userId: string) {
     return travelers.find((travelerData) => travelerData.userId.id === userId)?.personalInfo;
 }
 
-function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Reservation[] {
-    const reservationList: Reservation[] = [];
+function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservationIndex: number; reservation: Reservation}> {
+    const reservationList: Array<{reservationIndex: number; reservation: Reservation}> = [];
 
     if (!pnr.data.airPnr) {
         return [];
@@ -144,7 +146,7 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Reservation[] {
     pnrData.travelerInfos.forEach((travelerInfo) => {
         travelerInfo.tickets.forEach((ticket) => {
             const flightCoupons = ticket.flightCoupons;
-            for (const flightDetails of flightCoupons) {
+            flightCoupons.forEach((flightDetails, index) => {
                 const legIdx = flightDetails.legIdx;
                 const flightIdx = flightDetails.flightIdx;
                 const flightObject = pnrData.legs?.at(legIdx)?.flights.at(flightIdx);
@@ -159,25 +161,23 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Reservation[] {
                 };
 
                 const origin = flightObject?.origin;
-                const originLong = airports.find((airport) => airport.airportCode === origin)?.airportName ?? origin;
-                const originCity = origin;
+                const originAiport = airports.find((airport) => airport.airportCode === origin);
                 const start = {
                     date: flightObject?.departureDateTime?.iso8601 ?? '',
                     timezoneOffset: '',
                     shortName: origin,
-                    longName: originLong,
-                    cityName: originCity,
+                    longName: originAiport?.airportName ?? origin,
+                    cityName: `${originAiport?.cityName}, ${originAiport?.stateCode}, ${originAiport?.countryName}`,
                 };
 
                 const dest = flightObject?.destination;
-                const destLong = airports.find((airport) => airport.airportCode === dest)?.airportName ?? dest;
-                const destCity = dest;
+                const destAirport = airports.find((airport) => airport.airportCode === dest);
                 const end = {
                     date: flightObject?.arrivalDateTime?.iso8601 ?? '',
                     timezoneOffset: '',
                     shortName: dest,
-                    longName: destLong,
-                    cityName: destCity,
+                    longName: destAirport?.airportName ?? dest,
+                    cityName: `${destAirport?.cityName}, ${destAirport?.stateCode}, ${destAirport?.countryName}`,
                 };
 
                 const route = {
@@ -210,16 +210,16 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Reservation[] {
                     },
                 };
 
-                reservationList.push(reservationObject);
-            }
+                reservationList.push({reservation: reservationObject, reservationIndex: index});
+            });
         });
     });
 
     return reservationList;
 }
 
-function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): Reservation[] {
-    const reservationList: Reservation[] = [];
+function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservationIndex: number; reservation: Reservation}> {
+    const reservationList: Array<{reservationIndex: number; reservation: Reservation}> = [];
 
     if (!pnr.data.hotelPnr) {
         return [];
@@ -237,48 +237,49 @@ function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): Reservation[]
     const traveler = findTravelerInfo(travelers, travelerInfo?.userId.id ?? '');
 
     reservationList.push({
-        reservationID: pnr.pnrId,
-        start: {
-            date: pnrData.checkInDateTime?.iso8601,
-            address: getAddressFromLocation(pnrData.hotelInfo.address),
-            longName: pnrData.hotelInfo.name,
-            shortName: pnrData.hotelInfo.chainCode,
-            cityName: pnrData.hotelInfo.chainName,
-        },
-        end: {
-            date: pnrData.checkOutDateTime?.iso8601,
-            address: getAddressFromLocation(pnrData.hotelInfo.address),
-            longName: pnrData.hotelInfo.name,
-            shortName: pnrData.hotelInfo.chainCode,
-            cityName: pnrData.hotelInfo.chainName,
-        },
-        type: CONST.RESERVATION_TYPE.HOTEL,
-        company: {longName: pnrData.hotelInfo.chainName},
-        duration: 0,
-        numberOfRooms: pnrData.numberOfRooms,
-        roomClass: pnrData.room.roomName,
-        cancellationPolicy: pnrData.room.cancellationPolicy?.policy ?? null,
-        cancellationDeadline: pnrData.room.cancellationPolicy?.deadline?.iso8601 ?? null,
-        confirmations,
-        travelerPersonalInfo: {
-            name: getTravelerName(traveler),
-            email: traveler?.email ?? '',
+        reservationIndex: 0,
+        reservation: {
+            reservationID: pnr.pnrId,
+            start: {
+                date: pnrData.checkInDateTime?.iso8601,
+                address: getAddressFromLocation(pnrData.hotelInfo.address),
+                longName: pnrData.hotelInfo.name,
+                shortName: pnrData.hotelInfo.chainCode,
+                cityName: pnrData.hotelInfo.chainName,
+            },
+            end: {
+                date: pnrData.checkOutDateTime?.iso8601,
+                address: getAddressFromLocation(pnrData.hotelInfo.address),
+                longName: pnrData.hotelInfo.name,
+                shortName: pnrData.hotelInfo.chainCode,
+                cityName: pnrData.hotelInfo.chainName,
+            },
+            type: CONST.RESERVATION_TYPE.HOTEL,
+            company: {longName: pnrData.hotelInfo.chainName},
+            duration: 0,
+            numberOfRooms: pnrData.numberOfRooms,
+            roomClass: pnrData.room.roomName,
+            cancellationPolicy: pnrData.room.cancellationPolicy?.policy ?? null,
+            cancellationDeadline: pnrData.room.cancellationPolicy?.deadline?.iso8601 ?? null,
+            confirmations,
+            travelerPersonalInfo: {
+                name: getTravelerName(traveler),
+                email: traveler?.email ?? '',
+            },
         },
     });
 
     return reservationList;
 }
 
-function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): Reservation[] {
-    const reservationList: Reservation[] = [];
+function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservationIndex: number; reservation: Reservation}> {
+    const reservationList: Array<{reservationIndex: number; reservation: Reservation}> = [];
 
     if (!pnr.data.carPnr) {
         return [];
     }
 
     const pnrData: CarPnr = pnr.data.carPnr;
-
-    console.debug('pnrData', pnr);
 
     const confirmations = [
         {
@@ -291,33 +292,36 @@ function getCarReservations(pnr: Pnr, travelers: PnrTraveler[]): Reservation[] {
     const dropLocation = pnrData.carInfo.dropOffLocation.address;
 
     reservationList.push({
-        reservationID: pnr.pnrId,
-        start: {
-            date: pnrData.pickupDateTime?.iso8601,
-            location: getAddressFromLocation(pickupLocation, CONST.RESERVATION_TYPE.CAR),
-        },
-        end: {
-            date: pnrData.dropOffDateTime?.iso8601,
-            location: getAddressFromLocation(dropLocation, CONST.RESERVATION_TYPE.CAR),
-        },
-        type: CONST.RESERVATION_TYPE.CAR,
-        confirmations,
-        vendor: pnrData.carInfo.vendor.name,
-        carInfo: {name: pnrData.carInfo.carSpec.displayName, engine: pnrData.carInfo.carSpec.engineType},
-        cancellationPolicy: pnrData.cancellationPolicy?.policy ?? null,
-        cancellationDeadline: pnrData.cancellationPolicy?.deadline.iso8601 ?? null,
-        duration: 0,
-        travelerPersonalInfo: {
-            name: getTravelerName(traveler),
-            email: traveler?.email ?? '',
+        reservationIndex: 0,
+        reservation: {
+            reservationID: pnr.pnrId,
+            start: {
+                date: pnrData.pickupDateTime?.iso8601,
+                location: getAddressFromLocation(pickupLocation, CONST.RESERVATION_TYPE.CAR),
+            },
+            end: {
+                date: pnrData.dropOffDateTime?.iso8601,
+                location: getAddressFromLocation(dropLocation, CONST.RESERVATION_TYPE.CAR),
+            },
+            type: CONST.RESERVATION_TYPE.CAR,
+            confirmations,
+            vendor: pnrData.carInfo.vendor.name,
+            carInfo: {name: pnrData.carInfo.carSpec.displayName, engine: pnrData.carInfo.carSpec.engineType},
+            cancellationPolicy: pnrData.cancellationPolicy?.policy ?? null,
+            cancellationDeadline: pnrData.cancellationPolicy?.deadline.iso8601 ?? null,
+            duration: 0,
+            travelerPersonalInfo: {
+                name: getTravelerName(traveler),
+                email: traveler?.email ?? '',
+            },
         },
     });
 
     return reservationList;
 }
 
-function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Reservation[] {
-    const reservationList: Reservation[] = [];
+function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservationIndex: number; reservation: Reservation}> {
+    const reservationList: Array<{reservationIndex: number; reservation: Reservation}> = [];
 
     if (!pnr.data.railPnr) {
         return [];
@@ -335,37 +339,40 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Reservation[] 
             const traveler = findTravelerInfo(travelers, travelerInfo?.userOrgId.userId.id ?? '');
 
             reservationList.push({
-                reservationID: pnr.pnrId,
-                start: {
-                    date: leg.departAt.iso8601,
-                    longName: leg.originInfo.name,
-                    shortName: leg.originInfo.code,
-                    cityName: leg.originInfo.cityName,
-                },
-                end: {
-                    date: leg.arriveAt.iso8601,
-                    longName: leg.destinationInfo.name,
-                    shortName: leg.destinationInfo.code,
-                    cityName: leg.destinationInfo.cityName,
-                },
-                route: {
-                    name: `${leg.vehicle.carrierName} ${leg.vehicle.timetableId}`,
-                    airlineCode: leg.vehicle.carrierName,
-                    number: leg.vehicle.timetableId,
-                },
-                duration: parseDurationToSeconds(leg.duration.iso8601),
-                type: CONST.RESERVATION_TYPE.TRAIN,
-                confirmations: [
-                    {
-                        name: 'Confirmation Number',
-                        value: leg.ticketNumber ?? '',
+                reservationIndex: legIndex,
+                reservation: {
+                    reservationID: pnr.pnrId,
+                    start: {
+                        date: leg.departAt.iso8601,
+                        longName: leg.originInfo.name,
+                        shortName: leg.originInfo.code,
+                        cityName: leg.originInfo.cityName,
                     },
-                ],
-                vendor: leg.vendorName,
-                coachNumber: leg.travelClass,
-                travelerPersonalInfo: {
-                    name: getTravelerName(traveler),
-                    email: traveler?.email ?? '',
+                    end: {
+                        date: leg.arriveAt.iso8601,
+                        longName: leg.destinationInfo.name,
+                        shortName: leg.destinationInfo.code,
+                        cityName: leg.destinationInfo.cityName,
+                    },
+                    route: {
+                        name: `${leg.vehicle.carrierName} ${leg.vehicle.timetableId}`,
+                        airlineCode: leg.vehicle.carrierName,
+                        number: leg.vehicle.timetableId,
+                    },
+                    duration: parseDurationToSeconds(leg.duration.iso8601),
+                    type: CONST.RESERVATION_TYPE.TRAIN,
+                    confirmations: [
+                        {
+                            name: 'Confirmation Number',
+                            value: leg.ticketNumber ?? '',
+                        },
+                    ],
+                    vendor: leg.vendorName,
+                    coachNumber: leg.travelClass,
+                    travelerPersonalInfo: {
+                        name: getTravelerName(traveler),
+                        email: traveler?.email ?? '',
+                    },
                 },
             });
         });
@@ -379,23 +386,26 @@ function getReservationsFromSpotnanaPayload(reportID: string, tripData?: TripDat
         return [];
     }
 
-    const reservations: ReservationData[] = tripData.pnrs.flatMap((pnr, pnrIndex) => {
-        const travelers = pnr.data.pnrTravelers ?? [];
+    const reservations: ReservationData[] = tripData.pnrs
+        .flatMap((pnr) => {
+            const travelers = pnr.data.pnrTravelers ?? [];
 
-        const reservationList: Reservation[] = [
-            ...getAirReservations(pnr, travelers),
-            ...getHotelReservations(pnr, travelers),
-            ...getCarReservations(pnr, travelers),
-            ...getRailReservations(pnr, travelers),
-        ];
+            const reservationList: Array<{reservationIndex: number; reservation: Reservation}> = [
+                ...getAirReservations(pnr, travelers),
+                ...getHotelReservations(pnr, travelers),
+                ...getCarReservations(pnr, travelers),
+                ...getRailReservations(pnr, travelers),
+            ];
 
-        return reservationList.map((reservation, reservationIndex) => ({
-            reservation,
-            reportID,
-            transactionID: '0',
-            reservationIndex: reservationIndex + pnrIndex * 100,
-        }));
-    });
+            return reservationList.map((reservationData) => ({
+                reservation: reservationData.reservation,
+                reportID,
+                transactionID: '0',
+                sequenceIndex: 0,
+                reservationIndex: reservationData.reservationIndex,
+            }));
+        })
+        .map((reservationData, index) => ({...reservationData, sequenceIndex: index}));
 
     return reservations.sort((a, b) => new Date(a.reservation.start.date).getTime() - new Date(b.reservation.start.date).getTime());
 }

@@ -46,16 +46,22 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     const [isModifyTripLoading, setIsModifyTripLoading] = useState(false);
     const [isTripSupportLoading, setIsTripSupportLoading] = useState(false);
 
+    const {transactionID, sequenceIndex, pnr, reportID} = route.params;
+
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? route.params.reportID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? reportID}`, {canBeMissing: true});
 
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.reportID);
-    const tripReservations = getReservationsFromTripReport(parentReport, transaction ? [transaction] : []);
+    // If pnr is not passed and transaction is present, we want to use transaction to get the trip reservations as the provided sequenceIndex now refers to the position of trip reservation in transaction's reservation list
+    const tripReservations = getReservationsFromTripReport(!Number(pnr) && transaction ? undefined : parentReport, transaction ? [transaction] : []);
 
-    const reservationData = tripReservations?.find((reservation) => reservation.reservationIndex === Number(route.params.reservationIndex));
+    const reservationDataIndex = tripReservations?.findIndex((reservation) => reservation.sequenceIndex === Number(sequenceIndex));
+    const reservationData = tripReservations.at(reservationDataIndex);
+    const prevReservationData = Number(reservationData?.reservationIndex) > 0 ? tripReservations?.at(reservationDataIndex - 1) : undefined;
     const reservation = reservationData?.reservation;
+    const prevReservation = prevReservationData?.reservation;
     const reservationType = reservation?.type;
     const reservationIcon = getTripReservationIcon(reservation?.type);
     const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (personalDetails) => pickTravelerPersonalDetails(personalDetails, reservation), canBeMissing: true});
@@ -84,7 +90,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                 <ScrollView>
                     {!!reservation && reservationType === CONST.RESERVATION_TYPE.FLIGHT && (
                         <FlightTripDetails
-                            prevReservation={route.params.reservationIndex > 0 ? transaction?.receipt?.reservationList?.at(route.params.reservationIndex - 1) : undefined}
+                            prevReservation={prevReservation}
                             reservation={reservation}
                             personalDetails={travelerPersonalDetails}
                         />
