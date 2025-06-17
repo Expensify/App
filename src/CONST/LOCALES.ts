@@ -30,7 +30,6 @@ const BETA_LOCALES = {
  * These are additional locales that are not valid values of the preferredLocale NVP.
  */
 const EXTENDED_LOCALES = {
-    ES_ES: 'es-ES',
     ES_ES_ONFIDO: 'es_ES',
 } as const;
 
