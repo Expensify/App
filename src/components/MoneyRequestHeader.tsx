@@ -13,7 +13,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import {deleteMoneyRequest, deleteTrackExpense, initSplitExpense, markDeclineViolationAsResolved} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportActions, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
-import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
+import {getTransactionThreadPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
 import {changeMoneyRequestHoldStatus, declineMoneyRequestReason, isSelfDM, navigateToDetailsPage} from '@libs/ReportUtils';
 import {
@@ -123,6 +123,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (isOnHold) {
             return {icon: getStatusIcon(Expensicons.Stopwatch), description: translate('iou.expenseOnHold')};
+        }
+
+        if (isMarkAsResolvedAction(parentReport, transaction)) {
+            return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.decline.markAsResolvedStatus')};
         }
 
         if (isDuplicate) {

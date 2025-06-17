@@ -291,7 +291,11 @@ function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], v
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
-function isMarkAsResolvedAction(report: Report, transaction: Transaction) {
+function isMarkAsResolvedAction(report?: Report, transaction?: Transaction) {
+    if (!report || !transaction) {
+        return false;
+    }
+
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     if (!isReportSubmitter) {
         return false;
