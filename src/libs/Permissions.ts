@@ -44,5 +44,6 @@ export default {
     canUseLinkPreviews,
     isBlockedFromSpotnanaTravel,
     isBetaEnabled,
+    canUseAutoSubmit,
     canUseEurBilling,
 };

@@ -47,7 +47,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
     const availableCurrencies = useMemo(() => {
         const allCurrencies = Object.keys(CONST.PAYMENT_CARD_CURRENCY) as Array<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>;
         // Filter out EUR if user doesn't have EUR billing beta
-        return allCurrencies.filter(currencyItem => {
+        return allCurrencies.filter((currencyItem) => {
             if (currencyItem === CONST.PAYMENT_CARD_CURRENCY.EUR && !canUseEurBilling) {
                 return false;
             }
