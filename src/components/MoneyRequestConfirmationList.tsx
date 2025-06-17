@@ -849,12 +849,6 @@ function MoneyRequestConfirmationList({
      */
     const confirm = useCallback(
         (paymentMethod: PaymentMethodType | undefined) => {
-            if (expensesNumber > 1) {
-                // TODO: remove early return when bulk expense creation is implemented
-                // https://github.com/Expensify/App/issues/61184
-                return;
-            }
-
             if (!!routeError || !transactionID) {
                 return;
             }
