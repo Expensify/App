@@ -917,7 +917,6 @@ function MoneyRequestConfirmationList({
             isMerchantEmpty,
             shouldDisplayFieldError,
             transaction,
-            expensesNumber,
             iouCategory.length,
             formError,
             iouType,
