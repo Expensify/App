@@ -8,6 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -27,7 +28,6 @@ import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {toLocaleOrdinal} from './LocaleDigitUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {formatMessageElementList, translateLocal} from './Localize';
-import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import Parser from './Parser';
@@ -228,6 +228,10 @@ function isForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): report
 
 function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
+}
+
+function isMovedTransactionAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION);
 }
 
 function isPolicyChangeLogAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>> {
@@ -1112,7 +1116,7 @@ function isMessageDeleted(reportAction: OnyxInputOrEntry<ReportAction>): boolean
 /**
  * Simple hook to check whether the PureReportActionItem should return item based on whether the ReportPreview was recently deleted and the PureReportActionItem has not yet unloaded
  */
-function useNewTableReportViewActionRenderConditionals({childMoneyRequestCount, childVisibleActionCount, pendingAction, actionName}: ReportAction) {
+function useTableReportViewActionRenderConditionals({childMoneyRequestCount, childVisibleActionCount, pendingAction, actionName}: ReportAction) {
     const previousChildMoneyRequestCount = usePrevious(childMoneyRequestCount);
 
     const isActionAReportPreview = actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
@@ -1180,8 +1184,8 @@ function isTagModificationAction(actionName: string): boolean {
  * Used for Send Money flow, which is a special case where we have no IOU create action and only one IOU pay action.
  * In other reports, pay actions do not count as a transactions, but this is an exception to this rule.
  */
-function getSendMoneyFlowOneTransactionThreadID(actions: OnyxEntry<ReportActions> | ReportAction[], chatReportID?: string) {
-    if (!chatReportID) {
+function getSendMoneyFlowOneTransactionThreadID(actions: OnyxEntry<ReportActions> | ReportAction[], chatReport: OnyxEntry<Report>) {
+    if (!chatReport) {
         return undefined;
     }
 
@@ -1195,7 +1199,7 @@ function getSendMoneyFlowOneTransactionThreadID(actions: OnyxEntry<ReportActions
     // ...which is 'pay'...
     const isFirstActionPay = getOriginalMessage(iouActions.at(0))?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
 
-    const {type, chatType, parentReportID, parentReportActionID} = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? {};
+    const {type, chatType, parentReportID, parentReportActionID} = chatReport;
 
     // ...and can only be triggered on DM chats
     const isDM = type === CONST.REPORT.TYPE.CHAT && !chatType && !(parentReportID && parentReportActionID);
@@ -1239,13 +1243,13 @@ const isIOUActionMatchingTransactionList = (
  * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
  */
 function getOneTransactionThreadReportID(
-    reportID: string | undefined,
+    report: OnyxEntry<Report>,
+    chatReport: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions> | ReportAction[],
     isOffline: boolean | undefined = undefined,
     reportTransactionIDs?: string[],
 ): string | undefined {
     // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
         return;
     }
@@ -1255,7 +1259,7 @@ function getOneTransactionThreadReportID(
         return;
     }
 
-    const sendMoneyFlowID = getSendMoneyFlowOneTransactionThreadID(reportActions, report?.chatReportID);
+    const sendMoneyFlowID = getSendMoneyFlowOneTransactionThreadID(reportActions, chatReport);
 
     if (sendMoneyFlowID) {
         return sendMoneyFlowID;
@@ -2597,7 +2601,7 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
                 return translateLocal('workflowsPage.frequencies.lastBusinessDayOfMonth');
             }
             if (typeof autoReportingOffset === 'number') {
-                return toLocaleOrdinal(BaseLocaleListener.getPreferredLocale(), autoReportingOffset, false);
+                return toLocaleOrdinal(TranslationStore.getCurrentLocale(), autoReportingOffset, false);
             }
             return '';
         };
@@ -2901,7 +2905,7 @@ function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, 
 /**
  * Whether a message is NOT from the active user, and it was received while the user was offline.
  */
-function wasMessageReceivedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale) {
+function wasMessageReceivedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale = CONST.LOCALES.DEFAULT) {
     const wasByCurrentUser = wasActionTakenByCurrentUser(action);
     const wasCreatedOffline = wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, locale);
 
@@ -2994,8 +2998,9 @@ export {
     isExportIntegrationAction,
     isIntegrationMessageAction,
     isMessageDeleted,
-    useNewTableReportViewActionRenderConditionals,
+    useTableReportViewActionRenderConditionals,
     isModifiedExpenseAction,
+    isMovedTransactionAction,
     isMoneyRequestAction,
     isNotifiableReportAction,
     isOldDotReportAction,

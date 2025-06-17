@@ -17,6 +17,7 @@ type CompanyCardPlaidConnection = {
     domainName: string;
     feedName: string;
     feed: string;
+    country: string;
 };
 
 function getCompanyCardBankConnection(policyID?: string, bankName?: string) {
@@ -47,8 +48,8 @@ function getCompanyCardBankConnection(policyID?: string, bankName?: string) {
     return `${commandURL}partners/banks/${bank}/oauth_callback.php?${new URLSearchParams(params).toString()}`;
 }
 
-function getCompanyCardPlaidConnection(policyID?: string, publicToken?: string, feed?: string, feedName?: string) {
-    if (!policyID || !publicToken || !feed || !feedName) {
+function getCompanyCardPlaidConnection(policyID?: string, publicToken?: string, feed?: string, feedName?: string, country?: string) {
+    if (!policyID || !publicToken || !feed || !feedName || !country) {
         return null;
     }
     const authToken = NetworkStore.getAuthToken();
@@ -57,6 +58,7 @@ function getCompanyCardPlaidConnection(policyID?: string, publicToken?: string, 
         feed,
         feedName,
         publicToken,
+        country,
         domainName: PolicyUtils.getDomainNameForPolicy(policyID),
     };
 
