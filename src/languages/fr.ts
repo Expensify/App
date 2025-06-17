@@ -5194,7 +5194,7 @@ const translations = {
                 maxExpenseAmountDescription: 'Signaler les dépenses qui dépassent ce montant, sauf si une règle de catégorie les remplace.',
                 maxAge: 'Âge maximum',
                 maxExpenseAge: 'Âge maximal des dépenses',
-                maxExpenseAgeDescription: 'Flag spend older than a specific number of days.',
+                maxExpenseAgeDescription: 'Signaler une dépense datant de plus d’un certain nombre de jours.',
                 maxExpenseAgeDays: () => ({
                     one: '1 jour',
                     other: (count: number) => `${count} jours`,

@@ -817,7 +817,7 @@ const translations = {
         beginningOfChatHistoryAnnounceRoomPartTwo: `将其用于最重要的公告。`,
         beginningOfChatHistoryUserRoomPartOne: '此聊天室适用于任何内容',
         beginningOfChatHistoryUserRoomPartTwo: '相关。',
-        beginningOfChatHistoryInvoiceRoomPartOne: `This chat is for invoices between `,
+        beginningOfChatHistoryInvoiceRoomPartOne: `此聊天用于处理以下双方之间的发票：`,
         beginningOfChatHistoryInvoiceRoomPartTwo: `使用 + 按钮发送发票。`,
         beginningOfChatHistory: '此聊天对象为',
         beginningOfChatHistoryPolicyExpenseChatPartOne: '这就是哪里',
@@ -917,7 +917,7 @@ const translations = {
                 return '没有添加或更新任何成员。';
             }
             if (added && updated) {
-                return `${added} member${added > 1 ? 's' : ''} added, ${updated} member${updated > 1 ? 's' : ''} updated.`;
+                return `${added} 位成员${added > 1 ? 's' : ''}已添加，${updated} 位成员${updated > 1 ? 's' : ''}已更新。`;
             }
             if (updated) {
                 return updated > 1 ? `已更新 ${updated} 名成员。` : '1 名成员已被更新。';
@@ -1553,7 +1553,7 @@ const translations = {
         },
         mergeFailureSAMLDomainControl: {
             beforeFirstEmail: '您无法合并',
-            beforeDomain: ' because it’s controlled by ',
+            beforeDomain: '因为它由……控制',
             afterDomain: '请',
             linkText: '联系 Concierge',
             afterLink: '寻求帮助。',

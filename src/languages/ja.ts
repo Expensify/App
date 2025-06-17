@@ -812,7 +812,7 @@ const translations = {
         beginningOfChatHistoryDomainRoomPartOne: ({domainRoom}: BeginningOfChatHistoryDomainRoomPartOneParams) =>
             `このチャットは、${domainRoom} ドメインのすべての Expensify メンバーとのものです。`,
         beginningOfChatHistoryDomainRoomPartTwo: '同僚とチャットしたり、ヒントを共有したり、質問したりするために使用してください。',
-        beginningOfChatHistoryAdminRoomPartOneFirst: 'This chat is with',
+        beginningOfChatHistoryAdminRoomPartOneFirst: 'このチャットは〜とです ',
         beginningOfChatHistoryAdminRoomPartOneLast: '管理者',
         beginningOfChatHistoryAdminRoomWorkspaceName: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) => ` ${workspaceName} `,
         beginningOfChatHistoryAdminRoomPartTwo: 'ワークスペースの設定などについてチャットするためにご利用ください。',
@@ -1568,7 +1568,7 @@ const translations = {
         },
         mergeFailureSAMLDomainControl: {
             beforeFirstEmail: 'マージできません',
-            beforeDomain: ' because it’s controlled by ',
+            beforeDomain: '「〜によって管理されているため」',
             afterDomain: '。お願いします',
             linkText: 'Conciergeに連絡する',
             afterLink: 'サポートが必要な場合は、こちらまでご連絡ください。',
