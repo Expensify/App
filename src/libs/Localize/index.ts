@@ -188,7 +188,7 @@ function formatMessageElementList<E extends MessageElementBase>(elements: readon
  * Returns the user device's preferred language.
  */
 function getDevicePreferredLocale(): Locale {
-    return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
+    return RNLocalize.findBestAvailableLanguage(Object.values(CONST.LOCALES))?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
 export {translate, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale};
