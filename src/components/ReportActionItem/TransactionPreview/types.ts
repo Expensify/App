@@ -11,9 +11,6 @@ type TransactionPreviewStyleType = {
 };
 
 type TransactionPreviewProps = {
-    /** The active IOUReport, used for Onyx subscription */
-    iouReportID: string | undefined;
-
     /** The IOU/Expense report */
     iouReport: Report | undefined;
 
@@ -74,13 +71,13 @@ type TransactionPreviewProps = {
     contextAction?: OnyxEntry<ReportAction>;
 
     /** Session account ID */
-    sessionAccountID?: number;
+    sessionAccountID: number | undefined;
 
     /** Personal details list */
-    personalDetailsList?: PersonalDetailsList;
+    personalDetailsList: PersonalDetailsList | undefined;
 
     /** Records any errors related to wallet terms. */
-    walletTermsErrors?: Errors | undefined;    
+    walletTermsErrors: Errors | undefined;    
 };
 
 type TransactionPreviewContentProps = {

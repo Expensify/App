@@ -859,13 +859,10 @@ function PureReportActionItem({
             const isSplitScanWithNoAmount = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && moneyRequestOriginalMessage?.amount === 0;
             const shouldShowSplitPreview = isSplitInGroupChat || isSplitScanWithNoAmount;
             const chatReportID = moneyRequestOriginalMessage?.IOUReportID ? report?.chatReportID : reportID;
-            // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
-            const iouReportID = moneyRequestOriginalMessage?.IOUReportID?.toString();
             children = (
                 <MoneyRequestAction
-                    // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
-                    chatReportID={chatReportID}
-                    requestReportID={iouReportID}
+                    iouReport={iouReport}
+                    chatReport={chatReport}
                     reportID={reportID}
                     action={action}
                     isMostRecentIOUReportAction={isMostRecentIOUReportAction}
@@ -875,6 +872,9 @@ function PureReportActionItem({
                     style={displayAsGroup ? [] : [styles.mt2]}
                     isWhisper={isWhisper}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
+                    sessionAccountID={sessionAccountID}
+                    personalDetailsList={personalDetailsList}
+                    walletTermsErrors={walletTermsErrors}
                 />
             );
 
@@ -883,7 +883,6 @@ function PureReportActionItem({
                     children = (
                         <View style={[styles.mt1, styles.w100]}>
                             <TransactionPreview
-                                iouReportID={getIOUReportIDFromReportActionPreview(action)}
                                 iouReport={iouReport}
                                 chatReport={chatReport}
                                 reportID={reportID}

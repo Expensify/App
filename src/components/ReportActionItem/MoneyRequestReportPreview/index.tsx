@@ -88,7 +88,6 @@ function MoneyRequestReportPreview({
             contextMenuAnchor={contextMenuAnchor}
             isWhisper={isWhisper}
             isHovered={isHovered}
-            iouReportID={iouReportID}
             iouReport={iouReport}
             containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewStyle]}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
