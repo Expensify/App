@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
-import type {TupleToUnion} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
 import {translateLocal} from '@libs/Localize';
@@ -378,14 +378,99 @@ const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: bo
         });
 };
 
-const getConfirmModalPrompt = (attachmentInvalidReason: TranslationPaths | undefined) => {
-    if (!attachmentInvalidReason) {
-        return '';
+const isValidReceiptExtension = (file: FileObject) => {
+    const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
+    return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
+        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
+    );
+};
+
+const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
+    if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
+        return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
-    if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
-        return translateLocal(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
+
+    if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+        return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL;
     }
-    return translateLocal(attachmentInvalidReason);
+
+    if (isValidatingReceipt && !isValidReceiptExtension(file)) {
+        return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
+    }
+    return '';
+};
+
+type TranslationAdditionalData = {
+    maxUploadSizeInMB?: number;
+    fileLimit?: number;
+    fileType?: string;
+};
+
+const getFileValidationErrorText = (
+    validationError: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null,
+    additionalData: TranslationAdditionalData = {},
+): {
+    title: string;
+    reason: string;
+} => {
+    if (!validationError) {
+        return {
+            title: '',
+            reason: '',
+        };
+    }
+    switch (validationError) {
+        case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
+            return {
+                title: translateLocal('attachmentPicker.wrongFileType'),
+                reason: translateLocal('attachmentPicker.notAllowedExtension'),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE:
+            return {
+                title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
+                reason: translateLocal('attachmentPicker.unsupportedFileType', {fileType: additionalData.fileType ?? ''}),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
+            return {
+                title: translateLocal('attachmentPicker.attachmentTooLarge'),
+                reason: translateLocal('attachmentPicker.sizeExceeded'),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE:
+            return {
+                title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
+                reason: translateLocal('attachmentPicker.sizeLimitExceeded'),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:
+            return {
+                title: translateLocal('attachmentPicker.attachmentTooSmall'),
+                reason: translateLocal('attachmentPicker.sizeNotMet'),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
+            return {
+                title: translateLocal('attachmentPicker.attachmentError'),
+                reason: translateLocal('attachmentPicker.folderNotAllowedMessage'),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED:
+            return {
+                title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
+                reason: translateLocal('attachmentPicker.maxFileLimitExceeded'),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED:
+            return {
+                title: translateLocal('attachmentPicker.attachmentError'),
+                reason: translateLocal('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
+            };
+        case CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE:
+            return {
+                title: translateLocal('attachmentPicker.attachmentError'),
+                reason: translateLocal('attachmentPicker.protectedPDFNotSupported'),
+            };
+        default:
+            return {
+                title: translateLocal('attachmentPicker.attachmentError'),
+                reason: translateLocal('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
+            };
+    }
 };
 
 export {
@@ -410,5 +495,7 @@ export {
     resizeImageIfNeeded,
     createFile,
     validateReceipt,
-    getConfirmModalPrompt,
+    validateAttachment,
+    isValidReceiptExtension,
+    getFileValidationErrorText,
 };

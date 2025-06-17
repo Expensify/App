@@ -36,7 +36,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
-import {getConfirmModalPrompt} from '@libs/fileDownload/FileUtils';
+import {getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
 import getModalState from '@libs/getModalState';
 import Performance from '@libs/Performance';
 import {
@@ -149,8 +149,7 @@ function ReportActionCompose({
     // TODO: remove beta check after the feature is enabled
     const {isBetaEnabled} = usePermissions();
 
-    const {validateAndResizeFile, setIsAttachmentInvalid, isAttachmentInvalid, attachmentInvalidReason, attachmentInvalidReasonTitle, setUploadReceiptError, pdfFile, setPdfFile} =
-        useFileValidation();
+    const {validateAndResizeFile, setIsAttachmentInvalid, isAttachmentInvalid, setUploadReceiptError, pdfFile, setPdfFile, fileError} = useFileValidation();
 
     /**
      * Updates the Highlight state of the composer
@@ -285,8 +284,9 @@ function ReportActionCompose({
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, []);
 
-    const attachmentFileRef = useRef<FileObject | null>(null);
-    const addAttachment = useCallback((file: FileObject) => {
+    const attachmentFileRef = useRef<FileObject | FileObject[] | null>(null);
+
+    const addAttachment = useCallback((file: FileObject | FileObject[]) => {
         attachmentFileRef.current = file;
         const clear = composerRef.current?.clear;
         if (!clear) {
@@ -312,7 +312,15 @@ function ReportActionCompose({
             const newCommentTrimmed = newComment.trim();
 
             if (attachmentFileRef.current) {
-                addAttachmentReportActions(reportID, attachmentFileRef.current, newCommentTrimmed, true);
+                if (Array.isArray(attachmentFileRef.current)) {
+                    // Handle multiple files
+                    attachmentFileRef.current.forEach((file) => {
+                        addAttachmentReportActions(reportID, file, newCommentTrimmed, true);
+                    });
+                } else {
+                    // Handle single file
+                    addAttachmentReportActions(reportID, attachmentFileRef.current, newCommentTrimmed, true);
+                }
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
@@ -508,12 +516,8 @@ function ReportActionCompose({
                 setPdfFile(null);
                 setReceiptAndNavigate(pdfFile, true);
             }}
-            onPassword={() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
-            }}
-            onLoadError={() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-            }}
+            onPassword={() => setUploadReceiptError(CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE)}
+            onLoadError={() => setUploadReceiptError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED)}
         />
     ) : null;
 
@@ -552,10 +556,11 @@ function ReportActionCompose({
                             reportID={reportID}
                             shouldHandleNavigationBack
                         >
-                            {({displayFileInModal}) => (
+                            {({displayFileInModal, displayMultipleFilesInModal}) => (
                                 <>
                                     <AttachmentPickerWithMenuItems
                                         displayFileInModal={displayFileInModal}
+                                        displayMultipleFilesInModal={displayMultipleFilesInModal}
                                         reportID={reportID}
                                         report={report}
                                         currentUserPersonalDetails={currentUserPersonalDetails}
@@ -635,6 +640,16 @@ function ReportActionCompose({
                                                 if (isAttachmentPreviewActive) {
                                                     return;
                                                 }
+                                                if (isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && event.dataTransfer?.files.length && event.dataTransfer?.files.length > 1) {
+                                                    const files = Array.from(event.dataTransfer?.files).map((file) => {
+                                                        // eslint-disable-next-line no-param-reassign
+                                                        file.uri = URL.createObjectURL(file);
+                                                        return file;
+                                                    });
+                                                    displayMultipleFilesInModal(files);
+                                                    return;
+                                                }
+
                                                 const data = event.dataTransfer?.files[0];
                                                 if (data) {
                                                     data.uri = URL.createObjectURL(data);
@@ -692,11 +707,11 @@ function ReportActionCompose({
                         />
                     </View>
                     <ConfirmModal
-                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                        title={getFileValidationErrorText(fileError).title}
                         onConfirm={hideReceiptModal}
                         onCancel={hideReceiptModal}
                         isVisible={isAttachmentInvalid}
-                        prompt={getConfirmModalPrompt(attachmentInvalidReason)}
+                        prompt={getFileValidationErrorText(fileError).reason}
                         confirmText={translate('common.close')}
                         shouldShowCancelButton={false}
                     />

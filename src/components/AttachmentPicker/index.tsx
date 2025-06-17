@@ -63,6 +63,7 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
                     const file = e.target.files[0];
 
                     if (file) {
+                        // TODO: refactor to use multiple files
                         file.uri = URL.createObjectURL(file);
                         onPicked.current([file]);
                     }
