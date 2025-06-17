@@ -579,16 +579,21 @@ function buildFilterFormValuesFromQuery(
         }
     }
 
-    const [typeKey = '', typeValue] = Object.entries(CONST.SEARCH.DATA_TYPES).find(([, value]) => value === queryJSON.type) ?? [];
+    const [typeKey, typeValue] = Object.entries(CONST.SEARCH.DATA_TYPES).find(([, value]) => value === queryJSON.type) ?? [];
     filtersForm[FILTER_KEYS.TYPE] = typeValue ? queryJSON.type : CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    const [statusKey] =
-        Object.entries(CONST.SEARCH.STATUS).find(([, value]) =>
-            Array.isArray(queryJSON.status) ? queryJSON.status.some((status) => Object.values(value).includes(status)) : Object.values(value).includes(queryJSON.status),
-        ) ?? [];
+    if (typeKey) {
+        if (Array.isArray(queryJSON.status)) {
+            const validStatuses = queryJSON.status.filter((status) => Object.values(CONST.SEARCH.STATUS[typeKey as keyof typeof CONST.SEARCH.DATA_TYPES]).includes(status));
 
-    if (typeKey === statusKey) {
-        filtersForm[FILTER_KEYS.STATUS] = Array.isArray(queryJSON.status) ? queryJSON.status.join(',') : queryJSON.status;
+            if (validStatuses.length) {
+                filtersForm[FILTER_KEYS.STATUS] = queryJSON.status.join(',');
+            } else {
+                filtersForm[FILTER_KEYS.STATUS] = CONST.SEARCH.STATUS.EXPENSE.ALL;
+            }
+        } else {
+            filtersForm[FILTER_KEYS.STATUS] = queryJSON.status;
+        }
     } else {
         filtersForm[FILTER_KEYS.STATUS] = CONST.SEARCH.STATUS.EXPENSE.ALL;
     }

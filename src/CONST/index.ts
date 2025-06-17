@@ -527,7 +527,7 @@ const CONST = {
     // Prevents consecutive special characters or spaces like '--', '..', '((', '))', or '  '.
     REPEATED_SPECIAL_CHAR_PATTERN: /([-\s().])\1+/,
 
-    MERCHANT_NAME_MAX_LENGTH: 255,
+    MERCHANT_NAME_MAX_BYTES: 255,
 
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
 
@@ -6643,6 +6643,8 @@ const CONST = {
             GROUP_BY: 'groupBy',
         },
         SYNTAX_FILTER_KEYS: {
+            TYPE: 'type',
+            STATUS: 'status',
             DATE: 'date',
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',

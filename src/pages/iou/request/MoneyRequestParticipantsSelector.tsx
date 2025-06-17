@@ -187,6 +187,7 @@ function MoneyRequestParticipantsSelector({
                 shouldSeparateWorkspaceChat: true,
                 includeSelfDM: !isMovingTransactionFromTrackExpense(action) && iouType !== CONST.IOU.TYPE.INVOICE,
                 canShowManagerMcTest: action !== CONST.IOU.ACTION.SUBMIT,
+                isPerDiemRequest,
             },
         );
 
