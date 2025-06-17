@@ -50,6 +50,6 @@
 ### [@react-navigation+core+7.10.0+002+getStateFromPath](@react-navigation+core+7.10.0+002+getStateFromPath.patch)
 - Reason: Make sure navigation state props retrieved from the path are available at all nesting levels to avoid undefined state.
 - Upstream PR/issue: N/A
-- E/App issue: N/A
-- PR Introducing Patch: N/A
-- PR Updating Patch: N/A
+- E/App issue: [#48150](https://github.com/Expensify/App/issues/48150)
+- PR Introducing Patch: [#48151](https://github.com/Expensify/App/pull/48151)
+- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155) 
