@@ -4,14 +4,17 @@ import {useOnyx} from 'react-native-onyx';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
+import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {removeTransactionReceipt} from '@userActions/TransactionEdit';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -31,6 +34,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
     const {translate} = useLocalize();
     const {setAttachmentError, clearAttachmentErrors} = useAttachmentErrors();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
+    const styles = useThemeStyles();
 
     const [currentReceipt, setCurrentReceipt] = useState<ReceiptWithTransactionIDAndSource | null>();
     const [page, setPage] = useState<number>(-1);
@@ -68,8 +72,12 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
         Navigation.goBack();
     }, [currentReceipt]);
 
-    const deleteReceiptAndCloseModal = useCallback(() => {
+    const handleCloseConfirmModal = () => {
         setIsDeleteReceiptConfirmModalVisible(false);
+    };
+
+    const deleteReceipt = useCallback(() => {
+        handleCloseConfirmModal();
         handleDeleteReceipt();
     }, [handleDeleteReceipt]);
 
@@ -80,7 +88,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
     return (
         <>
             <Modal
-                type="centered"
+                type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
                 isVisible
                 onClose={handleGoBack}
                 onModalHide={clearAttachmentErrors}
@@ -89,10 +97,15 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                     title={translate('common.receipt')}
                     shouldDisplayHelpButton={false}
                     onBackButtonPress={handleGoBack}
-                    shouldShowThreeDotsButton
-                    threeDotsMenuIcon={Expensicons.Trashcan}
-                    onThreeDotsButtonPress={() => setIsDeleteReceiptConfirmModalVisible(true)}
-                />
+                    onCloseButtonPress={handleCloseConfirmModal}
+                >
+                    <Button
+                        shouldShowRightIcon
+                        iconRight={Expensicons.Trashcan}
+                        onPress={() => setIsDeleteReceiptConfirmModalVisible(true)}
+                        innerStyles={styles.bgTransparent}
+                    />
+                </HeaderWithBackButton>
                 <AttachmentCarouselView
                     attachments={receipts}
                     source={currentReceipt?.source ?? ''}
@@ -110,11 +123,12 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
             <ConfirmModal
                 title={translate('receipt.deleteReceipt')}
                 isVisible={isDeleteReceiptConfirmModalVisible}
-                onConfirm={deleteReceiptAndCloseModal}
-                onCancel={() => setIsDeleteReceiptConfirmModalVisible(false)}
+                onConfirm={deleteReceipt}
+                onCancel={handleCloseConfirmModal}
                 prompt={translate('receipt.deleteConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
+                onBackdropPress={handleCloseConfirmModal}
                 danger
             />
         </>
