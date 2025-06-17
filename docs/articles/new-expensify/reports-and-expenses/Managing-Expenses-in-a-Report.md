@@ -35,11 +35,11 @@ You can delete one or more expenses from a report:
 ### Delete a single expense
 1. Open the report.
 2. Check the box next to the expense.
-3. Select **Bulk actions** > **Delete**.
+3. Select the **green** selection button > **Delete**.
 
 ### Delete multiple expenses
 1. Check the boxes for all expenses you want to delete.
-2. Select **Bulk actions** > **Delete**.
+2. Select the **green** selection button > **Delete**.
 
 ---
 
@@ -47,12 +47,12 @@ You can delete one or more expenses from a report:
 
 ### Move expenses to another report
 1. Check the boxes next to the expenses.
-2. Select **Bulk actions** > **Move expense(s)**.
+2. Select the **green** selection button > **Move expense(s)**.
 3. Choose the destination report from the panel.
 
 ### Remove expenses from a report
 1. Check the boxes next to the expenses.
-2. Select **Bulk actions** > **Move expense(s)**.
+2. Select the **green** selection button > **Move expense(s)**.
 3. Choose **Remove from report**.
 
 ---
@@ -143,20 +143,6 @@ You’re not a member of a workspace.
 **Solutions:**
 - Add at least one complete expense.
 - Wait for SmartScan to finish or card transactions to post.
-
----
-
-## Why don’t I see all my unreported expenses?
-
-**Possible causes:**
-- Expenses are already included in another report.
-- Filters are hiding them.
-- They belong to another workspace or were already submitted.
-
-**Solutions:**
-- Clear filters in the **Add expense** screen.
-- Check other reports to avoid duplicates.
-- Check your **Self DM** for personal unreported expenses.
 
 ---
 
