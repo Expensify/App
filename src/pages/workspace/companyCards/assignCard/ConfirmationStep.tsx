@@ -11,10 +11,10 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
-import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,6 +36,9 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const {isOffline} = useNetwork();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const feed = assignCard?.data?.bankName as CompanyCardFeed | undefined;
     const [cardFeeds] = useCardFeeds(policyID);
 
@@ -50,7 +53,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
         if (backTo) {
             Navigation.goBack(backTo);
         } else {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
         }
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
     }, [assignCard, backTo, policyID]);
@@ -61,9 +64,18 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
         }
 
         const isFeedExpired = isSelectedFeedExpired(feed ? cardFeeds?.settings?.oAuthAccountDetails?.[feed] : undefined);
+        const institutionId = !!getPlaidInstitutionId(feed);
 
         if (isFeedExpired) {
-            setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
+            if (institutionId) {
+                const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
+                setAddNewCompanyCardStepAndData({
+                    data: {
+                        selectedCountry: country,
+                    },
+                });
+            }
+            setAssignCardStepAndData({currentStep: institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
             return;
         }
         assignWorkspaceCompanyCard(policyID, data);

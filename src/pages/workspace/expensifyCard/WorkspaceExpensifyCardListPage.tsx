@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -11,11 +11,15 @@ import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Gear, Plus} from '@components/Icon/Expensicons';
 import {HandCard} from '@components/Icon/Illustrations';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
+import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
@@ -23,6 +27,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {filterCardsByPersonalDetails, getCardsByCardholderName, sortCardsByCardholderName} from '@libs/CardUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -68,10 +73,13 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
 
     const isBankAccountVerified = !cardOnWaitlist;
+    const {windowHeight} = useWindowDimensions();
+    const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
 
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 
@@ -85,6 +93,10 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
     const handleIssueCardPress = () => {
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
         if (isActingAsDelegate) {
             setIsNoDelegateAccessMenuVisible(true);
             return;
@@ -220,12 +232,21 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             {isEmptyObject(cardsList) ? (
                 <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
             ) : (
-                <FlatList
-                    data={filteredSortedCards}
-                    renderItem={renderItem}
-                    ListHeaderComponent={renderListHeader}
-                    contentContainerStyle={bottomSafeAreaPaddingStyle}
-                />
+                <ScrollView
+                    addBottomSafeAreaPadding
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={{height: windowHeight - headerHeight}}>
+                        <FlatList
+                            data={filteredSortedCards}
+                            renderItem={renderItem}
+                            ListHeaderComponent={renderListHeader}
+                            contentContainerStyle={bottomSafeAreaPaddingStyle}
+                            keyboardShouldPersistTaps="handled"
+                        />
+                    </View>
+                    <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
+                </ScrollView>
             )}
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
