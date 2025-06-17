@@ -1,5 +1,7 @@
 import {getCardFeedNamesWithType, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
 import {translateLocal} from '@libs/Localize';
+import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import type {WorkspaceCardsList} from '@src/types/onyx';
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -57,6 +59,9 @@ const fakeWorkspace: Record<string, WorkspaceCardsList> = {
 /* eslint-enable @typescript-eslint/naming-convention */
 
 describe('Card Feed Utils', () => {
+    beforeAll(() => {
+        TranslationStore.load(CONST.LOCALES.EN);
+    });
     it('returns display name of workspace & domain cards', () => {
         const cardFeedNamesWithType = getCardFeedNamesWithType({workspaceCardFeeds: fakeWorkspace, translate: translateLocal});
         expect(Object.keys(cardFeedNamesWithType).length).toBe(2);
