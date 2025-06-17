@@ -29,7 +29,7 @@ const REQUIRED_FIELDS = [INPUT_IDS.SECURITY_CODE];
 function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeRequired, initialCurrency}: PaymentCardFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {canUseEurBilling} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
     const [currency, setCurrency] = useState<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>(initialCurrency ?? CONST.PAYMENT_CARD_CURRENCY.USD);
@@ -45,6 +45,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
     };
 
     const availableCurrencies = useMemo(() => {
+    const canUseEurBilling = isBetaEnabled(CONST.BETAS.EUR_BILLING);
         const allCurrencies = Object.keys(CONST.PAYMENT_CARD_CURRENCY) as Array<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>;
         // Filter out EUR if user doesn't have EUR billing beta
         return allCurrencies.filter((currencyItem) => {
@@ -53,7 +54,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
             }
             return true;
         });
-    }, [canUseEurBilling]);
+    }, [isBetaEnabled]);
 
     const {sections} = useMemo(
         () => ({
