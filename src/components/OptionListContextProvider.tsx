@@ -273,6 +273,10 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
             setInternalOptions(optionsList);
             return;
         }
+        /**
+         * optionsList reference can change multiple times even the value of its arrays is the same. We perform shallow comparison to check if the options have truly changed.
+         * This is necessary to avoid unnecessary re-renders in components that use this context.
+         */
         const areOptionsEqual = shallowOptionsListCompare(prevOptions.current, optionsList);
         prevOptions.current = optionsList;
         if (areOptionsEqual) {

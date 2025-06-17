@@ -54,7 +54,13 @@ function useFastSearchFromOptions(
     config?: {includeUserToInvite: false},
 ): {search: (searchInput: string) => ReportAndPersonalDetailOptions; isInitialized: boolean};
 // Or you can use this to include the user invite option. This will require passing all options
-function useFastSearchFromOptions(options: OptionsListType, config?: {includeUserToInvite: true}): {search: (searchInput: string) => OptionsListType; isInitialized: boolean};
+function useFastSearchFromOptions(
+    options: OptionsListType,
+    config?: {includeUserToInvite: true},
+): {
+    search: (searchInput: string) => OptionsListType;
+    isInitialized: boolean;
+};
 
 /**
  * Hook for making options from OptionsListUtils searchable with FastSearch.
@@ -85,19 +91,19 @@ function useFastSearchFromOptions(
             prevFastSearchRef.current?.dispose();
             newFastSearch = FastSearch.createFastSearch(
                 [
-                    {data: options.personalDetails,
-                    toSearchableString: personalDetailToSearchString,
-                    uniqueId: getPersonalDetailUniqueId,
-                },
-                {
-                    data: options.recentReports,
-                    toSearchableString: recentReportToSearchString,
-                                uniqueId: getRecentReportUniqueId,
-                            },
-                        ],
+                    {
+                        data: options.personalDetails,
+                        toSearchableString: personalDetailToSearchString,
+                        uniqueId: getPersonalDetailUniqueId,
+                    },
+                    {
+                        data: options.recentReports,
+                        toSearchableString: recentReportToSearchString,
+                        uniqueId: getRecentReportUniqueId,
+                    },
+                ],
 
-                        {shouldStoreSearchableStrings: true
-                },
+                {shouldStoreSearchableStrings: true},
             );
             setFastSearch(newFastSearch);
             prevFastSearchRef.current = newFastSearch;
