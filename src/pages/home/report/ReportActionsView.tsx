@@ -97,7 +97,7 @@ function ReportActionsView({
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
     const [reportTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (allTransactions: OnyxCollection<OnyxTypes.Transaction>) =>
-            selectAllTransactionsForReport(allTransactions, reportID, allReportActions ?? [])?.map((transaction) => transaction.transactionID),
+            selectAllTransactionsForReport(allTransactions, reportID, allReportActions ?? []).map((transaction) => transaction.transactionID),
         canBeMissing: true,
     });
 
