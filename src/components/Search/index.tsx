@@ -225,12 +225,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     }, [handleSearch, isOffline, offset, queryJSON]);
 
     useEffect(() => {
-        if (isOffline) {
-            return;
-        }
-
         openSearch();
-    }, [isOffline]);
+    }, []);
 
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
         searchResults,
