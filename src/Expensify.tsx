@@ -88,7 +88,7 @@ function Expensify() {
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, {canBeMissing: true});
@@ -115,7 +115,7 @@ function Expensify() {
     const isAuthenticated = useIsAuthenticated();
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
-    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && (CONFIG.IS_HYBRID_APP ? !hybridApp?.loggedOutFromOldDot : true);
+    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale && (CONFIG.IS_HYBRID_APP ? !hybridApp?.loggedOutFromOldDot : true);
     const shouldHideSplash =
         shouldInit &&
         (CONFIG.IS_HYBRID_APP

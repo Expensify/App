@@ -54,7 +54,10 @@ describe('WorkspaceCategories', () => {
         });
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+        });
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
             isSmallScreenWidth: false,
             shouldUseNarrowLayout: false,
