@@ -26,7 +26,7 @@ type WorkspaceOwnerChangeWrapperPageProps = WithPolicyOnyxProps & PlatformStackS
 function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWrapperPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
+    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
     const policyID = route.params.policyID;
     const accountID = route.params.accountID;
     const error = route.params.error;

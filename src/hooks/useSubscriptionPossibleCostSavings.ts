@@ -30,7 +30,7 @@ const POSSIBLE_COST_SAVINGS = {
 function useSubscriptionPossibleCostSavings(): number {
     const preferredCurrency = usePreferredCurrency();
     const subscriptionPlan = useSubscriptionPlan();
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
 
     if (!subscriptionPlan || !privateSubscription?.type) {
         return 0;

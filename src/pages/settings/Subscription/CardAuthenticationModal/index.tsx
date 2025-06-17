@@ -19,8 +19,8 @@ type CardAuthenticationModalProps = {
 };
 function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModalProps) {
     const styles = useThemeStyles();
-    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [isLoading, setIsLoading] = useState(true);
     const [isVisible, setIsVisible] = useState(false);
 
