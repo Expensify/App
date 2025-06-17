@@ -1,12 +1,18 @@
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
-import React, {memo, useCallback, useEffect, useMemo} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import {RESULTS} from 'react-native-permissions';
+import type {PermissionStatus} from 'react-native-permissions';
 import Button from '@components/Button';
+import ContactPermissionModal from '@components/ContactPermissionModal';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
+import {UserPlus} from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
@@ -16,13 +22,20 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
+import contactImport from '@libs/ContactImport';
+import type {ContactImportResult} from '@libs/ContactImport/types';
+import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
+import getContacts from '@libs/ContactUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
+import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {Section} from '@libs/OptionsListUtils';
+import type {Option, SearchOption, Section} from '@libs/OptionsListUtils';
 import {
     filterAndOrderOptions,
     formatSectionsFromSearchTerm,
@@ -44,8 +57,10 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PersonalDetails} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ImportContactButton from './ImportContactButton';
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -78,13 +93,19 @@ function MoneyRequestParticipantsSelector({
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
+    const canUseNativeContactImport = isBetaEnabled(CONST.BETAS.NATIVE_CONTACT_IMPORT);
+    const platform = getPlatform();
+    const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
+    const showImportContacts = isNative && canUseNativeContactImport && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
@@ -92,12 +113,26 @@ function MoneyRequestParticipantsSelector({
     const {options, areOptionsInitialized, initializeOptions} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
+    const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
+    const [textInputAutoFocus, setTextInputAutoFocus] = useState(false);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyUtil(policy), [policy]);
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
+
+    const importAndSaveContacts = useCallback(() => {
+        if (!canUseNativeContactImport) {
+            return;
+        }
+
+        contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
+            setContactPermissionState(permissionStatus);
+            const usersFromContact = getContacts(contactList);
+            setContacts(usersFromContact);
+        });
+    }, [canUseNativeContactImport]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -108,6 +143,13 @@ function MoneyRequestParticipantsSelector({
         // e.g. if the approver was changed in the policy, we need to update the options list
         initializeOptions();
     }, [initializeOptions]);
+
+    useContactPermissions({
+        importAndSaveContacts,
+        setContacts,
+        contactPermissionState,
+        setContactPermissionState,
+    });
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
@@ -123,7 +165,7 @@ function MoneyRequestParticipantsSelector({
         const optionList = getValidOptions(
             {
                 reports: options.reports,
-                personalDetails: options.personalDetails,
+                personalDetails: options.personalDetails.concat(contacts),
             },
             {
                 betas,
@@ -154,7 +196,19 @@ function MoneyRequestParticipantsSelector({
             ...optionList,
             ...orderedOptions,
         };
-    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants, isPerDiemRequest]);
+    }, [
+        action,
+        contacts,
+        areOptionsInitialized,
+        betas,
+        didScreenTransitionEnd,
+        iouType,
+        isCategorizeOrShareAction,
+        options.personalDetails,
+        options.reports,
+        participants,
+        isPerDiemRequest,
+    ]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -180,6 +234,26 @@ function MoneyRequestParticipantsSelector({
         return newOptions;
     }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest]);
 
+    const inputHelperText = useMemo(
+        () =>
+            getHeaderMessage(
+                (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length + (chatOptions.workspaceChats ?? []).length !== 0 ||
+                    !isEmptyObject(chatOptions.selfDMChat),
+                !!chatOptions?.userToInvite,
+                debouncedSearchTerm.trim(),
+                participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
+            ),
+        [
+            chatOptions.personalDetails,
+            chatOptions.recentReports,
+            chatOptions.selfDMChat,
+            chatOptions?.userToInvite,
+            chatOptions.workspaceChats,
+            cleanSearchTerm,
+            debouncedSearchTerm,
+            participants,
+        ],
+    );
     /**
      * Returns the sections needed for the OptionsSelector
      * @returns {Array}
@@ -244,12 +318,10 @@ function MoneyRequestParticipantsSelector({
             });
         }
 
-        const headerMessage = getHeaderMessage(
-            (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length + (chatOptions.workspaceChats ?? []).length !== 0 || !isEmptyObject(chatOptions.selfDMChat),
-            !!chatOptions?.userToInvite,
-            debouncedSearchTerm.trim(),
-            participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
-        );
+        let headerMessage = '';
+        if (!showImportContacts) {
+            headerMessage = inputHelperText;
+        }
 
         return [newSections, headerMessage];
     }, [
@@ -264,7 +336,8 @@ function MoneyRequestParticipantsSelector({
         chatOptions.userToInvite,
         personalDetails,
         translate,
-        cleanSearchTerm,
+        showImportContacts,
+        inputHelperText,
         isPerDiemRequest,
     ]);
 
@@ -274,7 +347,7 @@ function MoneyRequestParticipantsSelector({
      * @param {Object} option
      */
     const addSingleParticipant = useCallback(
-        (option: Participant) => {
+        (option: Participant & Option) => {
             const newParticipants: Participant[] = [
                 {
                     ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID', 'isSelfDM', 'text', 'phoneNumber'),
@@ -390,6 +463,16 @@ function MoneyRequestParticipantsSelector({
 
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
 
+    const initiateContactImportAndSetState = useCallback(() => {
+        if (!canUseNativeContactImport) {
+            return;
+        }
+
+        setContactPermissionState(RESULTS.GRANTED);
+        InteractionManager.runAfterInteractions(importAndSaveContacts);
+        setTextInputAutoFocus(true);
+    }, [importAndSaveContacts, canUseNativeContactImport]);
+
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
             return;
@@ -463,29 +546,82 @@ function MoneyRequestParticipantsSelector({
         [isIOUSplit, addParticipantToSelection, addSingleParticipant],
     );
 
+    const footerContentAbovePaginationComponent = useMemo(() => {
+        if (!showImportContacts) {
+            return null;
+        }
+        return (
+            <MenuItem
+                title={translate('contact.importContacts')}
+                icon={UserPlus}
+                onPress={goToSettings}
+                shouldShowRightIcon
+                style={styles.mb3}
+            />
+        );
+    }, [showImportContacts, styles.mb3, translate]);
+
+    const ClickableImportContactTextComponent = useMemo(() => {
+        if (debouncedSearchTerm.length || isSearchingForReports) {
+            return;
+        }
+        return (
+            <ImportContactButton
+                showImportContacts={showImportContacts}
+                inputHelperText={translate('contact.importContactsTitle')}
+                isInSearch={false}
+            />
+        );
+    }, [debouncedSearchTerm, isSearchingForReports, showImportContacts, translate]);
+    const EmptySelectionListContentWithPermission = useMemo(() => {
+        return (
+            <>
+                {ClickableImportContactTextComponent}
+                <EmptySelectionListContent contentType={iouType} />;
+            </>
+        );
+    }, [iouType, ClickableImportContactTextComponent]);
+
     return (
-        <SelectionList
-            onConfirm={handleConfirmSelection}
-            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
-            ListItem={InviteMemberListItem}
-            textInputValue={searchTerm}
-            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-            textInputHint={offlineMessage}
-            onChangeText={setSearchTerm}
-            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            onSelectRow={onSelectRow}
-            shouldSingleExecuteRowSelect
-            footerContent={footerContent}
-            listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
-            headerMessage={header}
-            showLoadingPlaceholder={showLoadingPlaceholder}
-            canSelectMultiple={isIOUSplit && isAllowedToSplit}
-            isLoadingNewOptions={!!isSearchingForReports}
-            shouldShowListEmptyContent={shouldShowListEmptyContent}
-        />
+        <>
+            {!!canUseNativeContactImport && (
+                <ContactPermissionModal
+                    onGrant={initiateContactImportAndSetState}
+                    onDeny={setContactPermissionState}
+                />
+            )}
+            <SelectionList
+                onConfirm={handleConfirmSelection}
+                sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+                ListItem={InviteMemberListItem}
+                textInputValue={searchTerm}
+                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                textInputHint={offlineMessage}
+                onChangeText={setSearchTerm}
+                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                onSelectRow={onSelectRow}
+                shouldSingleExecuteRowSelect
+                headerContent={
+                    <ImportContactButton
+                        showImportContacts={showImportContacts}
+                        inputHelperText={inputHelperText}
+                        isInSearch
+                    />
+                }
+                footerContent={footerContent}
+                listEmptyContent={EmptySelectionListContentWithPermission}
+                footerContentAbovePagination={footerContentAbovePaginationComponent}
+                headerMessage={header}
+                showLoadingPlaceholder={showLoadingPlaceholder}
+                canSelectMultiple={isIOUSplit && isAllowedToSplit}
+                isLoadingNewOptions={!!isSearchingForReports}
+                shouldShowListEmptyContent={shouldShowListEmptyContent}
+                textInputAutoFocus={textInputAutoFocus}
+            />
+        </>
     );
 }
 
 MoneyRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
-export default memo(MoneyRequestParticipantsSelector, (prevProps, nextProps) => lodashIsEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType);
+export default memo(MoneyRequestParticipantsSelector, (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType);
