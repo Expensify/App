@@ -2,6 +2,7 @@ type CreatePerDiemRequestParams = {
     policyID: string;
     created: string;
     customUnitID: string;
+    customUnitRate: string;
     customUnitRateID: string;
     subRates: string;
     currency: string;
@@ -17,7 +18,7 @@ type CreatePerDiemRequestParams = {
     createdChatReportActionID?: string;
     createdIOUReportActionID?: string;
     reportPreviewReportActionID: string;
-    transactionThreadReportID?: string;
+    transactionThreadReportID: string;
     createdReportActionIDForThread: string | undefined;
     billable?: boolean;
     attendees?: string;

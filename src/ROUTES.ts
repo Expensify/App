@@ -84,14 +84,12 @@ const ROUTES = {
             backTo,
             moneyRequestReportActionID,
             transactionID,
-            iouReportID,
         }: {
             reportID: string | undefined;
             reportActionID?: string;
             backTo?: string;
             moneyRequestReportActionID?: string;
             transactionID?: string;
-            iouReportID?: string;
         }) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
@@ -106,10 +104,6 @@ const ROUTES = {
             }
             if (moneyRequestReportActionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
-            }
-
-            if (iouReportID) {
-                queryParams.push(`iouReportID=${iouReportID}`);
             }
 
             const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;
@@ -223,6 +217,9 @@ const ROUTES = {
         route: 'settings/security/merge-accounts/:login/result/:result',
         getRoute: (login: string, result: string, backTo?: string) => getUrlWithBackToParam(`settings/security/merge-accounts/${encodeURIComponent(login)}/result/${result}`, backTo),
     },
+    SETTINGS_LOCK_ACCOUNT: 'settings/security/lock-account',
+    SETTINGS_UNLOCK_ACCOUNT: 'settings/security/unlock-account',
+    SETTINGS_FAILED_TO_LOCK_ACCOUNT: 'settings/security/failed-to-lock-account',
     SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
     SETTINGS_DELEGATE_ROLE: {
         route: 'settings/security/delegate/:login/role/:role',
@@ -382,19 +379,10 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (
-            reportID: string | undefined,
-            reportActionID?: string,
-            referrer?: string,
-            moneyRequestReportActionID?: string,
-            transactionID?: string,
-            backTo?: string,
-            iouReportID?: string,
-        ) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, moneyRequestReportActionID?: string, transactionID?: string, backTo?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
             }
-
             const baseRoute = reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const);
 
             const queryParams: string[] = [];
@@ -406,10 +394,6 @@ const ROUTES = {
             if (moneyRequestReportActionID && transactionID) {
                 queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
                 queryParams.push(`transactionID=${transactionID}`);
-            }
-
-            if (iouReportID) {
-                queryParams.push(`iouReportID=${iouReportID}`);
             }
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
@@ -456,7 +440,7 @@ const ROUTES = {
         getRoute: (
             reportID: string | undefined,
             attachmentID: string | undefined,
-            type: ValueOf<typeof CONST.ATTACHMENT_TYPE>,
+            type: ValueOf<typeof CONST.ATTACHMENT_TYPE> | undefined,
             url: string,
             accountID?: number,
             isAuthTokenRequired?: boolean,
@@ -464,6 +448,7 @@ const ROUTES = {
             attachmentLink?: string,
             hashKey?: number,
         ) => {
+            const typeParam = type ? `&type=${type}` : '';
             const reportParam = reportID ? `&reportID=${reportID}` : '';
             const accountParam = accountID ? `&accountID=${accountID}` : '';
             const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
@@ -472,9 +457,7 @@ const ROUTES = {
             const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
             const hashKeyParam = hashKey ? `&hashKey=${hashKey}` : '';
 
-            return `attachment?source=${encodeURIComponent(url)}&type=${
-                type as string
-            }${reportParam}${attachmentIDParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}${hashKeyParam}` as const;
+            return `attachment?source=${encodeURIComponent(url)}${typeParam}${reportParam}${attachmentIDParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}${hashKeyParam}` as const;
         },
     },
     REPORT_PARTICIPANTS: {
@@ -611,15 +594,10 @@ const ROUTES = {
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?/:searchHash?',
-        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string | undefined, backTo: string, searchHash?: number) => {
-            let route = searchHash
-                ? (`${type as string}/edit/reason/${transactionID}/${searchHash}/?backTo=${backTo}` as const)
-                : (`${type as string}/edit/reason/${transactionID}/?backTo=${backTo}` as const);
-
-            if (reportID) {
-                route = `${route}&reportID=${reportID}` as const;
-            }
-
+        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string, searchHash?: number) => {
+            const route = searchHash
+                ? (`${type as string}/edit/reason/${transactionID}/${searchHash}/?backTo=${backTo}&reportID=${reportID}` as const)
+                : (`${type as string}/edit/reason/${transactionID}/?backTo=${backTo}&reportID=${reportID}` as const);
             return route;
         },
     },
@@ -1528,7 +1506,13 @@ const ROUTES = {
     },
     WORKSPACE_TAG_SETTINGS: {
         route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName',
-        getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}` as const,
+        getRoute: (policyID: string, orderWeight: number, tagName: string, parentTagsFilter?: string) => {
+            let queryParams = '';
+            if (parentTagsFilter) {
+                queryParams += `?parentTagsFilter=${parentTagsFilter}`;
+            }
+            return `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}${queryParams}` as const;
+        },
     },
     WORKSPACE_TAG_APPROVER: {
         route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/approver',
@@ -1546,9 +1530,21 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tags/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/import` as const,
     },
+    WORKSPACE_MULTI_LEVEL_TAGS_IMPORT_SETTINGS: {
+        route: 'settings/workspaces/:policyID/tags/import/multi-level',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/import/multi-level` as const,
+    },
+    WORKSPACE_TAGS_IMPORT_OPTIONS: {
+        route: 'settings/workspaces/:policyID/tags/import/import-options',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/import/import-options` as const,
+    },
     WORKSPACE_TAGS_IMPORTED: {
         route: 'settings/workspaces/:policyID/tags/imported',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/imported` as const,
+    },
+    WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL: {
+        route: 'settings/workspaces/:policyID/tags/imported/multi-level',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/imported/multi-level` as const,
     },
     WORKSPACE_TAXES: {
         route: 'settings/workspaces/:policyID/taxes',
@@ -1937,6 +1933,10 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('change-workspace-educational', backTo),
     },
     TRAVEL_MY_TRIPS: 'travel',
+    TRAVEL_DOT_LINK_WEB_VIEW: {
+        route: 'travel-dot-link',
+        getRoute: (token: string, isTestAccount?: boolean) => `travel-dot-link?token=${token}&isTestAccount=${isTestAccount}` as const,
+    },
     TRAVEL_TCS: {
         route: 'travel/terms/:domain/accept',
         getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept`, backTo),
@@ -2016,6 +2016,22 @@ const ROUTES = {
         route: 'onboarding/work-email-validation',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email-validation`, backTo),
     },
+    ONBOARDING_WORKSPACE: {
+        route: 'onboarding/create-workspace',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/create-workspace`, backTo),
+    },
+    ONBOARDING_WORKSPACE_CONFIRMATION: {
+        route: 'onboarding/workspace-confirmation',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-confirmation`, backTo),
+    },
+    ONBOARDING_WORKSPACE_CURRENCY: {
+        route: 'onboarding/workspace-currency',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-currency`, backTo),
+    },
+    ONBOARDING_WORKSPACE_INVITE: {
+        route: 'onboarding/workspace-invite',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-invite`, backTo),
+    },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
     TEST_DRIVE_MODAL_ROOT: {
@@ -2023,13 +2039,14 @@ const ROUTES = {
         getRoute: (bossEmail?: string) => `onboarding/test-drive${bossEmail ? `?bossEmail=${encodeURIComponent(bossEmail)}` : ''}` as const,
     },
     TEST_DRIVE_DEMO_ROOT: 'onboarding/test-drive/demo',
+    AUTO_SUBMIT_MODAL_ROOT: '/auto-submit',
     WORKSPACE_CONFIRMATION: {
         route: 'workspace/confirmation',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation`, backTo),
     },
     MIGRATED_USER_WELCOME_MODAL: {
         route: 'onboarding/migrated-user-welcome',
-        getRoute: (isFromRoot?: boolean) => getUrlWithBackToParam(`onboarding/migrated-user-welcome?${isFromRoot ? 'isFromRoot=true' : ''}`, undefined, false),
+        getRoute: (shouldOpenSearch?: boolean) => getUrlWithBackToParam(`onboarding/migrated-user-welcome?${shouldOpenSearch ? 'shouldOpenSearch=true' : ''}`, undefined, false),
     },
 
     TRANSACTION_RECEIPT: {
@@ -2583,6 +2600,8 @@ const ROUTES = {
         route: 'r/:reportID/schedule-call/confirmation',
         getRoute: (reportID: string) => `r/${reportID}/schedule-call/confirmation` as const,
     },
+
+    TEST_TOOLS_MODAL: 'test-tools',
 } as const;
 
 /**
