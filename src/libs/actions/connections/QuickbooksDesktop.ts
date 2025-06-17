@@ -85,8 +85,8 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
     settingValue: Partial<Connections['quickbooksDesktop']['config']['export'][TSettingName]>,
     oldSettingValue?: Partial<Connections['quickbooksDesktop']['config']['export'][TSettingName]>,
 ) {
-    const exporterOptimisticData = settingName === 'exporter' ? {exporter: settingValue} : {};
-    const exporterErrorData = settingName === 'exporter' ? {exporter: oldSettingValue} : {};
+    const exporterOptimisticData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORTER ? {exporter: settingValue} : {};
+    const exporterErrorData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORTER ? {exporter: oldSettingValue} : {};
 
     const optimisticData: OnyxUpdate[] = [
         {

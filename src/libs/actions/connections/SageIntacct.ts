@@ -439,8 +439,8 @@ function removeSageIntacctUserDimensions(policyID: string, dimensionName: string
 }
 
 function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof SageIntacctExportConfig, settingValue: string | null, oldSettingValue?: string | null) {
-    const exporterOptimisticData = settingName === 'exporter' ? {exporter: settingValue} : {};
-    const exporterErrorData = settingName === 'exporter' ? {exporter: oldSettingValue} : {};
+    const exporterOptimisticData = settingName === CONST.SAGE_INTACCT_CONFIG.EXPORTER ? {exporter: settingValue} : {};
+    const exporterErrorData = settingName === CONST.SAGE_INTACCT_CONFIG.EXPORTER ? {exporter: oldSettingValue} : {};
 
     const optimisticData: OnyxUpdate[] = [
         {
