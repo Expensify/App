@@ -374,14 +374,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         textInputRef={textInputRef}
                     />
                 )}
-                {!areOptionsInitialized ||
-                    (!isRecentSearchesDataLoaded && (
-                        <OptionsListSkeletonView
-                            fixedNumItems={4}
-                            shouldStyleAsTable
-                            speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                        />
-                    ))}
+                {!(areOptionsInitialized && isRecentSearchesDataLoaded) && (
+                    <OptionsListSkeletonView
+                        fixedNumItems={4}
+                        shouldStyleAsTable
+                        speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                    />
+                )}
             </>
         </View>
     );
