@@ -360,7 +360,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     substitutionMap={autocompleteSubstitutions}
                     ref={textInputRef}
                 />
-                {areOptionsInitialized && isRecentSearchesDataLoaded && (
+const shouldShowSearchList = areOptionsInitialized && isRecentSearchesDataLoaded
                     <SearchAutocompleteList
                         autocompleteQueryValue={autocompleteQueryValue || textInputValue}
                         handleSearch={searchInServer}
