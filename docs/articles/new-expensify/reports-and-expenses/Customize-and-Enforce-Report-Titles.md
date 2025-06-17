@@ -5,7 +5,7 @@ keywords: [New Expensify, default report title, report naming, enforce report ti
 ---
 <div id="new-expensify" markdown="1">
 
-Automatically generate standardized report titles across your workspace using formulas. Admins can pull in dynamic data like report type or member name—and even lock naming rules to prevent edits.
+Automatically generate standardized report titles across your workspace using formulas. Admins can pull in dynamic data like report type or member name, and even lock naming rules to prevent edits.
 
 ---
 
