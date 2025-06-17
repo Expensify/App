@@ -148,7 +148,7 @@ function ReportActionsList({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
 
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`, {canBeMissing: false});
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`];
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
         {canBeMissing: true},
@@ -579,7 +579,6 @@ function ReportActionsList({
                     parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                     index={index}
                     report={report}
-                    chatReport={chatReport}
                     transactionThreadReport={transactionThreadReport}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={
@@ -603,7 +602,6 @@ function ReportActionsList({
         [
             report,
             allReports,
-            chatReport,
             linkedReportActionID,
             sortedVisibleReportActions,
             mostRecentIOUReportActionID,

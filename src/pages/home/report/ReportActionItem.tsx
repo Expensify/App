@@ -40,7 +40,7 @@ type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'lin
     shouldShowDraftMessage?: boolean;
 };
 
-function ReportActionItem({allReports, action, report, chatReport, shouldShowDraftMessage = true, ...props}: ReportActionItemProps) {
+function ReportActionItem({allReports, action, report, shouldShowDraftMessage = true, ...props}: ReportActionItemProps) {
     const reportID = report?.reportID;
     const originalMessage = getOriginalMessage(action);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -80,6 +80,8 @@ function ReportActionItem({allReports, action, report, chatReport, shouldShowDra
     const taskReport = originalMessage && 'taskReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.taskReportID}`] : undefined;
     const linkedReport = originalMessage && 'linkedReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.linkedReportID}`] : undefined;
     const iouReportOfLinkedReport = linkedReport && 'iouReportID' in linkedReport ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedReport.iouReportID}`] : undefined;
+
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID ?? action?.reportID}`];
 
     return (
         <PureReportActionItem

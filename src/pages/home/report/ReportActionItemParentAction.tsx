@@ -41,9 +41,6 @@ type ReportActionItemParentActionProps = {
     /** The current report is displayed */
     report: OnyxEntry<OnyxTypes.Report>;
 
-    /** The associated chatReport */
-    chatReport: OnyxEntry<OnyxTypes.Report>;
-
     /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
@@ -81,7 +78,6 @@ type ReportActionItemParentActionProps = {
 function ReportActionItemParentAction({
     allReports,
     report,
-    chatReport,
     transactionThreadReport,
     reportActions,
     parentReportAction,
@@ -170,7 +166,6 @@ function ReportActionItemParentAction({
                             }
                             parentReportAction={parentReportAction}
                             report={ancestor.report}
-                            chatReport={chatReport}
                             reportActions={reportActions}
                             transactionThreadReport={transactionThreadReport}
                             action={ancestor.reportAction}
