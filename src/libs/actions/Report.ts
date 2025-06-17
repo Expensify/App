@@ -4773,6 +4773,11 @@ function deleteAppReport(reportID: string | undefined) {
             return;
         }
 
+        const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
+        if (originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && originalMessage?.type !== CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
+            return;
+        }
+
         const transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID;
         const childReportID = reportAction.childReportID;
         const newReportActionID = rand64();
