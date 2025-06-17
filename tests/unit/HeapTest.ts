@@ -4,7 +4,6 @@ describe('Heap', () => {
     let heap: Heap<number>;
 
     beforeEach(() => {
-        // Min-heap dla testów
         heap = new Heap<number>((a, b) => a - b);
     });
 
