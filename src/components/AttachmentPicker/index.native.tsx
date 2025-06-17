@@ -364,24 +364,12 @@ function AttachmentPicker({
                                 return null;
                             }
 
-                            // Check if the file dimensions indicate corruption
-                            if ((typeof fileDataObject.width === 'number' && fileDataObject.width <= 0) || (typeof fileDataObject.height === 'number' && fileDataObject.height <= 0)) {
-                                showImageCorruptionAlert();
-                                return null;
-                            }
-
                             return getDataForUpload(fileDataObject);
                         })
                         .catch(() => {
                             showImageCorruptionAlert();
                             return null;
                         });
-                }
-
-                // For non-image files
-                if ((typeof fileDataObject.width === 'number' && fileDataObject.width <= 0) || (typeof fileDataObject.height === 'number' && fileDataObject.height <= 0)) {
-                    showImageCorruptionAlert();
-                    return Promise.resolve(null);
                 }
 
                 return getDataForUpload(fileDataObject).catch((error: Error) => {
