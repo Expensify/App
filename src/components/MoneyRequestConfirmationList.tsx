@@ -120,6 +120,9 @@ type MoneyRequestConfirmationListProps = {
     /** Should the list be read only, and not editable? */
     isReadOnly?: boolean;
 
+    /** Number of expenses to be created */
+    expensesNumber?: number;
+
     /** Depending on expense report or personal IOU report, respective bank account route */
     bankAccountRoute?: Route;
 
@@ -215,6 +218,7 @@ function MoneyRequestConfirmationList({
     reportActionID,
     action = CONST.IOU.ACTION.CREATE,
     shouldDisplayReceipt = false,
+    expensesNumber = 0,
     isConfirmed,
     isConfirming,
     onPDFLoadError,
@@ -505,7 +509,9 @@ function MoneyRequestConfirmationList({
 
     const splitOrRequestOptions: Array<DropdownOption<string>> = useMemo(() => {
         let text;
-        if (isTypeInvoice) {
+        if (expensesNumber > 1) {
+            text = translate('iou.createExpenses', {expensesNumber});
+        } else if (isTypeInvoice) {
             if (hasInvoicingDetails(policy)) {
                 text = translate('iou.sendInvoice', {amount: formattedAmount});
             } else {
@@ -537,6 +543,7 @@ function MoneyRequestConfirmationList({
         isTypeInvoice,
         isTypeTrackExpense,
         isTypeSplit,
+        expensesNumber,
         iouAmount,
         receiptPath,
         isTypeRequest,
@@ -842,6 +849,12 @@ function MoneyRequestConfirmationList({
      */
     const confirm = useCallback(
         (paymentMethod: PaymentMethodType | undefined) => {
+            if (expensesNumber > 1) {
+                // TODO: remove early return when bulk expense creation is implemented
+                // https://github.com/Expensify/App/issues/61184
+                return;
+            }
+
             if (!!routeError || !transactionID) {
                 return;
             }
@@ -910,6 +923,7 @@ function MoneyRequestConfirmationList({
             isMerchantEmpty,
             shouldDisplayFieldError,
             transaction,
+            expensesNumber,
             iouCategory.length,
             formError,
             iouType,
@@ -1120,6 +1134,7 @@ export default memo(
         prevProps.iouAmount === nextProps.iouAmount &&
         prevProps.isDistanceRequest === nextProps.isDistanceRequest &&
         prevProps.isPolicyExpenseChat === nextProps.isPolicyExpenseChat &&
+        prevProps.expensesNumber === nextProps.expensesNumber &&
         prevProps.iouCategory === nextProps.iouCategory &&
         prevProps.shouldShowSmartScanFields === nextProps.shouldShowSmartScanFields &&
         prevProps.isEditingSplitBill === nextProps.isEditingSplitBill &&

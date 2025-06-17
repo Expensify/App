@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
@@ -1033,6 +1034,7 @@ const translations = {
         share: '\u5206\u4EAB',
         participants: '\u53C2\u4E0E\u8005',
         createExpense: '\u521B\u5EFA\u62A5\u9500\u5355',
+        createExpenses: ({expensesNumber}: CreateExpensesParams) => `\u521B\u5EFA${expensesNumber}\u4E2A\u62A5\u9500\u5355`,
         addExpense: '\u6DFB\u52A0\u8D39\u7528',
         chooseRecipient: '\u9009\u62E9\u6536\u4EF6\u4EBA',
         createExpenseWithAmount: ({amount}: {amount: string}) => `\u521B\u5EFA ${amount} \u8D39\u7528`,
@@ -2121,14 +2123,7 @@ const translations = {
     },
     languagePage: {
         language: '\u8BED\u8A00',
-        languages: {
-            en: {
-                label: '\u82F1\u8BED',
-            },
-            es: {
-                label: 'Espa\u00F1ol',
-            },
-        },
+        aiGenerated: '该语言的翻译是自动生成的，可能包含错误。',
     },
     themePage: {
         theme: '\u4E3B\u9898',

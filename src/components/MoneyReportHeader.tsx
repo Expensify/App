@@ -1094,8 +1094,10 @@ function MoneyReportHeader({
                 onConfirm={() => {
                     setIsDeleteReportModalVisible(false);
 
-                    deleteAppReport(moneyRequestReport?.reportID);
                     Navigation.goBack();
+                    InteractionManager.runAfterInteractions(() => {
+                        deleteAppReport(moneyRequestReport?.reportID);
+                    });
                 }}
                 onCancel={() => setIsDeleteReportModalVisible(false)}
                 prompt={translate('iou.deleteReportConfirmation')}
