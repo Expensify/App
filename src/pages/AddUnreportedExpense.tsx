@@ -158,6 +158,9 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         selectedIds.delete(item.transactionID);
                     } else {
                         selectedIds.add(item.transactionID);
+                        if (errorMessage) {
+                            setErrorMessage('');
+                        }
                     }
                 }}
                 shouldShowTextInput={false}
