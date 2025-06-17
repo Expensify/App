@@ -31,15 +31,6 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(beta) || canUseAllBetas(betas);
 }
 
-/**
- * Checks if the user can use EUR billing functionality
- * @param betas - The user's beta flags
- * @returns true if the user can use EUR billing, false otherwise
- */
-function canUseEurBilling(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.EUR_BILLING) || canUseAllBetas(betas);
-}
-
 export default {
     canUseLinkPreviews,
     isBlockedFromSpotnanaTravel,
