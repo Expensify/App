@@ -1,7 +1,9 @@
 import Onyx from 'react-native-onyx';
+import extractModuleDefaultExport from '@libs/extractModuleDefaultExport';
 import {LOCALES} from '@src/CONST/LOCALES';
 import type {Locale} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type DynamicModule from '@src/types/utils/DynamicModule';
 import type de from './de';
 import type en from './en';
 import type es from './es';
@@ -34,62 +36,62 @@ class TranslationStore {
         [LOCALES.DE]: () =>
             this.cache.has(LOCALES.DE)
                 ? Promise.resolve()
-                : import('./de').then((module: {default: typeof de}) => {
-                      this.cache.set(LOCALES.DE, flattenObject(module.default));
+                : import('./de').then((module: DynamicModule<typeof de>) => {
+                      this.cache.set(LOCALES.DE, flattenObject(extractModuleDefaultExport(module)));
                   }),
         [LOCALES.EN]: () =>
             this.cache.has(LOCALES.EN)
                 ? Promise.resolve()
-                : import('./en').then((module: {default: typeof en}) => {
-                      this.cache.set(LOCALES.EN, flattenObject(module.default));
+                : import('./en').then((module: DynamicModule<typeof en>) => {
+                      this.cache.set(LOCALES.EN, flattenObject(extractModuleDefaultExport(module)));
                   }),
         [LOCALES.ES]: () =>
             this.cache.has(LOCALES.ES)
                 ? Promise.resolve()
-                : import('./es').then((module: {default: typeof es}) => {
-                      this.cache.set(LOCALES.ES, flattenObject(module.default));
+                : import('./es').then((module: DynamicModule<typeof es>) => {
+                      this.cache.set(LOCALES.ES, flattenObject(extractModuleDefaultExport(module)));
                   }),
         [LOCALES.FR]: () =>
             this.cache.has(LOCALES.FR)
                 ? Promise.resolve()
-                : import('./fr').then((module: {default: typeof fr}) => {
-                      this.cache.set(LOCALES.FR, flattenObject(module.default));
+                : import('./fr').then((module: DynamicModule<typeof fr>) => {
+                      this.cache.set(LOCALES.FR, flattenObject(extractModuleDefaultExport(module)));
                   }),
         [LOCALES.IT]: () =>
             this.cache.has(LOCALES.IT)
                 ? Promise.resolve()
-                : import('./it').then((module: {default: typeof it}) => {
-                      this.cache.set(LOCALES.IT, flattenObject(module.default));
+                : import('./it').then((module: DynamicModule<typeof it>) => {
+                      this.cache.set(LOCALES.IT, flattenObject(extractModuleDefaultExport(module)));
                   }),
         [LOCALES.JA]: () =>
             this.cache.has(LOCALES.JA)
                 ? Promise.resolve()
-                : import('./ja').then((module: {default: typeof ja}) => {
-                      this.cache.set(LOCALES.JA, flattenObject(module.default));
+                : import('./ja').then((module: DynamicModule<typeof ja>) => {
+                      this.cache.set(LOCALES.JA, flattenObject(extractModuleDefaultExport(module)));
                   }),
         [LOCALES.NL]: () =>
             this.cache.has(LOCALES.NL)
                 ? Promise.resolve()
-                : import('./nl').then((module: {default: typeof nl}) => {
-                      this.cache.set(LOCALES.NL, flattenObject(module.default));
+                : import('./nl').then((module: DynamicModule<typeof nl>) => {
+                      this.cache.set(LOCALES.NL, flattenObject(extractModuleDefaultExport(module)));
                   }),
         [LOCALES.PL]: () =>
             this.cache.has(LOCALES.PL)
                 ? Promise.resolve()
-                : import('./pl').then((module: {default: typeof pl}) => {
-                      this.cache.set(LOCALES.PL, flattenObject(module.default));
+                : import('./pl').then((module: DynamicModule<typeof pl>) => {
+                      this.cache.set(LOCALES.PL, flattenObject(extractModuleDefaultExport(module)));
                   }),
         [LOCALES.PT_BR]: () =>
             this.cache.has(LOCALES.PT_BR)
                 ? Promise.resolve()
-                : import('./pt-BR').then((module: {default: typeof ptBR}) => {
-                      this.cache.set(LOCALES.PT_BR, flattenObject(module.default));
+                : import('./pt-BR').then((module: DynamicModule<typeof ptBR>) => {
+                      this.cache.set(LOCALES.PT_BR, flattenObject(extractModuleDefaultExport(module)));
                   }),
         [LOCALES.ZH_HANS]: () =>
             this.cache.has(LOCALES.ZH_HANS)
                 ? Promise.resolve()
-                : import('./zh-hans').then((module: {default: typeof zhHans}) => {
-                      this.cache.set(LOCALES.ZH_HANS, flattenObject(module.default));
+                : import('./zh-hans').then((module: DynamicModule<typeof zhHans>) => {
+                      this.cache.set(LOCALES.ZH_HANS, flattenObject(extractModuleDefaultExport(module)));
                   }),
     };
 
