@@ -190,7 +190,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     if (!transaction?.transactionID) {
                         return;
                     }
-                    markDeclineViolationAsResolved(transaction?.transactionID);
+                    markDeclineViolationAsResolved(transaction?.transactionID, reportID);
                 }}
                 text={translate('iou.decline.markAsResolved')}
             />

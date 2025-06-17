@@ -133,7 +133,6 @@ import {
     getApprovalChain,
     getChatByParticipants,
     getDisplayedReportID,
-    getDisplayNameForParticipant,
     getInvoiceChatByParticipants,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
@@ -177,6 +176,7 @@ import {
     buildOptimisticRemoveReportAction,
     buildOptimisticDeclineReportAction,
     buildOptimisticDeclinedReportActionComment,
+    buildOptimisticMarkedAsResolvedReportAction,
     isOpenReport,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -11558,17 +11558,19 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     return urlToNavigateBack;
 }
 
-function markDeclineViolationAsResolved(transactionID: string) {
-    const transaction = allTransactions?.[transactionID];
-    if (!transaction) {
+function markDeclineViolationAsResolved(transactionID: string, reportID?: string) {
+
+    if (!reportID) {
         return;
     }
 
     const markedAsResolvedReportActionID = NumberUtils.rand64();
     const currentViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const updatedViolations = currentViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.REJECTED_EXPENSE);
-    const currentUserAccountID = getCurrentUserAccountID();
-    const currentUser = getDisplayNameForParticipant({accountID: currentUserAccountID, shouldUseShortForm: true});
+    const optimisticMarkedAsResolvedReportAction = buildOptimisticMarkedAsResolvedReportAction();
+
+    const reportAction = getIOUActionForReportID(reportID, transactionID);
+    const childReportID = reportAction?.childReportID;
 
     // Build optimistic data
     const optimisticData: OnyxUpdate[] = [
@@ -11579,30 +11581,9 @@ function markDeclineViolationAsResolved(transactionID: string) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.transactionThreadReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
             value: {
-                [markedAsResolvedReportActionID]: {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED,
-                    actorAccountID: currentUserAccountID,
-                    avatar: currentUserPersonalDetails?.avatar,
-                    created: DateUtils.getDBTime(),
-                    message: [
-                        {
-                            type: 'TEXT',
-                            text: Localize.translateLocal('iou.decline.reportActions.markedAsResolved'),
-                        },
-                    ],
-                    person: [
-                        {
-                            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                            style: 'strong',
-                            text: currentUser,
-                        },
-                    ],
-                    reportActionID: markedAsResolvedReportActionID,
-                    shouldShow: true,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
+                [optimisticMarkedAsResolvedReportAction.reportActionID]: optimisticMarkedAsResolvedReportAction,
             },
         },
     ];
