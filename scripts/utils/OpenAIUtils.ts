@@ -31,7 +31,7 @@ class OpenAIUtils {
     /**
      * Prompt the Chat Completions API.
      */
-    public async promptChatCompletions({userPrompt, systemPrompt = '', model = 'gpt-4o'}: {userPrompt: string; systemPrompt?: string; model?: ChatModel}): Promise<string> {
+    public async promptChatCompletions({userPrompt, systemPrompt = '', model = 'gpt-4.1-mini'}: {userPrompt: string; systemPrompt?: string; model?: ChatModel}): Promise<string> {
         const messages: ChatCompletionMessageParam[] = [{role: 'user', content: userPrompt}];
         if (systemPrompt) {
             messages.unshift({role: 'system', content: systemPrompt});
@@ -76,7 +76,7 @@ class OpenAIUtils {
         let count = 0;
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
             // await thread run completion
-            threadRun = await this.client.beta.threads.runs.retrieve(threadRun.thread_id, threadRun.id);
+            threadRun = await this.client.beta.threads.runs.retrieve(threadRun.thread_id, {thread_id: threadRun.id});
             if (threadRun.status !== 'completed') {
                 count++;
                 await new Promise((resolve) => {
@@ -110,7 +110,7 @@ class OpenAIUtils {
         // Handle known/predictable API errors
         if (error instanceof OpenAI.APIError) {
             // Only retry 429 (rate limit) or 5xx errors
-            const status = error.status;
+            const status = error.status as number;
             return !!status && (status === 429 || status >= 500);
         }
 
