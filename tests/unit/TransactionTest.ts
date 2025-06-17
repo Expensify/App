@@ -77,7 +77,7 @@ describe('Transaction', () => {
     });
 
     describe('changeTransactionsReport', () => {
-        it('correctly moves the iou action linked to the unreported transaction to the new expense report', async () => {
+        it('correctly moves the IOU report action when an unreported transaction is added to an expense report', async () => {
             const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
                 reportActionID: rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -108,7 +108,7 @@ describe('Transaction', () => {
             expect(getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID)).toBeDefined();
         });
 
-        it('correctly moves the iou action linked to the moved transaction to the new expense report', async () => {
+        it('correctly moves the IOU report action when a transaction is moved from one expense report to another', async () => {
             const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
                 reportActionID: rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
