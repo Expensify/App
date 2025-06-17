@@ -14,7 +14,7 @@ export default function MemberRightIcon({role, owner, login}: MemberRightIconPro
     const {translate} = useLocalize();
 
     let badgeText = '';
-    if (owner === login) {
+    if (owner && owner === login) {
         badgeText = 'common.owner';
     } else if (role === CONST.POLICY.ROLE.ADMIN) {
         badgeText = 'common.admin';
