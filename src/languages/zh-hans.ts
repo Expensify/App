@@ -326,6 +326,7 @@ const translations = {
         twoFactorCode: '\u53CC\u56E0\u7D20\u9A8C\u8BC1\u7801',
         workspaces: '\u5DE5\u4F5C\u533A',
         inbox: '\u6536\u4EF6\u7BB1',
+        success: '\u6210\u529F',
         group: '\u7FA4\u7EC4',
         profile: '\u4E2A\u4EBA\u8D44\u6599',
         referral: '\u63A8\u8350',
@@ -6252,7 +6253,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: '\u62A5\u544A\u5B9E\u4F53\u5361\u4E22\u5931/\u635F\u574F',
         screenTitle: '\u6210\u7EE9\u5355\u4E22\u5931\u6216\u635F\u574F',
         nextButtonLabel: '\u4E0B\u4E00\u4E2A',
         reasonTitle: '\u4F60\u4E3A\u4EC0\u4E48\u9700\u8981\u4E00\u5F20\u65B0\u5361\uFF1F',
@@ -6268,6 +6268,9 @@ const translations = {
         shipNewCardButton: '\u53D1\u9001\u65B0\u5361',
         addressError: '\u5730\u5740\u662F\u5FC5\u9700\u7684',
         reasonError: '\u539F\u56E0\u662F\u5FC5\u9700\u7684',
+        successTitle: '\u60A8\u7684\u65B0\u5361\u6B63\u5728\u9001\u8FBE\u7684\u8DEF\u4E0A\uFF01',
+        successDescription:
+            '\u5F85\u51E0\u4E2A\u5DE5\u4F5C\u65E5\u540E\u5230\u8FBE\u65F6\uFF0C\u60A8\u9700\u8981\u6FC0\u6D3B\u65B0\u5361\u3002\u4E4B\u524D\uFF0C\u60A8\u7684\u865A\u62DF\u5361\u5DF2\u7ECF\u53EF\u4EE5\u4F7F\u7528\u3002',
     },
     eReceipt: {
         guaranteed: '\u4FDD\u8BC1\u7684\u7535\u5B50\u6536\u636E',
