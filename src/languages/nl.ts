@@ -2053,14 +2053,7 @@ const translations = {
     },
     languagePage: {
         language: 'Taal',
-        languages: {
-            en: {
-                label: 'Engels',
-            },
-            es: {
-                label: 'Spaans',
-            },
-        },
+        aiGenerated: 'De vertalingen voor deze taal worden automatisch gegenereerd en kunnen fouten bevatten.',
     },
     themePage: {
         theme: 'Thema',
