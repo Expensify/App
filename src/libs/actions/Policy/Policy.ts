@@ -994,7 +994,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
             cardCVV,
             addressName,
             addressZip,
-            currency,
+            currency: currency as ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>,
             isP2PDebitCard: false,
         };
         PaymentMethods.addPaymentCardSCA(params);
@@ -1007,7 +1007,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
             cardCVV,
             addressName,
             addressZip,
-            currency,
+            currency: currency as ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>,
         };
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
         API.write(WRITE_COMMANDS.ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});

@@ -1,5 +1,5 @@
-import type {ValueOf} from '@src/types/utils/ValueOf';
-import CONST from '@src/CONST';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 
 type AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
     policyID: string;
