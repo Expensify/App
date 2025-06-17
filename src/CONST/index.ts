@@ -3543,11 +3543,11 @@ const CONST = {
             [this.PAYMENT_CARD_CURRENCY.EUR]: {
                 [this.POLICY.TYPE.CORPORATE]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1600,
+                    [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1600,
                 },
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
-                    [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1000,
+                    [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1000,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
                 },
             },
