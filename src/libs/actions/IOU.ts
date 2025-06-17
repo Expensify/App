@@ -10764,7 +10764,7 @@ function putTransactionsOnHold(transactionsID: string[], comment: string, report
 
 /**
  * Remove expense from HOLD
- * @param transactionIndex Needed when unholding requests in bulk to only create one report action for the IOU. See unhold option in useSelectedTransactionsActions.ts
+ * @param transactionIndex Needed when requests are unheld in bulk. See unhold option in useSelectedTransactionsActions.ts
  *
  */
 function unholdRequest(transactionID: string, reportID: string, transactionIndex = 0) {
@@ -10864,7 +10864,7 @@ function unholdRequest(transactionID: string, reportID: string, transactionIndex
             });
         }
 
-        if (transactionIndex == 0 && iouReport.reportID !== reportID) {
+        if (transactionIndex === 0 && iouReport.reportID !== reportID) {
             const unHoldActionForIOUReport = buildOptimisticUnHoldReportAction();
             optimisticData.push(
                 {
