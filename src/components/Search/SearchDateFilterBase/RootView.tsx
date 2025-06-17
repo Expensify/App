@@ -24,13 +24,9 @@ function SearchDateFilterBaseRootView({titleKey, value, applyChanges, resetChang
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const unformattedDateOn = value?.[CONST.SEARCH.DATE_MODIFIERS.ON];
-    const unformattedDateAfter = value?.[CONST.SEARCH.DATE_MODIFIERS.AFTER];
-    const unformattedDateBefore = value?.[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
-
-    const dateOn = unformattedDateOn ?? undefined;
-    const dateAfter = unformattedDateAfter ?? undefined;
-    const dateBefore = unformattedDateBefore ?? undefined;
+    const dateOn = value?.[CONST.SEARCH.DATE_MODIFIERS.ON] ?? undefined;
+    const dateAfter = value?.[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? undefined;
+    const dateBefore = value?.[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? undefined;
 
     return (
         <ScreenWrapper
