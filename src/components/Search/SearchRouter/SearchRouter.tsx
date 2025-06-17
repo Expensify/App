@@ -374,7 +374,7 @@ const shouldShowSearchList = areOptionsInitialized && isRecentSearchesDataLoaded
                         textInputRef={textInputRef}
                     />
                 )}
-                {!(areOptionsInitialized && isRecentSearchesDataLoaded) && (
+                {!shouldShowSearchList && (
                     <OptionsListSkeletonView
                         fixedNumItems={4}
                         shouldStyleAsTable
