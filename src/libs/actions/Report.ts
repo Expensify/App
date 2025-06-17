@@ -3985,14 +3985,14 @@ function flagComment(reportID: string | undefined, reportAction: OnyxEntry<Repor
 
     const reportActionID = reportAction.reportActionID;
 
+    const shouldHideMessage = (
+        [CONST.MODERATION.FLAG_SEVERITY_HARASSMENT, CONST.MODERATION.FLAG_SEVERITY_ASSAULT, CONST.MODERATION.FLAG_SEVERITY_INTIMIDATION, CONST.MODERATION.FLAG_SEVERITY_BULLYING] as string[]
+    ).includes(severity);
+
     const updatedMessage: Message = {
         ...message,
         moderationDecision: updatedDecision,
-        translationKey: '',
-        type: 'COMMENT',
-        html: '',
-        text: '',
-        isEdited: true,
+        ...(shouldHideMessage ? {translationKey: '', type: 'COMMENT', html: '', text: '', isEdited: true} : {}),
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -4031,9 +4031,6 @@ function flagComment(reportID: string | undefined, reportAction: OnyxEntry<Repor
         };
     }
 
-    const shouldHideMessage = (
-        [CONST.MODERATION.FLAG_SEVERITY_HARASSMENT, CONST.MODERATION.FLAG_SEVERITY_ASSAULT, CONST.MODERATION.FLAG_SEVERITY_INTIMIDATION, CONST.MODERATION.FLAG_SEVERITY_BULLYING] as string[]
-    ).includes(severity);
     if (shouldHideMessage) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
