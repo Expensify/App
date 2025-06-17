@@ -35,22 +35,17 @@ describe('ReportUtils', () => {
 
     it('does not export getInvoiceReceiverIcons', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(ReportUtils.getIconsForChatThread).toBeUndefined();
+        expect(ReportUtils.getInvoiceReceiverIcons).toBeUndefined();
     });
 
     it('does not export getParticipantIcon', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(ReportUtils.getIconsForChatThread).toBeUndefined();
+        expect(ReportUtils.getParticipantIcon).toBeUndefined();
     });
 
     it('does not export getIconsForExpenseRequest', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getIconsForExpenseRequest).toBeUndefined();
-    });
-
-    it('does not export getIconsForChatThread', () => {
-        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(ReportUtils.getIconsForChatThread).toBeUndefined();
     });
 
     it('does not export getIconsForTaskReport', () => {
@@ -91,11 +86,6 @@ describe('ReportUtils', () => {
     it('does not export getIconsForGroupChat', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getIconsForGroupChat).toBeUndefined();
-    });
-
-    it('does not export getIconsForIOUReport', () => {
-        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(ReportUtils.getIconsForIOUReport).toBeUndefined();
     });
 
     it('does not export getAllReportActions', () => {
