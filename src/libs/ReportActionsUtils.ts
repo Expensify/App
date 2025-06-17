@@ -8,6 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -27,7 +28,6 @@ import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {toLocaleOrdinal} from './LocaleDigitUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {formatMessageElementList, translateLocal} from './Localize';
-import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import Parser from './Parser';
@@ -228,6 +228,10 @@ function isForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): report
 
 function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
+}
+
+function isMovedTransactionAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION);
 }
 
 function isPolicyChangeLogAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>> {
@@ -1112,7 +1116,7 @@ function isMessageDeleted(reportAction: OnyxInputOrEntry<ReportAction>): boolean
 /**
  * Simple hook to check whether the PureReportActionItem should return item based on whether the ReportPreview was recently deleted and the PureReportActionItem has not yet unloaded
  */
-function useNewTableReportViewActionRenderConditionals({childMoneyRequestCount, childVisibleActionCount, pendingAction, actionName}: ReportAction) {
+function useTableReportViewActionRenderConditionals({childMoneyRequestCount, childVisibleActionCount, pendingAction, actionName}: ReportAction) {
     const previousChildMoneyRequestCount = usePrevious(childMoneyRequestCount);
 
     const isActionAReportPreview = actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
@@ -2593,7 +2597,7 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
                 return translateLocal('workflowsPage.frequencies.lastBusinessDayOfMonth');
             }
             if (typeof autoReportingOffset === 'number') {
-                return toLocaleOrdinal(BaseLocaleListener.getPreferredLocale(), autoReportingOffset, false);
+                return toLocaleOrdinal(TranslationStore.getCurrentLocale(), autoReportingOffset, false);
             }
             return '';
         };
@@ -2910,7 +2914,7 @@ function wasActionCreatedWhileOffline(action: ReportAction, isOffline: boolean, 
 /**
  * Whether a message is NOT from the active user, and it was received while the user was offline.
  */
-function wasMessageReceivedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale) {
+function wasMessageReceivedWhileOffline(action: ReportAction, isOffline: boolean, lastOfflineAt: Date | undefined, lastOnlineAt: Date | undefined, locale: Locale = CONST.LOCALES.DEFAULT) {
     const wasByCurrentUser = wasActionTakenByCurrentUser(action);
     const wasCreatedOffline = wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, locale);
 
@@ -3003,8 +3007,9 @@ export {
     isExportIntegrationAction,
     isIntegrationMessageAction,
     isMessageDeleted,
-    useNewTableReportViewActionRenderConditionals,
+    useTableReportViewActionRenderConditionals,
     isModifiedExpenseAction,
+    isMovedTransactionAction,
     isMoneyRequestAction,
     isNotifiableReportAction,
     isOldDotReportAction,

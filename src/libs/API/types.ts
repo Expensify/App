@@ -172,6 +172,7 @@ const WRITE_COMMANDS = {
     DELETE_WORKSPACE_CATEGORIES: 'DeleteWorkspaceCategories',
     DELETE_POLICY_REPORT_FIELD: 'DeletePolicyReportField',
     SET_POLICY_TAGS_REQUIRED: 'SetPolicyTagsRequired',
+    SET_POLICY_TAG_LISTS_REQUIRED: 'SetPolicyTagListsRequired',
     SET_POLICY_REQUIRES_TAG: 'SetPolicyRequiresTag',
     // cspell:disable-next-line
     RENAME_POLICY_TAG_LIST: 'RenamePolicyTaglist',
@@ -480,6 +481,7 @@ const WRITE_COMMANDS = {
     ADD_WORK_EMAIL: 'AddWorkEmail',
     SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION: 'SaveCorpayOnboardingDirectorInformation',
     CHANGE_REPORT_POLICY: 'ChangeReportPolicy',
+    CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER: 'ChangeReportPolicyAndInviteSubmitter',
     CHANGE_TRANSACTIONS_REPORT: 'ChangeTransactionsReport',
     RETRACT_REPORT: 'RetractReport',
     PAY_AND_DOWNGRADE: 'PayAndDowngrade',
@@ -645,6 +647,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DELETE_POLICY_REPORT_FIELD]: Parameters.DeletePolicyReportField;
     [WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG]: Parameters.SetPolicyRequiresTag;
     [WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED]: Parameters.SetPolicyTagsRequired;
+    [WRITE_COMMANDS.SET_POLICY_TAG_LISTS_REQUIRED]: Parameters.SetPolicyTagListsRequired;
     [WRITE_COMMANDS.RENAME_POLICY_TAG_LIST]: Parameters.RenamePolicyTagListParams;
     [WRITE_COMMANDS.CREATE_POLICY_TAG]: Parameters.CreatePolicyTagsParams;
     [WRITE_COMMANDS.RENAME_POLICY_TAG]: Parameters.RenamePolicyTagsParams;
@@ -987,6 +990,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.MERGE_WITH_VALIDATE_CODE]: Parameters.MergeWithValidateCodeParams;
     // Change report policy
     [WRITE_COMMANDS.CHANGE_REPORT_POLICY]: Parameters.ChangeReportPolicyParams;
+    [WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER]: Parameters.ChangeReportPolicyAndInviteSubmitterParams;
 
     [WRITE_COMMANDS.PAY_AND_DOWNGRADE]: null;
 
