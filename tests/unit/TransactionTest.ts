@@ -8,9 +8,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
-import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     const reportID = '1';
@@ -51,14 +51,6 @@ const selfDM = {
     chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
 };
 
-const transaction = generateTransaction({
-    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-});
-
-const transactionCollectionDataSet: TransactionCollectionDataSet = {
-    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
-};
-
 const reportCollectionDataSet: ReportCollectionDataSet = {
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`]: newReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_SELF_DM_REPORT_ID}`]: selfDM,
@@ -71,13 +63,19 @@ describe('Transaction', () => {
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ID},
                 ...reportCollectionDataSet,
-                ...transactionCollectionDataSet,
             },
         });
     });
 
+    beforeEach(() => {
+        return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
     describe('changeTransactionsReport', () => {
         it('correctly moves the IOU report action when an unreported transaction is added to an expense report', async () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            });
             const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
                 reportActionID: rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -91,10 +89,11 @@ describe('Transaction', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
                 },
             };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
             changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID);
-
+            await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_NEW_REPORT_ID}`,
@@ -109,6 +108,9 @@ describe('Transaction', () => {
         });
 
         it('correctly moves the IOU report action when a transaction is moved from one expense report to another', async () => {
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+            });
             const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
                 reportActionID: rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -122,10 +124,11 @@ describe('Transaction', () => {
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 },
             };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
             changeTransactionsReport([transaction.transactionID], FAKE_NEW_REPORT_ID);
-
+            await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_NEW_REPORT_ID}`,
