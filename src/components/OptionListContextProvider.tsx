@@ -9,6 +9,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {usePersonalDetails} from './OnyxProvider';
 import {InteractionManager} from 'react-native';
+import {isMobile} from '@libs/Browser';
+import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 
 type OptionsListContextProps = {
     /** List of options for reports and personal details */
@@ -235,9 +238,13 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
 
     const initializeOptions = useCallback(() => {
         loadOptions();
-        InteractionManager.runAfterInteractions(() => {
-            setAreOptionsInitialized(true)
-        })
+        if (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
+            InteractionManager.runAfterInteractions(() => {
+                setAreOptionsInitialized(true)
+            })
+            return;
+        }
+        setAreOptionsInitialized(true)
     }, [loadOptions]);
 
     const resetOptions = useCallback(() => {
