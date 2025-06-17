@@ -967,6 +967,7 @@ const translations = {
         deleteReceipt: 'Verwijder ontvangstbewijs',
         deleteConfirmation: 'Weet je zeker dat je dit ontvangstbewijs wilt verwijderen?',
         addReceipt: 'Bon toevoegen',
+        scanFailed: 'De bon kon niet worden gescand omdat de handelaar, datum of het bedrag ontbreekt.',
     },
     quickAction: {
         scanReceipt: 'Scan bonnetje',

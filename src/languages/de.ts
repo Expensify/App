@@ -977,6 +977,7 @@ const translations = {
         deleteReceipt: 'Beleg l\u00F6schen',
         deleteConfirmation: 'M\u00F6chten Sie diesen Beleg wirklich l\u00F6schen?',
         addReceipt: 'Beleg hinzuf\u00FCgen',
+        scanFailed: 'Der Beleg konnte nicht gescannt werden, da Händler, Datum oder Betrag fehlen.',
     },
     quickAction: {
         scanReceipt: 'Beleg scannen',

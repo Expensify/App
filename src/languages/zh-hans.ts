@@ -989,6 +989,7 @@ const translations = {
         deleteReceipt: '\u5220\u9664\u6536\u636E',
         deleteConfirmation: '\u60A8\u786E\u5B9A\u8981\u5220\u9664\u6B64\u6536\u636E\u5417\uFF1F',
         addReceipt: '\u6DFB\u52A0\u6536\u636E',
+        scanFailed: '\u65E0\u6CD5\u626B\u63CF\u6536\u636E\uFF0C\u56E0\u4E3A\u7F3A\u5C11\u5546\u5BB6\u3001\u65E5\u671F\u6216\u91D1\u989D\u3002',
     },
     quickAction: {
         scanReceipt: '\u626B\u63CF\u6536\u636E',

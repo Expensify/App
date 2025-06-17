@@ -979,6 +979,7 @@ const translations = {
         deleteReceipt: 'Supprimer le re\u00E7u',
         deleteConfirmation: '\u00CAtes-vous s\u00FBr de vouloir supprimer ce re\u00E7u ?',
         addReceipt: 'Ajouter un re\u00E7u',
+        scanFailed: 'Le reçu n’a pas pu être scanné, car il manque le commerçant, la date ou le montant.',
     },
     quickAction: {
         scanReceipt: 'Scanner le re\u00E7u',
