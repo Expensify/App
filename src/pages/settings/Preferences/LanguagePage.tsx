@@ -1,4 +1,5 @@
 import React, {useMemo, useRef} from 'react';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -48,13 +49,15 @@ function LanguagePage() {
                 title={translate('languagePage.language')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <SelectionList
-                sections={[{data: locales}]}
-                ListItem={RadioListItem}
-                onSelectRow={updateLanguage}
-                shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={locales.find((locale) => locale.isSelected)?.keyForList}
-            />
+            <FullPageOfflineBlockingView>
+                <SelectionList
+                    sections={[{data: locales}]}
+                    ListItem={RadioListItem}
+                    onSelectRow={updateLanguage}
+                    shouldSingleExecuteRowSelect
+                    initiallyFocusedOptionKey={locales.find((locale) => locale.isSelected)?.keyForList}
+                />
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }
