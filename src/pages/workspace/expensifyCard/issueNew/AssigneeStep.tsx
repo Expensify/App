@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -13,6 +13,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {searchInServer} from '@libs/actions/Report';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {filterAndOrderOptions, getHeaderMessage, getValidOptions, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail, getUserNameByEmail} from '@libs/PersonalDetailsUtils';
@@ -93,7 +94,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
 
-    const {userToInvite, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage} = useOptions();
+    const {userToInvite, personalDetails, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage} = useOptions();
     const isEditing = issueNewCard?.isEditing;
 
     const submit = (assignee: ListItem) => {
@@ -199,8 +200,21 @@ function AssigneeStep({policy}: AssigneeStepProps) {
                       },
                   ]
                 : []),
+            ...(personalDetails?.length > 0
+                ? [
+                      {
+                          title: undefined,
+                          data: personalDetails,
+                          shouldShow: true,
+                      },
+                  ]
+                : []),
         ];
-    }, [debouncedSearchValue, membersDetails, searchValue, userToInvite]);
+    }, [debouncedSearchValue, membersDetails, searchValue, userToInvite, personalDetails]);
+
+    useEffect(() => {
+        searchInServer(debouncedSearchValue);
+    }, [debouncedSearchValue]);
 
     return (
         <InteractiveStepWrapper
