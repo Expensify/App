@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -17,6 +17,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {searchInServer} from '@libs/actions/Report';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {filterAndOrderOptions, getHeaderMessage, getValidOptions, sortAlphabetically} from '@libs/OptionsListUtils';
@@ -106,7 +107,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const isEditing = assignCard?.isEditing;
 
     const [selectedMember, setSelectedMember] = useState(assignCard?.data?.email ?? '');
-    const {userToInvite, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage} = useOptions();
+    const {userToInvite, personalDetails, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, headerMessage} = useOptions();
     const [shouldShowError, setShouldShowError] = useState(false);
 
     const selectMember = (assignee: ListItem) => {
@@ -236,8 +237,21 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                       },
                   ]
                 : []),
+            ...(personalDetails?.length > 0
+                ? [
+                      {
+                          title: undefined,
+                          data: personalDetails,
+                          shouldShow: true,
+                      },
+                  ]
+                : []),
         ];
-    }, [debouncedSearchValue, membersDetails, searchValue, userToInvite]);
+    }, [debouncedSearchValue, membersDetails, personalDetails, searchValue, userToInvite]);
+
+    useEffect(() => {
+        searchInServer(debouncedSearchValue);
+    }, [debouncedSearchValue]);
 
     return (
         <InteractiveStepWrapper
