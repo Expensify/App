@@ -60,14 +60,13 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const {isOffline} = useNetwork();
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
     const plaidFeed = addNewCard?.data?.plaidConnectedFeed ?? assignCard?.data?.institutionId;
+    const plaidAccounts = addNewCard?.data?.plaidAccounts ?? assignCard?.data?.plaidAccounts;
     const plaidFeedName = addNewCard?.data?.plaidConnectedFeedName ?? assignCard?.data?.plaidConnectedFeedName;
     const country = addNewCard?.data?.selectedCountry;
     const {isBetaEnabled} = usePermissions();
+    const isPlaid = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && !!plaidToken;
 
-    const url =
-        isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && plaidToken
-            ? getCompanyCardPlaidConnection(policyID, plaidToken, plaidFeed, plaidFeedName, country)
-            : getCompanyCardBankConnection(policyID, bankName);
+    const url = isPlaid ? getCompanyCardPlaidConnection(policyID, plaidToken, plaidFeed, plaidFeedName, country, plaidAccounts) : getCompanyCardBankConnection(policyID, bankName);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]) : false;
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
