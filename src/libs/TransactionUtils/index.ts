@@ -1610,7 +1610,7 @@ function getChildTransactions(originalTransactionID: string | undefined) {
         const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
         return currentTransaction?.comment?.originalTransactionID === originalTransactionID && !!currentReport && currentReport?.stateNum !== CONST.REPORT.STATUS_NUM.CLOSED;
     });
-};
+}
 
 /**
  * Creates sections data for unreported expenses, marking transactions with DELETE pending action as disabled

@@ -1083,6 +1083,10 @@ const translations = {
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) =>
             `\u5408\u8A08\u91D1\u984D\u306F\u5143\u306E\u7D4C\u8CBB\u3088\u308A\u3082${amount}\u5C11\u306A\u3044\u3067\u3059\u3002`,
         splitExpenseZeroAmount: '\u7D9A\u884C\u3059\u308B\u524D\u306B\u6709\u52B9\u306A\u91D1\u984D\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044\u3002',
+        splitExpenseOneMoreSplit:
+            '\u30B9\u30D7\u30EA\u30C3\u30C8\u304C\u8FFD\u52A0\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002\u4FDD\u5B58\u3059\u308B\u306B\u306F\u5C11\u306A\u304F\u3068\u30821\u3064\u8FFD\u52A0\u3057\u3066\u304F\u3060\u3055\u3044\u3002',
+        splitExpenseCannotBeEditedModalTitle: '\u3053\u306E\u7D4C\u8CBB\u306F\u7DE8\u96C6\u3067\u304D\u307E\u305B\u3093',
+        splitExpenseCannotBeEditedModalDescription: '\u627F\u8A8D\u307E\u305F\u306F\u652F\u6255\u6E08\u307F\u306E\u7D4C\u8CBB\u306F\u7DE8\u96C6\u3067\u304D\u307E\u305B\u3093',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `${merchant}\u306E${amount}\u3092\u7DE8\u96C6`,
         removeSplit: '\u5206\u5272\u3092\u524A\u9664',
         paySomeone: ({name}: PaySomeoneParams = {}) => `${name ?? '\u8AB0\u304B'}\u3092\u652F\u6255\u3046`,

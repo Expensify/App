@@ -1,4 +1,4 @@
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -79,7 +79,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             const splitFieldDataFromOriginalTransactionWithoutID = {...splitFieldDataFromOriginalTransaction, transactionID: ''};
             const splitExpenseWithoutID = {...splitExpenses.at(0), transactionID: ''};
             // When we try to save one split during splits creation and if the data is identical to the original transaction we should close the split flow
-            if (lodashIsEqual(splitFieldDataFromOriginalTransactionWithoutID, splitExpenseWithoutID)) {
+            if (deepEqual(splitFieldDataFromOriginalTransactionWithoutID, splitExpenseWithoutID)) {
                 Navigation.dismissModal();
                 return;
             }
@@ -104,7 +104,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
 
         // When we try to save splits during editing splits and if the data is identical to the already created transactions we should close the split flow
-        if (lodashIsEqual(splitFieldDataFromChildTransactions, splitExpenses)) {
+        if (deepEqual(splitFieldDataFromChildTransactions, splitExpenses)) {
             Navigation.dismissModal();
             return;
         }
