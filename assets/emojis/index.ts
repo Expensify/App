@@ -1,6 +1,4 @@
 import type {FullySupportedLocale} from '@src/CONST/LOCALES';
-import {isFullySupportedLocale, LOCALES} from '@src/CONST/LOCALES';
-import type {Locale} from '@src/types/onyx';
 import emojis from './common';
 import type {Emoji, EmojisList} from './types';
 
@@ -34,13 +32,12 @@ const localeEmojis: LocaleEmojis = {
     es: undefined,
 };
 
-const importEmojiLocale = (locale: Locale) => {
-    const normalizedLocale = isFullySupportedLocale(locale) ? locale : LOCALES.EN;
-    if (!localeEmojis[normalizedLocale]) {
-        const emojiImportPromise = normalizedLocale === 'en' ? import('./en') : import('./es');
+const importEmojiLocale = (locale: FullySupportedLocale) => {
+    if (!localeEmojis[locale]) {
+        const emojiImportPromise = locale === 'en' ? import('./en') : import('./es');
         return emojiImportPromise.then((esEmojiModule) => {
             // it is needed because in jest test the modules are imported in double nested default object
-            localeEmojis[normalizedLocale] = esEmojiModule.default.default ? (esEmojiModule.default.default as unknown as EmojisList) : esEmojiModule.default;
+            localeEmojis[locale] = esEmojiModule.default.default ? (esEmojiModule.default.default as unknown as EmojisList) : esEmojiModule.default;
         });
     }
     return Promise.resolve();

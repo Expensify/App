@@ -21,12 +21,14 @@ import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
+import {isFullySupportedLocale, isSupportedLocale} from '@src/CONST/LOCALES';
 import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
@@ -56,18 +58,23 @@ Onyx.connect({
     initWithStoredValues: false,
 });
 
-let preferredLocale: string | undefined;
+let preferredLocale: Locale | undefined;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => {
-        preferredLocale = val;
-        if (preferredLocale) {
-            TranslationStore.load(preferredLocale as OnyxTypes.Locale);
-            importEmojiLocale(preferredLocale as OnyxTypes.Locale).then(() => {
-                buildEmojisTrie(preferredLocale as OnyxTypes.Locale);
-            });
-            localeEventCallback(val);
+        if (!val || !isSupportedLocale(val)) {
+            return;
         }
+
+        preferredLocale = val;
+        TranslationStore.load(val);
+        localeEventCallback(val);
+
+        // For locales without emoji support, fallback on English
+        const normalizedLocale = isFullySupportedLocale(val) ? val : CONST.LOCALES.DEFAULT;
+        importEmojiLocale(normalizedLocale).then(() => {
+            buildEmojisTrie(normalizedLocale);
+        });
     },
 });
 

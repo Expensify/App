@@ -69,6 +69,10 @@ type TranslationTargetLocale = ValueOf<typeof TRANSLATION_TARGET_LOCALES>;
 
 const SORTED_LOCALES = [FULLY_SUPPORTED_LOCALES.EN, FULLY_SUPPORTED_LOCALES.ES, ...sortAlphabetically(Object.values(BETA_LOCALES))] as Locale[];
 
+function isSupportedLocale(locale: string): locale is Locale {
+    return (Object.values(LOCALES) as readonly string[]).includes(locale);
+}
+
 function isFullySupportedLocale(locale: Locale): locale is FullySupportedLocale {
     return (Object.values(FULLY_SUPPORTED_LOCALES) as Locale[]).includes(locale);
 }
@@ -85,6 +89,7 @@ export {
     LOCALE_TO_LANGUAGE_STRING,
     SORTED_LOCALES,
     TRANSLATION_TARGET_LOCALES,
+    isSupportedLocale,
     isFullySupportedLocale,
     isTranslationTargetLocale,
 };
