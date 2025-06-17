@@ -383,18 +383,18 @@ function ReportActionsList({
     );
 
     // Mark the report as read when the user initially opens the report and there are unread messages
-    const didMarkReportReadInitially = useRef(false);
+    const didMarkReportAsReadInitially = useRef(false);
     useEffect(() => {
         if (!isListInitiallyLoaded) {
             return;
         }
 
-        if (!isReportUnread || didMarkReportReadInitially.current) {
-            didMarkReportReadInitially.current = true;
+        if (!isReportUnread || didMarkReportAsReadInitially.current) {
+            didMarkReportAsReadInitially.current = true;
             return;
         }
 
-        didMarkReportReadInitially.current = true;
+        didMarkReportAsReadInitially.current = true;
         readNewestAction(report.reportID);
     }, [isListInitiallyLoaded, isReportUnread, report.reportID]);
 
