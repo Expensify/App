@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
@@ -1090,6 +1091,7 @@ const translations = {
         share: '\u5171\u6709\u3059\u308B',
         participants: '\u53C2\u52A0\u8005',
         createExpense: '\u7D4C\u8CBB\u3092\u4F5C\u6210',
+        createExpenses: ({expensesNumber}: CreateExpensesParams) => `\u7D4C\u8CBB\u3092${expensesNumber}\u4EF6\u4F5C\u6210`,
         addExpense: '\u7D4C\u8CBB\u3092\u8FFD\u52A0',
         chooseRecipient: '\u53D7\u53D6\u4EBA\u3092\u9078\u629E',
         createExpenseWithAmount: ({amount}: {amount: string}) => `${amount} \u306E\u7D4C\u8CBB\u3092\u4F5C\u6210`,
@@ -4937,6 +4939,18 @@ const translations = {
             findTag: '\u30BF\u30B0\u3092\u898B\u3064\u3051\u308B',
             subtitle:
                 '\u30BF\u30B0\u306F\u3001\u30B3\u30B9\u30C8\u3092\u5206\u985E\u3059\u308B\u305F\u3081\u306E\u3088\u308A\u8A73\u7D30\u306A\u65B9\u6CD5\u3092\u8FFD\u52A0\u3057\u307E\u3059\u3002',
+            requireTag: 'タグを必須にする',
+            requireTags: 'タグを必須にする',
+            notRequireTags: '必須にしない',
+
+            dependentMultiLevelTagsSubtitle: {
+                phrase1: ' あなたは ',
+                phrase2: '依存タグ',
+                phrase3: ' を使用しています。 ',
+                phrase4: 'スプレッドシートを再インポートすることで',
+                phrase5: ' タグを更新できます。',
+            },
+
             emptyTags: {
                 title: '\u30BF\u30B0\u304C\u4F5C\u6210\u3055\u308C\u3066\u3044\u307E\u305B\u3093',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta

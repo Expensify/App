@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
@@ -1020,6 +1021,7 @@ const translations = {
         share: 'Teilen',
         participants: 'Teilnehmer',
         createExpense: 'Ausgabe erstellen',
+        createExpenses: ({expensesNumber}: CreateExpensesParams) => `Erstelle ${expensesNumber} Ausgaben`,
         addExpense: 'Ausgabe hinzuf\u00FCgen',
         chooseRecipient: 'Empf\u00E4nger ausw\u00E4hlen',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Erstelle ${amount} Ausgabe`,
@@ -4430,6 +4432,9 @@ const translations = {
             customTagName: 'Benutzerdefinierter Tag-Name',
             enableTag: 'Tag aktivieren',
             enableTags: 'Tags aktivieren',
+            requireTag: 'Erforderlich',
+            requireTags: 'Erforderlich',
+            notRequireTags: 'Nicht erforderlich',
             disableTag: 'Tag deaktivieren',
             disableTags: 'Tags deaktivieren',
             addTag: 'Tag hinzuf\u00FCgen',
@@ -4437,6 +4442,14 @@ const translations = {
             editTags: 'Tags bearbeiten',
             findTag: 'Tag finden',
             subtitle: 'Tags bieten detailliertere M\u00F6glichkeiten, Kosten zu klassifizieren.',
+            dependentMultiLevelTagsSubtitle: {
+                phrase1: ' Sie verwenden ',
+                phrase2: 'abhängige Tags',
+                phrase3: '. Sie können ',
+                phrase4: 'eine Tabelle erneut importieren',
+                phrase5: ', um Ihre Tags zu aktualisieren.',
+            },
+
             emptyTags: {
                 title: 'Sie haben noch keine Tags erstellt',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta

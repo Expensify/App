@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
@@ -1021,6 +1022,7 @@ const translations = {
         share: 'Udost\u0119pnij',
         participants: 'Uczestnicy',
         createExpense: 'Utw\u00F3rz wydatek',
+        createExpenses: ({expensesNumber}: CreateExpensesParams) => `Utw\u00F3rz ${expensesNumber} wydatki`,
         addExpense: 'Dodaj wydatek',
         chooseRecipient: 'Wybierz odbiorc\u0119',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Utw\u00F3rz wydatek na kwot\u0119 ${amount}`,
@@ -4466,6 +4468,18 @@ const translations = {
             editTags: 'Edytuj tagi',
             findTag: 'Znajd\u017A tag',
             subtitle: 'Tagi dodaj\u0105 bardziej szczeg\u00F3\u0142owe sposoby klasyfikacji koszt\u00F3w.',
+            requireTag: 'Wymagaj tagu',
+            requireTags: 'Wymagaj tagów',
+            notRequireTags: 'Nie wymagaj',
+
+            dependentMultiLevelTagsSubtitle: {
+                phrase1: ' Używasz ',
+                phrase2: 'tagów zależnych',
+                phrase3: '. Możesz ',
+                phrase4: 'ponownie zaimportować arkusz kalkulacyjny',
+                phrase5: ', aby zaktualizować swoje tagi.',
+            },
+
             emptyTags: {
                 title: 'Nie utworzy\u0142e\u015B \u017Cadnych tag\u00F3w',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta

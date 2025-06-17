@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
@@ -1012,6 +1013,7 @@ const translations = {
         share: 'Condividi',
         participants: 'Partecipanti',
         createExpense: 'Crea spesa',
+        createExpenses: ({expensesNumber}: CreateExpensesParams) => `Crea ${expensesNumber} spese`,
         addExpense: 'Aggiungi spesa',
         chooseRecipient: 'Scegli destinatario',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Crea ${amount} spesa`,
@@ -4402,6 +4404,18 @@ const translations = {
             editTags: 'Modifica tag',
             findTag: 'Trova tag',
             subtitle: 'I tag aggiungono modi pi\u00F9 dettagliati per classificare i costi.',
+            requireTag: 'Richiedi tag',
+            requireTags: 'Richiedi tag',
+            notRequireTags: 'Non richiedere',
+
+            dependentMultiLevelTagsSubtitle: {
+                phrase1: ' Stai utilizzando ',
+                phrase2: 'tag dipendenti',
+                phrase3: '. Puoi ',
+                phrase4: 'reimportare un foglio di calcolo',
+                phrase5: ' per aggiornare i tuoi tag.',
+            },
+
             emptyTags: {
                 title: 'Non hai creato alcun tag',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta

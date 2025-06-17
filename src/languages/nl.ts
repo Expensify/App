@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
@@ -1010,6 +1011,7 @@ const translations = {
         share: 'Delen',
         participants: 'Deelnemers',
         createExpense: 'Uitgave aanmaken',
+        createExpenses: ({expensesNumber}: CreateExpensesParams) => `Maak ${expensesNumber} uitgaven aan`,
         addExpense: 'Uitgave toevoegen',
         chooseRecipient: 'Kies ontvanger',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Maak ${amount} uitgave aan`,
@@ -4387,6 +4389,18 @@ const translations = {
             editTags: 'Tags bewerken',
             findTag: 'Vind tag',
             subtitle: 'Tags voegen meer gedetailleerde manieren toe om kosten te classificeren.',
+            requireTag: 'Tag vereisen',
+            requireTags: 'Tags vereisen',
+            notRequireTags: 'Niet vereisen',
+
+            dependentMultiLevelTagsSubtitle: {
+                phrase1: ' Je gebruikt ',
+                phrase2: 'afhankelijke tags',
+                phrase3: '. Je kunt ',
+                phrase4: 'een spreadsheet opnieuw importeren',
+                phrase5: ' om je tags bij te werken.',
+            },
+
             emptyTags: {
                 title: 'Je hebt nog geen tags aangemaakt',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta

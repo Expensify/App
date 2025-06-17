@@ -51,6 +51,8 @@ const ROUTES = {
         getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${jsonQuery}` as const,
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
+    SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
+    SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
     SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
@@ -1506,7 +1508,13 @@ const ROUTES = {
     },
     WORKSPACE_TAG_SETTINGS: {
         route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName',
-        getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}` as const,
+        getRoute: (policyID: string, orderWeight: number, tagName: string, parentTagsFilter?: string) => {
+            let queryParams = '';
+            if (parentTagsFilter) {
+                queryParams += `?parentTagsFilter=${parentTagsFilter}`;
+            }
+            return `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}${queryParams}` as const;
+        },
     },
     WORKSPACE_TAG_APPROVER: {
         route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/approver',
