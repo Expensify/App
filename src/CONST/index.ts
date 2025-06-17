@@ -831,6 +831,7 @@ const CONST = {
         NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         TRACK_FLOWS: 'trackFlows',
+        EXPORT_TEMPLATES: 'exportTemplates',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
