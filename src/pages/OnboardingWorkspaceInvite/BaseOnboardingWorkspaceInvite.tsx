@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import type {SectionListData} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -25,8 +25,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
-import type {MemberForList} from '@libs/OptionsListUtils';
-import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
+import {createOptionFromPersonalDetail, filterAndOrderOptions, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -35,10 +34,11 @@ import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActio
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {BaseOnboardingWorkspaceInviteProps} from './types';
 
-type MembersSection = SectionListData<MemberForList, Section<MemberForList>>;
+type MembersSection = SectionListData<OptionData, Section<OptionData>>;
 
 function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWorkspaceInviteProps) {
     const styles = useThemeStyles();
@@ -50,8 +50,8 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
-    const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
+    const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
+    const [personalDetails, setPersonalDetails] = useState<PersonalDetails[]>([]);
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
@@ -99,20 +99,20 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         }
 
         const newUsersToInviteDict: Record<number, OptionData> = {};
-        const newPersonalDetailsDict: Record<number, OptionData> = {};
-        const newSelectedOptionsDict: Record<number, MemberForList> = {};
+        const newPersonalDetailsDict: Record<number, PersonalDetails> = {};
+        const newSelectedOptionsDict: Record<number, OptionData> = {};
 
         // Update selectedOptions with the latest personalDetails and policyEmployeeList information
-        const detailsMap: Record<string, MemberForList> = {};
+        const detailsMap: Record<string, OptionData> = {};
         inviteOptions.personalDetails.forEach((detail) => {
             if (!detail.login) {
                 return;
             }
 
-            detailsMap[detail.login] = formatMemberForList(detail);
+            detailsMap[detail.login] = createOptionFromPersonalDetail(detail, true);
         });
 
-        const newSelectedOptions: MemberForList[] = [];
+        const newSelectedOptions: OptionData[] = [];
         selectedOptions.forEach((option) => {
             newSelectedOptions.push(option.login && option.login in detailsMap ? {...detailsMap[option.login], isSelected: true} : option);
         });
@@ -179,7 +179,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         const selectedLoginsSet = new Set(selectedOptions.map(({login}) => login));
         const personalDetailsFormatted = Object.values(personalDetails)
             .filter(({login}) => !selectedLoginsSet.has(login ?? ''))
-            .map(formatMemberForList);
+            .map((personalDetail) => createOptionFromPersonalDetail(personalDetail, true));
 
         sectionsArr.push({
             title: translate('common.contacts'),
@@ -193,7 +193,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             if (hasUnselectedUserToInvite) {
                 sectionsArr.push({
                     title: undefined,
-                    data: [formatMemberForList(userToInvite)],
+                    data: [userToInvite],
                     shouldShow: true,
                 });
             }
@@ -202,10 +202,10 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         return sectionsArr;
     }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite]);
 
-    const toggleOption = (option: MemberForList) => {
+    const toggleOption = (option: OptionData) => {
         const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
 
-        let newSelectedOptions: MemberForList[];
+        let newSelectedOptions: OptionData[];
         if (isOptionInList) {
             newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
         } else {

@@ -3,7 +3,7 @@ import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
-import type {RawOptionList, SearchOption} from '@libs/OptionsListUtils';
+import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport, createOptionList, processReport, shallowOptionsListCompare} from '@libs/OptionsListUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,7 +12,7 @@ import {usePersonalDetails} from './OnyxProvider';
 
 type OptionsListContextProps = {
     /** List of options for reports and personal details */
-    options: RawOptionList;
+    options: OptionList;
     /** Function to initialize the options */
     initializeOptions: () => void;
     /** Flag to check if the options are initialized */
@@ -44,7 +44,7 @@ const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails, personalDeta
 
 function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const [areOptionsInitialized, setAreOptionsInitialized] = useState(false);
-    const [options, setOptions] = useState<RawOptionList>({
+    const [options, setOptions] = useState<OptionList>({
         reports: [],
         personalDetails: [],
     });
@@ -269,8 +269,8 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
     const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-    const [internalOptions, setInternalOptions] = useState<RawOptionList>(optionsList);
-    const prevOptions = useRef<RawOptionList>();
+    const [internalOptions, setInternalOptions] = useState<OptionList>(optionsList);
+    const prevOptions = useRef<OptionList>();
 
     useEffect(() => {
         if (!prevOptions.current) {

@@ -84,10 +84,6 @@ type SearchOption<T> = OptionData & {
 
 type OptionList = {
     reports: Array<SearchOption<Report>>;
-    personalDetails: Array<SearchOption<PersonalDetails>>;
-};
-type RawOptionList = {
-    reports: Array<SearchOption<Report>>;
     personalDetails: Array<PersonalDetails | null>;
 }
 
@@ -1183,7 +1179,7 @@ function createOptionListFromPersonalDetails(personalDetails: PersonalDetails[],
     return personalDetails.map((personalDetail) => createOptionFromPersonalDetail(personalDetail, isBold));
 }
 
-function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, reports?: OnyxCollection<Report>): RawOptionList {
+function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, reports?: OnyxCollection<Report>): OptionList {
     const reportMapForAccountIDs: Record<number, Report> = {};
     const allReportOptions: Array<SearchOption<Report>> = [];
 
@@ -1753,7 +1749,7 @@ function isManagerMcTestReport(report: SearchOption<Report>): boolean {
 }
 
 function getValidPersonalDetailOptions(
-    options: RawOptionList['personalDetails'],
+    options: OptionList['personalDetails'],
     {
         loginsToExclude = {},
         includeDomainEmail = false,
@@ -1802,7 +1798,7 @@ function getValidPersonalDetailOptions(
  * based on dynamic business logic and feature flags.
  * Centralizes restriction logic to avoid scattering conditions across the codebase.
  */
-function getRestrictedLogins(config: GetOptionsConfig, options: RawOptionList, canShowManagerMcTest: boolean): Record<string, boolean> {
+function getRestrictedLogins(config: GetOptionsConfig, options: OptionList, canShowManagerMcTest: boolean): Record<string, boolean> {
     const userHasReportWithManagerMcTest = Object.values(options.reports).some((report) => isManagerMcTestReport(report));
     return {
         [CONST.EMAIL.MANAGER_MCTEST]:
@@ -1817,7 +1813,7 @@ function getRestrictedLogins(config: GetOptionsConfig, options: RawOptionList, c
  * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
  */
 function getValidOptions(
-    options: RawOptionList,
+    options: OptionList,
     {
         excludeLogins = {},
         includeSelectedOptions = false,
@@ -1923,7 +1919,7 @@ function getValidOptions(
 /**
  * Build the options for the Search view
  */
-function getSearchOptions(options: RawOptionList, betas: Beta[] = [], isUsedInChatFinder = true, includeReadOnly = true): Options {
+function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatFinder = true, includeReadOnly = true): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     const optionList = getValidOptions(options, {
@@ -1948,7 +1944,7 @@ function getSearchOptions(options: RawOptionList, betas: Beta[] = [], isUsedInCh
     return optionList;
 }
 
-function getShareLogOptions(options: RawOptionList, betas: Beta[] = []): Options {
+function getShareLogOptions(options: OptionList, betas: Beta[] = []): Options {
     return getValidOptions(options, {
         betas,
         includeMultipleParticipantReports: true,
@@ -2162,7 +2158,7 @@ function formatSectionsFromSearchTerm(
     searchTerm: string,
     selectedOptions: OptionData[],
     filteredRecentReports: OptionData[],
-    filteredPersonalDetails: OptionData[],
+    filteredPersonalDetails: PersonalDetails[],
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
     filteredWorkspaceChats: OptionData[] = [],
@@ -2497,7 +2493,7 @@ function getManagerMcTestParticipant(): Participant | undefined {
     return managerMcTestPersonalDetails ? {...getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails), reportID: managerMcTestReport?.reportID} : undefined;
 }
 
-function shallowOptionsListCompare(a: RawOptionList, b: RawOptionList): boolean {
+function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {
     if (!a || !b) {
         return false;
     }
@@ -2585,4 +2581,4 @@ export {
     createOptionFromPersonalDetail
 };
 
-export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, Option, OptionTree, ReportAndPersonalDetailOptions, RawOptionList};
+export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, Option, OptionTree, ReportAndPersonalDetailOptions};
