@@ -129,6 +129,8 @@ const mockReportItemWithHold = {
             shouldShowTax: false,
             keyForList: '1049531721038862176',
             shouldShowYear: false,
+            isAmountColumnWide: false,
+            isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
         },
         {
@@ -182,6 +184,8 @@ const mockReportItemWithHold = {
             shouldShowTax: false,
             keyForList: '5345995386715609966',
             shouldShowYear: false,
+            isAmountColumnWide: false,
+            isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
         },
     ],
@@ -207,13 +211,19 @@ describe('handleActionButtonPress', () => {
     const searchHash = 1;
     test('Should navigate to item when report has one transaction on hold', () => {
         const goToItem = jest.fn(() => {});
-        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem);
+        handleActionButtonPress(searchHash, mockReportItemWithHold, goToItem, false);
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
 
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
-        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem);
+        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, false);
         expect(goToItem).toHaveBeenCalledTimes(0);
+    });
+
+    test('Should run goToItem callback when user is in mobile selection mode', () => {
+        const goToItem = jest.fn(() => {});
+        handleActionButtonPress(searchHash, updatedMockReportItem, goToItem, true);
+        expect(goToItem).toHaveBeenCalledTimes(1);
     });
 });

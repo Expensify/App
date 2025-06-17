@@ -28,6 +28,7 @@ import {
     getListItem,
     getSections,
     getSortedSections,
+    getWideAmountIndicators,
     isReportActionListItemType,
     isReportListItemType,
     isSearchDataLoaded,
@@ -584,6 +585,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     };
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
+    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowSorting = !Array.isArray(status) && !shouldGroupByReports;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
 
@@ -608,6 +610,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                             sortOrder={sortOrder}
                             sortBy={sortBy}
                             shouldShowYear={shouldShowYear}
+                            isAmountColumnWide={shouldShowAmountInWideColumn}
+                            isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                             shouldShowSorting={shouldShowSorting}
                         />
                     )
