@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -163,6 +163,8 @@ function SearchAutocompleteList(
         return getSearchOptions(options, betas ?? []);
     }, [areOptionsInitialized, betas, options]);
 
+    const [isInitialRender, setIsInitialRender] = useState(true);
+
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
     const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
 
@@ -197,7 +199,14 @@ function SearchAutocompleteList(
     const cardFeedNamesWithType = useMemo(() => {
         return getCardFeedNamesWithType({workspaceCardFeeds, translate});
     }, [translate, workspaceCardFeeds]);
-    const feedAutoCompleteList = useMemo(() => Object.entries(cardFeedNamesWithType).map(([cardFeedKey, cardFeedName]) => ({cardFeedKey, cardFeedName})), [cardFeedNamesWithType]);
+    const feedAutoCompleteList = useMemo(
+        () =>
+            Object.entries(cardFeedNamesWithType).map(([cardFeedKey, cardFeedName]) => ({
+                cardFeedKey,
+                cardFeedName,
+            })),
+        [cardFeedNamesWithType],
+    );
 
     const getParticipantsAutocompleteList = useMemo(
         () =>
@@ -367,13 +376,19 @@ function SearchAutocompleteList(
                     .filter((type) => type.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(type.toLowerCase()))
                     .sort();
 
-                return filteredTypes.map((type) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TYPE, text: type}));
+                return filteredTypes.map((type) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TYPE,
+                    text: type,
+                }));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY: {
                 const filteredGroupBy = groupByAutocompleteList.filter(
                     (groupByValue) => groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(groupByValue.toLowerCase()),
                 );
-                return filteredGroupBy.map((groupByValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY, text: groupByValue}));
+                return filteredGroupBy.map((groupByValue) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY,
+                    text: groupByValue,
+                }));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
                 const filteredStatuses = statusAutocompleteList
@@ -381,7 +396,10 @@ function SearchAutocompleteList(
                     .sort()
                     .slice(0, 10);
 
-                return filteredStatuses.map((status) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.STATUS, text: status}));
+                return filteredStatuses.map((status) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.STATUS,
+                    text: status,
+                }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE: {
                 const filteredExpenseTypes = expenseTypes
@@ -547,7 +565,10 @@ function SearchAutocompleteList(
         text: StringUtils.lineBreaksToSpaces(item.text),
         wrapperStyle: [styles.pr3, styles.pl3],
     }));
-    sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
+    sections.push({
+        title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined,
+        data: styledRecentReports,
+    });
 
     if (autocompleteSuggestions.length > 0) {
         const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
@@ -603,6 +624,7 @@ function SearchAutocompleteList(
             getItemHeight={getItemHeight}
             onLayout={() => {
                 setPerformanceTimersEnd();
+                setIsInitialRender(false);
                 if (!!textInputRef?.current && ref && 'current' in ref) {
                     ref.current?.updateExternalTextInputFocus?.(textInputRef.current.isFocused());
                 }
@@ -613,7 +635,7 @@ function SearchAutocompleteList(
             onArrowFocus={onArrowFocus}
             ref={ref}
             initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
-            shouldScrollToFocusedIndex={!areOptionsInitialized}
+            shouldScrollToFocusedIndex={isInitialRender}
             shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
             disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
         />

@@ -386,6 +386,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
         return () => removeKeyDownPressListener(setHasKeyBeenPressed);
     }, [setHasKeyBeenPressed]);
+
     const selectedItemIndex = useMemo(
         () => (initiallyFocusedOptionKey ? flattenedSections.allOptions.findIndex(isItemSelected) : -1),
         [flattenedSections.allOptions, initiallyFocusedOptionKey, isItemSelected],
