@@ -20,6 +20,7 @@ class ChatGPTTranslator extends Translator {
         super();
         this.openai = new OpenAIUtils(apiKey);
     }
+
     protected async performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string> {
         const systemPrompt = dedent(`
             ${getBasePrompt(targetLang)}
