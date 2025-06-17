@@ -443,7 +443,7 @@ async function main(): Promise<void> {
             // By default, generate translations for all supported languages. Can be overridden with the --locales flag
             locales: {
                 description: 'Locales to generate translations for.',
-                default: TRANSLATION_TARGET_LOCALES,
+                default: Object.values(TRANSLATION_TARGET_LOCALES),
                 parse: (val: string): TranslationTargetLocale[] => {
                     const rawLocales = val.split(',');
                     const validatedLocales: TranslationTargetLocale[] = [];
