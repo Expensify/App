@@ -31,7 +31,7 @@ class OpenAIUtils {
     /**
      * Prompt the Chat Completions API.
      */
-    public async promptChatCompletions({userPrompt, systemPrompt = '', model = 'gpt-4.1-mini'}: {userPrompt: string; systemPrompt?: string; model?: ChatModel}): Promise<string> {
+    public async promptChatCompletions({userPrompt, systemPrompt = '', model = 'gpt-4o'}: {userPrompt: string; systemPrompt?: string; model?: ChatModel}): Promise<string> {
         const messages: ChatCompletionMessageParam[] = [{role: 'user', content: userPrompt}];
         if (systemPrompt) {
             messages.unshift({role: 'system', content: systemPrompt});
