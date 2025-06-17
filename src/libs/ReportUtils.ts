@@ -292,6 +292,17 @@ type OptimisticAddCommentReportAction = Pick<
     | 'delegateAccountID'
 > & {isOptimisticAction: boolean};
 
+type BuildOptimisticAddCommentReportActionParams = {
+    text?: string;
+    file?: FileObject;
+    actorAccountID?: number;
+    createdOffset?: number;
+    shouldEscapeText?: boolean;
+    reportID?: string;
+    reportActionID?: string;
+    attachmentID?: string;
+};
+
 type OptimisticReportAction = {
     commentText: string;
     reportAction: OptimisticAddCommentReportAction;
@@ -5410,16 +5421,16 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
     return Parser.htmlToText(policy.description);
 }
 
-function buildOptimisticAddCommentReportAction(
-    text?: string,
-    file?: FileObject,
-    actorAccountID?: number,
+function buildOptimisticAddCommentReportAction({
+    text,
+    file,
+    actorAccountID,
     createdOffset = 0,
-    shouldEscapeText?: boolean,
-    reportID?: string,
-    reportActionID: string = rand64(),
-    attachmentID?: string,
-): OptimisticReportAction {
+    shouldEscapeText,
+    reportID,
+    reportActionID = rand64(),
+    attachmentID,
+}: BuildOptimisticAddCommentReportActionParams): OptimisticReportAction {
     const commentText = getParsedComment(text ?? '', {shouldEscapeText, reportID});
     const attachmentHtml = getUploadingAttachmentHtml(file, attachmentID);
 
@@ -5531,7 +5542,11 @@ function buildOptimisticTaskCommentReportAction(
     actorAccountID?: number,
     createdOffset = 0,
 ): OptimisticReportAction {
-    const reportAction = buildOptimisticAddCommentReportAction(text, undefined, undefined, createdOffset, undefined, taskReportID);
+    const reportAction = buildOptimisticAddCommentReportAction({
+        text,
+        createdOffset,
+        reportID: taskReportID,
+    });
     if (Array.isArray(reportAction.reportAction.message)) {
         const message = reportAction.reportAction.message.at(0);
         if (message) {
@@ -9890,7 +9905,11 @@ function prepareOnboardingOnyxData(
 
     // Text message
     const message = typeof onboardingMessage.message === 'function' ? onboardingMessage.message(onboardingTaskParams) : onboardingMessage.message;
-    const textComment = buildOptimisticAddCommentReportAction(message, undefined, actorAccountID, 1);
+    const textComment = buildOptimisticAddCommentReportAction({
+        text: message,
+        actorAccountID,
+        createdOffset: 1,
+    });
     const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
     const textMessage: AddCommentOrAttachmentParams = {
         reportID: targetChatReportID,
@@ -9963,7 +9982,11 @@ function prepareOnboardingOnyxData(
     // Sign-off welcome message
     const welcomeSignOffText =
         engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? translateLocal('onboarding.welcomeSignOffTitleManageTeam') : translateLocal('onboarding.welcomeSignOffTitle');
-    const welcomeSignOffComment = buildOptimisticAddCommentReportAction(welcomeSignOffText, undefined, actorAccountID, tasksData.length + 3);
+    const welcomeSignOffComment = buildOptimisticAddCommentReportAction({
+        text: welcomeSignOffText,
+        actorAccountID,
+        createdOffset: tasksData.length + 3,
+    });
     const welcomeSignOffCommentAction: OptimisticAddCommentReportAction = welcomeSignOffComment.reportAction;
     const welcomeSignOffMessage = {
         reportID: targetChatReportID,
