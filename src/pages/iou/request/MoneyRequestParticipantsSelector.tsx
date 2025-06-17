@@ -22,7 +22,6 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
