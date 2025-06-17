@@ -80,11 +80,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
     }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
-    // We need to create a stable key for filterFormValues so that we don't infinitely
-    // re-render components that access all of the filterFormValues. This is due to the way
-    // that react calculates diffs (it doesn't know how to compare objects).
-    const filterFormValuesKey = JSON.stringify(filterFormValues);
-
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
             const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
@@ -109,11 +104,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const openAdvancedFilters = useCallback(() => {
         updateAdvancedFilters(filterFormValues);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
-
-        // Disable exhaustive deps because we use filterFormValuesKey as the dependency, which is a stable key based on filterFormValues
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filterFormValuesKey]);
+    }, [filterFormValues]);
 
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
@@ -182,10 +173,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        // Disable exhaustive deps because we use filterFormValuesKey as the dependency, which is a stable key based on filterFormValues
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [filterFormValuesKey, queryJSON],
+        [filterFormValues.dateAfter, filterFormValues.dateBefore, filterFormValues.dateOn, updateFilterForm],
     );
 
     const userPickerComponent = useCallback(
@@ -200,10 +188,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        // Disable exhaustive deps because we use filterFormValuesKey as the dependency, which is a stable key based on filterFormValues
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [filterFormValuesKey],
+        [filterFormValues.from, updateFilterForm],
     );
 
     /**
