@@ -2,6 +2,7 @@ import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
 import {setDeviceID} from '@userActions/Device';
+import initLocale from '@userActions/Locale';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,6 +54,9 @@ export default function () {
     });
 
     initOnyxDerivedValues();
+
+     // Init locale early to avoid rendering translations keys instead of real translations
+    initLocale();
 
     setDeviceID();
 
