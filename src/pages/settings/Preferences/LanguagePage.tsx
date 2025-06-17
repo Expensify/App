@@ -25,7 +25,7 @@ function LanguagePage() {
         const sortedLocales = isBetaEnabled(CONST.BETAS.STATIC_AI_TRANSLATIONS) ? SORTED_LOCALES : SORTED_LOCALES.filter((locale) => isFullySupportedLocale(locale));
         return sortedLocales.map((locale) => ({
             value: locale,
-            label: LOCALE_TO_LANGUAGE_STRING[locale],
+            text: LOCALE_TO_LANGUAGE_STRING[locale],
             keyForList: locale,
             isSelected: preferredLocale === locale,
         }));
