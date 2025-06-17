@@ -308,7 +308,7 @@ function AttachmentModal({
         }
 
         if (onConfirm) {
-            if (validFilesToUpload) {
+            if (validFilesToUpload.length) {
                 onConfirm(validFilesToUpload);
                 setValidFilesToUpload([]);
             } else {
