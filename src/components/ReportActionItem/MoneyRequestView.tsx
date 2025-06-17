@@ -168,25 +168,12 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
-    /**
-     * We should only display the transaction amount if
-     * the amount can be calculated at the confirmation screen.
-     * For requests such as scan or distance without a route defined,
-     * we won't show the amount.
-     */
-    let shouldDisplayTransactionAmount = false;
-
-    if (transactionAmount !== undefined) {
-        if (isDistanceRequest && !hasRoute) {
-            shouldDisplayTransactionAmount = false;
-        } else if (isTransactionScanning || !didReceiptScanSucceed) {
-            shouldDisplayTransactionAmount = false;
-        } else {
-            shouldDisplayTransactionAmount = true;
-        }
-    }
+    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!transactionAmount) && transactionAmount !== undefined;
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString((transactionAmount ?? 0) / (transactionAttendees?.length ?? 1), transactionCurrency) : '';
+    const formattedPerAttendeeAmount =
+        shouldDisplayTransactionAmount && ((hasReceipt && !isTransactionScanning && didReceiptScanSucceed) || isPerDiemRequest)
+            ? convertToDisplayString(transactionAmount / (transactionAttendees?.length ?? 1), transactionCurrency)
+            : '';
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, cardList);
