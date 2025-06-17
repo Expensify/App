@@ -2057,14 +2057,7 @@ const translations = {
     },
     languagePage: {
         language: 'Lingua',
-        languages: {
-            en: {
-                label: 'Inglese',
-            },
-            es: {
-                label: 'Spagnolo',
-            },
-        },
+        aiGenerated: 'Le traduzioni per questa lingua sono generate automaticamente e possono contenere errori.',
     },
     themePage: {
         theme: 'Tema',

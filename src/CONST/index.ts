@@ -13,7 +13,7 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
-import {LANGUAGES, LOCALES} from './LOCALES';
+import {LOCALES} from './LOCALES';
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
@@ -830,8 +830,8 @@ const CONST = {
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
         NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
-        NATIVE_CONTACT_IMPORT: 'nativeContactImport',
         TRACK_FLOWS: 'trackFlows',
+        STATIC_AI_TRANSLATIONS: 'staticAITranslations',
         EUR_BILLING: 'eurBilling',
     },
     BUTTON_STATES: {
@@ -2885,7 +2885,6 @@ const CONST = {
     },
 
     LOCALES,
-    LANGUAGES,
 
     PRONOUNS_LIST: [
         'coCos',
@@ -6656,6 +6655,8 @@ const CONST = {
             GROUP_BY: 'groupBy',
         },
         SYNTAX_FILTER_KEYS: {
+            TYPE: 'type',
+            STATUS: 'status',
             DATE: 'date',
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
@@ -6964,6 +6965,12 @@ const CONST = {
         VISIBLE: 'visible',
         READY_TO_BE_HIDDEN: 'readyToBeHidden',
         HIDDEN: `hidden`,
+    },
+
+    HYBRID_APP_SIGN_IN_STATE: {
+        NOT_STARTED: 'notStarted',
+        STARTED: 'started',
+        FINISHED: 'finished',
     },
 
     CSV_IMPORT_COLUMNS: {
