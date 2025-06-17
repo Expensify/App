@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -61,8 +61,8 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             return;
         }
 
-        const hasTransactionsIDsChange = !isEqual(transactionsIDs, previousTransactionsIDs);
-        const hasReportActionsIDsChange = !isEqual(reportActionsIDs, previousReportActionsIDs);
+        const hasTransactionsIDsChange = !deepEqual(transactionsIDs, previousTransactionsIDs);
+        const hasReportActionsIDsChange = !deepEqual(reportActionsIDs, previousReportActionsIDs);
 
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {

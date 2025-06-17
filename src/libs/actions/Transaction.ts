@@ -1,7 +1,7 @@
 import {getUnixTime} from 'date-fns';
+import {deepEqual} from 'fast-equals';
 import lodashClone from 'lodash/clone';
 import lodashHas from 'lodash/has';
-import isEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -16,10 +16,8 @@ import {
     buildOptimisticCreatedReportAction,
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticMovedTransactionAction,
-    buildOptimisticSelfDMReport,
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
-    findSelfDMReportID,
 } from '@libs/ReportUtils';
 import {getAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -135,7 +133,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
 
     // If current location is used, we would want to avoid saving it as a recent waypoint. This prevents the 'Your Location'
     // text from showing up in the address search suggestions
-    if (isEqual(waypoint?.address, CONST.YOUR_LOCATION_TEXT)) {
+    if (deepEqual(waypoint?.address, CONST.YOUR_LOCATION_TEXT)) {
         return;
     }
     const recentWaypointAlreadyExists = recentWaypoints.find((recentWaypoint) => recentWaypoint?.address === waypoint?.address);
@@ -601,102 +599,17 @@ function setTransactionReport(transactionID: string, reportID: string, isDraft: 
 
 function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     const newReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    if (!newReport) {
+        return;
+    }
 
     const transactions = transactionIDs.map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
 
-    // Store current violations for each transaction to restore on failure
-    const currentTransactionViolations: Record<string, TransactionViolation[]> = {};
-    transactionIDs.forEach((id) => {
-        currentTransactionViolations[id] = allTransactionViolation?.[id] ?? [];
-    });
-
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
-
-    const existingSelfDMReportID = findSelfDMReportID();
-    let selfDMReport: Report;
-    let selfDMCreatedReportAction: ReportAction;
-
-    if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-        const currentTime = DateUtils.getDBTime();
-        selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
-
-        // Add optimistic updates for self DM report
-        optimisticData.push(
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
-                value: {
-                    ...selfDMReport,
-                    pendingFields: {
-                        createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    },
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
-                value: {isOptimisticReport: true},
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                value: {
-                    [selfDMCreatedReportAction.reportActionID]: selfDMCreatedReportAction,
-                },
-            },
-        );
-
-        // Add success data for self DM report
-        successData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
-                value: {
-                    pendingFields: {
-                        createChat: null,
-                    },
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
-                value: {isOptimisticReport: false},
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                value: {
-                    [selfDMCreatedReportAction.reportActionID]: {
-                        pendingAction: null,
-                    },
-                },
-            },
-        );
-
-        // Add failure data for self DM report
-        failureData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
-                value: null,
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
-                value: null,
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                value: null,
-            },
-        );
-    }
 
     let transactionsMoved = false;
 
@@ -736,31 +649,12 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             },
         });
 
-        // Optimistically clear all violations for the transaction
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-            value: [],
-        });
-
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-            value: [],
-        });
-
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-            value: currentTransactionViolations[transaction.transactionID],
-        });
-
         // 2. Keep track of the new report totals
         const transactionAmount = getAmount(transaction);
         if (oldReportID) {
             updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : (oldReport?.total ?? 0)) + transactionAmount;
         }
-        if (reportID && newReport) {
+        if (reportID) {
             updatedReportTotals[reportID] = (updatedReportTotals[reportID] ? updatedReportTotals[reportID] : (newReport.total ?? 0)) - transactionAmount;
         }
 
@@ -776,10 +670,9 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
         };
 
         if (oldIOUAction) {
-            const targetReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (existingSelfDMReportID ?? selfDMReport.reportID) : reportID;
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                 value: {
                     [newIOUAction.reportActionID]: newIOUAction,
                 },
@@ -840,7 +733,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             value: {
                 parentReportID: reportID,
                 parentReportActionID: optimisticMoneyRequestReportActionID,
-                policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
+                policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? newReport.policyID : CONST.POLICY.ID_FAKE,
             },
         });
 
@@ -940,8 +833,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             value: {[movedAction?.reportActionID]: null},
         });
 
-        // Create base transaction data object
-        const baseTransactionData = {
+        transactionIDToReportActionAndThreadData[transaction.transactionID] = {
             movedReportActionID: movedAction.reportActionID,
             moneyRequestPreviewReportActionID: newIOUAction.reportActionID,
             ...(oldIOUAction && !oldIOUAction.childReportID
@@ -951,17 +843,6 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
                   }
                 : {}),
         };
-
-        if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-            // Add self DM data to transaction data
-            transactionIDToReportActionAndThreadData[transaction.transactionID] = {
-                ...baseTransactionData,
-                selfDMReportID: selfDMReport.reportID,
-                selfDMCreatedReportActionID: selfDMCreatedReportAction.reportActionID,
-            };
-        } else {
-            transactionIDToReportActionAndThreadData[transaction.transactionID] = baseTransactionData;
-        }
     });
 
     if (!transactionsMoved) {
