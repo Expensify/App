@@ -1,7 +1,6 @@
 import type {ValueOf} from 'type-fest';
-import type {SearchDateFilterKeys, SearchGroupBy} from '@components/Search/types';
+import type {SearchDateFilterKeys} from '@components/Search/types';
 import CONST from '@src/CONST';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type Form from './Form';
 
 const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
@@ -65,9 +64,10 @@ type InputID = ValueOf<typeof FILTER_KEYS>;
 type SearchAdvancedFiltersForm = Form<
     InputID,
     {
-        [FILTER_KEYS.GROUP_BY]: SearchGroupBy;
-        [FILTER_KEYS.TYPE]: SearchDataTypes;
+        [FILTER_KEYS.GROUP_BY]: string;
+        [FILTER_KEYS.TYPE]: string;
         [FILTER_KEYS.STATUS]: string[] | string;
+        [FILTER_KEYS.GROUP_BY]: string;
         [FILTER_KEYS.DATE_AFTER]: string;
         [FILTER_KEYS.DATE_BEFORE]: string;
         [FILTER_KEYS.DATE_ON]: string;
