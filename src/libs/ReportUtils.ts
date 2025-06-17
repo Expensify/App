@@ -2899,11 +2899,19 @@ function getParticipants(reportID: string) {
 }
 
 function getParticipantIcon(accountID: number | undefined, personalDetails: OnyxInputOrEntry<PersonalDetailsList>, shouldUseShortForm = false): Icon {
-    const details = personalDetails?.[accountID ?? CONST.DEFAULT_NUMBER_ID];
+    if (!accountID) {
+        return {
+            id: CONST.DEFAULT_NUMBER_ID,
+            source: FallbackAvatar,
+            type: CONST.ICON_TYPE_AVATAR,
+            name: '',
+        };
+    }
+    const details = personalDetails?.[accountID];
     const displayName = getDisplayNameOrDefault(details, '', shouldUseShortForm);
 
     return {
-        id: accountID ?? CONST.DEFAULT_NUMBER_ID,
+        id: accountID,
         source: details?.avatar ?? FallbackAvatar,
         type: CONST.ICON_TYPE_AVATAR,
         name: displayName,
