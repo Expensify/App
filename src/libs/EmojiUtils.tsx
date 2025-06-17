@@ -676,7 +676,7 @@ function containsCustomEmoji(text?: string): boolean {
         return false;
     }
 
-    const privateUseAreaRegex = /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u;
+    const privateUseAreaRegex = CONST.REGEX.PRIVATE_USER_AREA;
     return privateUseAreaRegex.test(text);
 }
 
@@ -685,7 +685,7 @@ function containsOnlyCustomEmoji(text?: string): boolean {
         return false;
     }
 
-    const privateUseAreaRegex = /^[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]+$/u;
+    const privateUseAreaRegex = CONST.REGEX.ONLY_PRIVATE_USER_AREA;
     return privateUseAreaRegex.test(text);
 }
 
