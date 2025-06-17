@@ -1,8 +1,9 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import type {ImageContentFit} from 'expo-image';
-import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {Image, InteractionManager, View} from 'react-native';
-import type {ImageResizeMode, ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {ImageResizeMode, ImageSourcePropType, LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {MergeExclusive} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
@@ -205,6 +206,9 @@ function FeatureTrainingModal({
     const [illustrationAspectRatio, setIllustrationAspectRatio] = useState(illustrationAspectRatioProp ?? VIDEO_ASPECT_RATIO);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
+    const scrollViewRef = useRef<RNScrollView>(null);
+    const [containerHeight, setContainerHeight] = useState(0);
+    const [contentHeight, setContentHeight] = useState(0);
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
@@ -351,6 +355,14 @@ function FeatureTrainingModal({
      */
     useLayoutEffect(parseFSAttributes, []);
 
+    // Scrolls modal to the bottom when keyboard appears so the action buttons are visible.
+    useEffect(() => {
+        if (contentHeight <= containerHeight || onboardingIsMediumOrLargerScreenWidth || !shouldUseScrollView) {
+            return;
+        }
+        scrollViewRef.current?.scrollToEnd({animated: false});
+    }, [contentHeight, containerHeight, onboardingIsMediumOrLargerScreenWidth, shouldUseScrollView]);
+
     const Wrapper = shouldUseScrollView ? ScrollView : View;
 
     return (
@@ -378,6 +390,9 @@ function FeatureTrainingModal({
                 style={[onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), shouldUseScrollView && isMobileChrome() && {maxHeight: '100dvh'}]}
                 contentContainerStyle={shouldUseScrollView ? styles.pb5 : undefined}
                 keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
+                ref={shouldUseScrollView ? scrollViewRef : undefined}
+                onLayout={shouldUseScrollView ? (e: LayoutChangeEvent) => setContainerHeight(e.nativeEvent.layout.height) : undefined}
+                onContentSizeChange={shouldUseScrollView ? (_w: number, h: number) => setContentHeight(h) : undefined}
                 fsClass={CONST.FULL_STORY.UNMASK}
                 testID={CONST.FULL_STORY.UNMASK}
             >
