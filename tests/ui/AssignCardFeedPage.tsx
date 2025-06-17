@@ -231,9 +231,9 @@ describe('AssignCardFeedPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Verify that we go back to the company cards page as the card assignee has changed
-        const goBack = jest.spyOn(Navigation, 'goBack');
+        const navigate = jest.spyOn(Navigation, 'navigate');
         await waitFor(() => {
-            expect(goBack).toHaveBeenCalled();
+            expect(navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy.id), {forceReplace: true});
         });
         // Unmount the component after assertions to clean up.
         unmount();

@@ -30,7 +30,7 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
         shouldSetModalVisibility?: boolean;
 
         /** Callback method fired when the user requests to close the modal */
-        onClose: () => void;
+        onClose?: () => void;
 
         /** Function to call when the user presses on the modal backdrop */
         onBackdropPress?: () => void;
@@ -107,6 +107,9 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
 
         /** Whether to prevent the focus trap from scrolling the element into view. */
         shouldPreventScrollOnFocus?: boolean;
+
+        /** Whether to disable the animation in */
+        disableAnimationIn?: boolean;
 
         /**
          * Temporary flag to disable safe area bottom spacing in modals and to allow edge-to-edge content.
