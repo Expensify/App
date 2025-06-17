@@ -92,6 +92,12 @@ type Comment = {
 
     /** Defines the type of liability for the transaction */
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
+
+    /** Whether the transaction was rejected by RTER */
+    rterRjectedExpense?: {
+        /** The comment of the rejected expense */
+        comment: string;
+    };
 };
 
 /** Model of transaction custom unit */
