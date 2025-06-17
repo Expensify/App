@@ -10764,13 +10764,15 @@ function putTransactionsOnHold(transactionsID: string[], comment: string, report
 
 /**
  * Remove expense from HOLD
+ * @param transactionIndex Needed when unholding requests in bulk to only create one report action for the IOU. See unhold option in useSelectedTransactionsActions.ts
+ *
  */
-function unholdRequest(transactionID: string, reportID: string) {
-    const createdReportAction = buildOptimisticUnHoldReportAction();
+function unholdRequest(transactionID: string, reportID: string, transactionIndex = 0) {
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const createdReportAction = buildOptimisticUnHoldReportAction();
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -10803,20 +10805,6 @@ function unholdRequest(transactionID: string, reportID: string) {
             },
         },
     ];
-
-    if (iouReport && iouReport.currency === transaction?.currency) {
-        const isExpenseReportLocal = isExpenseReport(iouReport);
-        const coefficient = isExpenseReportLocal ? -1 : 1;
-        const transactionAmount = getAmount(transaction, isExpenseReportLocal) * coefficient;
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-            value: {
-                unheldTotal: (iouReport.unheldTotal ?? 0) + transactionAmount,
-                unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) + transactionAmount : iouReport.unheldNonReimbursableTotal,
-            },
-        });
-    }
 
     const successData: OnyxUpdate[] = [
         {
@@ -10860,6 +10848,59 @@ function unholdRequest(transactionID: string, reportID: string) {
             },
         },
     ];
+
+    if (iouReport) {
+        if (iouReport.currency === transaction?.currency) {
+            const isExpenseReportLocal = isExpenseReport(iouReport);
+            const coefficient = isExpenseReportLocal ? -1 : 1;
+            const transactionAmount = getAmount(transaction, isExpenseReportLocal) * coefficient;
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                value: {
+                    unheldTotal: (iouReport.unheldTotal ?? 0) + transactionAmount,
+                    unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) + transactionAmount : iouReport.unheldNonReimbursableTotal,
+                },
+            });
+        }
+
+        if (transactionIndex == 0 && iouReport.reportID !== reportID) {
+            const unHoldActionForIOUReport = buildOptimisticUnHoldReportAction();
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                    value: {
+                        [unHoldActionForIOUReport.reportActionID]: unHoldActionForIOUReport,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                    value: {
+                        lastVisibleActionCreated: unHoldActionForIOUReport.created,
+                    },
+                },
+            );
+
+            failureData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                    value: {
+                        [unHoldActionForIOUReport.reportActionID]: null,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                    value: {
+                        lastVisibleActionCreated: iouReport?.lastVisibleActionCreated,
+                    },
+                },
+            );
+        }
+    }
 
     API.write(
         'UnHoldRequest',

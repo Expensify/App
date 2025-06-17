@@ -145,12 +145,12 @@ function useSelectedTransactionsActions({
                 icon: Expensicons.Stopwatch,
                 value: UNHOLD,
                 onSelected: () => {
-                    selectedTransactionIDs.forEach((transactionID) => {
+                    selectedTransactionIDs.forEach((transactionID, transactionIndex) => {
                         const action = getIOUActionForTransactionID(reportActions, transactionID);
                         if (!action?.childReportID) {
                             return;
                         }
-                        unholdRequest(transactionID, action?.childReportID);
+                        unholdRequest(transactionID, action?.childReportID, transactionIndex);
                     });
                     clearSelectedTransactions(true);
                 },
