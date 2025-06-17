@@ -4,7 +4,7 @@ import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '
 import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
-import type { Errors } from '@src/types/onyx/OnyxCommon';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 

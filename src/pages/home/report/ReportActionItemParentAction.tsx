@@ -18,7 +18,7 @@ import {
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type { Errors } from '@src/types/onyx/OnyxCommon';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';

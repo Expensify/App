@@ -3,6 +3,7 @@ import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useMemo, useState} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -33,9 +34,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type { OnyxEntry } from 'react-native-onyx';
-import type { Errors } from '@src/types/onyx/OnyxCommon';
 import TransactionPreview from './TransactionPreview';
 
 type MoneyRequestActionProps = {
@@ -79,7 +79,7 @@ type MoneyRequestActionProps = {
     personalDetailsList: OnyxTypes.PersonalDetailsList | undefined;
 
     /** Records any errors related to wallet terms. */
-    walletTermsErrors: Errors | undefined;   
+    walletTermsErrors: Errors | undefined;
 };
 
 function MoneyRequestAction({
