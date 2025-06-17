@@ -1,6 +1,7 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {isExpenseReport} from '@libs/ReportUtils';
+import TranslationStore from '@src/languages/TranslationStore';
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
@@ -24,6 +25,7 @@ describe('ReportActionsUtils', () => {
     beforeEach(() => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
+        TranslationStore.load(CONST.LOCALES.DEFAULT);
         // Initialize the network key for OfflineWithFeedback
         return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     });
