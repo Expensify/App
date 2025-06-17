@@ -868,6 +868,7 @@ const translations = {
         },
     },
     sidebarScreen: {
+        bookEvents: 'Book events',
         buttonFind: 'Find something...',
         buttonMySettings: 'My settings',
         fabNewChat: 'Start chat',

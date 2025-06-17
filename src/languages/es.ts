@@ -862,6 +862,7 @@ const translations = {
         },
     },
     sidebarScreen: {
+        bookEvents: 'Reservar eventos',
         buttonFind: 'Encuentre algo...',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Iniciar chat',
