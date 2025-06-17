@@ -183,12 +183,15 @@ type GetUserToInviteConfig = {
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {
-    item: PersonalDetails
-    keyForList: string;
-    isDisabled: boolean;
-    isSelected: boolean;
     text: string;
     alternateText: string;
+    keyForList: string;
+    isSelected: boolean;
+    isDisabled: boolean;
+    accountID?: number;
+    login: string;
+    icons?: Icon[];
+    pendingAction?: PendingAction;
 };
 
 type SectionForSearchTerm = {
@@ -2061,12 +2064,17 @@ function getShareDestinationOptions(
  */
 function formatMemberForList(member: PersonalDetails): MemberForList {
     return {
-        item: member,
-        text: member.displayName ?? member.login ?? '',
-        alternateText: member.login ?? '',
-        isDisabled: false,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        text: getDisplayNameForParticipant(member) || formatPhoneNumber(member.login ?? ''),
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        alternateText: member.login || '',
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        keyForList: String(member.accountID ?? CONST.DEFAULT_NUMBER_ID) || '',
         isSelected: false,
-        keyForList: String(member.accountID) ?? ''
+        isDisabled: false,
+        accountID: member.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        login: member.login ?? '',
+        pendingAction: member.pendingAction,
     };
 }
 
@@ -2573,7 +2581,8 @@ export {
     shallowOptionsListCompare,
     getMostRecentOptions,
     recentReportComparator,
-    createOptionListFromPersonalDetails
+    createOptionListFromPersonalDetails,
+    createOptionFromPersonalDetail
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, Option, OptionTree, ReportAndPersonalDetailOptions, RawOptionList};

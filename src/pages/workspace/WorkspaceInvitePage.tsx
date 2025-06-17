@@ -8,8 +8,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {Section} from '@components/SelectionList/types';
-import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
+import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -23,8 +23,13 @@ import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
-import type {MemberForList} from '@libs/OptionsListUtils';
+import {
+    createOptionFromPersonalDetail,
+    filterAndOrderOptions,
+    getHeaderMessage,
+    getMemberInviteOptions,
+    getSearchValueForPhoneOrEmail,
+} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -35,12 +40,13 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
-import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
-type MembersSection = SectionListData<MemberForList, Section<MemberForList>>;
+type MembersSection = SectionListData<OptionData, Section<OptionData>>;
 
 type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
     WithNavigationTransitionEndProps &
@@ -50,8 +56,8 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
-    const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
+    const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
+    const [personalDetails, setPersonalDetails] = useState<PersonalDetails[]>([]);
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
@@ -104,20 +110,20 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
 
         const newUsersToInviteDict: Record<number, OptionData> = {};
-        const newPersonalDetailsDict: Record<number, OptionData> = {};
-        const newSelectedOptionsDict: Record<number, MemberForList> = {};
+        const newPersonalDetailsDict: Record<number, PersonalDetails> = {};
+        const newSelectedOptionsDict: Record<number, OptionData> = {};
 
         // Update selectedOptions with the latest personalDetails and policyEmployeeList information
-        const detailsMap: Record<string, MemberForList> = {};
+        const detailsMap: Record<string, OptionData> = {};
         inviteOptions.personalDetails.forEach((detail) => {
             if (!detail.login) {
                 return;
             }
 
-            detailsMap[detail.login] = formatMemberForList(detail);
+            detailsMap[detail.login] = createOptionFromPersonalDetail(detail, true);
         });
 
-        const newSelectedOptions: MemberForList[] = [];
+        const newSelectedOptions: OptionData[] = [];
         if (firstRenderRef.current) {
             // We only want to add the saved selected user on first render
             firstRenderRef.current = false;
@@ -129,7 +135,14 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             });
         }
         selectedOptions.forEach((option) => {
-            newSelectedOptions.push(option.login && option.login in detailsMap ? {...detailsMap[option.login], isSelected: true} : option);
+            newSelectedOptions.push(
+                option.login && option.login in detailsMap
+                    ? {
+                          ...detailsMap[option.login],
+                          isSelected: true,
+                      }
+                    : option,
+            );
         });
 
         const userToInvite = inviteOptions.userToInvite;
@@ -193,7 +206,8 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
         const personalDetailsWithoutSelected = Object.values(personalDetails).filter(({login}) => !selectedLogins.some((selectedLogin) => selectedLogin === login));
-        const personalDetailsFormatted = personalDetailsWithoutSelected.map((item) => formatMemberForList(item));
+        const personalDetailsFormatted = personalDetailsWithoutSelected.map((item) => createOptionFromPersonalDetail(item, true));
+
 
         sectionsArr.push({
             title: translate('common.contacts'),
@@ -207,7 +221,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             if (hasUnselectedUserToInvite) {
                 sectionsArr.push({
                     title: undefined,
-                    data: [formatMemberForList(userToInvite)],
+                    data: [userToInvite],
                     shouldShow: true,
                 });
             }
@@ -216,12 +230,12 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         return sectionsArr;
     }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite]);
 
-    const toggleOption = (option: MemberForList) => {
+    const toggleOption = (option: OptionData) => {
         clearErrors(route.params.policyID);
 
         const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
 
-        let newSelectedOptions: MemberForList[];
+        let newSelectedOptions: OptionData[];
         if (isOptionInList) {
             newSelectedOptions = selectedOptions.filter((selectedOption) => selectedOption.login !== option.login);
         } else {
@@ -297,7 +311,10 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
+            fullPageNotFoundViewProps={{
+                subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized',
+                onLinkPress: goBackFromInvalidPolicy,
+            }}
         >
             <ScreenWrapper
                 shouldEnableMaxHeight
