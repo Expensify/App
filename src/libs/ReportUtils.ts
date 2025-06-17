@@ -2903,11 +2903,7 @@ function getParticipantIcon(accountID: number | undefined, personalDetails: Onyx
 /**
  * Helper function to get the icons for the invoice receiver. Only to be used in getIcons().
  */
-function getInvoiceReceiverIcons(
-    report: OnyxInputOrEntry<Report>,
-    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
-    invoiceReceiverPolicy: OnyxInputOrEntry<Policy>,
-): Icon[] {
+function getInvoiceReceiverIcons(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>, invoiceReceiverPolicy: OnyxInputOrEntry<Policy>): Icon[] {
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
         return getIconsForParticipants([report?.invoiceReceiver.accountID], personalDetails);
     }
@@ -2930,11 +2926,7 @@ function getInvoiceReceiverIcons(
 /**
  * Helper function to get the icons for an expense request. Only to be used in getIcons().
  */
-function getIconsForExpenseRequest(
-    report: OnyxInputOrEntry<Report>,
-    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
-    policy: OnyxInputOrEntry<Policy>,
-): Icon[] {
+function getIconsForExpenseRequest(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>, policy: OnyxInputOrEntry<Policy>): Icon[] {
     const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID ?? ''}`]?.[report?.parentReportActionID ?? ''];
     const workspaceIcon = getWorkspaceIcon(report, policy);
     const memberIcon = getParticipantIcon(parentReportAction?.actorAccountID, personalDetails, true);
@@ -2944,16 +2936,12 @@ function getIconsForExpenseRequest(
 /**
  * Helper function to get the icons for a chat thread. Only to be used in getIcons().
  */
-function getIconsForChatThread(
-    report: OnyxInputOrEntry<Report>,
-    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
-    policy: OnyxInputOrEntry<Policy>,
-): Icon[] {
+function getIconsForChatThread(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>, policy: OnyxInputOrEntry<Policy>): Icon[] {
     const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID ?? ''}`]?.[report?.parentReportActionID ?? ''];
     const actorAccountID = getReportActionActorAccountID(parentReportAction, report, report);
     const actorIcon = getParticipantIcon(actorAccountID, personalDetails, true);
 
-    if (isWorkspaceThread(report)) {
+    if (report && isWorkspaceThread(report)) {
         const workspaceIcon = getWorkspaceIcon(report, policy);
         return [actorIcon, workspaceIcon];
     }
@@ -2963,13 +2951,9 @@ function getIconsForChatThread(
 /**
  * Helper function to get the icons for a task report. Only to be used in getIcons().
  */
-function getIconsForTaskReport(
-    report: OnyxInputOrEntry<Report>,
-    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
-    policy: OnyxInputOrEntry<Policy>,
-): Icon[] {
+function getIconsForTaskReport(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>, policy: OnyxInputOrEntry<Policy>): Icon[] {
     const ownerIcon = getParticipantIcon(report?.ownerAccountID, personalDetails, true);
-    if (isWorkspaceTaskReport(report)) {
+    if (report && isWorkspaceTaskReport(report)) {
         const workspaceIcon = getWorkspaceIcon(report, policy);
         return [ownerIcon, workspaceIcon];
     }
@@ -3001,7 +2985,7 @@ function getIconsForPolicyRoom(
     invoiceReceiverPolicy: OnyxInputOrEntry<Policy>,
 ): Icon[] {
     const icons = [getWorkspaceIcon(report, policy)];
-    if (isInvoiceRoom(report)) {
+    if (report && isInvoiceRoom(report)) {
         icons.push(...getInvoiceReceiverIcons(report, personalDetails, invoiceReceiverPolicy));
     }
     return icons;
@@ -3061,9 +3045,10 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
         if (attendeeEmails.size > 0) {
             const attendeeAccountIDs = getAccountIDsByLogins(Array.from(attendeeEmails));
             attendeeAccountIDs.forEach((id) => {
-                if (id) {
-                    accountIDs.add(id);
+                if (!id) {
+                    return;
                 }
+                accountIDs.add(id);
             });
         }
     }
@@ -3088,7 +3073,7 @@ function getIconsForGroupChat(report: OnyxInputOrEntry<Report>): Icon[] {
             source: report?.avatarUrl ?? getDefaultGroupAvatar(report?.reportID),
             id: -1,
             type: CONST.ICON_TYPE_AVATAR,
-            name: getGroupChatName(undefined, true, report),
+            name: getGroupChatName(undefined, true, report ?? undefined),
         },
     ];
 }

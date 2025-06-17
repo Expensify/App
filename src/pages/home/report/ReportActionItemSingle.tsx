@@ -14,6 +14,7 @@ import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +23,6 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getReportActionMessage} from '@libs/ReportActionsUtils';
-import {getIOUData} from '@libs/TransactionPreviewUtils';
 import {
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
@@ -37,9 +37,9 @@ import {
     isPolicyExpenseChat,
     isTripRoom as isTripRoomReportUtils,
 } from '@libs/ReportUtils';
+import {getIOUData} from '@libs/TransactionPreviewUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -91,10 +91,7 @@ const showWorkspaceDetails = (reportID: string | undefined) => {
 };
 
 const getReportPreviewIcons = (report: OnyxEntry<Report>, personalDetails: OnyxEntry<PersonalDetailsList>, policy: OnyxEntry<Policy>) => {
-    const icons = getIcons(report, personalDetails, undefined, undefined, undefined, policy);
-    console.log('>>> getReportPreviewIcons icons', {icons});
-
-    return icons;
+    return getIcons(report, personalDetails, undefined, undefined, undefined, policy);
 };
 
 function ReportActionItemSingle({
@@ -126,10 +123,9 @@ function ReportActionItemSingle({
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
-    const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined}`,
-        {canBeMissing: true},
-    );
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined}`, {
+        canBeMissing: true,
+    });
     let displayName = getDisplayNameForParticipant({accountID: actorAccountID, personalDetailsData: personalDetails});
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
@@ -156,13 +152,7 @@ function ReportActionItemSingle({
         avatarSource = personalDetails?.[ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.avatar;
         avatarId = ownerAccountID;
     }
-
-    console.log('>>> ', {report, iouReport, action});
-
-
     const icons = getIcons(iouReport, personalDetails, undefined, undefined, undefined, policy);
-    console.log('>>> icons', {icons});
-
     // If this is a report preview, display names and avatars of both people involved
     let secondaryAvatar: Icon;
     const primaryDisplayName = displayName;
@@ -325,7 +315,6 @@ function ReportActionItemSingle({
     const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
     const statusText = status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
-
 
     const getHeading = useCallback(() => {
         return () => {
