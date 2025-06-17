@@ -32,7 +32,7 @@ type ShouldShowConditionProps = {
 };
 
 type TooltipData = {
-    content: Array<{text: TranslationPaths; isBold?: boolean}>;
+    content: Array<{text: TranslationPaths; isBold: boolean}>;
     onHideTooltip: (isDismissedUsingCloseButton?: boolean) => void;
     name: ProductTrainingTooltipName;
     priority: number;
