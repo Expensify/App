@@ -1,4 +1,5 @@
 import {addDays, format, startOfDay, subYears} from 'date-fns';
+import {TextEncoder} from 'util';
 import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import {
@@ -7,6 +8,7 @@ import {
     isValidAccountRoute,
     isValidDate,
     isValidExpirationDate,
+    isValidInputLength,
     isValidLegalName,
     isValidPastDate,
     isValidPaymentZipCode,
@@ -17,6 +19,8 @@ import {
     meetsMaximumAgeRequirement,
     meetsMinimumAgeRequirement,
 } from '@src/libs/ValidationUtils';
+
+global.TextEncoder = TextEncoder;
 
 describe('ValidationUtils', () => {
     describe('isValidDate', () => {
@@ -394,6 +398,101 @@ describe('ValidationUtils', () => {
             const futureDate = "@ , : ; ' &";
             const isValid = isValidPaymentZipCode(futureDate);
             expect(isValid).toBe(false);
+        });
+    });
+
+    describe('isValidInputLength', () => {
+        // Test Latin alphabet characters (1 byte each in UTF-8)
+        describe('Latin alphabet characters', () => {
+            test('returns true and correct byte length when Latin string byte length exceeds limit', () => {
+                expect(isValidInputLength('abc', 2)).toEqual({isValid: false, byteLength: 3}); // 3 bytes > 2
+            });
+
+            test('returns false and correct byte length when Latin string byte length equals limit', () => {
+                expect(isValidInputLength('abc', 3)).toEqual({isValid: true, byteLength: 3}); // 3 bytes ≤ 3
+            });
+
+            test('returns false and correct byte length when Latin string byte length is less than limit', () => {
+                expect(isValidInputLength('ab', 3)).toEqual({isValid: true, byteLength: 2}); // 2 bytes ≤ 3
+            });
+        });
+
+        // Test Sanskrit characters (typically 3 bytes each in UTF-8)
+        describe('Sanskrit characters', () => {
+            test('returns true and correct byte length when Sanskrit string byte length exceeds limit', () => {
+                expect(isValidInputLength('कष', 5)).toEqual({isValid: false, byteLength: 6}); // 6 bytes > 5
+            });
+
+            test('returns false and correct byte length when Sanskrit string byte length equals limit', () => {
+                expect(isValidInputLength('कष', 6)).toEqual({isValid: true, byteLength: 6}); // 6 bytes ≤ 6
+            });
+
+            test('returns false and correct byte length when Sanskrit string byte length is less than limit', () => {
+                expect(isValidInputLength('क', 4)).toEqual({isValid: true, byteLength: 3}); // 3 bytes ≤ 4
+            });
+        });
+
+        // Test emojis (typically 4 bytes each in UTF-8)
+        describe('Emojis', () => {
+            test('returns true and correct byte length when emoji byte length exceeds limit', () => {
+                expect(isValidInputLength('😊', 3)).toEqual({isValid: false, byteLength: 4}); // 4 bytes > 3
+            });
+
+            test('returns false and correct byte length when emoji byte length equals limit', () => {
+                expect(isValidInputLength('😊', 4)).toEqual({isValid: true, byteLength: 4}); // 4 bytes ≤ 4
+            });
+
+            test('returns false and correct byte length when emoji byte length is less than limit', () => {
+                expect(isValidInputLength('😊', 5)).toEqual({isValid: true, byteLength: 4}); // 4 bytes ≤ 5
+            });
+        });
+
+        // Test empty strings and spaces
+        describe('Empty strings and spaces', () => {
+            test('returns false and correct byte length for empty string regardless of limit', () => {
+                expect(isValidInputLength('', 0)).toEqual({isValid: true, byteLength: 0}); // 0 bytes ≤ 0
+                expect(isValidInputLength('', 1)).toEqual({isValid: true, byteLength: 0}); // 0 bytes ≤ 1
+            });
+
+            test('returns true and correct byte length when space string byte length exceeds limit', () => {
+                expect(isValidInputLength('   ', 2)).toEqual({isValid: false, byteLength: 3}); // 3 bytes > 2
+            });
+
+            test('returns false and correct byte length when space string byte length equals limit', () => {
+                expect(isValidInputLength('  ', 2)).toEqual({isValid: true, byteLength: 2}); // 2 bytes ≤ 2
+            });
+        });
+
+        // Test mixed characters
+        describe('Mixed characters', () => {
+            test('returns true and correct byte length when mixed string byte length exceeds limit', () => {
+                expect(isValidInputLength('aक😊', 6)).toEqual({isValid: false, byteLength: 8}); // 1 + 3 + 4 = 8 bytes > 6
+            });
+
+            test('returns false and correct byte length when mixed string byte length equals limit', () => {
+                expect(isValidInputLength('aक😊', 8)).toEqual({isValid: true, byteLength: 8}); // 1 + 3 + 4 = 8 bytes ≤ 8
+            });
+
+            test('returns false and correct byte length when mixed string byte length is less than limit', () => {
+                expect(isValidInputLength('aक', 5)).toEqual({isValid: true, byteLength: 4}); // 1 + 3 = 4 bytes ≤ 5
+            });
+        });
+
+        // Test edge cases
+        describe('Edge cases', () => {
+            test('handles negative length parameter', () => {
+                expect(isValidInputLength('abc', -1)).toEqual({isValid: false, byteLength: 3}); // 3 bytes > -1
+            });
+
+            test('handles zero length parameter', () => {
+                expect(isValidInputLength('a', 0)).toEqual({isValid: false, byteLength: 1}); // 1 byte > 0
+                expect(isValidInputLength('', 0)).toEqual({isValid: true, byteLength: 0}); // 0 bytes ≤ 0
+            });
+
+            test('handles special characters (e.g., newlines, tabs)', () => {
+                expect(isValidInputLength('\n\t', 1)).toEqual({isValid: false, byteLength: 2}); // 2 bytes > 1
+                expect(isValidInputLength('\n\t', 2)).toEqual({isValid: true, byteLength: 2}); // 2 bytes ≤ 2
+            });
         });
     });
 });
