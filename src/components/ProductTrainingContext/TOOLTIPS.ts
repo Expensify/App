@@ -1,13 +1,9 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {ValueOf} from 'type-fest';
-// import type {TranslationPaths} from '@src/languages/types';
 import RenderHTML from '@components/RenderHTML';
-import useLocalize from '@hooks/useLocalize';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-
-type RenderHTML = /*unresolved*/ any;
 
 const {
     CONCIERGE_LHN_GBR,
@@ -35,10 +31,8 @@ type ShouldShowConditionProps = {
     hasBeenAddedToNudgeMigration: boolean;
 };
 
-type TooltipContentItem = {text: TranslationPaths; isBold: boolean} | {text: () => React.ReactNode};
-
 type TooltipData = {
-    content: TooltipContentItem[];
+    content: Array<{text: TranslationPaths; isBold?: boolean}>;
     onHideTooltip: (isDismissedUsingCloseButton?: boolean) => void;
     name: ProductTrainingTooltipName;
     priority: number;
@@ -184,10 +178,8 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     [SCAN_TEST_DRIVE_CONFIRMATION]: {
         content: [
             {
-                // This will be rendered as HTML using the translation key
                 text: () => {
-                    const {translate} = useLocalize();
-                    return React.createElement(RenderHTML, {html: translate('productTrainingTooltip.scanTestDriveTooltip')});
+                    return React.createElement(RenderHTML, {html: 'productTrainingTooltip.scanTestDriveTooltip'});
                 },
             },
         ],
