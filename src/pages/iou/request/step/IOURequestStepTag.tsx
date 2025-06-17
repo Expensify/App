@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftSplitTransaction, setMoneyRequestTag, updateMoneyRequestTag} from '@libs/actions/IOU';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getTagList, getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isPolicyAdmin} from '@libs/PolicyUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {canEditMoneyRequest, isReportInGroupPolicy} from '@libs/ReportUtils';
@@ -105,6 +105,23 @@ function IOURequestStepTag({
             } else {
                 // Select new tag: replace this index and clear child tags
                 tagParts.splice(tagListIndex, tagParts.length - tagListIndex, searchText);
+
+                // Check for auto-selection of subsequent tags
+                for (let i = tagListIndex + 1; i < policyTagLists.length; i++) {
+                    const availableNextLevelTags = getTagList(policyTags, i);
+                    const enabledTags = Object.values(availableNextLevelTags.tags).filter((t) => t.enabled);
+
+                    if (enabledTags.length === 1) {
+                        // If there is only one enabled tag, we can auto-select it
+                        const firstTag = enabledTags.at(0);
+                        if (firstTag) {
+                            tagParts.push(firstTag.name);
+                        }
+                    } else {
+                        // If there are no enabled tags or more than one, stop auto-selecting
+                        break;
+                    }
+                }
             }
 
             updatedTag = tagParts.join(':');
