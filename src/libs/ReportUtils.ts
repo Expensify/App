@@ -259,6 +259,8 @@ type SpendBreakdown = {
     totalDisplaySpend: number;
 };
 
+type ParticipantDetails = [number, string, AvatarSource, AvatarSource];
+
 type OptimisticAddCommentReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>,
     | 'reportActionID'
@@ -2126,7 +2128,7 @@ function isChildReport(report: OnyxEntry<Report>): boolean {
  * An Expense Request is a thread where the parent report is an Expense Report and
  * the parentReportAction is a transaction.
  */
-function isExpenseRequest(report: OnyxInputOrEntry<Report>): report is Thread {
+function isExpenseRequest(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const parentReport = getReport(report?.parentReportID, allReports);
@@ -2139,7 +2141,7 @@ function isExpenseRequest(report: OnyxInputOrEntry<Report>): report is Thread {
  * An IOU Request is a thread where the parent report is an IOU Report and
  * the parentReportAction is a transaction.
  */
-function isIOURequest(report: OnyxInputOrEntry<Report>): report is Thread {
+function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const parentReport = getReport(report?.parentReportID, allReports);
@@ -2152,7 +2154,7 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): report is Thread {
  * A Track Expense Report is a thread where the parent the parentReportAction is a transaction, and
  * parentReportAction has type of track.
  */
-function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): report is Thread {
+function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
         const selfDMReportID = findSelfDMReportID();
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
@@ -2583,34 +2585,43 @@ function getDefaultGroupAvatar(reportID?: string): IconAsset {
  * The Avatar sources can be URLs or Icon components according to the chat type.
  */
 function getIconsForParticipants(participants: number[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>): Icon[] {
-    const participantsList = participants ?? [];
+    const participantDetails: ParticipantDetails[] = [];
+    const participantsList = participants || [];
 
-    const participantsWithDetails = participantsList.map((accountID) => {
-        const details = personalDetails?.[accountID];
-        const displayName = details?.displayName ?? details?.login ?? '';
-        return {
-            accountID,
-            displayName,
-            source: details?.avatar ?? FallbackAvatar,
-            fallbackIcon: details?.fallbackIcon ?? '',
-        };
-    });
+    for (const accountID of participantsList) {
+        const avatarSource = personalDetails?.[accountID]?.avatar ?? FallbackAvatar;
+        const displayNameLogin = personalDetails?.[accountID]?.displayName ? personalDetails?.[accountID]?.displayName : personalDetails?.[accountID]?.login;
+        participantDetails.push([accountID, displayNameLogin ?? '', avatarSource, personalDetails?.[accountID]?.fallbackIcon ?? '']);
+    }
 
-    participantsWithDetails.sort((a, b) => {
-        const displayNameOrder = localeCompare(a.displayName, b.displayName);
-        if (displayNameOrder !== 0) {
-            return displayNameOrder;
+    const sortedParticipantDetails = participantDetails.sort((first, second) => {
+        // First sort by displayName/login
+        const displayNameLoginOrder = localeCompare(first[1], second[1]);
+        if (displayNameLoginOrder !== 0) {
+            return displayNameLoginOrder;
         }
-        return a.accountID - b.accountID;
+
+        // Then fallback on accountID as the final sorting criteria.
+        // This will ensure that the order of avatars with same login/displayName
+        // stay consistent across all users and devices
+        return first[0] - second[0];
     });
 
-    return participantsWithDetails.map((participant) => ({
-        id: participant.accountID,
-        source: participant.source,
-        type: CONST.ICON_TYPE_AVATAR,
-        name: participant.displayName,
-        fallbackIcon: participant.fallbackIcon,
-    }));
+    // Now that things are sorted, gather only the avatars (second element in the array) and return those
+    const avatars: Icon[] = [];
+
+    for (const sortedParticipantDetail of sortedParticipantDetails) {
+        const userIcon = {
+            id: sortedParticipantDetail[0],
+            source: sortedParticipantDetail[2],
+            type: CONST.ICON_TYPE_AVATAR,
+            name: sortedParticipantDetail[1],
+            fallbackIcon: sortedParticipantDetail[3],
+        };
+        avatars.push(userIcon);
+    }
+
+    return avatars;
 }
 
 /**
@@ -2888,11 +2899,11 @@ function getParticipants(reportID: string) {
 }
 
 function getParticipantIcon(accountID: number | undefined, personalDetails: OnyxInputOrEntry<PersonalDetailsList>, shouldUseShortForm = false): Icon {
-    const details = personalDetails?.[accountID ?? -1];
+    const details = personalDetails?.[accountID ?? CONST.DEFAULT_NUMBER_ID];
     const displayName = getDisplayNameOrDefault(details, '', shouldUseShortForm);
 
     return {
-        id: accountID,
+        id: accountID ?? CONST.DEFAULT_NUMBER_ID,
         source: details?.avatar ?? FallbackAvatar,
         type: CONST.ICON_TYPE_AVATAR,
         name: displayName,
@@ -3161,7 +3172,7 @@ function getIcons(
         return getIconsForIOUReport(report, personalDetails);
     }
     if (isSelfDM(report)) {
-        return getIconsForParticipants([currentUserAccountID ?? -1], personalDetails);
+        return getIconsForParticipants([currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID], personalDetails);
     }
     if (isSystemChat(report)) {
         return getIconsForParticipants([CONST.ACCOUNT_ID.NOTIFICATIONS ?? 0], personalDetails);

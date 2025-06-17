@@ -28,6 +28,76 @@ describe('ReportUtils', () => {
         expect(ReportUtils.getPolicy).toBeUndefined();
     });
 
+    it('does not export getIconsForChatThread', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getIconsForChatThread).toBeUndefined();
+    });
+
+    it('does not export getInvoiceReceiverIcons', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getIconsForChatThread).toBeUndefined();
+    });
+
+    it('does not export getParticipantIcon', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getIconsForChatThread).toBeUndefined();
+    });
+
+    it('does not export getIconsForExpenseRequest', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getIconsForExpenseRequest).toBeUndefined();
+    });
+
+    it('does not export getIconsForChatThread', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getIconsForChatThread).toBeUndefined();
+    });
+
+    it('does not export getIconsForTaskReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getIconsForTaskReport).toBeUndefined();
+    });
+
+    it('does not export getIconsForDomainRoom', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getIconsForDomainRoom).toBeUndefined();
+    });
+
+    it('does not export getIconsForPolicyRoom', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getIconsForPolicyRoom).toBeUndefined();
+    });
+
+    it('does not export getIconsForPolicyExpenseChat', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getIconsForPolicyExpenseChat).toBeUndefined();
+    });
+
+    it('does not export getIconsForExpenseReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getIconsForExpenseReport).toBeUndefined();
+    });
+
+    it('does not export getIconsForInvoiceReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getIconsForInvoiceReport).toBeUndefined();
+    });
+
+    it('does not export getIconsForIOUReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getIconsForIOUReport).toBeUndefined();
+    });
+
+    it('does not export getIconsForGroupChat', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getIconsForGroupChat).toBeUndefined();
+    });
+
+    it('does not export getIconsForIOUReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getIconsForIOUReport).toBeUndefined();
+    });
+
     it('does not export getAllReportActions', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getAllReportActions).toBeUndefined();
