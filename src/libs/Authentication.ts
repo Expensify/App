@@ -69,7 +69,7 @@ function Authenticate(parameters: Parameters): Promise<Response | void> {
 /**
  * Reauthenticate using the stored credentials and redirect to the sign in page if unable to do so.
  * @param [command] command name for logging purposes
- * @return {Promise<boolean>} Returns true if reauthentication was successful, false otherwise.
+ * @return returns true if reauthentication was successful, false otherwise.
  */
 function reauthenticate(command = ''): Promise<boolean> {
     Log.hmmm('Reauthenticate - Attempting re-authentication', {
