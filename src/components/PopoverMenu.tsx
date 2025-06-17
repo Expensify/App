@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -158,6 +158,9 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
 
     /** Used to locate the component in the tests */
     testID?: string;
+
+    /** Whether handle navigation back when modal show. */
+    shouldHandleNavigationBack?: boolean;
 };
 
 const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentContainerStyle: StyleProp<ViewStyle>, children: ReactNode): React.JSX.Element => {
@@ -209,6 +212,7 @@ function PopoverMenu({
     shouldUseModalPaddingStyle,
     shouldAvoidSafariException = false,
     testID,
+    shouldHandleNavigationBack,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -405,6 +409,7 @@ function PopoverMenu({
                 setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
                 onClose();
             }}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
             isVisible={isVisible}
             onModalHide={handleModalHide}
             onModalShow={onModalShow}
@@ -443,13 +448,13 @@ PopoverMenu.displayName = 'PopoverMenu';
 export default React.memo(
     PopoverMenu,
     (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.menuItems, nextProps.menuItems) &&
+        deepEqual(prevProps.menuItems, nextProps.menuItems) &&
         prevProps.isVisible === nextProps.isVisible &&
-        lodashIsEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
+        deepEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
         prevProps.anchorRef === nextProps.anchorRef &&
         prevProps.headerText === nextProps.headerText &&
         prevProps.fromSidebarMediumScreen === nextProps.fromSidebarMediumScreen &&
-        lodashIsEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
+        deepEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
         prevProps.animationIn === nextProps.animationIn &&
         prevProps.animationOut === nextProps.animationOut &&
         prevProps.animationInTiming === nextProps.animationInTiming &&
