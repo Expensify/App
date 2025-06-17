@@ -223,17 +223,6 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
                 '\n' +
                 'And you’re done! Now wait for that sweet “Cha-ching!” when it’s complete.',
         },
-        {
-            type: 'reviewWorkspaceSettings',
-            autoCompleted: false,
-            mediaAttributes: {},
-            title: ({workspaceSettingsLink}) => `Review your [workspace settings](${workspaceSettingsLink})`,
-            description: ({workspaceSettingsLink}) =>
-                "Here's how to review and update your workspace settings:\n" +
-                '1. Click the settings tab.\n' +
-                '2. Click *Workspaces* > [Your workspace].\n' +
-                `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
-        },
     ],
 };
 
@@ -538,7 +527,7 @@ const CONST = {
     // Prevents consecutive special characters or spaces like '--', '..', '((', '))', or '  '.
     REPEATED_SPECIAL_CHAR_PATTERN: /([-\s().])\1+/,
 
-    MERCHANT_NAME_MAX_LENGTH: 255,
+    MERCHANT_NAME_MAX_BYTES: 255,
 
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
 
@@ -1158,7 +1147,7 @@ const CONST = {
         COMPLETED: 'completed',
     },
     STORYLANE: {
-        ADMIN_TOUR: 'https://app.storylane.io/demo/0bhwdna0isb3?embed=inline',
+        ADMIN_TOUR: 'https://app.storylane.io/demo/bbcreg8vccag?embed=inline',
         ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
         TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/agmsfwgasaed?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
@@ -6654,6 +6643,8 @@ const CONST = {
             GROUP_BY: 'groupBy',
         },
         SYNTAX_FILTER_KEYS: {
+            TYPE: 'type',
+            STATUS: 'status',
             DATE: 'date',
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
