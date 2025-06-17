@@ -326,6 +326,7 @@ const translations = {
         twoFactorCode: 'C\u00F3digo de dois fatores',
         workspaces: 'Espa\u00E7os de Trabalho',
         inbox: 'Caixa de entrada',
+        success: 'Sucesso',
         group: 'Grupo',
         profile: 'Perfil',
         referral: 'Indica\u00E7\u00E3o',
@@ -6071,7 +6072,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Relatar perda / dano do cart\u00E3o f\u00EDsico',
         screenTitle: 'Boletim perdido ou danificado',
         nextButtonLabel: 'Pr\u00F3ximo',
         reasonTitle: 'Por que voc\u00EA precisa de um novo cart\u00E3o?',
@@ -6085,6 +6085,9 @@ const translations = {
         shipNewCardButton: 'Enviar novo cart\u00E3o',
         addressError: 'Endere\u00E7o \u00E9 obrigat\u00F3rio',
         reasonError: 'Motivo \u00E9 obrigat\u00F3rio',
+        successTitle: 'Seu novo cart\u00E3o est\u00E1 a caminho!',
+        successDescription:
+            'Voc\u00EA precisar\u00E1 ativ\u00E1-lo assim que ele chegar em alguns dias \u00FAteis. Enquanto isso, seu cart\u00E3o virtual j\u00E1 est\u00E1 pronto para uso.',
     },
     eReceipt: {
         guaranteed: 'eReceipt Garantido',

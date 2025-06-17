@@ -326,6 +326,7 @@ const translations = {
         twoFactorCode: 'Kod dwusk\u0142adnikowy',
         workspaces: 'Przestrzenie robocze',
         inbox: 'Skrzynka odbiorcza',
+        success: 'Sukces',
         group: 'Grupa',
         profile: 'Profil',
         referral: 'Polecenie',
@@ -6125,7 +6126,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Zg\u0142o\u015B utrat\u0119 / uszkodzenie fizycznej karty',
         screenTitle: 'Zgubiono lub uszkodzono \u015Bwiadectwo',
         nextButtonLabel: 'Nast\u0119pny',
         reasonTitle: 'Dlaczego potrzebujesz nowej karty?',
@@ -6140,6 +6140,8 @@ const translations = {
         shipNewCardButton: 'Wy\u015Blij now\u0105 kart\u0119',
         addressError: 'Adres jest wymagany',
         reasonError: 'Pow\u00F3d jest wymagany',
+        successTitle: 'Twoja nowa karta jest w drodze!',
+        successDescription: 'Po jej otrzymaniu, b\u0119dziesz musia\u0142(a) j\u0105 aktywowa\u0107. W mi\u0119dzyczasie mo\u017Cesz korzysta\u0107 z karty wirtualnej.',
     },
     eReceipt: {
         guaranteed: 'Gwarantowany eParagon',

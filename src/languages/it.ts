@@ -326,6 +326,7 @@ const translations = {
         twoFactorCode: 'Codice a due fattori',
         workspaces: 'Spazi di lavoro',
         inbox: 'Posta in arrivo',
+        success: 'Successo',
         group: 'Gruppo',
         profile: 'Profilo',
         referral: 'Referenza',
@@ -6042,7 +6043,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Segnala la perdita / il danneggiamento della carta fisica',
         screenTitle: 'Scheda di valutazione persa o danneggiata',
         nextButtonLabel: 'Successivo',
         reasonTitle: 'Perch\u00E9 hai bisogno di una nuova carta?',
@@ -6057,6 +6057,8 @@ const translations = {
         shipNewCardButton: 'Spedisci nuova carta',
         addressError: 'Indirizzo richiesto',
         reasonError: 'Motivo richiesto',
+        successTitle: 'La tua nuova carta è in arrivo!',
+        successDescription: "Dovrai attivarla quando arriverà tra pochi giorni lavorativi. Nel frattempo, la tua carta virtuale è pronta all'uso.",
     },
     eReceipt: {
         guaranteed: 'eReceipt garantito',

@@ -25,7 +25,7 @@ function SuccessReportCardLost({cardID}: {cardID: string}) {
             containerStyle={styles.h100}
             illustrationStyle={{...styles.w100, height: getPlatform() === CONST.PLATFORM.IOS ? '60%' : 'auto'}}
             innerContainerStyle={styles.ph0}
-            descriptionStyle={styles.ph4}
+            descriptionStyle={{...styles.ph4, ...styles.textSupporting}}
         />
     );
 }

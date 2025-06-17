@@ -326,6 +326,7 @@ const translations = {
         twoFactorCode: 'Code \u00E0 deux facteurs',
         workspaces: 'Espaces de travail',
         inbox: 'Bo\u00EEte de r\u00E9ception',
+        success: 'Succ\u00E8s',
         group: 'Groupe',
         profile: 'Profil',
         referral: 'Parrainage',
@@ -6118,7 +6119,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: "Signaler la perte / l'endommagement de la carte physique",
         screenTitle: 'Bulletin perdu ou endommag\u00E9',
         nextButtonLabel: 'Suivant',
         reasonTitle: "Pourquoi avez-vous besoin d'une nouvelle carte ?",
@@ -6133,6 +6133,8 @@ const translations = {
         shipNewCardButton: 'Exp\u00E9dier une nouvelle carte',
         addressError: "L'adresse est requise",
         reasonError: 'La raison est requise',
+        successTitle: 'Ihre neue Karte ist auf dem Weg!',
+        successDescription: 'Sie müssen sie aktivieren, sobald sie in wenigen Werktagen ankommt. In der Zwischenzeit ist Ihre virtuelle Karte einsatzbereit.',
     },
     eReceipt: {
         guaranteed: 'eRe\u00E7u garanti',
