@@ -1,24 +1,23 @@
 import React from 'react';
-import {Linking, View} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
-import type {CustomBlockRenderer} from 'react-native-render-html';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OptionItem from '@components/OptionsPicker/OptionItem';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice} from '@libs/SubscriptionUtils';
@@ -29,10 +28,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function SubscriptionSettings() {
+    const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
     const styles = useThemeStyles();
-    const systemFonts = [...defaultSystemFonts, 'CustomFontName'];
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
@@ -48,10 +46,6 @@ function SubscriptionSettings() {
         upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
     });
     const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins.toString() : undefined;
-
-    const openAdminsRoom = () => {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
-    };
 
     const subscriptionSizeSection =
         privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && privateSubscription?.userCount ? (
@@ -75,54 +69,13 @@ function SubscriptionSettings() {
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.mobileReducedFunctionalityMessage')}</Text>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
-                <RenderHtml
-                    contentWidth={windowWidth}
-                    systemFonts={systemFonts}
-                    source={{
-                        html: translate('subscription.subscriptionSettings.learnMore'),
-                    }}
-                    tagsStyles={{
-                        a: {...styles.link},
-                        body: {
-                            ...styles.textSupporting,
-                            ...styles.mb5,
-                        },
-                    }}
-                    renderers={{
-                        a: (({TDefaultRenderer, ...props}) => {
-                            const firstChild = props.tnode.domNode.children.at(0);
-                            const isAdminsRoom =
-                                !!adminsChatReportID &&
-                                firstChild &&
-                                'data' in firstChild &&
-                                typeof firstChild === 'object' &&
-                                firstChild !== null &&
-                                'data' in firstChild &&
-                                typeof (firstChild as {data?: unknown}).data === 'string' &&
-                                (firstChild as {data: string}).data.includes('#admins');
-                            if (isAdminsRoom) {
-                                return (
-                                    <TextLink onPress={openAdminsRoom}>
-                                        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                                        <TDefaultRenderer {...props} />
-                                    </TextLink>
-                                );
-                            }
-                            return (
-                                <TextLink
-                                    onPress={() => {
-                                        Linking.openURL(CONST.PRICING).catch((error) => {
-                                            console.error('Failed to open URL:', error);
-                                        });
-                                    }}
-                                >
-                                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                                    <TDefaultRenderer {...props} />
-                                </TextLink>
-                            );
-                        }) as CustomBlockRenderer,
-                    }}
-                />
+                <Text style={[styles.textSupporting, styles.mb5]}>
+                    {!!adminsChatReportID && (
+                        <TextLink href={`${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID)}`}>
+                            <RenderHTML html={`<muted-text>${translate('subscription.subscriptionSettings.learnMore')}</muted-text>`} />
+                        </TextLink>
+                    )}
+                </Text>
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>
                 <Text style={styles.mv1}>{priceDetails}</Text>
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.changesBasedOn')}</Text>
