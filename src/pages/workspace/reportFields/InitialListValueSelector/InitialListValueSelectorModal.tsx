@@ -33,7 +33,7 @@ type InitialListValueSelectorModalProps = {
 function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle, onValueSelected, onClose}: InitialListValueSelectorModalProps) {
     const styles = useThemeStyles();
 
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
 
     return (
         <Modal
@@ -43,6 +43,7 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
                 style={styles.pb0}
