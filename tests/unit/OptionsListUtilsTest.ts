@@ -1,34 +1,17 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {OnyxCollection} from 'react-native-onyx';
+import type { OnyxCollection } from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import type {OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
-import {
-    canCreateOptimisticPersonalDetailOption,
-    createOptionList,
-    filterAndOrderOptions,
-    filterReports,
-    filterSelfDMChat,
-    filterWorkspaceChats,
-    formatMemberForList,
-    getLastActorDisplayName,
-    getMemberInviteOptions,
-    getMostRecentOptions,
-    getSearchOptions,
-    getShareDestinationOptions,
-    getShareLogOptions,
-    getValidOptions,
-    orderOptions,
-    orderWorkspaceOptions,
-    recentReportComparator,
-} from '@libs/OptionsListUtils';
-import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
-import type {OptionData} from '@libs/ReportUtils';
+import type { OptionList, Options, SearchOption } from '@libs/OptionsListUtils';
+import { canCreateOptimisticPersonalDetailOption, createOptionList, filterAndOrderOptions, filterReports, filterSelfDMChat, filterWorkspaceChats, formatMemberForList, getLastActorDisplayName, getMemberInviteOptions, getMostRecentOptions, getSearchOptions, getShareDestinationOptions, getShareLogOptions, getValidOptions, orderOptions, orderWorkspaceOptions, recentReportComparator } from '@libs/OptionsListUtils';
+import { canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport } from '@libs/ReportUtils';
+import type { OptionData } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
-import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
+import type { PersonalDetails, Policy, Report } from '@src/types/onyx';
+import { getFakeAdvancedReportAction } from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
 
 jest.mock('@rnmapbox/maps', () => {
     return {
@@ -602,7 +585,7 @@ describe('OptionsListUtils', () => {
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1);
 
             const expected = ['Black Panther', 'Black Widow', 'Captain America', 'Invisible Woman', 'Mister Fantastic', 'Mr Sinister', 'Spider-Man', 'The Incredible Hulk', 'Thor'];
-            const actual = results.personalDetails?.map((item) => item.text);
+            const actual = results.personalDetails?.map((item) => item.displayName);
 
             // Then the results should be sorted alphabetically
             expect(actual).toEqual(expected);
@@ -619,7 +602,7 @@ describe('OptionsListUtils', () => {
             results = orderOptions(results);
 
             const expected = ['Black Panther', 'Black Widow', 'Captain America', 'Invisible Woman', 'Mister Fantastic', 'Mr Sinister', 'Spider-Man', 'The Incredible Hulk', 'Thor'];
-            const actual = results.personalDetails?.map((item) => item.text);
+            const actual = results.personalDetails?.map((item) => item.displayName);
 
             // Then the results should be sorted alphabetically
             expect(actual).toEqual(expected);
@@ -962,10 +945,10 @@ describe('OptionsListUtils', () => {
             const results = getMemberInviteOptions(OPTIONS.personalDetails, []);
 
             // Then personal details should be sorted alphabetically
-            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
-            expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
-            expect(results.personalDetails.at(2)?.text).toBe('Captain America');
-            expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
+            expect(results.personalDetails.at(0)?.displayName).toBe('Black Panther');
+            expect(results.personalDetails.at(1)?.displayName).toBe('Black Widow');
+            expect(results.personalDetails.at(2)?.displayName).toBe('Captain America');
+            expect(results.personalDetails.at(3)?.displayName).toBe('Invisible Woman');
         });
     });
 
@@ -1512,7 +1495,7 @@ describe('OptionsListUtils', () => {
                 searchValue: VALID_EMAIL,
                 currentUserOption: {
                     login: currentUserEmail,
-                } as OptionData,
+                } as PersonalDetails,
                 // Note: in the past this would check for the existence of the email in the personalDetails list, this has changed.
                 // We expect only filtered lists to be passed to this function, so we don't need to check for the existence of the email in the personalDetails list.
                 // This is a performance optimization.
@@ -1532,7 +1515,7 @@ describe('OptionsListUtils', () => {
                 personalDetailsOptions: [],
                 currentUserOption: {
                     login: currentUserEmail,
-                } as OptionData,
+                } as PersonalDetails,
             });
 
             // Then the returned value should be false
