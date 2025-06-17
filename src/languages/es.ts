@@ -1606,7 +1606,8 @@ const translations = {
         reportSuspiciousActivity: 'Report suspicious activity',
         lockAccount: 'Bloquear cuenta',
         unlockAccount: 'Desbloquear cuenta',
-        compromisedDescription: 'Si sospechas que tu cuenta de Expensify ha sido comprometida, puedes bloquearla para evitar nuevas transacciones con la Tarjeta Expensify y bloquear cambios no deseados en la cuenta.',
+        compromisedDescription:
+            'Si sospechas que tu cuenta de Expensify ha sido comprometida, puedes bloquearla para evitar nuevas transacciones con la Tarjeta Expensify y bloquear cambios no deseados en la cuenta.',
         domainAdminsDescription: 'Para los administradores de dominio, ',
         areYouSure: 'Are you sure you want to lock your Expensify account?',
         ourTeamWill: "Our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge.",

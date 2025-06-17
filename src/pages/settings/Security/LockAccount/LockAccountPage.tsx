@@ -78,10 +78,12 @@ function LockAccountPage() {
                 }}
                 onCancel={() => setIsConfirmModalVisible(false)}
                 isVisible={isConfirmModalVisible}
-                prompt={<>
-                    <Text style={[styles.mb5]}>{translate('lockAccountPage.areYouSure')}</Text>
-                    <Text style={[styles.mb5]}>{translate('lockAccountPage.ourTeamWill')}</Text>
-                </>}
+                prompt={
+                    <>
+                        <Text style={[styles.mb5]}>{translate('lockAccountPage.areYouSure')}</Text>
+                        <Text style={[styles.mb5]}>{translate('lockAccountPage.ourTeamWill')}</Text>
+                    </>
+                }
                 confirmText={translate('lockAccountPage.lockAccount')}
                 cancelText={translate('common.cancel')}
                 shouldDisableConfirmButtonWhenOffline
