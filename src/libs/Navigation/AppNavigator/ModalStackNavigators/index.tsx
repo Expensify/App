@@ -6,6 +6,7 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
 import type {
     AddPersonalBankAccountNavigatorParamList,
     AddUnreportedExpensesParamList,
+    BookEventsNavigatorParamList,
     ConsoleNavigatorParamList,
     DebugParamList,
     EditRequestNavigatorParamList,
@@ -247,6 +248,10 @@ const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorPar
     [SCREENS.NEW_TASK.DETAILS]: () => require<ReactComponentModule>('../../../../pages/tasks/NewTaskDetailsPage').default,
     [SCREENS.NEW_TASK.TITLE]: () => require<ReactComponentModule>('../../../../pages/tasks/NewTaskTitlePage').default,
     [SCREENS.NEW_TASK.DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/tasks/NewTaskDescriptionPage').default,
+});
+
+const BookEventsModalStackNavigator = createModalStackNavigator<BookEventsNavigatorParamList>({
+    [SCREENS.EVENTS.BOOK_EVENTS]: () => require<ReactComponentModule>('../../../../pages/BookEventsScreen').default,
 });
 
 const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigatorParamList>({
@@ -826,4 +831,5 @@ export {
     ConsoleModalStackNavigator,
     AddUnreportedExpenseModalStackNavigator,
     ScheduleCallModalStackNavigator,
+    BookEventsModalStackNavigator,
 };

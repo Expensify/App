@@ -1482,6 +1482,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REFERRAL_DETAILS]: ROUTES.REFERRAL_DETAILS_MODAL.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.EVENTS]: {
+                    screens: {
+                        [SCREENS.EVENTS.BOOK_EVENTS]: ROUTES.BOOK_EVENTS,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.TRAVEL]: {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,

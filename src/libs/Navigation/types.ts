@@ -1512,6 +1512,10 @@ type WorkspaceConfirmationNavigatorParamList = {
     };
 };
 
+type BookEventsNavigatorParamList = {
+    [SCREENS.EVENTS.BOOK_EVENTS]: undefined;
+};
+
 type NewTaskNavigatorParamList = {
     [SCREENS.NEW_TASK.ROOT]: {
         backTo?: Routes;
@@ -1688,6 +1692,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: NavigatorScreenParams<MoneyRequestNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION]: NavigatorScreenParams<WorkspaceConfirmationNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_TASK]: NavigatorScreenParams<NewTaskNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.EVENTS]: NavigatorScreenParams<BookEventsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: NavigatorScreenParams<TeachersUniteNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TASK_DETAILS]: NavigatorScreenParams<TaskDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ENABLE_PAYMENTS]: NavigatorScreenParams<EnablePaymentsNavigatorParamList>;
@@ -2276,4 +2281,5 @@ export type {
     SetParamsAction,
     WorkspacesTabNavigatorName,
     TestToolsModalModalNavigatorParamList,
+    BookEventsNavigatorParamList,
 };

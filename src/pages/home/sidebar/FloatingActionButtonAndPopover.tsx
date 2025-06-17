@@ -397,6 +397,15 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     }, [activePolicy, isTravelEnabled]);
 
     const menuItems = [
+        {
+            icon: Expensicons.CalendarSolid,
+            text: translate('sidebarScreen.bookEvents'),
+            shouldCallAfterModalHide: shouldUseNarrowLayout,
+            onSelected: () =>
+                InteractionManager.runAfterInteractions(() => {
+                    Navigation.navigate(ROUTES.BOOK_EVENTS);
+                }),
+        },
         ...expenseMenuItems,
         ...(shouldShowCreateReportOption
             ? [
