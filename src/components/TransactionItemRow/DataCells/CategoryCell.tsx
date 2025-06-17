@@ -11,19 +11,20 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
 
     const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
 
-    const category = emptyCategories.includes(transactionItem?.category ?? '') ? '' : (transactionItem?.category ?? '');
+    const category = transactionItem?.category ?? '';
+    const categoryForDisplay = emptyCategories.includes(category) ? '' : category;
 
     return shouldUseNarrowLayout ? (
         <TextWithIconCell
             icon={Expensicons.Folder}
             showTooltip={shouldShowTooltip}
-            text={category}
+            text={categoryForDisplay}
             textStyle={[styles.textMicro, styles.mnh0]}
         />
     ) : (
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
-            text={category}
+            text={categoryForDisplay}
             style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]}
         />
     );
