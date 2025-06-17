@@ -126,7 +126,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         }
 
         if (isMarkAsResolvedAction(parentReport, transaction)) {
-            return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.decline.markAsResolvedStatus')};
+            return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.decline.declinedStatus')};
         }
 
         if (isDuplicate) {

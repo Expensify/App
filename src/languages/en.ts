@@ -1297,7 +1297,7 @@ const translations = {
             reasonPageDescription2: "If you're going to decline the expense, please add a comment to explain why:",
             declineReason: 'Decline reason',
             markAsResolved: 'Mark as resolved',
-            markAsResolvedStatus: 'This expense was declined. Waiting on you to fix the issue(s) and mark as resolved to enable submission.',
+            declinedStatus: 'This expense was declined. Waiting on you to fix the issue(s) and mark as resolved to enable submission.',
             reportActions: {
                 removedFromReport: ({ amount, linkToReport, merchant }: { amount: string; linkToReport: string; merchant?: string }) =>
                     `removed <a href="${linkToReport}">${amount}${merchant ? ` from ${merchant}` : ''}</a>`,
