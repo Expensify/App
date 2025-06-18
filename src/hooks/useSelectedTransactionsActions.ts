@@ -81,8 +81,15 @@ function useSelectedTransactionsActions({
                 return transactionID === IOUTransactionID;
             }),
         }));
+        const deletedTransactionIDs: string[] = [];
+        transactionsWithActions.forEach(({transactionID, action}) => {
+            if (!action) {
+                return;
+            }
 
-        transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));
+            deleteMoneyRequest(transactionID, action, undefined, deletedTransactionIDs);
+            deletedTransactionIDs.push(transactionID);
+        });
         clearSelectedTransactions(true);
         if (allTransactionsLength - transactionsWithActions.length <= 1) {
             turnOffMobileSelectionMode();
