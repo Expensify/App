@@ -42,8 +42,6 @@ function SearchSidebar({state}: SearchSidebarProps) {
         return undefined;
     }, [params?.q]);
 
-    console.debug('[SearchSidebar] Rendering', params?.q, queryJSON);
-
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {canBeMissing: true});
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);

@@ -28,16 +28,18 @@ function SearchFiltersTaxRatePage() {
             selectedTaxesItems.push({name: taxRateName, value: taxRateKeys});
         });
     });
-    const policyID = searchAdvancedFiltersForm?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const singlePolicyTaxRates = policy?.taxRates?.taxes;
+    const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
+    const [policies] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}`, {
+        selector: (allPolicies) => allPolicies && Object.values(allPolicies).filter((policy) => policy && policyIDs.includes(policy.id)),
+    });
+    const selectedPoliciesTaxRates = policies?.map((policy) => policy?.taxRates?.taxes).filter((taxRates) => !!taxRates);
 
     const taxItems = useMemo(() => {
-        if (!singlePolicyTaxRates) {
+        if (!selectedPoliciesTaxRates) {
             return Object.entries(allTaxRates).map(([taxRateName, taxRateKeys]) => ({name: taxRateName, value: taxRateKeys}));
         }
-        return Object.entries(singlePolicyTaxRates).map(([taxRateKey, taxRate]) => ({name: taxRate.name, value: [taxRateKey]}));
-    }, [allTaxRates, singlePolicyTaxRates]);
+        return selectedPoliciesTaxRates.map((taxRates) => Object.entries(taxRates).map(([taxRateKey, taxRate]) => ({name: taxRate.name, value: [taxRateKey]}))).flat();
+    }, [allTaxRates, selectedPoliciesTaxRates]);
 
     const updateTaxRateFilters = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({taxRate: values}), []);
 
