@@ -71,6 +71,7 @@ import {
     getDistanceRateCustomUnit,
     getMemberAccountIDsForWorkspace,
     getPerDiemCustomUnit,
+    getPerDiemRateCustomUnitRate,
     getPersonalPolicy,
     getPolicy,
     getSubmitToAccountID,
@@ -134,6 +135,7 @@ import {
     getDisplayedReportID,
     getInvoiceChatByParticipants,
     getMoneyRequestSpendBreakdown,
+    getNextApproverAccountID,
     getOptimisticDataForParentReportAction,
     getOutstandingChildRequest,
     getParsedComment,
@@ -211,7 +213,7 @@ import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {SearchDataTypes, SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
@@ -647,6 +649,8 @@ type GetSearchOnyxUpdateParams = {
     transaction: OnyxTypes.Transaction;
     participant?: Participant;
     iouReport?: OnyxEntry<OnyxTypes.Report>;
+    isInvoice?: boolean;
+    transactionThreadReportID: string | undefined;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -1893,6 +1897,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         transaction,
         participant,
         iouReport: shouldCreateNewMoneyRequestReport ? iou.report : undefined,
+        transactionThreadReportID: transactionThreadReport?.reportID,
     });
 
     if (searchUpdate) {
@@ -2323,6 +2328,8 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
     const searchUpdate = getSearchOnyxUpdate({
         transaction,
         participant,
+        isInvoice: true,
+        transactionThreadReportID: transactionParams.threadReport.reportID,
     });
 
     if (searchUpdate) {
@@ -2786,6 +2793,7 @@ function buildOnyxDataForTrackExpense({
     const searchUpdate = getSearchOnyxUpdate({
         transaction,
         participant,
+        transactionThreadReportID: transactionThreadReport?.reportID,
     });
 
     if (searchUpdate) {
@@ -5422,10 +5430,18 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
+    const customUnitRate = getPerDiemRateCustomUnitRate(policyParams.policy, customUnit.customUnitRateID);
+
+    const customUnitRateParam = {
+        id: customUnitRate?.customUnitRateID,
+        name: customUnitRate?.name,
+    };
+
     const parameters: CreatePerDiemRequestParams = {
         policyID: policyParams.policy.id,
         customUnitID: customUnit.customUnitID,
         customUnitRateID: customUnit.customUnitRateID,
+        customUnitRate: JSON.stringify(customUnitRateParam),
         subRates: JSON.stringify(customUnit.subRates),
         startDateTime: customUnit.attributes.dates.start,
         endDateTime: customUnit.attributes.dates.end,
@@ -5523,7 +5539,7 @@ function sendInvoice(
         Navigation.dismissModalWithReport({reportID: invoiceRoom.reportID});
     }
 
-    notifyNewAction(invoiceRoom.reportID, receiver.accountID);
+    notifyNewAction(invoiceRoom.reportID, currentUserAccountID);
 }
 
 /**
@@ -9201,33 +9217,6 @@ function isLastApprover(approvalChain: string[]): boolean {
     return approvalChain.at(-1) === currentUserEmail;
 }
 
-function getNextApproverAccountID(report: OnyxEntry<OnyxTypes.Report>, isUnapproved = false) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
-    const policy = getPolicy(report?.policyID);
-    const approvalChain = getApprovalChain(policy, report);
-    const submitToAccountID = getSubmitToAccountID(policy, report);
-
-    if (isUnapproved) {
-        if (approvalChain.includes(currentUserEmail)) {
-            return userAccountID;
-        }
-
-        return report?.managerID;
-    }
-
-    if (approvalChain.length === 0) {
-        return submitToAccountID;
-    }
-
-    const nextApproverEmail = approvalChain.length === 1 ? approvalChain.at(0) : approvalChain.at(approvalChain.indexOf(currentUserEmail) + 1);
-    if (!nextApproverEmail) {
-        return submitToAccountID;
-    }
-
-    return getAccountIDsByLogins([nextApproverEmail]).at(0);
-}
-
 function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean) {
     if (!expenseReport) {
         return;
@@ -11389,15 +11378,15 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
     API.write(WRITE_COMMANDS.RESOLVE_DUPLICATES, parameters, {optimisticData, failureData});
 }
 
-function getSearchOnyxUpdate({participant, transaction, iouReport}: GetSearchOnyxUpdateParams): OnyxData | undefined {
+function getSearchOnyxUpdate({participant, transaction, iouReport, transactionThreadReportID, isInvoice}: GetSearchOnyxUpdateParams): OnyxData | undefined {
     const toAccountID = participant?.accountID;
     const fromAccountID = currentUserPersonalDetails?.accountID;
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     if (currentSearchQueryJSON && toAccountID != null && fromAccountID != null) {
-        const validSearchTypes: SearchDataTypes[] = [CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE];
-        const shouldOptimisticallyUpdate =
-            currentSearchQueryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && validSearchTypes.includes(currentSearchQueryJSON.type) && currentSearchQueryJSON.flatFilters.length === 0;
+        const validSearchTypes =
+            (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) || (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE);
+        const shouldOptimisticallyUpdate = currentSearchQueryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && validSearchTypes && currentSearchQueryJSON.flatFilters.length === 0;
 
         if (shouldOptimisticallyUpdate) {
             const isOptimisticToAccountData = isOptimisticPersonalDetail(toAccountID);
@@ -11447,6 +11436,7 @@ function getSearchOnyxUpdate({participant, transaction, iouReport}: GetSearchOny
                                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
                                     accountID: fromAccountID,
                                     managerID: toAccountID,
+                                    ...(transactionThreadReportID && {transactionThreadReportID}),
                                     ...transaction,
                                 },
                             },
@@ -11868,7 +11858,6 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
 export {
     adjustRemainingSplitShares,
-    getNextApproverAccountID,
     approveMoneyRequest,
     canApproveIOU,
     canUnapproveIOU,
