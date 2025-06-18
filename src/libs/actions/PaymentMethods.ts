@@ -263,8 +263,8 @@ function addSubscriptionPaymentCard(
         },
     ];
 
-    if (currency === CONST.PAYMENT_CARD_CURRENCY.GBP) {
-        addPaymentCardGBP(parameters, {optimisticData, successData, failureData});
+    if (CONST.SCA_CURRENCIES.has(currency)) {
+        addPaymentCardSCA(parameters, {optimisticData, successData, failureData});
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
         API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
@@ -281,11 +281,11 @@ function addSubscriptionPaymentCard(
 }
 
 /**
- * Calls the API to add a new GBP card.
+ * Calls the API to add a new SCA (GBP or EUR) card.
  * Updates verify3dsSubscription Onyx key with a new authentication link for 3DS.
  */
-function addPaymentCardGBP(params: AddPaymentCardParams, onyxData: OnyxData = {}) {
-    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_GBP, params, onyxData);
+function addPaymentCardSCA(params: AddPaymentCardParams, onyxData: OnyxData = {}) {
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA, params, onyxData);
 }
 
 /**
@@ -602,6 +602,6 @@ export {
     clearPaymentCard3dsVerification,
     clearWalletTermsError,
     verifySetupIntent,
-    addPaymentCardGBP,
+    addPaymentCardSCA,
     setInvoicingTransferBankAccount,
 };
