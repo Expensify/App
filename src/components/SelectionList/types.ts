@@ -254,6 +254,10 @@ type TransactionListItemType = ListItem &
          */
         shouldShowYear: boolean;
 
+        isAmountColumnWide: boolean;
+
+        isTaxAmountColumnWide: boolean;
+
         /** Key used internally by React */
         keyForList: string;
 
@@ -825,6 +829,12 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
     someSelected: boolean;
 };
 
+type UnreportedExpenseListItemType = Transaction & {
+    isDisabled: boolean;
+    keyForList: string;
+    errors?: Errors;
+};
+
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
 type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWithIndexOffset<TItem>> = SectionListData<TItem, TSection> & {
@@ -870,4 +880,5 @@ export type {
     SplitListItemProps,
     SplitListItemType,
     SearchListItem,
+    UnreportedExpenseListItemType,
 };
