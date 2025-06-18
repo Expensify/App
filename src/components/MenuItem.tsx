@@ -4,6 +4,7 @@ import React, {forwardRef, useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -41,7 +42,6 @@ import SelectCircle from './SelectCircle';
 import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
