@@ -274,11 +274,10 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         styles.alignItemsCenter,
                         styles.flexRow,
                         tooltip?.shouldRenderActionButtons ? styles.justifyContentStart : styles.justifyContentCenter,
-                        styles.flexWrap,
                         styles.textAlignCenter,
                         styles.gap3,
                         styles.pv2,
-                        styles.ph1,
+                        styles.ph2,
                     ]}
                 >
                     <Icon
@@ -341,11 +340,9 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.flexRow,
         styles.justifyContentStart,
         styles.justifyContentCenter,
-        styles.flexWrap,
         styles.textAlignCenter,
         styles.gap3,
         styles.pv2,
-        styles.ph1,
         styles.productTrainingTooltipText,
         styles.textWrap,
         styles.mw100,
