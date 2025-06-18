@@ -3,13 +3,13 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {translate} from '@libs/Localize';
-import BaseLocaleListener from '@libs/Localize/LocaleListener/BaseLocaleListener';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type {Video} from '@userActions/Report';
 import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -142,7 +142,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
 }
 
 const getOnboardingMessages = (locale?: Locale) => {
-    const resolvedLocale = locale ?? BaseLocaleListener.getPreferredLocale();
+    const resolvedLocale = locale ?? TranslationStore.getCurrentLocale();
     const testDrive = {
         ONBOARDING_TASK_NAME: translate(resolvedLocale, 'onboarding.testDrive.name', {}),
         EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
