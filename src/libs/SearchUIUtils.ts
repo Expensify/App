@@ -1147,7 +1147,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                     type: CONST.SEARCH.DATA_TYPES.CHAT,
                     icon: Expensicons.ChatBubbles,
                     getSearchQuery: (policyID?: string) => {
-                        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, policyID});
                         return queryString;
                     },
                 },
