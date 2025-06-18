@@ -1,4 +1,4 @@
-import {usePreventRemove, useIsFocused, useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {createContext, forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
