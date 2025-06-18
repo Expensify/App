@@ -5,7 +5,9 @@ import type {ValueOf} from 'type-fest';
 import DotLottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
-import type {SearchColumnType, SearchQueryJSON, SearchQueryString, SearchStatus, SortOrder} from '@components/Search/types';
+import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
+import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
+import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SearchQueryString, SearchStatus, SingularSearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TaskListItem from '@components/SelectionList/Search/TaskListItem';
@@ -41,7 +43,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy} from './PolicyUtils';
+import {canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {
     getIcons,
@@ -49,6 +51,7 @@ import {
     getReportName,
     getReportOrDraftReport,
     getSearchReportName,
+    hasInvoiceReports,
     hasOnlyHeldExpenses,
     hasViolations,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
@@ -96,6 +99,46 @@ const taskColumnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: 'formattedAssignee' as const,
     [CONST.SEARCH.TABLE_COLUMNS.IN]: 'parentReportID' as const,
 };
+
+const expenseStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
+    {translation: 'common.unreported', value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
+    {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
+    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
+    {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
+    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
+    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
+];
+
+const expenseReportStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
+    {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
+    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
+    {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
+    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
+    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
+];
+
+const chatStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
+    {translation: 'common.unread', value: CONST.SEARCH.STATUS.CHAT.UNREAD},
+    {translation: 'common.sent', value: CONST.SEARCH.STATUS.CHAT.SENT},
+    {translation: 'common.attachments', value: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS},
+    {translation: 'common.links', value: CONST.SEARCH.STATUS.CHAT.LINKS},
+    {translation: 'search.filters.pinned', value: CONST.SEARCH.STATUS.CHAT.PINNED},
+];
+
+const invoiceStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
+    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.INVOICE.OUTSTANDING},
+    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.INVOICE.PAID},
+];
+
+const tripStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
+    {translation: 'search.filters.current', value: CONST.SEARCH.STATUS.TRIP.CURRENT},
+    {translation: 'search.filters.past', value: CONST.SEARCH.STATUS.TRIP.PAST},
+];
+
+const taskStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
+    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.TASK.OUTSTANDING},
+    {translation: 'search.filters.completed', value: CONST.SEARCH.STATUS.TASK.COMPLETED},
+];
 
 let currentAccountID: number | undefined;
 Onyx.connect({
@@ -1381,6 +1424,36 @@ function isSearchDataLoaded(currentSearchResults: SearchResults | undefined, las
     return isDataLoaded;
 }
 
+function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return chatStatusOptions;
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return invoiceStatusOptions;
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return tripStatusOptions;
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return taskStatusOptions;
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        default:
+            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS ? expenseReportStatusOptions : expenseStatusOptions;
+    }
+}
+
+function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
+    const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
+        {translation: 'common.expense', value: CONST.SEARCH.DATA_TYPES.EXPENSE},
+        {translation: 'common.chat', value: CONST.SEARCH.DATA_TYPES.CHAT},
+        {translation: 'common.invoice', value: CONST.SEARCH.DATA_TYPES.INVOICE},
+        {translation: 'common.trip', value: CONST.SEARCH.DATA_TYPES.TRIP},
+        {translation: 'common.task', value: CONST.SEARCH.DATA_TYPES.TASK},
+    ];
+    const shouldHideInvoiceOption = !canSendInvoice(policies, currentUserLogin) && !hasInvoiceReports();
+
+    // Remove the invoice option if the user is not allowed to send invoices
+    return shouldHideInvoiceOption ? typeOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE) : typeOptions;
+}
+
 export {
     getListItem,
     getSections,
@@ -1402,6 +1475,8 @@ export {
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,
+    getStatusOptions,
+    getTypeOptions,
     getWideAmountIndicators,
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
