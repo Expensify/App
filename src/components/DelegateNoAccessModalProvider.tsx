@@ -11,19 +11,19 @@ import Text from './Text';
 import TextLink from './TextLink';
 
 type DelegateNoAccessContextType = {
+    /** Whether the current user is acting as delegate*/
     isActingAsDelegate: boolean;
+
+    /** Whether the current user has restricted access as a submitter only delegate */
     isDelegateAccessRestricted: boolean;
+
+    /** Function to show the delegate no access modal */
     showDelegateNoAccessModal: () => void;
 };
 
 const DelegateNoAccessContext = createContext<DelegateNoAccessContextType>({
-    /** Whether the current user is acting as delegate*/
     isActingAsDelegate: false,
-
-    /** Whether the current user has restricted access as a submitter only delegate */
     isDelegateAccessRestricted: false,
-
-    /** Function to show the delegate no access modal */
     showDelegateNoAccessModal: () => {},
 });
 
