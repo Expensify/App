@@ -1,9 +1,11 @@
 import React from 'react';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
-import SessionExpiredPage from '@pages/ErrorPage/SessionExpiredPage';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
 import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
 import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
@@ -12,24 +14,26 @@ import SignInPage from '@pages/signin/SignInPage';
 import SigningOutPage from '@pages/SigningOutPage';
 import UnlinkLoginPage from '@pages/UnlinkLoginPage';
 import ValidateLoginPage from '@pages/ValidateLoginPage';
-import CONFIG from '@src/CONFIG';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import PublicRightModalNavigator from './Navigators/PublicRightModalNavigator';
+import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 
 const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
 
 function PublicScreens() {
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     return (
         <RootStack.Navigator screenOptions={defaultScreenOptions}>
             {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is REPORTS_SPLIT_NAVIGATOR. */}
             <RootStack.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
                 options={defaultScreenOptions}
-                component={CONFIG.IS_HYBRID_APP ? SessionExpiredPage : SignInPage}
+                component={SignInPage}
             />
             <RootStack.Screen
                 name={SCREENS.TRANSITION_BETWEEN_APPS}
@@ -75,6 +79,24 @@ function PublicScreens() {
                 options={{
                     animation: Animations.NONE,
                 }}
+            />
+            <RootStack.Screen
+                name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}
+                options={{
+                    ...rootNavigatorScreenOptions.basicModalNavigator,
+                    native: {
+                        contentStyle: {
+                            ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
+                        },
+                        animation: InternalPlatformAnimations.FADE,
+                    },
+                    web: {
+                        cardStyle: {
+                            ...StyleUtils.getBackgroundColorWithOpacityStyle(theme.overlay, 0.72),
+                        },
+                    },
+                }}
+                component={TestToolsModalNavigator}
             />
         </RootStack.Navigator>
     );

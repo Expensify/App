@@ -515,7 +515,7 @@ jobs:
         with:
           REPO: Mobile-Expensify
           MOBILE_EXPENSIFY_PR_NUMBER: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ANDROID: ${{ needs.androidHybrid.result }}
           IOS: ${{ needs.iosHybrid.result }}
           ANDROID_LINK: ${{ needs.androidHybrid.outputs.S3_APK_PATH }}
