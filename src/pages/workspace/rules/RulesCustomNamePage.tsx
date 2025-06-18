@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
@@ -15,7 +15,6 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
-import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -25,7 +24,6 @@ import {clearPolicyErrorField, setPolicyDefaultReportTitle} from '@userActions/P
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
 import INPUT_IDS from '@src/types/form/RulesCustomNameModalForm';
 
 type RulesCustomNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CUSTOM_NAME>;
@@ -45,7 +43,8 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
         translate('workspace.rules.expenseReportRules.customNameTotalExample'),
     ] as const satisfies string[];
 
-    const customNameDefaultValue = Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '');
+    const fieldListItem = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
+    const customNameDefaultValue = Str.htmlDecode(fieldListItem?.defaultValue ?? '');
 
     const validateCustomName = useCallback(
         ({customName}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM>) => {
@@ -67,32 +66,23 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
         clearPolicyErrorField(policyID, 'fieldList');
     };
 
-    // Get the nested error structure for the specific field title
-    const fieldListErrors = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
-    const defaultValueErrors: Errors | undefined = fieldListErrors?.defaultValue;
-
     // Get pending action for loading state
     const isLoading = !!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue;
-    const prevIsLoading = usePrevious(isLoading);
 
     // Clear errors when modal is dismissed
     useBeforeRemove(() => {
         clearFieldListError();
     });
 
-    useEffect(() => {
-        if (!prevIsLoading || isLoading) {
-            return;
-        }
-
-        if (!defaultValueErrors || Object.keys(defaultValueErrors).length === 0) {
-            Navigation.goBack();
-        }
-    }, [isLoading, prevIsLoading, defaultValueErrors]);
-
     const submitForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM>) => {
         setPolicyDefaultReportTitle(policyID, values.customName);
+        Navigation.goBack();
     };
+
+    const titleError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
+    const defaultValueError = (titleError as {defaultValue?: string})?.defaultValue;
+    const errorMessage = defaultValueError && typeof defaultValueError === 'object' ? Object.values(defaultValueError)[0] : defaultValueError;
+    const reportTitleErrors = errorMessage ? {error: errorMessage} : policy?.errorFields?.fieldList;
 
     return (
         <AccessOrNotFoundWrapper
@@ -133,7 +123,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                 >
                     <OfflineWithFeedback
                         pendingAction={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue}
-                        errors={defaultValueErrors}
+                        errors={reportTitleErrors}
                         errorRowStyles={styles.mh0}
                         onClose={clearFieldListError}
                     >
