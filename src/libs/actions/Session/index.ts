@@ -893,7 +893,7 @@ function cleanupSession() {
     NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
     resetHomeRouteParams();
-    CacheAPI.clear([CONST.CACHE_API_KEYS.ATTACHMENTS]);
+    CacheAPI.clear();
     clearCache().then(() => {
         Log.info('Cleared all cache data', true, {}, true);
     });

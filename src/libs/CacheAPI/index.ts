@@ -43,12 +43,7 @@ function clear() {
         if (!key) {
             return;
         }
-        caches.has(key).then((isExist) => {
-            if (isExist) {
-                return;
-            }
-            caches.delete(key);
-        });
+        caches.delete(key);
     });
 }
 export default {
