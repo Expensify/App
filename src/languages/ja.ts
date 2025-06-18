@@ -4480,7 +4480,7 @@ const translations = {
             newWorkspace: '新しいワークスペース',
             getTheExpensifyCardAndMore: 'Expensifyカードを取得して、さらに多くの特典を享受しましょう。',
             confirmWorkspace: 'ワークスペースを確認',
-            myGroupWorkspace: 'マイグループワークスペース',
+            myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `マイグループワークスペース${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
             workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `${userName}のワークスペース${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
         },
         people: {
