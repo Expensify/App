@@ -166,7 +166,7 @@ function AboutPage() {
                     </Section>
                 </View>
                 <View style={[styles.sidebarFooter, styles.mb5]}>
-                    <RenderHTML html={`<muted-text>${translate('initialSettingsPage.readTheTermsAndPrivacy')}</muted-text>`} />
+                    <RenderHTML html={`<muted-text-label>${translate('initialSettingsPage.readTheTermsAndPrivacy')}</muted-text-label>`} />
                 </View>
             </ScrollView>
         </ScreenWrapper>
