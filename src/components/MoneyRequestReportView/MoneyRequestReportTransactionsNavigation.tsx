@@ -1,7 +1,7 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo} from 'react';
-import PrevNextButtons from '@components/PrevNextButtons';
 import {useOnyx} from 'react-native-onyx';
+import PrevNextButtons from '@components/PrevNextButtons';
 import {clearActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
