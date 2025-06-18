@@ -1,12 +1,12 @@
-import React, { useCallback, useContext, useState } from 'react';
-import { View } from 'react-native';
-import { useOnyx } from 'react-native-onyx';
+import React, {useCallback, useContext, useState} from 'react';
+import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import FeatureList from '@components/FeatureList';
-import type { FeatureListItem } from '@components/FeatureList';
+import type {FeatureListItem} from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
-import { LockedAccountContext } from '@components/LockedAccountModalProvider';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import Text from '@components/Text';
 import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
@@ -14,21 +14,20 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { getEligibleBankAccountsForCard, getEligibleBankAccountsForEuUkCard } from '@libs/CardUtils';
-import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
-import type { WorkspaceSplitNavigatorParamList } from '@libs/Navigation/types';
-import { REIMBURSEMENT_ACCOUNT_ROUTE_NAMES } from '@libs/ReimbursementAccountUtils';
+import {getEligibleBankAccountsForCard, getEligibleBankAccountsForEuUkCard} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import Navigation from '@navigation/Navigation';
-import type { WithPolicyAndFullscreenLoadingProps } from '@pages/workspace/withPolicyAndFullscreenLoading';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import { updateGeneralSettings as updatePolicyGeneralSettings } from '@userActions/Policy/Policy';
+import {updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
-
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const expensifyCardFeatures: FeatureListItem[] = [
     {

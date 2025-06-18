@@ -1,15 +1,14 @@
 import React from 'react';
-import { View } from 'react-native';
-import { useOnyx } from 'react-native-onyx';
-import useExpensifyCardUkEuSupported from "@hooks/useExpensifyCardUkEuSupported";
+import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { ExpensifyCardSettings } from '@src/types/onyx';
+import type {ExpensifyCardSettings} from '@src/types/onyx';
 import WorkspaceCardsListLabel from './WorkspaceCardsListLabel';
-
 
 type WorkspaceCardListLabelsProps = {
     /** ID of the current policy */
