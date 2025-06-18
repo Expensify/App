@@ -84,6 +84,7 @@ export default {
     iconSizeExtraLarge: 40,
     iconSizeSuperLarge: 60,
     iconSizeUltraLarge: 80,
+    iconSizeMegaLarge: 105,
     iconSizeMenuItem: 32,
     iconBottomBar: 24,
     sidebarAvatarSize: 28,
@@ -98,6 +99,7 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
+    uploadViewMargin: 20,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
     pdfPageMaxWidth: 992,
@@ -316,6 +318,7 @@ export default {
     w80: 80,
     w92: 92,
     w96: 96,
+    w130: 130,
     w184: 184,
     w191: 191,
 } as const;

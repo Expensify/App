@@ -1,5 +1,5 @@
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
-import {PUBLIC_DOMAINS, Str, Url} from 'expensify-common';
+import {PUBLIC_DOMAINS_SET, Str, Url} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -256,7 +256,7 @@ function isValidWebsite(url: string): boolean {
 
 /** Checks if the domain is public */
 function isPublicDomain(domain: string): boolean {
-    return PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase());
+    return PUBLIC_DOMAINS_SET.has(domain.toLowerCase());
 }
 
 function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
@@ -657,6 +657,15 @@ function isValidRegistrationNumber(registrationNumber: string, country: Country 
     }
 }
 
+/**
+ * Checks if the `inputValue` byte length exceeds the specified byte length,
+ * returning `isValid` (boolean) and `byteLength` (number) to be used in dynamic error copy.
+ */
+function isValidInputLength(inputValue: string, byteLength: number) {
+    const valueByteLength = StringUtils.getUTF8ByteLength(inputValue);
+    return {isValid: valueByteLength <= byteLength, byteLength: valueByteLength};
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -708,4 +717,5 @@ export {
     isValidZipCodeInternational,
     isValidOwnershipPercentage,
     isValidRegistrationNumber,
+    isValidInputLength,
 };

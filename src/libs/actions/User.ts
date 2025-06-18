@@ -23,7 +23,8 @@ import type {
     UpdateThemeParams,
     ValidateSecondaryLoginParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import type LockAccountParams from '@libs/API/parameters/LockAccountParams';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
@@ -115,6 +116,11 @@ function closeAccount(reason: string) {
         optimisticData,
         failureData,
     });
+
+    // On HybridApp, we need to sign out from the oldDot app as well to keep state of both apps in sync
+    if (CONFIG.IS_HYBRID_APP) {
+        HybridAppModule.signOutFromOldDot();
+    }
 }
 
 /**
@@ -1003,10 +1009,6 @@ function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, autom
     }
 }
 
-function clearFocusModeNotification() {
-    Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, false);
-}
-
 function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
     if (CONFIG.IS_HYBRID_APP) {
         HybridAppModule.shouldUseStaging(shouldUseStagingServer);
@@ -1372,6 +1374,14 @@ function dismissTrackTrainingModal() {
     });
 }
 
+/**
+ * Dismiss the Auto-Submit explanation modal
+ * @param shouldDismiss Whether the user selected "Don't show again"
+ */
+function dismissInstantSubmitExplanation(shouldDismiss: boolean) {
+    Onyx.merge(ONYXKEYS.NVP_DISMISSED_INSTANT_SUBMIT_EXPLANATION, shouldDismiss);
+}
+
 function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
@@ -1380,11 +1390,58 @@ function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {isDebugModeEnabled});
 }
 
+function lockAccount() {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: true,
+                lockAccount: {
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                lockAccount: {
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('failedToLockAccountPage.failedToLockAccountDescription'),
+            },
+        },
+    ];
+
+    const params: LockAccountParams = {
+        accountID: currentUserAccountID,
+    };
+
+    // We need to know if this command fails so that we can navigate the user to a failure page.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
+}
+
 export {
-    clearFocusModeNotification,
     closeAccount,
     dismissReferralBanner,
     dismissTrackTrainingModal,
+    dismissInstantSubmitExplanation,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,
@@ -1417,4 +1474,5 @@ export {
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
     resetValidateActionCodeSent,
+    lockAccount,
 };

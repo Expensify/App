@@ -42,6 +42,12 @@ jest.mock('@react-native-community/geolocation', () => ({
     setRNConfiguration: jest.fn(),
 }));
 
+jest.mock('react-native-plaid-link-sdk', () => ({
+    dismissLink: jest.fn(),
+    openLink: jest.fn(),
+    usePlaidEmitter: jest.fn(),
+}));
+
 jest.mock('@components/FormAlertWrapper', () => 'FormAlertWrapper');
 jest.mock('@components/FormAlertWithSubmitButton', () => 'FormAlertWithSubmitButton');
 
@@ -227,7 +233,7 @@ describe('AssignCardFeedPage', () => {
 
         // Verify that we navigate to the company cards page as the card assignee has changed
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy.id));
+            expect(navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy.id), {forceReplace: true});
         });
         // Unmount the component after assertions to clean up.
         unmount();

@@ -8,11 +8,11 @@ import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -36,16 +36,21 @@ function ReportListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: true});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID}`];
     const isEmptyReport = reportItem.transactions.length === 0;
     const isDisabledOrEmpty = isEmptyReport || isDisabled;
     const {isLargeScreenWidth} = useResponsiveLayout();
 
-    const dateColumnSize = useMemo(() => {
+    const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
+        const isAmountColumnWide = reportItem.transactions.some((transaction) => isTransactionAmountTooLong(transaction));
+        const isTaxAmountColumnWide = reportItem.transactions.some((transaction) => isTransactionTaxAmountTooLong(transaction));
         const shouldShowYearForSomeTransaction = reportItem.transactions.some((transaction) => shouldShowTransactionYear(transaction));
-        return shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+        return {
+            amountColumnSize: isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            taxAmountColumnSize: isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            dateColumnSize: shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+        };
     }, [reportItem.transactions]);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -83,10 +88,6 @@ function ReportListItem<TItem extends ListItem>({
         return null;
     }
 
-    if (isEmptyReport && !isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW)) {
-        return null;
-    }
-
     const sampleTransaction = reportItem.transactions.at(0);
     const {COLUMNS} = CONST.REPORT.TRANSACTION_LIST;
 
@@ -102,7 +103,7 @@ function ReportListItem<TItem extends ListItem>({
         ...(sampleTransaction?.shouldShowTax ? [COLUMNS.TAX] : []),
         COLUMNS.TOTAL_AMOUNT,
         COLUMNS.ACTION,
-    ] as Array<ValueOf<typeof COLUMNS>>;
+    ] satisfies Array<ValueOf<typeof COLUMNS>>;
 
     return (
         <BaseListItem
@@ -129,7 +130,6 @@ function ReportListItem<TItem extends ListItem>({
                     <ReportListItemHeader
                         report={reportItem}
                         policy={policy}
-                        item={item}
                         onSelectRow={onSelectRow}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
@@ -153,6 +153,8 @@ function ReportListItem<TItem extends ListItem>({
                                     transactionItem={transaction}
                                     isSelected={!!transaction.isSelected}
                                     dateColumnSize={dateColumnSize}
+                                    amountColumnSize={amountColumnSize}
+                                    taxAmountColumnSize={taxAmountColumnSize}
                                     shouldShowTooltip={showTooltip}
                                     shouldUseNarrowLayout={!isLargeScreenWidth}
                                     shouldShowCheckbox={!!canSelectMultiple}
@@ -163,7 +165,8 @@ function ReportListItem<TItem extends ListItem>({
                                     }}
                                     isParentHovered={hovered}
                                     columnWrapperStyles={[styles.ph3, styles.pv1half]}
-                                    isInReportRow
+                                    isReportItemChild
+                                    isInSingleTransactionReport={reportItem.transactions.length === 1}
                                 />
                             </View>
                         ))
