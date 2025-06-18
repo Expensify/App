@@ -36,7 +36,7 @@ export default function PresenceController() {
             // amount of time
             clearTimeout(timeout.current);
             timeout.current = setTimeout(() => {
-                Log.info('[PresenceController] Activity timed out', false, {lastActivty: activity, lastTimeout: timeoutMs});
+                Log.info('[PresenceController] Activity timed out', false, {lastActivity: activity, lastTimeout: timeoutMs});
                 goInactive();
             }, timeoutMs);
 
