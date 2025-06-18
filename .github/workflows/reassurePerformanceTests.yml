@@ -55,10 +55,10 @@ jobs:
           git submodule update --init --recursive
           git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours
           git checkout --ours .
-          cd Mobile-Expensify
-          git checkout $(git rev-parse HEAD)
-          cd ..
-          git add Mobile-Expensify
+          # cd Mobile-Expensify
+          # git checkout $(git rev-parse HEAD)
+          # cd ..
+          # git add Mobile-Expensify
           npm install --force || (rm -rf node_modules && npm install --force)
           NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
 
