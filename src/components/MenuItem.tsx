@@ -41,6 +41,7 @@ import SelectCircle from './SelectCircle';
 import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
@@ -379,6 +380,9 @@ type MenuItemBaseProps = {
 
     /** Plaid image for the bank */
     plaidUrl?: string;
+
+    /** Should the menu item be highlighted */
+    highlighted?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -500,6 +504,7 @@ function MenuItem(
         shouldTeleportPortalToModalLayer,
         copyValue,
         plaidUrl,
+        highlighted = false,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -510,6 +515,12 @@ function MenuItem(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
+
+    const highlightedOuterWrapperStyle = useAnimatedHighlightStyle({
+        shouldHighlight: highlighted ?? false,
+        highlightColor: theme.messageHighlightBG,
+        itemEnterDelay: 0,
+    });
 
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
@@ -665,7 +676,7 @@ function MenuItem(
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={copyValue ? secondaryInteraction : onSecondaryInteraction}
-                                wrapperStyle={outerWrapperStyle}
+                                wrapperStyle={highlighted ? highlightedOuterWrapperStyle : outerWrapperStyle}
                                 activeOpacity={!interactive ? 1 : variables.pressDimValue}
                                 opacityAnimationDuration={0}
                                 testID={pressableTestID}
