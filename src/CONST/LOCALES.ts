@@ -67,7 +67,7 @@ type FullySupportedLocale = ValueOf<typeof FULLY_SUPPORTED_LOCALES>;
 type Locale = FullySupportedLocale | ValueOf<typeof BETA_LOCALES>;
 type TranslationTargetLocale = ValueOf<typeof TRANSLATION_TARGET_LOCALES>;
 
-const SORTED_LOCALES = [FULLY_SUPPORTED_LOCALES.EN, FULLY_SUPPORTED_LOCALES.ES, ...sortAlphabetically(Object.values(BETA_LOCALES))] as Locale[];
+const SORTED_LOCALES = sortAlphabetically(Array.from(new Set(Object.values(LOCALES)))) as Locale[];
 
 function isSupportedLocale(locale: string): locale is Locale {
     return (Object.values(LOCALES) as readonly string[]).includes(locale);
