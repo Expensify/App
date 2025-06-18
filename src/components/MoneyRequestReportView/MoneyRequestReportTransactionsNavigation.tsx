@@ -1,29 +1,38 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {generateReportID} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {clearActiveTransactionThreadIDs, getActiveTransactionThreadIDs} from './TransactionThreadReportIDRepository';
+import type {Report} from '@src/types/onyx';
+import {clearActiveTransactionIDs, getActiveTransactionIDs} from './TransactionIDsRepository';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
-    currentReportID: string;
+    currentTransactionID: string;
+    parentReport: OnyxEntry<Report>;
 };
 
-function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyRequestReportRHPNavigationButtonsProps) {
-    const reportIDsList = getActiveTransactionThreadIDs();
-    const {prevReportID, nextReportID} = (() => {
-        if (!reportIDsList) {
-            return {prevReportID: undefined, nextReportID: undefined};
+function MoneyRequestReportTransactionsNavigation({currentTransactionID, parentReport}: MoneyRequestReportRHPNavigationButtonsProps) {
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`, {canEvict: false, canBeMissing: true});
+    const reportActionsArray = Object.values(reportActions ?? {});
+    const transactionIDsList = getActiveTransactionIDs();
+    const {prevTransactionID, nextTransactionID} = (() => {
+        if (!transactionIDsList) {
+            return {prevTransactionID: undefined, nextTransactionID: undefined};
         }
 
-        const currentReportIndex = reportIDsList.findIndex((id) => id === currentReportID);
+        const currentTransactionIndex = transactionIDsList.findIndex((id) => id === currentTransactionID);
 
-        const prevID = currentReportIndex > 0 ? reportIDsList.at(currentReportIndex - 1) : undefined;
-        const nextID = currentReportIndex <= reportIDsList.length - 1 ? reportIDsList.at(currentReportIndex + 1) : undefined;
+        const prevID = currentTransactionIndex > 0 ? transactionIDsList.at(currentTransactionIndex - 1) : undefined;
+        const nextID = currentTransactionIndex <= transactionIDsList.length - 1 ? transactionIDsList.at(currentTransactionIndex + 1) : undefined;
 
-        return {prevReportID: prevID, nextReportID: nextID};
+        return {prevTransactionID: prevID, nextTransactionID: nextID};
     })();
 
     const backTo = Navigation.getActiveRoute();
@@ -38,25 +47,47 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
             if (focusedRoute?.name === SCREENS.SEARCH.REPORT_RHP) {
                 return;
             }
-            clearActiveTransactionThreadIDs();
+            clearActiveTransactionIDs();
         };
     }, []);
 
-    if (reportIDsList.length < 2) {
+    if (transactionIDsList.length < 2) {
         return;
     }
 
+    const navigateToReportByTransactionID = (transactionID: string | undefined) => {
+        if (!transactionID) {
+            return;
+        }
+
+        const action = getIOUActionForTransactionID(Object.values(reportActionsArray), transactionID);
+        if (action?.childReportID) {
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: action.childReportID, backTo}), {forceReplace: true});
+        } else {
+            const transactionThreadReportID = generateReportID();
+            Navigation.navigate(
+                ROUTES.SEARCH_REPORT.getRoute({
+                    reportID: transactionThreadReportID,
+                    backTo,
+                    moneyRequestReportActionID: action?.reportActionID,
+                    transactionID,
+                    iouReportID: parentReport?.reportID,
+                }),
+            );
+        }
+    };
+
     return (
         <PrevNextButtons
-            isPrevButtonDisabled={!prevReportID}
-            isNextButtonDisabled={!nextReportID}
+            isPrevButtonDisabled={!prevTransactionID}
+            isNextButtonDisabled={!nextTransactionID}
             onNext={(e) => {
                 e?.preventDefault();
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
+                navigateToReportByTransactionID(nextTransactionID);
             }}
             onPrevious={(e) => {
                 e?.preventDefault();
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true});
+                navigateToReportByTransactionID(prevTransactionID);
             }}
         />
     );
