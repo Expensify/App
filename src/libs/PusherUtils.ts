@@ -53,11 +53,11 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
     Pusher.subscribe(pusherChannelName, eventName, onEventPush, onPusherResubscribeToPrivateUserChannel).catch(onSubscriptionFailed);
 }
 
-function joinPresenceChannel(accountID: number) {
+function joinWebPresenceChannel(accountID: number) {
     Pusher.subscribe(`${CONST.PUSHER.PRIVATE_WEB_PRESENCE_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`);
 }
 
-function leavePresenceChannel(accountID: number) {
+function leaveWebPresenceChannel(accountID: number) {
     Pusher.unsubscribe(`${CONST.PUSHER.PRIVATE_WEB_PRESENCE_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`);
 }
 
@@ -65,6 +65,6 @@ export default {
     subscribeToPrivateUserChannelEvent,
     subscribeToMultiEvent,
     triggerMultiEventHandler,
-    joinPresenceChannel,
-    leavePresenceChannel,
+    joinWebPresenceChannel,
+    leaveWebPresenceChannel,
 };

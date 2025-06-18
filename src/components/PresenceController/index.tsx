@@ -24,7 +24,7 @@ export default function PresenceController() {
 
         Log.info('[PresenceController] Going inactive');
         didJoinPresenceChannel.current = false;
-        PusherUtils.leavePresenceChannel(accountID);
+        PusherUtils.leaveWebPresenceChannel(accountID);
     }, [accountID]);
 
     const goActive = useCallback(
@@ -47,7 +47,7 @@ export default function PresenceController() {
 
             Log.info('[PresenceController] Going active', false, {activity, timeoutMs});
             didJoinPresenceChannel.current = true;
-            PusherUtils.joinPresenceChannel(accountID);
+            PusherUtils.joinWebPresenceChannel(accountID);
         },
         [accountID, goInactive],
     );
