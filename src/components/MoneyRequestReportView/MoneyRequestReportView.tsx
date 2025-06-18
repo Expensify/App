@@ -223,7 +223,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
             >
                 <HeaderGap />
                 {reportHeaderView}
-                <View style={[styles.overflowHidden, styles.flex1]}>
+                <View style={[styles.overflowHidden, styles.justifyContentEnd, styles.flex1]}>
                     {shouldDisplayMoneyRequestActionsList ? (
                         <MoneyRequestReportActionsList
                             report={report}
