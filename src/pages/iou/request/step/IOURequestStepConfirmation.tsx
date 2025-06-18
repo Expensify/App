@@ -529,7 +529,6 @@ function IOURequestStepConfirmation({
                     shouldHandleNavigation: index === transactions.length - 1,
                     backToReport,
                 });
-
             });
         },
         [
