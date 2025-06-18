@@ -22,7 +22,7 @@ type TagPickerProps = {
     /** The selected tag of the expense */
     selectedTag: string;
 
-    /** The selected tag of the expense */
+    /** The current transaction tag of the expense */
     transactionTag?: string;
 
     /** Whether the policy has dependent tags */

@@ -41,7 +41,6 @@ import type {Unit} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Badge from './Badge';
 import ConfirmedRoute from './ConfirmedRoute';
-import HighlightableIOUMenuItem from './HighlightableIOUMenuItem';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
@@ -560,7 +559,7 @@ function MoneyRequestConfirmationListFooter({
             const prevShouldShow = previousTagsVisibility.at(index) ?? false;
             return {
                 item: (
-                    <HighlightableIOUMenuItem
+                    <MenuItemWithTopDescription
                         highlighted={shouldShow && !getTagForDisplay(transaction, index) && !prevShouldShow}
                         key={name}
                         shouldShowRightIcon={!isReadOnly}

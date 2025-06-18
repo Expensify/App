@@ -3,7 +3,6 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
-import HighlightableIOUMenuItem from '@components/HighlightableIOUMenuItem';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -487,7 +486,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 key={name}
                 pendingAction={getPendingFieldAction('tag')}
             >
-                <HighlightableIOUMenuItem
+                <MenuItemWithTopDescription
                     highlighted={shouldShow && !getTagForDisplay(transaction, index)}
                     description={name ?? translate('common.tag')}
                     title={tagForDisplay}
