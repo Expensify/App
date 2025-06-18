@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/core';
-import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, StyleSheet, View} from 'react-native';
@@ -11,7 +10,6 @@ import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
 import {useCameraDevice} from 'react-native-vision-camera';
-import type {TupleToUnion} from 'type-fest';
 import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import Hand from '@assets/images/hand.svg';
@@ -34,14 +32,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {isValidReceiptExtension, readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import {isValidReceiptExtension, readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import HapticFeedback from '@libs/HapticFeedback';
-import {formatCurrentUserToAttendee, navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
+import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -65,8 +63,7 @@ import {
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
 import type {GpsPoint} from '@userActions/IOU';
-import {generateTransactionID} from '@userActions/Transaction';
-import {createDraftTransaction, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
+import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -358,25 +355,6 @@ function IOURequestStepScan({
         },
         [backToReport, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transactions],
     );
-
-    const buildOptimisticTransaction = useCallback((): Transaction => {
-        const newTransactionID = generateTransactionID();
-        const {currency, iouRequestType, isFromGlobalCreate, splitPayerAccountIDs} = initialTransaction ?? {};
-        const newTransaction = {
-            amount: 0,
-            created: format(new Date(), 'yyyy-MM-dd'),
-            currency,
-            comment: {attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID)},
-            iouRequestType,
-            reportID,
-            transactionID: newTransactionID,
-            isFromGlobalCreate,
-            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-            splitPayerAccountIDs,
-        } as Transaction;
-        createDraftTransaction(newTransaction);
-        return newTransaction;
-    }, [currentUserPersonalDetails, initialTransaction, reportID]);
 
     const navigateToConfirmationStep = useCallback(
         (files: ReceiptFile[], locationPermissionGranted = false, isTestTransaction = false) => {
@@ -685,7 +663,14 @@ function IOURequestStepScan({
                     .then((photo: PhotoFile) => {
                         // Store the receipt on the transaction object in Onyx
                         const source = getPhotoSource(photo.path);
-                        const transaction = isMultiScanEnabled && initialTransaction?.receipt?.source ? buildOptimisticTransaction() : initialTransaction;
+                        const transaction =
+                            isMultiScanEnabled && initialTransaction?.receipt?.source
+                                ? buildOptimisticTransactionAndCreateDraft({
+                                      initialTransaction,
+                                      currentUserPersonalDetails,
+                                      reportID,
+                                  })
+                                : initialTransaction;
                         const transactionID = transaction?.transactionID ?? initialTransactionID;
 
                         setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
@@ -733,7 +718,6 @@ function IOURequestStepScan({
         isPlatformMuted,
         submitReceipts,
         receiptFiles,
-        buildOptimisticTransaction,
         initialTransaction,
         initialTransactionID,
         isEditing,

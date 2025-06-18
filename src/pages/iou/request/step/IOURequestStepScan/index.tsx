@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, InteractionManager, PanResponder, PixelRatio, StyleSheet, View} from 'react-native';
@@ -44,7 +43,7 @@ import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, isLocalFile as isLocalFileFileUtils, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {formatCurrentUserToAttendee, navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
+import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -70,8 +69,7 @@ import {
     trackExpense,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
-import {generateTransactionID} from '@userActions/Transaction';
-import {createDraftTransaction, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
+import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -365,25 +363,6 @@ function IOURequestStepScan({
         },
         [backToReport, iouType, reportID, initialTransactionID],
     );
-
-    const buildOptimisticTransaction = useCallback((): Transaction => {
-        const newTransactionID = generateTransactionID();
-        const {currency, iouRequestType, isFromGlobalCreate, splitPayerAccountIDs} = initialTransaction ?? {};
-        const newTransaction = {
-            amount: 0,
-            created: format(new Date(), 'yyyy-MM-dd'),
-            currency,
-            comment: {attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID)},
-            iouRequestType,
-            reportID,
-            transactionID: newTransactionID,
-            isFromGlobalCreate,
-            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-            splitPayerAccountIDs,
-        } as Transaction;
-        createDraftTransaction(newTransaction);
-        return newTransaction;
-    }, [currentUserPersonalDetails, initialTransaction, reportID]);
 
     const createTransaction = useCallback(
         (files: ReceiptFile[], participant: Participant, gpsPoints?: GpsPoint, policyParams?: {policy: OnyxEntry<Policy>}, billable?: boolean) => {
@@ -733,7 +712,14 @@ function IOURequestStepScan({
         const filename = `receipt_${Date.now()}.png`;
         const file = base64ToFile(imageBase64 ?? '', filename);
         const source = URL.createObjectURL(file);
-        const transaction = isMultiScanEnabled && initialTransaction?.receipt?.source ? buildOptimisticTransaction() : initialTransaction;
+        const transaction =
+            isMultiScanEnabled && initialTransaction?.receipt?.source
+                ? buildOptimisticTransactionAndCreateDraft({
+                      initialTransaction,
+                      currentUserPersonalDetails,
+                      reportID,
+                  })
+                : initialTransaction;
         const transactionID = transaction?.transactionID ?? initialTransactionID;
         const newReceiptFiles = [...receiptFiles, {file, source, transactionID}];
 
@@ -750,18 +736,7 @@ function IOURequestStepScan({
         }
 
         submitReceipts(newReceiptFiles);
-    }, [
-        receiptFiles,
-        showBlink,
-        buildOptimisticTransaction,
-        initialTransaction,
-        initialTransactionID,
-        isEditing,
-        isMultiScanEnabled,
-        submitReceipts,
-        requestCameraPermission,
-        updateScanAndNavigate,
-    ]);
+    }, [receiptFiles, showBlink, initialTransaction, initialTransactionID, isEditing, isMultiScanEnabled, submitReceipts, requestCameraPermission, updateScanAndNavigate]);
 
     const toggleMultiScan = () => {
         if (!dismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]) {
