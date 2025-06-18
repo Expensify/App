@@ -92,8 +92,6 @@ function SearchPage({route}: SearchPageProps) {
 
     const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]);
 
-    console.debug(queryJSON, 'queryJSON');
-
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
