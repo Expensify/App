@@ -3949,6 +3949,7 @@ function calculateDiffAmount(
  * @param policy  May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
  * @param policyTagList
  * @param policyCategories
+ * @param newTransactionReportID
  */
 function getUpdateMoneyRequestParams(
     transactionID: string | undefined,
@@ -3959,6 +3960,7 @@ function getUpdateMoneyRequestParams(
     policyCategories: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyCategories>,
     violations?: OnyxEntry<OnyxTypes.TransactionViolations>,
     hash?: number,
+    newTransactionReportID?: string,
 ): UpdateMoneyRequestData {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -3974,7 +3976,7 @@ function getUpdateMoneyRequestParams(
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
     const isTransactionOnHold = isOnHold(transaction);
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${newTransactionReportID ?? transactionThread?.parentReportID}`] ?? null;
     const isFromExpenseReport = isExpenseReport(iouReport);
     const updatedTransaction: OnyxEntry<OnyxTypes.Transaction> = transaction
         ? getUpdatedTransaction({
@@ -4021,6 +4023,7 @@ function getUpdateMoneyRequestParams(
                 modifiedAmount: transaction.modifiedAmount,
                 modifiedMerchant: transaction.modifiedMerchant,
                 modifiedCurrency: transaction.modifiedCurrency,
+                reportID: transaction.reportID,
             },
         });
     }
@@ -4150,6 +4153,7 @@ function getUpdateMoneyRequestParams(
             ...updatedTransaction,
             pendingFields,
             errorFields: null,
+            reportID: newTransactionReportID ?? updatedTransaction?.reportID,
         },
     });
 
@@ -4267,6 +4271,7 @@ function getUpdateMoneyRequestParams(
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields,
+            reportID: transaction?.reportID,
         },
     });
 
@@ -11660,9 +11665,9 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
         let updateMoneyRequestParamsOnyxData: OnyxData = {};
 
-        // In case of already created split transactions we have to update fields change messages
-        // In case of new transactions we will simply ignore this
-        if (splitTransaction && !isReverseSplitOperation) {
+        // For existing split transactions, update the field change messages
+        // For new transactions, skip this step
+        if (splitTransaction) {
             childTransactions = childTransactions.filter((undeletedTransaction) => undeletedTransaction?.transactionID !== splitTransaction.transactionID);
             const currentSplit = splits.at(index);
             const existing = getTransactionDetails(splitTransaction);
@@ -11677,7 +11682,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                 const oldValue = existing?.[key as keyof typeof existing];
                 if (newValue === oldValue) {
                     delete transactionChanges[key as keyof typeof transactionChanges];
-                    // For updating the amount correctly we need to pass the currency for getUpdateMoneyRequestParams also
+                    // Ensure we pass the currency to getUpdateMoneyRequestParams as well, so the amount is updated correctly
                 } else if (key === 'amount') {
                     transactionChanges.currency = originalTransactionDetails?.currency;
                 }
@@ -11686,11 +11691,14 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
             if (Object.keys(transactionChanges).length > 0) {
                 const {onyxData: moneyRequestParamsOnyxData} = getUpdateMoneyRequestParams(
                     existingTransactionID,
-                    transactionThreadReportID,
+                    isReverseSplitOperation ? expenseReport?.reportID : transactionThreadReportID,
                     transactionChanges,
                     policy,
                     policyTags ?? null,
                     policyCategories ?? null,
+                    undefined,
+                    undefined,
+                    expenseReport?.reportID,
                 );
                 updateMoneyRequestParamsOnyxData = moneyRequestParamsOnyxData;
             }
@@ -11798,10 +11806,18 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                 },
             },
         });
+    } else {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
+            value: {
+                errors: null,
+            },
+        });
     }
 
     // Prepare splitApiParams for the Transaction_Split API call which requires a specific format for the splits
-    // The format is: splits[0][amount], splits[0][category], splits[0][tag], etc.
+    // The format is: splits[0][amount], splits[0][category], splits[0][tag] etc.
     const splitApiParams = {} as Record<string, string | number>;
     splits.forEach((split, i) => {
         Object.entries(split).forEach(([key, value]) => {
