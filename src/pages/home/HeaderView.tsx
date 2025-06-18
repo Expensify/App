@@ -25,6 +25,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
@@ -34,7 +35,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getOneTransactionThreadReportID, getReportActions} from '@libs/ReportActionsUtils';
+import {getOneTransactionThreadReportID, getReportActions, isMessageDeleted} from '@libs/ReportActionsUtils';
 import {
     canJoinChat,
     canUserPerformWriteAction,
@@ -139,10 +140,19 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     const isTaskReport = isTaskReportReportUtils(report);
     const [parentOfParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {canBeMissing: true});
+    const {isOffline} = useNetwork();
+    const visibleParentOfParentReportActions = useMemo(() => {
+        if (!parentOfParentReport) {
+            return;
+        }
+
+        const allReportActions = getReportActions(parentOfParentReport);
+        return Object.values(allReportActions ?? {}).filter((action) => !isMessageDeleted(action) || (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isOffline));
+    }, [parentOfParentReport, isOffline]);
     const reportHeaderData =
         ((!isTaskReport && !isChatThread) ||
             (parentOfParentReport &&
-                !!getOneTransactionThreadReportID(parentOfParentReport, getReportOrDraftReport(parentOfParentReport?.chatReportID), getReportActions(parentOfParentReport)))) &&
+                !!getOneTransactionThreadReportID(parentOfParentReport, getReportOrDraftReport(parentOfParentReport?.chatReportID), visibleParentOfParentReportActions))) &&
         report?.parentReportID
             ? parentReport
             : report;
