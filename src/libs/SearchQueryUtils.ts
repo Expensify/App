@@ -7,7 +7,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS, {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {CardFeedNamesWithType} from './CardFeedUtils';
@@ -352,9 +352,19 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     const {type, status, policyID, groupBy, ...otherFilters} = filterValues;
     const filtersString: string[] = [];
 
-    // If the type is no longer expense, then we need to remove the 'payer' field so we don't get an error
-    if (type !== CONST.SEARCH.DATA_TYPES.EXPENSE) {
-        otherFilters.payer = undefined;
+    // When switching types/setting the type, ensure we aren't polluting our query with filters that are
+    // only available for the previous type. Remove all filters that are not allowed for the new type
+    if (type) {
+        const allowedFilters: string[] = ALLOWED_TYPE_FILTERS[type as SearchDataTypes];
+        const providedFilterKeys = Object.keys(otherFilters) as Array<keyof typeof otherFilters>;
+
+        providedFilterKeys.forEach((filter) => {
+            if (allowedFilters.includes(filter)) {
+                return;
+            }
+
+            otherFilters[filter] = undefined;
+        });
     }
 
     filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${CONST.SEARCH.TABLE_COLUMNS.DATE}`);
