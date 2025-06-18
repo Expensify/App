@@ -5370,24 +5370,25 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             };
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
+            submitReport(iouReport);
         }
     }
 
-    if (shouldHandleNavigation) {
-        InteractionManager.runAfterInteractions(() => removeDraftTransactions());
-        if (!requestMoneyInformation.isRetry) {
-            dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID);
-        }
+    // if (shouldHandleNavigation) {
+    //     InteractionManager.runAfterInteractions(() => removeDraftTransactions());
+    //     if (!requestMoneyInformation.isRetry) {
+    //         dismissModalAndOpenReportInInboxTab(backToReport ?? activeReportID);
+    //     }
 
-        const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
-        if (trackReport?.key) {
-            Navigation.removeScreenByKey(trackReport.key);
-        }
-    }
+    //     const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
+    //     if (trackReport?.key) {
+    //         Navigation.removeScreenByKey(trackReport.key);
+    //     }
+    // }
 
-    if (activeReportID && !isMoneyRequestReport) {
-        notifyNewAction(activeReportID, payeeAccountID);
-    }
+    // if (activeReportID && !isMoneyRequestReport) {
+    //     notifyNewAction(activeReportID, payeeAccountID);
+    // }
 }
 
 /**
