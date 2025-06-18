@@ -660,10 +660,10 @@ const translations = {
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Bestanden overschrijden ${maxUploadSizeInMB} MB. Probeer het opnieuw.`,
         someFilesCantBeUploaded: 'Sommige bestanden kunnen niet worden geüpload',
         sizeLimitExceeded: 'Bestanden moeten kleiner zijn dan 10 MB. Grotere bestanden worden niet geüpload.',
-        maxFileLimitExceeded: 'U kunt maximaal 30 bonnetjes tegelijk uploaden. Extra\'s worden niet geüpload.',
+        maxFileLimitExceeded: "U kunt maximaal 30 bonnetjes tegelijk uploaden. Extra's worden niet geüpload.",
         unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType} bestanden worden niet ondersteund. Alleen ondersteunde bestandstypen worden geüpload.`,
         learnMoreAboutSupportedFiles: 'Meer informatie over ondersteunde formaten.',
-        passwordProtected: 'Met wachtwoord beveiligde PDF\'s worden niet ondersteund. Alleen ondersteunde bestanden worden geüpload.',
+        passwordProtected: "Met wachtwoord beveiligde PDF's worden niet ondersteund. Alleen ondersteunde bestanden worden geüpload.",
     },
     dropzone: {
         addAttachments: 'Bijlagen toevoegen',
