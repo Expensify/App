@@ -2519,16 +2519,47 @@ describe('ReportUtils', () => {
             };
             expect(canEditWriteCapability(workspaceChat, {...policy, role: CONST.POLICY.ROLE.ADMIN})).toBe(false);
         });
-        it('should return true for non-archived policy announce room', () => {
-            const policyAnnounceRoom: Report = {
-                ...createRandomReport(1),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-            };
-            // should return true for non-archived policy announce room
-            expect(canEditWriteCapability(policyAnnounceRoom, {...policy, role: CONST.POLICY.ROLE.ADMIN}, false)).toBe(true);
 
-            // should return false for archived policy announce room
-            expect(canEditWriteCapability(policyAnnounceRoom, {...policy, role: CONST.POLICY.ROLE.ADMIN}, true)).toBe(false);
+        const policyAnnounceRoom: Report = {
+            ...createRandomReport(1),
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+        };
+        const adminPolicy = {...policy, role: CONST.POLICY.ROLE.ADMIN};
+
+        it('should return true for non-archived policy announce room', () => {
+            expect(canEditWriteCapability(policyAnnounceRoom, adminPolicy, false)).toBe(true);
+        });
+
+        it('should return false for archived policy announce room', () => {
+            expect(canEditWriteCapability(policyAnnounceRoom, adminPolicy, true)).toBe(false);
+        });
+
+        it('should return false for non-admin user', () => {
+            const normalChat = createRandomReport(11);
+            const memberPolicy = {...policy, role: CONST.POLICY.ROLE.USER};
+            expect(canEditWriteCapability(normalChat, memberPolicy, false)).toBe(false);
+        });
+
+        it('should return false for admin room', () => {
+            const adminRoom: Report = {...createRandomReport(12), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS};
+            expect(canEditWriteCapability(adminRoom, adminPolicy, false)).toBe(false);
+        });
+
+        it('should return false for thread reports', () => {
+            const parent = createRandomReport(13);
+            const thread: Report = {
+                ...createRandomReport(14),
+                parentReportID: parent.reportID,
+                parentReportActionID: '2',
+            };
+
+            expect(canEditWriteCapability(thread, adminPolicy, false)).toBe(false);
+        });
+
+        it('should return false for invoice rooms', () => {
+            const invoiceRoom = {...createRandomReport(13), chatType: CONST.REPORT.CHAT_TYPE.INVOICE};
+
+            expect(canEditWriteCapability(invoiceRoom, adminPolicy, false)).toBe(false);
         });
     });
 
