@@ -9,7 +9,7 @@ class ChatGPTTranslator extends Translator {
     /**
      * The maximum number of times we'll retry a successful translation request in the event of hallucinations.
      */
-    private static readonly MAX_RETRIES: number = 2;
+    private static readonly MAX_RETRIES: number = 4;
 
     /**
      * OpenAI API client to perform translations.
@@ -36,6 +36,9 @@ class ChatGPTTranslator extends Translator {
                 });
 
                 if (this.validateTemplatePlaceholders(text, result)) {
+                    if (attempt > 0) {
+                        console.log(`🙃 Translation succeeded after ${attempt + 1} attempts`);
+                    }
                     console.log(`🧠 Translated "${text}" to ${targetLang}: "${result}"`);
                     return result;
                 }

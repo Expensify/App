@@ -832,6 +832,7 @@ const CONST = {
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         TRACK_FLOWS: 'trackFlows',
         STATIC_AI_TRANSLATIONS: 'staticAITranslations',
+        EUR_BILLING: 'eurBilling',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1053,6 +1054,7 @@ const CONST = {
         NZD: 'NZD',
         EUR: 'EUR',
     },
+    SCA_CURRENCIES: new Set(['GBP', 'EUR']),
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
         return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
     },
@@ -3538,6 +3540,17 @@ const CONST = {
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 900,
                 },
             },
+            [this.PAYMENT_CARD_CURRENCY.EUR]: {
+                [this.POLICY.TYPE.CORPORATE]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
+                    [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1600,
+                },
+                [this.POLICY.TYPE.TEAM]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
+                    [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1000,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
+                },
+            },
         };
     },
     REGEX: {
@@ -5175,7 +5188,7 @@ const CONST = {
         },
     },
     DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
-    STRIPE_GBP_AUTH_STATUSES: {
+    STRIPE_SCA_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',
         CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     },
@@ -6751,8 +6764,9 @@ const CONST = {
         AUD: 'AUD',
         GBP: 'GBP',
         NZD: 'NZD',
+        EUR: 'EUR',
     },
-    GBP_AUTHENTICATION_COMPLETE: '3DS-authentication-complete',
+    SCA_AUTHENTICATION_COMPLETE: '3DS-authentication-complete',
 
     SUBSCRIPTION_PRICE_FACTOR: 2,
     FEEDBACK_SURVEY_OPTIONS: {

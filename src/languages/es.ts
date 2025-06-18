@@ -4516,7 +4516,7 @@ const translations = {
             newWorkspace: 'Nuevo espacio de trabajo',
             getTheExpensifyCardAndMore: 'Consigue la Tarjeta Expensify y más',
             confirmWorkspace: 'Confirmar espacio de trabajo',
-            myGroupWorkspace: 'Mi Espacio de Trabajo en Grupo',
+            myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `Mi Espacio de Trabajo en Grupo${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
             workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `Espacio de trabajo${workspaceNumber ? ` ${workspaceNumber}` : ''} de ${userName}`,
         },
         people: {
@@ -7163,8 +7163,8 @@ const translations = {
             part3: '.',
         },
         scanTestTooltip: {
-            part1: '¿Quieres ver cómo funciona Escanear?',
-            part2: '¡Prueba con un recibo de prueba!',
+            part1: '¡Escanea nuestro recibo de prueba',
+            part2: ' para ver cómo funciona!',
             part3: '¡Elige a',
             part4: ' nuestro gerente',
             part5: ' de prueba para probarlo!',
