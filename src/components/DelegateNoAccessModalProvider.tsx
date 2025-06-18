@@ -1,4 +1,5 @@
 import React, {createContext, useMemo, useState} from 'react';
+import type {PropsWithChildren} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,12 +17,17 @@ type DelegateNoAccessContextType = {
 };
 
 const DelegateNoAccessContext = createContext<DelegateNoAccessContextType>({
+    /** Whether the current user is acting as delegate*/
     isActingAsDelegate: false,
+
+    /** Whether the current user has restricted access as a submitter only delegate */
     isDelegateAccessRestricted: false,
+
+    /** Function to show the delegate no access modal */
     showDelegateNoAccessModal: () => {},
 });
 
-function DelegateNoAccessModalProvider({children}: React.PropsWithChildren) {
+function DelegateNoAccessModalProvider({children}: PropsWithChildren) {
     const {translate} = useLocalize();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -62,7 +68,7 @@ function DelegateNoAccessModalProvider({children}: React.PropsWithChildren) {
     );
 }
 
-DelegateNoAccessModalProvider.displayName = 'DelegateNoAccessModal';
+DelegateNoAccessModalProvider.displayName = 'DelegateNoAccessModalProvider';
 
 export default DelegateNoAccessModalProvider;
 export {DelegateNoAccessContext};
