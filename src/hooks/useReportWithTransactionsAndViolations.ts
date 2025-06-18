@@ -1,7 +1,9 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import {reportTransactionsSelector} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolation} from '@src/types/onyx';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
 const DEFAULT_TRANSACTIONS: Transaction[] = [];
@@ -12,20 +14,22 @@ function useReportWithTransactionsAndViolations(reportID?: string): [Transaction
         selector: (_transactions) => reportTransactionsSelector(_transactions, reportID),
         canBeMissing: true,
     });
+    const {isOffline} = useNetwork();
+    const filteredTransactions = transactions?.filter((transaction) => isOffline || transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const [violations] = useOnyx(
         ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         {
             selector: (allViolations) =>
                 Object.fromEntries(
                     Object.entries(allViolations ?? {}).filter(([key]) =>
-                        transactions?.some((transaction) => transaction.transactionID === key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')),
+                        filteredTransactions?.some((transaction) => transaction.transactionID === key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')),
                     ),
                 ),
             canBeMissing: true,
         },
-        [transactions],
+        [filteredTransactions],
     );
-    return [transactions ?? DEFAULT_TRANSACTIONS, violations ?? DEFAULT_VIOLATIONS];
+    return [filteredTransactions ?? DEFAULT_TRANSACTIONS, violations ?? DEFAULT_VIOLATIONS];
 }
 
 export default useReportWithTransactionsAndViolations;
