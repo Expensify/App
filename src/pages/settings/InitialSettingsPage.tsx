@@ -1,4 +1,3 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app/src';
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -9,7 +8,6 @@ import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
-import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -30,7 +28,9 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import '@libs/actions/Delegate';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
+import {closeReactNativeApp} from '@libs/actions/Session';
 import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
@@ -102,7 +102,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
 
@@ -238,10 +237,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     icon: Expensicons.ExpensifyLogoNew,
                     ...(CONFIG.IS_HYBRID_APP
                         ? {
-                              action: () => {
-                                  HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-                                  setRootStatusBarEnabled(false);
-                              },
+                              action: () => closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true}),
                           }
                         : {
                               action() {
@@ -282,7 +278,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, setRootStatusBarEnabled, shouldOpenSurveyReasonPage, signOut]);
+    }, [styles.pt4, shouldOpenSurveyReasonPage, signOut]);
 
     /**
      * Return JSX.Element with menu items
