@@ -50,6 +50,7 @@ function RecordTroubleshootDataToolMenu() {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            zipRef.current = new JSZip();
         });
     };
 

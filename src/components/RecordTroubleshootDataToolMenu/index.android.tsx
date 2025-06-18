@@ -54,6 +54,9 @@ function RecordTroubleshootDataToolMenu() {
             })
             .catch((error: unknown) => {
                 console.error('Failed to write ZIP file:', error);
+            })
+            .finally(() => {
+                zipRef.current = new JSZip(); // Reset the zipRef for future use
             });
     };
 
