@@ -212,7 +212,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
      * filter bar
      */
     const filters = useMemo(() => {
-        const typeValue = typeOptions.find((option) => option.value === type) ?? null;
         const statusValue = getStatusOptions(type, groupBy).filter((option) => status.includes(option.value));
         const dateValue = [
             filterFormValues.dateAfter ? `${translate('common.after')} ${DateUtils.formatToReadableString(filterFormValues.dateAfter)}` : null,
@@ -225,7 +224,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             {
                 label: translate('common.type'),
                 PopoverComponent: typeComponent,
-                value: typeValue?.translation ? translate(typeValue.translation) : null,
+                value: translate(`common.${type}`),
             },
             {
                 label: translate('common.status'),
@@ -246,7 +245,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
         return filterList;
     }, [
-        typeOptions,
         type,
         groupBy,
         filterFormValues.dateAfter,
