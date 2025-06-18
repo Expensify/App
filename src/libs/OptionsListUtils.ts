@@ -859,7 +859,7 @@ function getLastMessageTextForReport(
 
     if (reportID) {
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-        // If the expense report is the one expense report, get the last message text from the last report action
+        // If the report is combined report, get the last message text from the last report action
         const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allSortedReportActions[reportID]);
         if (transactionThreadReportID) {
             lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
