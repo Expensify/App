@@ -735,7 +735,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             },
         });
 
-        // Optimistically clear all violations for the transaction if unreporting to self DM report
+        // Optimistically clear all violations for the transaction when moving to self DM report
         if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
