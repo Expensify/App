@@ -52,6 +52,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
@@ -1005,6 +1006,7 @@ const translations = {
         share: 'Share',
         participants: 'Participants',
         createExpense: 'Create expense',
+        createExpenses: ({expensesNumber}: CreateExpensesParams) => `Create ${expensesNumber} expenses`,
         addExpense: 'Add expense',
         chooseRecipient: 'Choose recipient',
         createExpenseWithAmount: ({amount}: {amount: string}) => `Create ${amount} expense`,
@@ -2037,14 +2039,7 @@ const translations = {
     },
     languagePage: {
         language: 'Language',
-        languages: {
-            en: {
-                label: 'English',
-            },
-            es: {
-                label: 'Español',
-            },
-        },
+        aiGenerated: 'The translations for this language are generated automatically and may contain errors.',
     },
     themePage: {
         theme: 'Theme',
@@ -6649,8 +6644,8 @@ const translations = {
             part3: ' here.',
         },
         scanTestTooltip: {
-            part1: 'Want to see how Scan works?',
-            part2: ' Try a test receipt!',
+            part1: 'Scan our test receipt',
+            part2: ' to see how it works!',
             part3: 'Choose our',
             part4: ' test manager',
             part5: ' to try it out!',
