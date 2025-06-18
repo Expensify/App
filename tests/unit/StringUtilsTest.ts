@@ -71,4 +71,35 @@ second
 `);
         });
     });
+
+    describe('decodeUnicode', () => {
+        it('decodes a single unicode escape sequence', () => {
+            expect(StringUtils.decodeUnicode('\\u00E9')).toBe('é');
+        });
+
+        it('decodes multiple unicode escape sequences', () => {
+            expect(StringUtils.decodeUnicode('Pr\\u00E9c\\u00E9dent')).toBe('Précédent');
+        });
+
+        it('returns unchanged string if there are no unicode sequences', () => {
+            expect(StringUtils.decodeUnicode('Hello World')).toBe('Hello World');
+        });
+
+        it('handles mixed content with unicode and regular characters', () => {
+            expect(StringUtils.decodeUnicode('Caf\\u00E9 Mocha')).toBe('Café Mocha');
+        });
+
+        it('does not decode malformed sequences', () => {
+            expect(StringUtils.decodeUnicode('\\u00G1')).toBe('\\u00G1'); // invalid hex digit
+            expect(StringUtils.decodeUnicode('\\u123')).toBe('\\u123'); // not 4 hex digits
+        });
+
+        it('handles repeated sequences correctly', () => {
+            expect(StringUtils.decodeUnicode('\\u00E9 \\u00E9 \\u00E9')).toBe('é é é');
+        });
+
+        it('handles empty strings', () => {
+            expect(StringUtils.decodeUnicode('')).toBe('');
+        });
+    });
 });
