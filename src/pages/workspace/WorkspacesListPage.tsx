@@ -12,8 +12,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type {MenuItemProps} from '@components/MenuItem';
+import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import NavigationTabBarDummy from '@components/Navigation/NavigationTabBar/NavigationTabBarDummy';
 import TopBar from '@components/Navigation/TopBar';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -148,6 +148,8 @@ function WorkspacesListPage() {
         selector: filterInactiveCards,
         canBeMissing: true,
     });
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policyToDelete = getPolicy(policyIDToDelete);
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
@@ -432,7 +434,7 @@ function WorkspacesListPage() {
             {isLessThanMediumScreen && <View style={styles.mt3} />}
             {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
                 <SearchBar
-                    label="Find workspace"
+                    label={translate('workspace.common.findWorkspace')}
                     inputValue={inputValue}
                     onChangeText={setInputValue}
                     shouldShowEmptyState={filteredWorkspaces.length === 0 && inputValue.length > 0}
@@ -494,7 +496,7 @@ function WorkspacesListPage() {
                 shouldEnableMaxHeight
                 testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
-                bottomContent={shouldUseNarrowLayout && <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+                bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
                 enableEdgeToEdgeBottomSafeAreaPadding={false}
             >
                 <TopBar breadcrumbLabel={translate('common.workspaces')} />
@@ -521,7 +523,7 @@ function WorkspacesListPage() {
                         </View>
                     </ScrollView>
                 )}
-                {shouldDisplayLHB && <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+                {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
             </ScreenWrapper>
         );
     }
@@ -532,7 +534,7 @@ function WorkspacesListPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID={WorkspacesListPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={shouldUseNarrowLayout && <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         >
             <View style={styles.flex1}>
                 <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
@@ -541,6 +543,7 @@ function WorkspacesListPage() {
                     data={filteredWorkspaces}
                     renderItem={getMenuItem}
                     ListHeaderComponent={listHeaderComponent}
+                    keyboardShouldPersistTaps="handled"
                 />
             </View>
             <ConfirmModal
@@ -557,7 +560,7 @@ function WorkspacesListPage() {
                 isModalOpen={isSupportalActionRestrictedModalOpen}
                 hideSupportalModal={hideSupportalModal}
             />
-            {shouldDisplayLHB && <NavigationTabBarDummy selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         </ScreenWrapper>
     );
 }
