@@ -1,11 +1,7 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo} from 'react';
+import PrevNextButtons from '@components/PrevNextButtons';
 import {useOnyx} from 'react-native-onyx';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {clearActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
@@ -19,9 +15,6 @@ type MoneyRequestReportRHPNavigationButtonsProps = {
 };
 
 function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyRequestReportRHPNavigationButtonsProps) {
-    const styles = useThemeStyles();
-    const theme = useTheme();
-
     const [reportIDsList = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
         canBeMissing: true,
     });
@@ -59,57 +52,19 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
         return;
     }
 
-    const pressableStyle = [
-        styles.ml1,
-        styles.alignItemsCenter,
-        styles.justifyContentCenter,
-        {
-            borderRadius: 50,
-            width: 28,
-            height: 28,
-            backgroundColor: theme.borderLighter,
-        },
-    ];
-
     return (
-        <>
-            <PressableWithFeedback
-                accessibilityRole={CONST.ROLE.BUTTON}
-                accessible
-                accessibilityLabel={CONST.ROLE.BUTTON}
-                disabled={!prevReportID}
-                style={pressableStyle}
-                onPress={(e) => {
-                    e?.preventDefault();
-                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true});
-                }}
-            >
-                <Icon
-                    src={Expensicons.BackArrow}
-                    small
-                    fill={theme.icon}
-                    isButtonIcon
-                />
-            </PressableWithFeedback>
-            <PressableWithFeedback
-                accessibilityRole={CONST.ROLE.BUTTON}
-                accessible
-                accessibilityLabel={CONST.ROLE.BUTTON}
-                disabled={!nextReportID}
-                style={pressableStyle}
-                onPress={(e) => {
-                    e?.preventDefault();
-                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
-                }}
-            >
-                <Icon
-                    src={Expensicons.ArrowRight}
-                    small
-                    fill={theme.icon}
-                    isButtonIcon
-                />
-            </PressableWithFeedback>
-        </>
+        <PrevNextButtons
+            isPrevButtonDisabled={!prevReportID}
+            isNextButtonDisabled={!nextReportID}
+            onNext={(e) => {
+                e?.preventDefault();
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
+            }}
+            onPrevious={(e) => {
+                e?.preventDefault();
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true});
+            }}
+        />
     );
 }
 
