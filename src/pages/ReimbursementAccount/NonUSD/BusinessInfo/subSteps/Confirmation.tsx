@@ -101,7 +101,7 @@ function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
             },
             {
                 title: values[TAX_ID_EIN_NUMBER],
-                description: translate('businessInfoStep.taxIDEIN'),
+                description: translate('businessInfoStep.taxIDEIN.EU'),
                 shouldShowRightIcon: true,
                 onPress: () => {
                     onMove(5);

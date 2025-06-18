@@ -36,11 +36,11 @@ function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('businessInfoStep.whatsTheBusinessTaxIDEIN')}
+            formTitle={translate('businessInfoStep.whatsTheBusinessTaxIDEIN.EU')}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={TAX_ID_EIN_NUMBER}
-            inputLabel={translate('businessInfoStep.taxIDEIN')}
+            inputLabel={translate('businessInfoStep.taxIDEIN.UK')}
             defaultValue={defaultValue}
             shouldShowHelpLinks={false}
         />
