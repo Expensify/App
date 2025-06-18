@@ -329,7 +329,7 @@
     "memfs": "^4.6.0",
     "nitro-codegen": "0.25.2",
     "onchange": "^7.1.0",
-    "openai": "^4.47.2",
+    "openai": "5.5.1",
     "patch-package": "^8.1.0-canary.1",
     "peggy": "^4.0.3",
     "portfinder": "^1.0.28",

@@ -8,9 +8,10 @@ import fs from 'fs';
 import path from 'path';
 import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
+import decodeUnicode from '@libs/StringUtils/decodeUnicode';
 import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
-import {isTranslationTargetLocale, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
+import {isTranslationTargetLocale, LOCALES, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import CLI from './utils/CLI';
 import Prettier from './utils/Prettier';
@@ -112,7 +113,7 @@ class TranslationGenerator {
 
             // Generate translated TypeScript code
             const printer = ts.createPrinter();
-            const translatedCode = printer.printFile(transformedSourceFile);
+            const translatedCode = decodeUnicode(printer.printFile(transformedSourceFile));
 
             // Write to file
             const outputPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
@@ -182,9 +183,15 @@ class TranslationGenerator {
             return false;
         }
 
-        // Only translate string literals if they contain alphabet characters
+        // Don't translate object keys
+        if (ts.isComputedPropertyName(node.parent)) {
+            return false;
+        }
+
+        // Only translate string literals if they contain at least one real letter
         if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-            return /[a-zA-Z]/.test(node.text);
+            // \p{L} matches a-z, à-ö, Α-Ω, Ж, 文, …  – but NOT digits, emoji, punctuation, etc.
+            return /\p{L}/u.test(node.text);
         }
 
         // Only translate a template expression if it contains alphabet characters outside the spans
@@ -441,7 +448,7 @@ async function main(): Promise<void> {
             // By default, generate translations for all supported languages. Can be overridden with the --locales flag
             locales: {
                 description: 'Locales to generate translations for.',
-                default: TRANSLATION_TARGET_LOCALES,
+                default: Object.values(TRANSLATION_TARGET_LOCALES).filter((locale) => locale !== LOCALES.ES),
                 parse: (val: string): TranslationTargetLocale[] => {
                     const rawLocales = val.split(',');
                     const validatedLocales: TranslationTargetLocale[] = [];
