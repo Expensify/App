@@ -1,5 +1,4 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
+import {usePreventRemove, useIsFocused, useNavigation} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {createContext, forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -8,7 +7,6 @@ import {useOnyx} from 'react-native-onyx';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
-import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import HeaderGap from '@components/HeaderGap';
@@ -29,6 +27,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {closeReactNativeApp} from '@libs/actions/Session';
 import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Navigation from '@libs/Navigation/Navigation';
@@ -200,10 +199,9 @@ function ScreenWrapper(
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     // since Modals are drawn in separate native view hierarchy we should always add paddings
     const ignoreInsetsConsumption = !useContext(ModalContext).default;
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {initialURL} = useContext(InitialURLContext);
 
-    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: true});
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
 
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPaddingProp !== undefined;
@@ -229,12 +227,11 @@ function ScreenWrapper(
 
     const {isBlurred, setIsBlurred} = useInputBlurContext();
 
-    usePreventRemove((isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
+    usePreventRemove((hybridApp?.isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
-        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
-        setRootStatusBarEnabled(false);
+        closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
     });
 
     const panResponder = useRef(
