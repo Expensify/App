@@ -6534,11 +6534,8 @@ const translations = {
                 title: 'Assinatura cancelada',
                 subtitle: 'Sua assinatura anual foi cancelada.',
                 info: 'Se voc\u00EA quiser continuar usando seu(s) espa\u00E7o(s) de trabalho em uma base de pagamento por uso, est\u00E1 tudo certo.',
-                preventFutureActivity: {
-                    part1: 'Se voc\u00EA quiser evitar atividades e cobran\u00E7as futuras, voc\u00EA deve',
-                    link: 'excluir seu(s) espa\u00E7o(s) de trabalho',
-                    part2: '. Observe que, ao excluir seu(s) espa\u00E7o(s) de trabalho, voc\u00EA ser\u00E1 cobrado por qualquer atividade pendente que tenha ocorrido durante o m\u00EAs calend\u00E1rio atual.',
-                },
+                preventFutureActivity:
+                    'Se voc\u00EA quiser evitar atividades e cobran\u00E7as futuras, voc\u00EA deve <a>excluir seu(s) espa\u00E7o(s) de trabalho</a> . Observe que, ao excluir seu(s) espa\u00E7o(s) de trabalho, voc\u00EA ser\u00E1 cobrado por qualquer atividade pendente que tenha ocorrido durante o m\u00EAs calend\u00E1rio atual.',
             },
             requestSubmitted: {
                 title: 'Solicita\u00E7\u00E3o enviada',

@@ -6480,11 +6480,8 @@ const translations = {
                 title: 'Abonnement geannuleerd',
                 subtitle: 'Je jaarlijkse abonnement is geannuleerd.',
                 info: 'Als je je werkruimte(s) op basis van betalen per gebruik wilt blijven gebruiken, ben je helemaal klaar.',
-                preventFutureActivity: {
-                    part1: 'Als u toekomstige activiteiten en kosten wilt voorkomen, moet u',
-                    link: 'verwijder uw werkruimte(s)',
-                    part2: '. Merk op dat wanneer je je werkruimte(s) verwijdert, je wordt gefactureerd voor alle openstaande activiteiten die zijn gemaakt tijdens de huidige kalendermaand.',
-                },
+                preventFutureActivity:
+                    'Als u toekomstige activiteiten en kosten wilt voorkomen, moet u <a>verwijder uw werkruimte(s)</a> . Merk op dat wanneer je je werkruimte(s) verwijdert, je wordt gefactureerd voor alle openstaande activiteiten die zijn gemaakt tijdens de huidige kalendermaand.',
             },
             requestSubmitted: {
                 title: 'Verzoek ingediend',

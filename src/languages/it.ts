@@ -6505,11 +6505,8 @@ const translations = {
                 title: 'Abbonamento annullato',
                 subtitle: 'Il tuo abbonamento annuale \u00E8 stato annullato.',
                 info: 'Se desideri continuare a utilizzare il tuo workspace su base pay-per-use, sei a posto.',
-                preventFutureActivity: {
-                    part1: 'Se desideri impedire attivit\u00E0 e addebiti futuri, devi',
-                    link: 'elimina il tuo/i tuoi workspace(s)',
-                    part2: '. Nota che quando elimini il tuo workspace, ti verr\u00E0 addebitata qualsiasi attivit\u00E0 in sospeso che \u00E8 stata sostenuta durante il mese di calendario corrente.',
-                },
+                preventFutureActivity:
+                    'Se desideri impedire attivit\u00E0 e addebiti futuri, devi <a>elimina il tuo/i tuoi workspace(s)</a> . Nota che quando elimini il tuo workspace, ti verr\u00E0 addebitata qualsiasi attivit\u00E0 in sospeso che \u00E8 stata sostenuta durante il mese di calendario corrente.',
             },
             requestSubmitted: {
                 title: 'Richiesta inviata',
