@@ -18,8 +18,8 @@ Onyx.connect({
 
             // We try to remove the next request from the persistedRequests if it is the same as ongoingRequest
             // so we don't process it twice.
-            if (isEqual(nextRequestToProcess, ongoingRequest)) {
-                persistedRequests = persistedRequests.slice(1);
+            if (isEqual(nextRequestToProcess, ongoingRequest) && val?.length) {
+                Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, val.slice(1));
             }
         }
     },
