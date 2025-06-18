@@ -33,7 +33,7 @@ function IOURequestStepPerDiemWorkspace({
 }: IOURequestStepPerDiemWorkspaceProps) {
     const {translate} = useLocalize();
     const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     const selectedWorkspace = useMemo(() => transaction?.participants?.[0], [transaction]);
 
