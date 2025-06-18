@@ -12,7 +12,7 @@ type MenuItemWithTopDescriptionProps = MenuItemProps & {
 };
 
 function MenuItemWithTopDescription(props: MenuItemWithTopDescriptionProps, ref: ForwardedRef<View>) {
-    const {highlighted} = props;
+    const {highlighted, outerWrapperStyle} = props;
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: highlighted ?? false,
@@ -24,7 +24,7 @@ function MenuItemWithTopDescription(props: MenuItemWithTopDescriptionProps, ref:
         <MenuItem
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            outerWrapperStyle={highlighted ? animatedHighlightStyle : undefined}
+            outerWrapperStyle={highlighted ? animatedHighlightStyle : outerWrapperStyle}
             ref={ref}
             shouldShowBasicTitle
             shouldShowDescriptionOnTop
