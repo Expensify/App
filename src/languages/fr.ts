@@ -1643,14 +1643,13 @@ const translations = {
         mergeFailureGenericHeading: 'Impossible de fusionner les comptes',
     },
     lockAccountPage: {
-        reportSuspiciousActivity: '',
+        reportSuspiciousActivity: 'Signaler une activit\u00e9 suspecte',
         lockAccount: 'Verrouiller le compte',
         unlockAccount: 'D\u00E9verrouiller le compte',
-        compromisedDescription:
-            'Si vous soup\u00E7onnez que votre compte Expensify est compromis, vous pouvez le verrouiller pour emp\u00EAcher de nouvelles transactions avec la carte Expensify et bloquer les modifications ind\u00E9sirables du compte.',
-        domainAdminsDescription: 'Pour les administrateurs de domaine,',
-        areYouSure: 'Are you sure you want to lock your Expensify account?',
-        ourTeamWill: "Our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge.",
+        compromisedDescription: 'Vous remarquez quelque chose d\u2019inhabituel ? Signalez-le pour verrouiller imm\u00e9diatement votre compte, bloquer les transactions Expensify Card et emp\u00eacher toute modification.',
+        domainAdminsDescription: 'Pour les administrateurs de domaine : cela suspend aussi l\u2019activit\u00e9 de la carte Expensify et les actions d\u2019administration sur vos domaines.',
+        areYouSure: '\u00cates-vous s\u00fbr de vouloir verrouiller votre compte Expensify?',
+        ourTeamWill: 'Notre \u00e9quipe enqu\u00eatera et supprimera tout acc\u00e8s non autoris\u00e9. Pour retrouver l\u2019acc\u00e8s, vous devrez collaborer avec Concierge.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: '\u00C9chec du verrouillage du compte',

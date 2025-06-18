@@ -1632,14 +1632,13 @@ const translations = {
         mergeFailureGenericHeading: 'N\u00E3o \u00E9 poss\u00EDvel mesclar contas',
     },
     lockAccountPage: {
-        reportSuspiciousActivity: '',
+        reportSuspiciousActivity: 'Reportar atividade suspeita',
         lockAccount: 'Bloquear conta',
         unlockAccount: 'Desbloquear conta',
-        compromisedDescription:
-            'Se voc\u00EA suspeitar que sua conta Expensify foi comprometida, voc\u00EA pode bloque\u00E1-la para evitar novas transa\u00E7\u00F5es com o Cart\u00E3o Expensify e impedir altera\u00E7\u00F5es indesejadas na conta.',
-        domainAdminsDescription: 'Para administradores de dom\u00EDnio,',
-        areYouSure: 'Are you sure you want to lock your Expensify account?',
-        ourTeamWill: "Our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge.",
+        compromisedDescription: 'Notou algo estranho em sua conta? Relatar isso bloquear\u00e1 imediatamente sua conta, interromper\u00e1 novas transa\u00e7\u00f5es do Cart\u00e3o Expensify e impedir\u00e1 altera\u00e7\u00f5es na conta.',
+        domainAdminsDescription: 'Para administradores de dom\u00ednio: Isso tamb\u00e9m pausa toda a atividade do Cart\u00e3o Expensify e a\u00e7\u00f5es administrativas em seus dom\u00ednios.',
+        areYouSure: 'Tem certeza de que deseja bloquear sua conta Expensify?',
+        ourTeamWill: 'Nossa equipe investigar\u00e1 e remover\u00e1 qualquer acesso n\u00e3o autorizado. Para recuperar o acesso, ser\u00e1 necess\u00e1rio trabalhar com o Concierge.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Falha ao bloquear a conta',

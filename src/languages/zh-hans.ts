@@ -1677,14 +1677,13 @@ const translations = {
         mergeFailureGenericHeading: '\u65E0\u6CD5\u5408\u5E76\u8D26\u6237',
     },
     lockAccountPage: {
-        reportSuspiciousActivity: '',
+        reportSuspiciousActivity: '\\u62a5\\u544a\\u53ef\\u7591\\u6d3b\\u52a8',
         lockAccount: '\u9501\u5B9A\u8D26\u6237',
         unlockAccount: '\u89E3\u9501\u8D26\u6237',
-        compromisedDescription:
-            '\u5982\u679C\u60A8\u6000\u7591\u60A8\u7684Expensify\u8D26\u6237\u88AB\u76D7\u7528\uFF0C\u60A8\u53EF\u4EE5\u9501\u5B9A\u5B83\u4EE5\u9632\u6B62\u65B0\u7684Expensify\u5361\u4EA4\u6613\u5E76\u963B\u6B62\u4E0D\u5FC5\u8981\u7684\u8D26\u6237\u66F4\u6539\u3002',
-        domainAdminsDescription: '\u5BF9\u4E8E\u57DF\u7BA1\u7406\u5458\uFF0C',
-        areYouSure: 'Are you sure you want to lock your Expensify account?',
-        ourTeamWill: "Our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge.",
+        compromisedDescription: '\\u53d1\\u73b0\\u60a8\\u7684\\u8d26\\u6237\\u6709\\u5f02\\u5e38\\uff1f\\u62a5\\u544a\\u540e\\u5c06\\u7acb\\u5373\\u9501\\u5b9a\\u8d26\\u6237\\uff0c\\u963b\\u6b62\\u65b0\\u7684Expensify\\u5361\\u4ea4\\u6613\\uff0c\\u5e76\\u963b\\u6b62\\u4efb\\u4f55\\u8d26\\u6237\\u66f4\\u6539\\u3002',
+        domainAdminsDescription: '\\u5bf9\\u4e8e\\u57df\\u7ba1\\u7406\\u5458\\uff1a\\u8fd9\\u4e5f\\u4f1a\\u6682\\u505c\\u60a8\\u57df\\u4e2d\\u6240\\u6709Expensify\\u5361\\u6d3b\\u52a8\\u548c\\u7ba1\\u7406\\u5458\\u64cd\\u4f5c\\u3002',
+        areYouSure: '\u60a8\u786e\u5b9a\u8981\u9501\u5b9a\u60a8\u7684Expensify\u8d26\u6237\u5417\uff1f',
+        ourTeamWill: '\\u6211\\u4eec\\u7684\\u56e2\\u961f\\u5c06\\u8c03\\u67e5\\u5e76\\u79fb\\u9664\\u4efb\\u4f55\\u672a\\u7ecf\\u6388\\u6743\\u7684\\u8bbf\\u95ee\\u3002\\u82e5\\u8981\\u6062\\u590d\\u8bbf\\u95ee\\u6743\\u9650\\uff0c\\u60a8\\u9700\\u8981\\u4e0eConcierge\\u5408\\u4f5c\\u3002',
     },
     failedToLockAccountPage: {
         failedToLockAccount: '\u65E0\u6CD5\u9501\u5B9A\u8D26\u6237',

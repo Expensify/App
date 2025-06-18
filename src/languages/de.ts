@@ -1640,14 +1640,13 @@ const translations = {
         mergeFailureGenericHeading: 'Konten k\u00F6nnen nicht zusammengef\u00FChrt werden',
     },
     lockAccountPage: {
-        reportSuspiciousActivity: '',
+        reportSuspiciousActivity: 'Verd\u00e4chtige Aktivit\u00e4t melden',
         lockAccount: 'Konto sperren',
         unlockAccount: 'Konto entsperren',
-        compromisedDescription:
-            'Wenn Sie vermuten, dass Ihr Expensify-Konto kompromittiert wurde, k\u00F6nnen Sie es sperren, um neue Expensify Card-Transaktionen zu verhindern und unerw\u00FCnschte Konten\u00E4nderungen zu blockieren.',
-        domainAdminsDescription: 'F\u00FCr Domain-Administratoren,',
-        areYouSure: 'Are you sure you want to lock your Expensify account?',
-        ourTeamWill: "Our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge.",
+        compromisedDescription: 'Etwas stimmt nicht mit deinem Konto? Eine Meldung sperrt dein Konto sofort, stoppt neue Expensify Card-Transaktionen und verhindert \u00c4nderungen.',
+        domainAdminsDescription: 'F\u00fcr Domain-Administratoren: Dies pausiert auch alle Aktivit\u00e4ten und Admin-Aktionen der Expensify Card in deiner Domain.',
+        areYouSure: 'Bist du sicher, dass du dein Expensify-Konto sperren willst?',
+        ourTeamWill: 'Unser Team wird den Zugriff pr\u00fcfen und unbefugte Aktivit\u00e4ten entfernen. Um wieder Zugriff zu erhalten, arbeite bitte mit Concierge zusammen.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Konto konnte nicht gesperrt werden',
