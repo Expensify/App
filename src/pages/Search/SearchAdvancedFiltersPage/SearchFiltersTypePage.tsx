@@ -60,7 +60,6 @@ function SearchFiltersTypePage() {
             testID={SearchFiltersTypePage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
