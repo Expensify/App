@@ -6322,12 +6322,7 @@ const translations = {
             whatsMainReason: '您禁用自动续订的主要原因是什么？',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `续订日期为${date}。`,
             pricingConfiguration: '定价取决于配置。为了获得最低价格，请选择年度订阅并获取Expensify卡。',
-            learnMore: {
-                part1: '在我们的网页上了解更多信息',
-                pricingPage: '定价页面',
-                part2: '或用您的语言与我们的团队聊天',
-                adminsRoom: '#admins room.',
-            },
+            learnMore: `在我们的网页上了解更多信息  <a href=${CONST.PRICING}>定价页面</a>  或用您的语言与我们的团队聊天  <a>#admins room.</a>`,
             estimatedPrice: '预估价格',
             changesBasedOn: '这会根据您的 Expensify 卡使用情况和以下订阅选项而有所变化。',
         },
