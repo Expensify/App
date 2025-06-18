@@ -8,8 +8,9 @@ const TIMEOUT_MOUSE_ACTIVITY = 600_000;
 const TIMEOUT_FOCUS_TAB = 60_000;
 
 /**
- * Monitors user activity and controls their active/inactive status by joining/leaving the newDotWebPresence Pusher
- * channel.
+ * Monitors user activity on web/desktop and controls their active/inactive status by joining/leaving the
+ * newDotWebPresence Pusher channel. When users are active, they will not receive mobile push notifications since they
+ * should already be notified.
  */
 export default function PresenceController() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
