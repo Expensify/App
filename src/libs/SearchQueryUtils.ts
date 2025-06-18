@@ -355,7 +355,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     // When switching types/setting the type, ensure we aren't polluting our query with filters that are
     // only available for the previous type. Remove all filters that are not allowed for the new type
     if (type) {
-        const allowedFilters: string[] = ALLOWED_TYPE_FILTERS[type as SearchDataTypes];
+        const allowedFilters: string[] = ALLOWED_TYPE_FILTERS[type];
         const providedFilterKeys = Object.keys(otherFilters) as Array<keyof typeof otherFilters>;
 
         providedFilterKeys.forEach((filter) => {
