@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import type ReportActionItemMessageHeaderSenderProps from './types';
 
-function ReportActionItemMessageHeaderSender({fragmentText, accountID, delegateAccountID, actorIcon, isSingleLine}: ReportActionItemMessageHeaderSenderProps) {
+function ReportActionItemMessageHeaderSender({fragmentText, accountID, delegateAccountID, actorIcon, isSingleLine, shouldShowTooltip}: ReportActionItemMessageHeaderSenderProps) {
     const styles = useThemeStyles();
     const processedTextArray = useMemo(() => EmojiUtils.splitTextWithEmojis(fragmentText), [fragmentText]);
 
@@ -14,6 +14,7 @@ function ReportActionItemMessageHeaderSender({fragmentText, accountID, delegateA
             accountID={accountID}
             delegateAccountID={delegateAccountID}
             icon={actorIcon}
+            shouldRender={shouldShowTooltip}
         >
             <Text
                 numberOfLines={isSingleLine ? 1 : undefined}
