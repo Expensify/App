@@ -69,7 +69,7 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
             testID={SearchBooleanFilterBase.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
