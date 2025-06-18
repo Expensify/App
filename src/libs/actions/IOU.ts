@@ -206,7 +206,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Accountant, Attendee, Participant, Split, SplitExpense} from '@src/types/onyx/IOU';
-import type {ErrorFields, Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report';
@@ -383,6 +383,7 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     isTestDrive?: boolean;
     source?: string;
     pendingAction?: PendingAction;
+    pendingFields?: PendingFields<string>;
 };
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
@@ -3261,6 +3262,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         billable,
         linkedTrackedExpenseReportAction,
         pendingAction,
+        pendingFields = {},
     } = transactionParams;
 
     const payerEmail = addSMSDomainIfPhoneNumber(participant.login ?? '');
@@ -3345,7 +3347,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             taxAmount: isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
             billable,
             pendingAction,
-            pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+            pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, ...pendingFields} : pendingFields,
         },
     });
 
@@ -11619,6 +11621,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                 source: CONST.IOU.TYPE.SPLIT,
                 linkedTrackedExpenseReportAction: currentReportAction,
                 pendingAction: splitTransaction ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                pendingFields: splitTransaction ? splitTransaction.pendingFields : undefined,
             },
             parentChatReport: getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
             existingTransaction: originalTransaction,
