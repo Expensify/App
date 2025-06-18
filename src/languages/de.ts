@@ -2408,11 +2408,8 @@ const translations = {
         toGetStarted: 'Fügen Sie ein Bankkonto hinzu, um Ausgaben zu erstatten, Expensify-Karten auszustellen, Rechnungszahlungen zu sammeln und Rechnungen von einem Ort aus zu bezahlen.',
         plaidBodyCopy: 'Geben Sie Ihren Mitarbeitern eine einfachere Möglichkeit, Unternehmensausgaben zu bezahlen - und zurückerstattet zu werden.',
         checkHelpLine: 'Ihre Bankleitzahl und Kontonummer finden Sie auf einem Scheck für das Konto.',
-        hasPhoneLoginError: {
-            phrase1: 'Um ein Bankkonto zu verbinden, bitte',
-            link: 'Fügen Sie eine E-Mail als Ihren primären Login hinzu',
-            phrase2: 'und versuchen Sie es erneut. Sie können Ihre Telefonnummer als sekundären Login hinzufügen.',
-        },
+        hasPhoneLoginError:
+            'Um ein Bankkonto zu verbinden, bitte <a>Fügen Sie eine E-Mail als Ihren primären Login hinzu</a> und versuchen Sie es erneut. Sie können Ihre Telefonnummer als sekundären Login hinzufügen.',
         hasBeenThrottledError: 'Beim Hinzufügen Ihres Bankkontos ist ein Fehler aufgetreten. Bitte warten Sie ein paar Minuten und versuchen Sie es erneut.',
         hasCurrencyError: {
             phrase1: 'Ups! Es scheint, dass die Währung Ihres Arbeitsbereichs auf eine andere Währung als USD eingestellt ist. Um fortzufahren, gehen Sie bitte zu',

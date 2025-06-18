@@ -2388,11 +2388,8 @@ const translations = {
         toGetStarted: 'Dodaj konto bankowe, aby zwracać wydatki, wydawać karty Expensify, pobierać płatności za faktury i opłacać rachunki wszystko z jednego miejsca.',
         plaidBodyCopy: 'Daj swoim pracownikom łatwiejszy sposób na płacenie - i otrzymywanie zwrotu - za wydatki firmowe.',
         checkHelpLine: 'Twój numer rozliczeniowy i numer konta można znaleźć na czeku dla tego konta.',
-        hasPhoneLoginError: {
-            phrase1: 'Aby połączyć konto bankowe, proszę',
-            link: 'dodaj e-mail jako swoje główne dane logowania',
-            phrase2: 'i spróbuj ponownie. Możesz dodać swój numer telefonu jako dodatkowy login.',
-        },
+        hasPhoneLoginError:
+            'Aby połączyć konto bankowe, proszę <a>dodaj e-mail jako swoje główne dane logowania</a> i spróbuj ponownie. Możesz dodać swój numer telefonu jako dodatkowy login.',
         hasBeenThrottledError: 'Wystąpił błąd podczas dodawania Twojego konta bankowego. Proszę poczekać kilka minut i spróbować ponownie.',
         hasCurrencyError: {
             phrase1: 'Ups! Wygląda na to, że waluta Twojego miejsca pracy jest ustawiona na inną niż USD. Aby kontynuować, przejdź do',
