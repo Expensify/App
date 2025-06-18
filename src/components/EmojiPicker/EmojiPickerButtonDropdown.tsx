@@ -25,11 +25,12 @@ type EmojiPickerButtonDropdownProps = {
     value?: string;
     disabled?: boolean;
     style: StyleProp<ViewStyle>;
+    withoutOverlay?: boolean;
 };
 
 function EmojiPickerButtonDropdown(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    {isDisabled = false, onModalHide, onInputChange, value, disabled, style, ...otherProps}: EmojiPickerButtonDropdownProps,
+    {isDisabled = false, withoutOverlay = false, onModalHide, onInputChange, value, disabled, style, ...otherProps}: EmojiPickerButtonDropdownProps,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ref: ForwardedRef<AnimatedTextInputRef>,
 ) {
@@ -57,6 +58,7 @@ function EmojiPickerButtonDropdown(
             () => {},
             undefined,
             value,
+            withoutOverlay,
         );
     };
 
