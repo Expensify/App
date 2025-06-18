@@ -1,6 +1,5 @@
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx';
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
@@ -21,29 +20,32 @@ export default createOnyxDerivedValueConfig({
             );
         }
 
-        return transactionsToProcess.reduce<ReportTransactionsAndViolationsDerivedValue>((acc, transactionKey) => {
+        const reportTransactionsAndViolations = currentValue ?? {};
+        for (const transactionKey of transactionsToProcess) {
             const transaction = transactions[transactionKey];
             const reportID = transaction?.reportID;
             if (!reportID) {
-                return acc;
+                // eslint-disable-next-line no-continue
+                continue;
             }
 
-            if (!acc[reportID]) {
-                acc[reportID] = {
+            if (!reportTransactionsAndViolations[reportID]) {
+                reportTransactionsAndViolations[reportID] = {
                     transactions: {},
                     violations: {},
                 };
             }
+
             const transactionID = transaction.transactionID;
             const transactionViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
             if (transactionViolations && transactionViolations.length > 0) {
-                acc[reportID].violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = transactionViolations;
+                reportTransactionsAndViolations[reportID].violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = transactionViolations;
             }
 
-            acc[reportID].transactions[transactionKey] = transaction;
+            reportTransactionsAndViolations[reportID].transactions[transactionKey] = transaction;
+        }
 
-            return acc;
-        }, currentValue ?? {});
+        return reportTransactionsAndViolations;
     },
 });
