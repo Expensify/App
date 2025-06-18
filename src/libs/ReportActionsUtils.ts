@@ -745,8 +745,8 @@ function isActionableReportMentionWhisper(reportAction: OnyxEntry<ReportAction>)
  * Checks if a given report action corresponds to a welcome whisper.
  * @param reportAction
  */
-function isExpenseChatWelcomeWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPENSE_CHAT_WELCOME_WHISPER> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.EXPENSE_CHAT_WELCOME_WHISPER);
+function isExpenseChatWelcomeWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_EXPENSE_CHAT_WELCOME_WHISPER> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_EXPENSE_CHAT_WELCOME_WHISPER);
 }
 
 /**
