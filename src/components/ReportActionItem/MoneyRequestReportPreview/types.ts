@@ -20,7 +20,7 @@ type MoneyRequestReportPreviewStyleType = {
     transactionPreviewStandaloneStyle: TransactionPreviewStandaloneStyle;
     componentStyle: StyleProp<ViewStyle>;
     expenseCountVisible: boolean;
-    transactionWidth: string | number;
+    transactionWidth: number;
 };
 
 type MoneyRequestReportPreviewProps = {
