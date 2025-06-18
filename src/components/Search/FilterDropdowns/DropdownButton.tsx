@@ -62,7 +62,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
     const toggleOverlay = () => {
         setIsOverlayVisible((previousValue) => {
             if (!previousValue && willAlertModalBecomeVisible) {
-                return previousValue;
+                return false;
             }
             triggerRef.current?.measureInWindow((x, y, _, height) => {
                 setPopoverTriggerPosition({
