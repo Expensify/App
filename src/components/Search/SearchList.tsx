@@ -4,7 +4,7 @@ import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated from 'react-native-reanimated';
+import Animated, {Easing, LinearTransition} from 'react-native-reanimated';
 import type {FlatListPropsWithLayout} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -32,6 +32,8 @@ import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/Keyboar
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
 type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem | typeof TaskListItem;
@@ -70,6 +72,9 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
     /** Whether to prevent long press of options */
     shouldPreventLongPressRow?: boolean;
 
+    /** Whether to animate the items in the list */
+    shouldAnimate?: boolean;
+
     /** The hash of the queryJSON */
     queryJSONHash: number;
 
@@ -106,6 +111,7 @@ function SearchList(
         shouldGroupByReports,
         onViewableItemsChanged,
         onLayout,
+        shouldAnimate,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -411,6 +417,7 @@ function SearchList(
                 onViewableItemsChanged={onViewableItemsChanged}
                 onScrollToIndexFailed={onScrollToIndexFailed}
                 onLayout={onLayout}
+                itemLayoutAnimation={shouldAnimate ? LinearTransition.duration(400).easing(easing) : undefined}
             />
             <Modal
                 isVisible={isModalVisible}
