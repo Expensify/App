@@ -37,8 +37,6 @@ function SearchFiltersWorkspacePage() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
-    console.debug(searchAdvancedFiltersForm, 'searchAdvancedFiltersForm?.policyID');
-
     const [selectedOptions, setSelectedOptions] = useState<string[]>(() => (searchAdvancedFiltersForm?.policyID ? Array.from(searchAdvancedFiltersForm?.policyID) : []));
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
@@ -53,8 +51,6 @@ function SearchFiltersWorkspacePage() {
         (option: WorkspaceListItem) => {
             const optionIndex = selectedOptions.findIndex((selectedOption: string) => {
                 const matchesPolicyId = selectedOption && selectedOption === option?.policyID;
-                // Below is just a boolean expression.
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 return matchesPolicyId;
             });
 
