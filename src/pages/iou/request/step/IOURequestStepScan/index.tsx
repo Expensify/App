@@ -386,7 +386,7 @@ function IOURequestStepScan({
     }, [currentUserPersonalDetails, initialTransaction, reportID]);
 
     const createTransaction = useCallback(
-        (files: ReceiptFile[], participant: Participant, gpsPoints?: GpsPoint, policyParams?: {policy: OnyxEntry<Policy>}, billable?: boolean) => {
+        (files: ReceiptFile[], participant: Participant, gpsPoints?: GpsPoint, policyParams?: {policy: OnyxEntry<Policy>}, billable?: boolean, reimbursable = true) => {
             files.forEach((receiptFile: ReceiptFile, index) => {
                 const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
                 const receipt: Receipt = receiptFile.file ?? {};
@@ -407,6 +407,7 @@ function IOURequestStepScan({
                             created: transaction?.created,
                             receipt,
                             billable,
+                            reimbursable,
                             ...(gpsPoints ?? {}),
                         },
                         ...(policyParams ?? {}),
@@ -430,6 +431,7 @@ function IOURequestStepScan({
                             merchant: '',
                             receipt,
                             billable,
+                            reimbursable,
                         },
                         shouldHandleNavigation: index === files.length - 1,
                         backToReport,
@@ -516,7 +518,7 @@ function IOURequestStepScan({
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
                                 };
-                                createTransaction(files, participant, gpsPoints, policyParams, false);
+                                createTransaction(files, participant, gpsPoints, policyParams, false, true);
                             },
                             (errorData) => {
                                 Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
