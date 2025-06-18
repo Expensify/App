@@ -5,7 +5,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
+import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -93,7 +93,7 @@ function SearchFiltersWorkspacePage() {
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     ) : (
                         <SelectionList<WorkspaceListItem>
-                            ListItem={UserSelectionListItem}
+                            ListItem={UserListItem}
                             sections={sections}
                             canSelectMultiple
                             shouldUseDefaultRightHandSideCheckmark
