@@ -16,7 +16,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
+import {openSearch, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -177,9 +177,12 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
         clearSelectedTransactions(hash);
         setCurrentSearchHash(hash);
-    }, [hash, clearSelectedTransactions, setCurrentSearchHash]);
+    }, [hash, clearSelectedTransactions, setCurrentSearchHash, isFocused]);
 
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
@@ -217,12 +220,15 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     }, [isSmallScreenWidth, selectedTransactions, selectionMode?.isEnabled]);
 
     useEffect(() => {
-        if (isOffline) {
+        if (isOffline || !isFocused) {
             return;
         }
-
         handleSearch({queryJSON, offset});
-    }, [handleSearch, isOffline, offset, queryJSON]);
+    }, [handleSearch, isOffline, offset, queryJSON, isFocused]);
+
+    useEffect(() => {
+        openSearch();
+    }, []);
 
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
         searchResults,
@@ -519,7 +525,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         );
     }
 
-    if (shouldShowEmptyState(isDataLoaded, data.length, searchResults.search.type)) {
+    const visibleDataLength = data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
+    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults.search.type)) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
