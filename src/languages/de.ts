@@ -1631,13 +1631,13 @@ const translations = {
         mergeFailureGenericHeading: 'Konten können nicht zusammengeführt werden',
     },
     lockAccountPage: {
-        reportSuspiciousActivity: 'Verd\u00e4chtige Aktivit\u00e4t melden',
+        reportSuspiciousActivity: 'Verdächtige Aktivität melden',
         lockAccount: 'Konto sperren',
         unlockAccount: 'Konto entsperren',
-        compromisedDescription: 'Etwas stimmt nicht mit deinem Konto? Eine Meldung sperrt dein Konto sofort, stoppt neue Expensify Card-Transaktionen und verhindert \u00c4nderungen.',
-        domainAdminsDescription: 'F\u00fcr Domain-Administratoren: Dies pausiert auch alle Aktivit\u00e4ten und Admin-Aktionen der Expensify Card in deiner Domain.',
+        compromisedDescription: 'Etwas stimmt nicht mit deinem Konto? Eine Meldung sperrt dein Konto sofort, stoppt neue Expensify Card-Transaktionen und verhindert Änderungen.',
+        domainAdminsDescription: 'Für Domain-Admins: Dies pausiert auch alle Aktivitäten und Admin-Aktionen der Expensify Card in deiner Domain.',
         areYouSure: 'Bist du sicher, dass du dein Expensify-Konto sperren willst?',
-        ourTeamWill: 'Unser Team wird den Zugriff pr\u00fcfen und unbefugte Aktivit\u00e4ten entfernen. Um wieder Zugriff zu erhalten, arbeite bitte mit Concierge zusammen.',
+        ourTeamWill: 'Unser Team wird den Zugriff prüfen und unbefugte Aktivitäten entfernen. Um wieder Zugriff zu erhalten, arbeite bitte mit Concierge zusammen.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Konto konnte nicht gesperrt werden',

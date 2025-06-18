@@ -1624,10 +1624,11 @@ const translations = {
         reportSuspiciousActivity: 'Reportar atividade suspeita',
         lockAccount: 'Bloquear conta',
         unlockAccount: 'Desbloquear conta',
-        compromisedDescription: 'Notou algo estranho em sua conta? Relatar isso bloquear\u00e1 imediatamente sua conta, interromper\u00e1 novas transa\u00e7\u00f5es do Cart\u00e3o Expensify e impedir\u00e1 altera\u00e7\u00f5es na conta.',
-        domainAdminsDescription: 'Para administradores de dom\u00ednio: Isso tamb\u00e9m pausa toda a atividade do Cart\u00e3o Expensify e a\u00e7\u00f5es administrativas em seus dom\u00ednios.',
+        compromisedDescription:
+            'Notou algo estranho em sua conta? Relatar isso bloqueará imediatamente sua conta, interromperá novas transações do Cartão Expensify e impedirá alterações na conta.',
+        domainAdminsDescription: 'Para administradores de domínio: Isso também pausa toda a atividade do Cartão Expensify e ações administrativas em seus domínios.',
         areYouSure: 'Tem certeza de que deseja bloquear sua conta Expensify?',
-        ourTeamWill: 'Nossa equipe investigar\u00e1 e remover\u00e1 qualquer acesso n\u00e3o autorizado. Para recuperar o acesso, ser\u00e1 necess\u00e1rio trabalhar com o Concierge.',
+        ourTeamWill: 'Nossa equipe investigará e removerá qualquer acesso não autorizado. Para recuperar o acesso, será necessário trabalhar com o Concierge.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Falha ao bloquear a conta',

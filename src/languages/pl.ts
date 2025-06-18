@@ -1620,13 +1620,13 @@ const translations = {
         mergeFailureGenericHeading: 'Nie można połączyć kont',
     },
     lockAccountPage: {
-        reportSuspiciousActivity: 'Zg\u0142o\u015b podejrzan\u0105 aktywno\u015b\u0107',
+        reportSuspiciousActivity: 'Zgłoś podejrzaną aktywność',
         lockAccount: 'Zablokuj konto',
         unlockAccount: 'Odblokuj konto',
-        compromisedDescription: 'Zauwa\u017cy\u0142e\u015b co\u015b podejrzanego? Zg\u0142oszenie spowoduje natychmiastowe zablokowanie konta, zatrzymanie transakcji kart\u0105 Expensify i uniemo\u017cliwienie zmian.',
-        domainAdminsDescription: 'Dla administrator\u00f3w domen: wstrzymuje to r\u00f3wnie\u017c wszystkie dzia\u0142ania kart Expensify i dzia\u0142ania administracyjne w Twoich domenach.',
-        areYouSure: 'Czy na pewno chcesz zablokowa\u0107 swoje konto Expensify?',
-        ourTeamWill: 'Nasz zesp\u00f3\u0142 zbada spraw\u0119 i usunie nieautoryzowany dost\u0119p. Aby odzyska\u0107 dost\u0119p, musisz wsp\u00f3\u0142pracowa\u0107 z Concierge.',
+        compromisedDescription: 'Zauważyłeś coś podejrzanego? Zgłoszenie spowoduje natychmiastowe zablokowanie konta, zatrzymanie transakcji kartą Expensify i uniemożliwienie zmian.',
+        domainAdminsDescription: 'Dla administratorów domen: wstrzymuje to również wszystkie działania kart Expensify i działania administracyjne w Twoich domenach.',
+        areYouSure: 'Czy na pewno chcesz zablokować swoje konto Expensify?',
+        ourTeamWill: 'Nasz zespół zbada sprawę i usunie nieautoryzowany dostęp. Aby odzyskać dostęp, musisz współpracować z Concierge.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Nie udało się zablokować konta',
