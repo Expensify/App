@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.1.68-2",
+  "version": "9.1.68-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -329,7 +329,7 @@
     "memfs": "^4.6.0",
     "nitro-codegen": "0.25.2",
     "onchange": "^7.1.0",
-    "openai": "^4.47.2",
+    "openai": "5.5.1",
     "patch-package": "^8.1.0-canary.1",
     "peggy": "^4.0.3",
     "portfinder": "^1.0.28",
