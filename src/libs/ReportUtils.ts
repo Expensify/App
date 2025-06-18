@@ -2296,7 +2296,7 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): bo
 function isOneTransactionReport(report: OnyxEntry<Report>): boolean {
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? ([] as ReportAction[]);
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-    return getOneTransactionThreadReportID(report, chatReport, reportActions) !== null;
+    return !!getOneTransactionThreadReportID(report, chatReport, reportActions);
 }
 
 /*
