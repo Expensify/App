@@ -5,11 +5,11 @@ type TripData = {
     /**
      * Information about the payment for the trip, including the total fare.
      */
-    tripPaymentInfo: {
+    tripPaymentInfo?: {
         /**
          * The total fare for the trip, including the amount and currency code.
          */
-        totalFare: {
+        totalFare?: {
             /**
              * The monetary amount of the total fare.
              */

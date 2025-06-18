@@ -427,8 +427,8 @@ function getTripTotal(tripReport: Report): {
 } {
     if (tripReport?.tripData?.payload) {
         return {
-            totalDisplaySpend: tripReport.tripData.payload.tripPaymentInfo.totalFare.amount * 100,
-            currency: tripReport.tripData.payload.tripPaymentInfo.totalFare.currencyCode,
+            totalDisplaySpend: (tripReport.tripData.payload.tripPaymentInfo?.totalFare?.amount ?? 0) * 100,
+            currency: tripReport.tripData.payload.tripPaymentInfo?.totalFare?.currencyCode,
         };
     }
 
