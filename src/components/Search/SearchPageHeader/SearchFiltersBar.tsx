@@ -15,10 +15,11 @@ import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/Dro
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
+import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
+import type {SearchGroupBy, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -29,19 +30,84 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates} from '@libs/PolicyUtils';
+import {canSendInvoice, getAllTaxRates} from '@libs/PolicyUtils';
+import {hasInvoiceReports} from '@libs/ReportUtils';
 import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
 type SearchFiltersBarProps = {
     queryJSON: SearchQueryJSON;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
 };
+
+const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
+    {translation: 'common.expense', value: CONST.SEARCH.DATA_TYPES.EXPENSE},
+    {translation: 'common.chat', value: CONST.SEARCH.DATA_TYPES.CHAT},
+    {translation: 'common.invoice', value: CONST.SEARCH.DATA_TYPES.INVOICE},
+    {translation: 'common.trip', value: CONST.SEARCH.DATA_TYPES.TRIP},
+    {translation: 'common.task', value: CONST.SEARCH.DATA_TYPES.TASK},
+];
+
+const expenseStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
+    {translation: 'common.unreported', value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
+    {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
+    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
+    {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
+    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
+    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
+];
+
+const expenseReportStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
+    {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
+    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
+    {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
+    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
+    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
+];
+
+const chatStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
+    {translation: 'common.unread', value: CONST.SEARCH.STATUS.CHAT.UNREAD},
+    {translation: 'common.sent', value: CONST.SEARCH.STATUS.CHAT.SENT},
+    {translation: 'common.attachments', value: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS},
+    {translation: 'common.links', value: CONST.SEARCH.STATUS.CHAT.LINKS},
+    {translation: 'search.filters.pinned', value: CONST.SEARCH.STATUS.CHAT.PINNED},
+];
+
+const invoiceStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
+    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.INVOICE.OUTSTANDING},
+    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.INVOICE.PAID},
+];
+
+const tripStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
+    {translation: 'search.filters.current', value: CONST.SEARCH.STATUS.TRIP.CURRENT},
+    {translation: 'search.filters.past', value: CONST.SEARCH.STATUS.TRIP.PAST},
+];
+
+const taskStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
+    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.TASK.OUTSTANDING},
+    {translation: 'search.filters.completed', value: CONST.SEARCH.STATUS.TASK.COMPLETED},
+];
+
+function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
+    switch (type) {
+        case CONST.SEARCH.DATA_TYPES.CHAT:
+            return chatStatusOptions;
+        case CONST.SEARCH.DATA_TYPES.INVOICE:
+            return invoiceStatusOptions;
+        case CONST.SEARCH.DATA_TYPES.TRIP:
+            return tripStatusOptions;
+        case CONST.SEARCH.DATA_TYPES.TASK:
+            return taskStatusOptions;
+        case CONST.SEARCH.DATA_TYPES.EXPENSE:
+        default:
+            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS ? expenseReportStatusOptions : expenseStatusOptions;
+    }
+}
 
 function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarProps) {
     const {hash, type, groupBy, status} = queryJSON;
@@ -73,8 +139,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || (!!selectionMode && selectionMode.isEnabled));
-
-    const typeOptions = useMemo(() => getTypeOptions(allPolicies, session?.email), [allPolicies, session?.email]);
 
     const filterFormValues = useMemo(() => {
         return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
@@ -110,17 +174,23 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         ({closeOverlay}: PopoverComponentProps) => {
             const value = typeOptions.find((option) => option.value === type) ?? null;
 
+            // Remove the invoice option if the user is not allowed to send invoices
+            let visibleOptions = typeOptions;
+            if (!canSendInvoice(allPolicies, session?.email) && !hasInvoiceReports()) {
+                visibleOptions = visibleOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE);
+            }
+
             return (
                 <SingleSelectPopup
                     label={translate('common.type')}
                     value={value}
-                    items={typeOptions}
+                    items={visibleOptions}
                     closeOverlay={closeOverlay}
                     onChange={(item) => updateFilterForm({type: item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE})}
                 />
             );
         },
-        [translate, type, typeOptions, updateFilterForm],
+        [allPolicies, session?.email, translate, type, updateFilterForm],
     );
 
     const statusComponent = useCallback(
@@ -230,13 +300,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
         return filterList;
     }, [
-        typeOptions,
         type,
         groupBy,
+        filterFormValues.from,
         filterFormValues.dateAfter,
         filterFormValues.dateBefore,
         filterFormValues.dateOn,
-        filterFormValues.from,
         translate,
         typeComponent,
         statusComponent,
