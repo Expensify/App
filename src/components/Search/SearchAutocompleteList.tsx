@@ -19,7 +19,7 @@ import {getCardFeedKey, getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import memoize from '@libs/memoize';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
-import {combineOrderingOfReportsAndPersonalDetails, getMostRecentOptions, getSearchOptions, getValidPersonalDetailOptions, recentReportComparator} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, optionsOrderBy, getSearchOptions, getValidPersonalDetailOptions, recentReportComparator} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -354,7 +354,7 @@ function SearchAutocompleteList(
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
                 const filterChats = (chat: OptionData) => chat.text?.toLowerCase()?.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(chat.text.toLowerCase());
-                const filteredChats = getMostRecentOptions(searchOptions.recentReports, 10, recentReportComparator, filterChats);
+                const filteredChats = optionsOrderBy(searchOptions.recentReports, 10, recentReportComparator, filterChats);
 
                 return filteredChats.map((chat) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
@@ -498,7 +498,7 @@ function SearchAutocompleteList(
     const recentReportsOptions = useMemo(() => {
         Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
         if (autocompleteQueryValue.trim() === '' || !isFastSearchInitialized) {
-            const orderedReportOptions = getMostRecentOptions(searchOptions.recentReports, 20, recentReportComparator);
+            const orderedReportOptions = optionsOrderBy(searchOptions.recentReports, 20, recentReportComparator);
             Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
             return orderedReportOptions;
         }

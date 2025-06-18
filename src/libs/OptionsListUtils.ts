@@ -1286,7 +1286,7 @@ const recentReportComparator = (option: OptionData) => {
     return `${option.private_isArchived ? 0 : 1}_${option.lastVisibleActionCreated ?? ''}`;
 };
 
-function getMostRecentOptions(options: OptionData[], limit: number, comparator: (option: OptionData) => number | string, filter?: (option: OptionData) => boolean | undefined): OptionData[] {
+function optionsOrderBy(options: OptionData[], limit: number, comparator: (option: OptionData) => number | string, filter?: (option: OptionData) => boolean | undefined): OptionData[] {
     Timing.start(CONST.TIMING.SEARCH_MOST_RECENT_OPTIONS);
     const heap = new MinHeap<OptionData>(comparator);
     options.forEach((option) => {
@@ -2639,7 +2639,7 @@ export {
     isMakingLastRequiredTagListOptional,
     processReport,
     shallowOptionsListCompare,
-    getMostRecentOptions,
+    optionsOrderBy,
     recentReportComparator,
 };
 

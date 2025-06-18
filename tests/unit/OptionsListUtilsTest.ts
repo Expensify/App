@@ -13,7 +13,7 @@ import {
     formatMemberForList,
     getLastActorDisplayName,
     getMemberInviteOptions,
-    getMostRecentOptions,
+    optionsOrderBy,
     getSearchOptions,
     getShareDestinationOptions,
     getShareLogOptions,
@@ -1798,7 +1798,7 @@ describe('OptionsListUtils', () => {
                 {reportID: '4', lastVisibleActionCreated: '2022-01-01T13:00:00Z'} as OptionData,
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
-            const result = getMostRecentOptions(options, 2, comparator);
+            const result = optionsOrderBy(options, 2, comparator);
             expect(result.length).toBe(2);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(result.at(0)!.reportID).toBe('4');
@@ -1812,7 +1812,7 @@ describe('OptionsListUtils', () => {
                 {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
-            const result = getMostRecentOptions(options, 5, comparator);
+            const result = optionsOrderBy(options, 5, comparator);
             expect(result.length).toBe(2);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(result.at(0)!.reportID).toBe('2');
@@ -1821,7 +1821,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('returns empty array if options is empty', () => {
-            const result = getMostRecentOptions([], 3, recentReportComparator);
+            const result = optionsOrderBy([], 3, recentReportComparator);
             expect(result).toEqual([]);
         });
 
@@ -1832,7 +1832,7 @@ describe('OptionsListUtils', () => {
                 {reportID: '3', lastVisibleActionCreated: '2022-01-01T09:00:00Z', isPinned: true} as OptionData,
             ];
             const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
-            const result = getMostRecentOptions(options, 2, comparator, (option) => option.isPinned);
+            const result = optionsOrderBy(options, 2, comparator, (option) => option.isPinned);
             expect(result.length).toBe(2);
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             expect(result.at(0)!.reportID).toBe('1');
