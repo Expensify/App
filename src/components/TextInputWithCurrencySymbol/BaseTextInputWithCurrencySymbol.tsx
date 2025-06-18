@@ -31,7 +31,6 @@ function BaseTextInputWithCurrencySymbol(
     const currencySymbol = getLocalizedCurrencySymbol(selectedCurrencyCode);
     const styles = useThemeStyles();
 
-
     /**
      * Set a new amount value properly formatted
      *
@@ -44,11 +43,13 @@ function BaseTextInputWithCurrencySymbol(
 
     return (
         <>
-            {!hideCurrencySymbol && <CurrencySymbolButton
-                currencySymbol={currencySymbol ?? ''}
-                onCurrencyButtonPress={onCurrencyButtonPress}
-                isCurrencyPressable={isCurrencyPressable}
-            />}
+            {!hideCurrencySymbol && (
+                <CurrencySymbolButton
+                    currencySymbol={currencySymbol ?? ''}
+                    onCurrencyButtonPress={onCurrencyButtonPress}
+                    isCurrencyPressable={isCurrencyPressable}
+                />
+            )}
             <AmountTextInput
                 formattedAmount={formattedAmount}
                 onChangeAmount={setFormattedAmount}
