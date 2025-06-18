@@ -32,8 +32,6 @@ function SearchFiltersTagPage() {
         ?.map((key) => getTagNamesFromTagsLists(allPolicyTagLists?.[key] ?? {}))
         .flat();
 
-    console.debug('selectedPoliciesTagLists', selectedPoliciesTagLists);
-
     const tagItems = useMemo(() => {
         const items = [{name: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string}];
         const uniqueTagNames = new Set<string>();
