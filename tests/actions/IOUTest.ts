@@ -32,7 +32,7 @@ import {
     updateSplitExpenseAmountField,
 } from '@libs/actions/IOU';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
-import {addComment, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
+import {addComment, createNewReport, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ReportActions';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -63,7 +63,7 @@ import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
 import type {Accountant} from '@src/types/onyx/IOU';
 import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
@@ -72,6 +72,7 @@ import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {changeTransactionsReport} from '../../src/libs/actions/Transaction';
 import * as InvoiceData from '../data/Invoice';
 import type {InvoiceTestData} from '../data/Invoice';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
@@ -6137,6 +6138,117 @@ describe('actions/IOU', () => {
             });
 
             expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
+        });
+    });
+
+    describe('changeTransactionsReport', () => {
+        it('should set the correct optimistic onyx data for reporting a tracked expense', async () => {
+            let personalDetailsList: OnyxEntry<PersonalDetailsList>;
+            let expenseReport: OnyxEntry<Report>;
+            let transaction: OnyxEntry<Transaction>;
+
+            // Given a signed in account, which owns a workspace, and has a policy expense chat
+            Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            const creatorPersonalDetails = personalDetailsList?.[CARLOS_ACCOUNT_ID] ?? {accountID: CARLOS_ACCOUNT_ID};
+
+            const policyID = generatePolicyID();
+            createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+            createNewReport(creatorPersonalDetails, policyID);
+            // Create a tracked expense
+            const selfDMReport: Report = {
+                ...createRandomReport(1),
+                reportID: '10',
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            };
+
+            const amount = 100;
+
+            trackExpense({
+                report: selfDMReport,
+                isDraftPolicy: true,
+                action: CONST.IOU.ACTION.CREATE,
+                participantParams: {
+                    payeeEmail: RORY_EMAIL,
+                    payeeAccountID: RORY_ACCOUNT_ID,
+                    participant: {accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount,
+                    currency: CONST.CURRENCY.USD,
+                    created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                    merchant: 'merchant',
+                    billable: false,
+                },
+            });
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    transaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (allReports) => {
+                    expenseReport = Object.values(allReports ?? {}).find((r) => r?.type === CONST.REPORT.TYPE.EXPENSE);
+                },
+            });
+
+            let iouReportActionOnSelfDMReport: OnyxEntry<ReportAction>;
+            let trackExpenseActionableWhisper: OnyxEntry<ReportAction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                waitForCollectionCallback: true,
+                callback: (allReportActions) => {
+                    iouReportActionOnSelfDMReport = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`] ?? {}).find(
+                        (r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU,
+                    );
+                    trackExpenseActionableWhisper = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport?.reportID}`] ?? {}).find(
+                        (r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
+                    );
+                },
+            });
+
+            expect(isMoneyRequestAction(iouReportActionOnSelfDMReport) ? getOriginalMessage(iouReportActionOnSelfDMReport)?.IOUTransactionID : undefined).toBe(transaction?.transactionID);
+            expect(trackExpenseActionableWhisper).toBeDefined();
+
+            if (!transaction || !expenseReport) {
+                return;
+            }
+
+            changeTransactionsReport([transaction?.transactionID], expenseReport?.reportID);
+
+            let updatedTransaction: OnyxEntry<Transaction>;
+            let updatedIOUReportActionOnSelfDMReport: OnyxEntry<ReportAction>;
+            let updatedTrackExpenseActionableWhisper: OnyxEntry<ReportAction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    updatedTransaction = Object.values(allTransactions ?? {}).find((t) => t?.transactionID === transaction?.transactionID);
+                },
+            });
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                waitForCollectionCallback: true,
+                callback: (allReportActions) => {
+                    updatedIOUReportActionOnSelfDMReport = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`] ?? {}).find(
+                        (r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU,
+                    );
+                    updatedTrackExpenseActionableWhisper = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport?.reportID}`] ?? {}).find(
+                        (r) => r?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
+                    );
+                },
+            });
+
+            expect(updatedTransaction?.reportID).toBe(expenseReport?.reportID);
+            expect(isMoneyRequestAction(updatedIOUReportActionOnSelfDMReport) ? getOriginalMessage(updatedIOUReportActionOnSelfDMReport)?.IOUTransactionID : undefined).toBe(undefined);
+            expect(updatedTrackExpenseActionableWhisper).toBe(undefined);
         });
     });
 });
