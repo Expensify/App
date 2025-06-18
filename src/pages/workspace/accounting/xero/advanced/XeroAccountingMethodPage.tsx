@@ -1,25 +1,23 @@
-import React, { useCallback, useMemo } from 'react';
-import { View } from 'react-native';
-import { CONST as COMMON_CONST } from 'expensify-common';
-import type { ValueOf } from 'type-fest';
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import type { ListItem } from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
-import type { SelectorType } from '@components/SelectionScreen';
+import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { updateXeroAccountingMethod } from '@libs/actions/connections/Xero';
+import {updateXeroAccountingMethod} from '@libs/actions/connections/Xero';
 import Navigation from '@libs/Navigation/Navigation';
-import { settingsPendingAction } from '@libs/PolicyUtils';
-import type { WithPolicyConnectionsProps } from '@pages/workspace/withPolicyConnections';
+import {settingsPendingAction} from '@libs/PolicyUtils';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import type { TranslationPaths } from '@src/languages/types';
-import type { Route } from '@src/ROUTES';
+import type {TranslationPaths} from '@src/languages/types';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-
-// ... existing code ...
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
@@ -27,7 +25,7 @@ type MenuListItem = ListItem & {
 
 type XeroAccountingMethodPageRouteParams = {
     backTo?: Route;
-}
+};
 
 function XeroAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -45,8 +43,7 @@ function XeroAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
         isSelected: accountingMethod === accountingMethodType,
     }));
 
-    const pendingAction =
-        settingsPendingAction([CONST.XERO_CONFIG.AUTO_SYNC], config?.pendingFields) ?? settingsPendingAction([CONST.XERO_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
+    const pendingAction = settingsPendingAction([CONST.XERO_CONFIG.AUTO_SYNC], config?.pendingFields) ?? settingsPendingAction([CONST.XERO_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
 
     const headerContent = useMemo(
         () => (
@@ -65,8 +62,7 @@ function XeroAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.getRoute(policyID, backTo));
         },
         [accountingMethod, policyID, backTo],
-    )
-    
+    );
 
     return (
         <SelectionScreen
@@ -84,7 +80,7 @@ function XeroAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             pendingAction={pendingAction}
         />
-    )
+    );
 }
 
 XeroAccountingMethodPage.displayName = 'XeroAccountingMethodPage';

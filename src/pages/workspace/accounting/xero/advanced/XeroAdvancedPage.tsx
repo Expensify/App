@@ -1,5 +1,5 @@
-import React, {useMemo} from 'react';
 import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useMemo} from 'react';
 import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
