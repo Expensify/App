@@ -61,12 +61,13 @@ export default function PresenceController() {
         return () => goInactive();
     }, [goActiveFromFocusing, goInactive]);
 
-    // Go active when the tab is focused/blurred
+    // Go active when the tab is focused
     useEffect(() => {
         window.addEventListener('focus', goActiveFromFocusing);
         return () => window.removeEventListener('focus', goActiveFromFocusing);
     }, [goActiveFromFocusing]);
 
+    // Go active when the tab is blurred
     useEffect(() => {
         window.addEventListener('blur', goActiveFromBlurring);
         return () => window.removeEventListener('blur', goActiveFromBlurring);
