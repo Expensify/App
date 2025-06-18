@@ -4,8 +4,8 @@ import AmountTextInput from '@components/AmountTextInput';
 import CurrencySymbolButton from '@components/CurrencySymbolButton';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {addLeadingZero, replaceAllDigits} from '@libs/MoneyRequestUtils';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import type BaseTextInputWithCurrencySymbolProps from './types';
 
@@ -28,7 +28,7 @@ function BaseTextInputWithCurrencySymbol(
     ref: React.ForwardedRef<BaseTextInputRef>,
 ) {
     const {fromLocaleDigit} = useLocalize();
-    const currencySymbol = CurrencyUtils.getLocalizedCurrencySymbol(selectedCurrencyCode);
+    const currencySymbol = getLocalizedCurrencySymbol(selectedCurrencyCode);
     const styles = useThemeStyles();
 
 
@@ -38,7 +38,7 @@ function BaseTextInputWithCurrencySymbol(
      * @param text - Changed text from user input
      */
     const setFormattedAmount = (text: string) => {
-        const newAmount = MoneyRequestUtils.addLeadingZero(MoneyRequestUtils.replaceAllDigits(text, fromLocaleDigit));
+        const newAmount = addLeadingZero(replaceAllDigits(text, fromLocaleDigit));
         onChangeAmount(newAmount);
     };
 
