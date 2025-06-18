@@ -8,7 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import useExpensifyCardEuSupported from '@hooks/useExpensifyCardEuSupported';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -53,8 +53,8 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const [typeSelected, setTypeSelected] = useState(initialLimitType);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
-    const isEuCurrencySupported = useExpensifyCardEuSupported(policyID);
-    const currency = isEuCurrencySupported ? policy?.outputCurrency : CONST.CURRENCY.USD;
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
+    const currency = isUkEuCurrencySupported ? policy?.outputCurrency : CONST.CURRENCY.USD;
 
     const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE;
 

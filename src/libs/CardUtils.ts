@@ -697,11 +697,11 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
-const isCurrencySupportECards = (currency?: string, includeUsd?: boolean) => {
+const isCurrencySupportECards = (currency?: string) => {
     if (!currency) {
         return false;
     }
-    const supportedCurrencies: string[] = includeUsd ? [CONST.CURRENCY.USD, CONST.CURRENCY.GBP, CONST.CURRENCY.EUR] : [CONST.CURRENCY.GBP, CONST.CURRENCY.EUR];
+    const supportedCurrencies: string[] = [CONST.CURRENCY.GBP, CONST.CURRENCY.EUR];
     return supportedCurrencies.includes(currency);
 };
 

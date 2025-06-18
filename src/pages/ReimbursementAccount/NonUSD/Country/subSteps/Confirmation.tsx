@@ -7,7 +7,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useExpensifyCardEuSupported from '@hooks/useExpensifyCardEuSupported';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,7 +40,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
 
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
     const currencyMappedToCountry = mapCurrencyToCountry(currency);
-    const isEuCurrencySupported = useExpensifyCardEuSupported(policyID);
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
     const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const [selectedCountry, setSelectedCountry] = useState<string>(countryDefaultValue);
@@ -105,7 +105,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
             </Text>
             <InputWrapper
                 InputComponent={PushRowWithModal}
-                optionsList={getAvailableEuCountries(shouldAllowChange, isEuCurrencySupported)}
+                optionsList={getAvailableEuCountries(shouldAllowChange, isUkEuCurrencySupported)}
                 onValueChange={(value) => setSelectedCountry(value as string)}
                 description={translate('common.country')}
                 modalHeaderTitle={translate('countryStep.selectCountry')}

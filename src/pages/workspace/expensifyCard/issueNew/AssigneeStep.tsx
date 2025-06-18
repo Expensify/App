@@ -8,7 +8,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
-import useExpensifyCardEuSupported from '@hooks/useExpensifyCardEuSupported';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,7 +37,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const {isOffline} = useNetwork();
     const policyID = policy?.id;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
-    const isEuCurrencySupported = useExpensifyCardEuSupported(policyID);
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
 
     const isEditing = issueNewCard?.isEditing;
 
@@ -46,7 +46,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const submit = (assignee: ListItem) => {
         const data: Partial<IssueNewCardData> = {
             assigneeEmail: assignee?.login ?? '',
-            currency: isEuCurrencySupported ? policy?.outputCurrency : CONST.CURRENCY.USD,
+            currency: isUkEuCurrencySupported ? policy?.outputCurrency : CONST.CURRENCY.USD,
         };
 
         if (isEditing && issueNewCard?.data?.cardTitle === getCardDefaultName(getUserNameByEmail(issueNewCard?.data?.assigneeEmail, 'firstName'))) {

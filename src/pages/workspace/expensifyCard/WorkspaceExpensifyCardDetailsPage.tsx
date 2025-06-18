@@ -15,7 +15,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import useExpensifyCardEuSupported from '@hooks/useExpensifyCardEuSupported';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
@@ -62,11 +62,11 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         selector: filterInactiveCards,
         canBeMissing: true,
     });
-    const isEuCurrencySupported = useExpensifyCardEuSupported(policyID);
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
     const isWorkspaceCardRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS;
     const card = cardsList?.[cardID];
-    const currency = isEuCurrencySupported ? policy?.outputCurrency : CONST.CURRENCY.USD;
+    const currency = isUkEuCurrencySupported ? policy?.outputCurrency : CONST.CURRENCY.USD;
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
     const formattedAvailableSpendAmount = convertToDisplayString(card?.availableSpend, currency);

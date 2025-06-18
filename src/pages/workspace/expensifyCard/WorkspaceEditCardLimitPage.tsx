@@ -8,7 +8,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useExpensifyCardEuSupported from '@hooks/useExpensifyCardEuSupported';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,8 +43,8 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const policy = usePolicy(policyID);
 
-    const isEuCurrencySupported = useExpensifyCardEuSupported(policyID);
-    const currency = isEuCurrencySupported ? policy?.outputCurrency : CONST.CURRENCY.USD;
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
+    const currency = isUkEuCurrencySupported ? policy?.outputCurrency : CONST.CURRENCY.USD;
 
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards, canBeMissing: true});
     const card = cardsList?.[cardID];

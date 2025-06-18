@@ -14,7 +14,7 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
-import useExpensifyCardEuSupported from '@hooks/useExpensifyCardEuSupported';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -43,7 +43,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
     const policyID = route?.params?.policyID;
 
-    const isEuCurrencySupported = useExpensifyCardEuSupported(policyID);
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
@@ -78,7 +78,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
             return null;
         }
 
-        const eligibleBankAccounts = isEuCurrencySupported ? getEligibleBankAccountsForEuUkCard(bankAccountsList) : getEligibleBankAccountsForCard(bankAccountsList);
+        const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForEuUkCard(bankAccountsList) : getEligibleBankAccountsForCard(bankAccountsList);
 
         return eligibleBankAccounts.map((bankAccount) => {
             const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
