@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -20,7 +21,7 @@ import ROUTES from '@src/ROUTES';
 function SearchFiltersStatusPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const currentType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     const currentGroupBy = searchAdvancedFiltersForm?.groupBy;
     const [selectedItems, setSelectedItems] = useState<string[]>(() => {
@@ -72,6 +73,10 @@ function SearchFiltersStatusPage() {
         });
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [selectedItems]);
+
+    if (searchAdvancedFiltersFormResult.status === 'loading') {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper
