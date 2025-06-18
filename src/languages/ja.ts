@@ -4823,7 +4823,7 @@ const translations = {
         invite: {
             member: 'メンバーを招待',
             members: 'メンバーを招待する',
-            inviteNewMember: '新しいメンバーを招待する',            
+            inviteNewMember: '新しいメンバーを招待する',
             invitePeople: '新しいメンバーを招待する',
             genericFailureMessage: 'メンバーをワークスペースに招待する際にエラーが発生しました。もう一度お試しください。',
             pleaseEnterValidLogin: `メールアドレスまたは電話番号が有効であることを確認してください（例: ${CONST.EXAMPLE_PHONE_NUMBER}）。`,
