@@ -52,6 +52,7 @@ import {
     parseReportRouteParams,
     prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
+    shouldDisableRename,
     shouldDisableThread,
     shouldReportBeInOptionList,
     temporary_getMoneyRequestOptions,
@@ -61,6 +62,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import type {OnboardingTaskLinks} from '@src/CONST';
 import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
@@ -264,7 +266,7 @@ describe('ReportUtils', () => {
         });
         return waitForBatchedUpdates();
     });
-    beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+    beforeEach(() => TranslationStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
 
     describe('prepareOnboardingOnyxData', () => {
         it('provides test drive url to task title', () => {
@@ -457,6 +459,52 @@ describe('ReportUtils', () => {
                 ).toBe('floki@vikings.net');
             });
 
+            test('with deleted message and provided parent action param', () => {
+                const report = {
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportID: '4401445780099175',
+                    parentReportActionID: '8401445780099176',
+                    parentReportID: '4401445780099175',
+                };
+                const reportAction = {
+                    created: '2025-05-12 17:27:01.825',
+                    reportActionID: '8401445780099176',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    message: [
+                        {
+                            deleted: '2025-05-12 17:27:01.825',
+                            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                            text: '',
+                        },
+                    ],
+                };
+                expect(getReportName(report, undefined, reportAction)).toEqual(translateLocal('parentReportAction.deletedMessage'));
+            });
+
+            test('with deleted message and not provided parent action param', async () => {
+                const report = {
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportActionID: '8401445780099176',
+                    parentReportID: '4401445780099175',
+                    reportID: '2401445780099174',
+                };
+                const reportAction = {
+                    reportActionID: '8401445780099176',
+                    parentReportID: '',
+                    message: [
+                        {
+                            deleted: '2025-05-12 17:27:01.825',
+                            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                            text: '',
+                        },
+                    ],
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
+                    [reportAction.reportActionID]: reportAction,
+                });
+                expect(getReportName(report)).toEqual(translateLocal('parentReportAction.deletedMessage'));
+            });
+
             test('SMS', () => {
                 expect(
                     getReportName({
@@ -500,7 +548,7 @@ describe('ReportUtils', () => {
 
                 expect(getReportName(baseAdminsRoom)).toBe('#admins (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(baseAdminsRoom)).toBe('#admins (archivado)'));
+                return TranslationStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(baseAdminsRoom)).toBe('#admins (archivado)'));
             });
         });
 
@@ -532,7 +580,7 @@ describe('ReportUtils', () => {
 
                 expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archivado)'));
+                return TranslationStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archivado)'));
             });
         });
 
@@ -586,9 +634,7 @@ describe('ReportUtils', () => {
 
                     expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
-                        expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
-                    );
+                    return TranslationStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`));
                 });
 
                 test('as admin', async () => {
@@ -599,9 +645,7 @@ describe('ReportUtils', () => {
 
                     expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
-                        expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
-                    );
+                    return TranslationStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`));
                 });
             });
         });
@@ -3309,6 +3353,195 @@ describe('ReportUtils', () => {
 
             // Then it cannot be edited
             expect(result).toBeFalsy();
+        });
+    });
+
+    describe('shouldDisableRename', () => {
+        it('should return true for archived reports', async () => {
+            // Given an archived policy room
+            const report: Report = {
+                ...createRandomReport(50001),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+
+            // When shouldDisableRename is called
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = shouldDisableRename(report, isReportArchived.current);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for default rooms', () => {
+            // Given a default room
+            const report: Report = {
+                ...createRandomReport(50002),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                reportName: '#admins',
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for public rooms', () => {
+            // Given a public room
+            const report: Report = {
+                ...createRandomReport(50003),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for threads', () => {
+            // Given a thread report
+            const report: Report = {
+                ...createRandomReport(50004),
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for money request reports', () => {
+            // Given a money request report
+            const report: Report = {
+                ...createRandomReport(50005),
+                type: CONST.REPORT.TYPE.IOU,
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for expense reports', () => {
+            // Given an expense report
+            const report: Report = {
+                ...createRandomReport(50006),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for policy expense chats', () => {
+            // Given a policy expense chat
+            const report: Report = {
+                ...createRandomReport(50007),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                isOwnPolicyExpenseChat: true,
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for invoice rooms', () => {
+            // Given an invoice room
+            const report: Report = {
+                ...createRandomReport(50008),
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for invoice reports', () => {
+            // Given an invoice report
+            const report: Report = {
+                ...createRandomReport(50009),
+                type: CONST.REPORT.TYPE.INVOICE,
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for system chats', () => {
+            // Given a system chat
+            const report: Report = {
+                ...createRandomReport(50010),
+                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
+            };
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return false for group chats', async () => {
+            // Given a group chat
+            const report: Report = {
+                ...createRandomReport(50011),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            // When shouldDisableRename is called
+            const result = shouldDisableRename(report);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+
+        it('should return false for non-archived regular chats', async () => {
+            // Given a non-archived regular chat (1:1 DM)
+            const report: Report = {
+                reportID: '50012',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+
+                // Ensure it's not a policy expense chat or any other special chat type
+                chatType: undefined,
+                isOwnPolicyExpenseChat: false,
+                policyID: undefined,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+            // When shouldDisableRename is called
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = shouldDisableRename(report, isReportArchived.current);
+
+            // Then it should return false (since this is a 1:1 DM and not a group chat, and none of the other conditions are met)
+            expect(result).toBe(false);
         });
     });
 });

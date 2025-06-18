@@ -243,7 +243,7 @@ function getOrderedReportIDs(
             return;
         }
         const isSystemChat = isSystemChatUtil(report);
-        const isReportArchived = isArchivedReport(reportNameValuePairs);
+        const isReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
         const shouldOverrideHidden =
             hasValidDraftComment(report.reportID) ||
             hasErrorsOtherThanFailedReceipt ||
