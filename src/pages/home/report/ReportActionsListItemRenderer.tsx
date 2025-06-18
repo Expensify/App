@@ -58,19 +58,19 @@ type ReportActionsListItemRendererProps = {
     shouldUseThreadDividerLine?: boolean;
 
     /** Invoice receiver policy for the chat report */
-    invoiceReceiverPolicy?: OnyxEntry<Policy>;
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
 
     /** Invoice receiver personal details for the chat report */
-    invoiceReceiverPersonalDetail?: OnyxEntry<PersonalDetails>;
+    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;
 
     /** Session account ID */
-    sessionAccountID?: number;
+    sessionAccountID: number | undefined;
 
     /** Personal details list */
-    personalDetailsList?: PersonalDetailsList;
+    personalDetailsList: PersonalDetailsList | undefined;
 
     /** Records any errors related to wallet terms. */
-    walletTermsErrors?: Errors | undefined;
+    walletTermsErrors: Errors | undefined;
 };
 
 function ReportActionsListItemRenderer({
