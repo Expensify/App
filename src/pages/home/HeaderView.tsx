@@ -34,6 +34,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+import {getOneTransactionThreadReportID, getReportActions} from '@libs/ReportActionsUtils';
 import {
     canJoinChat,
     canUserPerformWriteAction,
@@ -46,6 +47,7 @@ import {
     getPolicyName,
     getReportDescription,
     getReportName,
+    getReportOrDraftReport,
     hasReportNameError,
     isAdminRoom,
     isArchivedReport,
@@ -54,10 +56,8 @@ import {
     isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
     isCurrentUserSubmitter,
     isDeprecatedGroupDM,
-    isExpenseReport,
     isExpenseRequest,
     isGroupChat as isGroupChatReportUtils,
-    isIOUReport,
     isOpenTaskReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isSelfDM as isSelfDMReportUtils,
@@ -140,7 +140,10 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isTaskReport = isTaskReportReportUtils(report);
     const [parentOfParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {canBeMissing: true});
     const reportHeaderData =
-        ((!isTaskReport && !isChatThread) || (parentOfParentReport && (isIOUReport(parentOfParentReport) || isExpenseReport(parentOfParentReport)))) && report?.parentReportID
+        ((!isTaskReport && !isChatThread) ||
+            (parentOfParentReport &&
+                !!getOneTransactionThreadReportID(parentOfParentReport, getReportOrDraftReport(parentOfParentReport?.chatReportID), getReportActions(parentOfParentReport)))) &&
+        report?.parentReportID
             ? parentReport
             : report;
     // Use sorted display names for the title for group chats on native small screen widths
