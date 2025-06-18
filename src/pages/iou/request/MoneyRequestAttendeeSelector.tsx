@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {Option} from '@libs/OptionsListUtils';
 import {
+    createOptionListFromPersonalDetails,
     filterAndOrderOptions,
     formatSectionsFromSearchTerm,
     getAttendeeOptions,
@@ -38,6 +39,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 
 type MoneyRequestAttendeesSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -133,7 +135,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         }
         const fiveRecents = [...chatOptions.recentReports].slice(0, 5);
         const restOfRecents = [...chatOptions.recentReports].slice(5);
-        const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
+        const contactsWithRestOfRecents = [...restOfRecents, ...createOptionListFromPersonalDetails(chatOptions.personalDetails, true)];
 
         const formatResults = formatSectionsFromSearchTerm(
             cleanSearchTerm,

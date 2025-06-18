@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
+import {createOptionListFromPersonalDetails} from '@libs/OptionsListUtils';
 
 function useOptions() {
     const betas = useBetas();
@@ -102,7 +103,7 @@ function AddDelegatePage() {
 
         sectionsList.push({
             title: translate('common.contacts'),
-            data: personalDetails,
+            data: createOptionListFromPersonalDetails(personalDetails, true),
             shouldShow: personalDetails?.length > 0,
         });
 
@@ -114,18 +115,7 @@ function AddDelegatePage() {
             });
         }
 
-        return sectionsList.map((section) => ({
-            ...section,
-            data: section.data.map((option) => ({
-                ...option,
-                text: option.text ?? '',
-                alternateText: option.alternateText ?? undefined,
-                keyForList: option.keyForList ?? '',
-                isDisabled: option.isDisabled ?? undefined,
-                login: option.login ?? undefined,
-                shouldShowSubscript: option.shouldShowSubscript ?? undefined,
-            })),
-        }));
+        return sectionsList;
     }, [personalDetails, recentReports, translate, userToInvite]);
 
     const onSelectRow = useCallback((option: Participant) => {

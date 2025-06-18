@@ -44,6 +44,7 @@ const reportFilter = (reportOptions: Array<OptionsListUtils.SearchOption<Report>
     }, []);
 
 function TaskShareDestinationSelectorModal() {
+    console.log('morwa TaskShareDestinationSelectorModal is called');
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const styles = useThemeStyles();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');

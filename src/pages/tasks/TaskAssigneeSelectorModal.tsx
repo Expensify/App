@@ -25,7 +25,14 @@ import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {filterAndOrderOptions, getHeaderMessage, getValidOptions, isCurrentUser} from '@libs/OptionsListUtils';
+import {
+    createOptionFromPersonalDetail,
+    createOptionListFromPersonalDetails,
+    filterAndOrderOptions,
+    getHeaderMessage,
+    getValidOptions,
+    isCurrentUser,
+} from '@libs/OptionsListUtils';
 import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import type {TaskDetailsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -119,7 +126,7 @@ function TaskAssigneeSelectorModal() {
         if (currentUserOption) {
             sectionsList.push({
                 title: translate('newTaskPage.assignMe'),
-                data: [currentUserOption],
+                data: [createOptionFromPersonalDetail(currentUserOption, true)],
                 shouldShow: true,
             });
         }
@@ -132,7 +139,7 @@ function TaskAssigneeSelectorModal() {
 
         sectionsList.push({
             title: translate('common.contacts'),
-            data: personalDetails,
+            data: createOptionListFromPersonalDetails(personalDetails, true),
             shouldShow: personalDetails?.length > 0,
         });
 
@@ -144,18 +151,7 @@ function TaskAssigneeSelectorModal() {
             });
         }
 
-        return sectionsList.map((section) => ({
-            ...section,
-            data: section.data.map((option) => ({
-                ...option,
-                text: option.text ?? '',
-                alternateText: option.alternateText ?? undefined,
-                keyForList: option.keyForList ?? '',
-                isDisabled: option.isDisabled ?? undefined,
-                login: option.login ?? undefined,
-                shouldShowSubscript: option.shouldShowSubscript ?? undefined,
-            })),
-        }));
+        return sectionsList;
     }, [currentUserOption, personalDetails, recentReports, translate, userToInvite]);
 
     const selectReport = useCallback(

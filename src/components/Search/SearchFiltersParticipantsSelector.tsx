@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import type {Option} from '@libs/OptionsListUtils';
+import {createOptionFromPersonalDetail, createOptionListFromPersonalDetails, Option} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
@@ -91,18 +91,11 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
 
-        if (chatOptions.currentUserOption) {
-            const formattedName = ReportUtils.getDisplayNameForParticipant({
-                accountID: chatOptions.currentUserOption.accountID,
-                shouldAddCurrentUserPostfix: true,
-                personalDetailsData: personalDetails,
-            });
-            if (selectedCurrentUser) {
-                selectedCurrentUser.text = formattedName;
-            } else {
-                chatOptions.currentUserOption.text = formattedName;
-                chatOptions.recentReports = [chatOptions.currentUserOption, ...chatOptions.recentReports];
-            }
+        if (chatOptions.currentUserOption && !selectedCurrentUser) {
+            chatOptions.recentReports = [
+                createOptionFromPersonalDetail(chatOptions.currentUserOption, true),
+                ...chatOptions.recentReports,
+            ]
         }
 
         newSections.push(formattedResults.section);
@@ -115,7 +108,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
         newSections.push({
             title: '',
-            data: chatOptions.personalDetails,
+            data: createOptionListFromPersonalDetails(chatOptions.personalDetails, true),
             shouldShow: chatOptions.personalDetails.length > 0,
         });
 

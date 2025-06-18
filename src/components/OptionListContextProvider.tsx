@@ -3,7 +3,7 @@ import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
-import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
+import {OptionList, SearchOption, updateCachedOptionListFromPersonalDetails} from '@libs/OptionsListUtils';
 import {createOptionFromReport, createOptionList, processReport, shallowOptionsListCompare} from '@libs/OptionsListUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -177,6 +177,8 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         if (!personalDetails) {
             return;
         }
+
+        updateCachedOptionListFromPersonalDetails(personalDetails);
 
         // Handle initial personal details load. This initialization is required here specifically to prevent
         // UI freezing that occurs when resetting the app from the troubleshooting page.

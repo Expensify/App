@@ -9,6 +9,7 @@ import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 
 type Options = {
     includeUserToInvite: boolean;
@@ -21,9 +22,8 @@ const emptyResult = {
     currentUserOption: undefined,
 };
 
-const personalDetailToSearchString = (option: OptionData) => {
-    const displayName = option.participantsList?.[0]?.displayName ?? '';
-    return deburr([option.login ?? '', option.login !== displayName ? displayName : ''].join());
+const personalDetailToSearchString = (option: PersonalDetails) => {
+    return deburr([option.login ?? '', option.login !== option.displayName ? option.displayName : ''].join());
 };
 
 const recentReportToSearchString = (option: OptionData) => {
@@ -40,7 +40,7 @@ const recentReportToSearchString = (option: OptionData) => {
     return deburr(searchStringForTree.join());
 };
 
-const getPersonalDetailUniqueId = (option: OptionData) => {
+const getPersonalDetailUniqueId = (option: PersonalDetails) => {
     return option.login ? `personalDetail-${option.login}` : undefined;
 };
 
@@ -75,13 +75,13 @@ function useFastSearchFromOptions(
     options: ReportAndPersonalDetailOptions | OptionsListType,
     {includeUserToInvite}: Options = {includeUserToInvite: false},
 ): {search: (searchInput: string) => OptionsListType; isInitialized: boolean} {
-    const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
+    const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<[PersonalDetails, OptionData]>> | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     const prevOptionsRef = useRef<typeof options | null>(null);
-    const prevFastSearchRef = useRef<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
+    const prevFastSearchRef = useRef<ReturnType<typeof FastSearch.createFastSearch<[PersonalDetails, OptionData]>> | null>(null);
 
     useEffect(() => {
-        let newFastSearch: ReturnType<typeof FastSearch.createFastSearch<OptionData>>;
+        let newFastSearch: ReturnType<typeof FastSearch.createFastSearch<[PersonalDetails, OptionData]>>;
         const prevOptions = prevOptionsRef.current;
         if (prevOptions && shallowCompareOptions(prevOptions, options)) {
             return;
@@ -89,7 +89,7 @@ function useFastSearchFromOptions(
         InteractionManager.runAfterInteractions(() => {
             prevOptionsRef.current = options;
             prevFastSearchRef.current?.dispose();
-            newFastSearch = FastSearch.createFastSearch(
+            newFastSearch = FastSearch.createFastSearch<[PersonalDetails, OptionData]>(
                 [
                     {
                         data: options.personalDetails,
@@ -136,7 +136,7 @@ function useFastSearchFromOptions(
             if (searchWords.length > 1) {
                 personalDetails = personalDetails.filter((pd) => {
                     const id = getPersonalDetailUniqueId(pd);
-                    const searchableString = id ? fastSearch.searchableStringsMap.get(id) : deburr(pd.text);
+                    const searchableString = id ? fastSearch.searchableStringsMap.get(id) : personalDetailToSearchString(pd);
                     return isSearchStringMatch(deburredInput, searchableString);
                 });
                 recentReports = recentReports.filter((rr) => {
@@ -194,6 +194,11 @@ function shallowCompareOptions(prev: ReportAndPersonalDetailOptions, next: Repor
 
     for (let i = 0; i < prev.personalDetails.length; i++) {
         if (prev.personalDetails.at(i)?.accountID !== next.personalDetails.at(i)?.accountID) {
+            Timing.end(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+            Performance.markEnd(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+            return false;
+        }
+        if (prev.personalDetails.at(i)?.displayName !== next.personalDetails.at(i)?.displayName) {
             Timing.end(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
             Performance.markEnd(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
             return false;

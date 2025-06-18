@@ -37,6 +37,7 @@ type SearchFiltersParticipantsSelectorProps = {
 };
 
 function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreenTransitionEnd}: SearchFiltersParticipantsSelectorProps) {
+    console.log('morwa SearchFiltersChatsSelector is called');
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();

@@ -42,7 +42,7 @@ const averageSearchValueLength = 60;
  * Note: Creating a FastSearch instance with a lot of data is computationally expensive. You should create an instance once and reuse it.
  * Searches will be very fast though, even with a lot of data.
  */
-function createFastSearch<T>(dataSets: Array<SearchableData<T>>, options?: FastSearchOptions) {
+function createFastSearch<T extends unknown[]>(dataSets: { [K in keyof T]: SearchableData<T[K]> }, options?: FastSearchOptions) {
     Timing.start(CONST.TIMING.SEARCH_CONVERT_SEARCH_VALUES);
     const itemsCount = dataSets.reduce((acc, {data}) => acc + data.length, 0);
     // An approximation of how many chars the final search string will have (if it gets bigger the underlying buffer will resize aromatically, but its best to avoid resizes):
@@ -83,7 +83,7 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>, options?: FastS
     /**
      * Searches for the given input and returns results for each dataset.
      */
-    function search(searchInput: string): T[][] {
+    function search(searchInput: string): { [K in keyof T]: Array<T[K]> } {
         const cleanedSearchString = cleanString(searchInput);
         const {numeric} = SuffixUkkonenTree.stringToNumeric(cleanedSearchString, {
             charSetToSkip,
@@ -93,8 +93,12 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>, options?: FastS
         });
         const result = tree.findSubstring(Array.from(numeric));
 
-        const resultsByDataSet = Array.from({length: dataSets.length}, () => new Set<T>());
-        const uniqueMap: Record<number, Record<string, T>> = {};
+        const resultsByDataSet: { [K in keyof T]: Set<T[K]> } = dataSets.map(() => new Set()) as {
+            [K in keyof T]: Set<T[K]>;
+        };
+        const uniqueMap = dataSets.map(() => ({})) as {
+            [K in keyof T]: Record<string, T[K]>;
+        }
         // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for (let i = 0; i < result.length; i++) {
             const occurrenceIndex = result[i];
@@ -129,7 +133,7 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>, options?: FastS
             resultsByDataSet[dataSetIndex].add(item);
         }
 
-        return resultsByDataSet.map((set) => Array.from(set));
+        return resultsByDataSet.map((set) => Array.from(set)) as { [K in keyof T]: Array<T[K]>};
     }
     function dispose(): void {
         concatenatedNumericList.clear();

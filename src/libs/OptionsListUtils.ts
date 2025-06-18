@@ -451,7 +451,7 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const displayName = participant?.displayName || formatPhoneNumber(getDisplayNameOrDefault(detail, login || participant.text));
+    const displayName = participant?.displayName || formatPhoneNumber(getDisplayNameOrDefault(detail, login || participant.text, true, true));
 
     return {
         keyForList: String(detail?.accountID ?? login),
@@ -909,10 +909,10 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
 
-        reportName = showPersonalDetails ? getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '') : getReportName(report);
+        reportName = showPersonalDetails ? getDisplayNameForParticipant({accountID: accountIDs.at(0), shouldAddCurrentUserPostfix: true}) || formatPhoneNumber(personalDetail?.login ?? '') : getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '');
+        reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0), shouldAddCurrentUserPostfix: true}) || formatPhoneNumber(personalDetail?.login ?? '');
         result.keyForList = String(accountIDs.at(0));
 
         result.alternateText = formatPhoneNumber(personalDetails?.[accountIDs[0]]?.login ?? '');
@@ -1151,14 +1151,14 @@ function processReport(
     };
 }
 
-const translatedPersonalDetailsOptions = new Map<number, SearchOption<PersonalDetails>>();
+const cachedPersonalDetailsOptions = new Map<number, SearchOption<PersonalDetails>>();
 
 function createOptionFromPersonalDetail(personalDetail: PersonalDetails, isBold: boolean): SearchOption<PersonalDetails> {
     const accountID = personalDetail.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    if (translatedPersonalDetailsOptions.has(accountID)) {
+    if (cachedPersonalDetailsOptions.has(accountID)) {
         // Disable next line because we check object existence in the map
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return translatedPersonalDetailsOptions.get(accountID)!;
+        return cachedPersonalDetailsOptions.get(accountID)!;
     }
     const personalDetailMap: PersonalDetailsList = {
         [accountID]: personalDetail,
@@ -1171,12 +1171,25 @@ function createOptionFromPersonalDetail(personalDetail: PersonalDetails, isBold:
             isBold
         }),
     }
-    translatedPersonalDetailsOptions.set(accountID, option);
+    cachedPersonalDetailsOptions.set(accountID, option);
     return option;
 }
 
 function createOptionListFromPersonalDetails(personalDetails: PersonalDetails[], isBold = false): Array<SearchOption<PersonalDetails>> {
     return personalDetails.map((personalDetail) => createOptionFromPersonalDetail(personalDetail, isBold));
+}
+
+function updateCachedOptionListFromPersonalDetails(personalDetails: PersonalDetailsList): void {
+    for (const key of cachedPersonalDetailsOptions.keys()) {
+        const newPersonalDetail = personalDetails[String(key)];
+        if (!newPersonalDetail) {
+            cachedPersonalDetailsOptions.delete(key);
+            return;
+        }
+        cachedPersonalDetailsOptions.set(key,
+            createOptionFromPersonalDetail(newPersonalDetail, cachedPersonalDetailsOptions.get(key)?.isBold ?? false));
+        cachedPersonalDetailsOptions.delete(key);
+    }
 }
 
 function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, reports?: OnyxCollection<Report>): OptionList {
@@ -1983,7 +1996,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
 
 function getAttendeeOptions(
     reports: Array<SearchOption<Report>>,
-    personalDetails: PersonalDetails[],
+    personalDetails: Array<PersonalDetails | null>,
     betas: OnyxEntry<Beta[]>,
     attendees: Attendee[],
     recentAttendees: Attendee[],
@@ -2029,7 +2042,7 @@ function getAttendeeOptions(
 
 function getShareDestinationOptions(
     reports: Array<SearchOption<Report>> = [],
-    personalDetails: PersonalDetails[] = [],
+    personalDetails: Array<PersonalDetails | null> = [],
     betas: OnyxEntry<Beta[]> = [],
     selectedOptions: Array<Partial<OptionData>> = [],
     excludeLogins: Record<string, boolean> = {},
@@ -2509,6 +2522,9 @@ function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {
         if (a.personalDetails.at(i)?.login !== b.personalDetails.at(i)?.login) {
             return false;
         }
+        if (a.personalDetails.at(i)?.displayName !== b.personalDetails.at(i)?.displayName) {
+            return false;
+        }
     }
     return true;
 }
@@ -2578,7 +2594,8 @@ export {
     getMostRecentOptions,
     recentReportComparator,
     createOptionListFromPersonalDetails,
-    createOptionFromPersonalDetail
+    createOptionFromPersonalDetail,
+    updateCachedOptionListFromPersonalDetails
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, Option, OptionTree, ReportAndPersonalDetailOptions};
