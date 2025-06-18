@@ -4,7 +4,6 @@ import React, {forwardRef, useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -380,9 +379,6 @@ type MenuItemBaseProps = {
 
     /** Plaid image for the bank */
     plaidUrl?: string;
-
-    /** Should the menu item be highlighted */
-    highlighted?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -504,7 +500,6 @@ function MenuItem(
         shouldTeleportPortalToModalLayer,
         copyValue,
         plaidUrl,
-        highlighted = false,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -515,12 +510,6 @@ function MenuItem(
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
-
-    const highlightedOuterWrapperStyle = useAnimatedHighlightStyle({
-        shouldHighlight: highlighted ?? false,
-        highlightColor: theme.messageHighlightBG,
-        itemEnterDelay: 0,
-    });
 
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
@@ -676,7 +665,7 @@ function MenuItem(
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={copyValue ? secondaryInteraction : onSecondaryInteraction}
-                                wrapperStyle={highlighted ? highlightedOuterWrapperStyle : outerWrapperStyle}
+                                wrapperStyle={outerWrapperStyle}
                                 activeOpacity={!interactive ? 1 : variables.pressDimValue}
                                 opacityAnimationDuration={0}
                                 testID={pressableTestID}
