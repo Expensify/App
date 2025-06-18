@@ -96,7 +96,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             linkStyle = [
                 styles.link,
                 {
-                    fontSize: styles.textMicro.fontSize,
+                    fontSize: HTMLEngineUtils.getFontSizeOfRBRChild(tnode),
                     textDecorationLine: 'underline',
                 },
             ];
