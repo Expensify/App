@@ -73,6 +73,7 @@ type TransactionParams = {
     customUnit?: TransactionCustomUnit;
     splitExpenses?: SplitExpense[];
     participants?: Participant[];
+    pendingAction?: PendingAction;
 };
 
 type BuildOptimisticTransactionParams = {
@@ -255,6 +256,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         customUnit,
         splitExpenses,
         participants,
+        pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -293,7 +295,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         comment: commentJSON,
         merchant: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         created: created || DateUtils.getDBTime(),
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        pendingAction,
         receipt: receipt?.source ? {source: receipt.source, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY, isTestDriveReceipt: receipt.isTestDriveReceipt} : {},
         filename: (receipt?.source ? (receipt?.name ?? filename) : filename).toString(),
         category,

@@ -206,7 +206,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Accountant, Attendee, Participant, Split, SplitExpense} from '@src/types/onyx/IOU';
-import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report';
@@ -382,6 +382,7 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     originalTransactionID?: string;
     isTestDrive?: boolean;
     source?: string;
+    pendingAction?: PendingAction;
 };
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
@@ -3259,6 +3260,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         taxAmount,
         billable,
         linkedTrackedExpenseReportAction,
+        pendingAction,
     } = transactionParams;
 
     const payerEmail = addSMSDomainIfPhoneNumber(participant.login ?? '');
@@ -3342,6 +3344,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             source,
             taxAmount: isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
             billable,
+            pendingAction,
             pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
         },
     });
@@ -11615,6 +11618,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                 attendees: draftTransaction?.comment?.attendees,
                 source: CONST.IOU.TYPE.SPLIT,
                 linkedTrackedExpenseReportAction: currentReportAction,
+                pendingAction: splitTransaction ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
             parentChatReport: getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
             existingTransaction: originalTransaction,
