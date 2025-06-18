@@ -2,7 +2,8 @@ import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {translateLocal} from '@libs/Localize';
+import {translate} from '@libs/Localize';
+import BaseLocaleListener from '@libs/Localize/LocaleListener/BaseLocaleListener';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {navigationRef} from '@libs/Navigation/Navigation';
@@ -12,7 +13,7 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type Onboarding from '@src/types/onyx/Onboarding';
+import type {Locale, Onboarding} from '@src/types/onyx';
 
 let onboardingInitialPath = '';
 const onboardingLastVisitedPathConnection = Onyx.connect({
@@ -140,15 +141,16 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     return onboardingInitialPath;
 }
 
-const getOnboardingMessages = () => {
+const getOnboardingMessages = (locale?: Locale) => {
+    const resolvedLocale = locale ?? BaseLocaleListener.getPreferredLocale();
     const testDrive = {
-        ONBOARDING_TASK_NAME: translateLocal('onboarding.testDrive.name', {}),
+        ONBOARDING_TASK_NAME: translate(resolvedLocale, 'onboarding.testDrive.name', {}),
         EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
-        EMBEDDED_DEMO_IFRAME_TITLE: translateLocal('onboarding.testDrive.embeddedDemoIframeTitle'),
+        EMBEDDED_DEMO_IFRAME_TITLE: translate(resolvedLocale, 'onboarding.testDrive.embeddedDemoIframeTitle'),
         EMPLOYEE_FAKE_RECEIPT: {
             AMOUNT: 2000,
             CURRENCY: 'USD',
-            DESCRIPTION: translateLocal('onboarding.testDrive.employeeFakeReceipt.description'),
+            DESCRIPTION: translate(resolvedLocale, 'onboarding.testDrive.employeeFakeReceipt.description'),
             MERCHANT: "Tommy's Tires",
         },
     };
@@ -156,37 +158,37 @@ const getOnboardingMessages = () => {
         type: 'createReport',
         autoCompleted: false,
         mediaAttributes: {},
-        title: translateLocal('onboarding.tasks.createReportTask.title'),
-        description: translateLocal('onboarding.tasks.createReportTask.description'),
+        title: translate(resolvedLocale, 'onboarding.tasks.createReportTask.title'),
+        description: translate(resolvedLocale, 'onboarding.tasks.createReportTask.description'),
     };
     const testDriveAdminTask: OnboardingTask = {
         type: 'viewTour',
         autoCompleted: false,
         mediaAttributes: {},
-        title: ({testDriveURL}) => translateLocal('onboarding.tasks.testDriveAdminTask.title', {testDriveURL}),
-        description: ({testDriveURL}) => translateLocal('onboarding.tasks.testDriveAdminTask.description', {testDriveURL}),
+        title: ({testDriveURL}) => translate(resolvedLocale, 'onboarding.tasks.testDriveAdminTask.title', {testDriveURL}),
+        description: ({testDriveURL}) => translate(resolvedLocale, 'onboarding.tasks.testDriveAdminTask.description', {testDriveURL}),
     };
     const testDriveEmployeeTask: OnboardingTask = {
         type: 'viewTour',
         autoCompleted: false,
         mediaAttributes: {},
-        title: ({testDriveURL}) => translateLocal('onboarding.tasks.testDriveEmployeeTask.title', {testDriveURL}),
-        description: ({testDriveURL}) => translateLocal('onboarding.tasks.testDriveEmployeeTask.description', {testDriveURL}),
+        title: ({testDriveURL}) => translate(resolvedLocale, 'onboarding.tasks.testDriveEmployeeTask.title', {testDriveURL}),
+        description: ({testDriveURL}) => translate(resolvedLocale, 'onboarding.tasks.testDriveEmployeeTask.description', {testDriveURL}),
     };
     const createTestDriveAdminWorkspaceTask: OnboardingTask = {
         type: 'createWorkspace',
         autoCompleted: false,
         mediaAttributes: {},
-        title: ({workspaceConfirmationLink}) => translateLocal('onboarding.tasks.createTestDriveAdminWorkspaceTask.title', {workspaceConfirmationLink}),
-        description: translateLocal('onboarding.tasks.createTestDriveAdminWorkspaceTask.description'),
+        title: ({workspaceConfirmationLink}) => translate(resolvedLocale, 'onboarding.tasks.createTestDriveAdminWorkspaceTask.title', {workspaceConfirmationLink}),
+        description: translate(resolvedLocale, 'onboarding.tasks.createTestDriveAdminWorkspaceTask.description'),
     };
 
     const createWorkspaceTask: OnboardingTask = {
         type: 'createWorkspace',
         autoCompleted: true,
         mediaAttributes: {},
-        title: ({workspaceSettingsLink}) => translateLocal('onboarding.tasks.createWorkspaceTask.title', {workspaceSettingsLink}),
-        description: ({workspaceSettingsLink}) => translateLocal('onboarding.tasks.createWorkspaceTask.description', {workspaceSettingsLink}),
+        title: ({workspaceSettingsLink}) => translate(resolvedLocale, 'onboarding.tasks.createWorkspaceTask.title', {workspaceSettingsLink}),
+        description: ({workspaceSettingsLink}) => translate(resolvedLocale, 'onboarding.tasks.createWorkspaceTask.description', {workspaceSettingsLink}),
     };
 
     const setupCategoriesTask: OnboardingTask = {
@@ -195,32 +197,32 @@ const getOnboardingMessages = () => {
         mediaAttributes: {
             [`${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4`]: `data-expensify-thumbnail-url="${CONST.CLOUDFRONT_URL}/images/walkthrough-categories.png" data-expensify-width="1920" data-expensify-height="1080"`,
         },
-        title: ({workspaceCategoriesLink}) => translateLocal('onboarding.tasks.setupCategoriesTask.title', {workspaceCategoriesLink}),
-        description: ({workspaceCategoriesLink}) => translateLocal('onboarding.tasks.setupCategoriesTask.description', {workspaceCategoriesLink}),
+        title: ({workspaceCategoriesLink}) => translate(resolvedLocale, 'onboarding.tasks.setupCategoriesTask.title', {workspaceCategoriesLink}),
+        description: ({workspaceCategoriesLink}) => translate(resolvedLocale, 'onboarding.tasks.setupCategoriesTask.description', {workspaceCategoriesLink}),
     };
 
     const combinedTrackSubmitExpenseTask: OnboardingTask = {
         type: 'submitExpense',
         autoCompleted: false,
         mediaAttributes: {},
-        title: translateLocal('onboarding.tasks.combinedTrackSubmitExpenseTask.title'),
-        description: translateLocal('onboarding.tasks.combinedTrackSubmitExpenseTask.description'),
+        title: translate(resolvedLocale, 'onboarding.tasks.combinedTrackSubmitExpenseTask.title'),
+        description: translate(resolvedLocale, 'onboarding.tasks.combinedTrackSubmitExpenseTask.description'),
     };
 
     const adminSubmitExpenseTask: OnboardingTask = {
         type: 'submitExpense',
         autoCompleted: false,
         mediaAttributes: {},
-        title: translateLocal('onboarding.tasks.adminSubmitExpenseTask.title'),
-        description: translateLocal('onboarding.tasks.adminSubmitExpenseTask.description'),
+        title: translate(resolvedLocale, 'onboarding.tasks.adminSubmitExpenseTask.title'),
+        description: translate(resolvedLocale, 'onboarding.tasks.adminSubmitExpenseTask.description'),
     };
 
     const trackExpenseTask: OnboardingTask = {
         type: 'trackExpense',
         autoCompleted: false,
         mediaAttributes: {},
-        title: translateLocal('onboarding.tasks.trackExpenseTask.title'),
-        description: translateLocal('onboarding.tasks.trackExpenseTask.description'),
+        title: translate(resolvedLocale, 'onboarding.tasks.trackExpenseTask.title'),
+        description: translate(resolvedLocale, 'onboarding.tasks.trackExpenseTask.description'),
     };
 
     const addAccountingIntegrationTask: OnboardingTask = {
@@ -231,14 +233,15 @@ const getOnboardingMessages = () => {
             [`${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[CONST.ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]}`]: `data-expensify-thumbnail-url="${CONST.CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
             [`${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[CONST.ONBOARDING_ACCOUNTING_MAPPING.xero]}`]: `data-expensify-thumbnail-url="${CONST.CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
         },
-        title: ({integrationName, workspaceAccountingLink}) => translateLocal('onboarding.tasks.addAccountingIntegrationTask.title', {integrationName, workspaceAccountingLink}),
-        description: ({integrationName, workspaceAccountingLink}) => translateLocal('onboarding.tasks.addAccountingIntegrationTask.description', {integrationName, workspaceAccountingLink}),
+        title: ({integrationName, workspaceAccountingLink}) => translate(resolvedLocale, 'onboarding.tasks.addAccountingIntegrationTask.title', {integrationName, workspaceAccountingLink}),
+        description: ({integrationName, workspaceAccountingLink}) =>
+            translate(resolvedLocale, 'onboarding.tasks.addAccountingIntegrationTask.description', {integrationName, workspaceAccountingLink}),
     };
 
     const connectCorporateCardTask: OnboardingTask = {
         type: 'connectCorporateCard',
-        title: ({corporateCardLink}) => translateLocal('onboarding.tasks.connectCorporateCardTask.title', {corporateCardLink}),
-        description: ({corporateCardLink}) => translateLocal('onboarding.tasks.connectCorporateCardTask.description', {corporateCardLink}),
+        title: ({corporateCardLink}) => translate(resolvedLocale, 'onboarding.tasks.connectCorporateCardTask.title', {corporateCardLink}),
+        description: ({corporateCardLink}) => translate(resolvedLocale, 'onboarding.tasks.connectCorporateCardTask.description', {corporateCardLink}),
         autoCompleted: false,
         mediaAttributes: {},
     };
@@ -249,8 +252,8 @@ const getOnboardingMessages = () => {
         mediaAttributes: {
             [`${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4`]: `data-expensify-thumbnail-url="${CONST.CLOUDFRONT_URL}/images/walkthrough-invite_members.png" data-expensify-width="1920" data-expensify-height="1080"`,
         },
-        title: ({workspaceMembersLink}) => translateLocal('onboarding.tasks.inviteTeamTask.title', {workspaceMembersLink}),
-        description: ({workspaceMembersLink}) => translateLocal('onboarding.tasks.inviteTeamTask.description', {workspaceMembersLink}),
+        title: ({workspaceMembersLink}) => translate(resolvedLocale, 'onboarding.tasks.inviteTeamTask.title', {workspaceMembersLink}),
+        description: ({workspaceMembersLink}) => translate(resolvedLocale, 'onboarding.tasks.inviteTeamTask.description', {workspaceMembersLink}),
     };
 
     const setupCategoriesAndTags: OnboardingTask = {
@@ -258,15 +261,15 @@ const getOnboardingMessages = () => {
         autoCompleted: false,
         mediaAttributes: {},
         title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) =>
-            translateLocal('onboarding.tasks.setupCategoriesAndTags.title', {workspaceCategoriesLink, workspaceMoreFeaturesLink}),
+            translate(resolvedLocale, 'onboarding.tasks.setupCategoriesAndTags.title', {workspaceCategoriesLink, workspaceMoreFeaturesLink}),
         description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
-            translateLocal('onboarding.tasks.setupCategoriesAndTags.description', {workspaceCategoriesLink, workspaceAccountingLink}),
+            translate(resolvedLocale, 'onboarding.tasks.setupCategoriesAndTags.description', {workspaceCategoriesLink, workspaceAccountingLink}),
     };
     const setupTagsTask: OnboardingTask = {
         type: 'setupTags',
         autoCompleted: false,
-        title: ({workspaceMoreFeaturesLink}) => translateLocal('onboarding.tasks.setupTagsTask.title', {workspaceMoreFeaturesLink}),
-        description: ({workspaceMoreFeaturesLink}) => translateLocal('onboarding.tasks.setupTagsTask.description', {workspaceMoreFeaturesLink}),
+        title: ({workspaceMoreFeaturesLink}) => translate(resolvedLocale, 'onboarding.tasks.setupTagsTask.title', {workspaceMoreFeaturesLink}),
+        description: ({workspaceMoreFeaturesLink}) => translate(resolvedLocale, 'onboarding.tasks.setupTagsTask.description', {workspaceMoreFeaturesLink}),
         mediaAttributes: {
             [`${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4`]: `data-expensify-thumbnail-url="${CONST.CLOUDFRONT_URL}/images/walkthrough-tags.png" data-expensify-width="1920" data-expensify-height="1080"`,
         },
@@ -276,28 +279,28 @@ const getOnboardingMessages = () => {
         type: 'startChat',
         autoCompleted: false,
         mediaAttributes: {},
-        title: translateLocal('onboarding.tasks.startChatTask.title'),
-        description: translateLocal('onboarding.tasks.startChatTask.description'),
+        title: translate(resolvedLocale, 'onboarding.tasks.startChatTask.title'),
+        description: translate(resolvedLocale, 'onboarding.tasks.startChatTask.description'),
     };
 
     const splitExpenseTask: OnboardingTask = {
         type: 'splitExpense',
         autoCompleted: false,
         mediaAttributes: {},
-        title: translateLocal('onboarding.tasks.splitExpenseTask.title'),
-        description: translateLocal('onboarding.tasks.splitExpenseTask.description'),
+        title: translate(resolvedLocale, 'onboarding.tasks.splitExpenseTask.title'),
+        description: translate(resolvedLocale, 'onboarding.tasks.splitExpenseTask.description'),
     };
 
     const reviewWorkspaceSettingsTask: OnboardingTask = {
         type: 'reviewWorkspaceSettings',
         autoCompleted: false,
         mediaAttributes: {},
-        title: ({workspaceSettingsLink}) => translateLocal('onboarding.tasks.reviewWorkspaceSettingsTask.title', {workspaceSettingsLink}),
-        description: ({workspaceSettingsLink}) => translateLocal('onboarding.tasks.reviewWorkspaceSettingsTask.description', {workspaceSettingsLink}),
+        title: ({workspaceSettingsLink}) => translate(resolvedLocale, 'onboarding.tasks.reviewWorkspaceSettingsTask.title', {workspaceSettingsLink}),
+        description: ({workspaceSettingsLink}) => translate(resolvedLocale, 'onboarding.tasks.reviewWorkspaceSettingsTask.description', {workspaceSettingsLink}),
     };
 
     const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
-        message: translateLocal('onboarding.messages.onboardingEmployerOrSubmitMessage'),
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingEmployerOrSubmitMessage'),
         tasks: [testDriveEmployeeTask, adminSubmitExpenseTask],
     };
 
@@ -307,7 +310,7 @@ const getOnboardingMessages = () => {
     };
 
     const onboardingPersonalSpendMessage: OnboardingMessage = {
-        message: translateLocal('onboarding.messages.onboardingPersonalSpendMessage'),
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingPersonalSpendMessage'),
         tasks: [testDriveEmployeeTask, trackExpenseTask],
     };
     const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
@@ -316,12 +319,12 @@ const getOnboardingMessages = () => {
     };
 
     const onboardingMangeTeamMessage: OnboardingMessage = {
-        message: ({onboardingCompanySize}) => translateLocal('onboarding.messages.onboardingMangeTeamMessage', {onboardingCompanySize}),
+        message: ({onboardingCompanySize}) => translate(resolvedLocale, 'onboarding.messages.onboardingMangeTeamMessage', {onboardingCompanySize}),
         tasks: [createWorkspaceTask, testDriveAdminTask, addAccountingIntegrationTask, connectCorporateCardTask, inviteTeamTask, setupCategoriesAndTags, setupCategoriesTask, setupTagsTask],
     };
 
     const onboardingTrackWorkspaceMessage: OnboardingMessage = {
-        message: translateLocal('onboarding.messages.onboardingTrackWorkspaceMessage'),
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingTrackWorkspaceMessage'),
         video: {
             url: `${CONST.CLOUDFRONT_URL}/videos/guided-setup-manage-team-v2.mp4`,
             thumbnailUrl: `${CONST.CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
@@ -333,21 +336,21 @@ const getOnboardingMessages = () => {
     };
 
     const onboardingChatSplitMessage: OnboardingMessage = {
-        message: translateLocal('onboarding.messages.onboardingChatSplitMessage'),
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingChatSplitMessage'),
         tasks: [testDriveEmployeeTask, startChatTask, splitExpenseTask],
     };
 
     const onboardingAdminMessage: OnboardingMessage = {
-        message: translateLocal('onboarding.messages.onboardingAdminMessage'),
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingAdminMessage'),
         tasks: [reviewWorkspaceSettingsTask, adminSubmitExpenseTask],
     };
     const onboardingLookingAroundMessage: OnboardingMessage = {
-        message: translateLocal('onboarding.messages.onboardingLookingAroundMessage'),
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingLookingAroundMessage'),
         tasks: [],
     };
 
     const onboardingTestDriveReceiverMessage: OnboardingMessage = {
-        message: translateLocal('onboarding.messages.onboardingTestDriveReceiverMessage'),
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingTestDriveReceiverMessage'),
         tasks: [testDriveAdminTask, createTestDriveAdminWorkspaceTask],
     };
 
