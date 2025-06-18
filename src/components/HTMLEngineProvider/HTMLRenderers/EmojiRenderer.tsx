@@ -17,10 +17,15 @@ function EmojiRenderer({tnode, style: styleProp}: CustomRendererProps<TText | TP
 
         return null;
     }, [tnode.attributes, styles, styleProp]);
+
+    if (!('data' in tnode) || !tnode?.data) {
+        return null;
+    }
+
     return (
         <EmojiWithTooltip
             style={[style, styles.cursorDefault, styles.emojiDefaultStyles]}
-            emojiCode={'data' in tnode ? tnode.data : ''}
+            emojiCode={tnode.data}
             isMedium={'ismedium' in tnode.attributes}
         />
     );
