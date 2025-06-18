@@ -4948,6 +4948,7 @@ const translations = {
             addPaymentCardTerms: 'warunki',
             addPaymentCardPrivacy: 'prywatność',
             addPaymentCardAnd: '&',
+            addPaymentCardReadAndAcceptText: `Przeczytaj i zaakceptuj <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>warunki</a> & <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>prywatność</a> zasady dodawania karty`,
             addPaymentCardPciCompliant: 'Zgodny z PCI-DSS',
             addPaymentCardBankLevelEncrypt: 'Szyfrowanie na poziomie bankowym',
             addPaymentCardRedundant: 'Nadmierna infrastruktura',

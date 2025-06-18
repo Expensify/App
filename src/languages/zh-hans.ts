@@ -4873,6 +4873,7 @@ const translations = {
             addPaymentCardTerms: '条款',
             addPaymentCardPrivacy: '隐私',
             addPaymentCardAnd: '&',
+            addPaymentCardReadAndAcceptText: `阅读并接受 <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>条款</a> & <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>'隐私</a> 将卡添加的政策`,
             addPaymentCardPciCompliant: '符合PCI-DSS标准',
             addPaymentCardBankLevelEncrypt: '银行级加密',
             addPaymentCardRedundant: '冗余基础设施',
