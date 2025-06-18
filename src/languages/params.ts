@@ -165,6 +165,8 @@ type PayerPaidParams = {payer: string};
 
 type PayerSettledParams = {amount: number | string};
 
+type CreateExpensesParams = {expensesNumber: number};
+
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type CanceledRequestParams = {amount: string; submitterDisplayName: string};
@@ -673,6 +675,10 @@ type FileTypeParams = {
     fileType: string;
 }
 
+type FileTypeParams = {
+    fileType: string;
+};
+
 type CompanyCardBankName = {
     bankName: string;
 };
@@ -1033,6 +1039,7 @@ export type {
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     SubscriptionSettingsSummaryParams,
     ReviewParams,
+    CreateExpensesParams,
     CurrencyInputDisabledTextParams,
     EmployeeInviteMessageParams,
     FlightParams,

@@ -19,15 +19,6 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
-/**
- * Checks if the user can use the auto-submit feature
- * @param betas - The user's beta flags
- * @returns true if the user can use auto-submit, false otherwise
- */
-function canUseAutoSubmit(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.AUTO_SUBMIT) || canUseAllBetas(betas);
-}
-
 function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(beta) || canUseAllBetas(betas);
 }
@@ -36,5 +27,4 @@ export default {
     canUseLinkPreviews,
     isBlockedFromSpotnanaTravel,
     isBetaEnabled,
-    canUseAutoSubmit,
 };

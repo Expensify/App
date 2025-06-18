@@ -158,7 +158,6 @@ function AttachmentPicker({
                         return resolve();
                     }
 
-                    // Process all assets
                     const processedAssets: Asset[] = [];
                     let processedCount = 0;
 
@@ -198,8 +197,8 @@ function AttachmentPicker({
                                                 processedAssets.push(convertedAsset);
                                                 checkAllProcessed();
                                             })
-                                            .catch((err) => {
-                                                console.error(`Error processing HEIC asset: ${asset.uri}`, err);
+                                            .catch((error: Error) => {
+                                                showGeneralAlert(error.message ?? 'An unknown error occurred');
                                                 checkAllProcessed();
                                             });
                                     } else {
@@ -207,8 +206,8 @@ function AttachmentPicker({
                                         checkAllProcessed();
                                     }
                                 })
-                                .catch((err) => {
-                                    console.error(`Error verifying file format for asset: ${asset.uri}`, err);
+                                .catch((error: Error) => {
+                                    showGeneralAlert(error.message ?? 'An unknown error occurred');
                                     checkAllProcessed();
                                 });
                         } else {
@@ -311,27 +310,6 @@ function AttachmentPicker({
         setIsVisible(false);
     };
 
-    const validateAndCompleteAttachmentSelection = useCallback(
-        (fileData: FileResponse) => {
-            // Check if the file dimensions indicate corruption
-            // The width/height for a corrupted file is -1 on android native and 0 on ios native
-            // We must check only numeric values because the width/height can be undefined for non-image files
-            if ((typeof fileData.width === 'number' && fileData.width <= 0) || (typeof fileData.height === 'number' && fileData.height <= 0)) {
-                showImageCorruptionAlert();
-                return Promise.resolve();
-            }
-            return getDataForUpload(fileData)
-                .then((result) => {
-                    completeAttachmentSelection.current([result]);
-                })
-                .catch((error: Error) => {
-                    showGeneralAlert(error.message);
-                    throw error;
-                });
-        },
-        [showGeneralAlert, showImageCorruptionAlert],
-    );
-
     /**
      * Handles the image/document picker result and
      * sends the selected attachment to the caller (parent component)
@@ -386,24 +364,12 @@ function AttachmentPicker({
                                 return null;
                             }
 
-                            // Check if the file dimensions indicate corruption
-                            if ((typeof fileDataObject.width === 'number' && fileDataObject.width <= 0) || (typeof fileDataObject.height === 'number' && fileDataObject.height <= 0)) {
-                                showImageCorruptionAlert();
-                                return null;
-                            }
-
                             return getDataForUpload(fileDataObject);
                         })
                         .catch(() => {
                             showImageCorruptionAlert();
                             return null;
                         });
-                }
-
-                // For non-image files
-                if ((typeof fileDataObject.width === 'number' && fileDataObject.width <= 0) || (typeof fileDataObject.height === 'number' && fileDataObject.height <= 0)) {
-                    showImageCorruptionAlert();
-                    return Promise.resolve(null);
                 }
 
                 return getDataForUpload(fileDataObject).catch((error: Error) => {

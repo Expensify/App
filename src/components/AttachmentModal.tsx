@@ -1,11 +1,11 @@
-import { Str } from 'expensify-common';
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { InteractionManager, Keyboard, View } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useOnyx } from 'react-native-onyx';
-import type { OnyxEntry } from 'react-native-onyx';
-import Animated, { FadeIn, LayoutAnimationConfig, useSharedValue } from 'react-native-reanimated';
-import type { ValueOf } from 'type-fest';
+import {Str} from 'expensify-common';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager, Keyboard, View} from 'react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -14,26 +14,26 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
-import { cleanFileName, getFileName, getFileValidationErrorText, validateAttachment, validateImageForCorruption } from '@libs/fileDownload/FileUtils';
+import {cleanFileName, getFileName, getFileValidationErrorText, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import { getOriginalMessage, getReportAction, isMoneyRequestAction } from '@libs/ReportActionsUtils';
-import { hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned } from '@libs/TransactionUtils';
-import type { AvatarSource } from '@libs/UserUtils';
+import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
+import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
-import { detachReceipt } from '@userActions/IOU';
-import type { IOUAction, IOUType } from '@src/CONST';
+import {detachReceipt} from '@userActions/IOU';
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
 import viewRef from '@src/types/utils/viewRef';
 import AttachmentCarousel from './Attachments/AttachmentCarousel';
 import AttachmentCarouselPagerContext from './Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import AttachmentView from './Attachments/AttachmentView';
 import useAttachmentErrors from './Attachments/AttachmentView/useAttachmentErrors';
-import type { Attachment } from './Attachments/types';
+import type {Attachment} from './Attachments/types';
 import BlockingView from './BlockingViews/BlockingView';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
@@ -44,7 +44,6 @@ import * as Expensicons from './Icon/Expensicons';
 import * as Illustrations from './Icon/Illustrations';
 import Modal from './Modal';
 import SafeAreaConsumer from './SafeAreaConsumer';
-
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -308,7 +307,7 @@ function AttachmentModal({
         }
 
         if (onConfirm) {
-            if (validFilesToUpload) {
+            if (validFilesToUpload.length) {
                 onConfirm(validFilesToUpload);
                 setValidFilesToUpload([]);
             } else {
@@ -377,22 +376,24 @@ function AttachmentModal({
         [getModalType, setSourceState, setFile, setModalType],
     );
 
-    const validateFiles = (data: FileObject[]) => {
-        let validFiles: FileObject[] = [];
-        // Validate all files in parallel and collect valid ones
-        Promise.all(data.map((fileToUpload) => isValidFile(fileToUpload, true).then((isValid) => (isValid ? fileToUpload : null)))).then((results) => {
-            // Filter out null values (invalid files)
-            validFiles = results.filter((validFile): validFile is FileObject => validFile !== null);
-            setValidFilesToUpload(validFiles);
+    const validateFiles = useCallback(
+        (data: FileObject[]) => {
+            let validFiles: FileObject[] = [];
 
-            // Only open modal if we have valid files
-            if (validFiles.length > 0) {
-                // eslint-disable-next-line
-                const fileToDisplay = validFiles.at(0) as FileObject;
-                handleOpenModal(fileToDisplay.uri ?? '', fileToDisplay);
-            }
-        });
-    };
+            Promise.all(data.map((fileToUpload) => isValidFile(fileToUpload, true).then((isValid) => (isValid ? fileToUpload : null)))).then((results) => {
+                validFiles = results.filter((validFile): validFile is FileObject => validFile !== null);
+                setValidFilesToUpload(validFiles);
+
+                if (validFiles.length > 0) {
+                    const fileToDisplay = validFiles.at(0);
+                    if (fileToDisplay) {
+                        handleOpenModal(fileToDisplay.uri ?? '', fileToDisplay);
+                    }
+                }
+            });
+        },
+        [isValidFile, handleOpenModal],
+    );
 
     const confirmAndContinue = () => {
         if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
@@ -480,6 +481,14 @@ function AttachmentModal({
         },
         [onModalClose],
     );
+
+    const closeAndResetModal = useCallback(() => {
+        closeConfirmModal();
+        closeModal();
+        InteractionManager.runAfterInteractions(() => {
+            setValidFilesToUpload([]);
+        });
+    }, [closeConfirmModal, closeModal]);
 
     /**
      *  open the modal
@@ -730,7 +739,7 @@ function AttachmentModal({
                 <ConfirmModal
                     title={getFileValidationErrorText(fileError).title}
                     onConfirm={confirmAndContinue}
-                    onCancel={closeConfirmModal}
+                    onCancel={closeAndResetModal}
                     isVisible={isFileErrorModalVisible}
                     prompt={getFileValidationErrorText(fileError).reason}
                     confirmText={translate(validFilesToUpload.length ? 'common.continue' : 'common.close')}
