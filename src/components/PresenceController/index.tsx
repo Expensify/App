@@ -8,6 +8,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 const TIMEOUT_MOUSE_ACTIVITY = 600_000;
 const TIMEOUT_FOCUS_TAB = 60_000;
 
+/**
+ * Monitors user activity and controls their active/inactive status by joining/leaving the newDotWebPresence Pusher
+ * channel.
+ */
 export default function PresenceController() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
     const timeout = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -29,6 +33,8 @@ export default function PresenceController() {
                 return;
             }
 
+            // We reset the timeout here whenever new activity is detected to keep the user active for an appropriate
+            // amount of time
             clearTimeout(timeout.current);
             timeout.current = setTimeout(() => {
                 Log.info('[PresenceController] Activity timed out', false, {lastActivty: activity, lastTimeout: timeoutMs});
