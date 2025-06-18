@@ -2369,11 +2369,7 @@ const translations = {
             phrase2: '并重试。您可以添加电话号码作为辅助登录。',
         },
         hasBeenThrottledError: '添加您的银行账户时发生错误。请稍等几分钟后重试。',
-        hasCurrencyError: {
-            phrase1: '哎呀！您的工作区货币似乎设置为不同于 USD 的货币。要继续，请前往',
-            link: '您的工作区设置',
-            phrase2: '将其设置为美元，然后重试。',
-        },
+        hasCurrencyError: '哎呀！您的工作区货币似乎设置为不同于 USD 的货币。要继续，请前往 <a>您的工作区设置</a> 将其设置为美元，然后重试。',
         error: {
             youNeedToSelectAnOption: '请选择一个选项继续',
             noBankAccountAvailable: '抱歉，没有可用的银行账户。',
