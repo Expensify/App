@@ -1,6 +1,5 @@
 import {useCallback, useEffect, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -63,19 +62,20 @@ export default function PresenceController() {
     }, [goActiveFromFocusing, goInactive]);
 
     // Go active when the tab is focused/blurred
-    useAppFocusEvent(goActiveFromFocusing);
+    useEffect(() => {
+        window.addEventListener('focus', goActiveFromFocusing);
+        return () => window.removeEventListener('focus', goActiveFromFocusing);
+    }, [goActiveFromFocusing]);
+
     useEffect(() => {
         window.addEventListener('blur', goActiveFromBlurring);
-
-        return () => {
-            window.removeEventListener('blur', goActiveFromBlurring);
-        };
+        return () => window.removeEventListener('blur', goActiveFromBlurring);
     }, [goActiveFromBlurring]);
 
     // Go active when mouse activity is detected
     useEffect(() => {
-        document.addEventListener('mousemove', goActiveFromMouseActivity);
-        return () => document.removeEventListener('mousemove', goActiveFromMouseActivity);
+        window.addEventListener('mousemove', goActiveFromMouseActivity);
+        return () => window.removeEventListener('mousemove', goActiveFromMouseActivity);
     }, [goActiveFromMouseActivity]);
 
     return null;
