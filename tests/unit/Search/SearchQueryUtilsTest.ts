@@ -83,7 +83,7 @@ describe('SearchQueryUtils', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
                 status: 'all',
-                policyID: '12345',
+                policyID: ['12345'],
                 lessThan: '100',
             };
 
@@ -94,7 +94,7 @@ describe('SearchQueryUtils', () => {
 
         test('with Policy ID', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
-                policyID: '12345',
+                policyID: ['12345'],
             };
 
             const result = buildQueryStringFromFilterFormValues(filterValues);
@@ -106,7 +106,7 @@ describe('SearchQueryUtils', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
                 status: 'all',
-                policyID: '67890',
+                policyID: ['67890'],
                 merchant: 'Amazon',
                 description: 'Electronics',
                 keyword: 'laptop',
