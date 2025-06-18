@@ -40,7 +40,7 @@ type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'lin
     shouldShowDraftMessage?: boolean;
 
     /** All the data of the transaction collection */
-    transactions: Transaction[];
+    transactions?: Array<OnyxEntry<Transaction>>;
 };
 
 function ReportActionItem({allReports, action, report, transactions, shouldShowDraftMessage = true, ...props}: ReportActionItemProps) {
