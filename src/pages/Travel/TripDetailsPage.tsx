@@ -16,7 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getTripIDFromTransactionParentReportID} from '@libs/ReportUtils';
-import {getReservationsFromTripReport, getTripReservationIcon} from '@libs/TripReservationUtils';
+import {getReservationDetailsFromSequence, getReservationsFromTripReport} from '@libs/TripReservationUtils';
 import {openTravelDotLink} from '@userActions/Link';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -57,13 +57,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
     // If pnr is not passed and transaction is present, we want to use transaction to get the trip reservations as the provided sequenceIndex now refers to the position of trip reservation in transaction's reservation list
     const tripReservations = getReservationsFromTripReport(!Number(pnr) && transaction ? undefined : parentReport, transaction ? [transaction] : []);
 
-    const reservationDataIndex = tripReservations?.findIndex((reservation) => reservation.sequenceIndex === Number(sequenceIndex));
-    const reservationData = tripReservations.at(reservationDataIndex);
-    const prevReservationData = Number(reservationData?.reservationIndex) > 0 ? tripReservations?.at(reservationDataIndex - 1) : undefined;
-    const reservation = reservationData?.reservation;
-    const prevReservation = prevReservationData?.reservation;
-    const reservationType = reservation?.type;
-    const reservationIcon = getTripReservationIcon(reservation?.type);
+    const {reservation, prevReservation, reservationType, reservationIcon} = getReservationDetailsFromSequence(tripReservations, Number(sequenceIndex));
     const [travelerPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (personalDetails) => pickTravelerPersonalDetails(personalDetails, reservation), canBeMissing: true});
 
     return (

@@ -1697,7 +1697,12 @@ type RailPnr = {
     /** Leg information for the rail booking. */
     legInfos: Array<{
         /** Allocated spaces for the leg. */
-        allocatedSpaces: unknown[];
+        allocatedSpaces: Array<{
+            /** Seat */
+            seatNumber: string;
+            /** Coach */
+            coachNumber: string;
+        }>;
         /** Amenities available for the leg. */
         amenities: unknown[];
         /** Arrival time in ISO 8601 format. */

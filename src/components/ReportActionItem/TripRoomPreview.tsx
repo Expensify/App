@@ -181,7 +181,6 @@ function TripRoomPreview({
         />
     );
 
-    console.debug('displayAmount', totalDisplaySpend, displayAmount);
     return (
         <OfflineWithFeedback
             pendingAction={action?.pendingAction}

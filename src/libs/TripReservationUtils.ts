@@ -368,7 +368,8 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserva
                         },
                     ],
                     vendor: leg.vendorName,
-                    coachNumber: leg.travelClass,
+                    coachNumber: leg.allocatedSpaces?.at(0)?.coachNumber,
+                    seatNumber: leg.allocatedSpaces?.at(0)?.seatNumber,
                     travelerPersonalInfo: {
                         name: getTravelerName(traveler),
                         email: traveler?.email ?? '',
@@ -434,5 +435,21 @@ function getTripTotal(tripReport: Report): {
     return getMoneyRequestSpendBreakdown(tripReport);
 }
 
-export {getTripReservationIcon, getTripEReceiptIcon, getTripReservationCode, getReservationsFromTripReport, getTripTotal};
+function getReservationDetailsFromSequence(tripReservations: ReservationData[], sequenceIndex: number) {
+    const reservationDataIndex = tripReservations?.findIndex((reservation) => reservation.sequenceIndex === sequenceIndex);
+    const reservationData = tripReservations.at(reservationDataIndex);
+    const prevReservationData = Number(reservationData?.reservationIndex) > 0 ? tripReservations?.at(reservationDataIndex - 1) : undefined;
+    const reservation = reservationData?.reservation;
+    const prevReservation = prevReservationData?.reservation;
+    const reservationType = reservation?.type;
+    const reservationIcon = getTripReservationIcon(reservation?.type);
+    return {
+        reservation,
+        prevReservation,
+        reservationType,
+        reservationIcon,
+    };
+}
+
+export {getTripReservationIcon, getTripEReceiptIcon, getTripReservationCode, getReservationsFromTripReport, getTripTotal, getReservationDetailsFromSequence};
 export type {ReservationData};
