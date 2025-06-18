@@ -492,45 +492,44 @@ function IOURequestStepConfirmation({
                     completeTestDriveTask(viewTourReport, viewTourReportID);
                 }
 
-                for (let i = 0; i < 40; i++) {
-                    requestMoneyIOUActions({
-                        report,
-                        participantParams: {
-                            payeeEmail: currentUserPersonalDetails.login,
-                            payeeAccountID: currentUserPersonalDetails.accountID,
-                            participant,
-                        },
-                        policyParams: {
-                            policy,
-                            policyTagList: policyTags,
-                            policyCategories,
-                        },
-                        gpsPoints,
-                        action,
-                        transactionParams: {
-                            amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount,
-                            attendees: item.comment?.attendees,
-                            currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency,
-                            created: item.created,
-                            merchant: isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant,
-                            comment: item?.comment?.comment?.trim() ?? '',
-                            receipt,
-                            category: item.category,
-                            tag: item.tag,
-                            taxCode: transactionTaxCode,
-                            taxAmount: transactionTaxAmount,
-                            billable: item.billable,
-                            actionableWhisperReportActionID: item.actionableWhisperReportActionID,
-                            linkedTrackedExpenseReportAction: item.linkedTrackedExpenseReportAction,
-                            linkedTrackedExpenseReportID: item.linkedTrackedExpenseReportID,
-                            waypoints: Object.keys(item.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
-                            customUnitRateID,
-                            isTestDrive: item.receipt?.isTestDriveReceipt,
-                        },
-                        shouldHandleNavigation: index === transactions.length - 1,
-                        backToReport,
-                    });
-                }
+                requestMoneyIOUActions({
+                    report,
+                    participantParams: {
+                        payeeEmail: currentUserPersonalDetails.login,
+                        payeeAccountID: currentUserPersonalDetails.accountID,
+                        participant,
+                    },
+                    policyParams: {
+                        policy,
+                        policyTagList: policyTags,
+                        policyCategories,
+                    },
+                    gpsPoints,
+                    action,
+                    transactionParams: {
+                        amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount,
+                        attendees: item.comment?.attendees,
+                        currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency,
+                        created: item.created,
+                        merchant: isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant,
+                        comment: item?.comment?.comment?.trim() ?? '',
+                        receipt,
+                        category: item.category,
+                        tag: item.tag,
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
+                        billable: item.billable,
+                        actionableWhisperReportActionID: item.actionableWhisperReportActionID,
+                        linkedTrackedExpenseReportAction: item.linkedTrackedExpenseReportAction,
+                        linkedTrackedExpenseReportID: item.linkedTrackedExpenseReportID,
+                        waypoints: Object.keys(item.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
+                        customUnitRateID,
+                        isTestDrive: item.receipt?.isTestDriveReceipt,
+                    },
+                    shouldHandleNavigation: index === transactions.length - 1,
+                    backToReport,
+                });
+
             });
         },
         [
