@@ -25,7 +25,7 @@ function DownloadAppBanner() {
                 title={translate('common.getTheApp')}
                 subtitle={translate('common.scanReceiptsOnTheGo')}
                 subtitleStyle={[styles.mt1, styles.mutedTextLabel]}
-                style={[styles.borderRadiusComponentLarge, styles.hoveredComponentBG]}
+                style={[styles.borderRadiusComponentNormal, styles.hoveredComponentBG]}
                 rightComponent={
                     <Button
                         small

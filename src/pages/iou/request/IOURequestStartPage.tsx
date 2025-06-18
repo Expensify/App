@@ -56,7 +56,6 @@ function IOURequestStartPage({
     const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID}`, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [isSwipeDisabled, setSwipeDisabled] = useState(false);
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}),
         canBeMissing: true,
@@ -68,8 +67,8 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: getPayeeName(report)}),
         [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: getPayeeName(report)}),
-        [CONST.IOU.TYPE.SPLIT]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.createExpense'),
+        [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
+        [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
@@ -207,7 +206,7 @@ function IOURequestStartPage({
                                 shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                                 renderProductTrainingTooltip={renderProductTrainingTooltip}
                                 lazyLoadEnabled
-                                disableSwipe={isSwipeDisabled}
+                                disableSwipe={isMultiScanEnabled && selectedTab === CONST.TAB_REQUEST.SCAN}
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (
@@ -229,7 +228,6 @@ function IOURequestStartPage({
                                                 onLayout={(setTestReceiptAndNavigate) => {
                                                     setTestReceiptAndNavigateRef.current = setTestReceiptAndNavigate;
                                                 }}
-                                                setTabSwipeDisabled={setSwipeDisabled}
                                                 isMultiScanEnabled={isMultiScanEnabled}
                                                 setIsMultiScanEnabled={setIsMultiScanEnabled}
                                             />

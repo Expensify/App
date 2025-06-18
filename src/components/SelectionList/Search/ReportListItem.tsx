@@ -8,11 +8,12 @@ import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
+import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,15 +36,21 @@ function ReportListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: true});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID}`];
     const isEmptyReport = reportItem.transactions.length === 0;
     const isDisabledOrEmpty = isEmptyReport || isDisabled;
     const {isLargeScreenWidth} = useResponsiveLayout();
 
-    const dateColumnSize = useMemo(() => {
-        return reportItem.transactions.some((transaction) => transaction.shouldShowYear) ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
+        const isAmountColumnWide = reportItem.transactions.some((transaction) => isTransactionAmountTooLong(transaction));
+        const isTaxAmountColumnWide = reportItem.transactions.some((transaction) => isTransactionTaxAmountTooLong(transaction));
+        const shouldShowYearForSomeTransaction = reportItem.transactions.some((transaction) => shouldShowTransactionYear(transaction));
+        return {
+            amountColumnSize: isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            taxAmountColumnSize: isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            dateColumnSize: shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+        };
     }, [reportItem.transactions]);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -78,10 +85,6 @@ function ReportListItem<TItem extends ListItem>({
     };
 
     if (!reportItem?.reportName && reportItem.transactions.length > 1) {
-        return null;
-    }
-
-    if (isEmptyReport && !isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW)) {
         return null;
     }
 
@@ -150,6 +153,8 @@ function ReportListItem<TItem extends ListItem>({
                                     transactionItem={transaction}
                                     isSelected={!!transaction.isSelected}
                                     dateColumnSize={dateColumnSize}
+                                    amountColumnSize={amountColumnSize}
+                                    taxAmountColumnSize={taxAmountColumnSize}
                                     shouldShowTooltip={showTooltip}
                                     shouldUseNarrowLayout={!isLargeScreenWidth}
                                     shouldShowCheckbox={!!canSelectMultiple}
@@ -161,6 +166,7 @@ function ReportListItem<TItem extends ListItem>({
                                     isParentHovered={hovered}
                                     columnWrapperStyles={[styles.ph3, styles.pv1half]}
                                     isReportItemChild
+                                    isInSingleTransactionReport={reportItem.transactions.length === 1}
                                 />
                             </View>
                         ))
