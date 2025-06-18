@@ -11,7 +11,7 @@ import Text from './Text';
 import TextLink from './TextLink';
 
 type DelegateNoAccessContextType = {
-    /** Whether the current user is acting as delegate*/
+    /** Whether the current user is acting as delegate */
     isActingAsDelegate: boolean;
 
     /** Whether the current user has restricted access as a submitter only delegate */
