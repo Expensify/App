@@ -54,6 +54,7 @@ export default function PresenceController() {
 
     const goActiveFromFocusing = useCallback(() => goActive('app focused', TIMEOUT_FOCUS_TAB), [goActive]);
     const goActiveFromBlurring = useCallback(() => goActive('app blurred', TIMEOUT_FOCUS_TAB), [goActive]);
+    const goActiveFromMouseActivity = useCallback(() => goActive('mouse activity', TIMEOUT_MOUSE_ACTIVITY), [goActive]);
 
     // Go active on mount and go inactive on unmount
     useEffect(() => {
@@ -73,10 +74,9 @@ export default function PresenceController() {
 
     // Go active when mouse activity is detected
     useEffect(() => {
-        const goActiveForMouseActivity = () => goActive('mouse activity', TIMEOUT_MOUSE_ACTIVITY);
-        document.addEventListener('mousemove', goActiveForMouseActivity);
-        return () => document.removeEventListener('mousemove', goActiveForMouseActivity);
-    }, [goActive]);
+        document.addEventListener('mousemove', goActiveFromMouseActivity);
+        return () => document.removeEventListener('mousemove', goActiveFromMouseActivity);
+    }, [goActiveFromMouseActivity]);
 
     return null;
 }
