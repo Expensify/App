@@ -18,7 +18,7 @@ type ReportActionsListItemRendererProps = {
     reportActions: ReportAction[];
 
     /** All the data of the transaction collection */
-    transactions: Array<OnyxEntry<Transaction>>;
+    transactions?: Array<OnyxEntry<Transaction>>;
 
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<ReportAction>;
