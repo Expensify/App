@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -5972,8 +5973,8 @@ const translations = {
         principalWorkEmail: 'Primaire werk e-mail',
         updateYourEmail: 'Werk uw e-mailadres bij',
         updateEmail: 'E-mailadres bijwerken',
-        contactMethods: 'Contactmethoden.',
-        schoolMailAsDefault: 'Voordat je verder gaat, zorg ervoor dat je je school e-mailadres instelt als je standaard contactmethode. Dit kun je doen in Instellingen > Profiel >',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `Voordat je verder gaat, zorg ervoor dat je je school e-mailadres instelt als je standaard contactmethode. Dit kun je doen in Instellingen > Profiel > <a href="${contactMethodsRoute}">Contactmethoden</a>.`,
         error: {
             enterPhoneEmail: 'Voer een geldig e-mailadres of telefoonnummer in',
             enterEmail: 'Voer een e-mailadres in',

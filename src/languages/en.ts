@@ -52,6 +52,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -5932,8 +5933,8 @@ const translations = {
         principalWorkEmail: 'Principal work email',
         updateYourEmail: 'Update your email address',
         updateEmail: 'Update email address',
-        contactMethods: 'Contact methods',
-        schoolMailAsDefault: 'Before you move forward, please make sure to set your school email as your default contact method. You can do so in Settings > Profile > ',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `Before you move forward, please make sure to set your school email as your default contact method. You can do so in Settings > Profile > <a href="${contactMethodsRoute}">Contact methods</a>.`,
         error: {
             enterPhoneEmail: 'Enter a valid email or phone number',
             enterEmail: 'Enter an email',

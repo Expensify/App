@@ -40,9 +40,6 @@ type BaseBlockingViewProps = {
     /** Whether we should embed the link with subtitle */
     shouldEmbedLinkWithSubtitle?: boolean;
 
-    /** Whether we should show a period at the end of the subtitle */
-    shouldShowEndingPeriod?: boolean;
-
     /** Render custom subtitle */
     CustomSubtitle?: React.ReactElement;
 
@@ -106,7 +103,6 @@ function BlockingView({
     iconHeight = variables.iconSizeSuperLarge,
     onLinkPress = () => Navigation.dismissModal(),
     shouldEmbedLinkWithSubtitle = false,
-    shouldShowEndingPeriod = false,
     animationStyles = [],
     animationWebStyle = {},
     accessibilityLabel = '',
@@ -137,10 +133,9 @@ function BlockingView({
                         {translate(linkKey)}
                     </TextLink>
                 ) : null}
-                {shouldShowEndingPeriod && <Text>.</Text>}
             </>
         ),
-        [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate, subtitleStyle, shouldShowEndingPeriod],
+        [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate, subtitleStyle],
     );
 
     const subtitleContent = useMemo(() => {

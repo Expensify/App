@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -5857,8 +5858,8 @@ const translations = {
         principalWorkEmail: '主要工作邮箱',
         updateYourEmail: '更新您的电子邮件地址',
         updateEmail: '更新电子邮件地址',
-        contactMethods: '联系方式。',
-        schoolMailAsDefault: '在继续之前，请确保将您的学校电子邮件设置为默认联系方式。您可以在 设置 > 个人资料 中进行设置。',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `在继续之前，请确保将您的学校电子邮件设置为默认联系方式。您可以在 设置 > 个人资料 > <a href="${contactMethodsRoute}">联系方式</a> 中进行设置。`,
         error: {
             enterPhoneEmail: '请输入有效的电子邮件或电话号码',
             enterEmail: '输入电子邮件地址',

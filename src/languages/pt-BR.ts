@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -5969,8 +5970,8 @@ const translations = {
         principalWorkEmail: 'Email principal de trabalho',
         updateYourEmail: 'Atualize seu endereço de e-mail',
         updateEmail: 'Atualizar endereço de e-mail',
-        contactMethods: 'Métodos de contato.',
-        schoolMailAsDefault: 'Antes de prosseguir, certifique-se de definir seu e-mail escolar como seu método de contato padrão. Você pode fazer isso em Configurações > Perfil >',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `Antes de prosseguir, certifique-se de definir seu e-mail escolar como seu método de contato padrão. Você pode fazer isso em Configurações > Perfil > <a href="${contactMethodsRoute}">Métodos de contato</a>.`,
         error: {
             enterPhoneEmail: 'Insira um e-mail ou número de telefone válido',
             enterEmail: 'Digite um e-mail',
