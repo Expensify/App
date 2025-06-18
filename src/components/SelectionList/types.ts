@@ -108,7 +108,7 @@ type ExtendedTargetedEvent = TargetedEvent & {
     };
 };
 
-type ListItem<K extends string | number = string> = {
+type ListItem = {
     /** Text to display */
     text?: string;
 
@@ -116,7 +116,7 @@ type ListItem<K extends string | number = string> = {
     alternateText?: string | null;
 
     /** Key used internally by React */
-    keyForList?: K | null;
+    keyForList?: string | null;
 
     /** Whether this option is selected */
     isSelected?: boolean;

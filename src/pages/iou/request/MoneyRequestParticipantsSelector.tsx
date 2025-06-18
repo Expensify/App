@@ -22,7 +22,6 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -93,13 +92,11 @@ function MoneyRequestParticipantsSelector({
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
-    const canUseNativeContactImport = isBetaEnabled(CONST.BETAS.NATIVE_CONTACT_IMPORT);
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
-    const showImportContacts = isNative && canUseNativeContactImport && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
+    const showImportContacts = isNative && !(contactPermissionState === RESULTS.GRANTED || contactPermissionState === RESULTS.LIMITED);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
     const {isOffline} = useNetwork();
@@ -123,16 +120,12 @@ function MoneyRequestParticipantsSelector({
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
 
     const importAndSaveContacts = useCallback(() => {
-        if (!canUseNativeContactImport) {
-            return;
-        }
-
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
             const usersFromContact = getContacts(contactList);
             setContacts(usersFromContact);
         });
-    }, [canUseNativeContactImport]);
+    }, []);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -465,14 +458,10 @@ function MoneyRequestParticipantsSelector({
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE && !shouldShowListEmptyContent;
 
     const initiateContactImportAndSetState = useCallback(() => {
-        if (!canUseNativeContactImport) {
-            return;
-        }
-
         setContactPermissionState(RESULTS.GRANTED);
         InteractionManager.runAfterInteractions(importAndSaveContacts);
         setTextInputAutoFocus(true);
-    }, [importAndSaveContacts, canUseNativeContactImport]);
+    }, [importAndSaveContacts]);
 
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
@@ -585,12 +574,10 @@ function MoneyRequestParticipantsSelector({
 
     return (
         <>
-            {!!canUseNativeContactImport && (
-                <ContactPermissionModal
-                    onGrant={initiateContactImportAndSetState}
-                    onDeny={setContactPermissionState}
-                />
-            )}
+            <ContactPermissionModal
+                onGrant={initiateContactImportAndSetState}
+                onDeny={setContactPermissionState}
+            />
             <SelectionList
                 onConfirm={handleConfirmSelection}
                 sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
