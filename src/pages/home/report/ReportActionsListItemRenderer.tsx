@@ -109,6 +109,7 @@ function ReportActionsListItemRenderer({
                 childStateNum: reportAction.childStateNum,
                 childStatusNum: reportAction.childStatusNum,
                 childReportName: reportAction.childReportName,
+                childLastActorAccountID: reportAction.childLastActorAccountID,
                 childManagerAccountID: reportAction.childManagerAccountID,
                 childMoneyRequestCount: reportAction.childMoneyRequestCount,
                 childOwnerAccountID: reportAction.childOwnerAccountID,
