@@ -1,18 +1,35 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type { OnyxCollection } from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
-import type { OptionList, Options, SearchOption } from '@libs/OptionsListUtils';
-import { canCreateOptimisticPersonalDetailOption, createOptionList, filterAndOrderOptions, filterReports, filterSelfDMChat, filterWorkspaceChats, formatMemberForList, getLastActorDisplayName, getMemberInviteOptions, getMostRecentOptions, getSearchOptions, getShareDestinationOptions, getShareLogOptions, getValidOptions, orderOptions, orderWorkspaceOptions, recentReportComparator } from '@libs/OptionsListUtils';
-import { canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport } from '@libs/ReportUtils';
-import type { OptionData } from '@libs/ReportUtils';
+import type {OptionList, Options, SearchOption} from '@libs/OptionsListUtils';
+import {
+    canCreateOptimisticPersonalDetailOption,
+    createOptionList,
+    filterAndOrderOptions,
+    filterReports,
+    filterSelfDMChat,
+    filterWorkspaceChats,
+    formatMemberForList,
+    getLastActorDisplayName,
+    getMemberInviteOptions,
+    getMostRecentOptions,
+    getSearchOptions,
+    getShareDestinationOptions,
+    getShareLogOptions,
+    getValidOptions,
+    orderOptions,
+    orderWorkspaceOptions,
+    recentReportComparator,
+} from '@libs/OptionsListUtils';
+import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { PersonalDetails, Policy, Report } from '@src/types/onyx';
-import { getFakeAdvancedReportAction } from '../utils/LHNTestUtils';
+import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
+import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
 
 jest.mock('@rnmapbox/maps', () => {
     return {

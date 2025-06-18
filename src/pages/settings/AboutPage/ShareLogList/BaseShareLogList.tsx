@@ -9,23 +9,22 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import * as ReportActions from '@libs/actions/Report';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {searchInServer} from '@libs/actions/Report';
+import {appendTimeToFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {createOptionListFromPersonalDetails, filterAndOrderOptions, getHeaderMessage, getShareLogOptions} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {BaseShareLogListProps} from './types';
-import {createOptionListFromPersonalDetails} from '@libs/OptionsListUtils';
 
 function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const betas = useBetas();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {options, areOptionsInitialized} = useOptionsList();
 
     const defaultOptions = useMemo(() => {
@@ -38,13 +37,9 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 headerMessage: '',
             };
         }
-        const shareLogOptions = OptionsListUtils.getShareLogOptions(options, betas ?? []);
+        const shareLogOptions = getShareLogOptions(options, betas ?? []);
 
-        const header = OptionsListUtils.getHeaderMessage(
-            (shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0,
-            !!shareLogOptions.userToInvite,
-            '',
-        );
+        const header = getHeaderMessage((shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0, !!shareLogOptions.userToInvite, '');
 
         return {
             ...shareLogOptions,
@@ -57,12 +52,12 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             return defaultOptions;
         }
 
-        const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue, {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue, {
             preferChatRoomsOverThreads: true,
             sortByReportTypeInSearch: true,
         });
 
-        const headerMessage = OptionsListUtils.getHeaderMessage(
+        const headerMessage = getHeaderMessage(
             (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
             !!filteredOptions.userToInvite,
             debouncedSearchValue.trim(),
@@ -100,13 +95,13 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         if (!option.reportID) {
             return;
         }
-        const filename = FileUtils.appendTimeToFileName('logs.txt');
+        const filename = appendTimeToFileName('logs.txt');
 
         onAttachLogToReport(option.reportID, filename);
     };
 
     useEffect(() => {
-        ReportActions.searchInServer(debouncedSearchValue);
+        searchInServer(debouncedSearchValue);
     }, [debouncedSearchValue]);
 
     return (

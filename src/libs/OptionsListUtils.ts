@@ -1,29 +1,47 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
 
 /* eslint-disable no-continue */
-import { Str } from 'expensify-common';
+import {Str} from 'expensify-common';
 import keyBy from 'lodash/keyBy';
 import lodashOrderBy from 'lodash/orderBy';
-import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type { SetNonNullable } from 'type-fest';
-import { FallbackAvatar } from '@components/Icon/Expensicons';
-import type { PolicyTagList } from '@pages/workspace/tags/types';
-import type { IOUAction } from '@src/CONST';
+import type {SetNonNullable} from 'type-fest';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
+import type {PolicyTagList} from '@pages/workspace/tags/types';
+import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Beta, DismissedProductTraining, Login, OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, Policy, PolicyCategories, PolicyCategory, PolicyTag, PolicyTagLists, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, TransactionViolation } from '@src/types/onyx';
-import type { Attendee, Participant } from '@src/types/onyx/IOU';
-import type { Icon, PendingAction } from '@src/types/onyx/OnyxCommon';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import type {
+    Beta,
+    DismissedProductTraining,
+    Login,
+    OnyxInputOrEntry,
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    PolicyCategories,
+    PolicyCategory,
+    PolicyTag,
+    PolicyTagLists,
+    Report,
+    ReportAction,
+    ReportActions,
+    ReportAttributesDerivedValue,
+    ReportNameValuePairs,
+    TransactionViolation,
+} from '@src/types/onyx';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Timing from './actions/Timing';
-import { getEnabledCategoriesCount } from './CategoryUtils';
+import {getEnabledCategoriesCount} from './CategoryUtils';
 import filterArrayByMatch from './filterArrayByMatch';
-import { isReportMessageAttachment } from './isReportMessageAttachment';
-import { formatPhoneNumber } from './LocalePhoneNumber';
-import { translateLocal } from './Localize';
-import { appendCountryCode, getPhoneNumberWithoutSpecialChars } from './LoginUtils';
-import { MinHeap } from './MinHeap';
+import {isReportMessageAttachment} from './isReportMessageAttachment';
+import {formatPhoneNumber} from './LocalePhoneNumber';
+import {translateLocal} from './Localize';
+import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
+import {MinHeap} from './MinHeap';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
@@ -76,14 +94,66 @@ import {
     isThreadParentMessage,
     isUnapprovedAction,
     isWhisperAction,
-    shouldReportActionBeVisible} from './ReportActionsUtils';
-import type { OptionData } from './ReportUtils';
-import { canUserPerformWriteAction, formatReportLastMessageText, getChatByParticipants, getChatRoomSubtitle, getDeletedParentActionMessageForChatReport, getDisplayNameForParticipant, getDowngradeWorkspaceMessage, getIcons, getMoneyRequestSpendBreakdown,getMovedTransactionMessage, getParticipantsAccountIDsForDisplay, getPolicyChangeMessage, getPolicyName, getReimbursementDeQueuedOrCanceledActionMessage, getReimbursementQueuedActionMessage, getRejectedReportMessage, getReportLastMessage, getReportName, getReportNotificationPreference, getReportOrDraftReport, getReportParticipantsTitle, getReportPreviewMessage, getReportSubtitlePrefix, getUpgradeWorkspaceMessage, hasIOUWaitingOnCurrentUserBankAccount, isArchivedNonExpenseReport, isArchivedReport, isChatThread, isDefaultRoom, isDM, isDraftReport, isExpenseReport, isHiddenForCurrentUser, isInvoiceRoom, isIOUOwnedByCurrentUser, isMoneyRequest, isPolicyAdmin, isUnread, isAdminRoom as reportUtilsIsAdminRoom, isAnnounceRoom as reportUtilsIsAnnounceRoom, isChatReport as reportUtilsIsChatReport, isChatRoom as reportUtilsIsChatRoom, isGroupChat as reportUtilsIsGroupChat, isMoneyRequestReport as reportUtilsIsMoneyRequestReport, isOneOnOneChat as reportUtilsIsOneOnOneChat, isPolicyExpenseChat as reportUtilsIsPolicyExpenseChat, isSelfDM as reportUtilsIsSelfDM, isTaskReport as reportUtilsIsTaskReport, shouldDisplayViolationsRBRInLHN, shouldReportBeInOptionList, shouldReportShowSubscript } from './ReportUtils';
+    shouldReportActionBeVisible,
+} from './ReportActionsUtils';
+import type {OptionData} from './ReportUtils';
+import {
+    canUserPerformWriteAction,
+    formatReportLastMessageText,
+    getChatByParticipants,
+    getChatRoomSubtitle,
+    getDeletedParentActionMessageForChatReport,
+    getDisplayNameForParticipant,
+    getDowngradeWorkspaceMessage,
+    getIcons,
+    getMoneyRequestSpendBreakdown,
+    getMovedTransactionMessage,
+    getParticipantsAccountIDsForDisplay,
+    getPolicyChangeMessage,
+    getPolicyName,
+    getReimbursementDeQueuedOrCanceledActionMessage,
+    getReimbursementQueuedActionMessage,
+    getRejectedReportMessage,
+    getReportLastMessage,
+    getReportName,
+    getReportNotificationPreference,
+    getReportOrDraftReport,
+    getReportParticipantsTitle,
+    getReportPreviewMessage,
+    getReportSubtitlePrefix,
+    getUpgradeWorkspaceMessage,
+    hasIOUWaitingOnCurrentUserBankAccount,
+    isArchivedNonExpenseReport,
+    isArchivedReport,
+    isChatThread,
+    isDefaultRoom,
+    isDM,
+    isDraftReport,
+    isExpenseReport,
+    isHiddenForCurrentUser,
+    isInvoiceRoom,
+    isIOUOwnedByCurrentUser,
+    isMoneyRequest,
+    isPolicyAdmin,
+    isUnread,
+    isAdminRoom as reportUtilsIsAdminRoom,
+    isAnnounceRoom as reportUtilsIsAnnounceRoom,
+    isChatReport as reportUtilsIsChatReport,
+    isChatRoom as reportUtilsIsChatRoom,
+    isGroupChat as reportUtilsIsGroupChat,
+    isMoneyRequestReport as reportUtilsIsMoneyRequestReport,
+    isOneOnOneChat as reportUtilsIsOneOnOneChat,
+    isPolicyExpenseChat as reportUtilsIsPolicyExpenseChat,
+    isSelfDM as reportUtilsIsSelfDM,
+    isTaskReport as reportUtilsIsTaskReport,
+    shouldDisplayViolationsRBRInLHN,
+    shouldReportBeInOptionList,
+    shouldReportShowSubscript,
+} from './ReportUtils';
 import StringUtils from './StringUtils';
-import { getTaskCreatedMessage, getTaskReportActionMessage } from './TaskUtils';
-import type { AvatarSource } from './UserUtils';
-import { generateAccountID } from './UserUtils';
-
+import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
+import type {AvatarSource} from './UserUtils';
+import {generateAccountID} from './UserUtils';
 
 type SearchOption<T> = OptionData & {
     item: T;
@@ -92,7 +162,7 @@ type SearchOption<T> = OptionData & {
 type OptionList = {
     reports: Array<SearchOption<Report>>;
     personalDetails: Array<PersonalDetails | null>;
-}
+};
 
 type Option = Partial<OptionData>;
 
@@ -917,7 +987,9 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
 
-        reportName = showPersonalDetails ? getDisplayNameForParticipant({accountID: accountIDs.at(0), shouldAddCurrentUserPostfix: true}) || formatPhoneNumber(personalDetail?.login ?? '') : getReportName(report);
+        reportName = showPersonalDetails
+            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), shouldAddCurrentUserPostfix: true}) || formatPhoneNumber(personalDetail?.login ?? '')
+            : getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0), shouldAddCurrentUserPostfix: true}) || formatPhoneNumber(personalDetail?.login ?? '');
@@ -1176,9 +1248,9 @@ function createOptionFromPersonalDetail(personalDetail: PersonalDetails, isBold:
         item: personalDetail,
         ...createOption([accountID], personalDetailMap, null, {
             showPersonalDetails: true,
-            isBold
+            isBold,
         }),
-    }
+    };
     cachedPersonalDetailsOptions.set(accountID, option);
     return option;
 }
@@ -1194,8 +1266,7 @@ function updateCachedOptionListFromPersonalDetails(personalDetails: PersonalDeta
             cachedPersonalDetailsOptions.delete(key);
             return;
         }
-        cachedPersonalDetailsOptions.set(key,
-            createOptionFromPersonalDetail(newPersonalDetail, cachedPersonalDetailsOptions.get(key)?.isBold ?? false));
+        cachedPersonalDetailsOptions.set(key, createOptionFromPersonalDetail(newPersonalDetail, cachedPersonalDetailsOptions.get(key)?.isBold ?? false));
         cachedPersonalDetailsOptions.delete(key);
     }
 }
@@ -1234,10 +1305,9 @@ function createOptionFromReport(report: Report, personalDetails: OnyxEntry<Perso
     };
 }
 
-
 const personalDetailsComparator = (personalDetail: PersonalDetails) => {
     return getDisplayNameForParticipant({accountID: personalDetail.accountID}) || formatPhoneNumber(personalDetail?.login ?? '');
-}
+};
 
 const recentReportComparator = (option: OptionData) => {
     return `${option.private_isArchived ? 0 : 1}_${option.lastVisibleActionCreated ?? ''}`;
@@ -2018,10 +2088,7 @@ function getAttendeeOptions(
     includeInvoiceRooms = false,
     action: IOUAction | undefined = undefined,
 ) {
-    const personalDetailList = keyBy(
-        personalDetails,
-        'accountID',
-    );
+    const personalDetailList = keyBy(personalDetails, 'accountID');
     const filteredRecentAttendees = recentAttendees
         .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
         .map((attendee) => ({
@@ -2445,9 +2512,7 @@ function combineOrderingOfReportsAndPersonalDetails(
     // sortByReportTypeInSearch will show the personal details as part of the recent reports
     if (sortByReportTypeInSearch) {
         const personalDetailsWithoutDMs = filteredPersonalDetailsOfRecentReports(options.recentReports, options.personalDetails);
-        const reportsAndPersonalDetails = options.recentReports.concat(
-            createOptionListFromPersonalDetails(personalDetailsWithoutDMs)
-        );
+        const reportsAndPersonalDetails = options.recentReports.concat(createOptionListFromPersonalDetails(personalDetailsWithoutDMs));
         return orderOptions({recentReports: reportsAndPersonalDetails, personalDetails: []}, searchInputValue, orderReportOptionsConfig);
     }
 
@@ -2608,7 +2673,7 @@ export {
     recentReportComparator,
     createOptionListFromPersonalDetails,
     createOptionFromPersonalDetail,
-    updateCachedOptionListFromPersonalDetails
+    updateCachedOptionListFromPersonalDetails,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, Option, OptionTree, ReportAndPersonalDetailOptions};

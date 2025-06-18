@@ -25,14 +25,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {
-    createOptionFromPersonalDetail,
-    createOptionListFromPersonalDetails,
-    filterAndOrderOptions,
-    getHeaderMessage,
-    getValidOptions,
-    isCurrentUser,
-} from '@libs/OptionsListUtils';
+import {createOptionFromPersonalDetail, createOptionListFromPersonalDetails, filterAndOrderOptions, getHeaderMessage, getValidOptions, isCurrentUser} from '@libs/OptionsListUtils';
 import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import type {TaskDetailsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';

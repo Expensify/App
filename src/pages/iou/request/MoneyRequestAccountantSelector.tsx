@@ -12,8 +12,9 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {createOptionListFromPersonalDetails, Section} from '@libs/OptionsListUtils';
+import type {Section} from '@libs/OptionsListUtils';
 import {
+    createOptionListFromPersonalDetails,
     filterAndOrderOptions,
     formatSectionsFromSearchTerm,
     getEmptyOptions,

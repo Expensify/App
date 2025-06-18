@@ -13,7 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {Option, Section} from '@libs/OptionsListUtils';
-import {filterAndOrderOptions, getValidOptions, createOptionFromPersonalDetail} from '@libs/OptionsListUtils';
+import {createOptionFromPersonalDetail, filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';

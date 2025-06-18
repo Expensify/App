@@ -24,9 +24,9 @@ import {
     getMostRecentOptions,
     getSearchOptions,
     getValidPersonalDetailOptions,
-    Options,
     recentReportComparator,
 } from '@libs/OptionsListUtils';
+import type {Options} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -211,7 +211,6 @@ function SearchAutocompleteList(
     const getParticipantsAutocompleteList = useMemo(
         () =>
             memoize(() => {
-                //todo: repair
                 if (!areOptionsInitialized) {
                     return [];
                 }

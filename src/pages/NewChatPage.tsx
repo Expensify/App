@@ -24,13 +24,10 @@ import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/acti
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import type {Option, Section} from '@libs/OptionsListUtils';
 import {
     createOptionFromPersonalDetail,
     createOptionListFromPersonalDetails,
-    Option,
-    Section,
-} from '@libs/OptionsListUtils';
-import {
     filterAndOrderOptions,
     formatSectionsFromSearchTerm,
     getFirstKeyForList,
@@ -45,8 +42,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import KeyboardUtils from '@src/utils/keyboard';
-import PersonalDetails from '@src/types/onyx/PersonalDetails';
 
 const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
@@ -120,7 +117,7 @@ function useOptions() {
             let participantOption: OptionData | null;
 
             if (participantDetails) {
-                participantOption = createOptionFromPersonalDetail(participantDetails, true)
+                participantOption = createOptionFromPersonalDetail(participantDetails, true);
             } else {
                 participantOption = getUserToInviteOption({
                     searchValue: participant?.login,

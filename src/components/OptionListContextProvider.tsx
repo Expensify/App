@@ -3,8 +3,8 @@ import {InteractionManager} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
-import {OptionList, SearchOption, updateCachedOptionListFromPersonalDetails} from '@libs/OptionsListUtils';
-import {createOptionFromReport, createOptionList, processReport, shallowOptionsListCompare} from '@libs/OptionsListUtils';
+import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
+import {createOptionFromReport, createOptionList, processReport, shallowOptionsListCompare, updateCachedOptionListFromPersonalDetails} from '@libs/OptionsListUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
@@ -254,10 +254,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
 
     return (
         <OptionsListContext.Provider // eslint-disable-next-line react-compiler/react-compiler
-            value={useMemo(
-                () => ({options, initializeOptions, areOptionsInitialized: areOptionsInitialized, resetOptions}),
-                [options, initializeOptions, resetOptions, areOptionsInitialized],
-            )}
+            value={useMemo(() => ({options, initializeOptions, areOptionsInitialized, resetOptions}), [options, initializeOptions, resetOptions, areOptionsInitialized])}
         >
             {children}
         </OptionsListContext.Provider>

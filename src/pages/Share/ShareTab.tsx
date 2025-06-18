@@ -12,14 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getOptimisticChatReport, saveReportDraft, searchInServer} from '@libs/actions/Report';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
-import {
-    combineOrderingOfReportsAndPersonalDetails,
-    createOptionListFromPersonalDetails,
-    getHeaderMessage,
-    getMostRecentOptions,
-    getSearchOptions,
-    recentReportComparator,
-} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, getHeaderMessage, getMostRecentOptions, getSearchOptions, recentReportComparator} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';

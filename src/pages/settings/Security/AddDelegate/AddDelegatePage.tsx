@@ -11,21 +11,20 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportActions from '@libs/actions/Report';
+import {searchInServer} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {createOptionListFromPersonalDetails, filterAndOrderOptions, getHeaderMessage, getValidOptions} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
-import {createOptionListFromPersonalDetails} from '@libs/OptionsListUtils';
 
 function useOptions() {
     const betas = useBetas();
     const [isLoading, setIsLoading] = useState(true);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const existingDelegates = useMemo(
         () =>
             account?.delegatedAccess?.delegates?.reduce(
@@ -40,7 +39,7 @@ function useOptions() {
     );
 
     const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getValidOptions(
+        const {recentReports, personalDetails, userToInvite, currentUserOption} = getValidOptions(
             {
                 reports: optionsList.reports,
                 personalDetails: optionsList.personalDetails,
@@ -51,7 +50,7 @@ function useOptions() {
             },
         );
 
-        const headerMessage = OptionsListUtils.getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '');
+        const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0, !!userToInvite, '');
 
         if (isLoading) {
             // eslint-disable-next-line react-compiler/react-compiler
@@ -68,11 +67,11 @@ function useOptions() {
     }, [optionsList.reports, optionsList.personalDetails, betas, existingDelegates, isLoading]);
 
     const options = useMemo(() => {
-        const filteredOptions = OptionsListUtils.filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchValue.trim(), {
             excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
-        const headerMessage = OptionsListUtils.getHeaderMessage(
+        const headerMessage = getHeaderMessage(
             (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
             !!filteredOptions.userToInvite,
             debouncedSearchValue,
@@ -89,7 +88,7 @@ function useOptions() {
 function AddDelegatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const {userToInvite, recentReports, personalDetails, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
 
     const sections = useMemo(() => {
@@ -123,7 +122,7 @@ function AddDelegatePage() {
     }, []);
 
     useEffect(() => {
-        ReportActions.searchInServer(debouncedSearchValue);
+        searchInServer(debouncedSearchValue);
     }, [debouncedSearchValue]);
 
     return (

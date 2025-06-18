@@ -44,11 +44,9 @@ import {
     getPolicyExpenseReportOption,
     getValidOptions,
     isCurrentUser,
-    Option,
     orderOptions,
-    SearchOption,
-    Section,
 } from '@libs/OptionsListUtils';
+import type {Option, SearchOption, Section} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
@@ -193,19 +191,7 @@ function MoneyRequestParticipantsSelector({
             ...optionList,
             ...orderedOptions,
         };
-    }, [
-        action,
-        contacts,
-        areOptionsInitialized,
-        betas,
-        didScreenTransitionEnd,
-        iouType,
-        isCategorizeOrShareAction,
-        options.personalDetails,
-        options.reports,
-        participants,
-        isPerDiemRequest,
-    ]);
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants, isPerDiemRequest]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -347,6 +333,7 @@ function MoneyRequestParticipantsSelector({
         showImportContacts,
         inputHelperText,
         isPerDiemRequest,
+        filteredContacts,
     ]);
 
     /**

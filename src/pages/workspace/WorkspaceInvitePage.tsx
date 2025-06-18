@@ -23,13 +23,7 @@ import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {
-    createOptionFromPersonalDetail,
-    filterAndOrderOptions,
-    getHeaderMessage,
-    getMemberInviteOptions,
-    getSearchValueForPhoneOrEmail,
-} from '@libs/OptionsListUtils';
+import {createOptionFromPersonalDetail, filterAndOrderOptions, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -60,10 +54,10 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const [personalDetails, setPersonalDetails] = useState<PersonalDetails[]>([]);
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const firstRenderRef = useRef(true);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
 
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
@@ -207,7 +201,6 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         const selectedLogins = selectedOptions.map(({login}) => login);
         const personalDetailsWithoutSelected = Object.values(personalDetails).filter(({login}) => !selectedLogins.some((selectedLogin) => selectedLogin === login));
         const personalDetailsFormatted = personalDetailsWithoutSelected.map((item) => createOptionFromPersonalDetail(item, true));
-
 
         sectionsArr.push({
             title: translate('common.contacts'),
