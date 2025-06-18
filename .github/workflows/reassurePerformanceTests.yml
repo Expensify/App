@@ -48,9 +48,11 @@ jobs:
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
           git switch "$BASELINE_BRANCH"
+          git submodule update --init --recursive
           npm install --force || (rm -rf node_modules && npm install --force) 
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
           git switch --force --detach -
+          git submodule update --init --recursive
           git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours
           git checkout --ours .
           cd Mobile-Expensify
