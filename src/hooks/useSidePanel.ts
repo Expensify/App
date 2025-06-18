@@ -75,13 +75,9 @@ function useSidePanel() {
     const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
 
     useEffect(() => {
-        if (shouldHideSidePanel && prevShouldHideSidePanel) {
-            sidePanelTranslateX.current.setValue(sidePanelWidth);
-            sidePanelOffset.current.setValue(shouldApplySidePanelOffset ? variables.sideBarWidth : 0);
-            return;
+        if (!shouldHideSidePanel && prevShouldHideSidePanel) {
+            setIsSidePanelTransitionEnded(false);
         }
-        setIsSidePanelTransitionEnded(false);
-
         Animated.parallel([
             Animated.timing(sidePanelOffset.current, {
                 toValue: shouldApplySidePanelOffset ? variables.sideBarWidth : 0,
