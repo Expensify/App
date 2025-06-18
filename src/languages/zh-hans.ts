@@ -1459,7 +1459,7 @@ const translations = {
             noLogsToShare: '没有日志可分享',
             useProfiling: '使用分析工具',
             profileTrace: '个人资料追踪',
-            results: '\u6210\u679c',
+            results: '成果',
             releaseOptions: '发布选项',
             testingPreferences: '测试偏好设置',
             useStagingServer: '使用测试服务器',
