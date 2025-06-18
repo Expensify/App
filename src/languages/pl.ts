@@ -545,7 +545,7 @@ const translations = {
         export: 'Eksportuj',
         basicExport: 'Eksport podstawowy',
         initialValue: 'Wartość początkowa',
-        currentDate: 'Current date',
+        currentDate: 'Aktualna data',
         value: 'Wartość',
         downloadFailedTitle: 'Pobieranie nie powiodło się',
         downloadFailedDescription: 'Nie udało się zakończyć pobierania. Spróbuj ponownie później.',
