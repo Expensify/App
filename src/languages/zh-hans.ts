@@ -4428,7 +4428,7 @@ const translations = {
             newWorkspace: '新工作区',
             getTheExpensifyCardAndMore: '获取Expensify卡及更多内容',
             confirmWorkspace: '确认工作区',
-            myGroupWorkspace: '我的群组工作区',
+            myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `我的群组工作区${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
             workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `${userName}的工作区${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
         },
         people: {
