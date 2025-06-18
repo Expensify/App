@@ -23,6 +23,7 @@ function ChatListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     policies,
+    allReports,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
     const reportID = Number(reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID);
@@ -70,6 +71,7 @@ function ChatListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
             <ReportActionItem
+                allReports={allReports}
                 action={reportActionItem}
                 report={report}
                 reportActions={[]}
