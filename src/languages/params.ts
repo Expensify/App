@@ -765,6 +765,10 @@ type TravelTypeParams = {
     id?: string;
 };
 
+type BusinessTaxIDParams = {
+    country: string;
+};
+
 export type {
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
@@ -1034,4 +1038,5 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    BusinessTaxIDParams,
 };
