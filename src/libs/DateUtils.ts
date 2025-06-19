@@ -34,6 +34,14 @@ import {
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import {enGB} from 'date-fns/locale/en-GB';
 import {es} from 'date-fns/locale/es';
+import {fr} from 'date-fns/locale/fr';
+import {it} from 'date-fns/locale/it';
+import {ja} from 'date-fns/locale/ja';
+import {pl} from 'date-fns/locale/pl';
+import {ptBR} from 'date-fns/locale/pt-BR';
+import {zhCN} from 'date-fns/locale/zh-CN';
+import {de} from 'date-fns/locale/de';
+import {nl} from 'date-fns/locale/nl';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -134,6 +142,30 @@ function setLocale(localeString: Locale | undefined) {
             break;
         case CONST.LOCALES.ES:
             setDefaultOptions({locale: es});
+            break;
+        case CONST.LOCALES.FR:
+            setDefaultOptions({locale: fr});
+            break;
+        case CONST.LOCALES.DE:
+            setDefaultOptions({locale: de});
+            break;
+        case CONST.LOCALES.IT:
+            setDefaultOptions({locale: it});
+            break;
+        case CONST.LOCALES.JA:
+            setDefaultOptions({locale: ja});
+            break;
+        case CONST.LOCALES.NL:
+            setDefaultOptions({locale: nl});
+            break;
+        case CONST.LOCALES.PL:
+            setDefaultOptions({locale: pl});
+            break;
+        case CONST.LOCALES.PT_BR:
+            setDefaultOptions({locale: ptBR});
+            break;
+        case CONST.LOCALES.ZH_HANS:
+            setDefaultOptions({locale: zhCN});
             break;
         default:
             break;
