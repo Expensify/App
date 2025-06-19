@@ -320,4 +320,44 @@ export default {
     w130: 130,
     w184: 184,
     w191: 191,
+
+
+    // Transaction item row heights based on layout types
+    // Wide screen (desktop) layout
+    optionRowWideItemHeight: 64,
+
+    // Narrow screen with drawer layout
+    optionRowNarrowWithDrawerItemHeight: 96,
+    optionRowNarrowWithDrawerItemHeightWithButton: 104,
+
+    // Narrow screen without drawer (mobile-like) layout
+    optionRowNarrowWithoutDrawerItemHeight: 92,
+    optionRowNarrowWithoutDrawerItemHeightWithButton: 104,
+
+    optionRowListItemPadding: 8,
+    optionRowSearchHeaderHeight: 54,
+
+    // SearchList item heights
+    searchListItemHeightLargeScreen: 72,
+    searchListItemHeightSmallScreen: 96,
+    searchListItemHeightChat: 351,
+    searchListItemHeightChatCompact: 105,
+    searchOptionRowTransactionHeight: 52,
+    searchOptionRowBaseHeight: 52,
+    searchOptionRowSmallFooterHeight: 28,
+    searchOptionRowLargeFooterHeight: 17,
+    searchOptionRowMargin: 6,
+    
+    // Search item violation warning mark height
+    searchViolationWarningMarkHeight: 24,
+    
+    // Search item base padding/margin
+    searchItemBasePadding: 8,
+    
+    // Chat-specific item heights
+    searchChatReportPreviewHeightLargeScreen: 433.81,
+    searchChatReportPreviewWithViolationsHeightLargeScreen: 459.81,
+    searchChatReportPreviewHeightSmallScreen: 598.06,
+    searchChatReportPreviewWithViolationsHeightSmallScreen: 624.06,
+    searchChatStandardItemHeight: 97,
 } as const;
