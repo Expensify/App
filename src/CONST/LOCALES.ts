@@ -68,12 +68,12 @@ type TranslationTargetLocale = ValueOf<typeof TRANSLATION_TARGET_LOCALES>;
 
 // Sort all locales alphabetically by their display names
 const SORTED_LOCALES = Object.values({...FULLY_SUPPORTED_LOCALES, ...BETA_LOCALES})
-    .map(locale => ({
+    .map((locale) => ({
         locale,
-        displayName: LOCALE_TO_LANGUAGE_STRING[locale]
+        displayName: LOCALE_TO_LANGUAGE_STRING[locale],
     }))
     .sort((a, b) => a.displayName.localeCompare(b.displayName))
-    .map(item => item.locale);
+    .map((item) => item.locale);
 
 function isSupportedLocale(locale: string): locale is Locale {
     return (Object.values(LOCALES) as readonly string[]).includes(locale);
