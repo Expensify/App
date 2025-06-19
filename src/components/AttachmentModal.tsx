@@ -14,7 +14,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
-import {cleanFileName, getFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import {cleanFileName, getFileName, getFileValidationErrorText, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
@@ -23,7 +23,6 @@ import variables from '@styles/variables';
 import {detachReceipt} from '@userActions/IOU';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -64,6 +63,7 @@ type FileObject = Partial<File | ImagePickerResponse>;
 
 type ChildrenProps = {
     displayFileInModal: (data: FileObject) => void;
+    displayMultipleFilesInModal: (data: FileObject[]) => void;
     show: () => void;
 };
 
@@ -75,7 +75,7 @@ type AttachmentModalProps = {
     attachmentID?: string;
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
-    onConfirm?: ((file: FileObject) => void) | null;
+    onConfirm?: ((file: FileObject | FileObject[]) => void) | null;
 
     /** Whether the modal should be open by default */
     defaultOpen?: boolean;
@@ -196,11 +196,10 @@ function AttachmentModal({
     const styles = useThemeStyles();
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
-    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
+    const [fileError, setFileError] = useState<ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null>(null);
+    const [isFileErrorModalVisible, setIsFileErrorModalVisible] = useState(false);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
     const [isAuthTokenRequiredState, setIsAuthTokenRequiredState] = useState(isAuthTokenRequired);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths | null>(null);
-    const [attachmentInvalidReason, setAttachmentInvalidReason] = useState<TranslationPaths | null>(null);
     const [sourceState, setSourceState] = useState<AvatarSource>(() => source);
     const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
@@ -210,13 +209,14 @@ function AttachmentModal({
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const nope = useSharedValue(false);
-    const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
+    const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && fileError);
     const iouType = useMemo(() => iouTypeProp ?? (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction, iouTypeProp]);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
+    const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
 
     const [file, setFile] = useState<FileObject | undefined>(
@@ -234,6 +234,13 @@ function AttachmentModal({
     useEffect(() => {
         setFile(originalFileName ? {name: originalFileName} : undefined);
     }, [originalFileName]);
+
+    useEffect(() => {
+        if (!fileError) {
+            return;
+        }
+        setIsFileErrorModalVisible(true);
+    }, [fileError]);
 
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
@@ -300,7 +307,12 @@ function AttachmentModal({
         }
 
         if (onConfirm) {
-            onConfirm(Object.assign(file ?? {}, {source: sourceState} as FileObject));
+            if (validFilesToUpload.length) {
+                onConfirm(validFilesToUpload);
+                setValidFilesToUpload([]);
+            } else {
+                onConfirm(Object.assign(file ?? {}, {source: sourceState} as FileObject));
+            }
         }
 
         setIsModalOpen(false);
@@ -311,8 +323,11 @@ function AttachmentModal({
      * Close the confirm modals.
      */
     const closeConfirmModal = useCallback(() => {
-        setIsAttachmentInvalid(false);
+        setIsFileErrorModalVisible(false);
         setIsDeleteReceiptConfirmModalVisible(false);
+        InteractionManager.runAfterInteractions(() => {
+            setFileError(null);
+        });
     }, []);
 
     /**
@@ -325,29 +340,18 @@ function AttachmentModal({
     }, [transaction]);
 
     const isValidFile = useCallback(
-        (fileObject: FileObject) =>
+        (fileObject: FileObject, isCheckingMultipleFiles?: boolean) =>
             validateImageForCorruption(fileObject)
                 .then(() => {
-                    if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                        setIsAttachmentInvalid(true);
-                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooLarge');
-                        setAttachmentInvalidReason('attachmentPicker.sizeExceeded');
+                    const error = validateAttachment(fileObject, isCheckingMultipleFiles);
+                    if (error) {
+                        setFileError(error);
                         return false;
                     }
-
-                    if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                        setIsAttachmentInvalid(true);
-                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentTooSmall');
-                        setAttachmentInvalidReason('attachmentPicker.sizeNotMet');
-                        return false;
-                    }
-
                     return true;
                 })
                 .catch(() => {
-                    setIsAttachmentInvalid(true);
-                    setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
-                    setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                    setFileError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED);
                     return false;
                 }),
         [],
@@ -355,13 +359,66 @@ function AttachmentModal({
 
     const isDirectoryCheck = useCallback((data: FileObject) => {
         if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
-            setIsAttachmentInvalid(true);
-            setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
-            setAttachmentInvalidReason('attachmentPicker.folderNotAllowedMessage');
+            setFileError(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
             return false;
         }
         return true;
     }, []);
+
+    const handleOpenModal = useCallback(
+        (inputSource: string, fileObject: FileObject) => {
+            const inputModalType = getModalType(inputSource, fileObject);
+            setIsModalOpen(true);
+            setSourceState(inputSource);
+            setFile(fileObject);
+            setModalType(inputModalType);
+        },
+        [getModalType, setSourceState, setFile, setModalType],
+    );
+
+    const validateFiles = useCallback(
+        (data: FileObject[]) => {
+            let validFiles: FileObject[] = [];
+
+            Promise.all(data.map((fileToUpload) => isValidFile(fileToUpload, true).then((isValid) => (isValid ? fileToUpload : null)))).then((results) => {
+                validFiles = results.filter((validFile): validFile is FileObject => validFile !== null);
+                setValidFilesToUpload(validFiles);
+
+                if (validFiles.length > 0) {
+                    const fileToDisplay = validFiles.at(0);
+                    if (fileToDisplay) {
+                        handleOpenModal(fileToDisplay.uri ?? '', fileToDisplay);
+                    }
+                }
+            });
+        },
+        [isValidFile, handleOpenModal],
+    );
+
+    const confirmAndContinue = () => {
+        if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
+            validateFiles(validFilesToUpload);
+        } else {
+            setValidFilesToUpload([]);
+        }
+        setIsFileErrorModalVisible(false);
+    };
+
+    const validateAndDisplayMultipleFilesToUpload = useCallback(
+        (data: FileObject[]) => {
+            if (!data?.length || data.some((fileObject) => !isDirectoryCheck(fileObject))) {
+                return;
+            }
+            if (data.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
+                const validFiles = data.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
+                setValidFilesToUpload(validFiles);
+                setFileError(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
+                return;
+            }
+            validateFiles(data);
+        },
+        [isDirectoryCheck, validateFiles],
+    );
 
     const validateAndDisplayFileToUpload = useCallback(
         (data: FileObject) => {
@@ -392,21 +449,13 @@ function AttachmentModal({
                     }
                     const inputSource = URL.createObjectURL(updatedFile);
                     updatedFile.uri = inputSource;
-                    const inputModalType = getModalType(inputSource, updatedFile);
-                    setIsModalOpen(true);
-                    setSourceState(inputSource);
-                    setFile(updatedFile);
-                    setModalType(inputModalType);
+                    handleOpenModal(inputSource, updatedFile);
                 } else if (fileObject.uri) {
-                    const inputModalType = getModalType(fileObject.uri, fileObject);
-                    setIsModalOpen(true);
-                    setSourceState(fileObject.uri);
-                    setFile(fileObject);
-                    setModalType(inputModalType);
+                    handleOpenModal(fileObject.uri, fileObject);
                 }
             });
         },
-        [isValidFile, getModalType, isDirectoryCheck],
+        [isDirectoryCheck, isValidFile, handleOpenModal],
     );
 
     /**
@@ -432,6 +481,14 @@ function AttachmentModal({
         },
         [onModalClose],
     );
+
+    const closeAndResetModal = useCallback(() => {
+        closeConfirmModal();
+        closeModal();
+        InteractionManager.runAfterInteractions(() => {
+            setValidFilesToUpload([]);
+        });
+    }, [closeConfirmModal, closeModal]);
 
     /**
      *  open the modal
@@ -532,9 +589,7 @@ function AttachmentModal({
                     setShouldLoadAttachment(false);
                     clearAttachmentErrors();
                     if (isPDFLoadError.current) {
-                        setIsAttachmentInvalid(true);
-                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
-                        setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                        setFileError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED);
                         return;
                     }
 
@@ -682,13 +737,14 @@ function AttachmentModal({
             </Modal>
             {!isReceiptAttachment && (
                 <ConfirmModal
-                    title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                    onConfirm={closeConfirmModal}
-                    onCancel={closeConfirmModal}
-                    isVisible={isAttachmentInvalid}
-                    prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
-                    confirmText={translate('common.close')}
-                    shouldShowCancelButton={false}
+                    title={getFileValidationErrorText(fileError).title}
+                    onConfirm={confirmAndContinue}
+                    onCancel={closeAndResetModal}
+                    isVisible={isFileErrorModalVisible}
+                    prompt={getFileValidationErrorText(fileError).reason}
+                    confirmText={translate(validFilesToUpload.length ? 'common.continue' : 'common.close')}
+                    shouldShowCancelButton={!!validFilesToUpload.length}
+                    cancelText={translate('common.cancel')}
                     onModalHide={() => {
                         if (!isPDFLoadError.current) {
                             return;
@@ -701,6 +757,7 @@ function AttachmentModal({
 
             {children?.({
                 displayFileInModal: validateAndDisplayFileToUpload,
+                displayMultipleFilesInModal: validateAndDisplayMultipleFilesToUpload,
                 show: openModal,
             })}
         </>
