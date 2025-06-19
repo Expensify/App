@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -4260,7 +4261,7 @@ const translations = {
                 pendingBankTitle: 'Controlla la finestra del tuo browser',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) =>
                     `Si prega di connettersi a ${bankName} tramite la finestra del browser che si è appena aperta. Se non si è aperta,`,
-                pendingBankLink: 'per favore clicca qui.',
+                pendingBankLink: 'per favore clicca qui',
                 giveItNameInstruction: 'Dai alla carta un nome che la distingua dalle altre.',
                 updating: 'Aggiornamento in corso...',
                 noAccountsFound: 'Nessun account trovato',
@@ -5987,8 +5988,8 @@ const translations = {
         principalWorkEmail: 'Email di lavoro principale',
         updateYourEmail: 'Aggiorna il tuo indirizzo email',
         updateEmail: 'Aggiorna indirizzo email',
-        contactMethods: 'Metodi di contatto.',
-        schoolMailAsDefault: 'Prima di procedere, assicurati di impostare la tua email scolastica come metodo di contatto predefinito. Puoi farlo in Impostazioni > Profilo >',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `Prima di procedere, assicurati di impostare la tua email scolastica come metodo di contatto predefinito. Puoi farlo in Impostazioni > Profilo > <a href="${contactMethodsRoute}">Metodi di contatto</a>.`,
         error: {
             enterPhoneEmail: "Inserisci un'email o un numero di telefono valido",
             enterEmail: "Inserisci un'email",

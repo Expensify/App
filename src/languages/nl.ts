@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -4257,7 +4258,7 @@ const translations = {
                 pendingFeedDescription: `We zijn momenteel uw feedgegevens aan het beoordelen. Zodra dat is voltooid, nemen we contact met u op via`,
                 pendingBankTitle: 'Controleer uw browservenster',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) => `Verbind met ${bankName} via het browservenster dat zojuist is geopend. Als er geen is geopend,`,
-                pendingBankLink: 'klik hier alstublieft.',
+                pendingBankLink: 'klik hier alstublieft',
                 giveItNameInstruction: 'Geef de kaart een naam die hem onderscheidt van anderen.',
                 updating: 'Bijwerken...',
                 noAccountsFound: 'Geen accounts gevonden',
@@ -5973,8 +5974,8 @@ const translations = {
         principalWorkEmail: 'Primaire werk e-mail',
         updateYourEmail: 'Werk uw e-mailadres bij',
         updateEmail: 'E-mailadres bijwerken',
-        contactMethods: 'Contactmethoden.',
-        schoolMailAsDefault: 'Voordat je verder gaat, zorg ervoor dat je je school e-mailadres instelt als je standaard contactmethode. Dit kun je doen in Instellingen > Profiel >',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `Voordat je verder gaat, zorg ervoor dat je je school e-mailadres instelt als je standaard contactmethode. Dit kun je doen in Instellingen > Profiel > <a href="${contactMethodsRoute}">Contactmethoden</a>.`,
         error: {
             enterPhoneEmail: 'Voer een geldig e-mailadres of telefoonnummer in',
             enterEmail: 'Voer een e-mailadres in',
