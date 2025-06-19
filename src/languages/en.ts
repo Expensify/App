@@ -6713,8 +6713,10 @@ const translations = {
     export: {
         basicExport: 'Basic export',
         reportLevelExport: 'All Data - report level',
-        expenseLevelExport: 'All Data - expense level'
-    }
+        expenseLevelExport: 'All Data - expense level',
+        exportInProgress: 'Export in progress',
+        conciergeWillSend: 'Concierge will send you the file shortly.',
+    },
 };
 
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

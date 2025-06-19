@@ -5,7 +5,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
-import type {ExportSearchItemsToCSVParams, SubmitReportParams} from '@libs/API/parameters';
+import type {ExportSearchItemsToCSVParams, ExportSearchWithTemplateParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -22,7 +22,6 @@ import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src/types/onyx';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
-import ExportSearchWithTemplateParams from '@libs/API/parameters/ExportSearchWithTemplateParams';
 
 let lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
 Onyx.connect({
@@ -404,7 +403,7 @@ function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactio
 }
 
 function queueExportSearchWithTemplate({templateName, templateType, jsonQuery, reportIDList, transactionIDList, policyID}: ExportSearchWithTemplateParams) {
-    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, {
         templateName,
         templateType,
         jsonQuery,

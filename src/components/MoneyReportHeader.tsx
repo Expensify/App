@@ -17,6 +17,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported, openUnreportedExpense} from '@libs/actions/Report';
+import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
@@ -189,6 +190,7 @@ function MoneyReportHeader({
     const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
     const [isReopenWarningModalVisible, setIsReopenWarningModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
+    const [isExportModalVisible, setIsExportModalVisible] = useState(false);
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
 
@@ -251,6 +253,25 @@ function MoneyReportHeader({
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
+
+    const beginExportWithTemplate = useCallback(
+        (templateName: string, templateType: string, transactionIDList: string[]) => {
+            if (!moneyRequestReport) {
+                return;
+            }
+
+            setIsExportModalVisible(true);
+            queueExportSearchWithTemplate({
+                templateName,
+                templateType,
+                jsonQuery: '',
+                reportIDList: [moneyRequestReport.reportID],
+                transactionIDList,
+                policyID: policy?.id,
+            });
+        },
+        [moneyRequestReport, policy],
+    );
 
     const {
         options: selectedTransactionsOptions,
@@ -535,11 +556,7 @@ function MoneyReportHeader({
                         return;
                     }
 
-                    beginExportWithTemplate(
-                        CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
-                        CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
-                        transactionIDs,
-                    );
+                    beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, transactionIDs);
                 },
             },
             [CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT]: {
@@ -551,12 +568,8 @@ function MoneyReportHeader({
                         return;
                     }
 
-                    beginExportWithTemplate(
-                        CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
-                        CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
-                        transactionIDs,
-                    );
-                }
+                    beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, transactionIDs);
+                },
             },
             [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION]: {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -590,7 +603,7 @@ function MoneyReportHeader({
                 },
             },
         }),
-        [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported],
+        [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate],
     );
 
     const primaryActionsImplementation = {
@@ -711,22 +724,6 @@ function MoneyReportHeader({
     const beginPDFExport = (reportID: string) => {
         setIsPDFModalVisible(true);
         exportReportToPDF({reportID});
-    };
-
-    const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[]) => {
-        if (!moneyRequestReport) {
-            return;
-        }
-
-        setIsExportModalVisible(true);
-        queueExportSearchWithTemplate({
-            templateName,
-            templateType,
-            jsonQuery: '',
-            reportIDList: [moneyRequestReport.reportID],
-            transactionIDList,
-            policyID: policy?.id ?? ''
-        });
     };
 
     const secondaryActions = useMemo(() => {
@@ -1276,8 +1273,8 @@ function MoneyReportHeader({
             <ConfirmModal
                 onConfirm={() => setIsExportModalVisible(false)}
                 isVisible={isExportModalVisible}
-                title={'Export in progress'} // meep
-                prompt={'Concierge will send you the file shortly.'} // meep
+                title={translate('export.exportInProgress')}
+                prompt={translate('export.conciergeWillSend')}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
             />

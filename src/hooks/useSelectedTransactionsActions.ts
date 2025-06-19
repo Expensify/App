@@ -187,11 +187,7 @@ function useSelectedTransactionsActions({
                         if (!report) {
                             return;
                         }
-                        beginExportWithTemplate(
-                            CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
-                            CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
-                            selectedTransactionIDs,
-                        );
+                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs);
                     },
                 },
             ],
