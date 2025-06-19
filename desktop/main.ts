@@ -18,6 +18,7 @@ import type {Locale} from '@src/types/onyx';
 import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueue';
 import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
+import DateLocaleStore from '@libs/DateLocaleStore';
 
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 
@@ -672,6 +673,7 @@ const mainWindow = (): Promise<void> => {
                         disposeContextMenu?.();
                         disposeContextMenu = createContextMenu(updatedLocale);
                     });
+                    DateLocaleStore.load(updatedLocale);
                 });
 
                 ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {

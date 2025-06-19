@@ -32,8 +32,6 @@ import {
     subMinutes,
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
-import {enGB} from 'date-fns/locale/en-GB';
-import {es} from 'date-fns/locale/es';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -49,6 +47,8 @@ import {setNetworkLastOffline} from './actions/Network';
 import {translate, translateLocal} from './Localize';
 import Log from './Log';
 import memoize from './memoize';
+import DateLocaleStore from './DateLocaleStore';
+import {enGB} from 'date-fns/locale/en-GB';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
 type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -126,19 +126,28 @@ function getWeekEndsOn(): WeekDay {
 
 /**
  * Gets the locale string and setting default locale for date-fns
+ * Uses the DateLocaleStore for dynamic loading
  */
-function setLocale(localeString: Locale | undefined) {
-    switch (localeString) {
-        case CONST.LOCALES.EN:
-            setDefaultOptions({locale: enGB});
-            break;
-        case CONST.LOCALES.ES:
-            setDefaultOptions({locale: es});
-            break;
-        default:
-            break;
+function setLocale(localeString: Locale | undefined): void {
+    if (!localeString) {
+        return;
+    }
+
+    // Try to get cached locale first for immediate use
+    const cachedLocale = DateLocaleStore.get(localeString);
+    if (cachedLocale) {
+        setDefaultOptions({locale: cachedLocale});
+    } else {
+        // Load asynchronously and set when ready
+        DateLocaleStore.load(localeString).catch((error) => {
+            Log.warn('DateUtils.setLocale: Failed to load locale', {
+                locale: localeString,
+                error,
+            });
+        });
     }
 }
+
 
 /**
  * Gets the user's stored time zone NVP and returns a localized
@@ -146,9 +155,11 @@ function setLocale(localeString: Locale | undefined) {
  */
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 function getLocalDateFromDatetime(locale: Locale | undefined, datetime?: string, currentSelectedTimezone: string | SelectedTimezone = timezone.selected): Date {
+    // Set locale for date-fns formatting
     if (locale) {
         setLocale(locale);
     }
+    
     if (!datetime) {
         const res = toZonedTime(new Date(), currentSelectedTimezone);
         if (Number.isNaN(res.getTime())) {
@@ -293,7 +304,11 @@ function datetimeToCalendarTime(
 function datetimeToRelative(locale: Locale | undefined, datetime: string): string {
     const date = getLocalDateFromDatetime(locale, datetime);
     const now = getLocalDateFromDatetime(locale);
-    return formatDistance(date, now, {addSuffix: true, locale: locale === CONST.LOCALES.EN ? enGB : es});
+    
+    // Get the locale for date-fns formatting from cache
+    const dateLocale = locale ? DateLocaleStore.get(locale) : enGB;
+    
+    return formatDistance(date, now, {addSuffix: true, locale: dateLocale});
 }
 
 /**

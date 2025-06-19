@@ -36,6 +36,7 @@ import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './
 import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import {isAnonymousUser} from './Session';
 import Timing from './Timing';
+import DateLocaleStore from '@libs/DateLocaleStore';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
@@ -68,6 +69,7 @@ Onyx.connect({
 
         preferredLocale = val;
         TranslationStore.load(val);
+        DateLocaleStore.load(val);
         localeEventCallback(val);
 
         // For locales without emoji support, fallback on English
