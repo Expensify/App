@@ -1118,9 +1118,9 @@ const styles = (theme: ThemeColors) =>
                 borderWidth: isSmallScreenWidth ? 0 : 2,
                 borderColor: theme.borderFocus,
                 borderStyle: 'dotted',
-                marginBottom: 20,
-                marginLeft: 20,
-                marginRight: 20,
+                marginBottom: variables.uploadViewMargin,
+                marginLeft: variables.uploadViewMargin,
+                marginRight: variables.uploadViewMargin,
                 justifyContent: 'center',
                 alignItems: 'center',
                 paddingVertical: 40,
@@ -4077,7 +4077,7 @@ const styles = (theme: ThemeColors) =>
             marginRight: 8,
             width: variables.w44,
             borderRadius: variables.componentBorderRadiusSmall,
-            backgroundColor: colors.productLight300,
+            backgroundColor: theme.hoverComponentBG,
         },
 
         isDraggingOver: {
@@ -4256,6 +4256,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLabel,
             color: theme.textReversed,
             lineHeight: variables.lineHeightLarge,
+            flexShrink: 1,
         },
 
         quickReactionsContainer: {

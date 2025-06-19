@@ -1,4 +1,4 @@
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
@@ -28,7 +28,6 @@ import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
 import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
-import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
@@ -126,7 +125,7 @@ import {
     isTripPreview,
     isUnapprovedAction,
     isWhisperActionTargetedToOthers,
-    useNewTableReportViewActionRenderConditionals,
+    useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
 import type {MissingPaymentMethod} from '@libs/ReportUtils';
 import {
@@ -157,7 +156,7 @@ import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
-import {addComment, expandURLPreview} from '@userActions/Report';
+import {expandURLPreview, resolveConciergeCategoryOptions} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
@@ -435,7 +434,7 @@ function PureReportActionItem({
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
     const {isBetaEnabled} = usePermissions();
-    const shouldRenderViewBasedOnAction = useNewTableReportViewActionRenderConditionals(action);
+    const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
@@ -535,7 +534,7 @@ function PureReportActionItem({
         }
 
         const urls = extractLinksFromMessageHtml(action);
-        if (lodashIsEqual(downloadedPreviews.current, urls) || action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (deepEqual(downloadedPreviews.current, urls) || action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
 
@@ -711,11 +710,15 @@ function PureReportActionItem({
                 return [];
             }
 
+            if (!reportID) {
+                return [];
+            }
+
             return options.map((option, i) => ({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
-                    addComment(originalReportID, option);
+                    resolveConciergeCategoryOptions(reportID, originalReportID, action.reportActionID, option);
                 },
             }));
         }
@@ -834,7 +837,7 @@ function PureReportActionItem({
         const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
         const moneyRequestActionType = moneyRequestOriginalMessage?.type;
 
-        // Show the MoneyRequestPreview for when expense is present
+        // Show the preview for when expense is present
         if (isIOURequestReportAction(action)) {
             const isSplitInGroupChat = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && report?.chatType === CONST.REPORT.CHAT_TYPE.GROUP;
             const isSplitScanWithNoAmount = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && moneyRequestOriginalMessage?.amount === 0;
@@ -859,8 +862,7 @@ function PureReportActionItem({
                 />
             );
 
-            // Table Report View does not display these components as separate messages, except for self-DM
-            if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && report?.type === CONST.REPORT.TYPE.CHAT) {
+            if (report?.type === CONST.REPORT.TYPE.CHAT) {
                 if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM || shouldShowSplitPreview) {
                     children = (
                         <View style={[styles.mt1, styles.w100]}>
@@ -909,7 +911,7 @@ function PureReportActionItem({
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
             children = <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW)) {
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
             children = (
                 <MoneyRequestReportPreview
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
@@ -925,24 +927,6 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
                     shouldShowBorder={shouldShowBorder}
-                />
-            );
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-            children = (
-                <ReportPreview
-                    iouReportID={getIOUReportIDFromReportActionPreview(action)}
-                    chatReportID={reportID}
-                    policyID={report?.policyID}
-                    containerStyles={displayAsGroup ? [] : [styles.mt2]}
-                    action={action}
-                    isHovered={hovered}
-                    onShowContextMenu={handleShowContextMenu}
-                    contextMenuAnchor={popoverAnchorRef.current}
-                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                    onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
-                    onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
-                    isWhisper={isWhisper}
-                    shouldDisplayContextMenu={shouldDisplayContextMenu}
                 />
             );
         } else if (isTaskAction(action)) {
@@ -1325,7 +1309,7 @@ function PureReportActionItem({
     const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean): React.JSX.Element => {
         const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
 
-        if (isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && (isEmptyHTML(content) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses))) {
+        if (isEmptyHTML(content) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses)) {
             return emptyHTML;
         }
 
@@ -1573,10 +1557,10 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.displayAsGroup === nextProps.displayAsGroup &&
         prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
         prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
-        lodashIsEqual(prevProps.action, nextProps.action) &&
-        lodashIsEqual(prevProps.report?.pendingFields, nextProps.report?.pendingFields) &&
-        lodashIsEqual(prevProps.report?.isDeletedParentAction, nextProps.report?.isDeletedParentAction) &&
-        lodashIsEqual(prevProps.report?.errorFields, nextProps.report?.errorFields) &&
+        deepEqual(prevProps.action, nextProps.action) &&
+        deepEqual(prevProps.report?.pendingFields, nextProps.report?.pendingFields) &&
+        deepEqual(prevProps.report?.isDeletedParentAction, nextProps.report?.isDeletedParentAction) &&
+        deepEqual(prevProps.report?.errorFields, nextProps.report?.errorFields) &&
         prevProps.report?.statusNum === nextProps.report?.statusNum &&
         prevProps.report?.stateNum === nextProps.report?.stateNum &&
         prevProps.report?.parentReportID === nextProps.report?.parentReportID &&
@@ -1593,24 +1577,24 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
         prevProps.report?.policyAvatar === nextProps.report?.policyAvatar &&
         prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
-        lodashIsEqual(prevProps.report?.fieldList, nextProps.report?.fieldList) &&
-        lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
-        lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
-        lodashIsEqual(prevParentReportAction, nextParentReportAction) &&
+        deepEqual(prevProps.report?.fieldList, nextProps.report?.fieldList) &&
+        deepEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
+        deepEqual(prevProps.reportActions, nextProps.reportActions) &&
+        deepEqual(prevParentReportAction, nextParentReportAction) &&
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.iouReport?.reportID === nextProps.iouReport?.reportID &&
-        lodashIsEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
-        lodashIsEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
-        lodashIsEqual(prevProps.reportNameValuePairs, nextProps.reportNameValuePairs) &&
+        deepEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
+        deepEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
+        deepEqual(prevProps.reportNameValuePairs, nextProps.reportNameValuePairs) &&
         prevProps.isUserValidated === nextProps.isUserValidated &&
         prevProps.parentReport?.reportID === nextProps.parentReport?.reportID &&
-        lodashIsEqual(prevProps.personalDetails, nextProps.personalDetails) &&
-        lodashIsEqual(prevProps.blockedFromConcierge, nextProps.blockedFromConcierge) &&
+        deepEqual(prevProps.personalDetails, nextProps.personalDetails) &&
+        deepEqual(prevProps.blockedFromConcierge, nextProps.blockedFromConcierge) &&
         prevProps.originalReportID === nextProps.originalReportID &&
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
         prevProps.isChronosReport === nextProps.isChronosReport &&
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&
-        lodashIsEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
+        deepEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
         prevProps.userBillingFundID === nextProps.userBillingFundID

@@ -35,7 +35,7 @@ import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportU
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
-import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
+import {getReportPreviewAction} from '@libs/ReportPreviewActionUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     getBankAccountRoute,
