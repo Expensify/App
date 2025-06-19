@@ -183,7 +183,6 @@ import {
     isExportIntegrationAction,
     isIntegrationMessageAction,
     isMarkAsClosedAction,
-    isMessageDeleted,
     isModifiedExpenseAction,
     isMoneyRequestAction,
     isOldDotReportAction,
@@ -394,7 +393,14 @@ type OptimisticIOUReportAction = Pick<
     | 'delegateAccountID'
 >;
 
-type PartialReportAction = OnyxInputOrEntry<ReportAction> | Partial<ReportAction> | OptimisticIOUReportAction | OptimisticApprovedReportAction | OptimisticSubmittedReportAction | undefined;
+type PartialReportAction =
+    | OnyxInputOrEntry<ReportAction>
+    | Partial<ReportAction>
+    | OptimisticIOUReportAction
+    | OptimisticApprovedReportAction
+    | OptimisticSubmittedReportAction
+    | OptimisticConciergeCategoryOptionsAction
+    | undefined;
 
 type ReportRouteParams = {
     reportID: string;
@@ -507,6 +513,11 @@ type OptimisticCreatedReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CREATED>,
     'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction' | 'actionName' | 'delegateAccountID'
 >;
+
+type OptimisticConciergeCategoryOptionsAction = Pick<
+    ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS>,
+    'reportActionID' | 'actionName' | 'actorAccountID' | 'person' | 'automatic' | 'avatar' | 'created' | 'message' | 'pendingAction' | 'shouldShow' | 'originalMessage' | 'errors'
+> & {isOptimisticAction: boolean};
 
 type OptimisticRenamedReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>,
@@ -4973,7 +4984,6 @@ function getReportName(
     const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
     const attributes = reportAttributes ?? reportAttributesDerivedValue;
     const derivedNameExists = report && !!attributes?.[report.reportID]?.reportName;
-    // This doesn't apply to chat reports because last message (report name) can be changed and/or edited
     if (canUseDerivedValue && derivedNameExists) {
         return attributes[report.reportID].reportName;
     }
@@ -4986,19 +4996,6 @@ function getSearchReportName(props: GetReportNameParams): string {
         return policy.name;
     }
     return getReportNameInternal(props);
-}
-
-function isChatThreadDeleted(report: OnyxInputOrEntry<Report>, reportActionParam: OnyxInputOrEntry<ReportAction>): boolean {
-    if (!isChatThread(report)) {
-        return false;
-    }
-
-    let reportAction = reportActionParam as OnyxEntry<ReportAction>;
-    if (!reportAction) {
-        reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    }
-
-    return isMessageDeleted(reportAction);
 }
 
 function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy | SearchPolicy>, invoiceReceiverPolicy?: OnyxEntry<Policy | SearchPolicy>): string {
@@ -5174,7 +5171,7 @@ function getReportNameInternal({
             return getRenamedAction(parentReportAction, isExpenseReport(getReport(report.parentReportID, allReports)));
         }
 
-        if (isChatThreadDeleted(report, parentReportActionParam)) {
+        if (parentReportActionMessage?.isDeletedParentAction) {
             return translateLocal('parentReportAction.deletedMessage');
         }
 
@@ -11255,7 +11252,6 @@ export {
     isChatRoom,
     isTripRoom,
     isChatThread,
-    isChatThreadDeleted,
     isChildReport,
     isClosedExpenseReportWithNoExpenses,
     isCompletedTaskReport,
@@ -11445,6 +11441,7 @@ export type {
     OptimisticAddCommentReportAction,
     OptimisticChatReport,
     OptimisticClosedReportAction,
+    OptimisticConciergeCategoryOptionsAction,
     OptimisticCreatedReportAction,
     OptimisticIOUReportAction,
     OptimisticTaskReportAction,
