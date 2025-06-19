@@ -668,14 +668,15 @@ describe('PolicyUtils', () => {
             expect(result).toBe(false);
         });
 
-        it('returns true if policy is paid group policy and submitter is a member of the new policy', async () => {
+        it('returns true if policy is paid group policy and the manger is the payer', async () => {
             const currentUserLogin = employeeEmail;
             const currentUserAccountID = employeeAccountID;
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                 employeeList: {
-                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
             };
             const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
@@ -684,22 +685,20 @@ describe('PolicyUtils', () => {
                 ...createRandomReport(0),
                 type: CONST.REPORT.TYPE.IOU,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                ownerAccountID: currentUserAccountID,
-                managerID: approverAccountID,
+                ownerAccountID: approverAccountID,
+                managerID: currentUserAccountID,
             };
 
             const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
             expect(result).toBe(true);
         });
 
-        it('returns true if policy is paid group policy and submitter is not a member but current user is admin', async () => {
-            const currentUserLogin = adminEmail;
-
+        it('returns false if the manager is not the payer of the new policy', async () => {
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
-                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                    [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.USER},
                 },
             };
             const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
@@ -713,7 +712,7 @@ describe('PolicyUtils', () => {
             };
 
             const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
-            expect(result).toBe(true);
+            expect(result).toBe(false);
         });
     });
 
