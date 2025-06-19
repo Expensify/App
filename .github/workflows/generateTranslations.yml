@@ -21,7 +21,6 @@ jobs:
 
       - name: Run generateTranslations dry run
         run: npx ts-node ./scripts/generateTranslations.ts --dry-run
-        continue-on-error: true
 
       - name: Explain failure
         if: failure()
