@@ -164,7 +164,10 @@ type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
 
 type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
+
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
+
+type SuggestedSearchKey = ValueOf<typeof CONST.SEARCH.SUGGESTED_KEYS>;
 
 type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;
@@ -179,6 +182,7 @@ type SearchTypeMenuSection = {
 };
 
 type SearchTypeMenuItem = {
+    key: SuggestedSearchKey;
     translationPath: TranslationPaths;
     type: SearchDataTypes;
     icon: IconAsset;
@@ -1201,6 +1205,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
             translationPath: 'common.explore',
             menuItems: [
                 {
+                    key: CONST.SEARCH.SUGGESTED_KEYS.EXPENSES,
                     translationPath: 'common.expenses',
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     icon: Expensicons.Receipt,
@@ -1210,6 +1215,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                     },
                 },
                 {
+                    key: CONST.SEARCH.SUGGESTED_KEYS.REPORTS,
                     translationPath: 'common.reports',
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     icon: Expensicons.Document,
@@ -1219,6 +1225,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                     },
                 },
                 {
+                    key: CONST.SEARCH.SUGGESTED_KEYS.CHATS,
                     translationPath: 'common.chats',
                     type: CONST.SEARCH.DATA_TYPES.CHAT,
                     icon: Expensicons.ChatBubbles,
@@ -1287,6 +1294,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
 
         if (showSubmitSuggestion) {
             section.menuItems.push({
+                key: CONST.SEARCH.SUGGESTED_KEYS.SUBMIT,
                 translationPath: 'common.submit',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.Pencil,
@@ -1342,6 +1350,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
 
         if (showApproveSuggestion) {
             section.menuItems.push({
+                key: CONST.SEARCH.SUGGESTED_KEYS.APPROVE,
                 translationPath: 'search.bulkActions.approve',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.ThumbsUp,
@@ -1364,6 +1373,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
 
         if (showPaySuggestion) {
             section.menuItems.push({
+                key: CONST.SEARCH.SUGGESTED_KEYS.PAY,
                 translationPath: 'search.bulkActions.pay',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.MoneyBag,
@@ -1386,6 +1396,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
 
         if (showExportSuggestion) {
             section.menuItems.push({
+                key: CONST.SEARCH.SUGGESTED_KEYS.EXPORT,
                 translationPath: 'common.export',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.CheckCircle,
@@ -1503,4 +1514,4 @@ export {
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SuggestedSearchKey};

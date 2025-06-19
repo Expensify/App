@@ -6748,6 +6748,15 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
+        SUGGESTED_KEYS: {
+            EXPENSES: 'expenses',
+            REPORTS: 'reports',
+            CHATS: 'chats',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT: 'export',
+        },
     },
 
     EXPENSE: {
