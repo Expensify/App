@@ -13,7 +13,7 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
-import {LANGUAGES, LOCALES} from './LOCALES';
+import {LOCALES} from './LOCALES';
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
@@ -527,7 +527,7 @@ const CONST = {
     // Prevents consecutive special characters or spaces like '--', '..', '((', '))', or '  '.
     REPEATED_SPECIAL_CHAR_PATTERN: /([-\s().])\1+/,
 
-    MERCHANT_NAME_MAX_LENGTH: 255,
+    MERCHANT_NAME_MAX_BYTES: 255,
 
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
 
@@ -830,8 +830,9 @@ const CONST = {
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
         NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
-        NATIVE_CONTACT_IMPORT: 'nativeContactImport',
         TRACK_FLOWS: 'trackFlows',
+        STATIC_AI_TRANSLATIONS: 'staticAITranslations',
+        EUR_BILLING: 'eurBilling',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1053,6 +1054,7 @@ const CONST = {
         NZD: 'NZD',
         EUR: 'EUR',
     },
+    SCA_CURRENCIES: new Set(['GBP', 'EUR']),
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
         return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
     },
@@ -2887,7 +2889,6 @@ const CONST = {
     },
 
     LOCALES,
-    LANGUAGES,
 
     PRONOUNS_LIST: [
         'coCos',
@@ -3541,6 +3542,17 @@ const CONST = {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1600,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 900,
+                },
+            },
+            [this.PAYMENT_CARD_CURRENCY.EUR]: {
+                [this.POLICY.TYPE.CORPORATE]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
+                    [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1600,
+                },
+                [this.POLICY.TYPE.TEAM]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
+                    [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1000,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
                 },
             },
         };
@@ -5184,7 +5196,7 @@ const CONST = {
         },
     },
     DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
-    STRIPE_GBP_AUTH_STATUSES: {
+    STRIPE_SCA_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',
         CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     },
@@ -6651,6 +6663,8 @@ const CONST = {
             GROUP_BY: 'groupBy',
         },
         SYNTAX_FILTER_KEYS: {
+            TYPE: 'type',
+            STATUS: 'status',
             DATE: 'date',
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
@@ -6758,8 +6772,9 @@ const CONST = {
         AUD: 'AUD',
         GBP: 'GBP',
         NZD: 'NZD',
+        EUR: 'EUR',
     },
-    GBP_AUTHENTICATION_COMPLETE: '3DS-authentication-complete',
+    SCA_AUTHENTICATION_COMPLETE: '3DS-authentication-complete',
 
     SUBSCRIPTION_PRICE_FACTOR: 2,
     FEEDBACK_SURVEY_OPTIONS: {
@@ -6958,6 +6973,12 @@ const CONST = {
         VISIBLE: 'visible',
         READY_TO_BE_HIDDEN: 'readyToBeHidden',
         HIDDEN: `hidden`,
+    },
+
+    HYBRID_APP_SIGN_IN_STATE: {
+        NOT_STARTED: 'notStarted',
+        STARTED: 'started',
+        FINISHED: 'finished',
     },
 
     CSV_IMPORT_COLUMNS: {
