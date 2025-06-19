@@ -52,6 +52,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -2369,7 +2370,8 @@ const translations = {
         toGetStarted: 'Add a bank account to reimburse expenses, issue Expensify Cards, collect invoice payments, and pay bills all from one place.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
-        hasPhoneLoginError: 'To connect a bank account, please <a>add an email as your primary login</a> and try again. You can add your phone number as a secondary login.',
+        hasPhoneLoginError: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `To connect a bank account, please <a href="${contactMethodsRoute}">add an email as your primary login</a> and try again. You can add your phone number as a secondary login.`,
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: {
             phrase1: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to ',

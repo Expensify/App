@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -2394,11 +2395,8 @@ const translations = {
             'Voeg een bankrekening toe om onkosten terug te betalen, Expensify-kaarten uit te geven, factuurbetalingen te innen en rekeningen te betalen, allemaal vanuit één plek.',
         plaidBodyCopy: 'Geef uw medewerkers een eenvoudigere manier om te betalen - en terugbetaald te worden - voor bedrijfskosten.',
         checkHelpLine: 'Uw routingnummer en rekeningnummer kunt u vinden op een cheque voor de rekening.',
-        hasPhoneLoginError: {
-            phrase1: 'Om een bankrekening te koppelen, graag',
-            link: 'voeg een e-mail toe als je primaire login',
-            phrase2: 'en probeer het opnieuw. U kunt uw telefoonnummer toevoegen als secundaire login.',
-        },
+        hasPhoneLoginError: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `Om een bankrekening te koppelen, graag <a href="${contactMethodsRoute}">voeg een e-mail toe als je primaire login</a> en probeer het opnieuw. U kunt uw telefoonnummer toevoegen als secundaire login.`,
         hasBeenThrottledError: 'Er is een fout opgetreden bij het toevoegen van uw bankrekening. Wacht een paar minuten en probeer het opnieuw.',
         hasCurrencyError:
             'Oeps! Het lijkt erop dat de valuta van uw werkruimte is ingesteld op een andere valuta dan USD. Om verder te gaan, ga naar <a>uw werkruimte-instellingen</a> om het in te stellen op USD en het opnieuw te proberen.',
