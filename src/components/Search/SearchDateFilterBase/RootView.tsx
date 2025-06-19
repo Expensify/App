@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -65,10 +66,12 @@ function SearchDateFilterBaseRootView({titleKey, value, applyChanges, resetChang
                 />
             </View>
 
-            <SearchFilterPageFooterButtons
-                applyChanges={applyChanges}
-                resetChanges={resetChanges}
-            />
+            <FixedFooter style={styles.mtAuto}>
+                <SearchFilterPageFooterButtons
+                    applyChanges={applyChanges}
+                    resetChanges={resetChanges}
+                />
+            </FixedFooter>
         </ScreenWrapper>
     );
 }

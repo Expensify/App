@@ -1,6 +1,6 @@
 import React from 'react';
+import {View} from 'react-native';
 import Button from '@components/Button';
-import FixedFooter from '@components/FixedFooter';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -17,7 +17,7 @@ function SearchFilterPageFooterButtons({resetChanges, applyChanges}: SearchFilte
     const {translate} = useLocalize();
 
     return (
-        <FixedFooter style={styles.mtAuto}>
+        <View>
             <Button
                 large
                 style={[styles.mt4]}
@@ -32,7 +32,7 @@ function SearchFilterPageFooterButtons({resetChanges, applyChanges}: SearchFilte
                 text={translate('common.save')}
                 onPress={applyChanges}
             />
-        </FixedFooter>
+        </View>
     );
 }
 

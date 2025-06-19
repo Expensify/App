@@ -2,6 +2,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -87,10 +88,12 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
                     onSelectRow={updateFilter}
                 />
             </View>
-            <SearchFilterPageFooterButtons
-                applyChanges={applyChanges}
-                resetChanges={resetChanges}
-            />
+            <FixedFooter style={styles.mtAuto}>
+                <SearchFilterPageFooterButtons
+                    applyChanges={applyChanges}
+                    resetChanges={resetChanges}
+                />
+            </FixedFooter>
         </ScreenWrapper>
     );
 }
