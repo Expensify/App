@@ -4890,6 +4890,9 @@ function getReportActionMessage({
             personalDetails,
         });
     }
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
+        return translateLocal('receipt.scanFailed');
+    }
 
     if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
         return getReimbursementDeQueuedOrCanceledActionMessage(reportAction, getReportOrDraftReport(reportID, reports));

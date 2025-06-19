@@ -965,6 +965,7 @@ const translations = {
         deleteReceipt: 'Usuń paragon',
         deleteConfirmation: 'Czy na pewno chcesz usunąć ten paragon?',
         addReceipt: 'Dodaj paragon',
+        scanFailed: 'Paragon nie może być zeskanowany, ponieważ brakuje sprzedawcy, daty lub kwoty.',
     },
     quickAction: {
         scanReceipt: 'Skanuj paragon',

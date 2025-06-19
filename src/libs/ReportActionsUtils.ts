@@ -1750,6 +1750,10 @@ function getReopenedMessage(): string {
     return translateLocal('iou.reopened');
 }
 
+function getReceiptScanFailedMessage() {
+    return translateLocal('receipt.scanFailed');
+}
+
 function getUpdateRoomDescriptionFragment(reportAction: ReportAction): Message {
     const html = getUpdateRoomDescriptionMessage(reportAction);
     return {
@@ -3087,6 +3091,7 @@ export {
     getReportActionFromExpensifyCard,
     isReopenedAction,
     getIntegrationSyncFailedMessage,
+    getReceiptScanFailedMessage,
 };
 
 export type {LastVisibleMessage};

@@ -966,6 +966,7 @@ const translations = {
         deleteReceipt: 'Elimina ricevuta',
         deleteConfirmation: 'Sei sicuro di voler eliminare questa ricevuta?',
         addReceipt: 'Aggiungi ricevuta',
+        scanFailed: 'La ricevuta non può essere scansionata perché mancano il commerciante, la data o l’importo.',
     },
     quickAction: {
         scanReceipt: 'Scansiona ricevuta',

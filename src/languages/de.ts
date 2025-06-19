@@ -970,6 +970,7 @@ const translations = {
         deleteReceipt: 'Beleg löschen',
         deleteConfirmation: 'Möchten Sie diesen Beleg wirklich löschen?',
         addReceipt: 'Beleg hinzufügen',
+        scanFailed: 'Der Beleg konnte nicht gescannt werden, da Händler, Datum oder Betrag fehlen.',
     },
     quickAction: {
         scanReceipt: 'Beleg scannen',

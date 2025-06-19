@@ -960,6 +960,7 @@ const translations = {
         deleteReceipt: '删除收据',
         deleteConfirmation: '您确定要删除此收据吗？',
         addReceipt: '添加收据',
+        scanFailed: '无法扫描收据，因为缺少商家、日期或金额。',
     },
     quickAction: {
         scanReceipt: '扫描收据',

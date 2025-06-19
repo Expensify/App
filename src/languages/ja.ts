@@ -969,6 +969,7 @@ const translations = {
         deleteReceipt: '領収書を削除',
         deleteConfirmation: 'この領収書を削除してもよろしいですか？',
         addReceipt: '領収書を追加',
+        scanFailed: '販売者、日付、または金額が不足しているため、レシートをスキャンできませんでした。',
     },
     quickAction: {
         scanReceipt: '領収書をスキャン',
