@@ -75,8 +75,8 @@ function Checkbox(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const handleSpaceKey = (event?: ReactKeyboardEvent) => {
-        if (event?.code !== 'Space') {
+    const handleSpaceOrEnterKey = (event?: ReactKeyboardEvent) => {
+        if (event?.code !== 'Space' && event?.code !== 'Enter') {
             return;
         }
 
@@ -105,7 +105,7 @@ function Checkbox(
             }}
             ref={ref}
             style={[StyleUtils.getCheckboxPressableStyle(containerBorderRadius + 2), style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
-            onKeyDown={handleSpaceKey}
+            onKeyDown={handleSpaceOrEnterKey}
             role={CONST.ROLE.CHECKBOX}
             /*  true  → checked
                 false → unchecked
