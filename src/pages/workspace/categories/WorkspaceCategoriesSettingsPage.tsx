@@ -45,13 +45,14 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const [isSelectorModalVisible, setIsSelectorModalVisible] = useState(false);
     const [categoryID, setCategoryID] = useState<string>();
     const [groupID, setGroupID] = useState<string>();
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS;
-
     const toggleSubtitle =
         isConnectedToAccounting && currentConnectionName ? translate('workspace.categories.needCategoryForExportToIntegration', {connectionName: currentConnectionName}) : undefined;
 
     const updateWorkspaceRequiresCategory = (value: boolean) => {
-        setWorkspaceRequiresCategory(policyID, value);
+        setWorkspaceRequiresCategory(policyID, value, policyTagLists, allTransactionViolations);
     };
 
     const {sections} = useMemo(() => {

@@ -51,21 +51,21 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
         vertical: 0,
     });
 
+    const onTriggerLayout = () => {
+        triggerRef.current?.measureInWindow((x, y, _, height) => {
+            setPopoverTriggerPosition({
+                horizontal: x,
+                vertical: y + height + PADDING_MODAL,
+            });
+        });
+    };
+
     /**
      * Toggle the overlay between open & closed, and re-calculate the
      * position of the trigger
      */
     const toggleOverlay = () => {
-        setIsOverlayVisible((previousValue) => {
-            triggerRef.current?.measureInWindow((x, y, _, height) => {
-                setPopoverTriggerPosition({
-                    horizontal: x,
-                    vertical: y + height + PADDING_MODAL,
-                });
-            });
-
-            return !previousValue;
-        });
+        setIsOverlayVisible((previousValue) => !previousValue);
     };
 
     /**
@@ -96,6 +96,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                 ref={triggerRef}
                 innerStyles={[isOverlayVisible && styles.buttonHoveredBG, {maxWidth: 256}]}
                 onPress={toggleOverlay}
+                onLayout={onTriggerLayout}
             >
                 <CaretWrapper style={[styles.flex1, styles.mw100]}>
                     <Text
@@ -128,7 +129,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
             >
-                <PopoverComponent closeOverlay={toggleOverlay} />
+                {PopoverComponent({closeOverlay: toggleOverlay})}
             </PopoverWithMeasuredContent>
         </>
     );
