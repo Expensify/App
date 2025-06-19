@@ -88,11 +88,11 @@ function ReportCardLostPage({
 
     useEffect(() => {
         const newID = Object.keys(cardList ?? {}).find((cardKey) => cardList?.[cardKey]?.cardID && !Object.keys(previousCardList ?? {}).includes(cardKey));
-        if (!newID) {
+        if (!newID || physicalCard?.cardID) {
             return;
         }
         setNewCardID(newID);
-    }, [cardList, previousCardList]);
+    }, [cardList, physicalCard, previousCardList]);
 
     useEffect(() => {
         resetValidateActionCodeSent();
