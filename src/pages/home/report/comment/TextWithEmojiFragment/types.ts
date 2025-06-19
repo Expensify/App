@@ -6,6 +6,9 @@ type TextWithEmojiFragmentProps = {
 
     /** Any additional styles to apply */
     style: StyleProp<TextStyle>;
+
+    /** Whether the text is alternate text */
+    isAlternateText?: boolean;
 };
 
 export default TextWithEmojiFragmentProps;

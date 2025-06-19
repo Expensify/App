@@ -193,7 +193,6 @@ function OptionRowLHN({
         hideProductTrainingTooltip();
         onSelectRow(optionItem, popoverAnchor);
     };
-
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -322,6 +321,7 @@ function OptionRowLHN({
                                                         <TextWithEmojiFragment
                                                             message={Parser.htmlToText(optionItem.alternateText)}
                                                             style={[alternateTextStyle, styles.mh0]}
+                                                            isAlternateText
                                                         />
                                                     ) : (
                                                         Parser.htmlToText(optionItem.alternateText)

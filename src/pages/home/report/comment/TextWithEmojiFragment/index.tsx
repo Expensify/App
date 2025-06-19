@@ -5,10 +5,9 @@ import convertToLTR from '@libs/convertToLTR';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import type TextWithEmojiFragmentProps from './types';
 
-function TextWithEmojiFragment({message = '', style}: TextWithEmojiFragmentProps) {
+function TextWithEmojiFragment({message = '', style, isAlternateText = false}: TextWithEmojiFragmentProps) {
     const styles = useThemeStyles();
     const processedTextArray = useMemo(() => EmojiUtils.splitTextWithEmojis(message), [message]);
-
     return (
         <Text style={style}>
             {processedTextArray.map(({text, isEmoji}, index) =>
@@ -16,7 +15,7 @@ function TextWithEmojiFragment({message = '', style}: TextWithEmojiFragmentProps
                     <Text
                         // eslint-disable-next-line react/no-array-index-key
                         key={index}
-                        style={styles.emojisWithTextFontSize}
+                        style={isAlternateText ? style : styles.emojisWithTextFontSize}
                     >
                         {text}
                     </Text>
