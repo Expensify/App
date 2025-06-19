@@ -2187,8 +2187,8 @@ const translations = {
             subtitle: 'Create a workspace to track receipts, reimburse expenses, manage travel, create reports, and more — all at the speed of chat.',
         },
         inviteMembers: {
-            title: 'Invite members',
-            subtitle: 'Manage and share your expenses with an accountant or start a travel group with friends.',
+            title: 'Invita a miembros',
+            subtitle: 'Añade a tu equipo o invita a tu contador. ¡Cuantos más, mejor!',
         },
     },
     featureTraining: {
