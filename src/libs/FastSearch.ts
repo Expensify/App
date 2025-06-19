@@ -4,6 +4,10 @@ import Timing from './actions/Timing';
 import DynamicArrayBuffer from './DynamicArrayBuffer';
 import SuffixUkkonenTree from './SuffixUkkonenTree';
 
+type FastSearchOptions = {
+    shouldStoreSearchableStrings?: boolean;
+};
+
 type SearchableData<T> = {
     /**
      * The data that should be searchable
@@ -24,6 +28,8 @@ type SearchableData<T> = {
     uniqueId?: (data: T) => string | undefined;
 };
 
+type SearchableStringsMap = Map<string, string>;
+
 // There are certain characters appear very often in our search data (email addresses), which we don't need to search for.
 const charSetToSkip = new Set(['@', '.', '#', '$', '%', '&', '*', '+', '-', '/', ':', ';', '<', '=', '>', '?', '_', '~', '!', ' ', ',', '(', ')']);
 // For an account with 12k+ personal details the average search value length was ~60 characters.
@@ -36,7 +42,7 @@ const averageSearchValueLength = 60;
  * Note: Creating a FastSearch instance with a lot of data is computationally expensive. You should create an instance once and reuse it.
  * Searches will be very fast though, even with a lot of data.
  */
-function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
+function createFastSearch<T>(dataSets: Array<SearchableData<T>>, options?: FastSearchOptions) {
     Timing.start(CONST.TIMING.SEARCH_CONVERT_SEARCH_VALUES);
     const itemsCount = dataSets.reduce((acc, {data}) => acc + data.length, 0);
     // An approximation of how many chars the final search string will have (if it gets bigger the underlying buffer will resize aromatically, but its best to avoid resizes):
@@ -51,9 +57,11 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
     // The tree is 1-indexed, so we need to add a 0 at the beginning:
     concatenatedNumericList.push(0);
 
-    for (const {data, toSearchableString} of dataSets) {
+    const searchableStringsMap: SearchableStringsMap = new Map();
+
+    for (const dataSet of dataSets) {
         // Performance critical: the array parameters are passed by reference, so we don't have to create new arrays every time:
-        dataToNumericRepresentation(concatenatedNumericList, occurrenceToIndex, {data, toSearchableString});
+        dataToNumericRepresentation(dataSet, concatenatedNumericList, occurrenceToIndex, searchableStringsMap, options);
         listOffsets.push(concatenatedNumericList.length);
     }
     concatenatedNumericList.push(SuffixUkkonenTree.END_CHAR_CODE);
@@ -133,6 +141,7 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
     return {
         search,
         dispose,
+        searchableStringsMap,
     };
 }
 
@@ -142,12 +151,22 @@ function createFastSearch<T>(dataSets: Array<SearchableData<T>>) {
  * Additionally a list of the original data and their index position in the numeric list is created, which is used to map the found occurrences back to the original data.
  */
 function dataToNumericRepresentation<T>(
+    {data, toSearchableString, uniqueId}: SearchableData<T>,
     concatenatedNumericList: DynamicArrayBuffer<Uint8Array>,
     occurrenceToIndex: DynamicArrayBuffer<Uint32Array>,
-    {data, toSearchableString}: SearchableData<T>,
+    searchableStringsMap: SearchableStringsMap,
+    options?: FastSearchOptions,
 ): void {
     data.forEach((option, index) => {
         const searchStringForTree = toSearchableString(option);
+
+        if (options?.shouldStoreSearchableStrings) {
+            const id = uniqueId?.(option);
+            if (id) {
+                searchableStringsMap.set(id, searchStringForTree);
+            }
+        }
+
         const cleanedSearchStringForTree = cleanString(searchStringForTree);
 
         if (cleanedSearchStringForTree.length === 0) {
