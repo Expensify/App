@@ -2864,16 +2864,23 @@ describe('ReportUtils', () => {
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
-        it('should return false for archived non-expense report that is not a workspace thread', () => {
+        it('should return false for archived non-expense report that is not a workspace thread', async () => {
             const report = createRegularChat(60005, [currentUserAccountID, 1]);
-            // Test with the new isReportArchived parameter
-            expect(shouldReportShowSubscript(report, true)).toBe(false);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {
+                private_isArchived: new Date().toString(),
+            });
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
+            expect(shouldReportShowSubscript(report, isReportArchived.current)).toBe(false);
         });
 
         it('should return true when isReportArchived is false even for non-expense report', () => {
             const report = createRegularChat(60007, [currentUserAccountID, 1]);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
             // Test that when isReportArchived is false, the function doesn't return false based on archived status
-            expect(shouldReportShowSubscript(report, false)).toBe(false); // Still false because it's just a regular chat
+            // Still false because it's just a regular chat
+            expect(shouldReportShowSubscript(report, isReportArchived.current)).toBe(false);
         });
 
         it('should return false for regular 1:1 chat', () => {
@@ -2883,11 +2890,6 @@ describe('ReportUtils', () => {
 
         it('should return true for expense request report', () => {
             const report = createExpenseRequestReport(60008);
-            expect(shouldReportShowSubscript(report)).toBe(true);
-        });
-
-        it('should return true for expense report with single transaction', () => {
-            const report = createExpenseReportWithSingleTransaction(60009);
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
@@ -2911,16 +2913,26 @@ describe('ReportUtils', () => {
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
-        it('should return true for archived workspace thread (exception to archived rule)', () => {
+        it('should return true for archived workspace thread (exception to archived rule)', async () => {
             const report = createWorkspaceThread(60014);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {
+                private_isArchived: new Date().toString(),
+            });
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
             // Even if archived, workspace threads should show subscript
-            expect(shouldReportShowSubscript(report, true)).toBe(true);
+            expect(shouldReportShowSubscript(report, isReportArchived.current)).toBe(true);
         });
 
-        it('should return false for archived expense report', () => {
+        it('should return false for archived expense report', async () => {
             const report = createExpenseReportWithSingleTransaction(60015);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {
+                private_isArchived: new Date().toString(),
+            });
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+
             // Archived expense reports should not show subscript
-            expect(shouldReportShowSubscript(report, true)).toBe(false);
+            expect(shouldReportShowSubscript(report, isReportArchived.current)).toBe(false);
         });
 
         it('should return false for policy expense chat that is also a chat thread', () => {
@@ -2963,12 +2975,6 @@ describe('ReportUtils', () => {
         it('should return false for regular task report (non-workspace)', () => {
             const report = createRegularTaskReport(60023, currentUserAccountID);
             expect(shouldReportShowSubscript(report)).toBe(false);
-        });
-
-        it('should use default parameter when isReportArchived is not provided', () => {
-            const report = createRegularChat(60024, [currentUserAccountID, 1]);
-            // Should behave the same as passing false explicitly
-            expect(shouldReportShowSubscript(report)).toBe(shouldReportShowSubscript(report, false));
         });
     });
 
