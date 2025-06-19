@@ -74,6 +74,24 @@ import * as NumberUtils from '../../src/libs/NumberUtils';
 import {convertedInvoiceChat} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
+import {
+    createAdminRoom,
+    createAnnounceRoom,
+    createDomainRoom,
+    createExpenseReportWithSingleTransaction,
+    createExpenseRequestReport,
+    createGroupChat,
+    createInvoiceReport,
+    createInvoiceRoom,
+    createPolicyExpenseChat,
+    createPolicyExpenseChatTask,
+    createPolicyExpenseChatThread,
+    createRegularChat,
+    createRegularTaskReport,
+    createSelfDM,
+    createWorkspaceTaskReport,
+    createWorkspaceThread,
+} from '../utils/collections/reports';
 import createRandomReport from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -2837,408 +2855,124 @@ describe('ReportUtils', () => {
         });
 
         it('should return true for policy expense chat', () => {
-            const report: Report = {
-                ...createRandomReport(60001),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                isOwnPolicyExpenseChat: true,
-            };
+            const report = createPolicyExpenseChat(60001);
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
         it('should return true for workspace thread', () => {
-            const report: Report = {
-                ...createRandomReport(60004),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                parentReportID: '12345',
-                parentReportActionID: '67890',
-            };
+            const report = createWorkspaceThread(60004);
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
         it('should return false for archived non-expense report that is not a workspace thread', () => {
-            const report: Report = {
-                ...createRandomReport(60005),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-
+            const report = createRegularChat(60005);
             // Test with the new isReportArchived parameter
             expect(shouldReportShowSubscript(report, true)).toBe(false);
         });
 
         it('should return true when isReportArchived is false even for non-expense report', () => {
-            const report: Report = {
-                ...createRandomReport(60007),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: undefined, // Make it a regular chat, not a policy expense chat
-                isOwnPolicyExpenseChat: false,
-            };
-
+            const report = createRegularChat(60007);
             // Test that when isReportArchived is false, the function doesn't return false based on archived status
             expect(shouldReportShowSubscript(report, false)).toBe(false); // Still false because it's just a regular chat
         });
 
         it('should return false for regular 1:1 chat', () => {
-            const report: Report = {
-                ...createRandomReport(60006),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: undefined, // Make it a regular chat, not a policy expense chat
-                isOwnPolicyExpenseChat: false,
-                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
-            };
+            const report = createRegularChat(60006);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return true for expense request report', () => {
-            const report: Report = {
-                ...createRandomReport(60008),
-                type: CONST.REPORT.TYPE.IOU,
-                parentReportID: '12345',
-                parentReportActionID: '67890',
-            };
+            const report = createExpenseRequestReport(60008);
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
         it('should return true for expense report with single transaction', () => {
-            const report: Report = {
-                ...createRandomReport(60009),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                // This combination makes it a single transaction expense report
-                parentReportID: '12345',
-                parentReportActionID: '67890',
-            };
+            const report = createExpenseReportWithSingleTransaction(60009);
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
         it('should return true for workspace task report', () => {
-            const report: Report = {
-                ...createRandomReport(60010),
-                type: CONST.REPORT.TYPE.TASK,
-                policyID: 'policy123',
-                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
-            };
+            const report = createWorkspaceTaskReport(60010);
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
         it('should return true for invoice room', () => {
-            const report: Report = {
-                ...createRandomReport(60011),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
-            };
+            const report = createInvoiceRoom(60011);
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
         it('should return true for invoice report', () => {
-            const report: Report = {
-                ...createRandomReport(60012),
-                type: CONST.REPORT.TYPE.INVOICE,
-            };
+            const report = createInvoiceReport(60012);
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
         it('should return true for policy expense chat that is not own', () => {
-            const report: Report = {
-                ...createRandomReport(60013),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                isOwnPolicyExpenseChat: false,
-            };
+            const report = createPolicyExpenseChat(60013, false);
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
         it('should return true for archived workspace thread (exception to archived rule)', () => {
-            const report: Report = {
-                ...createRandomReport(60014),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                parentReportID: '12345',
-                parentReportActionID: '67890',
-            };
+            const report = createWorkspaceThread(60014);
             // Even if archived, workspace threads should show subscript
             expect(shouldReportShowSubscript(report, true)).toBe(true);
         });
 
         it('should return false for archived expense report', () => {
-            const report: Report = {
-                ...createRandomReport(60015),
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
+            const report = createExpenseReportWithSingleTransaction(60015);
             // Archived expense reports should not show subscript
             expect(shouldReportShowSubscript(report, true)).toBe(false);
         });
 
         it('should return false for policy expense chat that is also a chat thread', () => {
-            const report: Report = {
-                ...createRandomReport(60016),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                isOwnPolicyExpenseChat: true,
-                parentReportID: '12345', // This makes it a thread
-                parentReportActionID: '67890',
-            };
+            const report = createPolicyExpenseChatThread(60016);
             // Policy expense chats that are threads should not show subscript
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return false for policy expense chat that is also a task report', () => {
-            const report: Report = {
-                ...createRandomReport(60017),
-                type: CONST.REPORT.TYPE.TASK,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                isOwnPolicyExpenseChat: true,
-            };
+            const report = createPolicyExpenseChatTask(60017);
             // Policy expense chats that are task reports should not show subscript
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return false for group chat', () => {
-            const report: Report = {
-                ...createRandomReport(60018),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2, 3]),
-            };
+            const report = createGroupChat(60018);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return false for self DM', () => {
-            const report: Report = {
-                ...createRandomReport(60019),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-                participants: buildParticipantsFromAccountIDs([currentUserAccountID]),
-            };
+            const report = createSelfDM(60019);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return false for admin room', () => {
-            const report: Report = {
-                ...createRandomReport(60020),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-                reportName: '#admins',
-            };
+            const report = createAdminRoom(60020);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return false for announce room', () => {
-            const report: Report = {
-                ...createRandomReport(60021),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-                reportName: '#announce',
-            };
+            const report = createAnnounceRoom(60021);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return false for domain room', () => {
-            const report: Report = {
-                ...createRandomReport(60022),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
-                reportName: '#domain',
-            };
+            const report = createDomainRoom(60022);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return false for regular task report (non-workspace)', () => {
-            const report: Report = {
-                ...createRandomReport(60023),
-                type: CONST.REPORT.TYPE.TASK,
-                policyID: undefined, // No policy makes it a regular task, not workspace task
-                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
-            };
+            const report = createRegularTaskReport(60023);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return false for null/undefined report', () => {
-            expect(shouldReportShowSubscript(null)).toBe(false);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            expect(shouldReportShowSubscript(null as any)).toBe(false);
             expect(shouldReportShowSubscript(undefined)).toBe(false);
         });
 
         it('should use default parameter when isReportArchived is not provided', () => {
-            const report: Report = {
-                ...createRandomReport(60024),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: undefined,
-                isOwnPolicyExpenseChat: false,
-            };
-            // Should behave the same as passing false explicitly
-            expect(shouldReportShowSubscript(report)).toBe(shouldReportShowSubscript(report, false));
-        });
-
-        it('should return true for expense request report', () => {
-            const report: Report = {
-                ...createRandomReport(60008),
-                type: CONST.REPORT.TYPE.IOU,
-                parentReportID: '12345',
-                parentReportActionID: '67890',
-            };
-            expect(shouldReportShowSubscript(report)).toBe(true);
-        });
-
-        it('should return true for expense report with single transaction', () => {
-            const report: Report = {
-                ...createRandomReport(60009),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                // This combination makes it a single transaction expense report
-                parentReportID: '12345',
-                parentReportActionID: '67890',
-            };
-            expect(shouldReportShowSubscript(report)).toBe(true);
-        });
-
-        it('should return true for workspace task report', () => {
-            const report: Report = {
-                ...createRandomReport(60010),
-                type: CONST.REPORT.TYPE.TASK,
-                policyID: 'policy123',
-                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
-            };
-            expect(shouldReportShowSubscript(report)).toBe(true);
-        });
-
-        it('should return true for invoice room', () => {
-            const report: Report = {
-                ...createRandomReport(60011),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
-            };
-            expect(shouldReportShowSubscript(report)).toBe(true);
-        });
-
-        it('should return true for invoice report', () => {
-            const report: Report = {
-                ...createRandomReport(60012),
-                type: CONST.REPORT.TYPE.INVOICE,
-            };
-            expect(shouldReportShowSubscript(report)).toBe(true);
-        });
-
-        it('should return true for policy expense chat that is not own', () => {
-            const report: Report = {
-                ...createRandomReport(60013),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                isOwnPolicyExpenseChat: false,
-            };
-            expect(shouldReportShowSubscript(report)).toBe(true);
-        });
-
-        it('should return true for archived workspace thread (exception to archived rule)', () => {
-            const report: Report = {
-                ...createRandomReport(60014),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-                parentReportID: '12345',
-                parentReportActionID: '67890',
-            };
-            // Even if archived, workspace threads should show subscript
-            expect(shouldReportShowSubscript(report, true)).toBe(true);
-        });
-
-        it('should return false for archived expense report', () => {
-            const report: Report = {
-                ...createRandomReport(60015),
-                type: CONST.REPORT.TYPE.EXPENSE,
-            };
-            // Archived expense reports should not show subscript
-            expect(shouldReportShowSubscript(report, true)).toBe(false);
-        });
-
-        it('should return false for policy expense chat that is also a chat thread', () => {
-            const report: Report = {
-                ...createRandomReport(60016),
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                isOwnPolicyExpenseChat: true,
-                parentReportID: '12345', // This makes it a thread
-                parentReportActionID: '67890',
-            };
-            // Policy expense chats that are threads should not show subscript
-            expect(shouldReportShowSubscript(report)).toBe(false);
-        });
-
-        it('should return false for policy expense chat that is also a task report', () => {
-            const report: Report = {
-                ...createRandomReport(60017),
-                type: CONST.REPORT.TYPE.TASK,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                isOwnPolicyExpenseChat: true,
-            };
-            // Policy expense chats that are task reports should not show subscript
-            expect(shouldReportShowSubscript(report)).toBe(false);
-        });
-
-        it('should return false for group chat', () => {
-            const report: Report = {
-                ...createRandomReport(60018),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2, 3]),
-            };
-            expect(shouldReportShowSubscript(report)).toBe(false);
-        });
-
-        it('should return false for self DM', () => {
-            const report: Report = {
-                ...createRandomReport(60019),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
-                participants: buildParticipantsFromAccountIDs([currentUserAccountID]),
-            };
-            expect(shouldReportShowSubscript(report)).toBe(false);
-        });
-
-        it('should return false for admin room', () => {
-            const report: Report = {
-                ...createRandomReport(60020),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-                reportName: '#admins',
-            };
-            expect(shouldReportShowSubscript(report)).toBe(false);
-        });
-
-        it('should return false for announce room', () => {
-            const report: Report = {
-                ...createRandomReport(60021),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
-                reportName: '#announce',
-            };
-            expect(shouldReportShowSubscript(report)).toBe(false);
-        });
-
-        it('should return false for domain room', () => {
-            const report: Report = {
-                ...createRandomReport(60022),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
-                reportName: '#domain',
-            };
-            expect(shouldReportShowSubscript(report)).toBe(false);
-        });
-
-        it('should return false for regular task report (non-workspace)', () => {
-            const report: Report = {
-                ...createRandomReport(60023),
-                type: CONST.REPORT.TYPE.TASK,
-                policyID: undefined, // No policy makes it a regular task, not workspace task
-                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
-            };
-            expect(shouldReportShowSubscript(report)).toBe(false);
-        });
-
-        it('should return false for null/undefined report', () => {
-            expect(shouldReportShowSubscript(null)).toBe(false);
-            expect(shouldReportShowSubscript(undefined)).toBe(false);
-        });
-
-        it('should use default parameter when isReportArchived is not provided', () => {
-            const report: Report = {
-                ...createRandomReport(60024),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: undefined,
-                isOwnPolicyExpenseChat: false,
-            };
+            const report = createRegularChat(60024);
             // Should behave the same as passing false explicitly
             expect(shouldReportShowSubscript(report)).toBe(shouldReportShowSubscript(report, false));
         });
