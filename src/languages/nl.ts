@@ -4507,7 +4507,7 @@ const translations = {
             newWorkspace: 'Nieuwe werkruimte',
             getTheExpensifyCardAndMore: 'Krijg de Expensify Card en meer',
             confirmWorkspace: 'Werkruimte bevestigen',
-            myGroupWorkspace: 'Mijn Groepswerkruimte',
+            myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `Mijn Groepswerkruimte${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
             workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `${userName}'s Werkruimte${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
         },
         people: {
