@@ -488,7 +488,7 @@ function SearchList(
                 estimatedItemSize={estimatedItemSize}
                 overrideItemLayout={overrideItemLayout}
                 estimatedListSize={estimatedListSize}
-                contentContainerStyle={contentContainerStyle as any}
+                contentContainerStyle={contentContainerStyle}
                 overrideProps={{estimatedHeightSize: calculatedListHeight}}
             />
             <Modal
