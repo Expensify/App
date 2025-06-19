@@ -27,7 +27,7 @@ type XeroAutoSyncPageRouteParams = {
 function XeroAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const config = policy?.connections?.xero?.config;
     const {autoSync, pendingFields} = config ?? {};
     const {backTo} = route.params as XeroAutoSyncPageRouteParams;
@@ -62,15 +62,18 @@ function XeroAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                     isActive={!!autoSync?.enabled}
                     wrapperStyle={[styles.pv2, styles.mh5]}
                     shouldPlaceSubtitleBelowSwitch
-                    onToggle={() =>
+                    onToggle={() => {
+                        if (!policyID) {
+                            return;
+                        }
                         updateXeroAutoSync(
                             policyID,
                             {
                                 enabled: !autoSync?.enabled,
                             },
                             {enabled: autoSync?.enabled ?? undefined},
-                        )
-                    }
+                        );
+                    }}
                     pendingAction={settingsPendingAction([CONST.XERO_CONFIG.ENABLED], pendingFields)}
                     errors={getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.ENABLED)}
                     onCloseError={() => clearXeroErrorField(policyID, CONST.XERO_CONFIG.ENABLED)}
@@ -85,7 +88,12 @@ function XeroAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                             }
                             description={translate('workspace.xero.accountingMethods.label')}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD.getRoute(policyID, backTo))}
+                            onPress={() => {
+                                if (!policyID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD.getRoute(policyID, backTo))
+                            }}
                         />
                     </OfflineWithFeedback>
                 )}
