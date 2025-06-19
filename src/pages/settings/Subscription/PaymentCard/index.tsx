@@ -19,7 +19,6 @@ import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getMCardNumberString, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
-import {translateLocal} from '@libs/Localize';
 import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
 import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit, continueSetup} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
@@ -42,7 +41,7 @@ function AddPaymentCard() {
 
     const subscriptionPricingInfo =
         hasTeam2025Pricing && isCollect
-            ? translateLocal('subscription.yourPlan.pricePerMemberPerMonth', {price: convertToShortDisplayString(subscriptionPrice, preferredCurrency)})
+            ? translate('subscription.yourPlan.pricePerMemberPerMonth', {price: convertToShortDisplayString(subscriptionPrice, preferredCurrency)})
             : translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
                   lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
                   upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),

@@ -5,6 +5,7 @@ import TransactionListItem from '@components/SelectionList/Search/TransactionLis
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -19,6 +20,8 @@ const approverAccountID = 1111111;
 const approverEmail = 'approver@policy.com';
 const overlimitApproverAccountID = 222222;
 const overlimitApproverEmail = 'overlimit@policy.com';
+const submitterAccountID = 333333;
+const submitterEmail = 'submitter@policy.com';
 const policyID = 'A1B2C3';
 const reportID = '123456789';
 const reportID2 = '11111';
@@ -60,6 +63,12 @@ const searchResults: OnyxTypes.SearchResults = {
                 displayName: 'Overlimit Approver',
                 login: overlimitApproverEmail,
             },
+            [submitterAccountID]: {
+                accountID: submitterAccountID,
+                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+                displayName: 'Submitter',
+                login: submitterEmail,
+            },
         },
         [`policy_${policyID}`]: {
             id: 'Admin',
@@ -96,6 +105,11 @@ const searchResults: OnyxTypes.SearchResults = {
                     email: overlimitApproverEmail,
                     role: CONST.POLICY.ROLE.ADMIN,
                     submitsTo: approverEmail,
+                },
+                [submitterEmail]: {
+                    email: submitterEmail,
+                    role: CONST.POLICY.ROLE.USER,
+                    submitsTo: adminEmail,
                 },
             },
         },
@@ -939,6 +953,9 @@ const reportsListItems = [
 ] as ReportListItemType[];
 
 describe('SearchUIUtils', () => {
+    beforeAll(async () => {
+        await TranslationStore.load('en');
+    });
     describe('Test getAction', () => {
         test('Should return `View` action for an invalid key', () => {
             const action = SearchUIUtils.getAction(searchResults.data, {}, 'invalid_key');
@@ -951,6 +968,29 @@ describe('SearchUIUtils', () => {
 
             action = SearchUIUtils.getAction(searchResults.data, {}, `transactions_${transactionID}`);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        });
+
+        test('Should return `View` action for transaction on policy with delayed submission and with violations when current user is submitter and the expense was submitted', async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: submitterAccountID});
+            const localSearchResults = {
+                ...searchResults.data,
+                [`policy_${policyID}`]: {
+                    ...searchResults.data[`policy_${policyID}`],
+                    role: CONST.POLICY.ROLE.USER,
+                },
+                [`report_${reportID2}`]: {
+                    ...searchResults.data[`report_${reportID2}`],
+                    accountID: submitterAccountID,
+                    ownerAccountID: submitterAccountID,
+                },
+                [`transactions_${transactionID2}`]: {
+                    ...searchResults.data[`transactions_${transactionID2}`],
+                    accountID: submitterAccountID,
+                    managerID: adminAccountID,
+                },
+            };
+            expect(SearchUIUtils.getAction(localSearchResults, allViolations, `report_${reportID2}`)).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+            expect(SearchUIUtils.getAction(localSearchResults, allViolations, `transactions_${transactionID2}`)).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
         test('Should return `Review` action for transaction on policy with delayed submission and with violations', () => {
