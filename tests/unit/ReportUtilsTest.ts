@@ -62,6 +62,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import type {OnboardingTaskLinks} from '@src/CONST';
 import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
@@ -265,7 +266,7 @@ describe('ReportUtils', () => {
         });
         return waitForBatchedUpdates();
     });
-    beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+    beforeEach(() => TranslationStore.load(CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
 
     describe('prepareOnboardingOnyxData', () => {
         it('provides test drive url to task title', () => {
@@ -458,6 +459,52 @@ describe('ReportUtils', () => {
                 ).toBe('floki@vikings.net');
             });
 
+            test('with deleted message and provided parent action param', () => {
+                const report = {
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportID: '4401445780099175',
+                    parentReportActionID: '8401445780099176',
+                    parentReportID: '4401445780099175',
+                };
+                const reportAction = {
+                    created: '2025-05-12 17:27:01.825',
+                    reportActionID: '8401445780099176',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    message: [
+                        {
+                            deleted: '2025-05-12 17:27:01.825',
+                            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                            text: '',
+                        },
+                    ],
+                };
+                expect(getReportName(report, undefined, reportAction)).toEqual(translateLocal('parentReportAction.deletedMessage'));
+            });
+
+            test('with deleted message and not provided parent action param', async () => {
+                const report = {
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportActionID: '8401445780099176',
+                    parentReportID: '4401445780099175',
+                    reportID: '2401445780099174',
+                };
+                const reportAction = {
+                    reportActionID: '8401445780099176',
+                    parentReportID: '',
+                    message: [
+                        {
+                            deleted: '2025-05-12 17:27:01.825',
+                            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                            text: '',
+                        },
+                    ],
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
+                    [reportAction.reportActionID]: reportAction,
+                });
+                expect(getReportName(report)).toEqual(translateLocal('parentReportAction.deletedMessage'));
+            });
+
             test('SMS', () => {
                 expect(
                     getReportName({
@@ -501,7 +548,7 @@ describe('ReportUtils', () => {
 
                 expect(getReportName(baseAdminsRoom)).toBe('#admins (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(baseAdminsRoom)).toBe('#admins (archivado)'));
+                return TranslationStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(baseAdminsRoom)).toBe('#admins (archivado)'));
             });
         });
 
@@ -533,7 +580,7 @@ describe('ReportUtils', () => {
 
                 expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archived)');
 
-                return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archivado)'));
+                return TranslationStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(archivedPolicyRoom)).toBe('#VikingsChat (archivado)'));
             });
         });
 
@@ -587,9 +634,7 @@ describe('ReportUtils', () => {
 
                     expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
-                        expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
-                    );
+                    return TranslationStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(memberArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`));
                 });
 
                 test('as admin', async () => {
@@ -600,9 +645,7 @@ describe('ReportUtils', () => {
 
                     expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
-                    return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() =>
-                        expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
-                    );
+                    return TranslationStore.load(CONST.LOCALES.ES).then(() => expect(getReportName(adminArchivedPolicyExpenseChat)).toBe(`Ragnar Lothbrok's gastos (archivado)`));
                 });
             });
         });
