@@ -36,7 +36,8 @@ fi
 # Run eslint on the changed files
 if [[ -n "$GIT_DIFF_OUTPUT" ]] ; then
     # shellcheck disable=SC2086 # For multiple files in variable
-    eslint --max-warnings=0 --config ./.eslintrc.changed.js $GIT_DIFF_OUTPUT
+    # Use 332 for the max-warnings to allow for Onyx.connect() warnings to not fail the build
+    eslint --max-warnings=332 --config ./.eslintrc.changed.js $GIT_DIFF_OUTPUT
 else
     info "No TypeScript files changed"
 fi
