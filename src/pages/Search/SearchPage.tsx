@@ -55,6 +55,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
+import { useIsFocused } from '@react-navigation/native';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -64,6 +65,7 @@ function SearchPage({route}: SearchPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const isFocused = useIsFocused();
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
@@ -486,6 +488,10 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, []);
 
+    if (!isFocused) {
+      return null;
+    }
+    
     if (shouldUseNarrowLayout) {
         return (
             <>
