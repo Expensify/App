@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import {getDevicePreferredLocale} from '@libs/Localize';
 import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+import DateLocaleStore from '@libs/DateLocaleStore';
 
 /* There are scenarios where locale is not loaded and we start to render UI which results in rendering translations keys instead of real translations.
  * E.g. when we transition from OldDot to NewDot during sign-out.
@@ -14,6 +15,9 @@ function init() {
         callback: (locale) => {
             Onyx.disconnect(connection);
             TranslationStore.load(locale ?? getDevicePreferredLocale());
+            //Optinal
+            DateLocaleStore.load(locale ?? getDevicePreferredLocale());
+
         },
     });
 }
