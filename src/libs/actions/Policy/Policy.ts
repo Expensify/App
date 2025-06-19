@@ -4098,9 +4098,6 @@ function setPolicyProhibitedExpenses(policyID: string, prohibitedExpense: keyof 
     const prohibitedExpenses = {
         ...originalProhibitedExpenses,
         [prohibitedExpense]: !originalProhibitedExpenses?.[prohibitedExpense],
-        pendingFields: {
-            [prohibitedExpense]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-        },
     };
 
     const onyxData: OnyxData = {
@@ -4109,7 +4106,12 @@ function setPolicyProhibitedExpenses(policyID: string, prohibitedExpense: keyof 
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    prohibitedExpenses,
+                    prohibitedExpenses: {
+                        ...prohibitedExpenses,
+                        pendingFields: {
+                            [prohibitedExpense]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                    },
                 },
             },
         ],

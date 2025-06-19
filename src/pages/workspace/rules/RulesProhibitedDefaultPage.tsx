@@ -16,7 +16,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setPolicyProhibitedExpenses} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import type {ProhibitedExpenses} from '@src/types/onyx/Policy';
 
 type ProhibitedExpensesProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT>;
 
