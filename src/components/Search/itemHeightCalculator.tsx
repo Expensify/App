@@ -13,21 +13,6 @@ type ItemHeightConfig = {
     queryJSONType?: string;
 };
 
-const CHAT_HEIGHTS = {
-    REPORT_PREVIEW: {
-        LARGE_SCREEN: {
-            BASE: variables.searchChatReportPreviewHeightLargeScreen + variables.searchItemBasePadding,
-            WITH_VIOLATIONS: variables.searchChatReportPreviewWithViolationsHeightLargeScreen + variables.searchItemBasePadding,
-        },
-        SMALL_SCREEN: {
-            BASE: variables.searchChatReportPreviewHeightSmallScreen + variables.searchItemBasePadding,
-            WITH_VIOLATIONS: variables.searchChatReportPreviewWithViolationsHeightSmallScreen + variables.searchItemBasePadding,
-        },
-    },
-    // Standard chat item heights (ADDCOMMENT, POLICYCHANGELOG_ADD_EMPLOYEE)
-    STANDARD: variables.searchChatStandardItemHeight + variables.searchItemBasePadding,
-} as const;
-
 /**
  * Checks if a transaction item has violations that require extra height
  */
@@ -54,17 +39,17 @@ function getReportActionItemHeight(item: ReportActionListItemType, config: ItemH
         const hasViolations = hasReceipts && reportActionData?.childMoneyRequestCount > 0;
         
         const heights = isLargeScreenWidth 
-            ? CHAT_HEIGHTS.REPORT_PREVIEW.LARGE_SCREEN 
-            : CHAT_HEIGHTS.REPORT_PREVIEW.SMALL_SCREEN;
+            ? ITEM_HEIGHTS.CHAT.REPORT_PREVIEW.LARGE_SCREEN 
+            : ITEM_HEIGHTS.CHAT.REPORT_PREVIEW.SMALL_SCREEN;
             
         return hasViolations ? heights.WITH_VIOLATIONS : heights.BASE;
     }
     
     if (actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
-        return CHAT_HEIGHTS.STANDARD;
+        return ITEM_HEIGHTS.CHAT.STANDARD;
     }
     
-    return CHAT_HEIGHTS.STANDARD;
+    return ITEM_HEIGHTS.CHAT.STANDARD;
 }
 
 /**
