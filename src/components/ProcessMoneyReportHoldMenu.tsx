@@ -78,7 +78,9 @@ function ProcessMoneyReportHoldMenu({
                 startAnimation();
             }
             approveMoneyRequest(moneyRequestReport, full, transactions, allSnapshots);
+            // eslint-disable-next-line rulesdir/no-default-id-values
             if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '-1', moneyRequestReport?.reportID ?? '')) {
+                // eslint-disable-next-line rulesdir/no-default-id-values
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID ?? ''));
             }
         } else if (chatReport && paymentType) {
