@@ -11630,7 +11630,7 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
         };
 
         const {report, participantParams, policyParams, transactionParams} = requestMoneyInformation;
-        const parsedComment = getParsedComment(transactionParams.comment ?? '');
+        const parsedComment = getParsedComment(Parser.htmlToMarkdown(transactionParams.comment ?? ''));
         transactionParams.comment = parsedComment;
 
         const currentChatReport = getReportOrDraftReport(report?.chatReportID);
