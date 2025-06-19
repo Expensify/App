@@ -480,6 +480,7 @@ function getTransactionViolations(allViolations: OnyxCollection<OnyxTypes.Transa
 function getTransactionsSections(
     data: OnyxTypes.SearchResults['data'],
     metadata: OnyxTypes.SearchResults['search'],
+    currentSearch: SuggestedSearchKey,
     reportActions: Record<string, OnyxTypes.ReportActions | undefined> = {},
 ): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
@@ -515,7 +516,7 @@ function getTransactionsSections(
         const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
         const transactionSection: TransactionListItemType = {
-            action: getAction(data, allViolations, key, actions),
+            action: getAction(data, allViolations, key, currentSearch, actions),
             from,
             to,
             formattedFrom,
@@ -655,6 +656,7 @@ function getAction(
     data: OnyxTypes.SearchResults['data'],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     key: string,
+    currentSearch: SuggestedSearchKey,
     reportActions: OnyxTypes.ReportAction[] = [],
 ): SearchTransactionAction {
     const isTransaction = isTransactionEntry(key);
@@ -718,7 +720,7 @@ function getAction(
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
     const canBePaid = canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
 
-    if (canBePaid && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
+    if (canBePaid && !hasOnlyHeldExpenses(report.reportID, allReportTransactions) && currentSearch !== CONST.SEARCH.SUGGESTED_KEYS.EXPORT) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
 
@@ -887,6 +889,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
 function getReportSections(
     data: OnyxTypes.SearchResults['data'],
     metadata: OnyxTypes.SearchResults['search'],
+    currentSearch: SuggestedSearchKey,
     reportActions: Record<string, OnyxTypes.ReportActions | undefined> = {},
 ): ReportListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
@@ -909,7 +912,7 @@ function getReportSections(
             const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
             reportIDToTransactions[reportKey] = {
                 ...reportItem,
-                action: getAction(data, allViolations, key, actions),
+                action: getAction(data, allViolations, key, currentSearch, actions),
                 keyForList: reportItem.reportID,
                 from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
                 to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
@@ -936,7 +939,7 @@ function getReportSections(
 
             const transaction = {
                 ...transactionItem,
-                action: getAction(data, allViolations, key, actions),
+                action: getAction(data, allViolations, key, currentSearch, actions),
                 from,
                 to,
                 formattedFrom,
@@ -990,6 +993,7 @@ function getSections(
     metadata: OnyxTypes.SearchResults['search'],
     shouldGroupByReports = false,
     reportActions: Record<string, OnyxTypes.ReportActions | undefined> = {},
+    currentSearch: SuggestedSearchKey = CONST.SEARCH.SUGGESTED_KEYS.EXPENSES,
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -998,10 +1002,10 @@ function getSections(
         return getTaskSections(data);
     }
     if (!shouldGroupByReports) {
-        return getTransactionsSections(data, metadata, reportActions);
+        return getTransactionsSections(data, metadata, currentSearch, reportActions);
     }
 
-    return getReportSections(data, metadata, reportActions);
+    return getReportSections(data, metadata, currentSearch, reportActions);
 }
 
 /**
