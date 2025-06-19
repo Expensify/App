@@ -473,9 +473,6 @@ const ONYXKEYS = {
     /** Stores recently used currencies */
     RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies',
 
-    /** States whether we transitioned from OldDot to show only certain group of screens. It should be undefined on pure NewDot. */
-    IS_SINGLE_NEW_DOT_ENTRY: 'isSingleNewDotEntry',
-
     /** Company cards custom names */
     NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES: 'nvp_expensify_ccCustomNames',
 
@@ -532,11 +529,17 @@ const ONYXKEYS = {
     /** Set this gets redirected from global reimbursements flow */
     IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW: 'isComingFromGlobalReimbursementsFlow',
 
+    /** Stores HybridApp specific state required to interoperate with OldDot */
+    HYBRID_APP: 'hybridApp',
+
     /** Stores information for OpenUnreportedExpensesPage API call pagination */
     HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS: 'hasMoreUnreportedTransactionsResults',
 
     /** Is unreported transactions loading */
     IS_LOADING_UNREPORTED_TRANSACTIONS: 'isLoadingUnreportedTransactions',
+
+    /** List of transaction thread IDs used when navigating to prev/next transaction when viewing it in RHP */
+    TRANSACTION_THREAD_NAVIGATION_REPORT_IDS: 'transactionThreadNavigationReportIDs',
 
     /** Timestamp of the last login on iOS */
     NVP_LAST_ECASH_IOS_LOGIN: 'nvp_lastECashIOSLogin',
@@ -1167,7 +1170,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
     [ONYXKEYS.IMPORTED_SPREADSHEET]: OnyxTypes.ImportedSpreadsheet;
     [ONYXKEYS.LAST_ROUTE]: string;
-    [ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY]: boolean | undefined;
     [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
@@ -1186,12 +1188,14 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SCHEDULE_CALL_DRAFT]: OnyxTypes.ScheduleCallDraft;
     [ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY]: boolean | undefined;
     [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
+    [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
     [ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS]: boolean | undefined;
     [ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS]: boolean | undefined;
     [ONYXKEYS.NVP_LAST_ECASH_IOS_LOGIN]: string;
     [ONYXKEYS.NVP_LAST_ECASH_ANDROID_LOGIN]: string;
     [ONYXKEYS.NVP_LAST_IPHONE_LOGIN]: string;
     [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
+    [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS]: string[];
 };
 
 type OnyxDerivedValuesMapping = {
