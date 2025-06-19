@@ -828,15 +828,6 @@ Onyx.connect({
     callback: (value) => (personalDetailsList = value),
 });
 
-let allSnapshots: OnyxCollection<OnyxTypes.SearchResults>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.SNAPSHOT,
-    callback: (val) => {
-        allSnapshots = val;
-    },
-    waitForCollectionCallback: true,
-});
-
 /**
  * @private
  * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
@@ -9233,7 +9224,7 @@ function isLastApprover(approvalChain: string[]): boolean {
     return approvalChain.at(-1) === currentUserEmail;
 }
 
-function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean) {
+function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean, reportTransactions: OnyxTypes.Transaction[] = [], allSnapshots?: OnyxCollection<OnyxTypes.SearchResults>) {
     if (!expenseReport) {
         return;
     }
@@ -9380,10 +9371,9 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
 
     const hash = currentSearchQueryJSON?.hash;
     if (hash) {
-        const transactions = getReportTransactions(expenseReport.reportID);
         const snapshot = allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`];
 
-        transactions.forEach((transaction) => {
+        reportTransactions.forEach((transaction) => {
             const snapshotTransaction = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] ?? {}) as SearchTransaction;
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -9708,7 +9698,7 @@ function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     API.write(WRITE_COMMANDS.RETRACT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
+function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>, reportTransactions: OnyxTypes.Transaction[] = [], allSnapshots?: OnyxCollection<OnyxTypes.SearchResults>) {
     if (isEmptyObject(expenseReport)) {
         return;
     }
@@ -9844,9 +9834,8 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             const canModifyStatus = !isTrackExpenseMoneyReport && (isAdmin || isActionOwner || isApprover);
             return isRequestIOU || canModifyStatus;
         };
-        const transactions = getReportTransactions(expenseReport.reportID);
 
-        transactions.forEach((transaction) => {
+        reportTransactions.forEach((transaction) => {
             const snapshotTransaction = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] ?? {}) as SearchTransaction;
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,

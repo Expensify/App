@@ -1,5 +1,5 @@
 import type {GestureResponderEvent} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Merge, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -8,7 +8,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -121,6 +121,8 @@ const selectPaymentType = (
     isUserValidated?: boolean,
     confirmApproval?: () => void,
     iouReport?: OnyxEntry<Report>,
+    allSnapshots?: OnyxCollection<SearchResults>,
+    transactions?: Transaction[],
 ) => {
     if (policy && shouldRestrictUserBillableActions(policy.id)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -141,7 +143,7 @@ const selectPaymentType = (
         if (confirmApproval) {
             confirmApproval();
         } else {
-            approveMoneyRequest(iouReport);
+            approveMoneyRequest(iouReport, false, transactions, allSnapshots);
         }
         return;
     }

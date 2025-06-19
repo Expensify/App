@@ -10,7 +10,7 @@ import usePaymentOptions from '@hooks/usePaymentOptions';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
-import {doesReportBelongToWorkspace, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
+import {doesReportBelongToWorkspace, getReportTransactions, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 import {savePreferredPaymentMethod as savePreferredPaymentMethodIOU} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,6 +67,8 @@ function SettlementButton({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {canBeMissing: true});
+    const transactions = getReportTransactions(iouReport?.reportID);
 
     const paymentButtonOptions = usePaymentOptions({
         addBankAccountRoute,
@@ -89,7 +91,7 @@ function SettlementButton({
             showLockedAccountModal();
             return;
         }
-        selectPaymentType(event, iouPaymentType, triggerKYCFlow, policy, onPress, isUserValidated, confirmApproval, iouReport);
+        selectPaymentType(event, iouPaymentType, triggerKYCFlow, policy, onPress, isUserValidated, confirmApproval, iouReport, allSnapshots, transactions);
     };
 
     const savePreferredPaymentMethod = (id: string, value: PaymentMethodType) => {
