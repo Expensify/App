@@ -6,6 +6,7 @@ import CapitalOneCompanyCardDetail from '@assets/images/companyCards/card-capita
 import ChaseCompanyCardDetail from '@assets/images/companyCards/card-chase.svg';
 import CitibankCompanyCardDetail from '@assets/images/companyCards/card-citi.svg';
 import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-mastercard.svg';
+import PlaidCompanyCardDetail from '@assets/images/companyCards/card-plaid.svg';
 import StripeCompanyCardDetail from '@assets/images/companyCards/card-stripe.svg';
 import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
 import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
@@ -17,6 +18,7 @@ import CapitalOneCompanyCardDetailLarge from '@assets/images/companyCards/large/
 import ChaseCompanyCardDetailLarge from '@assets/images/companyCards/large/card-chase-large.svg';
 import CitibankCompanyCardDetailLarge from '@assets/images/companyCards/large/card-citi-large.svg';
 import MasterCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-mastercard-large.svg';
+import PlaidCompanyCardDetailLarge from '@assets/images/companyCards/large/card-plaid-large.svg';
 import StripeCompanyCardDetailLarge from '@assets/images/companyCards/large/card-stripe-large.svg';
 import VisaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-visa-large.svg';
 import WellsFargoCompanyCardDetailLarge from '@assets/images/companyCards/large/card-wellsfargo-large.svg';
@@ -54,6 +56,7 @@ import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-ha
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
 import ReceiptYellow from '@assets/images/product-illustrations/receipt--yellow.svg';
 import ReceiptsSearchYellow from '@assets/images/product-illustrations/receipts-search--yellow.svg';
+import ReceiptsStackedOnPin from '@assets/images/product-illustrations/receipts-stacked-on-pin.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
 import RocketOrange from '@assets/images/product-illustrations/rocket--orange.svg';
 import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
@@ -120,6 +123,7 @@ import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustra
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
+import PaperAirplane from '@assets/images/simple-illustrations/simple-illustration__paperairplane.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
 import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__piggybank.svg';
@@ -314,4 +318,8 @@ export {
     Flash,
     ExpensifyMobileApp,
     ReportReceipt,
+    PlaidCompanyCardDetailLarge,
+    PlaidCompanyCardDetail,
+    ReceiptsStackedOnPin,
+    PaperAirplane,
 };

@@ -30,6 +30,7 @@ function EmptyStateComponent({
     headerContentStyles,
     lottieWebViewStyles,
     minModalHeight = 400,
+    subtitleText,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
@@ -99,10 +100,10 @@ function EmptyStateComponent({
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
                     <View style={[shouldUseNarrowLayout ? styles.p5 : styles.p8, cardContentStyles]}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
-                        <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
+                        {subtitleText ?? <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>}
                         {children}
                         {!isEmpty(buttons) && (
-                            <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : styles.mhAuto]}>
+                            <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn]}>
                                 {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style}) => (
                                     <Button
                                         key={buttonText}

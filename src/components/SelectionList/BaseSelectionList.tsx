@@ -61,6 +61,7 @@ function BaseSelectionList<TItem extends ListItem>(
         textInputLabel = '',
         textInputPlaceholder = '',
         textInputValue = '',
+        textInputStyle,
         textInputHint,
         textInputMaxLength,
         inputMode = CONST.INPUT_MODE.TEXT,
@@ -74,6 +75,7 @@ function BaseSelectionList<TItem extends ListItem>(
         headerContent,
         footerContent,
         listFooterContent,
+        footerContentAbovePagination,
         listEmptyContent,
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
@@ -657,7 +659,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
     const renderInput = () => {
         return (
-            <View style={[styles.ph5, styles.pb3]}>
+            <View style={[styles.ph5, styles.pb3, textInputStyle]}>
                 <TextInput
                     onKeyPress={textInputKeyPress}
                     ref={(element) => {
@@ -952,7 +954,12 @@ function BaseSelectionList<TItem extends ListItem>(
                             )
                         }
                         scrollEnabled={scrollEnabled}
-                        ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
+                        ListFooterComponent={
+                            <>
+                                {footerContentAbovePagination}
+                                {listFooterContent ?? ShowMoreButtonInstance}
+                            </>
+                        }
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}
