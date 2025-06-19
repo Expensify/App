@@ -11,6 +11,7 @@ import ts from 'typescript';
 import decodeUnicode from '@libs/StringUtils/decodeUnicode';
 import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
+import CONST from '@src/CONST';
 import {isTranslationTargetLocale, LOCALES, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import CLI from './utils/CLI';
