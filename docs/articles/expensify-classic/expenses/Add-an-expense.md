@@ -170,6 +170,12 @@ To resolve duplicates, you can [merge the expenses](https://help.expensify.com/a
 
 **Note:** Employees under a workspace may have expenses auto-labeled. Ask a Workspace Admin if anything looks incorrect.
 
+## Can I upload a PDF receipt from the mobile app? 
+
+The Expensify mobile app has access to your photo gallery, not your files. To upload a file outside of the photo gallery, you can use one of these methods:
+1. For a single-page receipt, take a screenshot and upload it from your gallery
+2. For a multi-page receipt, use your email app to send it to receipts@expensify.com
+
 ## Why don’t I see a certain expense type?
 
 Your company’s workspace settings may limit what expense types are visible to you.

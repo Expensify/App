@@ -1,6 +1,7 @@
 import deburr from 'lodash/deburr';
 import {isSafari} from '@libs/Browser';
 import CONST from '@src/CONST';
+import decodeUnicode from './decodeUnicode';
 import dedent from './dedent';
 import hash from './hash';
 
@@ -163,4 +164,5 @@ export default {
     dedent,
     hash,
     getUTF8ByteLength,
+    decodeUnicode,
 };
