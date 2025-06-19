@@ -6270,14 +6270,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'オファーを請求する',
                 noThanks: '結構です',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `最初の1年間は${discountType}%オフ！`,
-                    phrase2: `支払いカードを追加して、年間サブスクリプションを開始するだけです。`,
-                },
-                onboardingChatTitle: {
-                    phrase1: '期間限定オファー:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `最初の1年間は${discountType}%オフ！`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>最初の1年間は${discountType}%オフ！</strong> 支払いカードを追加して、年間サブスクリプションを開始するだけです。`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `期間限定オファー: 最初の1年間は${discountType}%オフ！`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `${hours}時間 ${minutes}分 ${seconds}秒以内に${days > 0 ? `${days}日 :` : ''}を請求してください`,
             },
         },
