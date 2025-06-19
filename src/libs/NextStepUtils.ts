@@ -149,9 +149,9 @@ function buildNextStep(
     const {harvesting, autoReportingOffset} = policy;
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
-    const isAutoSubmitEnabled = Permissions.isBetaEnabled(CONST.BETAS.AUTO_SUBMIT, allBetas);
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
-    const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isAutoSubmitEnabled;
+    const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
     const [policyOwnerPersonalDetails, ownerPersonalDetails] = getPersonalDetailsByIDs({
         accountIDs: [policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, ownerAccountID],
         currentUserAccountID,
@@ -209,7 +209,7 @@ function buildNextStep(
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
-            if ((isAutoSubmitEnabled && hasViolations && isInstantSubmitEnabled) || shouldFixViolations) {
+            if ((isASAPSubmitBetaEnabled && hasViolations && isInstantSubmitEnabled) || shouldFixViolations) {
                 optimisticNextStep = {
                     type,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
