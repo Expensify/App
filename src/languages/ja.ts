@@ -5978,8 +5978,8 @@ const translations = {
         shipNewCardButton: '新しいカードを発送する',
         addressError: '住所が必要です',
         reasonError: '理由が必要です',
-        successTitle: '새 카드가 배송 중입니다!',
-        successDescription: '며칠 내로 도착하면 활성화해야 합니다. 그동안에는 가상 카드를 사용할 수 있어요。',
+        successTitle: '新しいカードが発送中です！',
+        successDescription: '数営業日で届きます。届いたら有効化する必要があります。それまでは仮想カードを使用できます。',
     },
     eReceipt: {
         guaranteed: '保証付きeレシート',
