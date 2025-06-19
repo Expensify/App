@@ -6,6 +6,7 @@ import {translateLocal} from './Localize';
 import {hasEnabledOptions} from './OptionsListUtils';
 import type {Option} from './OptionsListUtils';
 import {getCleanedTagName} from './PolicyUtils';
+import tokenizedSearch from './tokenizedSearch';
 
 type SelectedTagOption = {
     name: string;
@@ -83,9 +84,10 @@ function getTagListSections({
     }
 
     if (searchValue) {
-        const enabledSearchTags = enabledTagsWithoutSelectedOptions.filter((tag) => getCleanedTagName(tag.name.toLowerCase()).includes(searchValue.toLowerCase()));
-        const selectedSearchTags = selectedTagsWithDisabledState.filter((tag) => getCleanedTagName(tag.name.toLowerCase()).includes(searchValue.toLowerCase()));
-        const tagsForSearch = [...selectedSearchTags, ...enabledSearchTags];
+        const tagsForSearch = [
+            ...tokenizedSearch(selectedTagsWithDisabledState, searchValue, (tag) => [getCleanedTagName(tag.name)]),
+            ...tokenizedSearch(enabledTagsWithoutSelectedOptions, searchValue, (tag) => [getCleanedTagName(tag.name)]),
+        ];
 
         tagSections.push({
             // "Search" section

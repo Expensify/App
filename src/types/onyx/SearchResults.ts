@@ -180,8 +180,14 @@ type SearchReport = {
     /** The policy name to use for an archived report */
     oldPolicyName?: string;
 
-    /** The ID of the chat report associated with this report item, if any */
-    childReportID?: string;
+    /** Pending fields for the report */
+    pendingFields?: {
+        /** Pending action for the preview */
+        preview?: OnyxCommon.PendingAction;
+    };
+
+    /** Pending action for the report */
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 /** Model of report action search result */

@@ -1,12 +1,18 @@
 import type {Section} from '@libs/OptionsListUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
 import {getTagListSections, sortTags} from '@libs/TagsOptionsListUtils';
+import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 
 describe('TagsOptionsListUtils', () => {
+    beforeAll(() => {
+        TranslationStore.load(CONST.LOCALES.EN);
+    });
     it('getTagListSections()', () => {
         const search = 'ing';
         const emptySearch = '';
         const wrongSearch = 'bla bla';
+        const employeeSearch = 'Employee Office';
         const recentlyUsedTags = ['Engineering', 'HR'];
 
         const selectedOptions: SelectedTagOption[] = [
@@ -38,6 +44,11 @@ describe('TagsOptionsListUtils', () => {
                 accountID: undefined,
                 pendingAction: 'delete',
             },
+            EmployeeMealsOffice: {
+                enabled: true,
+                name: 'Employee Meals Office',
+                accountID: undefined,
+            },
         };
         const smallResultList: Section[] = [
             {
@@ -50,6 +61,15 @@ describe('TagsOptionsListUtils', () => {
                         keyForList: 'Accounting',
                         searchText: 'Accounting',
                         tooltipText: 'Accounting',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'Employee Meals Office',
+                        keyForList: 'Employee Meals Office',
+                        searchText: 'Employee Meals Office',
+                        tooltipText: 'Employee Meals Office',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -85,6 +105,23 @@ describe('TagsOptionsListUtils', () => {
                         keyForList: 'Accounting',
                         searchText: 'Accounting',
                         tooltipText: 'Accounting',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                ],
+            },
+        ];
+        const employeeSearchResultList: Section[] = [
+            {
+                title: '',
+                shouldShow: true,
+                data: [
+                    {
+                        text: 'Employee Meals Office',
+                        keyForList: 'Employee Meals Office',
+                        searchText: 'Employee Meals Office',
+                        tooltipText: 'Employee Meals Office',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -298,6 +335,9 @@ describe('TagsOptionsListUtils', () => {
 
         const smallSearchResult = getTagListSections({searchValue: search, tags: smallTagsList});
         expect(smallSearchResult).toStrictEqual(smallSearchResultList);
+
+        const employeeSearchResult = getTagListSections({searchValue: employeeSearch, tags: smallTagsList});
+        expect(employeeSearchResult).toStrictEqual(employeeSearchResultList);
 
         const smallWrongSearchResult = getTagListSections({searchValue: wrongSearch, tags: smallTagsList});
         expect(smallWrongSearchResult).toStrictEqual(smallWrongSearchResultList);

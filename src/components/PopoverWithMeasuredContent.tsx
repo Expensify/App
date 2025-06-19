@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import {circularDeepEqual, deepEqual} from 'fast-equals';
 import React, {useContext, useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
@@ -29,6 +29,9 @@ type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
 
     /** Whether we should should use top side for the anchor positioning */
     shouldMeasureAnchorPositionFromTop?: boolean;
+
+    /** Whether to skip re-measurement when becoming visible (for components with static dimensions) */
+    shouldSkipRemeasurement?: boolean;
 };
 
 /**
@@ -66,6 +69,7 @@ function PopoverWithMeasuredContent({
     shouldHandleNavigationBack = false,
     shouldEnableNewFocusManagement,
     shouldMeasureAnchorPositionFromTop = false,
+    shouldSkipRemeasurement = false,
     ...props
 }: PopoverWithMeasuredContentProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
@@ -75,6 +79,8 @@ function PopoverWithMeasuredContent({
     const [popoverHeight, setPopoverHeight] = useState(popoverDimensions.height);
     const [isContentMeasured, setIsContentMeasured] = useState(popoverWidth > 0 && popoverHeight > 0);
     const prevIsVisible = usePrevious(isVisible);
+    const prevAnchorPosition = usePrevious(anchorPosition);
+    const prevWindowDimensions = usePrevious({windowWidth, windowHeight});
 
     const modalId = useMemo(() => ComposerFocusManager.getId(), []);
 
@@ -82,8 +88,19 @@ function PopoverWithMeasuredContent({
         ComposerFocusManager.saveFocusState(modalId);
     }
 
-    if (!prevIsVisible && isVisible && isContentMeasured) {
-        setIsContentMeasured(false);
+    if (!prevIsVisible && isVisible && isContentMeasured && !shouldSkipRemeasurement) {
+        // Check if anything significant changed that would require re-measurement
+        const hasAnchorPositionChanged = !deepEqual(prevAnchorPosition, anchorPosition);
+        const hasWindowSizeChanged = !deepEqual(prevWindowDimensions, {windowWidth, windowHeight});
+        const hasStaticDimensions = popoverDimensions.width > 0 && popoverDimensions.height > 0;
+
+        // Only reset if:
+        // 1. We don't have static dimensions, OR
+        // 2. The anchor position changed significantly, OR
+        // 3. The window size changed significantly
+        if (!hasStaticDimensions || hasAnchorPositionChanged || hasWindowSizeChanged) {
+            setIsContentMeasured(false);
+        }
     }
 
     /**
@@ -97,7 +114,7 @@ function PopoverWithMeasuredContent({
 
         // it handles the case when `measurePopover` is called with values like: 192, 192.00003051757812, 192
         // if we update it, then animation in `ActionSheetAwareScrollView` may be re-running
-        // and we'll see unsynchronized and junky animation
+        // and we'll see out-of-sync and junky animation
         if (actionSheetAwareScrollViewContext.currentActionSheetState.get().current.payload?.popoverHeight !== Math.floor(height) && height !== 0) {
             actionSheetAwareScrollViewContext.transitionActionSheetState({
                 type: ActionSheetAwareScrollView.Actions.MEASURE_POPOVER,
@@ -144,28 +161,39 @@ function PopoverWithMeasuredContent({
         };
     }, [anchorPosition, anchorAlignment, popoverWidth, popoverHeight]);
 
-    const horizontalShift = PopoverWithMeasuredContentUtils.computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
-    const verticalShift = PopoverWithMeasuredContentUtils.computeVerticalShift(
-        adjustedAnchorPosition.top,
-        popoverHeight,
-        windowHeight,
-        anchorDimensions.height,
-        shouldSwitchPositionIfOverflow,
-    );
-    const shiftedAnchorPosition: PopoverAnchorPosition = {
-        left: adjustedAnchorPosition.left + horizontalShift,
-        ...(shouldMeasureAnchorPositionFromTop ? {top: adjustedAnchorPosition.top + verticalShift} : {}),
-    };
+    const positionCalculations = useMemo(() => {
+        const horizontalShift = PopoverWithMeasuredContentUtils.computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
+        const verticalShift = PopoverWithMeasuredContentUtils.computeVerticalShift(
+            adjustedAnchorPosition.top,
+            popoverHeight,
+            windowHeight,
+            anchorDimensions.height,
+            shouldSwitchPositionIfOverflow,
+        );
+        return {horizontalShift, verticalShift};
+    }, [adjustedAnchorPosition.left, adjustedAnchorPosition.top, popoverWidth, popoverHeight, windowWidth, windowHeight, anchorDimensions.height, shouldSwitchPositionIfOverflow]);
 
-    if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
-        const top = adjustedAnchorPosition.top + verticalShift;
-        const maxTop = windowHeight - popoverHeight - verticalShift;
-        shiftedAnchorPosition.top = Math.min(Math.max(verticalShift, top), maxTop);
-    }
+    const shiftedAnchorPosition: PopoverAnchorPosition = useMemo(() => {
+        const result: PopoverAnchorPosition = {
+            left: adjustedAnchorPosition.left + positionCalculations.horizontalShift,
+        };
 
-    if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM) {
-        shiftedAnchorPosition.bottom = windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift;
-    }
+        if (shouldMeasureAnchorPositionFromTop) {
+            result.top = adjustedAnchorPosition.top + positionCalculations.verticalShift;
+        }
+
+        if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
+            const top = adjustedAnchorPosition.top + positionCalculations.verticalShift;
+            const maxTop = windowHeight - popoverHeight - positionCalculations.verticalShift;
+            result.top = Math.min(Math.max(positionCalculations.verticalShift, top), maxTop);
+        }
+
+        if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM) {
+            result.bottom = windowHeight - (adjustedAnchorPosition.top + popoverHeight) - positionCalculations.verticalShift;
+        }
+
+        return result;
+    }, [adjustedAnchorPosition, positionCalculations, anchorAlignment.vertical, windowHeight, popoverHeight, shouldMeasureAnchorPositionFromTop]);
 
     return isContentMeasured ? (
         <Popover
@@ -210,7 +238,7 @@ export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => 
     if (prevProps.isVisible === nextProps.isVisible && nextProps.isVisible === false) {
         return true;
     }
-    return isEqual(prevProps, nextProps);
+    return circularDeepEqual(prevProps, nextProps);
 });
 
 export type {PopoverWithMeasuredContentProps};

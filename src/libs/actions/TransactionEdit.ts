@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {Connection, OnyxEntry} from 'react-native-onyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import {getDraftTransactions} from './Transaction';
@@ -94,16 +95,26 @@ function removeDraftSplitTransaction(transactionID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-function removeDraftTransactions() {
+function removeDraftTransactions(shouldExcludeInitialTransaction = false) {
     const draftTransactions = getDraftTransactions();
     const draftTransactionsSet = draftTransactions.reduce(
         (acc, item) => {
+            if (shouldExcludeInitialTransaction && item.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+                return acc;
+            }
             acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
             return acc;
         },
         {} as Record<string, null>,
     );
-    Onyx.multiSet(draftTransactionsSet);
+    return Onyx.multiSet(draftTransactionsSet);
+}
+
+function removeTransactionReceipt(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: null});
 }
 
 export {
@@ -112,6 +123,7 @@ export {
     restoreOriginalTransactionFromBackup,
     createDraftTransaction,
     removeDraftTransaction,
+    removeTransactionReceipt,
     removeDraftTransactions,
     removeDraftSplitTransaction,
 };
