@@ -264,7 +264,7 @@ function MoneyReportHeader({
             queueExportSearchWithTemplate({
                 templateName,
                 templateType,
-                jsonQuery: '',
+                jsonQuery: '{}',
                 reportIDList: [moneyRequestReport.reportID],
                 transactionIDList,
                 policyID: policy?.id,
