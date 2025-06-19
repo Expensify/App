@@ -31,8 +31,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 
-const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
-
 type AssigneeStepProps = {
     /** The policy that the card will be issued under */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -172,7 +170,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
         Navigation.goBack();
     };
 
-    const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
+    const shouldShowSearchInput = policy?.employeeList;
     const textInputLabel = shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined;
 
     const membersDetails = useMemo(() => {
