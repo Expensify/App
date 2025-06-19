@@ -270,6 +270,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -6463,8 +6464,8 @@ const translations = {
                 title: 'Assinatura cancelada',
                 subtitle: 'Sua assinatura anual foi cancelada.',
                 info: 'Se voc\u00EA quiser continuar usando seu(s) espa\u00E7o(s) de trabalho em uma base de pagamento por uso, est\u00E1 tudo certo.',
-                preventFutureActivity:
-                    'Se voc\u00EA quiser evitar atividades e cobran\u00E7as futuras, voc\u00EA deve <a>excluir seu(s) espa\u00E7o(s) de trabalho</a> . Observe que, ao excluir seu(s) espa\u00E7o(s) de trabalho, voc\u00EA ser\u00E1 cobrado por qualquer atividade pendente que tenha ocorrido durante o m\u00EAs calend\u00E1rio atual.',
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `Se voc\u00EA quiser evitar atividades e cobran\u00E7as futuras, voc\u00EA deve <a href="${workspacesListRoute}">excluir seu(s) espa\u00E7o(s) de trabalho</a> . Observe que, ao excluir seu(s) espa\u00E7o(s) de trabalho, voc\u00EA ser\u00E1 cobrado por qualquer atividade pendente que tenha ocorrido durante o m\u00EAs calend\u00E1rio atual.`,
             },
             requestSubmitted: {
                 title: 'Solicitação enviada',

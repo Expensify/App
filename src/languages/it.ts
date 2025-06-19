@@ -270,6 +270,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -6483,8 +6484,8 @@ const translations = {
                 title: 'Abbonamento annullato',
                 subtitle: 'Il tuo abbonamento annuale \u00E8 stato annullato.',
                 info: 'Se desideri continuare a utilizzare il tuo workspace su base pay-per-use, sei a posto.',
-                preventFutureActivity:
-                    'Se desideri impedire attivit\u00E0 e addebiti futuri, devi <a>elimina il tuo/i tuoi workspace(s)</a> . Nota che quando elimini il tuo workspace, ti verr\u00E0 addebitata qualsiasi attivit\u00E0 in sospeso che \u00E8 stata sostenuta durante il mese di calendario corrente.',
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `Se desideri impedire attivit\u00E0 e addebiti futuri, devi <a href="${workspacesListRoute}">elimina il tuo/i tuoi workspace(s)</a> . Nota che quando elimini il tuo workspace, ti verr\u00E0 addebitata qualsiasi attivit\u00E0 in sospeso che \u00E8 stata sostenuta durante il mese di calendario corrente.`,
             },
             requestSubmitted: {
                 title: 'Richiesta inviata',

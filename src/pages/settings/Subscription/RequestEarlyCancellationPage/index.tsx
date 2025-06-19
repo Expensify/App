@@ -25,6 +25,7 @@ import ROUTES from '@src/ROUTES';
 
 function RequestEarlyCancellationPage() {
     const {environmentURL} = useEnvironment();
+    const workspacesListRoute = `${environmentURL}/${ROUTES.WORKSPACES_LIST.route}`;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -80,9 +81,7 @@ function RequestEarlyCancellationPage() {
                     <Text style={[styles.mt1, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.subtitle')}</Text>
                     <Text style={[styles.mv4, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.info')}</Text>
 
-                    <TextLink href={`${environmentURL}/${ROUTES.WORKSPACES_LIST.route}`}>
-                        <RenderHTML html={translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity')} />
-                    </TextLink>
+                    <RenderHTML html={translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity', {workspacesListRoute})} />
                 </View>
                 <FixedFooter style={styles.ph0}>
                     <Button
@@ -94,7 +93,7 @@ function RequestEarlyCancellationPage() {
                 </FixedFooter>
             </View>
         ),
-        [styles, translate, environmentURL],
+        [styles, translate, workspacesListRoute],
     );
     const surveyContent = useMemo(
         () => (

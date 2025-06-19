@@ -270,6 +270,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -6452,8 +6453,8 @@ const translations = {
                 title: 'Subskrypcja anulowana',
                 subtitle: 'Twoja roczna subskrypcja zosta\u0142a anulowana.',
                 info: 'Je\u015Bli chcesz nadal korzysta\u0107 ze swojego miejsca pracy na zasadzie p\u0142atno\u015Bci za u\u017Cycie, wszystko jest gotowe.',
-                preventFutureActivity:
-                    'Je\u015Bli chcesz zapobiec przysz\u0142ym dzia\u0142aniom i op\u0142atom, musisz <a>usu\u0144 swoje miejsce(a) pracy</a> . Zauwa\u017C, \u017Ce gdy usuniesz swoje miejsce pracy, zostaniesz obci\u0105\u017Cony op\u0142at\u0105 za wszelkie zaleg\u0142e dzia\u0142ania, kt\u00F3re mia\u0142y miejsce w bie\u017C\u0105cym miesi\u0105cu kalendarzowym.',
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `Je\u015Bli chcesz zapobiec przysz\u0142ym dzia\u0142aniom i op\u0142atom, musisz <a href="${workspacesListRoute}">usu\u0144 swoje miejsce(a) pracy</a> . Zauwa\u017C, \u017Ce gdy usuniesz swoje miejsce pracy, zostaniesz obci\u0105\u017Cony op\u0142at\u0105 za wszelkie zaleg\u0142e dzia\u0142ania, kt\u00F3re mia\u0142y miejsce w bie\u017C\u0105cym miesi\u0105cu kalendarzowym.`,
             },
             requestSubmitted: {
                 title: 'Żądanie zostało złożone',

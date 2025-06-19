@@ -270,6 +270,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspacesListRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -6501,8 +6502,8 @@ const translations = {
                 title: 'Abonnement storniert',
                 subtitle: 'Ihr Jahresabonnement wurde storniert.',
                 info: 'Wenn Sie Ihre Arbeitsbereiche weiterhin auf Pay-per-Use-Basis nutzen m\u00F6chten, ist alles bereit.',
-                preventFutureActivity:
-                    'Wenn Sie zuk\u00FCnftige Aktivit\u00E4ten und Geb\u00FChren verhindern m\u00F6chten, m\u00FCssen Sie <a>l\u00F6schen Sie Ihren Arbeitsbereich/Ihre Arbeitsbereiche</a> . Beachten Sie, dass Ihnen beim L\u00F6schen Ihrer Arbeitsbereiche alle ausstehenden Aktivit\u00E4ten, die im aktuellen Kalendermonat angefallen sind, in Rechnung gestellt werden.',
+                preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
+                    `Wenn Sie zuk\u00FCnftige Aktivit\u00E4ten und Geb\u00FChren verhindern m\u00F6chten, m\u00FCssen Sie <a href="${workspacesListRoute}">l\u00F6schen Sie Ihren Arbeitsbereich/Ihre Arbeitsbereiche</a> . Beachten Sie, dass Ihnen beim L\u00F6schen Ihrer Arbeitsbereiche alle ausstehenden Aktivit\u00E4ten, die im aktuellen Kalendermonat angefallen sind, in Rechnung gestellt werden.`,
             },
             requestSubmitted: {
                 title: 'Anfrage eingereicht',
