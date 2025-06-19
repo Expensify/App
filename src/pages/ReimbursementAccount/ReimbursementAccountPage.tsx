@@ -21,7 +21,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -88,6 +87,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     // shouldUseNarrowLayout cannot be used here because this page is displayed in a RHP
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const workspaceInitialRoute = `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute())}`;
 
     /**
      The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
@@ -404,26 +404,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     } else if (hasUnsupportedCurrency) {
         errorText = (
             <Text style={styles.flexRow}>
-                {getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.DESKTOP ? (
-                    <TextLink
-                        style={styles.link}
-                        onPress={() => {
-                            const routeToNavigate = isSmallScreenWidth
-                                ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())
-                                : ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute());
-                            Navigation.goBack(routeToNavigate);
-                        }}
-                    >
-                        <RenderHTML html={translate('bankAccount.hasCurrencyError')} />
-                    </TextLink>
-                ) : (
-                    <TextLink
-                        style={styles.link}
-                        href={`${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute())}`}
-                    >
-                        <RenderHTML html={translate('bankAccount.hasCurrencyError')} />
-                    </TextLink>
-                )}
+                <RenderHTML html={translate('bankAccount.hasCurrencyError', {workspaceInitialRoute})} />
             </Text>
         );
     }
