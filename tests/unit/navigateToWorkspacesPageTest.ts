@@ -21,7 +21,7 @@ jest.mock('@libs/interceptAnonymousUser');
 
 const fakePolicyID = '344559B2CCF2B6C1';
 const mockPolicy = createRandomPolicy(0);
-const mockParams = {currentUserLogin: 'test@example.com', shouldUseNarrowLayout: false};
+const mockParams = {currentUserLogin: 'test@example.com', shouldUseNarrowLayout: false, policies: {fakePolicyID: mockPolicy}};
 
 describe('navigateToWorkspacesPage', () => {
     beforeEach(() => {
@@ -85,7 +85,6 @@ describe('navigateToWorkspacesPage', () => {
             ],
         });
 
-        (PolicyUtils.getPolicy as jest.Mock).mockReturnValue(mockPolicy);
         (PolicyUtils.shouldShowPolicy as jest.Mock).mockReturnValue(true);
         (PolicyUtils.isPendingDeletePolicy as jest.Mock).mockReturnValue(false);
         (lastVisitedTabPathUtils.getLastVisitedWorkspaceTabScreen as jest.Mock).mockReturnValue('Workspace_Overview');
@@ -121,7 +120,6 @@ describe('navigateToWorkspacesPage', () => {
             ],
         });
 
-        (PolicyUtils.getPolicy as jest.Mock).mockReturnValue(mockPolicy);
         (PolicyUtils.shouldShowPolicy as jest.Mock).mockReturnValue(true);
         (PolicyUtils.isPendingDeletePolicy as jest.Mock).mockReturnValue(true);
 
