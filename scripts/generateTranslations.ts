@@ -8,6 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
+import GitHubUtils from '@github/libs/GithubUtils';
 import decodeUnicode from '@libs/StringUtils/decodeUnicode';
 import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
@@ -77,12 +78,15 @@ class TranslationGenerator {
      */
     private readonly translator: Translator;
 
-    constructor(config: {targetLanguages: TranslationTargetLocale[]; languagesDir: string; sourceFile: string; translator: Translator}) {
+    private readonly compareRef?: string;
+
+    constructor(config: {targetLanguages: TranslationTargetLocale[]; languagesDir: string; sourceFile: string; translator: Translator; compareRef?: string}) {
         this.targetLanguages = config.targetLanguages;
         this.languagesDir = config.languagesDir;
         const sourceCode = fs.readFileSync(config.sourceFile, 'utf8');
         this.sourceFile = ts.createSourceFile(config.sourceFile, sourceCode, ts.ScriptTarget.Latest, true);
         this.translator = config.translator;
+        this.compareRef = config.compareRef;
     }
 
     public async generateTranslations(): Promise<void> {
@@ -437,9 +441,9 @@ class TranslationGenerator {
  * The main function mostly contains CLI and file I/O logic, while TS parsing and translation logic is encapsulated in TranslationGenerator.
  */
 async function main(): Promise<void> {
+    /* eslint-disable @typescript-eslint/naming-convention */
     const cli = new CLI({
         flags: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             'dry-run': {
                 description: 'If true, just do local mocked translations rather than making real requests to an AI translator.',
             },
@@ -461,8 +465,14 @@ async function main(): Promise<void> {
                     return validatedLocales;
                 },
             },
+            'compare-ref': {
+                description:
+                    'For incremental translations, this ref is the previous version of the codebase to compare to. Only strings that changed or had their context changed since this ref will be retranslated.',
+                default: '',
+            },
         },
     } as const);
+    /* eslint-enable @typescript-eslint/naming-convention */
 
     let translator: Translator;
     if (cli.flags['dry-run']) {
@@ -483,12 +493,16 @@ async function main(): Promise<void> {
     const languagesDir = process.env.LANGUAGES_DIR || path.join(__dirname, '../src/languages');
     const enSourceFile = path.join(languagesDir, 'en.ts');
 
-    const generator = new TranslationGenerator({
+    const translationConfig: ConstructorParameters<typeof TranslationGenerator>[0] = {
         targetLanguages: cli.namedArgs.locales,
         languagesDir,
         sourceFile: enSourceFile,
         translator,
-    });
+    };
+    if (cli.namedArgs['compare-ref']) {
+        translationConfig.compareRef = cli.namedArgs['compare-ref'];
+    }
+    const generator = new TranslationGenerator(translationConfig);
     await generator.generateTranslations();
 }
 
