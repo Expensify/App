@@ -412,7 +412,11 @@ function updateXeroEnableNewCategories(
     API.write(WRITE_COMMANDS.UPDATE_XERO_ENABLE_NEW_CATEGORIES, parameters, {optimisticData, failureData, successData});
 }
 
-function updateXeroAutoSync(policyID: string, autoSync: Partial<Connections['xero']['config']['autoSync']>, oldAutoSync?: Partial<Connections['xero']['config']['autoSync']>) {
+function updateXeroAutoSync(policyID: string | undefined, autoSync: Partial<Connections['xero']['config']['autoSync']>, oldAutoSync?: Partial<Connections['xero']['config']['autoSync']>) {
+    if (!policyID) {
+        return;
+    }
+
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(autoSync),
@@ -531,10 +535,14 @@ function updateXeroSyncReimbursementAccountID(
 }
 
 function updateXeroSyncSyncReimbursedReports(
-    policyID: string,
+    policyID: string | undefined,
     syncReimbursedReports: Partial<Connections['xero']['config']['sync']['syncReimbursedReports']>,
     oldSyncReimbursedReports?: Partial<Connections['xero']['config']['sync']['syncReimbursedReports']>,
 ) {
+    if (!policyID) {
+        return;
+    }
+
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
         settingValue: JSON.stringify(syncReimbursedReports),

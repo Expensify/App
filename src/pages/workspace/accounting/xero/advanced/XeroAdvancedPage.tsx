@@ -31,15 +31,19 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const accountingMethod = xeroConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
 
     const getSelectedAccountName = useMemo(
-        () => (accountID: string) => {
+        () => (accountID: string | undefined) => {
+            if (!accountID) {
+                return;
+            }
+
             const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === accountID);
             return selectedAccount?.name ?? translate('workspace.xero.notConfigured');
         },
         [bankAccounts, translate],
     );
 
-    const selectedBankAccountName = getSelectedAccountName(invoiceCollectionsAccountID ?? '-1');
-    const selectedBillPaymentAccountName = getSelectedAccountName(reimbursementAccountID ?? '-1');
+    const selectedBankAccountName = getSelectedAccountName(invoiceCollectionsAccountID);
+    const selectedBillPaymentAccountName = getSelectedAccountName(reimbursementAccountID);
 
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
 
@@ -84,12 +88,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={styles.mv3}
                 isActive={!!sync?.syncReimbursedReports}
-                onToggle={() => {
-                    if (!policyID) {
-                        return;
-                    }
-                    updateXeroSyncSyncReimbursedReports(policyID, !sync?.syncReimbursedReports, sync?.syncReimbursedReports);
-                }}
+                onToggle={() => updateXeroSyncSyncReimbursedReports(policyID, !sync?.syncReimbursedReports, sync?.syncReimbursedReports)}
                 pendingAction={settingsPendingAction([CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS], pendingFields)}
                 errors={getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS)}
                 onCloseError={() => clearXeroErrorField(policyID, CONST.XERO_CONFIG.SYNC_REIMBURSED_REPORTS)}
@@ -106,12 +105,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             description={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
                             key={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                            onPress={() => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.getRoute(policyID));
-                            }}
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.getRoute(policyID))}
                             brickRoadIndicator={areSettingsInErrorFields([CONST.XERO_CONFIG.REIMBURSEMENT_ACCOUNT_ID], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                     </OfflineWithFeedback>
@@ -122,12 +116,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             description={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
                             key={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                            onPress={() => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR.getRoute(policyID));
-                            }}
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR.getRoute(policyID))}
                             brickRoadIndicator={
                                 areSettingsInErrorFields([CONST.XERO_CONFIG.INVOICE_COLLECTIONS_ACCOUNT_ID], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
                             }

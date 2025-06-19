@@ -62,18 +62,15 @@ function XeroAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                     isActive={!!autoSync?.enabled}
                     wrapperStyle={[styles.pv2, styles.mh5]}
                     shouldPlaceSubtitleBelowSwitch
-                    onToggle={() => {
-                        if (!policyID) {
-                            return;
-                        }
+                    onToggle={() =>
                         updateXeroAutoSync(
                             policyID,
                             {
                                 enabled: !autoSync?.enabled,
                             },
                             {enabled: autoSync?.enabled ?? undefined},
-                        );
-                    }}
+                        )
+                    }
                     pendingAction={settingsPendingAction([CONST.XERO_CONFIG.ENABLED], pendingFields)}
                     errors={getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.ENABLED)}
                     onCloseError={() => clearXeroErrorField(policyID, CONST.XERO_CONFIG.ENABLED)}
@@ -88,12 +85,7 @@ function XeroAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                             }
                             description={translate('workspace.xero.accountingMethods.label')}
                             shouldShowRightIcon
-                            onPress={() => {
-                                if (!policyID) {
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD.getRoute(policyID, backTo));
-                            }}
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD.getRoute(policyID, backTo))}
                         />
                     </OfflineWithFeedback>
                 )}
