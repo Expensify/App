@@ -580,7 +580,12 @@ function MoneyRequestReportActionsList({
                     <ConfirmModal
                         title={translate('iou.deleteExpense', {count: selectedTransactionIDs.length})}
                         isVisible={isDeleteModalVisible}
-                        onConfirm={handleDeleteTransactions}
+                        onConfirm={() => {
+                            if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
+                                Navigation.goBack(route.params?.backTo);
+                            }
+                            handleDeleteTransactions();
+                        }}
                         onCancel={hideDeleteModal}
                         prompt={translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length})}
                         confirmText={translate('common.delete')}
