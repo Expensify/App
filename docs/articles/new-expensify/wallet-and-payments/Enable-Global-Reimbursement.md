@@ -1,5 +1,5 @@
 ---
-title: Global Reimbursement
+title: Global Reimbursement - Setup and Verification
 description: Choose your bank location to set up global reimbursements in New Expensify.
 keywords: [New Expensify, foreign bank validation, global reimbursement, United States, Canada, Europe, Singapore, Australia, United Kingdom, international reimbursements]
 ---
