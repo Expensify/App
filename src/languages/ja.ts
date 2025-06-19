@@ -4925,8 +4925,7 @@ const translations = {
             addPaymentCardTerms: '利用規約',
             addPaymentCardPrivacy: 'プライバシー',
             addPaymentCardAnd: '&',
-            addPaymentCardReadAndAcceptText:
-                '読み取りと承認 <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>利用規約</a> & <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>プライバシー</a> カードを追加するためのポリシー',
+            addPaymentCardReadAndAcceptText: `読み取りと承認 <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>利用規約</a> & <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>プライバシー</a> カードを追加するためのポリシー`,
             addPaymentCardPciCompliant: 'PCI-DSS 準拠',
             addPaymentCardBankLevelEncrypt: '銀行レベルの暗号化',
             addPaymentCardRedundant: '冗長インフラストラクチャー',
