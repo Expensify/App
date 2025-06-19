@@ -9569,6 +9569,7 @@ function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             lastMessageHtml: getReportActionHtml(optimisticRetractReportAction),
             stateNum: predictedNextState,
             statusNum: predictedNextStatus,
+            lastReadTime: optimisticRetractReportAction.created,
             pendingFields: {
                 partial: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
@@ -9600,6 +9601,7 @@ function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
                 pendingFields: {
                     partial: null,
                 },
+                lastReadTime: expenseReport.lastReadTime,
             },
         },
     ];
