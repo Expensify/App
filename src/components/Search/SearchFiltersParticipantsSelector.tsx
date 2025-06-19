@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-const defaultListOptions = {
+const DEFAULT_LIST_OPTIONS = {
     userToInvite: null,
     recentReports: [],
     personalDetails: [],
@@ -27,13 +27,34 @@ const defaultListOptions = {
     headerMessage: '',
 };
 
-function getSelectedOptionData(option: Option): OptionData {
-    return {...option, selected: true, reportID: option.reportID ?? '-1'};
-}
-
 type SearchFiltersParticipantsSelectorProps = {
     initialAccountIDs: string[];
     onFiltersUpdate: (accountIDs: string[]) => void;
+};
+
+const createSelectedOptionData = (option: Option): OptionData => ({
+    ...option,
+    selected: true,
+    reportID: option.reportID ?? '-1',
+});
+
+const isOptionSelected = (selectedOptions: OptionData[], option: Option): boolean => {
+    return selectedOptions.some((selectedOption) => {
+        if (selectedOption.accountID && selectedOption.accountID === option?.accountID) {
+            return true;
+        }
+        if (selectedOption.reportID && selectedOption.reportID === option?.reportID) {
+            return true;
+        }
+        return false;
+    });
+};
+
+const mapParticipantsWithSelection = (participants: Option[], selectedOptions: OptionData[]) => {
+    return participants.map((participant) => ({
+        ...participant,
+        isSelected: isOptionSelected(selectedOptions, participant) ? true : undefined,
+    }));
 };
 
 function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}: SearchFiltersParticipantsSelectorProps) {
@@ -44,14 +65,18 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         shouldInitialize: didScreenTransitionEnd,
     });
 
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {
+        initWithStoredValues: false,
+    });
+
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return defaultListOptions;
+            return DEFAULT_LIST_OPTIONS;
         }
 
         return OptionsListUtils.getValidOptions(
@@ -60,95 +85,84 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 personalDetails: options.personalDetails,
             },
             {
-                selectedOptions,
+                selectedOptions: [],
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             },
         );
-    }, [areOptionsInitialized, options.personalDetails, options.reports, selectedOptions]);
+    }, [areOptionsInitialized, options.personalDetails, options.reports]);
 
     const chatOptions = useMemo(() => {
         return OptionsListUtils.filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
-            selectedOptions,
+            selectedOptions: [],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
-    }, [defaultOptions, cleanSearchTerm, selectedOptions]);
+    }, [defaultOptions, cleanSearchTerm]);
+
+    const processedCurrentUser = useMemo(() => {
+        if (!chatOptions.currentUserOption || !personalDetails) {
+            return null;
+        }
+
+        return {
+            ...chatOptions.currentUserOption,
+            text: ReportUtils.getDisplayNameForParticipant({
+                accountID: chatOptions.currentUserOption.accountID,
+                shouldAddCurrentUserPostfix: true,
+                personalDetailsData: personalDetails,
+            }),
+        };
+    }, [chatOptions.currentUserOption, personalDetails]);
 
     const {sections, headerMessage} = useMemo(() => {
-        const newSections: OptionsListUtils.Section[] = [];
         if (!areOptionsInitialized) {
             return {sections: [], headerMessage: undefined};
         }
 
-        const formattedResults = OptionsListUtils.formatSectionsFromSearchTerm(
-            cleanSearchTerm,
-            selectedOptions,
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            personalDetails,
-            true,
-        );
+        const formattedResults = OptionsListUtils.formatSectionsFromSearchTerm(cleanSearchTerm, [], chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
 
-        const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
+        let recentReports = chatOptions.recentReports;
+        if (processedCurrentUser) {
+            const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === processedCurrentUser.accountID);
 
-        if (chatOptions.currentUserOption) {
-            const formattedName = ReportUtils.getDisplayNameForParticipant({
-                accountID: chatOptions.currentUserOption.accountID,
-                shouldAddCurrentUserPostfix: true,
-                personalDetailsData: personalDetails,
-            });
-            if (selectedCurrentUser) {
-                selectedCurrentUser.text = formattedName;
-            } else {
-                chatOptions.currentUserOption.text = formattedName;
-                chatOptions.recentReports = [chatOptions.currentUserOption, ...chatOptions.recentReports];
+            if (!selectedCurrentUser) {
+                recentReports = [processedCurrentUser];
             }
         }
 
-        newSections.push(formattedResults.section);
+        const recentReportsData = mapParticipantsWithSelection(recentReports, selectedOptions);
+        const personalDetailsData = mapParticipantsWithSelection(chatOptions.personalDetails, selectedOptions);
 
-        newSections.push({
-            title: '',
-            data: chatOptions.recentReports,
-            shouldShow: chatOptions.recentReports.length > 0,
-        });
+        const newSections: OptionsListUtils.Section[] = [
+            {
+                title: '',
+                data: [...recentReportsData, ...personalDetailsData],
+                shouldShow: recentReports.length > 0 || chatOptions.personalDetails.length > 0,
+            },
+        ];
 
-        newSections.push({
-            title: '',
-            data: chatOptions.personalDetails,
-            shouldShow: chatOptions.personalDetails.length > 0,
-        });
-
-        const noResultsFound = chatOptions.personalDetails.length === 0 && chatOptions.recentReports.length === 0 && !chatOptions.currentUserOption;
-        const message = noResultsFound ? translate('common.noResultsFound') : undefined;
+        const noResultsFound = chatOptions.personalDetails.length === 0 && recentReports.length === 0 && !chatOptions.currentUserOption;
 
         return {
             sections: newSections,
-            headerMessage: message,
+            headerMessage: noResultsFound ? translate('common.noResultsFound') : undefined,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, translate]);
+    }, [areOptionsInitialized, cleanSearchTerm, chatOptions, personalDetails, processedCurrentUser, translate, selectedOptions]);
 
-    // This effect handles setting initial selectedOptions based on accountIDs saved in onyx form
+    // Initialize selected options from props
     useEffect(() => {
-        if (!initialAccountIDs || initialAccountIDs.length === 0 || !personalDetails) {
+        if (!initialAccountIDs?.length || !personalDetails) {
             return;
         }
 
         const preSelectedOptions = initialAccountIDs
             .map((accountID) => {
                 const participant = personalDetails[accountID];
-                if (!participant) {
-                    return;
-                }
-
-                return getSelectedOptionData(participant);
+                return participant ? createSelectedOptionData(participant) : null;
             })
-            .filter((option): option is NonNullable<OptionData> => {
-                return !!option;
-            });
+            .filter((option): option is OptionData => !!option);
 
         setSelectedOptions(preSelectedOptions);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- this should react only to changes in form data
     }, [initialAccountIDs, personalDetails]);
 
     useEffect(() => {
@@ -157,45 +171,55 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
 
     const handleParticipantSelection = useCallback(
         (option: Option) => {
-            const foundOptionIndex = selectedOptions.findIndex((selectedOption: Option) => {
-                if (selectedOption.accountID && selectedOption.accountID === option?.accountID) {
-                    return true;
-                }
-
-                if (selectedOption.reportID && selectedOption.reportID === option?.reportID) {
-                    return true;
-                }
-
-                return false;
-            });
+            const foundOptionIndex = selectedOptions.findIndex((selectedOption) => isOptionSelected([selectedOption], option));
 
             if (foundOptionIndex < 0) {
-                setSelectedOptions([...selectedOptions, getSelectedOptionData(option)]);
+                setSelectedOptions((prev) => [...prev, createSelectedOptionData(option)]);
             } else {
-                const newSelectedOptions = [...selectedOptions.slice(0, foundOptionIndex), ...selectedOptions.slice(foundOptionIndex + 1)];
-                setSelectedOptions(newSelectedOptions);
+                setSelectedOptions((prev) => [...prev.slice(0, foundOptionIndex), ...prev.slice(foundOptionIndex + 1)]);
             }
         },
         [selectedOptions],
     );
 
-    const footerContent = (
-        <Button
-            success
-            text={translate('common.save')}
-            pressOnEnter
-            onPress={() => {
-                const selectedAccountIDs = selectedOptions.map((option) => (option.accountID ? option.accountID.toString() : undefined)).filter(Boolean) as string[];
-                onFiltersUpdate(selectedAccountIDs);
+    const handleSave = useCallback(() => {
+        const selectedAccountIDs = selectedOptions.map((option) => option.accountID?.toString()).filter(Boolean) as string[];
 
-                Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-            }}
-            large
-        />
+        onFiltersUpdate(selectedAccountIDs);
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+    }, [selectedOptions, onFiltersUpdate]);
+
+    const footerContent = useMemo(
+        () => (
+            <Button
+                success
+                text={translate('common.save')}
+                pressOnEnter
+                onPress={handleSave}
+                large
+            />
+        ),
+        [translate, handleSave],
     );
 
     const isLoadingNewOptions = !!isSearchingForReports;
     const showLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialAccountIDs || !personalDetails;
+
+    const initiallyFocusedOptionKey = useMemo(() => {
+        const firstSection = sections.at(0);
+        if (!firstSection?.data.length) {
+            return undefined;
+        }
+
+        const focusedItem = firstSection.data
+            .map((item) => ({
+                ...item,
+                isSelected: initialAccountIDs.some((accountID) => accountID === item.accountID?.toString()),
+            }))
+            .find((item) => item.isSelected);
+
+        return focusedItem?.keyForList;
+    }, [sections, initialAccountIDs]);
 
     return (
         <SelectionList
@@ -208,12 +232,11 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             footerContent={footerContent}
             showScrollIndicator
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-            onChangeText={(value) => {
-                setSearchTerm(value);
-            }}
+            onChangeText={setSearchTerm}
             onSelectRow={handleParticipantSelection}
             isLoadingNewOptions={isLoadingNewOptions}
             showLoadingPlaceholder={showLoadingPlaceholder}
+            initiallyFocusedOptionKey={initiallyFocusedOptionKey}
         />
     );
 }
