@@ -1,4 +1,5 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
+import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import {View} from 'react-native';
@@ -55,7 +56,7 @@ import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactio
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    contentContainerStyle?: StyleProp<ViewStyle>;
+    contentContainerStyle?: ContentStyle;
     currentSearchResults?: SearchResults;
     lastNonEmptySearchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
@@ -608,7 +609,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         />
                     )
                 }
-                contentContainerStyle={[contentContainerStyle, styles.pb3]}
+                contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
                 containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 shouldGroupByReports={shouldGroupByReports}
@@ -624,6 +625,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     ) : undefined
                 }
                 queryJSONHash={hash}
+                queryJSONType={type}
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={() => handleSelectionListScroll(sortedSelectedData, searchListRef.current)}
             />
