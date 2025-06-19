@@ -6,6 +6,8 @@ import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
 import type {AttachmentModalScreenParams} from './pages/media/AttachmentModalScreen/types';
+import SCREENS from './SCREENS';
+import type {Screen} from './SCREENS';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
@@ -52,6 +54,8 @@ const ROUTES = {
         getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${jsonQuery}` as const,
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
+    SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
+    SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
     SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
@@ -2596,7 +2600,20 @@ const HYBRID_APP_ROUTES = {
     MONEY_REQUEST_CREATE_TAB_DISTANCE: '/submit/new/distance',
 } as const;
 
-export {HYBRID_APP_ROUTES, getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES};
+/**
+ * Configuration for shared parameters that can be passed between routes.
+ * These parameters are commonly used across multiple screens and are preserved
+ * during navigation state transitions.
+ *
+ * Currently includes:
+ * - `backTo`: Specifies the route to return to when navigating back, preserving
+ *   navigation context in split-screen and central screen
+ */
+const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
+    [SCREENS.WORKSPACE.INITIAL]: ['backTo'],
+} as const;
+
+export {HYBRID_APP_ROUTES, getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS};
 export default ROUTES;
 
 type AttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;
