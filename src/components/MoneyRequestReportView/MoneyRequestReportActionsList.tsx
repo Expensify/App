@@ -581,10 +581,12 @@ function MoneyRequestReportActionsList({
                         title={translate('iou.deleteExpense', {count: selectedTransactionIDs.length})}
                         isVisible={isDeleteModalVisible}
                         onConfirm={() => {
-                            if (transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length) {
+                            const shouldNavigateBack =
+                                transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length;
+                            handleDeleteTransactions();
+                            if (shouldNavigateBack) {
                                 Navigation.goBack(route.params?.backTo);
                             }
-                            handleDeleteTransactions();
                         }}
                         onCancel={hideDeleteModal}
                         prompt={translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length})}
