@@ -866,7 +866,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             if (reservations > 1) {
                                 Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(report.reportID, transaction.transactionID, getReportRHPActiveRoute()));
                             }
-                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(report.reportID, transaction.transactionID, 0, getReportRHPActiveRoute()));
+                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(report.reportID, transaction.transactionID, '0', 0, getReportRHPActiveRoute()));
                         }}
                     />
                 )}
