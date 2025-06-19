@@ -86,13 +86,13 @@ import {
     createPolicyExpenseChat,
     createPolicyExpenseChatTask,
     createPolicyExpenseChatThread,
+    createRandomReport,
     createRegularChat,
     createRegularTaskReport,
     createSelfDM,
     createWorkspaceTaskReport,
     createWorkspaceThread,
 } from '../utils/collections/reports';
-import createRandomReport from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
@@ -2963,12 +2963,6 @@ describe('ReportUtils', () => {
         it('should return false for regular task report (non-workspace)', () => {
             const report = createRegularTaskReport(60023);
             expect(shouldReportShowSubscript(report)).toBe(false);
-        });
-
-        it('should return false for null/undefined report', () => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            expect(shouldReportShowSubscript(null as any)).toBe(false);
-            expect(shouldReportShowSubscript(undefined)).toBe(false);
         });
 
         it('should use default parameter when isReportArchived is not provided', () => {

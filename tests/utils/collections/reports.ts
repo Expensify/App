@@ -3,7 +3,10 @@ import {buildParticipantsFromAccountIDs} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 
-export default function createRandomReport(index: number): Report {
+/**
+ * Creates a report with random settings
+ */
+function createRandomReport(index: number): Report {
     return {
         reportID: index.toString(),
         chatType: rand(Object.values(CONST.REPORT.CHAT_TYPE)),
@@ -221,6 +224,7 @@ function createPolicyExpenseChatTask(index: number): Report {
 }
 
 export {
+    createRandomReport,
     createPolicyExpenseChat,
     createWorkspaceThread,
     createExpenseRequestReport,
