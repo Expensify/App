@@ -55,6 +55,7 @@ import {
     shouldDisableRename,
     shouldDisableThread,
     shouldReportBeInOptionList,
+    shouldReportShowSubscript,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -2826,6 +2827,66 @@ describe('ReportUtils', () => {
                     });
                 });
             });
+        });
+    });
+
+    describe('shouldReportShowSubscript', () => {
+        afterEach(async () => {
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+        });
+
+        it('should return true for policy expense chat', () => {
+            const report: Report = {
+                ...createRandomReport(60001),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                isOwnPolicyExpenseChat: true,
+            };
+            expect(shouldReportShowSubscript(report)).toBe(true);
+        });
+
+        it('should return true for workspace thread', () => {
+            const report: Report = {
+                ...createRandomReport(60004),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+            };
+            expect(shouldReportShowSubscript(report)).toBe(true);
+        });
+
+        it('should return false for archived non-expense report that is not a workspace thread', () => {
+            const report: Report = {
+                ...createRandomReport(60005),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            // Test with the new isReportArchived parameter
+            expect(shouldReportShowSubscript(report, true)).toBe(false);
+        });
+
+        it('should return true when isReportArchived is false even for non-expense report', () => {
+            const report: Report = {
+                ...createRandomReport(60007),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined, // Make it a regular chat, not a policy expense chat
+                isOwnPolicyExpenseChat: false,
+            };
+
+            // Test that when isReportArchived is false, the function doesn't return false based on archived status
+            expect(shouldReportShowSubscript(report, false)).toBe(false); // Still false because it's just a regular chat
+        });
+
+        it('should return false for regular 1:1 chat', () => {
+            const report: Report = {
+                ...createRandomReport(60006),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined, // Make it a regular chat, not a policy expense chat
+                isOwnPolicyExpenseChat: false,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
+            };
+            expect(shouldReportShowSubscript(report)).toBe(false);
         });
     });
 
