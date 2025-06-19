@@ -267,6 +267,7 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
+    WorkspaceInitialRouteParams,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
@@ -2390,8 +2391,8 @@ const translations = {
             phrase2: 'もう一度試してください。電話番号をセカンダリログインとして追加できます。',
         },
         hasBeenThrottledError: '銀行口座の追加中にエラーが発生しました。数分待ってから再試行してください。',
-        hasCurrencyError:
-            'おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、こちらにアクセスしてください。<a>ワークスペースの設定</a> USDに設定して、もう一度お試しください。',
+        hasCurrencyError: ({workspaceInitialRoute}: WorkspaceInitialRouteParams) =>
+            `おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、こちらにアクセスしてください。<a href="${workspaceInitialRoute}">ワークスペースの設定</a> USDに設定して、もう一度お試しください。`,
         error: {
             youNeedToSelectAnOption: 'オプションを選択してください',
             noBankAccountAvailable: '申し訳ありませんが、利用可能な銀行口座がありません。',
