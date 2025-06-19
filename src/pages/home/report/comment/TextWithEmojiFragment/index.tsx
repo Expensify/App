@@ -2,12 +2,12 @@ import React, {useMemo} from 'react';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
-import * as EmojiUtils from '@libs/EmojiUtils';
+import { splitTextWithEmojis } from '@libs/EmojiUtils';
 import type TextWithEmojiFragmentProps from './types';
 
 function TextWithEmojiFragment({message = '', style, isAlternateText = false}: TextWithEmojiFragmentProps) {
     const styles = useThemeStyles();
-    const processedTextArray = useMemo(() => EmojiUtils.splitTextWithEmojis(message), [message]);
+    const processedTextArray = useMemo(() => splitTextWithEmojis(message), [message]);
     return (
         <Text style={style}>
             {processedTextArray.map(({text, isEmoji}, index) =>
