@@ -359,6 +359,13 @@ function exportToIntegrationOnSearch(hash: number, reportID: string, connectionN
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticReportActionID]: action,
+            },
+        },
     ];
 
     const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
