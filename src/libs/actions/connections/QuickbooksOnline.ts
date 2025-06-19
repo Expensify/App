@@ -101,8 +101,8 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
     settingValue: Partial<Connections['quickbooksOnline']['config'][TSettingName]>,
     oldSettingValue?: Partial<Connections['quickbooksOnline']['config'][TSettingName]>,
 ) {
-    const exporterOptimisticData = settingName === 'export' ? {exporter: settingValue} : {};
-    const exporterErrorData = settingName === 'export' ? {exporter: oldSettingValue} : {};
+    const exporterOptimisticData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORT ? {exporter: settingValue} : {};
+    const exporterErrorData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORT ? {exporter: oldSettingValue} : {};
 
     const optimisticData: OnyxUpdate[] = [
         {

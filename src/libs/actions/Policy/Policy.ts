@@ -90,6 +90,7 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyCategory,
+    PolicyEmployee,
     ReimbursementAccount,
     Report,
     ReportAction,
@@ -585,6 +586,17 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
+    const updatedEmployeeList: Record<string, PolicyEmployee> = {};
+
+    if (approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
+        Object.keys(policy?.employeeList ?? {}).forEach((employee) => {
+            updatedEmployeeList[employee] = {
+                ...policy?.employeeList?.[employee],
+                submitsTo: approver,
+                forwardsTo: '',
+            };
+        });
+    }
 
     const value = {
         approver,
@@ -598,6 +610,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             value: {
                 ...value,
                 pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                employeeList: approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? updatedEmployeeList : policy?.employeeList,
             },
         },
     ];
@@ -611,6 +624,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
                 approvalMode: policy?.approvalMode,
                 pendingFields: {approvalMode: null},
                 errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsApproverPage.genericErrorMessage')},
+                employeeList: policy?.employeeList,
             },
         },
     ];
@@ -988,7 +1002,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
         },
     ];
 
-    if (currency === CONST.PAYMENT_CARD_CURRENCY.GBP) {
+    if (CONST.SCA_CURRENCIES.has(currency)) {
         const params: AddPaymentCardParams = {
             cardNumber,
             cardYear,
@@ -996,10 +1010,10 @@ function addBillingCardAndRequestPolicyOwnerChange(
             cardCVV,
             addressName,
             addressZip,
-            currency,
+            currency: currency as ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>,
             isP2PDebitCard: false,
         };
-        PaymentMethods.addPaymentCardGBP(params);
+        PaymentMethods.addPaymentCardSCA(params);
     } else {
         const params: AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
             policyID,
@@ -1009,7 +1023,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
             cardCVV,
             addressName,
             addressZip,
-            currency,
+            currency: currency as ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>,
         };
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
         API.write(WRITE_COMMANDS.ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
@@ -1662,19 +1676,22 @@ function generateDefaultWorkspaceName(email = ''): string {
         displayNameForWorkspace = userDetails?.phoneNumber ?? '';
     }
 
-    if (`@${domain}` === CONST.SMS.DOMAIN) {
-        return translateLocal('workspace.new.myGroupWorkspace');
+    const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
+    if (isSMSDomain) {
+        displayNameForWorkspace = translateLocal('workspace.new.myGroupWorkspace', {});
     }
 
     if (isEmptyObject(allPolicies)) {
-        return translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace});
+        return isSMSDomain ? translateLocal('workspace.new.myGroupWorkspace', {}) : translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace});
     }
 
     // find default named workspaces and increment the last number
     const escapedName = escapeRegExp(displayNameForWorkspace);
-    const workspaceTranslations = CONST.LANGUAGES.map((lang) => translate(lang, 'workspace.common.workspace')).join('|');
+    const workspaceTranslations = Object.values(CONST.LOCALES)
+        .map((lang) => translate(lang, 'workspace.common.workspace'))
+        .join('|');
 
-    const workspaceRegex = new RegExp(`^(?=.*${escapedName})(?:.*(?:${workspaceTranslations})\\s*(\\d+)?)`, 'i');
+    const workspaceRegex = isSMSDomain ? new RegExp(`^${escapedName}\\s*(\\d+)?$`, 'i') : new RegExp(`^(?=.*${escapedName})(?:.*(?:${workspaceTranslations})\\s*(\\d+)?)`, 'i');
 
     const workspaceNumbers = Object.values(allPolicies)
         .map((policy) => workspaceRegex.exec(policy?.name ?? ''))
@@ -1682,6 +1699,9 @@ function generateDefaultWorkspaceName(email = ''): string {
         .map((match) => Number(match?.[1] ?? '0'));
     const lastWorkspaceNumber = workspaceNumbers.length > 0 ? Math.max(...workspaceNumbers) : undefined;
 
+    if (isSMSDomain) {
+        return translateLocal('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
+    }
     return translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace, workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
 }
 

@@ -4,7 +4,7 @@ import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import Animated, {FadeIn} from 'react-native-reanimated';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import MenuItemList from '@components/MenuItemList';
@@ -249,10 +249,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                             const isInitialItem = initialSearchKeys.current.includes(item.translationPath);
 
                             return (
-                                <Animated.View
-                                    exiting={FadeOut}
-                                    entering={!isInitialItem ? FadeIn : undefined}
-                                >
+                                <Animated.View entering={!isInitialItem ? FadeIn : undefined}>
                                     <MenuItem
                                         key={item.translationPath}
                                         disabled={false}

@@ -41,14 +41,14 @@ Onyx.connect({
     waitForCollectionCallback: true,
 });
 
-function handleActionButtonPress(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
+function handleActionButtonPress(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void, isInMobileSelectionMode: boolean) {
     // The transactionIDList is needed to handle actions taken on `status:all` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
     const allReportTransactions = (isReportListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
-    if (hasHeldExpense) {
+    if (hasHeldExpense || isInMobileSelectionMode) {
         goToItem();
         return;
     }
@@ -162,6 +162,7 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
                 search: {
                     status: queryJSON?.status,
                     type: queryJSON?.type,
+                    isLoading: false,
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
