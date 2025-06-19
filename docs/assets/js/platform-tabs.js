@@ -16,7 +16,6 @@ if (expensifyClassicContent || showExpensifyClassicBadge) {
     if (!newExpensifyContent) {
         tab.classList.toggle('badge');
     } else {
-        console.log('here 1');
         tab.classList.toggle('active');
     }
     platformTabs.appendChild(tab);
@@ -36,7 +35,6 @@ if (newExpensifyContent || showNewExpensifyBadge) {
     if (!expensifyClassicContent) {
         tab.classList.toggle('badge');
     } else {
-        console.log('here 2');
         tab.classList.toggle('active');
     }
     platformTabs.appendChild(tab);
