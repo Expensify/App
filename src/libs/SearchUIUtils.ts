@@ -1232,51 +1232,48 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
     ];
 
     // Begin adding conditional sections, based on the policies the user has access to
-    const showSubmitSuggestion = Object.values(policies).filter((p) => isPaidGroupPolicy(p)).length > 0;
+    const showSubmitSuggestion = Object.values(policies).some((p) => isPaidGroupPolicy(p));
 
-    const showApproveSuggestion =
-        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
-            if (!policy || !email || !isPaidGroupPolicy(policy)) {
-                return false;
-            }
-
-            const isPolicyApprover = policy.approver === email;
-            const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-                return employee.submitsTo === email || employee.forwardsTo === email;
-            });
-
-            return isPolicyApprover || isSubmittedTo;
-        }).length > 0;
-
-    const showPaySuggestion =
-        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
-            if (!policy || !isPaidGroupPolicy(policy)) {
-                return false;
-            }
-
-            const reimburser = policy.reimburser;
-            const isReimburser = reimburser === email;
-            const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-
-            if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-                return reimburser ? isReimburser : isAdmin;
-            }
-
-            if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
-                return isAdmin;
-            }
-
+    const showApproveSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
+        if (!policy || !email || !isPaidGroupPolicy(policy)) {
             return false;
-        }).length > 0;
+        }
 
-    const showExportSuggestion =
-        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
-            if (!policy || !email) {
-                return false;
-            }
+        const isPolicyApprover = policy.approver === email;
+        const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
+            return employee.submitsTo === email || employee.forwardsTo === email;
+        });
 
-            return policy.exporter === email;
-        }).length > 0;
+        return isPolicyApprover || isSubmittedTo;
+    });
+
+    const showPaySuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
+        if (!policy || !isPaidGroupPolicy(policy)) {
+            return false;
+        }
+
+        const reimburser = policy.reimburser;
+        const isReimburser = reimburser === email;
+        const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+
+        if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+            return reimburser ? isReimburser : isAdmin;
+        }
+
+        if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+            return isAdmin;
+        }
+
+        return false;
+    });
+
+    const showExportSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
+        if (!policy || !email) {
+            return false;
+        }
+
+        return policy.exporter === email;
+    });
 
     // We suggest specific filters for users based on their access in specific policies. Show the todo section
     // only if any of these items are available
@@ -1402,8 +1399,8 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         exporter: [`${session.accountID}`],
-                        status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.PAID, CONST.SEARCH.STATUS.EXPENSE.DONE],
                         exportedOn: CONST.SEARCH.NEVER,
+                        exportStatus: CONST.SEARCH.EXPORT_STATUS.PENDING,
                     });
                     return queryString;
                 },

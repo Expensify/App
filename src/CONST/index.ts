@@ -6579,6 +6579,9 @@ const CONST = {
         GROUP_BY: {
             REPORTS: 'reports',
         },
+        EXPORT_STATUS: {
+            PENDING: 'pending',
+        },
         BOOLEAN: {
             YES: 'yes',
             NO: 'no',
