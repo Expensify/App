@@ -6248,7 +6248,7 @@ describe('actions/IOU', () => {
         });
 
         describe('saveSplitTransactions', () => {
-            it('should update split transaction\'s description correctly ', async () => {
+            it("should update split transaction's description correctly ", async () => {
                 const amount = 10000;
                 let expenseReport: OnyxEntry<Report>;
                 let chatReport: OnyxEntry<Report>;
@@ -6266,8 +6266,8 @@ describe('actions/IOU', () => {
                     callback: (allReports) => {
                         chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
                     },
-                }),
-                    requestMoney({
+                });
+                requestMoney({
                         report: chatReport,
                         participantParams: {
                             payeeEmail: RORY_EMAIL,
@@ -6298,7 +6298,8 @@ describe('actions/IOU', () => {
                         const iouActions = Object.values(allReportsAction ?? {}).filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                             isMoneyRequestAction(reportAction),
                         );
-                        originalTransactionID = iouActions.at(0)?.originalMessage?.IOUTransactionID;
+                        const originalMessage = isMoneyRequestAction(iouActions?.at(0)) ? getOriginalMessage(iouActions?.at(0)) : undefined;
+                        originalTransactionID = originalMessage?.IOUTransactionID;
                     },
                 });
 
