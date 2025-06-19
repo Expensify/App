@@ -2185,7 +2185,7 @@ const translations = {
         },
         inviteMembers: {
             title: 'Invite members',
-            subtitle: 'Manage and share your expenses with an accountant or start a travel group with friends.',
+            subtitle: 'Add your team or invite your accountant. The more, the merrier!',
         },
     },
     featureTraining: {
