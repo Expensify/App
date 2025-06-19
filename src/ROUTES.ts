@@ -2161,7 +2161,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
         route: 'settings/workspaces/:policyID/accounting/xero/advanced/autosync',
-        getRoute: (policyID: string | undefined, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/xero/advanced/autosync` as const, backTo),
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_AUTO_SYNC route');
+            }
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/xero/advanced/autosync` as const, backTo);
+        },
     },
     POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD: {
         route: 'settings/workspaces/:policyID/accounting/xero/advanced/autosync/accounting-method',
