@@ -252,8 +252,8 @@ function StatusPage() {
                             onClose={clearVacationDelegateError}
                         >
                             <MenuItem
-                                title={vacationDelegatePersonalDetails?.displayName ?? formattedDelegateLogin}
-                                description={formattedDelegateLogin}
+                                title={vacationDelegatePersonalDetails?.displayName ?? formattedDelegateLogin ?? vacationDelegate?.delegate}
+                                description={formattedDelegateLogin ?? vacationDelegate?.delegate}
                                 avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                                 icon={vacationDelegatePersonalDetails?.avatar ?? Expensicons.FallbackAvatar}
                                 iconType={CONST.ICON_TYPE_AVATAR}
