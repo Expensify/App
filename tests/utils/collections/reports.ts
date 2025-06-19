@@ -52,12 +52,12 @@ function createWorkspaceThread(index: number): Report {
 /**
  * Creates an expense request report (IOU report)
  */
-function createExpenseRequestReport(index: number): Report {
+function createExpenseRequestReport(index: number, parentReportID = `${randNumber()}`, parentReportActionID = `${randNumber()}`): Report {
     return {
         ...createRandomReport(index),
         type: CONST.REPORT.TYPE.IOU,
-        parentReportID: `${randNumber()}`,
-        parentReportActionID: `${randNumber()}`,
+        parentReportID,
+        parentReportActionID,
 
         // Clear random chat type
         chatType: undefined,
@@ -66,9 +66,9 @@ function createExpenseRequestReport(index: number): Report {
 }
 
 /**
- * Creates an expense report with single transaction
+ * Creates an expense report
  */
-function createExpenseReportWithSingleTransaction(index: number): Report {
+function createExpenseReport(index: number): Report {
     return {
         ...createRandomReport(index),
         type: CONST.REPORT.TYPE.EXPENSE,
@@ -244,7 +244,7 @@ export {
     createPolicyExpenseChat,
     createWorkspaceThread,
     createExpenseRequestReport,
-    createExpenseReportWithSingleTransaction,
+    createExpenseReport,
     createWorkspaceTaskReport,
     createInvoiceRoom,
     createInvoiceReport,

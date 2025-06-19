@@ -78,7 +78,7 @@ import {
     createAdminRoom,
     createAnnounceRoom,
     createDomainRoom,
-    createExpenseReportWithSingleTransaction,
+    createExpenseReport,
     createExpenseRequestReport,
     createGroupChat,
     createInvoiceReport,
@@ -2874,12 +2874,9 @@ describe('ReportUtils', () => {
             expect(shouldReportShowSubscript(report, isReportArchived.current)).toBe(false);
         });
 
-        it('should return true when isReportArchived is false even for non-expense report', () => {
+        it('should return true for a non-archived non-expense report', () => {
             const report = createRegularChat(60007, [currentUserAccountID, 1]);
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-
-            // Test that when isReportArchived is false, the function doesn't return false based on archived status
-            // Still false because it's just a regular chat
             expect(shouldReportShowSubscript(report, isReportArchived.current)).toBe(false);
         });
 
@@ -2888,8 +2885,30 @@ describe('ReportUtils', () => {
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
-        it('should return true for expense request report', () => {
-            const report = createExpenseRequestReport(60008);
+        it('should return true for expense request report', async () => {
+            // Given a normal parent report
+            const parentReport = createExpenseReport(600081);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+
+            // And a parent report action that is an IOU report action
+            const randomReportAction = createRandomReportAction(600082);
+            const parentReportAction = {
+                ...createRandomReportAction(600082),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                message: {
+                    ...randomReportAction.message,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`, {
+                '600083': parentReportAction,
+            });
+
+            // And a report that is a thread of the parent report
+            const report = createExpenseRequestReport(600082, parentReport.reportID, '600083');
+
+            // When we check if the report should show a subscript
+            // Then it should return true because isExpenseRequest() returns true
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
@@ -2925,7 +2944,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return false for archived expense report', async () => {
-            const report = createExpenseReportWithSingleTransaction(60015);
+            const report = createExpenseReport(60015);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {
                 private_isArchived: new Date().toString(),
             });
