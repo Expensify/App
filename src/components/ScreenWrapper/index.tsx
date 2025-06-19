@@ -1,4 +1,3 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {UNSTABLE_usePreventRemove, useNavigation} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {forwardRef, useContext, useEffect, useMemo, useState} from 'react';
@@ -7,7 +6,6 @@ import {Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
-import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import HeaderGap from '@components/HeaderGap';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import withNavigationFallback from '@components/withNavigationFallback';
@@ -16,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {closeReactNativeApp} from '@libs/actions/Session';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -162,15 +161,13 @@ function ScreenWrapper(
     const {isOffline} = useNetwork();
     const shouldOffsetMobileOfflineIndicator = displaySmallScreenOfflineIndicator && addSmallScreenOfflineIndicatorBottomSafeAreaPadding && isOffline;
 
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {initialURL} = useContext(InitialURLContext);
-    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: true});
-    UNSTABLE_usePreventRemove((isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
+    UNSTABLE_usePreventRemove((hybridApp?.isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
-        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
-        setRootStatusBarEnabled(false);
+        closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
     });
 
     useEffect(() => {
