@@ -4177,7 +4177,7 @@ const translations = {
                 pendingFeedDescription: `我们正在审核您的提要详情。完成后，我们会通过以下方式与您联系`,
                 pendingBankTitle: '检查您的浏览器窗口',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) => `请通过刚刚打开的浏览器窗口连接到${bankName}。如果没有打开，`,
-                pendingBankLink: '请点击这里。',
+                pendingBankLink: '请点击这里',
                 giveItNameInstruction: '给这张卡片起一个与众不同的名字。',
                 updating: '正在更新...',
                 noAccountsFound: '未找到账户',

@@ -4250,7 +4250,7 @@ const translations = {
                 pendingBankTitle: 'Verifique a janela do seu navegador',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) =>
                     `Por favor, conecte-se ao ${bankName} através da janela do navegador que acabou de abrir. Se nenhuma tiver sido aberta,`,
-                pendingBankLink: 'por favor, clique aqui.',
+                pendingBankLink: 'por favor, clique aqui',
                 giveItNameInstruction: 'Dê um nome ao cartão que o diferencie dos outros.',
                 updating: 'Atualizando...',
                 noAccountsFound: 'Nenhuma conta encontrada',

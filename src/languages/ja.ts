@@ -4226,7 +4226,7 @@ const translations = {
                 pendingFeedDescription: `現在、フィードの詳細を確認しています。それが完了次第、経由でご連絡いたします。`,
                 pendingBankTitle: 'ブラウザウィンドウを確認してください。',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) => `${bankName}に接続するには、開いたブラウザウィンドウを使用してください。ウィンドウが開かない場合は、`,
-                pendingBankLink: 'こちらをクリックしてください。',
+                pendingBankLink: 'こちらをクリックしてください',
                 giveItNameInstruction: 'カードに他と区別できる名前を付けてください。',
                 updating: '更新中...',
                 noAccountsFound: 'アカウントが見つかりません',

@@ -4257,7 +4257,7 @@ const translations = {
                 pendingFeedDescription: `We zijn momenteel uw feedgegevens aan het beoordelen. Zodra dat is voltooid, nemen we contact met u op via`,
                 pendingBankTitle: 'Controleer uw browservenster',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) => `Verbind met ${bankName} via het browservenster dat zojuist is geopend. Als er geen is geopend,`,
-                pendingBankLink: 'klik hier alstublieft.',
+                pendingBankLink: 'klik hier alstublieft',
                 giveItNameInstruction: 'Geef de kaart een naam die hem onderscheidt van anderen.',
                 updating: 'Bijwerken...',
                 noAccountsFound: 'Geen accounts gevonden',
