@@ -32,7 +32,7 @@ const GENERATED_FILE_PREFIX = dedent(`
      * This file was automatically generated. Please consider these alternatives before manually editing it:
      *
      * - Improve the prompts in prompts/translation, or
-     * - Improve context annotations in src/languages/en.ts
+     * - Improve context annotations in src/languages/${CONST.LOCALES.EN}.ts
      */
 `);
 
