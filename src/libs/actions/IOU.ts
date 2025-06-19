@@ -650,7 +650,6 @@ type GetSearchOnyxUpdateParams = {
     transactionThreadReportID: string | undefined;
 };
 
-
 let allBetas: OnyxEntry<OnyxTypes.Beta[]>;
 Onyx.connect({
     key: ONYXKEYS.BETAS,
