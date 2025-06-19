@@ -2951,8 +2951,8 @@ describe('ReportUtils', () => {
             expect(shouldReportShowSubscript(report, isReportArchived.current)).toBe(true);
         });
 
-        it('should return false for archived expense report', async () => {
-            const report = createExpenseReport(1);
+        it('should return false for archived non-expense report', async () => {
+            const report = createRegularChat(1, []);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {
                 private_isArchived: new Date().toString(),
             });
