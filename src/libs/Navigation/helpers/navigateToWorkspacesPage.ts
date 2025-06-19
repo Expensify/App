@@ -1,22 +1,26 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getPolicy, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import {isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 import {isFullScreenName, isWorkspacesTabScreenName} from './isNavigatorName';
 import {getLastVisitedWorkspaceTabScreen, getWorkspacesTabStateFromSessionStorage} from './lastVisitedTabPathUtils';
 
 type Params = {
     currentUserLogin?: string;
     shouldUseNarrowLayout: boolean;
+    policies: OnyxCollection<Policy>;
 };
 
-const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout}: Params) => {
+const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policies}: Params) => {
     const rootState = navigationRef.getRootState();
     const topmostFullScreenRoute = rootState.routes.findLast((route) => isFullScreenName(route.name));
     if (!topmostFullScreenRoute) {
@@ -46,7 +50,7 @@ const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout}: Par
         if (lastWorkspacesTabNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
             const params = workspacesTabState?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
             // Screens of this navigator should always have policyID
-            const policy = getPolicy(params.policyID);
+            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${params.policyID}`];
             const shouldShowPolicy = shouldShowPolicyUtil(policy, false, currentUserLogin);
             const isPendingDelete = isPendingDeletePolicy(policy);
 
