@@ -14,6 +14,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -46,6 +47,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const policy = usePolicy(onboardingPolicyID);
+    const {onboardingMessages} = useOnboardingMessages();
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
@@ -218,7 +220,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const completeOnboarding = useCallback(() => {
         completeOnboardingReport({
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-            onboardingMessage: CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE],
+            onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE],
             firstName: currentUserPersonalDetails.firstName,
             lastName: currentUserPersonalDetails.lastName,
             adminsChatReportID: onboardingAdminsChatReportID,
@@ -237,7 +239,16 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             // See https://github.com/Expensify/App/issues/57167 for more details
             (session?.email ?? '').includes('+'),
         );
-    }, [currentUserPersonalDetails.firstName, currentUserPersonalDetails.lastName, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, isBetaEnabled, session?.email]);
+    }, [
+        currentUserPersonalDetails.firstName,
+        onboardingMessages,
+        currentUserPersonalDetails.lastName,
+        onboardingAdminsChatReportID,
+        onboardingPolicyID,
+        isSmallScreenWidth,
+        isBetaEnabled,
+        session?.email,
+    ]);
 
     const inviteUser = useCallback(() => {
         let isValid = true;

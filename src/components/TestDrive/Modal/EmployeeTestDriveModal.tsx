@@ -6,6 +6,7 @@ import {InteractionManager} from 'react-native';
 import TestReceipt from '@assets/images/fake-test-drive-employee-receipt.jpg';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import {
     initMoneyRequest,
     setMoneyRequestAmount,
@@ -33,6 +34,7 @@ function EmployeeTestDriveModal() {
     const [bossEmail, setBossEmail] = useState(route.params?.bossEmail ?? '');
     const [formError, setFormError] = useState<string | undefined>();
     const [isLoading, setIsLoading] = useState(false);
+    const {testDrive} = useOnboardingMessages();
 
     const onBossEmailChange = useCallback((value: string) => {
         setBossEmail(value);
@@ -72,10 +74,9 @@ function EmployeeTestDriveModal() {
                                 selected: true,
                             },
                         ]);
-
-                        setMoneyRequestAmount(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.AMOUNT, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.CURRENCY);
-                        setMoneyRequestDescription(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.DESCRIPTION, true);
-                        setMoneyRequestMerchant(transactionID, CONST.TEST_DRIVE.EMPLOYEE_FAKE_RECEIPT.MERCHANT, true);
+                        setMoneyRequestAmount(transactionID, testDrive.EMPLOYEE_FAKE_RECEIPT.AMOUNT, testDrive.EMPLOYEE_FAKE_RECEIPT.CURRENCY);
+                        setMoneyRequestDescription(transactionID, testDrive.EMPLOYEE_FAKE_RECEIPT.DESCRIPTION, true);
+                        setMoneyRequestMerchant(transactionID, testDrive.EMPLOYEE_FAKE_RECEIPT.MERCHANT, true);
                         setMoneyRequestCreated(transactionID, format(new Date(), CONST.DATE.FNS_FORMAT_STRING), true);
 
                         InteractionManager.runAfterInteractions(() => {

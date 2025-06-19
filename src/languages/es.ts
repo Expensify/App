@@ -1,4 +1,5 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
+import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
@@ -2172,24 +2173,220 @@ const translations = {
             subtitle: ({workEmail}: WorkEmailMergingBlockedParams) =>
                 `No pudimos añadir ${workEmail}. Por favor, inténtalo de nuevo más tarde en Configuración o chatea con Concierge para obtener ayuda.`,
         },
-        workspace: {
-            title: 'Stay organized with a workspace',
-            subtitle: 'Unlock powerful tools to simplify your expense management, all in one place. With a workspace, you can:',
-            explanationModal: {
-                descriptionOne: 'Track and organize receipts',
-                descriptionTwo: 'Categorize and tag expenses',
-                descriptionThree: 'Create and share reports',
+        tasks: {
+            testDriveAdminTask: {
+                title: ({testDriveURL}) => `Haz una [prueba](${testDriveURL})`,
+                description: ({testDriveURL}) => `[Haz un recorrido rápido por el producto](${testDriveURL}) para ver por qué Expensify es la forma más rápida de gestionar tus gastos.`,
             },
-            price: 'Try it free for 30 days, then upgrade for just <strong>$5/month</strong>.',
-            createWorkspace: 'Create workspace',
+            testDriveEmployeeTask: {
+                title: ({testDriveURL}) => `Haz una [prueba](${testDriveURL})`,
+                description: ({testDriveURL}) => `Haz una [prueba](${testDriveURL}) y consigue *3 meses gratis de Expensify para tu equipo!*`,
+            },
+            createTestDriveAdminWorkspaceTask: {
+                title: ({workspaceConfirmationLink}) => `[Crea](${workspaceConfirmationLink}) un espacio de trabajo`,
+                description: 'Crea un espacio de trabajo y configura los ajustes con la ayuda de tu especialista asignado.',
+            },
+            createWorkspaceTask: {
+                title: ({workspaceSettingsLink}) => `Crea un [espacio de trabajo](${workspaceSettingsLink})`,
+                description: ({workspaceSettingsLink}) =>
+                    '*Crea un espacio de trabajo* para organizar gastos, escanear recibos, chatear y más.\n\n' +
+                    '1. Haz clic en *Espacios de trabajo* > *Nuevo espacio de trabajo*.\n\n' +
+                    `*¡Tu nuevo espacio de trabajo está listo!* [Échale un vistazo](${workspaceSettingsLink}).`,
+            },
+            setupCategoriesTask: {
+                title: ({workspaceCategoriesLink}) => `Configura [categorías](${workspaceCategoriesLink})`,
+                description: ({workspaceCategoriesLink}) =>
+                    '*Configura categorías* para que tu equipo pueda clasificar los gastos y facilitar los informes.\n\n' +
+                    '1. Haz clic en *Espacios de trabajo*.\n' +
+                    '3. Selecciona tu espacio de trabajo.\n' +
+                    '4. Haz clic en *Categorías*.\n' +
+                    '5. Desactiva cualquier categoría que no necesites.\n' +
+                    '6. Añade tus propias categorías en la esquina superior derecha.\n\n' +
+                    `[Ir a la configuración de categorías del espacio de trabajo](${workspaceCategoriesLink}).\n\n` +
+                    `![Configura categorías](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
+            },
+            combinedTrackSubmitExpenseTask: {
+                title: 'Envía un gasto',
+                description:
+                    '*Envía un gasto* introduciendo una cantidad o escaneando un recibo.\n\n' +
+                    '1. Haz clic en el botón verde *+*.\n' +
+                    '2. Elige *Crear gasto*.\n' +
+                    '3. Introduce una cantidad o escanea un recibo.\n' +
+                    '4. Añade el correo o teléfono de tu jefe.\n' +
+                    '5. Haz clic en *Crear*.\n\n' +
+                    '¡Y listo!',
+            },
+            adminSubmitExpenseTask: {
+                title: 'Envía un gasto',
+                description:
+                    '*Envía un gasto* introduciendo una cantidad o escaneando un recibo.\n\n' +
+                    '1. Haz clic en el botón verde *+*.\n' +
+                    '2. Elige *Crear gasto*.\n' +
+                    '3. Introduce una cantidad o escanea un recibo.\n' +
+                    '4. Confirma los detalles.\n' +
+                    '5. Haz clic en *Crear*.\n\n' +
+                    '¡Y listo!',
+            },
+            trackExpenseTask: {
+                title: 'Organiza un gasto',
+                description:
+                    '*Organiza un gasto* en cualquier moneda, tengas recibo o no.\n\n' +
+                    '1. Haz clic en el botón verde *+*.\n' +
+                    '2. Elige *Crear gasto*.\n' +
+                    '3. Introduce una cantidad o escanea un recibo.\n' +
+                    '4. Elige tu espacio *personal*.\n' +
+                    '5. Haz clic en *Crear*.\n\n' +
+                    '¡Y listo! Sí, así de fácil.',
+            },
+            addAccountingIntegrationTask: {
+                title: ({integrationName, workspaceAccountingLink}) => `Conéctate a [${integrationName}](${workspaceAccountingLink})`,
+                description: ({integrationName, workspaceAccountingLink}) =>
+                    `Conéctate a ${integrationName} para clasificar y sincronizar gastos automáticamente, lo que facilita el cierre de fin de mes.\n\n` +
+                    '1. Haz clic en *Espacios de trabajo*.\n' +
+                    '3. Selecciona tu espacio de trabajo.\n' +
+                    '4. Haz clic en *Contabilidad*.\n' +
+                    `5. Encuentra ${integrationName}.\n` +
+                    '6. Haz clic en *Conectar*.\n\n' +
+                    `${
+                        integrationName && CONST.connectionsVideoPaths[integrationName]
+                            ? `[Ir a contabilidad](${workspaceAccountingLink}).\n\n![Conéctate a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                            : `[Ir a contabilidad](${workspaceAccountingLink}).`
+                    }`,
+            },
+            connectCorporateCardTask: {
+                title: ({corporateCardLink}) => `Conecta [tu tarjeta corporativa](${corporateCardLink})`,
+                description: ({corporateCardLink}) =>
+                    'Conecta tu tarjeta corporativa para importar y clasificar gastos automáticamente.\n\n' +
+                    '1. Haz clic en *Espacios de trabajo*.\n' +
+                    '2. Selecciona tu espacio de trabajo.\n' +
+                    '3. Haz clic en *Tarjetas corporativas*.\n' +
+                    '4. Sigue las instrucciones para conectar tu tarjeta.\n\n' +
+                    `[Ir a conectar mis tarjetas corporativas](${corporateCardLink}).`,
+            },
+            inviteTeamTask: {
+                title: ({workspaceMembersLink}) => `Invita a [tu equipo](${workspaceMembersLink})`,
+                description: ({workspaceMembersLink}) =>
+                    '*Invita a tu equipo* a Expensify para que empiecen a organizar gastos hoy mismo.\n\n' +
+                    '1. Haz clic en *Espacios de trabajo*.\n' +
+                    '3. Selecciona tu espacio de trabajo.\n' +
+                    '4. Haz clic en *Miembros* > *Invitar miembro*.\n' +
+                    '5. Introduce correos o teléfonos.\n' +
+                    '6. Añade un mensaje personalizado si lo deseas.\n\n' +
+                    `[Ir a miembros del espacio de trabajo](${workspaceMembersLink}).\n\n` +
+                    `![Invita a tu equipo](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+            },
+            setupCategoriesAndTags: {
+                title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) => `Configura [categorías](${workspaceCategoriesLink}) y [etiquetas](${workspaceMoreFeaturesLink})`,
+                description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
+                    '*Configura categorías y etiquetas* para que tu equipo pueda clasificar los gastos fácilmente.\n\n' +
+                    `Impórtalas automáticamente al [conectarte con tu software contable](${workspaceAccountingLink}), o configúralas manualmente en tu [configuración del espacio de trabajo](${workspaceCategoriesLink}).`,
+            },
+            setupTagsTask: {
+                title: ({workspaceMoreFeaturesLink}) => `Configura [etiquetas](${workspaceMoreFeaturesLink})`,
+                description: ({workspaceMoreFeaturesLink}) =>
+                    'Usa etiquetas para añadir detalles como proyectos, clientes, ubicaciones y departamentos. Si necesitas múltiples niveles, puedes mejorar al plan Controlar.\n\n' +
+                    '1. Haz clic en *Espacios de trabajo*.\n' +
+                    '3. Selecciona tu espacio de trabajo.\n' +
+                    '4. Haz clic en *Más funciones*.\n' +
+                    '5. Habilita *Etiquetas*.\n' +
+                    '6. Navega a *Etiquetas* en el editor del espacio.\n' +
+                    '7. Haz clic en *+ Añadir etiqueta* para crear la tuya.\n\n' +
+                    `[Ir a más funciones](${workspaceMoreFeaturesLink}).\n\n` +
+                    `![Configura etiquetas](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
+            },
+            inviteAccountantTask: {
+                title: ({workspaceMembersLink}) => `Invita a tu [contable](${workspaceMembersLink})`,
+                description: ({workspaceMembersLink}) =>
+                    '*Invita a tu contable* a Expensify y comparte tus gastos para facilitar la declaración de impuestos.\n\n' +
+                    '1. Haz clic en *Espacios de trabajo*.\n' +
+                    '3. Selecciona tu espacio de trabajo.\n' +
+                    '4. Haz clic en *Miembros* > Invitar miembro.\n' +
+                    '5. Introduce su correo o teléfono.\n' +
+                    '6. Añade un mensaje si lo deseas.\n' +
+                    '7. Serás asignado como aprobador de gastos. Puedes cambiar esto a cualquier administrador una vez invites a tu equipo.\n\n' +
+                    '¡Eso es todo, feliz gestión de gastos! 😄\n\n' +
+                    `[Ir a miembros del espacio de trabajo](${workspaceMembersLink}).`,
+            },
+            startChatTask: {
+                title: 'Inicia un chat',
+                description:
+                    '*Inicia un chat* con cualquier persona usando su correo o número.\n\n' +
+                    '1. Haz clic en el botón verde *+*.\n' +
+                    '2. Elige *Iniciar chat*.\n' +
+                    '3. Introduce un correo o teléfono.\n\n' +
+                    'Si aún no usan Expensify, se les invitará automáticamente.\n\n' +
+                    'Cada chat también se convierte en un correo o mensaje de texto al que pueden responder directamente.',
+            },
+            splitExpenseTask: {
+                title: 'Divide un gasto',
+                description:
+                    '*Divide gastos* con una o más personas.\n\n' +
+                    '1. Haz clic en el botón verde *+*.\n' +
+                    '2. Elige *Iniciar chat*.\n' +
+                    '3. Introduce correos o teléfonos.\n' +
+                    '4. Haz clic en el botón gris *+* en el chat > *Dividir gasto*.\n' +
+                    '5. Crea el gasto seleccionando *Manual*, *Escanear* o *Distancia*.\n\n' +
+                    'Puedes añadir más detalles si quieres, o simplemente enviarlo. ¡Vamos a que te reembolsen!',
+            },
+            reviewWorkspaceSettingsTask: {
+                title: ({workspaceSettingsLink}) => `Revisa tu [configuración del espacio de trabajo](${workspaceSettingsLink})`,
+                description: ({workspaceSettingsLink}) =>
+                    'Así es como puedes revisar y actualizar la configuración de tu espacio de trabajo:\n' +
+                    '1. Haz clic en la pestaña de configuración.\n' +
+                    '2. Haz clic en *Espacios de trabajo* > [Tu espacio de trabajo].\n' +
+                    `[Ir a tu espacio de trabajo](${workspaceSettingsLink}). Lo rastrearemos en la sala #admins.`,
+            },
+            createReportTask: {
+                title: 'Crea tu primer informe',
+                description:
+                    'Así es como puedes crear un informe:\n' +
+                    '\n' +
+                    '1. Haz clic en el botón verde *+*.\n' +
+                    '2. Elige *Crear informe*.\n' +
+                    '3. Haz clic en *Añadir gasto*.\n' +
+                    '4. Añade tu primer gasto.\n' +
+                    '\n' +
+                    '¡Y listo!',
+            },
+        } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
+        testDrive: {
+            name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Haz una [prueba](${testDriveURL})` : 'Haz una prueba'),
+            embeddedDemoIframeTitle: 'Prueba',
+            employeeFakeReceipt: {
+                description: '¡Mi recibo de prueba!',
+            },
+        },
+        messages: {
+            onboardingEmployerOrSubmitMessage: 'Que te reembolsen es tan fácil como enviar un mensaje. Repasemos lo básico.',
+            onboardingPersonalSpendMessage: 'Aquí tienes cómo organizar tus gastos en unos pocos clics.',
+            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
+                `Aquí tienes una lista de tareas recomendadas para una empresa de tu tamaño con ${onboardingCompanySize} remitentes:`,
+            onboardingTrackWorkspaceMessage:
+                '# Vamos a configurarte\n👋 ¡Estoy aquí para ayudarte! Para comenzar, he personalizado la configuración de tu espacio de trabajo para propietarios únicos y negocios similares. Puedes ajustar tu espacio de trabajo haciendo clic en el enlace de abajo.\n\nAsí es como puedes organizar tus gastos en unos pocos clics:',
+            onboardingChatSplitMessage: 'Dividir cuentas con amigos es tan fácil como enviar un mensaje. Así se hace.',
+            onboardingAdminMessage: 'Aprende a gestionar el espacio de tu equipo como administrador y enviar tus propios gastos.',
+            onboardingLookingAroundMessage:
+                'Expensify es conocido por gastos, viajes y gestión de tarjetas corporativas, pero hacemos mucho más. Dime qué te interesa y te ayudaré a empezar.',
+            onboardingTestDriveReceiverMessage: '*¡Tienes 3 meses gratis! Empieza abajo.*',
+        },
+        workspace: {
+            title: 'Mantente organizado con un espacio de trabajo',
+            subtitle: 'Desbloquea herramientas potentes para simplificar la gestión de tus gastos, todo en un solo lugar. Con un espacio de trabajo, puedes:',
+            explanationModal: {
+                descriptionOne: 'Organiza recibos',
+                descriptionTwo: 'Clasifica y etiqueta gastos',
+                descriptionThree: 'Crea y comparte informes',
+            },
+            price: 'Pruébalo gratis durante 30 días y luego mejora por solo <strong>$5/mes</strong>.',
+            createWorkspace: 'Crear espacio de trabajo',
         },
         confirmWorkspace: {
-            title: 'Confirm workspace',
-            subtitle: 'Create a workspace to track receipts, reimburse expenses, manage travel, create reports, and more — all at the speed of chat.',
+            title: 'Confirmar espacio de trabajo',
+            subtitle: 'Crea un espacio de trabajo para organizar recibos, reembolsar gastos, gestionar viajes, crear informes y más, todo a la velocidad del chat.',
         },
         inviteMembers: {
-            title: 'Invite members',
-            subtitle: 'Manage and share your expenses with an accountant or start a travel group with friends.',
+            title: 'Invitar miembros',
+            subtitle: 'Gestiona y comparte tus gastos con un contador o crea un grupo de viaje con amigos.',
         },
     },
     featureTraining: {
