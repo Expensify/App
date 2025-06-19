@@ -2855,17 +2855,17 @@ describe('ReportUtils', () => {
         });
 
         it('should return true for policy expense chat', () => {
-            const report = createPolicyExpenseChat(60001);
+            const report = createPolicyExpenseChat(1);
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
         it('should return true for workspace thread', () => {
-            const report = createWorkspaceThread(60004);
+            const report = createWorkspaceThread(1);
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
         it('should return false for archived non-expense report that is not a workspace thread', async () => {
-            const report = createRegularChat(60005, [currentUserAccountID, 1]);
+            const report = createRegularChat(1, [currentUserAccountID, 1]);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {
                 private_isArchived: new Date().toString(),
             });
@@ -2875,25 +2875,25 @@ describe('ReportUtils', () => {
         });
 
         it('should return true for a non-archived non-expense report', () => {
-            const report = createRegularChat(60007, [currentUserAccountID, 1]);
+            const report = createRegularChat(1, [currentUserAccountID, 1]);
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
             expect(shouldReportShowSubscript(report, isReportArchived.current)).toBe(false);
         });
 
         it('should return false for regular 1:1 chat', () => {
-            const report = createRegularChat(60006, [currentUserAccountID, 1]);
+            const report = createRegularChat(1, [currentUserAccountID, 1]);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return true for expense request report', async () => {
             // Given a normal parent report
-            const parentReport = createExpenseReport(600081);
+            const parentReport = createExpenseReport(1);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
 
             // And a parent report action that is an IOU report action
-            const randomReportAction = createRandomReportAction(600082);
+            const randomReportAction = createRandomReportAction(2);
             const parentReportAction = {
-                ...createRandomReportAction(600082),
+                ...createRandomReportAction(2),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 message: {
                     ...randomReportAction.message,
@@ -2901,11 +2901,11 @@ describe('ReportUtils', () => {
                 },
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`, {
-                '600083': parentReportAction,
+                '3': parentReportAction,
             });
 
             // And a report that is a thread of the parent report
-            const report = createExpenseRequestReport(600082, parentReport.reportID, '600083');
+            const report = createExpenseRequestReport(2, parentReport.reportID, '3');
 
             // When we check if the report should show a subscript
             // Then it should return true because isExpenseRequest() returns true
@@ -2914,11 +2914,11 @@ describe('ReportUtils', () => {
 
         it('should return true for workspace task report', async () => {
             // Given a parent report that is a policy expense chat
-            const parentReport = createPolicyExpenseChat(600081);
+            const parentReport = createPolicyExpenseChat(1);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
 
             // And a report that is a task report of the parent report
-            const report = createWorkspaceTaskReport(60010, [currentUserAccountID, 1], parentReport.reportID);
+            const report = createWorkspaceTaskReport(2, [currentUserAccountID, 1], parentReport.reportID);
 
             // When we check if the report should show a subscript
             // Then it should return true because isWorkspaceTaskReport() returns true
@@ -2926,22 +2926,22 @@ describe('ReportUtils', () => {
         });
 
         it('should return true for invoice room', () => {
-            const report = createInvoiceRoom(60011);
+            const report = createInvoiceRoom(1);
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
         it('should return true for invoice report', () => {
-            const report = createInvoiceReport(60012);
+            const report = createInvoiceReport(1);
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
         it('should return true for policy expense chat that is not own', () => {
-            const report = createPolicyExpenseChat(60013, false);
+            const report = createPolicyExpenseChat(1, false);
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
         it('should return true for archived workspace thread (exception to archived rule)', async () => {
-            const report = createWorkspaceThread(60014);
+            const report = createWorkspaceThread(1);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {
                 private_isArchived: new Date().toString(),
             });
@@ -2952,7 +2952,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return false for archived expense report', async () => {
-            const report = createExpenseReport(60015);
+            const report = createExpenseReport(1);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {
                 private_isArchived: new Date().toString(),
             });
@@ -2963,44 +2963,44 @@ describe('ReportUtils', () => {
         });
 
         it('should return false for policy expense chat that is also a chat thread', () => {
-            const report = createPolicyExpenseChatThread(60016);
+            const report = createPolicyExpenseChatThread(1);
             // Policy expense chats that are threads should not show subscript
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return false for policy expense chat that is also a task report', () => {
-            const report = createPolicyExpenseChatTask(60017);
+            const report = createPolicyExpenseChatTask(1);
             // Policy expense chats that are task reports should not show subscript
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return false for group chat', () => {
-            const report = createGroupChat(60018, [currentUserAccountID, 1, 2, 3]);
+            const report = createGroupChat(1, [currentUserAccountID, 1, 2, 3]);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return false for self DM', () => {
-            const report = createSelfDM(60019, currentUserAccountID);
+            const report = createSelfDM(1, currentUserAccountID);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return false for admin room', () => {
-            const report = createAdminRoom(60020);
+            const report = createAdminRoom(1);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return false for announce room', () => {
-            const report = createAnnounceRoom(60021);
+            const report = createAnnounceRoom(1);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return false for domain room', () => {
-            const report = createDomainRoom(60022);
+            const report = createDomainRoom(1);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return false for regular task report (non-workspace)', () => {
-            const report = createRegularTaskReport(60023, currentUserAccountID);
+            const report = createRegularTaskReport(1, currentUserAccountID);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
     });
