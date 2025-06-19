@@ -32,16 +32,16 @@ import {
     subMinutes,
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
+import {de} from 'date-fns/locale/de';
 import {enGB} from 'date-fns/locale/en-GB';
 import {es} from 'date-fns/locale/es';
 import {fr} from 'date-fns/locale/fr';
 import {it} from 'date-fns/locale/it';
 import {ja} from 'date-fns/locale/ja';
+import {nl} from 'date-fns/locale/nl';
 import {pl} from 'date-fns/locale/pl';
 import {ptBR} from 'date-fns/locale/pt-BR';
 import {zhCN} from 'date-fns/locale/zh-CN';
-import {de} from 'date-fns/locale/de';
-import {nl} from 'date-fns/locale/nl';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
