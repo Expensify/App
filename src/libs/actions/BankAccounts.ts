@@ -351,13 +351,6 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                 value: {[bankAccountID]: null},
             },
         ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
-                value: {[bankAccountID]: {errors: getMicroSecondOnyxErrorWithTranslationKey('bankAccount.error.deletePaymentBankAccount')}},
-            },
-        ],
     };
 
     Object.keys(lastUsedPaymentMethods ?? {}).forEach((paymentMethodID) => {

@@ -1109,9 +1109,9 @@ const styles = (theme: ThemeColors) =>
                 borderWidth: isSmallScreenWidth ? 0 : 2,
                 borderColor: theme.borderFocus,
                 borderStyle: 'dotted',
-                marginBottom: 20,
-                marginLeft: 20,
-                marginRight: 20,
+                marginBottom: variables.uploadViewMargin,
+                marginLeft: variables.uploadViewMargin,
+                marginRight: variables.uploadViewMargin,
                 justifyContent: 'center',
                 alignItems: 'center',
                 paddingVertical: 40,
@@ -4064,7 +4064,7 @@ const styles = (theme: ThemeColors) =>
             marginRight: 8,
             width: variables.w44,
             borderRadius: variables.componentBorderRadiusSmall,
-            backgroundColor: colors.productLight300,
+            backgroundColor: theme.hoverComponentBG,
         },
 
         isDraggingOver: {
@@ -4243,6 +4243,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLabel,
             color: theme.textReversed,
             lineHeight: variables.lineHeightLarge,
+            flexShrink: 1,
         },
 
         quickReactionsContainer: {
@@ -5902,10 +5903,6 @@ const styles = (theme: ThemeColors) =>
             borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
 
-        unreportedExpenseCreateExpenseButton: {
-            ...flex.alignSelfStart,
-        },
-
         testDriveBannerGap: {
             height: CONST.DESKTOP_HEADER_PADDING * 2,
         },
@@ -5930,6 +5927,27 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             paddingHorizontal: 0,
             aspectRatio: 1.7,
+        },
+
+        getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
+            flex: 1,
+            justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
+            alignItems: 'center',
+        }),
+
+        getTestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
+            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
+            const defaultHeight = shouldUseNarrowLayout ? '78%' : '75%';
+            const height = isAuthenticated ? defaultHeight : '55%';
+
+            return {
+                width: shouldUseNarrowLayout ? '100%' : '91%',
+                height,
+                borderRadius: variables.componentBorderRadiusLarge,
+                borderBottomRightRadius: borderBottomRadius,
+                borderBottomLeftRadius: borderBottomRadius,
+                overflow: 'hidden',
+            };
         },
     }) satisfies Styles;
 
