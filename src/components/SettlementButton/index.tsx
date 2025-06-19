@@ -218,7 +218,7 @@ function SettlementButton({
                 shouldUpdateSelectedIndex: false,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                text: translate('iou.payElsewhere', {formattedAmount: onlyShowPayElsewhere ? formattedAmount : ''}),
                 icon: Expensicons.CheckCircle,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 shouldUpdateSelectedIndex: false,
@@ -287,7 +287,7 @@ function SettlementButton({
                     text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: 20}), formattedAmount: ''}),
                     icon: Expensicons.Building,
                     value: activePolicy.id,
-                    shouldUpdateSelectedIndex: true,
+                    shouldUpdateSelectedIndex: false,
                 });
             });
         }
@@ -577,7 +577,7 @@ function SettlementButton({
                     style={style}
                     shouldPopoverUseScrollView={paymentButtonOptions.length > 5}
                     containerStyles={paymentButtonOptions.length > 5 ? styles.settlementButtonListContainer : {}}
-                    wrapperStyle={wrapperStyle}
+                    wrapperStyle={[wrapperStyle, shouldUseShortForm && shouldUseSplitButton ? {minWidth: 90} : {}]}
                     disabledStyle={disabledStyle}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}

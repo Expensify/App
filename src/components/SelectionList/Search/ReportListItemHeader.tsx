@@ -147,6 +147,8 @@ function HeaderFirstRow<TItem extends ListItem>({
                         isLoading={reportItem.isActionLoading}
                         policyID={reportItem.policyID}
                         reportID={reportItem.reportID}
+                        hash={reportItem.hash}
+                        amount={reportItem.total}
                     />
                 </View>
             )}
