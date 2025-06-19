@@ -236,7 +236,7 @@ mobileBreakpoint.addEventListener('change', handleBreakpointChange);
 handleBreakpointChange();
 
 function selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent) {
-    newExpensifyTab.classList.add('active');
+    newExpensifyTab.classList.add(!expensifyClassicTab && !expensifyClassicContent ? 'badge' : 'active');
     newExpensifyContent.classList.remove('hidden');
 
     if (expensifyClassicTab && expensifyClassicContent) {
@@ -250,7 +250,7 @@ function selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClass
 }
 
 function selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent) {
-    expensifyClassicTab.classList.add('active');
+    expensifyClassicTab.classList.add(!newExpensifyContent && !newExpensifyTab ? 'badge' : 'active');
     expensifyClassicContent.classList.remove('hidden');
 
     if (newExpensifyTab && newExpensifyContent) {
