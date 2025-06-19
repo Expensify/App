@@ -1,6 +1,6 @@
 ---
 title: Global Reimbursement - Australia
-description: Learn how to enable international reimbursements if your business bank account is in Australia.
+description: Set up global reimbursements with your Australian bank account. 
 keywords: [New Expensify, global reimbursement, Australia, AUD, international payments]
 ---
 
