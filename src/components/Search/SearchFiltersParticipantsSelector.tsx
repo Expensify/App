@@ -237,6 +237,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             isLoadingNewOptions={isLoadingNewOptions}
             showLoadingPlaceholder={showLoadingPlaceholder}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+            shouldScrollSelectedItemToTop={false}
         />
     );
 }
