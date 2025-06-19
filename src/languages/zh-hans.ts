@@ -6336,11 +6336,11 @@ const translations = {
             title: '请求提前取消',
             subtitle: '您申请提前取消的主要原因是什么？',
             subscriptionCanceled: {
-                title: '\u8BA2\u9605\u5DF2\u53D6\u6D88',
-                subtitle: '\u60A8\u7684\u5E74\u5EA6\u8BA2\u9605\u5DF2\u88AB\u53D6\u6D88\u3002',
-                info: '\u5982\u679C\u60A8\u60F3\u7EE7\u7EED\u6309\u4F7F\u7528\u91CF\u4ED8\u8D39\u4F7F\u7528\u60A8\u7684\u5DE5\u4F5C\u533A\uFF0C\u60A8\u5C31\u51C6\u5907\u597D\u4E86\u3002',
+                title: '订阅已取消',
+                subtitle: '您的年度订阅已被取消。',
+                info: '如果您想继续按使用量付费的方式使用您的工作区，您就准备好了。',
                 preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
-                    `\u5982\u679C\u60A8\u60F3\u9632\u6B62\u672A\u6765\u7684\u6D3B\u52A8\u548C\u8D39\u7528\uFF0C\u60A8\u5FC5\u987B <a href="${workspacesListRoute}">\u5220\u9664\u60A8\u7684\u5DE5\u4F5C\u533A</a> \u8BF7\u6CE8\u610F\uFF0C\u5F53\u60A8\u5220\u9664\u5DE5\u4F5C\u533A\u65F6\uFF0C\u60A8\u5C06\u88AB\u6536\u53D6\u5F53\u524D\u65E5\u5386\u6708\u5185\u4EA7\u751F\u7684\u4EFB\u4F55\u672A\u7ED3\u6D3B\u52A8\u8D39\u7528\u3002`,
+                    `如果您想防止未来的活动和收费，您必须 <a href="${workspacesListRoute}">删除您的工作区</a> 请注意，当您删除工作区时，您将被收取当前日历月内产生的任何未结活动费用。`,
             },
             requestSubmitted: {
                 title: '请求已提交',
