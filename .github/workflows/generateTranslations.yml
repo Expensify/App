@@ -21,3 +21,10 @@ jobs:
 
       - name: Run generateTranslations dry run
         run: npx ts-node ./scripts/generateTranslations.ts --dry-run
+        continue-on-error: true
+
+      - name: Explain failure
+        if: failure()
+        run: |
+          echo '😦Something you did broke scripts/generateTranslations.ts. Most likely, this means you added an import that caused react-native to be directly or indirectly imported into the script.'
+          exit 1
