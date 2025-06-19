@@ -75,7 +75,7 @@ type BaseFeatureTrainingModalProps = {
     confirmText: string;
 
     /** A callback to call when user confirms the tutorial */
-    onConfirm?: () => void;
+    onConfirm?: (willShowAgain: boolean) => void;
 
     /** A callback to call when modal closes */
     onClose?: () => void;
@@ -339,8 +339,8 @@ function FeatureTrainingModal({
         if (shouldCloseOnConfirm) {
             closeModal();
         }
-        onConfirm?.();
-    }, [shouldCloseOnConfirm, onConfirm, closeModal]);
+        onConfirm?.(willShowAgain);
+    }, [shouldCloseOnConfirm, onConfirm, closeModal, willShowAgain]);
 
     /**
      * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
