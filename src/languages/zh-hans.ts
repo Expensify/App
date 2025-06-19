@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
@@ -3139,11 +3140,8 @@ const translations = {
         tripSummary: '\u884C\u7A0B\u603B\u7ED3',
         departs: '\u51FA\u53D1',
         errorMessage: '\u51FA\u4E86\u70B9\u95EE\u9898\u3002\u8BF7\u7A0D\u540E\u518D\u8BD5\u3002',
-        phoneError: {
-            phrase1: '\u8BF7',
-            link: '\u6DFB\u52A0\u5DE5\u4F5C\u90AE\u7BB1\u4F5C\u4E3A\u60A8\u7684\u4E3B\u8981\u767B\u5F55\u90AE\u7BB1',
-            phrase2: '\u9884\u8BA2\u65C5\u884C\u3002',
-        },
+        phoneError: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `\u8BF7 <a href="${contactMethodsRoute}">\u6DFB\u52A0\u5DE5\u4F5C\u90AE\u7BB1\u4F5C\u4E3A\u60A8\u7684\u4E3B\u8981\u767B\u5F55\u90AE\u7BB1</a> \u9884\u8BA2\u65C5\u884C\u3002`,
         domainSelector: {
             title: '\u57DF\u540D',
             subtitle: '\u4E3A Expensify Travel \u8BBE\u7F6E\u9009\u62E9\u4E00\u4E2A\u57DF\u540D\u3002',

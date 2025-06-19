@@ -51,6 +51,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
@@ -3015,7 +3016,7 @@ const translations = {
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
         errorMessage: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
-        phoneError: 'Para reservar viajes, <a>añade una dirección de correo electrónico de trabajo</a>.',
+        phoneError: ({contactMethodsRoute}: ContactMethodsRouteParams) => `Para reservar viajes, <a href="${contactMethodsRoute}">añade una dirección de correo electrónico de trabajo</a>.`,
         domainSelector: {
             title: 'Dominio',
             subtitle: 'Elige un dominio para configurar Expensify Travel.',

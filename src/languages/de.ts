@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
@@ -3054,11 +3055,8 @@ const translations = {
         tripSummary: 'Reisezusammenfassung',
         departs: 'Abfahrten',
         errorMessage: 'Etwas ist schiefgelaufen. Bitte versuchen Sie es sp\u00E4ter noch einmal.',
-        phoneError: {
-            phrase1: 'Bitte',
-            link: 'F\u00FCgen Sie eine Arbeits-E-Mail als Ihren prim\u00E4ren Login hinzu',
-            phrase2: 'um Reisen zu buchen.',
-        },
+        phoneError: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `Bitte <a href="${contactMethodsRoute}">F\u00FCgen Sie eine Arbeits-E-Mail als Ihren prim\u00E4ren Login hinzu</a> um Reisen zu buchen.`,
         domainSelector: {
             title: 'Domain',
             subtitle: 'W\u00E4hlen Sie eine Domain f\u00FCr die Einrichtung von Expensify Travel aus.',

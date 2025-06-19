@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
@@ -3066,11 +3067,8 @@ const translations = {
         tripSummary: 'R\u00E9sum\u00E9 du voyage',
         departs: 'D\u00E9parts',
         errorMessage: "Une erreur s'est produite. Veuillez r\u00E9essayer plus tard.",
-        phoneError: {
-            phrase1: "S'il vous pla\u00EEt",
-            link: 'ajoutez un e-mail professionnel comme votre identifiant principal',
-            phrase2: 'pour r\u00E9server un voyage.',
-        },
+        phoneError: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `S'il vous pla\u00EEt <a href="${contactMethodsRoute}">ajoutez un e-mail professionnel comme votre identifiant principal</a> pour r\u00E9server un voyage.`,
         domainSelector: {
             title: 'Domaine',
             subtitle: "Choisissez un domaine pour la configuration d'Expensify Travel.",

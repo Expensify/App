@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
@@ -3019,11 +3020,8 @@ const translations = {
         tripSummary: 'Reisoverzicht',
         departs: 'Vertrekt',
         errorMessage: 'Er is iets misgegaan. Probeer het later opnieuw.',
-        phoneError: {
-            phrase1: 'Alstublieft',
-            link: 'voeg een werk-e-mailadres toe als je primaire login',
-            phrase2: 'om te reizen boeken.',
-        },
+        phoneError: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `Alstublieft <a href="${contactMethodsRoute}">voeg een werk-e-mailadres toe als je primaire login</a> om te reizen boeken.`,
         domainSelector: {
             title: 'Domein',
             subtitle: 'Kies een domein voor het instellen van Expensify Travel.',

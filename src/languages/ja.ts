@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
@@ -3367,11 +3368,8 @@ const translations = {
         tripSummary: '\u65C5\u884C\u6982\u8981',
         departs: '\u51FA\u767A\u3057\u307E\u3059',
         errorMessage: '\u554F\u984C\u304C\u767A\u751F\u3057\u307E\u3057\u305F\u3002\u5F8C\u3067\u3082\u3046\u4E00\u5EA6\u304A\u8A66\u3057\u304F\u3060\u3055\u3044\u3002',
-        phoneError: {
-            phrase1: '\u304A\u9858\u3044\u3057\u307E\u3059',
-            link: '\u52E4\u52D9\u7528\u30E1\u30FC\u30EB\u3092\u30D7\u30E9\u30A4\u30DE\u30EA\u30ED\u30B0\u30A4\u30F3\u3068\u3057\u3066\u8FFD\u52A0\u3057\u3066\u304F\u3060\u3055\u3044\u3002',
-            phrase2: '\u65C5\u884C\u3092\u4E88\u7D04\u3059\u308B\u305F\u3081\u306B\u3002',
-        },
+        phoneError: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `\u304A\u9858\u3044\u3057\u307E\u3059 <a href="${contactMethodsRoute}">\u52E4\u52D9\u7528\u30E1\u30FC\u30EB\u3092\u30D7\u30E9\u30A4\u30DE\u30EA\u30ED\u30B0\u30A4\u30F3\u3068\u3057\u3066\u8FFD\u52A0\u3057\u3066\u304F\u3060\u3055\u3044\u3002</a> \u65C5\u884C\u3092\u4E88\u7D04\u3059\u308B\u305F\u3081\u306B\u3002`,
         domainSelector: {
             title: '\u30C9\u30E1\u30A4\u30F3',
             subtitle: 'Expensify Travel\u306E\u30BB\u30C3\u30C8\u30A2\u30C3\u30D7\u7528\u30C9\u30E1\u30A4\u30F3\u3092\u9078\u629E\u3057\u3066\u304F\u3060\u3055\u3044\u3002',

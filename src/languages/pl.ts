@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
@@ -3078,11 +3079,8 @@ const translations = {
         tripSummary: 'Podsumowanie podr\u00F3\u017Cy',
         departs: 'Odje\u017Cd\u017Ca',
         errorMessage: 'Co\u015B posz\u0142o nie tak. Prosz\u0119 spr\u00F3bowa\u0107 ponownie p\u00F3\u017Aniej.',
-        phoneError: {
-            phrase1: 'Prosz\u0119',
-            link: 'dodaj s\u0142u\u017Cbowy e-mail jako swoje g\u0142\u00F3wne logowanie',
-            phrase2: 'zarezerwowa\u0107 podr\u00F3\u017C.',
-        },
+        phoneError: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `Prosz\u0119 <a href="${contactMethodsRoute}">dodaj s\u0142u\u017Cbowy e-mail jako swoje g\u0142\u00F3wne logowanie</a> zarezerwowa\u0107 podr\u00F3\u017C.`,
         domainSelector: {
             title: 'Domena',
             subtitle: 'Wybierz domen\u0119 dla konfiguracji Expensify Travel.',
