@@ -2064,12 +2064,8 @@ const translations = {
         chooseThemeBelowOrSync: '以下のテーマを選択するか、デバイスの設定と同期してください。',
     },
     termsOfUse: {
-        phrase1: 'ログインすることにより、あなたは以下に同意したことになります',
-        phrase2: '利用規約',
-        phrase3: 'および',
-        phrase4: 'プライバシー',
-        phrase5: `送金は、${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）によって、その`,
-        phrase6: 'ライセンス',
+        terms: `ログインすることにより、あなたは以下に同意したことになります <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>利用規約</a> および <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>プライバシー</a>`,
+        licenses: `送金は、${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）によって、その <a href=${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}>ライセンス</a>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'マジックコードを受け取っていませんか？',
