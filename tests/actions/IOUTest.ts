@@ -6268,21 +6268,21 @@ describe('actions/IOU', () => {
                     },
                 });
                 requestMoney({
-                        report: chatReport,
-                        participantParams: {
-                            payeeEmail: RORY_EMAIL,
-                            payeeAccountID: RORY_ACCOUNT_ID,
-                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport?.reportID},
-                        },
-                        transactionParams: {
-                            amount,
-                            attendees: [],
-                            currency: CONST.CURRENCY.USD,
-                            created: '',
-                            merchant: 'NASDAQ',
-                            comment: '*hey* `hey`',
-                        },
-                    });
+                    report: chatReport,
+                    participantParams: {
+                        payeeEmail: RORY_EMAIL,
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport?.reportID},
+                    },
+                    transactionParams: {
+                        amount,
+                        attendees: [],
+                        currency: CONST.CURRENCY.USD,
+                        created: '',
+                        merchant: 'NASDAQ',
+                        comment: '*hey* `hey`',
+                    },
+                });
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
