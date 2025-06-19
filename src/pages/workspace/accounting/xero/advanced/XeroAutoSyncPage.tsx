@@ -92,7 +92,7 @@ function XeroAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                                 if (!policyID) {
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD.getRoute(policyID, backTo))
+                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD.getRoute(policyID, backTo));
                             }}
                         />
                     </OfflineWithFeedback>
