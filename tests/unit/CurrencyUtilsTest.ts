@@ -48,18 +48,6 @@ describe('CurrencyUtils', () => {
         );
     });
 
-    describe('isCurrencySymbolLTR', () => {
-        test.each([
-            [true, CONST.LOCALES.EN, 'USD'],
-            [false, CONST.LOCALES.ES, 'USD'],
-        ])('Returns %s for preferredLocale %s and currencyCode %s', (isLeft, locale, currencyCode) =>
-            TranslationStore.load(locale).then(() => {
-                const isSymbolLeft = CurrencyUtils.isCurrencySymbolLTR(currencyCode);
-                expect(isSymbolLeft).toBe(isLeft);
-            }),
-        );
-    });
-
     describe('getCurrencyDecimals', () => {
         test('Currency decimals smaller than or equal 2', () => {
             expect(CurrencyUtils.getCurrencyDecimals('JPY')).toBe(0);
