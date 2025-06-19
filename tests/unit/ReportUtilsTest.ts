@@ -2865,19 +2865,19 @@ describe('ReportUtils', () => {
         });
 
         it('should return false for archived non-expense report that is not a workspace thread', () => {
-            const report = createRegularChat(60005);
+            const report = createRegularChat(60005, [currentUserAccountID, 1]);
             // Test with the new isReportArchived parameter
             expect(shouldReportShowSubscript(report, true)).toBe(false);
         });
 
         it('should return true when isReportArchived is false even for non-expense report', () => {
-            const report = createRegularChat(60007);
+            const report = createRegularChat(60007, [currentUserAccountID, 1]);
             // Test that when isReportArchived is false, the function doesn't return false based on archived status
             expect(shouldReportShowSubscript(report, false)).toBe(false); // Still false because it's just a regular chat
         });
 
         it('should return false for regular 1:1 chat', () => {
-            const report = createRegularChat(60006);
+            const report = createRegularChat(60006, [currentUserAccountID, 1]);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
@@ -2892,7 +2892,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return true for workspace task report', () => {
-            const report = createWorkspaceTaskReport(60010);
+            const report = createWorkspaceTaskReport(60010, [currentUserAccountID, 1]);
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
@@ -2936,12 +2936,12 @@ describe('ReportUtils', () => {
         });
 
         it('should return false for group chat', () => {
-            const report = createGroupChat(60018);
+            const report = createGroupChat(60018, [currentUserAccountID, 1, 2, 3]);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should return false for self DM', () => {
-            const report = createSelfDM(60019);
+            const report = createSelfDM(60019, currentUserAccountID);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
@@ -2961,12 +2961,12 @@ describe('ReportUtils', () => {
         });
 
         it('should return false for regular task report (non-workspace)', () => {
-            const report = createRegularTaskReport(60023);
+            const report = createRegularTaskReport(60023, currentUserAccountID);
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
 
         it('should use default parameter when isReportArchived is not provided', () => {
-            const report = createRegularChat(60024);
+            const report = createRegularChat(60024, [currentUserAccountID, 1]);
             // Should behave the same as passing false explicitly
             expect(shouldReportShowSubscript(report)).toBe(shouldReportShowSubscript(report, false));
         });

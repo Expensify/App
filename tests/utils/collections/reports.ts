@@ -1,4 +1,4 @@
-import {rand, randBoolean, randCurrencyCode, randWord} from '@ngneat/falso';
+import {rand, randBoolean, randCurrencyCode, randNumber, randWord} from '@ngneat/falso';
 import {buildParticipantsFromAccountIDs} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
@@ -29,7 +29,9 @@ function createPolicyExpenseChat(index: number, isOwnPolicyExpenseChat = true): 
         chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
         isOwnPolicyExpenseChat,
         type: CONST.REPORT.TYPE.CHAT,
-        parentReportID: undefined, // Ensure it's not a thread
+
+        // Ensure it's not a thread
+        parentReportID: undefined,
         parentReportActionID: undefined,
     };
 }
@@ -37,55 +39,61 @@ function createPolicyExpenseChat(index: number, isOwnPolicyExpenseChat = true): 
 /**
  * Creates a workspace thread report (chat with parent)
  */
-function createWorkspaceThread(index: number, parentReportID = '12345', parentReportActionID = '67890'): Report {
+function createWorkspaceThread(index: number): Report {
     return {
         ...createRandomReport(index),
         type: CONST.REPORT.TYPE.CHAT,
         chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-        parentReportID,
-        parentReportActionID,
+        parentReportID: `${randNumber()}`,
+        parentReportActionID: `${randNumber()}`,
     };
 }
 
 /**
  * Creates an expense request report (IOU report)
  */
-function createExpenseRequestReport(index: number, parentReportID = '12345', parentReportActionID = '67890'): Report {
+function createExpenseRequestReport(index: number): Report {
     return {
         ...createRandomReport(index),
         type: CONST.REPORT.TYPE.IOU,
-        parentReportID,
-        parentReportActionID,
-        chatType: undefined, // Clear random chat type
-        isOwnPolicyExpenseChat: false, // Clear random value
+        parentReportID: `${randNumber()}`,
+        parentReportActionID: `${randNumber()}`,
+
+        // Clear random chat type
+        chatType: undefined,
+        isOwnPolicyExpenseChat: false,
     };
 }
 
 /**
  * Creates an expense report with single transaction
  */
-function createExpenseReportWithSingleTransaction(index: number, parentReportID = '12345', parentReportActionID = '67890'): Report {
+function createExpenseReportWithSingleTransaction(index: number): Report {
     return {
         ...createRandomReport(index),
         type: CONST.REPORT.TYPE.EXPENSE,
-        parentReportID,
-        parentReportActionID,
-        chatType: undefined, // Clear random chat type
-        isOwnPolicyExpenseChat: false, // Clear random value
+        parentReportID: `${randNumber()}`,
+        parentReportActionID: `${randNumber()}`,
+
+        // Clear random chat type
+        chatType: undefined,
+        isOwnPolicyExpenseChat: false,
     };
 }
 
 /**
  * Creates a workspace task report
  */
-function createWorkspaceTaskReport(index: number, policyID = 'policy123'): Report {
+function createWorkspaceTaskReport(index: number, accountIDs: number[]): Report {
     return {
         ...createRandomReport(index),
         type: CONST.REPORT.TYPE.TASK,
-        policyID,
-        participants: buildParticipantsFromAccountIDs([5, 1]), // currentUserAccountID = 5 in tests
-        chatType: undefined, // Clear random chat type
-        isOwnPolicyExpenseChat: false, // Clear random value
+        policyID: `policy${index}`,
+        participants: buildParticipantsFromAccountIDs(accountIDs),
+
+        // Clear random chat type
+        chatType: undefined,
+        isOwnPolicyExpenseChat: false,
     };
 }
 
@@ -113,19 +121,19 @@ function createInvoiceReport(index: number): Report {
 /**
  * Creates a group chat
  */
-function createGroupChat(index: number, participantAccountIDs = [5, 1, 2, 3]): Report {
+function createGroupChat(index: number, accountIDs: number[]): Report {
     return {
         ...createRandomReport(index),
         type: CONST.REPORT.TYPE.CHAT,
         chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-        participants: buildParticipantsFromAccountIDs(participantAccountIDs),
+        participants: buildParticipantsFromAccountIDs(accountIDs),
     };
 }
 
 /**
  * Creates a self DM
  */
-function createSelfDM(index: number, currentUserAccountID = 5): Report {
+function createSelfDM(index: number, currentUserAccountID: number): Report {
     return {
         ...createRandomReport(index),
         type: CONST.REPORT.TYPE.CHAT,
@@ -173,11 +181,13 @@ function createDomainRoom(index: number): Report {
 /**
  * Creates a regular task report (non-workspace)
  */
-function createRegularTaskReport(index: number, currentUserAccountID = 5): Report {
+function createRegularTaskReport(index: number, currentUserAccountID: number): Report {
     return {
         ...createRandomReport(index),
         type: CONST.REPORT.TYPE.TASK,
-        policyID: undefined, // No policy makes it a regular task
+
+        // No policy makes it a regular task
+        policyID: undefined,
         participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1]),
     };
 }
@@ -185,29 +195,35 @@ function createRegularTaskReport(index: number, currentUserAccountID = 5): Repor
 /**
  * Creates a regular 1:1 chat
  */
-function createRegularChat(index: number, currentUserAccountID = 5, participantAccountIDs = [1]): Report {
+function createRegularChat(index: number, accountIDs: number[]): Report {
     return {
         ...createRandomReport(index),
         type: CONST.REPORT.TYPE.CHAT,
-        chatType: undefined, // No specific chat type makes it regular
+
+        // No specific chat type makes it regular
+        chatType: undefined,
         isOwnPolicyExpenseChat: false,
-        participants: buildParticipantsFromAccountIDs([currentUserAccountID, ...participantAccountIDs]),
-        parentReportID: undefined, // Ensure it's not a thread
+        participants: buildParticipantsFromAccountIDs(accountIDs),
+
+        // Ensure it's not a thread
+        parentReportID: undefined,
         parentReportActionID: undefined,
-        policyID: undefined, // No policy makes it regular
+
+        // No policy makes it regular
+        policyID: undefined,
     };
 }
 
 /**
  * Creates a policy expense chat that is also a thread (edge case)
  */
-function createPolicyExpenseChatThread(index: number, parentReportID = '12345', parentReportActionID = '67890'): Report {
+function createPolicyExpenseChatThread(index: number): Report {
     return {
         ...createRandomReport(index),
         chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
         isOwnPolicyExpenseChat: true,
-        parentReportID,
-        parentReportActionID,
+        parentReportID: `${randNumber()}`,
+        parentReportActionID: `${randNumber()}`,
     };
 }
 
