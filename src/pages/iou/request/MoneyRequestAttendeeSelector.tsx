@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {Option} from '@libs/OptionsListUtils';
 import {
+    createOptionListFromPersonalDetails,
     filterAndOrderOptions,
     formatSectionsFromSearchTerm,
     getAttendeeOptions,
@@ -133,7 +134,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         }
         const fiveRecents = [...chatOptions.recentReports].slice(0, 5);
         const restOfRecents = [...chatOptions.recentReports].slice(5);
-        const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
+        const contactsWithRestOfRecents = [...restOfRecents, ...createOptionListFromPersonalDetails(chatOptions.personalDetails, true)];
 
         const formatResults = formatSectionsFromSearchTerm(
             cleanSearchTerm,

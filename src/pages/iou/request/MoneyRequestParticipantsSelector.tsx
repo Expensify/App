@@ -5,8 +5,8 @@ import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
+import {RESULTS} from 'react-native-permissions';
 import Button from '@components/Button';
 import ContactPermissionModal from '@components/ContactPermissionModal';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
@@ -34,8 +34,8 @@ import getPlatform from '@libs/getPlatform';
 import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {Option, SearchOption, Section} from '@libs/OptionsListUtils';
 import {
+    createOptionListFromPersonalDetails,
     filterAndOrderOptions,
     formatSectionsFromSearchTerm,
     getHeaderMessage,
@@ -46,6 +46,7 @@ import {
     isCurrentUser,
     orderOptions,
 } from '@libs/OptionsListUtils';
+import type {Option, SearchOption, Section} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
@@ -158,7 +159,7 @@ function MoneyRequestParticipantsSelector({
         const optionList = getValidOptions(
             {
                 reports: options.reports,
-                personalDetails: options.personalDetails.concat(contacts),
+                personalDetails: options.personalDetails,
             },
             {
                 betas,
@@ -190,19 +191,7 @@ function MoneyRequestParticipantsSelector({
             ...optionList,
             ...orderedOptions,
         };
-    }, [
-        action,
-        contacts,
-        areOptionsInitialized,
-        betas,
-        didScreenTransitionEnd,
-        iouType,
-        isCategorizeOrShareAction,
-        options.personalDetails,
-        options.reports,
-        participants,
-        isPerDiemRequest,
-    ]);
+    }, [action, areOptionsInitialized, betas, didScreenTransitionEnd, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants, isPerDiemRequest]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -228,6 +217,17 @@ function MoneyRequestParticipantsSelector({
         return newOptions;
     }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, participants, isPaidGroupPolicy, isCategorizeOrShareAction, action, isPerDiemRequest]);
 
+    const filteredContacts = useMemo(() => {
+        if (!debouncedSearchTerm.trim()) {
+            return contacts;
+        }
+
+        const cleanedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
+        return contacts.filter((contact) => {
+            const searchTerms = [contact.text, contact.alternateText];
+            return searchTerms.join(' ').toLowerCase().includes(cleanedSearchTerm);
+        });
+    }, [contacts, debouncedSearchTerm]);
     const inputHelperText = useMemo(
         () =>
             getHeaderMessage(
@@ -289,7 +289,7 @@ function MoneyRequestParticipantsSelector({
 
         newSections.push({
             title: translate('common.contacts'),
-            data: chatOptions.personalDetails,
+            data: createOptionListFromPersonalDetails(chatOptions.personalDetails, true).concat(filteredContacts),
             shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
         });
 
@@ -333,6 +333,7 @@ function MoneyRequestParticipantsSelector({
         showImportContacts,
         inputHelperText,
         isPerDiemRequest,
+        filteredContacts,
     ]);
 
     /**

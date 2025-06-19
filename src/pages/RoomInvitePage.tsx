@@ -11,8 +11,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {Section} from '@components/SelectionList/types';
-import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
+import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,8 +25,7 @@ import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
-import type {MemberForList} from '@libs/OptionsListUtils';
-import {filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions} from '@libs/OptionsListUtils';
+import {createOptionFromPersonalDetail, filterAndOrderOptions, getHeaderMessage, getMemberInviteOptions} from '@libs/OptionsListUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
@@ -44,7 +43,7 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.INVITE>;
 
-type Sections = Array<SectionListData<MemberForList, Section<MemberForList>>>;
+type Sections = Array<SectionListData<OptionData, Section<OptionData>>>;
 function RoomInvitePage({
     betas,
     report,
@@ -85,12 +84,12 @@ function RoomInvitePage({
 
         const inviteOptions = getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers);
         // Update selectedOptions with the latest personalDetails information
-        const detailsMap: Record<string, MemberForList> = {};
+        const detailsMap: Record<string, OptionData> = {};
         inviteOptions.personalDetails.forEach((detail) => {
             if (!detail.login) {
                 return;
             }
-            detailsMap[detail.login] = formatMemberForList(detail);
+            detailsMap[detail.login] = createOptionFromPersonalDetail(detail, true);
         });
         const newSelectedOptions: OptionData[] = [];
         selectedOptions.forEach((option) => {
@@ -135,17 +134,16 @@ function RoomInvitePage({
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
             });
         }
-        const filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => formatMemberForList(selectedOption));
 
         sectionsArr.push({
             title: undefined,
-            data: filterSelectedOptionsFormatted,
+            data: filterSelectedOptions,
         });
 
         // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
         const personalDetailsWithoutSelected = personalDetails ? personalDetails.filter(({login}) => !selectedLogins.includes(login)) : [];
-        const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => formatMemberForList(personalDetail));
+        const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => createOptionFromPersonalDetail(personalDetail, true));
         const hasUnselectedUserToInvite = userToInvite && !selectedLogins.includes(userToInvite.login);
 
         sectionsArr.push({
@@ -156,7 +154,7 @@ function RoomInvitePage({
         if (hasUnselectedUserToInvite) {
             sectionsArr.push({
                 title: undefined,
-                data: [formatMemberForList(userToInvite)],
+                data: [userToInvite],
             });
         }
 
@@ -164,7 +162,7 @@ function RoomInvitePage({
     }, [inviteOptions, areOptionsInitialized, selectedOptions, debouncedSearchTerm, translate]);
 
     const toggleOption = useCallback(
-        (option: MemberForList) => {
+        (option: OptionData) => {
             const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
 
             let newSelectedOptions: OptionData[];

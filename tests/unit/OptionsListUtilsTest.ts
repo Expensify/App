@@ -13,12 +13,14 @@ import {
     formatMemberForList,
     getLastActorDisplayName,
     getMemberInviteOptions,
+    getMostRecentOptions,
     getSearchOptions,
     getShareDestinationOptions,
     getShareLogOptions,
     getValidOptions,
     orderOptions,
     orderWorkspaceOptions,
+    recentReportComparator,
 } from '@libs/OptionsListUtils';
 import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -604,7 +606,7 @@ describe('OptionsListUtils', () => {
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1);
 
             const expected = ['Black Panther', 'Black Widow', 'Captain America', 'Invisible Woman', 'Mister Fantastic', 'Mr Sinister', 'Spider-Man', 'The Incredible Hulk', 'Thor'];
-            const actual = results.personalDetails?.map((item) => item.text);
+            const actual = results.personalDetails?.map((item) => item.displayName);
 
             // Then the results should be sorted alphabetically
             expect(actual).toEqual(expected);
@@ -621,7 +623,7 @@ describe('OptionsListUtils', () => {
             results = orderOptions(results);
 
             const expected = ['Black Panther', 'Black Widow', 'Captain America', 'Invisible Woman', 'Mister Fantastic', 'Mr Sinister', 'Spider-Man', 'The Incredible Hulk', 'Thor'];
-            const actual = results.personalDetails?.map((item) => item.text);
+            const actual = results.personalDetails?.map((item) => item.displayName);
 
             // Then the results should be sorted alphabetically
             expect(actual).toEqual(expected);
@@ -964,10 +966,10 @@ describe('OptionsListUtils', () => {
             const results = getMemberInviteOptions(OPTIONS.personalDetails, []);
 
             // Then personal details should be sorted alphabetically
-            expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
-            expect(results.personalDetails.at(1)?.text).toBe('Black Widow');
-            expect(results.personalDetails.at(2)?.text).toBe('Captain America');
-            expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
+            expect(results.personalDetails.at(0)?.displayName).toBe('Black Panther');
+            expect(results.personalDetails.at(1)?.displayName).toBe('Black Widow');
+            expect(results.personalDetails.at(2)?.displayName).toBe('Captain America');
+            expect(results.personalDetails.at(3)?.displayName).toBe('Invisible Woman');
         });
     });
 
@@ -1514,7 +1516,7 @@ describe('OptionsListUtils', () => {
                 searchValue: VALID_EMAIL,
                 currentUserOption: {
                     login: currentUserEmail,
-                } as OptionData,
+                } as PersonalDetails,
                 // Note: in the past this would check for the existence of the email in the personalDetails list, this has changed.
                 // We expect only filtered lists to be passed to this function, so we don't need to check for the existence of the email in the personalDetails list.
                 // This is a performance optimization.
@@ -1534,7 +1536,7 @@ describe('OptionsListUtils', () => {
                 personalDetailsOptions: [],
                 currentUserOption: {
                     login: currentUserEmail,
-                } as OptionData,
+                } as PersonalDetails,
             });
 
             // Then the returned value should be false
@@ -1784,6 +1786,58 @@ describe('OptionsListUtils', () => {
 
             // Then the returned value should match the search term
             expect(filteredReports).toEqual(reports);
+        });
+    });
+
+    describe('getMostRecentOptions()', () => {
+        it('returns the most recent options up to the specified limit', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z'} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
+                {reportID: '3', lastVisibleActionCreated: '2022-01-01T09:00:00Z'} as OptionData,
+                {reportID: '4', lastVisibleActionCreated: '2022-01-01T13:00:00Z'} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = getMostRecentOptions(options, 2, comparator);
+            expect(result.length).toBe(2);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(0)!.reportID).toBe('4');
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(1)!.reportID).toBe('2');
+        });
+
+        it('returns all options if limit is greater than options length', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z'} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = getMostRecentOptions(options, 5, comparator);
+            expect(result.length).toBe(2);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(0)!.reportID).toBe('2');
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(1)!.reportID).toBe('1');
+        });
+
+        it('returns empty array if options is empty', () => {
+            const result = getMostRecentOptions([], 3, recentReportComparator);
+            expect(result).toEqual([]);
+        });
+
+        it('applies filter function if provided', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z', isPinned: true} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z', isPinned: false} as OptionData,
+                {reportID: '3', lastVisibleActionCreated: '2022-01-01T09:00:00Z', isPinned: true} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = getMostRecentOptions(options, 2, comparator, (option) => option.isPinned);
+            expect(result.length).toBe(2);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(0)!.reportID).toBe('1');
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(1)!.reportID).toBe('3');
         });
     });
 });

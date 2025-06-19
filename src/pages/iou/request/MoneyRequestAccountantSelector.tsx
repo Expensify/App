@@ -14,6 +14,7 @@ import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionS
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {Section} from '@libs/OptionsListUtils';
 import {
+    createOptionListFromPersonalDetails,
     filterAndOrderOptions,
     formatSectionsFromSearchTerm,
     getEmptyOptions,
@@ -113,7 +114,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         }
         const fiveRecents = [...chatOptions.recentReports].slice(0, 5);
         const restOfRecents = [...chatOptions.recentReports].slice(5);
-        const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
+        const contactsWithRestOfRecents = [...restOfRecents, ...createOptionListFromPersonalDetails(chatOptions.personalDetails, true)];
 
         const formatResults = formatSectionsFromSearchTerm(debouncedSearchTerm, [], chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
         newSections.push(formatResults.section);

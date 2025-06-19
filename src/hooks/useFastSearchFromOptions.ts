@@ -1,5 +1,6 @@
 import deburr from 'lodash/deburr';
 import {useCallback, useEffect, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import Timing from '@libs/actions/Timing';
 import FastSearch from '@libs/FastSearch';
 import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@libs/OptionsListUtils';
@@ -8,8 +9,7 @@ import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
-
-type AllOrSelectiveOptions = ReportAndPersonalDetailOptions | OptionsListType;
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 
 type Options = {
     includeUserToInvite: boolean;
@@ -18,11 +18,12 @@ type Options = {
 const emptyResult = {
     personalDetails: [],
     recentReports: [],
+    userToInvite: null,
+    currentUserOption: undefined,
 };
 
-const personalDetailToSearchString = (option: OptionData) => {
-    const displayName = option.participantsList?.[0]?.displayName ?? '';
-    return deburr([option.login ?? '', option.login !== displayName ? displayName : ''].join());
+const personalDetailToSearchString = (option: PersonalDetails) => {
+    return deburr([option.login ?? '', option.login !== option.displayName ? option.displayName : ''].join());
 };
 
 const recentReportToSearchString = (option: OptionData) => {
@@ -39,7 +40,7 @@ const recentReportToSearchString = (option: OptionData) => {
     return deburr(searchStringForTree.join());
 };
 
-const getPersonalDetailUniqueId = (option: OptionData) => {
+const getPersonalDetailUniqueId = (option: PersonalDetails) => {
     return option.login ? `personalDetail-${option.login}` : undefined;
 };
 
@@ -48,9 +49,18 @@ const getRecentReportUniqueId = (option: OptionData) => {
 };
 
 // You can either use this to search within report and personal details options
-function useFastSearchFromOptions(options: ReportAndPersonalDetailOptions, config?: {includeUserToInvite: false}): (searchInput: string) => ReportAndPersonalDetailOptions;
+function useFastSearchFromOptions(
+    options: ReportAndPersonalDetailOptions,
+    config?: {includeUserToInvite: false},
+): {search: (searchInput: string) => ReportAndPersonalDetailOptions; isInitialized: boolean};
 // Or you can use this to include the user invite option. This will require passing all options
-function useFastSearchFromOptions(options: OptionsListType, config?: {includeUserToInvite: true}): (searchInput: string) => OptionsListType;
+function useFastSearchFromOptions(
+    options: OptionsListType,
+    config?: {includeUserToInvite: true},
+): {
+    search: (searchInput: string) => OptionsListType;
+    isInitialized: boolean;
+};
 
 /**
  * Hook for making options from OptionsListUtils searchable with FastSearch.
@@ -64,43 +74,49 @@ function useFastSearchFromOptions(options: OptionsListType, config?: {includeUse
 function useFastSearchFromOptions(
     options: ReportAndPersonalDetailOptions | OptionsListType,
     {includeUserToInvite}: Options = {includeUserToInvite: false},
-): (searchInput: string) => AllOrSelectiveOptions {
-    const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
+): {search: (searchInput: string) => OptionsListType; isInitialized: boolean} {
+    const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<[PersonalDetails, OptionData]>> | null>(null);
+    const [isInitialized, setIsInitialized] = useState(false);
     const prevOptionsRef = useRef<typeof options | null>(null);
-    const prevFastSearchRef = useRef<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
+    const prevFastSearchRef = useRef<ReturnType<typeof FastSearch.createFastSearch<[PersonalDetails, OptionData]>> | null>(null);
 
     useEffect(() => {
+        let newFastSearch: ReturnType<typeof FastSearch.createFastSearch<[PersonalDetails, OptionData]>>;
         const prevOptions = prevOptionsRef.current;
         if (prevOptions && shallowCompareOptions(prevOptions, options)) {
             return;
         }
+        InteractionManager.runAfterInteractions(() => {
+            prevOptionsRef.current = options;
+            prevFastSearchRef.current?.dispose();
+            newFastSearch = FastSearch.createFastSearch<[PersonalDetails, OptionData]>(
+                [
+                    {
+                        data: options.personalDetails,
+                        toSearchableString: personalDetailToSearchString,
+                        uniqueId: getPersonalDetailUniqueId,
+                    },
+                    {
+                        data: options.recentReports,
+                        toSearchableString: recentReportToSearchString,
+                        uniqueId: getRecentReportUniqueId,
+                    },
+                ],
 
-        prevOptionsRef.current = options;
-        prevFastSearchRef.current?.dispose();
+                {shouldStoreSearchableStrings: true},
+            );
+            setFastSearch(newFastSearch);
+            prevFastSearchRef.current = newFastSearch;
+            setIsInitialized(true);
+        });
 
-        const newFastSearch = FastSearch.createFastSearch(
-            [
-                {
-                    data: options.personalDetails,
-                    toSearchableString: personalDetailToSearchString,
-                    uniqueId: getPersonalDetailUniqueId,
-                },
-                {
-                    data: options.recentReports,
-                    toSearchableString: recentReportToSearchString,
-                    uniqueId: getRecentReportUniqueId,
-                },
-            ],
-            {shouldStoreSearchableStrings: true},
-        );
-        setFastSearch(newFastSearch);
-        prevFastSearchRef.current = newFastSearch;
+        return () => newFastSearch?.dispose();
     }, [options]);
 
     useEffect(() => () => prevFastSearchRef.current?.dispose(), []);
 
     const findInSearchTree = useCallback(
-        (searchInput: string): AllOrSelectiveOptions => {
+        (searchInput: string): OptionsListType => {
             if (!fastSearch) {
                 return emptyResult;
             }
@@ -120,7 +136,7 @@ function useFastSearchFromOptions(
             if (searchWords.length > 1) {
                 personalDetails = personalDetails.filter((pd) => {
                     const id = getPersonalDetailUniqueId(pd);
-                    const searchableString = id ? fastSearch.searchableStringsMap.get(id) : deburr(pd.text);
+                    const searchableString = id ? fastSearch.searchableStringsMap.get(id) : personalDetailToSearchString(pd);
                     return isSearchStringMatch(deburredInput, searchableString);
                 });
                 recentReports = recentReports.filter((rr) => {
@@ -150,12 +166,14 @@ function useFastSearchFromOptions(
             return {
                 personalDetails,
                 recentReports,
+                userToInvite: null,
+                currentUserOption: undefined,
             };
         },
         [includeUserToInvite, options, fastSearch],
     );
 
-    return findInSearchTree;
+    return {search: findInSearchTree, isInitialized};
 }
 
 /**
@@ -175,7 +193,12 @@ function shallowCompareOptions(prev: ReportAndPersonalDetailOptions, next: Repor
     Performance.markStart(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
 
     for (let i = 0; i < prev.personalDetails.length; i++) {
-        if (prev.personalDetails.at(i)?.keyForList !== next.personalDetails.at(i)?.keyForList) {
+        if (prev.personalDetails.at(i)?.accountID !== next.personalDetails.at(i)?.accountID) {
+            Timing.end(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+            Performance.markEnd(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+            return false;
+        }
+        if (prev.personalDetails.at(i)?.displayName !== next.personalDetails.at(i)?.displayName) {
             Timing.end(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
             Performance.markEnd(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
             return false;

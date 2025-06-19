@@ -9,8 +9,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {Section} from '@components/SelectionList/types';
-import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
+import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,19 +22,18 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {
+    createOptionFromPersonalDetail,
     filterAndOrderOptions,
-    formatMemberForList,
     getEmptyOptions,
     getHeaderMessage,
     getMemberInviteOptions,
     getSearchValueForPhoneOrEmail,
     isPersonalDetailsReady,
 } from '@libs/OptionsListUtils';
-import type {MemberForList} from '@libs/OptionsListUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
-import {getGroupChatName, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import {getGroupChatName, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,7 +45,7 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type InviteReportParticipantsPageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps;
 
-type Sections = Array<SectionListData<MemberForList, Section<MemberForList>>>;
+type Sections = Array<SectionListData<OptionData, Section<OptionData>>>;
 
 function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: InviteReportParticipantsPageProps) {
     const route = useRoute<PlatformStackRouteProp<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.INVITE>>();
@@ -91,12 +90,12 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
 
     useEffect(() => {
         // Update selectedOptions with the latest personalDetails information
-        const detailsMap: Record<string, MemberForList> = {};
+        const detailsMap: Record<string, OptionData> = {};
         inviteOptions.personalDetails.forEach((detail) => {
             if (!detail.login) {
                 return;
             }
-            detailsMap[detail.login] = formatMemberForList(detail);
+            detailsMap[detail.login] = createOptionFromPersonalDetail(detail, true);
         });
         const newSelectedOptions: OptionData[] = [];
         selectedOptions.forEach((option) => {
@@ -125,7 +124,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
             });
         }
-        const filterSelectedOptionsFormatted = filterSelectedOptions.map((selectedOption) => formatMemberForList(selectedOption));
+        const filterSelectedOptionsFormatted = filterSelectedOptions;
 
         sectionsArr.push({
             title: undefined,
@@ -134,10 +133,9 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
 
         // Filtering out selected users from the search results
         const selectedLogins = selectedOptions.map(({login}) => login);
-        const recentReportsWithoutSelected = inviteOptions.recentReports.filter(({login}) => !selectedLogins.includes(login));
-        const recentReportsFormatted = recentReportsWithoutSelected.map((reportOption) => formatMemberForList(reportOption));
+        const recentReportsFormatted = inviteOptions.recentReports.filter(({login}) => !selectedLogins.includes(login));
         const personalDetailsWithoutSelected = inviteOptions.personalDetails.filter(({login}) => !selectedLogins.includes(login));
-        const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => formatMemberForList(personalDetail));
+        const personalDetailsFormatted = personalDetailsWithoutSelected.map((personalDetail) => createOptionFromPersonalDetail(personalDetail, true));
         const hasUnselectedUserToInvite = inviteOptions.userToInvite && !selectedLogins.includes(inviteOptions.userToInvite.login);
 
         sectionsArr.push({
@@ -153,7 +151,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
         if (hasUnselectedUserToInvite) {
             sectionsArr.push({
                 title: undefined,
-                data: inviteOptions.userToInvite ? [formatMemberForList(inviteOptions.userToInvite)] : [],
+                data: inviteOptions.userToInvite ? [inviteOptions.userToInvite] : [],
             });
         }
 
@@ -161,7 +159,7 @@ function InviteReportParticipantsPage({betas, report, didScreenTransitionEnd}: I
     }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, inviteOptions.recentReports, inviteOptions.personalDetails, inviteOptions.userToInvite, translate]);
 
     const toggleOption = useCallback(
-        (option: MemberForList) => {
+        (option: OptionData) => {
             const isOptionInList = selectedOptions.some((selectedOption) => selectedOption.login === option.login);
 
             let newSelectedOptions: OptionData[];
