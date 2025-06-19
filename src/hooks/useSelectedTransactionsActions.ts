@@ -36,12 +36,14 @@ function useSelectedTransactionsActions({
     allTransactionsLength,
     session,
     onExportFailed,
+    beginExportWithTemplate,
 }: {
     report?: Report;
     reportActions: ReportAction[];
     allTransactionsLength: number;
     session?: Session;
     onExportFailed?: () => void;
+    beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[]) => void;
 }) {
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
@@ -177,6 +179,21 @@ function useSelectedTransactionsActions({
                         clearSelectedTransactions(true);
                     },
                 },
+                {
+                    text: translate('export.expenseLevelExport'),
+                    icon: Expensicons.Table,
+                    value: CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
+                    onSelected: () => {
+                        if (!report) {
+                            return;
+                        }
+                        beginExportWithTemplate(
+                            CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
+                            CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+                            selectedTransactionIDs,
+                        );
+                    },
+                },
             ],
         });
 
@@ -235,6 +252,7 @@ function useSelectedTransactionsActions({
         session?.accountID,
         showDeleteModal,
         isReportArchived,
+        beginExportWithTemplate,
     ]);
 
     return {
