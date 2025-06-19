@@ -84,12 +84,13 @@ function createExpenseReport(index: number): Report {
 /**
  * Creates a workspace task report
  */
-function createWorkspaceTaskReport(index: number, accountIDs: number[]): Report {
+function createWorkspaceTaskReport(index: number, accountIDs: number[], parentReportID = `${randNumber()}`): Report {
     return {
         ...createRandomReport(index),
         type: CONST.REPORT.TYPE.TASK,
         policyID: `policy${index}`,
         participants: buildParticipantsFromAccountIDs(accountIDs),
+        parentReportID,
 
         // Clear random chat type
         chatType: undefined,

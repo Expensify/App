@@ -2912,8 +2912,16 @@ describe('ReportUtils', () => {
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
-        it('should return true for workspace task report', () => {
-            const report = createWorkspaceTaskReport(60010, [currentUserAccountID, 1]);
+        it('should return true for workspace task report', async () => {
+            // Given a parent report that is a policy expense chat
+            const parentReport = createPolicyExpenseChat(600081);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+
+            // And a report that is a task report of the parent report
+            const report = createWorkspaceTaskReport(60010, [currentUserAccountID, 1], parentReport.reportID);
+
+            // When we check if the report should show a subscript
+            // Then it should return true because isWorkspaceTaskReport() returns true
             expect(shouldReportShowSubscript(report)).toBe(true);
         });
 
