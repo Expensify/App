@@ -80,13 +80,16 @@ class TranslationGenerator {
 
     private readonly compareRef?: string;
 
-    constructor(config: {targetLanguages: TranslationTargetLocale[]; languagesDir: string; sourceFile: string; translator: Translator; compareRef?: string}) {
+    private readonly verbose?: boolean;
+
+    constructor(config: {targetLanguages: TranslationTargetLocale[]; languagesDir: string; sourceFile: string; translator: Translator; compareRef?: string; verbose?: boolean}) {
         this.targetLanguages = config.targetLanguages;
         this.languagesDir = config.languagesDir;
         const sourceCode = fs.readFileSync(config.sourceFile, 'utf8');
         this.sourceFile = ts.createSourceFile(config.sourceFile, sourceCode, ts.ScriptTarget.Latest, true);
         this.translator = config.translator;
         this.compareRef = config.compareRef;
+        this.verbose = !!config.verbose;
     }
 
     public async generateTranslations(): Promise<void> {
@@ -308,7 +311,9 @@ class TranslationGenerator {
                 if (this.isSimpleTemplateExpression(node)) {
                     stringsToTranslate.set(this.getTranslationKey(node), {text: this.templateExpressionToString(node), context});
                 } else {
-                    console.log('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
+                    if (this.verbose) {
+                        console.debug('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
+                    }
                     node.templateSpans.forEach((span) => this.extractStringsToTranslate(span, stringsToTranslate));
                     stringsToTranslate.set(this.getTranslationKey(node), {text: this.templateExpressionToString(node), context});
                 }
@@ -446,6 +451,9 @@ async function main(): Promise<void> {
         flags: {
             'dry-run': {
                 description: 'If true, just do local mocked translations rather than making real requests to an AI translator.',
+            },
+            verbose: {
+                description: 'Should we print verbose logs?',
             },
         },
         namedArgs: {
