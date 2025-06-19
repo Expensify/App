@@ -165,6 +165,7 @@ import type {
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     ReportPolicyNameParams,
+    ReportWithIDRouteParams,
     RequestAmountParams,
     RequestCountParams,
     RequestedAmountMessageParams,
@@ -6485,7 +6486,8 @@ const translations = {
             whatsMainReason: 'Was ist der Hauptgrund, warum Sie die automatische Verlängerung deaktivieren?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Wird am ${date} erneuert.`,
             pricingConfiguration: 'Die Preisgestaltung hängt von der Konfiguration ab. Für den niedrigsten Preis wählen Sie ein Jahresabonnement und erhalten Sie die Expensify Card.',
-            learnMore: `Erfahren Sie mehr auf unserer  <a href=${CONST.PRICING}>Preisseite</a>  oder chatten Sie mit unserem Team in Ihrer  <a>#admins room.</a>`,
+            learnMore: ({reportWithIDRoute}: ReportWithIDRouteParams) =>
+                `Erfahren Sie mehr auf unserer  <a href=${CONST.PRICING}>Preisseite</a>  oder chatten Sie mit unserem Team in Ihrer  <a href="${reportWithIDRoute}">#admins room.</a>`,
             estimatedPrice: 'Geschätzter Preis',
             changesBasedOn: 'Dies ändert sich basierend auf Ihrer Expensify Card-Nutzung und den untenstehenden Abonnementoptionen.',
         },

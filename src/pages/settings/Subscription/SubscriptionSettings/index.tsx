@@ -15,7 +15,6 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
@@ -80,6 +79,7 @@ function SubscriptionSettings() {
         upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
     });
     const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins.toString() : undefined;
+    const reportWithIDRoute = `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID)}`;
 
     const onOptionSelected = (option: SubscriptionType) => {
         if (privateSubscription?.type !== option && isActingAsDelegate) {
@@ -180,11 +180,7 @@ function SubscriptionSettings() {
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
                 <Text style={[styles.textSupporting, styles.mb5]}>
-                    {!!adminsChatReportID && (
-                        <TextLink href={`${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID)}`}>
-                            <RenderHTML html={`<muted-text>${translate('subscription.subscriptionSettings.learnMore')}</muted-text>`} />
-                        </TextLink>
-                    )}
+                    <RenderHTML html={`<muted-text>${translate('subscription.subscriptionSettings.learnMore', {reportWithIDRoute})}</muted-text>`} />
                 </Text>
 
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>

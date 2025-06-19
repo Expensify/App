@@ -165,6 +165,7 @@ import type {
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     ReportPolicyNameParams,
+    ReportWithIDRouteParams,
     RequestAmountParams,
     RequestCountParams,
     RequestedAmountMessageParams,
@@ -6447,7 +6448,8 @@ const translations = {
             whatsMainReason: 'Qual é o principal motivo para você desativar a renovação automática?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Renova em ${date}.`,
             pricingConfiguration: 'O preço depende da configuração. Para o menor preço, escolha uma assinatura anual e obtenha o Expensify Card.',
-            learnMore: `Saiba mais em nosso  <a href=${CONST.PRICING}>página de preços</a>  ou converse com nossa equipe no seu  <a>#admins room.</a>`,
+            learnMore: ({reportWithIDRoute}: ReportWithIDRouteParams) =>
+                `Saiba mais em nosso  <a href=${CONST.PRICING}>página de preços</a>  ou converse com nossa equipe no seu  <a href="${reportWithIDRoute}">#admins room.</a>`,
             estimatedPrice: 'Preço estimado',
             changesBasedOn: 'Isso muda com base no uso do seu Expensify Card e nas opções de assinatura abaixo.',
         },
