@@ -124,6 +124,7 @@ function PlaidConnectionStep({feed}: {feed?: CompanyCardFeed}) {
                                     plaidAccessToken: publicToken,
                                     institutionId: plaidConnectedFeed,
                                     plaidConnectedFeedName,
+                                    plaidAccounts: metadata?.accounts,
                                 },
                                 currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
                             });
@@ -135,6 +136,7 @@ function PlaidConnectionStep({feed}: {feed?: CompanyCardFeed}) {
                                 publicToken,
                                 plaidConnectedFeed,
                                 plaidConnectedFeedName,
+                                plaidAccounts: metadata?.accounts,
                             },
                         });
                     }}
