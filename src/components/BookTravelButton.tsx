@@ -149,8 +149,6 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
         primaryContactMethod,
         policy,
         travelSettings?.hasAcceptedTerms,
-        styles.link,
-        StyleUtils,
         translate,
         wasNewDotLaunchedJustForTravel,
         setRootStatusBarEnabled,
