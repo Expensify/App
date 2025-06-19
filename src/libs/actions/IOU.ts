@@ -9224,7 +9224,12 @@ function isLastApprover(approvalChain: string[]): boolean {
     return approvalChain.at(-1) === currentUserEmail;
 }
 
-function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean, reportTransactions: OnyxTypes.Transaction[] = [], allSnapshots?: OnyxCollection<OnyxTypes.SearchResults>) {
+function approveMoneyRequest(
+    expenseReport: OnyxEntry<OnyxTypes.Report>,
+    full?: boolean,
+    reportTransactions: OnyxTypes.Transaction[] = [],
+    allSnapshots?: OnyxCollection<OnyxTypes.SearchResults>,
+) {
     if (!expenseReport) {
         return;
     }
