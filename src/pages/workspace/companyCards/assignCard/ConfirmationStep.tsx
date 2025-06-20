@@ -20,6 +20,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
+import useRootNavigationState from '@hooks/useRootNavigationState';
+import { isFullScreenName } from '@libs/Navigation/helpers/isNavigatorName';
+import SCREENS from '@src/SCREENS';
+import ROUTES from '@src/ROUTES';
 
 type ConfirmationStepProps = {
     /** Current policy id */
@@ -44,15 +48,18 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const data = assignCard?.data;
     const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
 
+    const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
+
     useEffect(() => {
         if (!assignCard?.isAssigned) {
             return;
         }
 
-        if (backTo) {
+        const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
+        if (backTo || lastRoute?.name === SCREENS.WORKSPACE.COMPANY_CARDS) {
             Navigation.goBack(backTo);
         } else {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         }
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
     }, [assignCard, backTo, policyID]);

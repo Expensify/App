@@ -167,6 +167,7 @@ describe('AssignCardFeedPage', () => {
     it('should navigate to the company cards page as the assignee email has changed', async () => {
         // Sign in as a test user before running the test.
         await TestHelper.signInWithTestUser();
+        const navigate = jest.spyOn(Navigation, 'navigate');
         const policy = {
             ...LHNTestUtils.getFakePolicy(),
             role: CONST.POLICY.ROLE.ADMIN,
@@ -230,10 +231,9 @@ describe('AssignCardFeedPage', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // Verify that we go back to the company cards page as the card assignee has changed
-        const navigate = jest.spyOn(Navigation, 'navigate');
+        // Verify that we navigate to the company cards page as the card assignee has changed
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy.id), {forceReplace: true});
+            expect(navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy.id));
         });
         // Unmount the component after assertions to clean up.
         unmount();
