@@ -196,7 +196,7 @@ function SuggestionMention(
 
         // If the search string contains spaces, it's not a simple login/email mention.
         // In that case, we need to replace all the words the user typed that are part of the mention.
-        // For example, if `rest` is "@Adam Chr asdasda" and "@Adam Chris" is a valid mention,
+        // For example, if `rest` is "@Adam Chr and" and "@Adam Chris" is a valid mention,
         // then `whiteSpacesLength` will be 1, and we should return "@Adam Chr".
         // The length of this substring will then be used to replace the user's input with the full mention.
         if (whiteSpacesLength) {
