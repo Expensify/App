@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useMemo, useRef} from 'react';
+import {useCallback, useMemo, useRef, useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {getNewerActions, getOlderActions} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -28,13 +28,19 @@ type UseLoadReportActionsArguments = {
 
     /** If the report has older actions to load */
     hasOlderActions: boolean;
+    
+    /** Function to expand the view to show more older actions (frontend pagination) */
+    expandOlderActions?: () => boolean;
+    
+    /** Function to expand the view to show more newer actions (frontend pagination) */
+    expandNewerActions?: () => boolean;
 };
 
 /**
  * Provides reusable logic to get the functions for loading older/newer reportActions.
  * Used in the report displaying components
  */
-function useLoadReportActions({reportID, reportActionID, reportActions, allReportActionIDs, transactionThreadReport, hasOlderActions, hasNewerActions}: UseLoadReportActionsArguments) {
+function useLoadReportActions({reportID, reportActionID, reportActions, allReportActionIDs, transactionThreadReport, hasOlderActions, hasNewerActions, expandOlderActions, expandNewerActions}: UseLoadReportActionsArguments) {
     const didLoadOlderChats = useRef(false);
     const didLoadNewerChats = useRef(false);
 
@@ -43,6 +49,13 @@ function useLoadReportActions({reportID, reportActionID, reportActions, allRepor
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
+
+    // Reset loading flags when reportActions change (new data loaded)
+    // This allows multiple scroll-to-load operations
+    useEffect(() => {
+        didLoadOlderChats.current = false;
+        didLoadNewerChats.current = false;
+    }, [reportActions.length]);
 
     // Track oldest/newest actions per report in a single pass
     const {currentReportOldest, currentReportNewest, transactionThreadOldest, transactionThreadNewest} = useMemo(() => {
@@ -88,7 +101,15 @@ function useLoadReportActions({reportID, reportActionID, reportActions, allRepor
      * displaying.
      */
     const loadOlderChats = useCallback(
-        (force = false) => {
+        (force = false) => {            
+            // First, try frontend pagination expansion if available
+            if (expandOlderActions && hasOlderActions) {
+                const didExpand = expandOlderActions();
+                if (didExpand) {
+                    return;
+                }
+            }
+            
             // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
             if (!force && isOffline) {
                 return;
@@ -96,6 +117,11 @@ function useLoadReportActions({reportID, reportActionID, reportActions, allRepor
 
             // Don't load more reportActions if we're already at the beginning of the chat history
             if (!oldestReportAction || !hasOlderActions) {
+                return;
+            }
+
+            // Check if we already tried to load and haven't reset yet
+            if (didLoadOlderChats.current) {
                 return;
             }
 
@@ -108,11 +134,19 @@ function useLoadReportActions({reportID, reportActionID, reportActions, allRepor
                 getOlderActions(reportID, currentReportOldest?.reportActionID);
             }
         },
-        [isOffline, oldestReportAction, hasOlderActions, transactionThreadReport, reportID, currentReportOldest?.reportActionID, transactionThreadOldest?.reportActionID],
+        [isOffline, oldestReportAction, hasOlderActions, transactionThreadReport, reportID, currentReportOldest?.reportActionID, transactionThreadOldest?.reportActionID, expandOlderActions],
     );
 
     const loadNewerChats = useCallback(
         (force = false) => {
+            // First, try frontend pagination expansion if available
+            if (expandNewerActions && hasNewerActions) {
+                const didExpand = expandNewerActions();
+                if (didExpand) {
+                    return;
+                }
+            }
+            
             if (
                 !force &&
                 (!reportActionID ||
@@ -147,6 +181,7 @@ function useLoadReportActions({reportID, reportActionID, reportActions, allRepor
             reportID,
             currentReportNewest?.reportActionID,
             transactionThreadNewest?.reportActionID,
+            expandNewerActions,
         ],
     );
 

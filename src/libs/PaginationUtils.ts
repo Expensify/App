@@ -177,6 +177,30 @@ function getContinuousChain<TResource>(
         return {data: id && !dataItem ? [] : sortedItems, hasNextPage: false, hasPreviousPage: false};
     }
 
+    // Only fetch from backend if we're actually missing data
+    // This prevents unnecessary API calls when all data is already loaded in Onyx
+    // Count total number of action IDs that the backend knows about across all pages
+    const totalItemsInPages = pages.reduce((total, page) => total + page.length, 0);
+    
+     // All action IDs mentioned in backend pages
+    const allPageIDs = new Set(pages.flat());
+
+    // All action IDs we have loaded in Onyx
+    const allLoadedIDs = new Set(sortedItems.map(getID));
+    
+    // Check if we have ALL the action IDs that the backend mentioned
+    // We exclude special pagination markers (PAGINATION_START_ID, PAGINATION_END_ID) from this check.
+    const allPageIDsLoaded = Array.from(allPageIDs).every(id => 
+        allLoadedIDs.has(id) || 
+        id === CONST.PAGINATION_START_ID || 
+        id === CONST.PAGINATION_END_ID
+    );
+    
+    // Only set hasMoreItemsInPages to true if both conditions are met:
+    // 1. Backend knows about more items than we have loaded (totalItemsInPages > sortedItems.length)
+    // 2. We're actually missing some of those specific IDs (!allPageIDsLoaded)
+    const hasMoreItemsInPages = totalItemsInPages > sortedItems.length && !allPageIDsLoaded;
+
     const pagesWithIndexes = getPagesWithIndexes(sortedItems, pages, getID);
 
     let page: PageWithIndex = {
@@ -185,7 +209,7 @@ function getContinuousChain<TResource>(
         firstIndex: 0,
         lastID: '',
         lastIndex: 0,
-    };
+    }; 
 
     if (id) {
         const index = sortedItems.findIndex((item) => getID(item) === id);
@@ -214,10 +238,14 @@ function getContinuousChain<TResource>(
     }
 
     if (!page) {
-        return {data: sortedItems, hasNextPage: false, hasPreviousPage: false};
+        return {data: sortedItems, hasNextPage: hasMoreItemsInPages, hasPreviousPage: false};
     }
 
-    return {data: sortedItems.slice(page.firstIndex, page.lastIndex + 1), hasNextPage: page.lastID !== CONST.PAGINATION_END_ID, hasPreviousPage: page.firstID !== CONST.PAGINATION_START_ID};
+    return {
+        data: sortedItems.slice(page.firstIndex, page.lastIndex + 1),
+        hasNextPage: page.lastID !== CONST.PAGINATION_END_ID || hasMoreItemsInPages, 
+        hasPreviousPage: page.firstID !== CONST.PAGINATION_START_ID,
+    };
 }
 
 export default {mergeAndSortContinuousPages, getContinuousChain};
