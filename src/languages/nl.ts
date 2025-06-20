@@ -611,6 +611,7 @@ const translations = {
         workspacesTabTitle: 'Werkruimtes',
         getTheApp: 'Download de app',
         scanReceiptsOnTheGo: 'Scan bonnetjes vanaf je telefoon',
+        headsUp: 'Let op!',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',

@@ -612,6 +612,7 @@ const translations = {
         workspacesTabTitle: 'Przestrzenie robocze',
         getTheApp: 'Pobierz aplikację',
         scanReceiptsOnTheGo: 'Skanuj paragony za pomocą telefonu',
+        headsUp: 'Uwaga!',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',

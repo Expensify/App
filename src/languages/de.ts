@@ -612,6 +612,7 @@ const translations = {
         workspacesTabTitle: 'Arbeitsbereiche',
         getTheApp: 'Hole dir die App',
         scanReceiptsOnTheGo: 'Scannen Sie Belege von Ihrem Telefon aus',
+        headsUp: 'Achtung!',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -2386,7 +2387,6 @@ const translations = {
         toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `an ${submittedToName} als Urlaubsvertretung von ${vacationDelegateName}`,
         vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
             `Sie weisen ${nameOrEmail} als Ihre Urlaubsvertretung zu. Diese Person ist noch nicht in all Ihren Workspaces. Wenn Sie fortfahren, wird eine E-Mail an alle Ihre Workspace-Administratoren gesendet, um sie hinzuzufügen.`,
-
         clearAfter: 'Nach dem Löschen',
         whenClearStatus: 'Wann sollten wir Ihren Status löschen?',
     },

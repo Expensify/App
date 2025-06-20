@@ -612,6 +612,7 @@ const translations = {
         workspacesTabTitle: 'ワークスペース',
         getTheApp: 'アプリを入手',
         scanReceiptsOnTheGo: '携帯電話から領収書をスキャンする',
+        headsUp: 'ご注意ください！',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
