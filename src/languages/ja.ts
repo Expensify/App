@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -969,6 +970,7 @@ const translations = {
         deleteReceipt: '領収書を削除',
         deleteConfirmation: 'この領収書を削除してもよろしいですか？',
         addReceipt: '領収書を追加',
+        scanFailed: '販売者、日付、または金額が不足しているため、レシートをスキャンできませんでした。',
     },
     quickAction: {
         scanReceipt: '領収書をスキャン',
@@ -4225,7 +4227,7 @@ const translations = {
                 pendingFeedDescription: `現在、フィードの詳細を確認しています。それが完了次第、経由でご連絡いたします。`,
                 pendingBankTitle: 'ブラウザウィンドウを確認してください。',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) => `${bankName}に接続するには、開いたブラウザウィンドウを使用してください。ウィンドウが開かない場合は、`,
-                pendingBankLink: 'こちらをクリックしてください。',
+                pendingBankLink: 'こちらをクリックしてください',
                 giveItNameInstruction: 'カードに他と区別できる名前を付けてください。',
                 updating: '更新中...',
                 noAccountsFound: 'アカウントが見つかりません',
@@ -5929,8 +5931,8 @@ const translations = {
         principalWorkEmail: '主要な勤務先のメールアドレス',
         updateYourEmail: 'メールアドレスを更新してください',
         updateEmail: 'メールアドレスを更新する',
-        contactMethods: '連絡方法。',
-        schoolMailAsDefault: '先に進む前に、学校のメールをデフォルトの連絡方法として設定してください。設定 > プロフィール > で行うことができます。',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `先に進む前に、学校のメールをデフォルトの連絡方法として設定してください。設定 > プロフィール > <a href="${contactMethodsRoute}">連絡方法</a> で行うことができます。`,
         error: {
             enterPhoneEmail: '有効なメールアドレスまたは電話番号を入力してください',
             enterEmail: 'メールアドレスを入力してください',
