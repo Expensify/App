@@ -29,6 +29,9 @@ type AssignCardData = {
     /** An option based on which the transaction start date is chosen */
     dateOption: string;
 
+    /** The account ID of the cardholder */
+    assigneeAccountID?: number;
+
     /** bank id for Plaid */
     institutionId?: string;
 
