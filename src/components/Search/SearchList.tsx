@@ -334,6 +334,7 @@ function SearchList(
     useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex}), [scrollAndHighlightItem, scrollToIndex]);
 
     const renderItem = useCallback(
+        // eslint-disable-next-line react/no-unused-prop-types
         ({item, index}: {item: SearchListItem; index: number}) => {
             const isItemFocused = focusedIndex === index;
             const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
