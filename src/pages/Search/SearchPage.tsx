@@ -35,6 +35,7 @@ import {
     getLastPolicyPaymentMethod,
     payMoneyRequestOnSearch,
     queueExportSearchItemsToCSV,
+    queueExportSearchWithTemplate,
     search,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
@@ -55,6 +56,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
+import { PopoverMenuItem } from '@components/PopoverMenu';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -74,6 +76,8 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
+    const [isExportModalVisible, setIsExportModalVisible] = useState(false);
+
     const {
         validateAndResizeFile,
         setIsAttachmentInvalid,
@@ -86,11 +90,8 @@ function SearchPage({route}: SearchPageProps) {
         isLoadingReceipt,
     } = useFileValidation();
 
-    const {q} = route.params;
-
     const {isBetaEnabled} = usePermissions();
-
-    const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]);
+    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
@@ -122,15 +123,14 @@ function SearchPage({route}: SearchPageProps) {
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
-        const downloadButtonOption: DropdownOption<SearchHeaderOptionValue> = {
-            icon: Expensicons.Export,
-            text: translate('common.export'),
-            backButtonText: translate('common.export'),
-            value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
-            shouldCloseModalOnSelect: true,
-            subMenuItems: [
+        // Gets the list of options for the export sub-menu
+        const getExportOptions = () => {
+            const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+
+            // We provide the basic and expense level export options by default
+            const exportOptions: PopoverMenuItem[] = [
                 {
-                    text: translate('common.basicExport'),
+                    text: translate('export.basicExport') ,
                     icon: Expensicons.Table,
                     onSelected: () => {
                         if (isOffline) {
@@ -143,7 +143,6 @@ function SearchPage({route}: SearchPageProps) {
                             return;
                         }
 
-                        const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
                         exportSearchItemsToCSV(
                             {
                                 query: status,
@@ -158,11 +157,76 @@ function SearchPage({route}: SearchPageProps) {
                         clearSelectedTransactions();
                     },
                 },
-            ],
+                {
+                    text: translate('export.expenseLevelExport'),
+                    icon: Expensicons.Table,
+                    onSelected: () => {
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
+
+                        setIsExportModalVisible(true);
+                        queueExportSearchWithTemplate({
+                            templateName: CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
+                            templateType: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+                            jsonQuery: JSON.stringify(queryJSON),
+                            reportIDList,
+                            transactionIDList: selectedTransactionsKeys,
+                            // The expense level export template is not policy specific, so we don't need to pass a policyID
+                            policyID: '',
+                        });
+                        clearSelectedTransactions();
+                    },
+                }
+            ];
+
+            // Determine if only full reports are selected by comparing the reportIDs of the selected transactions and the reportIDs of the selected reports
+            const selectedTransactionReportIDs = [... new Set(Object.values(selectedTransactions).map(transaction => transaction.reportID))];
+            const selectedReportIDs = Object.values(selectedReports).map(report => report.reportID);
+            const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every(id => selectedReportIDs.includes(id));
+            const groupByReports = queryJSON?.groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
+
+            // Add the report level export if fully reports are selected and we're on the report page
+            if (groupByReports && areFullReportsSelected) {
+                exportOptions.push({
+                    text: translate('export.reportLevelExport'),
+                    icon: Expensicons.Table,
+                    onSelected: () => {
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
+
+                        setIsExportModalVisible(true);
+                        queueExportSearchWithTemplate({
+                            templateName: CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
+                            templateType: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
+                            jsonQuery: JSON.stringify(queryJSON),
+                            reportIDList,
+                            transactionIDList: selectedTransactionsKeys,
+                            // The expense level export template is not policy specific, so we don't need to pass a policyID
+                            policyID: '',
+                        });
+                        clearSelectedTransactions();
+                    },
+                });
+            }
+
+            return exportOptions;
+        };
+
+        const exportButtonOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: Expensicons.Export,
+            text: translate('common.export'),
+            backButtonText: translate('common.export'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+            shouldCloseModalOnSelect: true,
+            subMenuItems: getExportOptions(),
         };
 
         if (isExportMode) {
-            return [downloadButtonOption];
+            return [exportButtonOption];
         }
 
         const shouldShowApproveOption =
@@ -273,7 +337,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        options.push(downloadButtonOption);
+        options.push(exportButtonOption);
 
         const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
 
@@ -645,6 +709,14 @@ function SearchPage({route}: SearchPageProps) {
                     prompt={translate('search.exportSearchResults.description')}
                     confirmText={translate('search.exportSearchResults.title')}
                     cancelText={translate('common.cancel')}
+                />
+                <ConfirmModal
+                    isVisible={isExportModalVisible}
+                    onConfirm={() => setIsExportModalVisible(false)}
+                    title={translate('export.exportInProgress')}
+                    prompt={translate('export.conciergeWillSend')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
                 />
                 <DecisionModal
                     title={translate('common.youAppearToBeOffline')}

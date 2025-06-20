@@ -166,7 +166,7 @@ function useSelectedTransactionsActions({
             icon: Expensicons.Export,
             subMenuItems: [
                 {
-                    text: translate('common.basicExport'),
+                    text: translate('export.basicExport'),
                     icon: Expensicons.Table,
                     value: CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV,
                     onSelected: () => {
