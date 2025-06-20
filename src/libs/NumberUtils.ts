@@ -93,4 +93,21 @@ function generateNewRandomInt(old: number, min: number, max: number): number {
     return newNum;
 }
 
-export {rand64, generateHexadecimalValue, generateRandomInt, parseFloatAnyLocale, roundToTwoDecimalPlaces, clamp, generateNewRandomInt};
+/**
+ * Converts a value to a number, returning 0 for non-numeric values.
+ */
+function convertToNumber(value: unknown): number {
+    switch (typeof value) {
+        case 'number':
+            return value;
+        case 'string':
+            if (!Number.isNaN(Number(value))) {
+                return Number(value);
+            }
+            return 0;
+        default:
+            return 0;
+    }
+}
+
+export {rand64, generateHexadecimalValue, generateRandomInt, parseFloatAnyLocale, roundToTwoDecimalPlaces, clamp, generateNewRandomInt, convertToNumber};
