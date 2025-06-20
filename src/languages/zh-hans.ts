@@ -1461,6 +1461,7 @@ const translations = {
             noLogsToShare: '没有日志可分享',
             useProfiling: '使用分析工具',
             profileTrace: '个人资料追踪',
+            results: '成果',
             releaseOptions: '发布选项',
             testingPreferences: '测试偏好设置',
             useStagingServer: '使用测试服务器',
@@ -1481,6 +1482,7 @@ const translations = {
             invalidFile: '文件无效',
             invalidFileDescription: '您尝试导入的文件无效。请再试一次。',
             invalidateWithDelay: '延迟失效',
+            recordTroubleshootData: '记录故障排除数据',
         },
         debugConsole: {
             saveLog: '保存日志',

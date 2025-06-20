@@ -1474,6 +1474,7 @@ const translations = {
             noLogsToShare: 'Brak dzienników do udostępnienia',
             useProfiling: 'Użyj profilowania',
             profileTrace: 'Ślad profilu',
+            results: 'Wyniki',
             releaseOptions: 'Opcje wydania',
             testingPreferences: 'Testowanie preferencji',
             useStagingServer: 'Użyj serwera Staging',
@@ -1494,6 +1495,7 @@ const translations = {
             invalidFile: 'Nieprawidłowy plik',
             invalidFileDescription: 'Plik, który próbujesz zaimportować, jest nieprawidłowy. Spróbuj ponownie.',
             invalidateWithDelay: 'Unieważnij z opóźnieniem',
+            recordTroubleshootData: 'Rejestrowanie danych rozwiązywania problemów',
         },
         debugConsole: {
             saveLog: 'Zapisz log',
