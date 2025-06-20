@@ -1693,6 +1693,7 @@ describe('actions/Report', () => {
                 callback: (val) => (updateReport = val),
             });
             expect(updateReport?.description).toBe('<h1>test</h1>');
+            mockFetch.mockReset();
         });
     });
 
