@@ -23,7 +23,14 @@ function AmountWithoutCurrencyForm(
 ) {
     const {toLocaleDigit} = useLocalize();
 
-    const currentAmount = useMemo(() => (typeof amount === 'string' ? amount : ''), [amount]);
+    const separator = useMemo(
+            () =>
+                replaceAllDigits('1.1', toLocaleDigit)
+                    .split('')
+                    .filter((char) => char !== '1')
+                    .join(''),
+            [toLocaleDigit],
+    );
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
@@ -44,11 +51,11 @@ function AmountWithoutCurrencyForm(
         [onInputChange, shouldAllowNegative],
     );
 
-    const formattedAmount = replaceAllDigits(currentAmount, toLocaleDigit);
+    const positiveMask = [`[09999999]${separator}[09]`];
+    const positiveAndNegativeMask = [`[09999999]${separator}[09]`, `-[09999999]${separator}[09]`];
 
     return (
         <TextInput
-            value={formattedAmount}
             onChangeText={setNewAmount}
             inputID={inputID}
             name={name}
@@ -58,6 +65,11 @@ function AmountWithoutCurrencyForm(
             role={role}
             ref={ref}
             keyboardType={!shouldAllowNegative ? CONST.KEYBOARD_TYPE.DECIMAL_PAD : undefined}
+            type="mask"
+            mask={`[09999999]${separator}[09]`}
+            allowedKeys="0123456789.,-"
+            validationRegex={'^-?(?!.*[.,].*[.,])\\d{0,8}(?:[.,]\\d{0,2})?$'}
+            affinityFormat={shouldAllowNegative ? positiveAndNegativeMask : positiveMask}
             // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
             // See https://github.com/Expensify/App/issues/51868 for more information
             autoCapitalize="words"
