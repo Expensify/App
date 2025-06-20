@@ -26,13 +26,13 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
 
     const selectReport = (item: ReportListItem) => {
-        if (selectedTransactionIDs.length === 0) {
+        if (selectedTransactionIDs.length === 0 || item.value === reportID) {
+            Navigation.dismissModal();
             return;
         }
-        if (item.value !== transactionReport?.reportID) {
-            changeTransactionsReport(selectedTransactionIDs, item.value);
-            clearSelectedTransactions(true);
-        }
+
+        changeTransactionsReport(selectedTransactionIDs, item.value);
+        clearSelectedTransactions(true);
         Navigation.dismissModalWithReport({reportID: item.value});
     };
 
