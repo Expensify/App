@@ -25,7 +25,7 @@ import {isValidRecoveryCode, isValidTwoFactorCode, isValidValidateCode} from '@l
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
 import {resetSignInFlow, setNewDotSignInState} from '@userActions/HybridApp';
-import {clearAccountMessages, isAnonymousUser as isAnonymousUserUtil, clearSignInData as sessionActionsClearSignInData, signIn, signInWithValidateCode} from '@userActions/Session';
+import {clearAccountMessages, clearSignInData as sessionActionsClearSignInData, signIn, signInWithValidateCode} from '@userActions/Session';
 import {resendValidateCode as userActionsResendValidateCode} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -239,10 +239,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        const isAnonymousUser = isAnonymousUserUtil(session);
-
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (account?.isLoading || hybridApp?.readyToShowAuthScreens || (session?.authToken && !isAnonymousUser)) {
+        if (account?.isLoading || hybridApp?.readyToShowAuthScreens || session?.authToken) {
             return;
         }
         if (CONFIG.IS_HYBRID_APP) {
@@ -307,7 +305,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         account?.errors,
         account?.requiresTwoFactorAuth,
         hybridApp?.readyToShowAuthScreens,
-        session,
+        session?.authToken,
         isUsingRecoveryCode,
         recoveryCode,
         twoFactorAuthCode,
