@@ -301,42 +301,42 @@ describe('GithubUtils', () => {
                 number: 1,
                 title: 'Test PR 1',
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1`,
-                user: {login: 'testUser'},
+                user: {login: 'username'},
                 labels: [],
             },
             {
                 number: 2,
                 title: 'Test PR 2',
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/2`,
-                user: {login: 'testUser'},
+                user: {login: 'username'},
                 labels: [],
             },
             {
                 number: 3,
                 title: 'Test PR 3',
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/3`,
-                user: {login: 'testUser'},
+                user: {login: 'username'},
                 labels: [],
             },
             {
                 number: 4,
                 title: '[NO QA] Test No QA PR uppercase',
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/4`,
-                user: {login: 'testUser'},
+                user: {login: 'username'},
                 labels: [],
             },
             {
                 number: 5,
                 title: '[NoQa] Test No QA PR Title Case',
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/5`,
-                user: {login: 'testUser'},
+                user: {login: 'username'},
                 labels: [],
             },
             {
                 number: 6,
                 title: '[Internal QA] Another Test Internal QA PR',
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6`,
-                user: {login: 'testUser'},
+                user: {login: 'username'},
                 labels: [
                     {
                         id: 1234,
@@ -353,7 +353,7 @@ describe('GithubUtils', () => {
                 number: 7,
                 title: '[Internal QA] Another Test Internal QA PR',
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/7`,
-                user: {login: 'testUser'},
+                user: {login: 'username'},
                 labels: [
                     {
                         id: 1234,
@@ -636,7 +636,7 @@ describe('GithubUtils', () => {
                             },
                         },
                         author: {
-                            login: 'testuser',
+                            login: 'username',
                         },
                     },
                 ],
