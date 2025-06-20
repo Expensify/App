@@ -24,6 +24,7 @@ import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/home/report/ReportActionsView';
 import ReportFooter from '@pages/home/report/ReportFooter';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
