@@ -89,7 +89,7 @@ function BaseTextInput(
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles);
+    const markdownStyle = useMarkdownStyle(false, excludedMarkdownStyles);
     const {hasError = false} = inputProps;
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();

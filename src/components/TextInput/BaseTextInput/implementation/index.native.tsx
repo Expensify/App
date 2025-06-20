@@ -87,7 +87,7 @@ function BaseTextInput(
     const inputProps = {shouldSaveDraft: false, shouldUseDefaultValue: false, ...props};
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles);
+    const markdownStyle = useMarkdownStyle(false, excludedMarkdownStyles);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
