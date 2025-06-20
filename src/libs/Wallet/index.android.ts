@@ -29,8 +29,4 @@ function isCardInWallet(card: Card): Promise<boolean> {
         });
 }
 
-function getSuccessIllustrationStyle() {
-    return {height: '60%'};
-}
-
-export {handleAddCardToWallet, isCardInWallet, checkIfWalletIsAvailable, getSuccessIllustrationStyle};
+export {handleAddCardToWallet, isCardInWallet, checkIfWalletIsAvailable};

@@ -2,14 +2,15 @@ import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import {CardReplacementSuccess} from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSuccessIllustrationStyle} from '@libs/Wallet';
 import ROUTES from '@src/ROUTES';
 
 function SuccessReportCardLost({cardID}: {cardID: string}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const styleUtils = useStyleUtils();
 
     return (
         <ConfirmationPage
@@ -22,11 +23,12 @@ function SuccessReportCardLost({cardID}: {cardID: string}) {
             }}
             buttonText={translate('common.buttonConfirm')}
             containerStyle={styles.h100}
-            illustrationStyle={{...styles.w100, ...getSuccessIllustrationStyle()}}
+            illustrationStyle={[styles.w100, styleUtils.getSuccessIllustrationStyle()]}
             innerContainerStyle={styles.ph0}
-            descriptionStyle={{...styles.ph4, ...styles.textSupporting}}
+            descriptionStyle={[styles.ph4, styles.textSupporting]}
         />
     );
 }
 
+SuccessReportCardLost.displayName = 'SuccessReportCardLost';
 export default SuccessReportCardLost;

@@ -30,6 +30,7 @@ import getNavigationBarType from './getNavigationBarType/index';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
+import getSuccessIllustrationStyle from './getSuccessIllustrationStyle';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
 import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
@@ -1284,6 +1285,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getCompactContentContainerStyles: () => compactContentContainerStyles(styles),
     getContextMenuItemStyles: (windowWidth?: number) => getContextMenuItemStyles(styles, windowWidth),
+    getSuccessIllustrationStyle: () => getSuccessIllustrationStyle(),
     getContainerComposeStyles: () => containerComposeStyles(styles),
 
     /**

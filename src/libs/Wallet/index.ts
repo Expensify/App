@@ -16,8 +16,4 @@ function isCardInWallet(_card: Card) {
     return Promise.resolve(true);
 }
 
-function getSuccessIllustrationStyle() {
-    return {height: 'auto'};
-}
-
-export {handleAddCardToWallet, isCardInWallet, checkIfWalletIsAvailable, getSuccessIllustrationStyle};
+export {handleAddCardToWallet, isCardInWallet, checkIfWalletIsAvailable};
