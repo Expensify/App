@@ -17,11 +17,10 @@ import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {hasHeldExpenses} from '@libs/ReportUtils';
 import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {getTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {LastPaymentMethod, LastPaymentMethodType, ReportActions, SearchResults} from '@src/types/onyx';
+import type {LastPaymentMethod, LastPaymentMethodType, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 
@@ -51,6 +50,19 @@ Onyx.connect({
             return;
         }
         allReportActions = actions;
+    },
+});
+
+let allTransactions: OnyxCollection<Transaction> = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => !!transaction));
     },
 });
 
@@ -295,7 +307,7 @@ function updateSearchResultsWithTransactionThreadReportID(hash: number, transact
 function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
     transactionIDList.forEach((transactionID) => {
-        const transaction = getTransaction(transactionID);
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {};
         const iouReportAction = getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
         if (iouReportAction) {
