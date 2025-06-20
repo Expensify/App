@@ -66,6 +66,7 @@ import {
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getReceiptScanFailedMessage,
     getReopenedMessage,
     getReportActionHtml,
     getReportActionMessageText,
@@ -829,6 +830,8 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
+        lastMessageTextFromReport = getReceiptScanFailedMessage();
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(lastReportAction, false);
     } else if (isActionableJoinRequest(lastReportAction)) {
@@ -867,6 +870,15 @@ function getLastMessageTextForReport(
     // If the last report action is a pending moderation action, get the last message text from the last visible report action
     if (reportID && !lastMessageTextFromReport && isPendingRemove(lastOriginalReportAction)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
+    }
+
+    if (reportID) {
+        const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+        // If the report is a one-transaction report, get the last message text from combined report actions so the LHN can display modifications to the transaction thread or the report itself
+        const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allSortedReportActions[reportID]);
+        if (transactionThreadReportID) {
+            lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
+        }
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
