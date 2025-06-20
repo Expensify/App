@@ -71,7 +71,7 @@ function Checkbox(
         onPress,
         accessibilityLabel,
         shouldStopMouseDownPropagation,
-        shouldSelectOnPressEnter = true,
+        shouldSelectOnPressEnter,
     }: CheckboxProps,
     ref: ForwardedRef<View>,
 ) {
