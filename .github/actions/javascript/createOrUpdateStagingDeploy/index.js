@@ -11712,12 +11712,37 @@ exports["default"] = CONST;
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
 const child_process_1 = __nccwpck_require__(2081);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(3902));
 const versionUpdater_1 = __nccwpck_require__(8982);
 /**
@@ -11887,17 +11912,38 @@ function getValidMergedPRs(commits) {
     });
     return Array.from(mergedPRs);
 }
+// async function getPullRequestsDeployedBetween(fromTag: string, toTag: string) {
+//     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
+//     const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
+//     console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
+//     // Find which commit messages correspond to merged PR's
+//     const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
+//     console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
+//     return pullRequestNumbers;
+// }
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
+ *
+ * This function is being refactored to use the GitHub API instead of the git log command, but for now the
+ * issues retrieved from the GitHub API are just being logged for testing: https://github.com/Expensify/App/issues/58775
  */
 async function getPullRequestsDeployedBetween(fromTag, toTag) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
-    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
-    // Find which commit messages correspond to merged PR's
-    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
-    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-    return pullRequestNumbers;
+    const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
+    console.log(`[git log] Found ${gitCommitList.length} commits.`);
+    core.startGroup('[git log] Parsed PRs:');
+    core.info(JSON.stringify(gitLogPullRequestNumbers));
+    core.endGroup();
+    // Test the new GitHub API method
+    // eslint-disable-next-line deprecation/deprecation
+    const apiCommitList = await GithubUtils_1.default.getCommitHistoryBetweenTags(fromTag, toTag);
+    const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
+    console.log(`[api] Found ${apiCommitList.length} commits.`);
+    core.startGroup('[api] Parsed PRs:');
+    core.info(JSON.stringify(apiPullRequestNumbers));
+    core.endGroup();
+    return apiPullRequestNumbers;
 }
 exports["default"] = {
     getPreviousExistingTag,
