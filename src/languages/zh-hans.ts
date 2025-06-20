@@ -64,7 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
-    ContactMethodsRouteParams,
+    ContactMethodRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -2364,8 +2364,8 @@ const translations = {
         toGetStarted: '添加一个银行账户以报销费用、发行Expensify卡、收取发票付款并从一个地方支付账单。',
         plaidBodyCopy: '为您的员工提供一种更简单的方式来支付公司费用并获得报销。',
         checkHelpLine: '您的银行路由号码和账户号码可以在该账户的支票上找到。',
-        hasPhoneLoginError: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
-            `要连接银行账户，请 <a href="${contactMethodsRoute}">添加一个电子邮件作为您的主要登录方式</a> 并重试。您可以添加电话号码作为辅助登录。`,
+        hasPhoneLoginError: ({contactMethodRoute}: ContactMethodRouteParams) =>
+            `要连接银行账户，请 <a href="${contactMethodRoute}">添加一个电子邮件作为您的主要登录方式</a> 并重试。您可以添加电话号码作为辅助登录。`,
         hasBeenThrottledError: '添加您的银行账户时发生错误。请稍等几分钟后重试。',
         hasCurrencyError: {
             phrase1: '哎呀！您的工作区货币似乎设置为不同于 USD 的货币。要继续，请前往',

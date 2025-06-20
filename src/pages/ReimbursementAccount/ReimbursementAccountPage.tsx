@@ -87,7 +87,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     // shouldUseNarrowLayout cannot be used here because this page is displayed in a RHP
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const contactMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`;
+    const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`;
 
     /**
      The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
@@ -389,7 +389,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     if (userHasPhonePrimaryEmail) {
         errorText = (
             <Text style={styles.flexRow}>
-                <RenderHTML html={translate('bankAccount.hasPhoneLoginError', {contactMethodsRoute})} />
+                <RenderHTML html={translate('bankAccount.hasPhoneLoginError', {contactMethodRoute})} />
             </Text>
         );
     } else if (throttledDate) {
