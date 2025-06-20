@@ -48,7 +48,14 @@ import Performance from './Performance';
 import Permissions from './Permissions';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
-import {canSendInvoiceFromWorkspace, getCountOfEnabledTagsOfList, getCountOfRequiredTagLists, getSubmitToAccountID, isUserInvitedToWorkspace} from './PolicyUtils';
+import {
+    canSendInvoiceFromWorkspace,
+    canSubmitPerDiemExpenseFromWorkspace,
+    getCountOfEnabledTagsOfList,
+    getCountOfRequiredTagLists,
+    getSubmitToAccountID,
+    isUserInvitedToWorkspace,
+} from './PolicyUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
@@ -59,6 +66,7 @@ import {
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getReceiptScanFailedMessage,
     getReopenedMessage,
     getReportActionHtml,
     getReportActionMessageText,
@@ -216,6 +224,7 @@ type GetValidReportsConfig = {
     shouldSeparateWorkspaceChat?: boolean;
     shouldSeparateSelfDMChat?: boolean;
     excludeNonAdminWorkspaces?: boolean;
+    isPerDiemRequest?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type GetValidReportsReturnTypeCombined = {
@@ -821,6 +830,8 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
+        lastMessageTextFromReport = getReceiptScanFailedMessage();
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(lastReportAction, false);
     } else if (isActionableJoinRequest(lastReportAction)) {
@@ -859,6 +870,15 @@ function getLastMessageTextForReport(
     // If the last report action is a pending moderation action, get the last message text from the last visible report action
     if (reportID && !lastMessageTextFromReport && isPendingRemove(lastOriginalReportAction)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
+    }
+
+    if (reportID) {
+        const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+        // If the report is a one-transaction report, get the last message text from combined report actions so the LHN can display modifications to the transaction thread or the report itself
+        const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allSortedReportActions[reportID]);
+        if (transactionThreadReportID) {
+            lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
+        }
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
@@ -1572,6 +1592,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         shouldSeparateSelfDMChat,
         shouldSeparateWorkspaceChat,
         excludeNonAdminWorkspaces,
+        isPerDiemRequest = false,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
@@ -1731,6 +1752,10 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
 
                 if (subtitle) {
                     newReportOption.alternateText = translateLocal('iou.submitsTo', {name: subtitle ?? ''});
+                }
+                const canSubmitPerDiemExpense = canSubmitPerDiemExpenseFromWorkspace(policy);
+                if (!canSubmitPerDiemExpense && isPerDiemRequest) {
+                    continue;
                 }
             }
             workspaceChats.push(newReportOption);

@@ -1348,14 +1348,6 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
         },
     );
 
-    successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${testDriveIOUParams.chatOptimisticParams.report?.reportID}`,
-        value: {
-            [textComment.reportAction.reportActionID]: null,
-        },
-    });
-
     return {
         optimisticData,
         successData,
@@ -11862,6 +11854,7 @@ export {
     canSubmitReport,
     submitPerDiemExpense,
     calculateDiffAmount,
+    computePerDiemExpenseAmount,
     initSplitExpense,
     addSplitExpenseField,
     updateSplitExpenseAmountField,
