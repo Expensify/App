@@ -59,7 +59,7 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     // - sidebarScreen to cover left pane.
     // - defaultCentralScreen to cover central pane.
     if (!isAtLeastOneInState(state, sidebarScreen) && shouldSplitHaveSidebar) {
-        const paramsFromRoute = getParamsFromRoute(sidebarScreen);
+        const paramsFromRoute = getParamsFromRoute(sidebarScreen, !isNarrowLayout);
         const copiedParams = pick(lastRoute?.params, paramsFromRoute);
 
         // We don't want to get an empty object as params because it breaks some navigation logic when comparing if routes are the same.
