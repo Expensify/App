@@ -322,7 +322,6 @@ export default {
     w184: 184,
     w191: 191,
 
-
     // Transaction item row heights based on layout types
     // Wide screen (desktop) layout
     optionRowWideItemHeight: 64,
@@ -348,13 +347,13 @@ export default {
     searchOptionRowSmallFooterHeight: 28,
     searchOptionRowLargeFooterHeight: 17,
     searchOptionRowMargin: 6,
-    
+
     // Search item violation warning mark height
     searchViolationWarningMarkHeight: 24,
-    
+
     // Search item base padding/margin
     searchItemBasePadding: 8,
-    
+
     // Chat-specific item heights
     searchChatReportPreviewHeightLargeScreen: 433.81,
     searchChatReportPreviewWithViolationsHeightLargeScreen: 459.81,
