@@ -30,6 +30,8 @@ function useOptions() {
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const currentVacationDelegate = vacationDelegate?.delegate;
+    const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
+
     const excludeLogins = useMemo(
         () => ({
             ...CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -83,7 +85,7 @@ function useOptions() {
         };
     }, [debouncedSearchValue, defaultOptions, excludeLogins]);
 
-    return {...options, currentVacationDelegate, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
+    return {...options, currentVacationDelegate, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, delegatePersonalDetails};
 }
 
 function VacationDelegatePage() {
@@ -92,8 +94,18 @@ function VacationDelegatePage() {
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
-    const {currentVacationDelegate, userToInvite, recentReports, personalDetails, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
-    const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
+    const {
+        currentVacationDelegate,
+        userToInvite,
+        recentReports,
+        personalDetails,
+        searchValue,
+        debouncedSearchValue,
+        setSearchValue,
+        headerMessage,
+        areOptionsInitialized,
+        delegatePersonalDetails,
+    } = useOptions();
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -185,7 +197,7 @@ function VacationDelegatePage() {
         >
             <HeaderWithBackButton
                 title={translate('statusPage.vacationDelegate')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
             />
             <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                 <SelectionList
