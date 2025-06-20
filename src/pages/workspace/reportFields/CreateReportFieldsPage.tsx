@@ -186,8 +186,8 @@ function WorkspaceCreateReportFieldsPage({
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.DATE && (
                                 <MenuItemWithTopDescription
-                                    title={translate('common.initialValue')}
-                                    description={translate('common.date')}
+                                    title={translate('common.currentDate')}
+                                    description={translate('common.initialValue')}
                                     rightLabel={translate('common.required')}
                                     interactive={false}
                                 />
