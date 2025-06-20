@@ -322,7 +322,7 @@ type PureReportActionItemProps = {
         reportId: string | undefined,
         reportAction: OnyxEntry<OnyxTypes.ReportAction>,
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
-        policyId: string | undefined,
+        policy: OnyxEntry<OnyxTypes.Policy>,
     ) => void;
 
     /** Whether the provided report is a closed expense report with no expenses */
@@ -817,34 +817,34 @@ function PureReportActionItem({
             {
                 text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
-                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE, report?.policyID),
+                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE, policy),
                 isMediumSized: true,
             },
             {
                 text: 'actionableMentionWhisperOptions.inviteToChat',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, report?.policyID),
+                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, policy),
                 isMediumSized: true,
             },
             {
                 text: 'actionableMentionWhisperOptions.nothing',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, report?.policyID),
+                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, policy),
                 isMediumSized: true,
             },
         ];
     }, [
         action,
-        isActionableWhisper,
-        report,
-        reportID,
         userBillingFundID,
+        isActionableWhisper,
+        reportID,
+        originalReportID,
+        isBetaEnabled,
         createDraftTransactionAndNavigateToParticipantSelector,
         dismissTrackExpenseActionableWhisper,
         resolveActionableReportMentionWhisper,
         resolveActionableMentionWhisper,
-        originalReportID,
-        isBetaEnabled,
+        policy,
     ]);
 
     /**

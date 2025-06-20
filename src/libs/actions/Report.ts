@@ -4314,7 +4314,7 @@ function resolveActionableMentionWhisper(
     reportID: string | undefined,
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
-    policyID: string | undefined,
+    policy?: OnyxEntry<Policy>,
 ) {
     if (!reportAction || !reportID) {
         return;
@@ -4323,7 +4323,7 @@ function resolveActionableMentionWhisper(
     if (ReportActionsUtils.isActionableMentionWhisper(reportAction) && resolution === CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE) {
         const actionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
 
-        const policy = getPolicy(policyID);
+        const policyID = policy?.id;
 
         if (actionOriginalMessage && policyID) {
             const currentUserDetails = allPersonalDetails?.[getCurrentUserAccountID()];
@@ -4422,7 +4422,7 @@ function resolveActionableMentionConfirmWhisper(
     reportAction: OnyxEntry<ReportAction>,
     resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>,
 ) {
-    resolveActionableMentionWhisper(reportID, reportAction, resolution, undefined);
+    resolveActionableMentionWhisper(reportID, reportAction, resolution);
 }
 
 function resolveActionableReportMentionWhisper(
