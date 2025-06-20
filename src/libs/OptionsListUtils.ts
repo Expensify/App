@@ -1058,6 +1058,7 @@ function getReportOption(participant: Participant): OptionData {
     option.isDisabled = isDraftReport(participant.reportID);
     option.selected = participant.selected;
     option.isSelected = participant.selected;
+    option.brickRoadIndicator = null;
     return option;
 }
 
