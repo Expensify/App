@@ -108,6 +108,9 @@ type ReportActionsListProps = {
 
     /** Should enable auto scroll to top threshold */
     shouldEnableAutoScrollToTopThreshold?: boolean;
+
+    /** All transactions grouped by reportID */
+    transactionsAndViolationsByReport: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
 };
 
 const IS_CLOSE_TO_NEWEST_THRESHOLD = 15;
@@ -148,6 +151,7 @@ function ReportActionsList({
     listID,
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
+    transactionsAndViolationsByReport,
 }: ReportActionsListProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
@@ -585,6 +589,7 @@ function ReportActionsList({
                     index={index}
                     report={report}
                     transactionThreadReport={transactionThreadReport}
+                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={
                         !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
@@ -600,19 +605,20 @@ function ReportActionsList({
             );
         },
         [
+            sortedReportActions,
+            parentReportAction,
+            parentReportActionForTransactionThread,
             report,
+            transactionThreadReport,
+            transactionsAndViolationsByReport,
             allReports,
             linkedReportActionID,
             sortedVisibleReportActions,
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
-            parentReportAction,
-            sortedReportActions,
-            transactionThreadReport,
-            parentReportActionForTransactionThread,
-            shouldUseThreadDividerLine,
-            firstVisibleReportActionID,
             unreadMarkerReportActionID,
+            firstVisibleReportActionID,
+            shouldUseThreadDividerLine,
         ],
     );
 
