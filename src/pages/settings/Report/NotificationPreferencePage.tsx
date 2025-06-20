@@ -30,7 +30,7 @@ type NotificationPreferencePageProps = WithReportOrNotFoundProps & PlatformStack
 function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>>();
     const {translate} = useLocalize();
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID || undefined}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID || undefined}`, {canBeMissing: true});
     const isMoneyRequestReport = isMoneyRequestReportUtils(report);
     const currentNotificationPreference = getReportNotificationPreference(report);
     const shouldDisableNotificationPreferences =

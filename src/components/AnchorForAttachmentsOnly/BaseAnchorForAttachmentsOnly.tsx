@@ -9,7 +9,7 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
 import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
-import {setDownload}  from '@userActions/Download';
+import {setDownload} from '@userActions/Download';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type AnchorForAttachmentsOnlyProps from './types';
@@ -26,7 +26,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(source);
     const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
 
-    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
+    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`, {canBeMissing: true});
 
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();

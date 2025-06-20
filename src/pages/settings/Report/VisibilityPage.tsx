@@ -24,10 +24,10 @@ type VisibilityProps = WithReportOrNotFoundProps & PlatformStackScreenProps<Repo
 function VisibilityPage({report}: VisibilityProps) {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.VISIBILITY>>();
     const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || undefined}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || undefined}`, {canBeMissing: true});
     const shouldGoBackToDetailsPage = useRef(false);
 
-    const shouldDisableVisibility = isArchivedNonExpenseReport(report, reportNameValuePairs?.private_isArchived, {canBeMissing: true});
+    const shouldDisableVisibility = isArchivedNonExpenseReport(report, reportNameValuePairs?.private_isArchived);
     const {translate} = useLocalize();
 
     const visibilityOptions = useMemo(
