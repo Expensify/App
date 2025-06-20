@@ -741,20 +741,31 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
 
         // Optimistically clear all violations for the transaction when moving to self DM report
         if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            const duplicateViolation = currentTransactionViolations?.[transaction.transactionID]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+            const duplicateTransactionIDs = duplicateViolation?.data?.duplicates;
+            if (duplicateTransactionIDs) {
+                duplicateTransactionIDs.forEach((id) => {
+                    optimisticData.push({
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+                        value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+                    });
+                });
+            }
             optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                value: [],
+                value: null,
             });
 
             successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                value: [],
+                value: null,
             });
 
             failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
                 value: currentTransactionViolations[transaction.transactionID],
             });
