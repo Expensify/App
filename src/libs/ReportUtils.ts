@@ -13,7 +13,7 @@ import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense, OriginalMessageMovedTransaction} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
-import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
+import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBDSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
@@ -183,7 +183,6 @@ import {
     isExportIntegrationAction,
     isIntegrationMessageAction,
     isMarkAsClosedAction,
-    isMessageDeleted,
     isModifiedExpenseAction,
     isMoneyRequestAction,
     isOldDotReportAction,
@@ -4891,6 +4890,9 @@ function getReportActionMessage({
             personalDetails,
         });
     }
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
+        return translateLocal('receipt.scanFailed');
+    }
 
     if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
         return getReimbursementDeQueuedOrCanceledActionMessage(reportAction, getReportOrDraftReport(reportID, reports));
@@ -4985,7 +4987,6 @@ function getReportName(
     const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
     const attributes = reportAttributes ?? reportAttributesDerivedValue;
     const derivedNameExists = report && !!attributes?.[report.reportID]?.reportName;
-    // This doesn't apply to chat reports because last message (report name) can be changed and/or edited
     if (canUseDerivedValue && derivedNameExists) {
         return attributes[report.reportID].reportName;
     }
@@ -4998,19 +4999,6 @@ function getSearchReportName(props: GetReportNameParams): string {
         return policy.name;
     }
     return getReportNameInternal(props);
-}
-
-function isChatThreadDeleted(report: OnyxInputOrEntry<Report>, reportActionParam: OnyxInputOrEntry<ReportAction>): boolean {
-    if (!isChatThread(report)) {
-        return false;
-    }
-
-    let reportAction = reportActionParam as OnyxEntry<ReportAction>;
-    if (!reportAction) {
-        reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    }
-
-    return isMessageDeleted(reportAction);
 }
 
 function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy | SearchPolicy>, invoiceReceiverPolicy?: OnyxEntry<Policy | SearchPolicy>): string {
@@ -5186,7 +5174,7 @@ function getReportNameInternal({
             return getRenamedAction(parentReportAction, isExpenseReport(getReport(report.parentReportID, allReports)));
         }
 
-        if (isChatThreadDeleted(report, parentReportActionParam)) {
+        if (parentReportActionMessage?.isDeletedParentAction) {
             return translateLocal('parentReportAction.deletedMessage');
         }
 
@@ -10132,6 +10120,13 @@ function prepareOnboardingOnyxData(
             ) {
                 return false;
             }
+
+            // Exclude createWorkspace and viewTour tasks from #admin room, for test drive receivers,
+            // since these users already have them in concierge
+            if (introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER && ['createWorkspace', 'viewTour'].includes(task.type) && shouldPostTasksInAdminsRoom) {
+                return false;
+            }
+
             return true;
         })
         .map((task, index) => {
@@ -10722,6 +10717,9 @@ function getIntegrationIcon(connectionName?: ConnectionName) {
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
         return IntacctSquare;
     }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
+        return QBDSquare;
+    }
 
     return undefined;
 }
@@ -11267,7 +11265,6 @@ export {
     isChatRoom,
     isTripRoom,
     isChatThread,
-    isChatThreadDeleted,
     isChildReport,
     isClosedExpenseReportWithNoExpenses,
     isCompletedTaskReport,

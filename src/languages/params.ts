@@ -771,6 +771,10 @@ type TravelTypeParams = {
     id?: string;
 };
 
+type ContactMethodsRouteParams = {
+    contactMethodsRoute: string;
+};
+
 export type {
     ContactMethodRouteParams,
     SplitExpenseEditTitleParams,
