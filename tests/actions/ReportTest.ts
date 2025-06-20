@@ -1742,7 +1742,7 @@ describe('actions/Report', () => {
 
             // Then only the IOU action with type of CREATE and TRACK is moved to the self DM
             const selfDMReportID = ReportUtils.findSelfDMReportID();
-            const seflDMReportActions = await new Promise<OnyxEntry<OnyxTypes.ReportActions>>((resolve) => {
+            const selfDMReportActions = await new Promise<OnyxEntry<OnyxTypes.ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
                     callback: (val) => {
@@ -1752,7 +1752,7 @@ describe('actions/Report', () => {
                 });
             });
             // The length is 3 to include the CREATED action
-            expect(Object.keys(seflDMReportActions ?? {}).length).toBe(3);
+            expect(Object.keys(selfDMReportActions ?? {}).length).toBe(3);
         });
     });
 });
