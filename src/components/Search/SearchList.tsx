@@ -220,8 +220,7 @@ function SearchList(
             listRef.current.scrollToIndex({index, animated, viewOffset: variables.contentHeaderHeight});
         },
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [],
+        [data],
     );
     const setHasKeyBeenPressed = useCallback(() => {
         if (hasKeyBeenPressed.current) {
