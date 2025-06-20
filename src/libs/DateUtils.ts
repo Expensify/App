@@ -32,21 +32,12 @@ import {
     subMinutes,
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
-import {de} from 'date-fns/locale/de';
-import {enGB} from 'date-fns/locale/en-GB';
-import {es} from 'date-fns/locale/es';
-import {fr} from 'date-fns/locale/fr';
-import {it} from 'date-fns/locale/it';
-import {ja} from 'date-fns/locale/ja';
-import {nl} from 'date-fns/locale/nl';
-import {pl} from 'date-fns/locale/pl';
-import {ptBR} from 'date-fns/locale/pt-BR';
-import {zhCN} from 'date-fns/locale/zh-CN';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
+import DateLocaleStore from '@src/languages/DateLocaleStore';
 import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
@@ -136,42 +127,18 @@ function getWeekEndsOn(): WeekDay {
  * Gets the locale string and setting default locale for date-fns
  */
 function setLocale(localeString: Locale | undefined) {
-    switch (localeString) {
-        case CONST.LOCALES.EN:
-            setDefaultOptions({locale: enGB});
-            break;
-        case CONST.LOCALES.ES:
-            setDefaultOptions({locale: es});
-            break;
-        case CONST.LOCALES.FR:
-            setDefaultOptions({locale: fr});
-            break;
-        case CONST.LOCALES.DE:
-            setDefaultOptions({locale: de});
-            break;
-        case CONST.LOCALES.IT:
-            setDefaultOptions({locale: it});
-            break;
-        case CONST.LOCALES.JA:
-            setDefaultOptions({locale: ja});
-            break;
-        case CONST.LOCALES.NL:
-            setDefaultOptions({locale: nl});
-            break;
-        case CONST.LOCALES.PL:
-            setDefaultOptions({locale: pl});
-            break;
-        case CONST.LOCALES.PT_BR:
-            setDefaultOptions({locale: ptBR});
-            break;
-        case CONST.LOCALES.ZH_HANS:
-            setDefaultOptions({locale: zhCN});
-            break;
-        default:
-            break;
+    if (!localeString) {
+        return;
+    }
+    // Try to get cached locale first for immediate use
+    const cachedLocale = DateLocaleStore.get(localeString);
+    if (!cachedLocale) {
+        setDefaultOptions({locale: cachedLocale});
+    } else {
+        // Load asynchronously and set when ready
+        DateLocaleStore.load(localeString);
     }
 }
-
 /**
  * Gets the user's stored time zone NVP and returns a localized
  * Date object for the given ISO-formatted datetime string
@@ -325,7 +292,7 @@ function datetimeToCalendarTime(
 function datetimeToRelative(locale: Locale | undefined, datetime: string): string {
     const date = getLocalDateFromDatetime(locale, datetime);
     const now = getLocalDateFromDatetime(locale);
-    return formatDistance(date, now, {addSuffix: true, locale: locale === CONST.LOCALES.EN ? enGB : es});
+    return formatDistance(date, now, {addSuffix: true, locale: DateLocaleStore.get(locale)});
 }
 
 /**

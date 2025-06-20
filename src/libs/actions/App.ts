@@ -22,6 +22,7 @@ import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/Se
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
 import {isFullySupportedLocale, isSupportedLocale} from '@src/CONST/LOCALES';
+import DateLocaleStore from '@src/languages/DateLocaleStore';
 import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
@@ -68,6 +69,7 @@ Onyx.connect({
 
         preferredLocale = val;
         TranslationStore.load(val);
+        DateLocaleStore.load(val);
         localeEventCallback(val);
 
         // For locales without emoji support, fallback on English
