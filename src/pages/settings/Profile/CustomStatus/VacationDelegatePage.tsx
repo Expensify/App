@@ -94,18 +94,8 @@ function VacationDelegatePage() {
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
-    const {
-        vacationDelegate,
-        userToInvite,
-        recentReports,
-        personalDetails,
-        searchValue,
-        debouncedSearchValue,
-        setSearchValue,
-        headerMessage,
-        areOptionsInitialized,
-        delegatePersonalDetails,
-    } = useOptions();
+    const {vacationDelegate, userToInvite, recentReports, personalDetails, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized, delegatePersonalDetails} =
+        useOptions();
 
     const sections = useMemo(() => {
         const sectionsList = [];
