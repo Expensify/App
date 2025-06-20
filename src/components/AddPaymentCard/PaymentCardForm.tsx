@@ -173,7 +173,7 @@ function PaymentCardForm({
 
         const prevValue = previousvalueRef.current.replace(CONST.REGEX.NON_NUMERIC, '');
 
-        if ((value.length === 2 && prevValue.length === 1) || didAutoCorrectFirstDigit) {
+        if ((value.length === 2 && prevValue.length < 2) || didAutoCorrectFirstDigit) {
             formattedValue = `${value}/`;
         } else if (value.length > 2) {
             formattedValue = `${value.slice(0, 2)}/${value.slice(2, 4)}`;
