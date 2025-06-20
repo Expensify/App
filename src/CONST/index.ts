@@ -1429,6 +1429,7 @@ const CONST = {
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
                 },
+                RECEIPT_SCAN_FAILED: 'RECEIPTSCANFAILED',
                 RESOLVED_DUPLICATES: 'RESOLVEDDUPLICATES',
                 ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
@@ -6655,6 +6656,8 @@ const CONST = {
             GROUP_BY: 'groupBy',
         },
         SYNTAX_FILTER_KEYS: {
+            TYPE: 'type',
+            STATUS: 'status',
             DATE: 'date',
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',

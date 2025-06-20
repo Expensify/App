@@ -2,7 +2,6 @@ import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
-import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -59,7 +58,6 @@ function MoneyRequestReportPreview({
     const transactions = useMemo(() => Object.values(filteredTransactions ?? {}) ?? [], [filteredTransactions]);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
-    const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
     const [currentWidth, setCurrentWidth] = useState<number>(0);
@@ -130,7 +128,6 @@ function MoneyRequestReportPreview({
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             invoiceReceiverPolicy={invoiceReceiverPolicy}
             lastTransactionViolations={lastTransactionViolations}
-            isDelegateAccessRestricted={isDelegateAccessRestricted}
             renderTransactionItem={renderItem}
             onCarouselLayout={(e: LayoutChangeEvent) => {
                 setCurrentWidth(e.nativeEvent.layout.width);
