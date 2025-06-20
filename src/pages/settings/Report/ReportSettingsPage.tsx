@@ -8,7 +8,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -18,6 +17,7 @@ import {
     getReportNotificationPreference,
     isAdminRoom,
     isArchivedNonExpenseReport,
+    isArchivedReport,
     isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportUtil,
     isSelfDM,
@@ -33,14 +33,14 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportSettingsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>;
 
-function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) {
+function ReportSettingsPage({report, policy, route}: ReportSettingsPageProps) {
     const backTo = route.params.backTo;
     const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {canBeMissing: true});
     // The workspace the report is on, null if the user isn't a member of the workspace
-    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID), [policies, report?.policyID]);
+    const linkedWorkspace = useMemo(() => (report?.policyID && policy?.id === report?.policyID ? policy : undefined), [policy, report?.policyID]);
     const isMoneyRequestReport = isMoneyRequestReportUtil(report);
 
     const shouldDisableSettings = isEmptyObject(report) || isArchivedNonExpenseReport(report, reportNameValuePairs) || isSelfDM(report);
@@ -52,7 +52,7 @@ function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) 
     const writeCapability = isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL);
 
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
-    const isReportArchived = useReportIsArchived(report.reportID);
+    const isReportArchived = isArchivedReport(reportNameValuePairs);
     const shouldAllowWriteCapabilityEditing = useMemo(() => canEditWriteCapability(report, linkedWorkspace, isReportArchived), [report, linkedWorkspace, isReportArchived]);
     const shouldAllowChangeVisibility = useMemo(() => canEditRoomVisibility(report, linkedWorkspace), [report, linkedWorkspace]);
 
