@@ -635,7 +635,6 @@ function MoneyReportHeader({
             reportNameValuePairs,
             reportActions,
             policies,
-            canUseRetractNewDot: isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
             isChatReportArchived,
         });
     }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled, chatReport, isChatReportArchived]);
