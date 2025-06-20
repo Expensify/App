@@ -140,6 +140,49 @@ function PaymentCardForm({
     const label = CARD_LABELS[isDebitCard ? CARD_TYPES.DEBIT_CARD : CARD_TYPES.PAYMENT_CARD];
 
     const cardNumberRef = useRef<AnimatedTextInputRef>(null);
+    const [expirationDate, setExpirationDate] = useState(data?.expirationDate);
+
+    const previousvalueRef = useRef<string>('');
+
+    const onChangeExpirationDate = useCallback((newValue: string) => {
+        if (typeof newValue !== 'string') {
+            return;
+        }
+
+        let value = newValue.replace(CONST.REGEX.NON_NUMERIC, '');
+
+        let didAutoCorrectFirstDigit = false;
+
+        if (value.length === 1) {
+            const firstDigit = value.charAt(0);
+            if (parseInt(firstDigit, 10) > 1) {
+                value = `0${firstDigit}`;
+                didAutoCorrectFirstDigit = true;
+            }
+        }
+
+        if (value.length >= 2) {
+            const month = parseInt(value.slice(0, 2), 10);
+
+            if (month > 12) {
+                value = `01${value.charAt(1)}`;
+            }
+        }
+
+        let formattedValue = value;
+
+        const prevValue = previousvalueRef.current.replace(CONST.REGEX.NON_NUMERIC, '');
+
+        if ((value.length === 2 && prevValue.length === 1) || didAutoCorrectFirstDigit) {
+            formattedValue = `${value}/`;
+        } else if (value.length > 2) {
+            formattedValue = `${value.slice(0, 2)}/${value.slice(2, 4)}`;
+        }
+
+        previousvalueRef.current = newValue;
+
+        setExpirationDate(formattedValue);
+    }, []);
 
     const [cardNumber, setCardNumber] = useState('');
 
@@ -251,6 +294,8 @@ function PaymentCardForm({
                     <View style={[styles.mr2, styles.flex1]}>
                         <InputWrapper
                             defaultValue={data?.expirationDate}
+                            value={expirationDate}
+                            onChangeText={onChangeExpirationDate}
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.EXPIRATION_DATE}
                             label={translate(label.defaults.expiration)}
@@ -258,7 +303,7 @@ function PaymentCardForm({
                             role={CONST.ROLE.PRESENTATION}
                             placeholder={translate(label.defaults.expirationDate)}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
-                            maxLength={4}
+                            maxLength={5}
                         />
                     </View>
                     <View style={styles.flex1}>
