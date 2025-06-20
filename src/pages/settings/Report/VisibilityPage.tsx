@@ -10,10 +10,10 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportSettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {goBackToDetailsPage, isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
-import * as ReportActions from '@userActions/Report';
+import {updateRoomVisibility} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -24,10 +24,10 @@ type VisibilityProps = WithReportOrNotFoundProps & PlatformStackScreenProps<Repo
 function VisibilityPage({report}: VisibilityProps) {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.VISIBILITY>>();
     const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || undefined}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || undefined}`, {canBeMissing: true});
     const shouldGoBackToDetailsPage = useRef(false);
 
-    const shouldDisableVisibility = ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs);
+    const shouldDisableVisibility = isArchivedNonExpenseReport(report, reportNameValuePairs?.private_isArchived);
     const {translate} = useLocalize();
 
     const visibilityOptions = useMemo(
@@ -45,7 +45,7 @@ function VisibilityPage({report}: VisibilityProps) {
     );
 
     const goBack = useCallback(() => {
-        ReportUtils.goBackToDetailsPage(report, route.params.backTo);
+        goBackToDetailsPage(report, route.params.backTo);
     }, [report, route.params.backTo]);
 
     const changeVisibility = useCallback(
@@ -53,7 +53,7 @@ function VisibilityPage({report}: VisibilityProps) {
             if (!report) {
                 return;
             }
-            ReportActions.updateRoomVisibility(report.reportID, report.visibility, newVisibility);
+            updateRoomVisibility(report.reportID, report.visibility, newVisibility);
             if (showConfirmModal) {
                 shouldGoBackToDetailsPage.current = true;
             } else {

@@ -2047,8 +2047,8 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transact
  * Whether the provided report is an archived room
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report> | SearchReport, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
-    return !(isExpenseReport(report) || isExpenseRequest(report)) && !!reportNameValuePairs?.private_isArchived;
+function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report> | SearchReport, isReportArchived?: string): boolean {
+    return !(isExpenseReport(report) || isExpenseRequest(report)) && !!isReportArchived;
 }
 
 /**
@@ -3273,7 +3273,12 @@ function getIcons(
     const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
-    if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || (isArchivedNonExpenseReport(report, reportNameValuePairs) && !chatIncludesConcierge(report))) {
+    if (
+        isAdminRoom(report) ||
+        isAnnounceRoom(report) ||
+        isChatRoom(report) ||
+        (isArchivedNonExpenseReport(report, reportNameValuePairs?.private_isArchived) && !chatIncludesConcierge(report))
+    ) {
         return getIconsForPolicyRoom(report, personalDetails, policy, invoiceReceiverPolicy);
     }
     if (isPolicyExpenseChat(report)) {
@@ -3748,7 +3753,7 @@ function getPolicyExpenseChatName({
     // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
-    if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
+    if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID)?.private_isArchived)) {
         const lastAction = getLastVisibleActionReportActionsUtils(report?.reportID);
         const archiveReason = isClosedAction(lastAction) ? getOriginalMessage(lastAction)?.reason : CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED && policyExpenseChatRole !== CONST.POLICY.ROLE.ADMIN) {
@@ -5044,7 +5049,7 @@ function getReportNameInternal({
     const parentReportActionMessage = getReportActionMessageReportUtils(parentReportAction);
     const isArchivedNonExpense = isArchivedNonExpenseReport(
         report,
-        reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)}`],
+        reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)}`]?.private_isArchived,
     );
 
     if (
@@ -5377,7 +5382,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, invoiceReceiverP
 
         // This will get removed as part of https://github.com/Expensify/App/issues/59961
         // eslint-disable-next-line deprecation/deprecation
-        if (isArchivedNonExpenseReport(parentReport, getReportNameValuePairs(parentReport?.reportID))) {
+        if (isArchivedNonExpenseReport(parentReport, getReportNameValuePairs(parentReport?.reportID)?.private_isArchived)) {
             reportName += ` (${translateLocal('common.archived')})`;
         }
 
@@ -7848,7 +7853,7 @@ function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<P
     // Include archived rooms
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
-    if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
+    if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID)?.private_isArchived)) {
         return true;
     }
 
@@ -8229,7 +8234,7 @@ function reasonForReportToBeInOptionList({
     // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
-    if (isInDefaultMode && isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
+    if (isInDefaultMode && isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID)?.private_isArchived)) {
         return CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED;
     }
 
@@ -8410,7 +8415,7 @@ function shouldShowFlagComment(reportAction: OnyxInputOrEntry<ReportAction>, rep
         canFlagReportAction(reportAction, report?.reportID) &&
         // This will get removed as part of https://github.com/Expensify/App/issues/59961
         // eslint-disable-next-line deprecation/deprecation
-        !isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID)) &&
+        !isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID)?.private_isArchived) &&
         !chatIncludesChronos(report) &&
         !isConciergeChatReport(report) &&
         reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE
@@ -8754,7 +8759,7 @@ function getWhisperDisplayNames(participantAccountIDs?: number[]): string | unde
 function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
-    if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID)) && !isWorkspaceThread(report)) {
+    if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID)?.private_isArchived) && !isWorkspaceThread(report)) {
         return false;
     }
 
@@ -8873,7 +8878,14 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>) {
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
     const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-    return !isArchivedNonExpenseReport(report, reportNameValuePairs) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && canWriteInReport(report);
+    return (
+        !isArchivedNonExpenseReport(report, reportNameValuePairs?.private_isArchived) &&
+        isEmptyObject(reportErrors) &&
+        report &&
+        isAllowedToComment(report) &&
+        !isAnonymousUser &&
+        canWriteInReport(report)
+    );
 }
 
 /**
@@ -8992,12 +9004,11 @@ function canEditWriteCapability(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
 }
 
 /**
- * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
+ * @param policy - the workspace the room is on, null if the user isn't a member of the workspace
+ * @param isReportArchived - whether the workspace room is archived
  */
-function canEditRoomVisibility(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    return isPolicyAdminPolicyUtils(policy) && !isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID));
+function canEditRoomVisibility(policy: OnyxEntry<Policy>, isReportArchived: boolean): boolean {
+    return !isReportArchived && isPolicyAdminPolicyUtils(policy);
 }
 
 /**
