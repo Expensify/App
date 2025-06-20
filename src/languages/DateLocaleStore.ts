@@ -146,19 +146,6 @@ class DateLocaleStore {
                 });
             });
     }
-
-    /**
-     * Get a cached locale synchronously
-     */
-    public static get(locale?: Locale): DateFnsLocale | undefined {
-        if (!locale) {
-            return;
-        }
-        if (!this.cache.has(locale)) {
-            return this.cache.get(LOCALES.EN); // Fallback to EN if requested locale is not loaded
-        }
-        return this.cache.get(locale);
-    }
 }
 
 export default DateLocaleStore;
