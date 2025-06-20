@@ -216,6 +216,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                             label={translate('workspace.inviteMessage.personalMessagePrompt')}
                             accessibilityLabel={translate('workspace.inviteMessage.personalMessagePrompt')}
                             autoCompleteType="off"
+                            type="markdown"
                             autoCorrect={false}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}

@@ -28,6 +28,8 @@ const defaultProps = {
     isSelected: false,
     shouldShowTooltip: false,
     dateColumnSize: CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+    amountColumnSize: CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+    taxAmountColumnSize: CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
     onCheckboxPress: jest.fn(),
     shouldShowCheckbox: false,
     columns: Object.values(CONST.REPORT.TRANSACTION_LIST.COLUMNS),
@@ -89,16 +91,17 @@ const createErrorReportAction = () =>
     });
 
 describe('TransactionItemRowRBRWithOnyx', () => {
-    beforeAll(() =>
+    beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        }),
-    );
+        });
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT);
+    });
 
     beforeEach(() => {
         jest.clearAllMocks();
-        return Onyx.clear().then(waitForBatchedUpdates);
+        return Onyx.clear([ONYXKEYS.NVP_PREFERRED_LOCALE]).then(waitForBatchedUpdates);
     });
 
     it('should display RBR message for transaction with single violation', async () => {

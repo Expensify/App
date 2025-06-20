@@ -92,7 +92,7 @@ function IOURequestStepDestination({
 
         if (backTo) {
             navigateBack();
-        } else if (explicitPolicyID) {
+        } else if (explicitPolicyID && transaction?.isFromGlobalCreate) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, policyExpenseReport?.reportID ?? reportID));
         } else {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, reportID));

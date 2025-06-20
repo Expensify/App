@@ -1,5 +1,5 @@
 import React, {memo, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -8,6 +8,9 @@ import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
 type ReportActionsListItemRendererProps = {
+    /** All the data of the report collection */
+    allReports: OnyxCollection<Report>;
+
     /** All the data of the action item */
     reportAction: ReportAction;
 
@@ -55,6 +58,7 @@ type ReportActionsListItemRendererProps = {
 };
 
 function ReportActionsListItemRenderer({
+    allReports,
     reportAction,
     reportActions = [],
     parentReportAction,
@@ -147,6 +151,7 @@ function ReportActionsListItemRenderer({
     if (shouldDisplayParentAction && isChatThread(report)) {
         return (
             <ReportActionItemParentAction
+                allReports={allReports}
                 shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
                 shouldDisplayReplyDivider={shouldDisplayReplyDivider}
                 parentReportAction={parentReportAction}
@@ -163,6 +168,7 @@ function ReportActionsListItemRenderer({
 
     return (
         <ReportActionItem
+            allReports={allReports}
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             parentReportAction={parentReportAction}
             report={report}

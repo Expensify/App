@@ -4,7 +4,6 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import EmbeddedDemo from '@components/EmbeddedDemo';
 import Modal from '@components/Modal';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
-import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,7 +17,6 @@ import ROUTES from '@src/ROUTES';
 import TestDriveBanner from './TestDriveBanner';
 
 function TestDriveDemo() {
-    const {environment} = useEnvironment();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isVisible, setIsVisible] = useState(false);
     const styles = useThemeStyles();
@@ -64,7 +62,7 @@ function TestDriveDemo() {
                     <TestDriveBanner onPress={closeModal} />
                     <FullPageOfflineBlockingView>
                         <EmbeddedDemo
-                            url={getTestDriveURL(environment, shouldUseNarrowLayout)}
+                            url={getTestDriveURL(shouldUseNarrowLayout, introSelected?.choice)}
                             iframeTitle={CONST.TEST_DRIVE.EMBEDDED_DEMO_IFRAME_TITLE}
                         />
                     </FullPageOfflineBlockingView>

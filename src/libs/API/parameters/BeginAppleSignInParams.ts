@@ -1,9 +1,8 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import type Locale from '@src/types/onyx/Locale';
 
 type BeginAppleSignInParams = {
     idToken: string | undefined | null;
-    preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
+    preferredLocale: Locale | null;
 };
 
 export default BeginAppleSignInParams;

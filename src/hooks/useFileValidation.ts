@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import {useState} from 'react';
-import type {FileObject} from '@components/AttachmentModal';
 import {resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 

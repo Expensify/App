@@ -70,8 +70,8 @@ function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
 
             <ConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
-                title={translate('spreadsheet.importSuccessfulTitle')}
-                prompt={translate('spreadsheet.importMultiLevelTagsSuccessfulDescription')}
+                title={spreadsheet?.importFinalModal?.title ?? ''}
+                prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
                 onConfirm={closeImportPageAndModal}
                 onCancel={closeImportPageAndModal}
                 confirmText={translate('common.buttonConfirm')}

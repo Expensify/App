@@ -116,6 +116,11 @@ function closeAccount(reason: string) {
         optimisticData,
         failureData,
     });
+
+    // On HybridApp, we need to sign out from the oldDot app as well to keep state of both apps in sync
+    if (CONFIG.IS_HYBRID_APP) {
+        HybridAppModule.signOutFromOldDot();
+    }
 }
 
 /**
@@ -1369,6 +1374,14 @@ function dismissTrackTrainingModal() {
     });
 }
 
+/**
+ * Dismiss the Auto-Submit explanation modal
+ * @param shouldDismiss Whether the user selected "Don't show again"
+ */
+function dismissInstantSubmitExplanation(shouldDismiss: boolean) {
+    Onyx.merge(ONYXKEYS.NVP_DISMISSED_INSTANT_SUBMIT_EXPLANATION, shouldDismiss);
+}
+
 function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
@@ -1428,6 +1441,7 @@ export {
     closeAccount,
     dismissReferralBanner,
     dismissTrackTrainingModal,
+    dismissInstantSubmitExplanation,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,

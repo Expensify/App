@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -16,9 +16,6 @@ type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
          */
         onLayout?: (setTestReceiptAndNavigate: () => void) => void;
 
-        /** Disable tab swipe */
-        setTabSwipeDisabled?: (isDisabled: boolean) => void;
-
         /** If the receipts preview should be shown */
         isMultiScanEnabled?: boolean;
 
@@ -28,7 +25,7 @@ type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
 
 type ReceiptFile = {
     source: string;
-    file: FileObject;
+    file?: FileObject;
     transactionID: string;
 };
 
