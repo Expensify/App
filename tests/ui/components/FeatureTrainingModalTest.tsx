@@ -6,7 +6,6 @@ import ReceiptDoc from '@assets/images/receipt-doc.png';
 import ComposeProviders from '@components/ComposeProviders';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import * as Illustrations from '@components/Icon/Illustrations';
-import {NetworkProvider} from '@components/OnyxProvider';
 import {FullScreenContextProvider} from '@components/VideoPlayerContexts/FullScreenContext';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
@@ -57,7 +56,7 @@ describe('FeatureTrainingModal', () => {
     describe('renderIllustration', () => {
         it('renders video', () => {
             render(
-                <ComposeProviders components={[NetworkProvider, PlaybackContextProvider, FullScreenContextProvider, VolumeContextProvider, VideoPopoverMenuContextProvider]}>
+                <ComposeProviders components={[PlaybackContextProvider, FullScreenContextProvider, VolumeContextProvider, VideoPopoverMenuContextProvider]}>
                     <FeatureTrainingModal
                         confirmText={CONFIRM_TEXT}
                         videoURL={CONST.WELCOME_VIDEO_URL}
@@ -69,35 +68,27 @@ describe('FeatureTrainingModal', () => {
         });
         it('renders svg image', () => {
             render(
-                <NetworkProvider>
-                    <FeatureTrainingModal
-                        confirmText={CONFIRM_TEXT}
-                        image={Illustrations.HoldExpense}
-                    />
-                </NetworkProvider>,
+                <FeatureTrainingModal
+                    confirmText={CONFIRM_TEXT}
+                    image={Illustrations.HoldExpense}
+                />,
             );
 
             expect(screen.getByTestId(CONST.IMAGE_SVG_TEST_ID)).toBeOnTheScreen();
         });
         it('renders non-svg image', () => {
             render(
-                <NetworkProvider>
-                    <FeatureTrainingModal
-                        confirmText={CONFIRM_TEXT}
-                        image={ReceiptDoc}
-                        shouldRenderSVG={false}
-                    />
-                </NetworkProvider>,
+                <FeatureTrainingModal
+                    confirmText={CONFIRM_TEXT}
+                    image={ReceiptDoc}
+                    shouldRenderSVG={false}
+                />,
             );
 
             expect(screen.getByTestId(CONST.IMAGE_TEST_ID)).toBeOnTheScreen();
         });
         it('renders animation', () => {
-            render(
-                <NetworkProvider>
-                    <FeatureTrainingModal confirmText={CONFIRM_TEXT} />
-                </NetworkProvider>,
-            );
+            render(<FeatureTrainingModal confirmText={CONFIRM_TEXT} />);
 
             expect(screen.getByTestId(CONST.LOTTIE_VIEW_TEST_ID)).toBeOnTheScreen();
         });

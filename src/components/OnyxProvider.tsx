@@ -5,7 +5,6 @@ import createOnyxContext from './createOnyxContext';
 
 // Set up any providers for individual keys. This should only be used in cases where many components will subscribe to
 // the same key (e.g. FlatList renderItem components)
-const [NetworkProvider, NetworkContext] = createOnyxContext(ONYXKEYS.NETWORK);
 const [PersonalDetailsProvider, PersonalDetailsContext, usePersonalDetails] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS_LIST);
 const [BlockedFromConciergeProvider, , useBlockedFromConcierge] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
 const [BetasProvider, BetasContext, useBetas] = createOnyxContext(ONYXKEYS.BETAS);
@@ -24,7 +23,6 @@ function OnyxProvider(props: OnyxProviderProps) {
     return (
         <ComposeProviders
             components={[
-                NetworkProvider,
                 PersonalDetailsProvider,
                 BlockedFromConciergeProvider,
                 BetasProvider,
@@ -45,9 +43,7 @@ OnyxProvider.displayName = 'OnyxProvider';
 export default OnyxProvider;
 
 export {
-    NetworkProvider,
     usePersonalDetails,
-    NetworkContext,
     BetasContext,
     PreferredThemeContext,
     useBetas,
