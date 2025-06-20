@@ -232,7 +232,6 @@ function ButtonWithDropdownMenu<IValueType>({
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     // eslint-disable-next-line react-compiler/react-compiler
                     anchorRef={nullCheckRef(dropdownAnchor)}
-                    withoutOverlay
                     shouldUseScrollView
                     scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && styles.pv4}
                     shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}

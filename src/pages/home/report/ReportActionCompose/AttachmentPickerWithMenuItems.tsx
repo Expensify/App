@@ -409,7 +409,6 @@ function AttachmentPickerWithMenuItems({
                             anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                             menuItems={menuItems}
-                            withoutOverlay
                             anchorRef={actionButtonRef}
                         />
                     </>
