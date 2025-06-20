@@ -4952,7 +4952,7 @@ const translations = {
             changeOwnerPageTitle: 'Transferir proprietário',
             addPaymentCardTitle: 'Insira seu cartão de pagamento para transferir a propriedade',
             addPaymentCardButtonText: 'Aceitar os termos e adicionar cartão de pagamento',
-            addPaymentCardReadAndAcceptTextPart: `Ler e aceitar <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>termos</a> & <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>privacidade</a> política para adicionar seu cartão`,
+            addPaymentCardReadAndAcceptText: `Ler e aceitar <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>termos</a> & <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>privacidade</a> política para adicionar seu cartão`,
             addPaymentCardPciCompliant: 'Compatível com PCI-DSS',
             addPaymentCardBankLevelEncrypt: 'Criptografia de nível bancário',
             addPaymentCardRedundant: 'Infraestrutura redundante',
