@@ -10,7 +10,8 @@ const RELEVANT_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMAN
  * Shows LoadingBar when OpenReport/OpenApp/ReconnectApp requests are being processed
  */
 export default function useLoadingBarVisibility(): boolean {
-    const [req] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {canBeMissing: false});
+    const [persistedRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {canBeMissing: false});
+    const [ongoingRequests] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {canBeMissing: false});
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: false});
 
     // Don't show loading bar if currently offline
@@ -18,5 +19,8 @@ export default function useLoadingBarVisibility(): boolean {
         return false;
     }
 
-    return req?.some((request) => RELEVANT_COMMANDS.has(request.command) && !request.initiatedOffline) ?? false;
+    const hasPersistedRequests = persistedRequests?.some((request) => RELEVANT_COMMANDS.has(request.command) && !request.initiatedOffline) ?? false;
+    const hasOngoingRequests = !!ongoingRequests && RELEVANT_COMMANDS.has(ongoingRequests?.command);
+
+    return hasPersistedRequests || hasOngoingRequests;
 }
