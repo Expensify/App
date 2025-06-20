@@ -2,6 +2,7 @@
 import * as core from '@actions/core';
 import {getOctokitOptions, GitHub} from '@actions/github/lib/utils';
 import type {Octokit as OctokitCore} from '@octokit/core';
+import {RequestError} from '@octokit/request-error';
 import type {graphql} from '@octokit/graphql/dist-types/types';
 import type {components as OctokitComponents} from '@octokit/openapi-types/types';
 import type {PaginateInterface} from '@octokit/plugin-paginate-rest';
@@ -576,7 +577,7 @@ class GithubUtils {
                 head: toTag,
             });
 
-            // Map API response to our CommitType format
+            // Map API response to our CommitType object
             return comparison.commits.map((commit) => ({
                 commit: commit.sha,
                 subject: commit.commit.message,
@@ -589,7 +590,6 @@ class GithubUtils {
                     `❓❓ Failed to compare commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`,
                 );
             }
-            // Re-throw the error after logging
             throw error;
         }
     }
