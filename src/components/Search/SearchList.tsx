@@ -361,6 +361,7 @@ function SearchList(
 
     const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
+    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedTransactionWithoutPendingDelete.length;
 
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
@@ -369,7 +370,7 @@ function SearchList(
                     {canSelectMultiple && (
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={flattenedTransactionWithoutPendingDelete.length > 0 && selectedItemsLength === flattenedTransactionWithoutPendingDelete.length}
+                            isChecked={isSelectAllChecked}
                             isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactionWithoutPendingDelete.length}
                             onPress={() => {
                                 onAllCheckboxPress();
@@ -386,7 +387,7 @@ function SearchList(
                             onPress={onAllCheckboxPress}
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             role="button"
-                            accessibilityState={{checked: selectedItemsLength === flattenedTransactionWithoutPendingDelete.length}}
+                            accessibilityState={{checked: isSelectAllChecked}}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
