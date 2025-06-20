@@ -1,10 +1,10 @@
 import React, {forwardRef} from 'react';
-import AnimatedSectionList from './AnimatedSectionList';
+import BaseSectionList from './BaseSectionList';
 import type {SectionListProps, SectionListRef} from './types';
 
 function SectionListWithRef<ItemT, SectionT>(props: SectionListProps<ItemT, SectionT>, ref: SectionListRef<ItemT, SectionT>) {
     return (
-        <AnimatedSectionList
+        <BaseSectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}

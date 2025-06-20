@@ -1,24 +1,34 @@
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
-import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useMemo, useReducer} from 'react';
+import {deepEqual} from 'fast-equals';
+import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReceiptUtils from '@libs/ReceiptUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
+import {canSendInvoice, getPerDiemCustomUnit, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
+import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
+import {buildOptimisticExpenseReport, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isReportOutstanding, populateOptimisticReportFormula} from '@libs/ReportUtils';
+import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {
+    getTagForDisplay,
+    getTaxAmount,
+    getTaxName,
+    isAmountMissing,
+    isCreatedMissing,
+    isFetchingWaypointsFromServer,
+    shouldShowAttendees as shouldShowAttendeesTransactionUtils,
+} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
@@ -28,8 +38,11 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import Badge from './Badge';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
+import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
@@ -37,7 +50,14 @@ import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuContext} from './ShowContextMenuContext';
-import ShowMoreButton from './ShowMoreButton';
+
+type TagVisibility = {
+    /** Flag indicating if the tag is required */
+    isTagRequired: boolean;
+
+    /** Flag indicating if the tag should be shown */
+    shouldShow: boolean;
+};
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -94,8 +114,8 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Flag indicating if it is a distance request */
     isDistanceRequest: boolean;
 
-    /** Flag indicating if it is editing a split bill */
-    isEditingSplitBill: boolean | undefined;
+    /** Flag indicating if it is a per diem request */
+    isPerDiemRequest: boolean;
 
     /** Flag indicating if the merchant is empty */
     isMerchantEmpty: boolean;
@@ -157,6 +177,9 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Flag indicating if the smart scan fields should be shown */
     shouldShowSmartScanFields: boolean;
 
+    /** Flag indicating if the amount field should be shown */
+    shouldShowAmountField?: boolean;
+
     /** Flag indicating if the tax should be shown */
     shouldShowTax: boolean;
 
@@ -164,10 +187,19 @@ type MoneyRequestConfirmationListFooterProps = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** The transaction ID */
-    transactionID: string;
+    transactionID: string | undefined;
+
+    /** Whether the receipt can be replaced */
+    isReceiptEditable?: boolean;
 
     /** The unit */
     unit: Unit | undefined;
+
+    /** The PDF load error callback */
+    onPDFLoadError?: () => void;
+
+    /** The PDF password callback */
+    onPDFPassword?: () => void;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -189,7 +221,7 @@ function MoneyRequestConfirmationListFooter({
     iouType,
     isCategoryRequired,
     isDistanceRequest,
-    isEditingSplitBill,
+    isPerDiemRequest,
     isMerchantEmpty,
     isMerchantRequired,
     isPolicyExpenseChat,
@@ -210,24 +242,32 @@ function MoneyRequestConfirmationListFooter({
     shouldShowCategories,
     shouldShowMerchant,
     shouldShowSmartScanFields,
+    shouldShowAmountField = true,
     shouldShowTax,
     transaction,
     transactionID,
     unit,
+    onPDFLoadError,
+    onPDFPassword,
+    isReceiptEditable = false,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate, toLocaleDigit} = useLocalize();
     const {isOffline} = useNetwork();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
 
-    // A flag and a toggler for showing the rest of the form fields
-    const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
 
-    const shouldShowTags = useMemo(() => isPolicyExpenseChat && TagsOptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
-    const isMultilevelTags = useMemo(() => PolicyUtils.isMultiLevelTags(policyTags), [policyTags]);
-    const shouldShowAttendees = useMemo(() => TransactionUtils.shouldShowAttendees(iouType, policy), [iouType, policy]);
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
+    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
+    const isMultilevelTags = useMemo(() => isMultiLevelTagsPolicyUtils(policyTags), [policyTags]);
+    const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
+
+    const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
+    const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shouldShowMap = isDistanceRequest && !!(hasErrors || hasPendingWaypoints || iouType !== CONST.IOU.TYPE.SPLIT || !isReadOnly);
 
     const senderWorkspace = useMemo(() => {
         const senderWorkspaceParticipant = selectedParticipants.find((participant) => participant.isSender);
@@ -237,8 +277,30 @@ function MoneyRequestConfirmationListFooter({
     const canUpdateSenderWorkspace = useMemo(() => {
         const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
 
-        return PolicyUtils.canSendInvoice(allPolicies, currentUserLogin) && !!transaction?.isFromGlobalCreate && !isInvoiceRoomParticipant;
+        return canSendInvoice(allPolicies, currentUserLogin) && !!transaction?.isFromGlobalCreate && !isInvoiceRoomParticipant;
     }, [allPolicies, currentUserLogin, selectedParticipants, transaction?.isFromGlobalCreate]);
+
+    /**
+     * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
+     * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
+     */
+    const transactionReport = !!transaction?.reportID && Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID);
+    const policyID = selectedParticipants?.at(0)?.policyID;
+    const reportOwnerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
+    const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID);
+    const firstOutstandingReport = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {}).at(0);
+    let reportName: string | undefined;
+    if (shouldUseTransactionReport) {
+        reportName = transactionReport.reportName;
+    } else {
+        reportName = firstOutstandingReport?.reportName;
+    }
+
+    if (!reportName) {
+        const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
+        reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
+    }
+    const shouldReportBeEditable = !!firstOutstandingReport;
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const taxRates = policy?.taxRates ?? null;
@@ -247,27 +309,28 @@ function MoneyRequestConfirmationListFooter({
     // Determines whether the tax fields can be modified.
     // The tax fields can only be modified if the component is not in read-only mode
     // and it is not a distance request.
-    const canModifyTaxFields = !isReadOnly && !isDistanceRequest;
+    const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
-    // Do not hide fields in case of paying someone
-    const shouldShowAllFields = !!isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || !!isEditingSplitBill;
     // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
-    const taxAmount = TransactionUtils.getTaxAmount(transaction, false);
-    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(taxAmount, iouCurrencyCode);
+    const taxAmount = getTaxAmount(transaction, false);
+    const formattedTaxAmount = convertToDisplayString(taxAmount, iouCurrencyCode);
     // Get the tax rate title based on the policy and transaction
-    const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
+    const taxRateTitle = getTaxName(policy, transaction);
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
+    const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
-    const shouldShowReceiptEmptyState = iouType === CONST.IOU.TYPE.SUBMIT && PolicyUtils.isPaidGroupPolicy(policy);
+    const shouldShowReceiptEmptyState = iouType === CONST.IOU.TYPE.SUBMIT && isPaidGroupPolicy(policy) && !isPerDiemRequest;
+    // The per diem custom unit
+    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const {
         image: receiptImage,
         thumbnail: receiptThumbnail,
         isThumbnail,
         fileExtension,
         isLocalFile,
-    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
+    } = receiptPath && receiptFilename ? getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ThumbnailAndImageURI);
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
@@ -278,16 +341,41 @@ function MoneyRequestConfirmationListFooter({
             reportNameValuePairs: undefined,
             action: undefined,
             checkIfContextMenuActive: () => {},
+            onShowContextMenu: () => {},
             isDisabled: true,
+            shouldDisplayContextMenu: false,
         }),
         [],
     );
 
-    const mentionReportContextValue = useMemo(() => ({currentReportID: reportID}), [reportID]);
+    const tagVisibility: TagVisibility[] = policyTagLists.map(({tags, required}, index) => {
+        const isTagRequired = required ?? false;
+        let shouldShow = false;
 
-    // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
-    // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
-    const classifiedFields = [
+        if (shouldShowTags) {
+            if (hasDependentTags) {
+                if (index === 0) {
+                    shouldShow = true;
+                } else {
+                    const prevTagValue = getTagForDisplay(transaction, index - 1);
+                    shouldShow = !!prevTagValue;
+                }
+            } else {
+                shouldShow = !isMultilevelTags || hasEnabledOptions(tags);
+            }
+        }
+
+        return {
+            isTagRequired,
+            shouldShow,
+        };
+    });
+
+    const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
+
+    const mentionReportContextValue = useMemo(() => ({currentReportID: reportID, exactlyMatch: true}), [reportID]);
+
+    const fields = [
         {
             item: (
                 <MenuItemWithTopDescription
@@ -297,7 +385,7 @@ function MoneyRequestConfirmationListFooter({
                     description={translate('iou.amount')}
                     interactive={!isReadOnly}
                     onPress={() => {
-                        if (isDistanceRequest) {
+                        if (isDistanceRequest || !transactionID) {
                             return;
                         }
 
@@ -306,41 +394,43 @@ function MoneyRequestConfirmationListFooter({
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={shouldDisplayFieldError && isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
                 />
             ),
-            shouldShow: shouldShowSmartScanFields,
-            isSupplementary: false,
+            shouldShow: shouldShowSmartScanFields && shouldShowAmountField,
         },
         {
             item: (
-                <ShowContextMenuContext.Provider value={contextMenuContextValue}>
-                    <MentionReportContext.Provider
-                        key={translate('common.description')}
-                        value={mentionReportContextValue}
-                    >
-                        <MenuItemWithTopDescription
-                            key={translate('common.description')}
-                            shouldShowRightIcon={!isReadOnly}
-                            shouldParseTitle
-                            excludedMarkdownRules={!policy ? ['reportMentions'] : []}
-                            title={iouComment}
-                            description={translate('common.description')}
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
-                            }}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            disabled={didConfirm}
-                            interactive={!isReadOnly}
-                            numberOfLinesTitle={2}
-                        />
-                    </MentionReportContext.Provider>
-                </ShowContextMenuContext.Provider>
+                <View key={translate('common.description')}>
+                    <ShowContextMenuContext.Provider value={contextMenuContextValue}>
+                        <MentionReportContext.Provider value={mentionReportContextValue}>
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon={!isReadOnly}
+                                shouldParseTitle
+                                excludedMarkdownRules={!policy ? ['reportMentions'] : []}
+                                title={iouComment}
+                                description={translate('common.description')}
+                                onPress={() => {
+                                    if (!transactionID) {
+                                        return;
+                                    }
+
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                                    );
+                                }}
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.flex1}
+                                disabled={didConfirm}
+                                interactive={!isReadOnly}
+                                numberOfLinesTitle={2}
+                            />
+                        </MentionReportContext.Provider>
+                    </ShowContextMenuContext.Provider>
+                </View>
             ),
             shouldShow: true,
-            isSupplementary: false,
         },
         {
             item: (
@@ -351,13 +441,18 @@ function MoneyRequestConfirmationListFooter({
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                    }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                 />
             ),
             shouldShow: isDistanceRequest,
-            isSupplementary: false,
         },
         {
             item: (
@@ -368,13 +463,19 @@ function MoneyRequestConfirmationListFooter({
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                    }}
+                    brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
                     interactive={!!rate && !isReadOnly && isPolicyExpenseChat}
                 />
             ),
             shouldShow: isDistanceRequest,
-            isSupplementary: false,
         },
         {
             item: (
@@ -386,6 +487,10 @@ function MoneyRequestConfirmationListFooter({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                     }}
                     disabled={didConfirm}
@@ -397,7 +502,30 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: shouldShowMerchant,
-            isSupplementary: !isMerchantRequired,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.category')}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={iouCategory}
+                    description={translate('common.category')}
+                    numberOfLinesTitle={2}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                    }}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                    rightLabel={isCategoryRequired ? translate('common.required') : ''}
+                />
+            ),
+            shouldShow: shouldShowCategories,
         },
         {
             item: (
@@ -410,50 +538,43 @@ function MoneyRequestConfirmationListFooter({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={shouldDisplayFieldError && isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
                 />
             ),
             shouldShow: shouldShowDate,
-            isSupplementary: true,
         },
-        {
-            item: (
-                <MenuItemWithTopDescription
-                    key={translate('common.category')}
-                    shouldShowRightIcon={!isReadOnly}
-                    title={iouCategory}
-                    description={translate('common.category')}
-                    numberOfLinesTitle={2}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID))}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    disabled={didConfirm}
-                    interactive={!isReadOnly}
-                    rightLabel={isCategoryRequired ? translate('common.required') : ''}
-                />
-            ),
-            shouldShow: shouldShowCategories,
-            isSupplementary: action === CONST.IOU.ACTION.CATEGORIZE ? false : !isCategoryRequired,
-        },
-        ...policyTagLists.map(({name, required, tags}, index) => {
-            const isTagRequired = required ?? false;
-            const shouldShow = shouldShowTags && (!isMultilevelTags || OptionsListUtils.hasEnabledOptions(tags));
+        ...policyTagLists.map(({name}, index) => {
+            const tagVisibilityItem = tagVisibility.at(index);
+            const isTagRequired = tagVisibilityItem?.isTagRequired ?? false;
+            const shouldShow = tagVisibilityItem?.shouldShow ?? false;
+            const prevShouldShow = previousTagsVisibility.at(index) ?? false;
             return {
                 item: (
                     <MenuItemWithTopDescription
+                        highlighted={shouldShow && !getTagForDisplay(transaction, index) && !prevShouldShow}
                         key={name}
                         shouldShowRightIcon={!isReadOnly}
-                        title={TransactionUtils.getTagForDisplay(transaction, index)}
+                        title={getTagForDisplay(transaction, index)}
                         description={name}
+                        shouldShowBasicTitle
+                        shouldShowDescriptionOnTop
                         numberOfLinesTitle={2}
-                        onPress={() =>
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, index, transactionID, reportID, Navigation.getActiveRoute(), reportActionID))
-                        }
+                        onPress={() => {
+                            if (!transactionID) {
+                                return;
+                            }
+
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, index, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                        }}
                         style={[styles.moneyRequestMenuItem]}
                         disabled={didConfirm}
                         interactive={!isReadOnly}
@@ -461,7 +582,6 @@ function MoneyRequestConfirmationListFooter({
                     />
                 ),
                 shouldShow,
-                isSupplementary: !isTagRequired,
             };
         }),
         {
@@ -473,13 +593,18 @@ function MoneyRequestConfirmationListFooter({
                     description={taxRates?.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()))}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                    }}
                     disabled={didConfirm}
                     interactive={canModifyTaxFields}
                 />
             ),
             shouldShow: shouldShowTax,
-            isSupplementary: true,
         },
         {
             item: (
@@ -490,13 +615,18 @@ function MoneyRequestConfirmationListFooter({
                     description={translate('iou.taxAmount')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()))}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                    }}
                     disabled={didConfirm}
                     interactive={canModifyTaxFields}
                 />
             ),
             shouldShow: shouldShowTax,
-            isSupplementary: true,
         },
         {
             item: (
@@ -505,17 +635,22 @@ function MoneyRequestConfirmationListFooter({
                     shouldShowRightIcon
                     title={iouAttendees?.map((item) => item?.displayName ?? item?.login).join(', ')}
                     description={`${translate('iou.attendees')} ${
-                        iouAttendees?.length && iouAttendees.length > 1 ? `\u00B7 ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
+                        iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `\u00B7 ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
                     }`}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                    }}
                     interactive
                     shouldRenderAsHTML
                 />
             ),
             shouldShow: shouldShowAttendees,
-            isSupplementary: true,
         },
         {
             item: (
@@ -529,33 +664,110 @@ function MoneyRequestConfirmationListFooter({
                         onToggle={(isOn) => onToggleBillable?.(isOn)}
                         isActive={iouIsBillable}
                         disabled={isReadOnly}
-                        titleStyle={!iouIsBillable && {color: theme.textSupporting}}
                         wrapperStyle={styles.flex1}
                     />
                 </View>
             ),
             shouldShow: shouldShowBillable,
-            isSupplementary: true,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.report')}
+                    shouldShowRightIcon={shouldReportBeEditable}
+                    title={reportName}
+                    description={translate('common.report')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                    }}
+                    interactive={shouldReportBeEditable}
+                    shouldRenderAsHTML
+                />
+            ),
+            shouldShow: isPolicyExpenseChat,
         },
     ];
 
-    const primaryFields: React.JSX.Element[] = [];
-    const supplementaryFields: React.JSX.Element[] = [];
+    const subRates = getSubratesFields(perDiemCustomUnit, transaction);
+    const shouldDisplaySubrateError =
+        isPerDiemRequest && (shouldDisplayFieldError || formError === 'iou.error.invalidSubrateLength') && (subRates.length === 0 || (subRates.length === 1 && !subRates.at(0)));
 
-    classifiedFields.forEach((field) => {
-        if (field.shouldShow && !field.isSupplementary) {
-            primaryFields.push(field.item);
-        } else if (field.shouldShow && field.isSupplementary) {
-            supplementaryFields.push(field.item);
+    const subRateFields = subRates.map((field, index) => (
+        <MenuItemWithTopDescription
+            key={`${translate('common.subrate')}${field?.key ?? index}`}
+            shouldShowRightIcon={!isReadOnly}
+            title={getSubratesForDisplay(field, translate('iou.qty'))}
+            description={translate('common.subrate')}
+            style={[styles.moneyRequestMenuItem]}
+            titleStyle={styles.flex1}
+            onPress={() => {
+                if (!transactionID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.getRoute(action, iouType, transactionID, reportID, index, Navigation.getActiveRoute()));
+            }}
+            disabled={didConfirm}
+            interactive={!isReadOnly}
+            brickRoadIndicator={index === 0 && shouldDisplaySubrateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+            errorText={index === 0 && shouldDisplaySubrateError ? translate('common.error.fieldRequired') : ''}
+        />
+    ));
+
+    const {firstDay, tripDays, lastDay} = getTimeDifferenceIntervals(transaction);
+
+    const badgeElements = useMemo(() => {
+        const badges: React.JSX.Element[] = [];
+        if (firstDay) {
+            badges.push(
+                <Badge
+                    key="firstDay"
+                    icon={Expensicons.Stopwatch}
+                    text={translate('iou.firstDayText', {count: firstDay})}
+                />,
+            );
         }
-    });
+        if (tripDays) {
+            badges.push(
+                <Badge
+                    key="tripDays"
+                    icon={Expensicons.CalendarSolid}
+                    text={translate('iou.tripLengthText', {count: tripDays})}
+                />,
+            );
+        }
+        if (lastDay) {
+            badges.push(
+                <Badge
+                    key="lastDay"
+                    icon={Expensicons.Stopwatch}
+                    text={translate('iou.lastDayText', {count: lastDay})}
+                />,
+            );
+        }
+        return badges;
+    }, [firstDay, lastDay, translate, tripDays]);
 
     const receiptThumbnailContent = useMemo(
         () => (
-            <View style={styles.moneyRequestImage}>
+            <View style={[styles.moneyRequestImage, styles.expenseViewImageSmall]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
-                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID ?? '', transactionID ?? ''))}
+                        onPress={() => {
+                            if (!transactionID) {
+                                return;
+                            }
+
+                            Navigation.navigate(
+                                isReceiptEditable
+                                    ? ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType)
+                                    : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
+                            );
+                        }}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         disabled={!shouldDisplayReceipt}
@@ -564,15 +776,28 @@ function MoneyRequestConfirmationListFooter({
                         <PDFThumbnail
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                             previewSourceURL={resolvedReceiptImage as string}
+                            onLoadError={onPDFLoadError}
+                            onPassword={onPDFPassword}
                         />
                     </PressableWithoutFocus>
                 ) : (
                     <PressableWithoutFocus
-                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID ?? '', transactionID ?? ''))}
+                        onPress={() => {
+                            if (!transactionID) {
+                                return;
+                            }
+
+                            Navigation.navigate(
+                                isReceiptEditable
+                                    ? ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID, undefined, undefined, action, iouType)
+                                    : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
+                            );
+                        }}
                         disabled={!shouldDisplayReceipt || isThumbnail}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         disabledStyle={styles.cursorDefault}
+                        style={[styles.h100, styles.flex1]}
                     >
                         <ReceiptImage
                             isThumbnail={isThumbnail}
@@ -592,19 +817,27 @@ function MoneyRequestConfirmationListFooter({
         ),
         [
             styles.moneyRequestImage,
+            styles.expenseViewImageSmall,
             styles.cursorDefault,
+            styles.h100,
+            styles.flex1,
             isLocalFile,
             receiptFilename,
             translate,
             shouldDisplayReceipt,
             resolvedReceiptImage,
+            onPDFLoadError,
+            onPDFPassword,
             isThumbnail,
             resolvedThumbnail,
             receiptThumbnail,
             fileExtension,
             isDistanceRequest,
-            reportID,
             transactionID,
+            action,
+            iouType,
+            reportID,
+            isReceiptEditable,
         ],
     );
 
@@ -623,7 +856,10 @@ function MoneyRequestConfirmationListFooter({
                     isLabelHoverable={false}
                     interactive={!isReadOnly && canUpdateSenderWorkspace}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '-1', reportID, Navigation.getActiveRouteWithoutParams()));
+                        if (!transaction?.transactionID) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID, reportID, Navigation.getActiveRoute()));
                     }}
                     style={styles.moneyRequestMenuItem}
                     labelStyle={styles.mt2}
@@ -631,32 +867,75 @@ function MoneyRequestConfirmationListFooter({
                     disabled={didConfirm}
                 />
             )}
-            {isDistanceRequest && (
+            {shouldShowMap && (
                 <View style={styles.confirmationListMapItem}>
                     <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
                 </View>
             )}
-            {!isDistanceRequest &&
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                (receiptImage || receiptThumbnail
-                    ? receiptThumbnailContent
-                    : shouldShowReceiptEmptyState && (
-                          <ReceiptEmptyState
-                              onPress={() =>
-                                  Navigation.navigate(
-                                      ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                                  )
-                              }
-                          />
-                      ))}
-            {primaryFields}
-            {!shouldShowAllFields && (
-                <ShowMoreButton
-                    containerStyle={[styles.mt1, styles.mb2]}
-                    onPress={toggleShouldExpandFields}
-                />
+            {isPerDiemRequest && action !== CONST.IOU.ACTION.SUBMIT && (
+                <>
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon={!isReadOnly}
+                        title={getDestinationForDisplay(perDiemCustomUnit, transaction)}
+                        description={translate('common.destination')}
+                        style={[styles.moneyRequestMenuItem]}
+                        titleStyle={styles.flex1}
+                        onPress={() => {
+                            if (!transactionID) {
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                        }}
+                        disabled={didConfirm}
+                        interactive={!isReadOnly}
+                    />
+                    <View style={styles.dividerLine} />
+                    <MenuItemWithTopDescription
+                        shouldShowRightIcon={!isReadOnly}
+                        title={getTimeForDisplay(transaction)}
+                        description={translate('iou.time')}
+                        style={[styles.moneyRequestMenuItem]}
+                        titleStyle={styles.flex1}
+                        onPress={() => {
+                            if (!transactionID) {
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.getRoute(action, iouType, transactionID, reportID));
+                        }}
+                        disabled={didConfirm}
+                        interactive={!isReadOnly}
+                        numberOfLinesTitle={2}
+                    />
+                    <View style={[styles.flexRow, styles.gap1, styles.justifyContentStart, styles.mh3, styles.flexWrap, styles.pt1]}>{badgeElements}</View>
+                    <View style={styles.dividerLine} />
+                    {subRateFields}
+                    <View style={styles.dividerLine} />
+                </>
             )}
-            <View style={[styles.mb5]}>{shouldShowAllFields && supplementaryFields}</View>
+            {!shouldShowMap && (
+                <View style={styles.mv3}>
+                    {
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        receiptImage || receiptThumbnail
+                            ? receiptThumbnailContent
+                            : shouldShowReceiptEmptyState && (
+                                  <ReceiptEmptyState
+                                      onPress={() => {
+                                          if (!transactionID) {
+                                              return;
+                                          }
+
+                                          Navigation.navigate(
+                                              ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()),
+                                          );
+                                      }}
+                                      style={styles.expenseViewImageSmall}
+                                  />
+                              )
+                    }
+                </View>
+            )}
+            <View style={[styles.mb5]}>{fields.filter((field) => field.shouldShow).map((field) => field.item)}</View>
         </>
     );
 }
@@ -666,7 +945,7 @@ MoneyRequestConfirmationListFooter.displayName = 'MoneyRequestConfirmationListFo
 export default memo(
     MoneyRequestConfirmationListFooter,
     (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.action, nextProps.action) &&
+        deepEqual(prevProps.action, nextProps.action) &&
         prevProps.currency === nextProps.currency &&
         prevProps.didConfirm === nextProps.didConfirm &&
         prevProps.distance === nextProps.distance &&
@@ -682,28 +961,27 @@ export default memo(
         prevProps.iouType === nextProps.iouType &&
         prevProps.isCategoryRequired === nextProps.isCategoryRequired &&
         prevProps.isDistanceRequest === nextProps.isDistanceRequest &&
-        prevProps.isEditingSplitBill === nextProps.isEditingSplitBill &&
         prevProps.isMerchantEmpty === nextProps.isMerchantEmpty &&
         prevProps.isMerchantRequired === nextProps.isMerchantRequired &&
         prevProps.isPolicyExpenseChat === nextProps.isPolicyExpenseChat &&
         prevProps.isReadOnly === nextProps.isReadOnly &&
         prevProps.isTypeInvoice === nextProps.isTypeInvoice &&
         prevProps.onToggleBillable === nextProps.onToggleBillable &&
-        lodashIsEqual(prevProps.policy, nextProps.policy) &&
-        lodashIsEqual(prevProps.policyTagLists, nextProps.policyTagLists) &&
+        deepEqual(prevProps.policy, nextProps.policy) &&
+        deepEqual(prevProps.policyTagLists, nextProps.policyTagLists) &&
         prevProps.rate === nextProps.rate &&
         prevProps.receiptFilename === nextProps.receiptFilename &&
         prevProps.receiptPath === nextProps.receiptPath &&
         prevProps.reportActionID === nextProps.reportActionID &&
         prevProps.reportID === nextProps.reportID &&
-        lodashIsEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
+        deepEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
         prevProps.shouldDisplayFieldError === nextProps.shouldDisplayFieldError &&
         prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt &&
         prevProps.shouldShowCategories === nextProps.shouldShowCategories &&
         prevProps.shouldShowMerchant === nextProps.shouldShowMerchant &&
         prevProps.shouldShowSmartScanFields === nextProps.shouldShowSmartScanFields &&
         prevProps.shouldShowTax === nextProps.shouldShowTax &&
-        lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
+        deepEqual(prevProps.transaction, nextProps.transaction) &&
         prevProps.transactionID === nextProps.transactionID &&
         prevProps.unit === nextProps.unit,
 );

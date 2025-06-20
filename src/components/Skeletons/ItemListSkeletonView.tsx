@@ -13,6 +13,8 @@ type ListItemSkeletonProps = {
     gradientOpacityEnabled?: boolean;
     itemViewStyle?: StyleProp<ViewStyle>;
     itemViewHeight?: number;
+    speed?: number;
+    style?: StyleProp<ViewStyle>;
 };
 
 const getVerticalMargin = (style: StyleProp<ViewStyle>): number => {
@@ -35,6 +37,8 @@ function ItemListSkeletonView({
     gradientOpacityEnabled = false,
     itemViewStyle = {},
     itemViewHeight = CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT,
+    speed,
+    style,
 }: ListItemSkeletonProps) {
     const theme = useTheme();
     const themeStyles = useThemeStyles();
@@ -63,27 +67,25 @@ function ItemListSkeletonView({
         for (let i = 0; i < numItems; i++) {
             const opacity = gradientOpacityEnabled ? 1 - i / (numItems - 1) : 1;
             items.push(
-                <View
+                <SkeletonViewContentLoader
+                    speed={speed}
                     key={`skeletonContainer${i}`}
-                    style={[themeStyles.mr5, itemViewStyle, {opacity}]}
+                    animate={shouldAnimate}
+                    height={itemViewHeight}
+                    backgroundColor={theme.skeletonLHNIn}
+                    foregroundColor={theme.skeletonLHNOut}
+                    style={[themeStyles.mr5, itemViewStyle, {opacity}, {minHeight: itemViewHeight}]}
                 >
-                    <SkeletonViewContentLoader
-                        animate={shouldAnimate}
-                        height={itemViewHeight}
-                        backgroundColor={theme.skeletonLHNIn}
-                        foregroundColor={theme.skeletonLHNOut}
-                    >
-                        {renderSkeletonItem({itemIndex: i})}
-                    </SkeletonViewContentLoader>
-                </View>,
+                    {renderSkeletonItem({itemIndex: i})}
+                </SkeletonViewContentLoader>,
             );
         }
         return items;
-    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem, gradientOpacityEnabled, itemViewHeight, itemViewStyle]);
+    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem, gradientOpacityEnabled, itemViewHeight, itemViewStyle, speed]);
 
     return (
         <View
-            style={[themeStyles.flex1, themeStyles.overflowHidden]}
+            style={[themeStyles.flex1, style]}
             onLayout={handleLayout}
         >
             {skeletonViewItems}

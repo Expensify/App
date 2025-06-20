@@ -1,3 +1,4 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Platform} from 'react-native';
 import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
@@ -92,8 +93,14 @@ export default {
         REDIRECT_URI: `${newExpensifyURL}appleauth`,
     },
     GOOGLE_SIGN_IN: {
+        // cspell:disable-next-line
         WEB_CLIENT_ID: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
+        // cspell:disable-next-line
         IOS_CLIENT_ID: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
+        // cspell:disable-next-line
+        HYBRID_APP_WEB_CLIENT_ID: '1008697809946-5e095eqem3o6ugtpc2rjf7v880tcp28p.apps.googleusercontent.com',
+        // cspell:disable-next-line
+        HYBRID_APP_IOS_CLIENT_ID: '1008697809946-sh04nqq0hea396s1qdqqbj6ia649odb2.apps.googleusercontent.com',
     },
     GCP_GEOLOCATION_API_KEY: googleGeolocationAPIKey,
     FIREBASE_WEB_CONFIG: {
@@ -103,4 +110,8 @@ export default {
     },
     // to read more about StrictMode see: contributingGuides/STRICT_MODE.md
     USE_REACT_STRICT_MODE_IN_DEV: false,
+    ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
+    IS_TEST_ENV: process.env.NODE_ENV === 'test',
+    // eslint-disable-next-line no-restricted-properties
+    IS_HYBRID_APP: HybridAppModule.isHybridApp(),
 } as const;

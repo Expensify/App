@@ -15,7 +15,7 @@ type CardRowSkeletonProps = {
 const barHeight = 7;
 const longBarWidth = 120;
 const shortBarWidth = 60;
-const leftPaneWidth = variables.sideBarWidth;
+const leftPaneWidth = variables.sideBarWithLHBWidth;
 const gapWidth = 12;
 const rightSideElementWidth = 50;
 const centralPanePadding = 50;
@@ -31,7 +31,7 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
             shouldAnimate={shouldAnimate}
             fixedNumItems={fixedNumItems}
             gradientOpacityEnabled={gradientOpacityEnabled}
-            itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mh5]}
+            itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.ml5]}
             renderSkeletonItem={() => (
                 <>
                     <Circle

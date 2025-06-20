@@ -10,7 +10,7 @@ type PromiseWithAbort = Promise<string | void> & {
  * Executes a command none-blocking by wrapping it in a promise.
  * In addition to the promise it returns an abort function.
  */
-export default (command: string, env: NodeJS.ProcessEnv = {}): PromiseWithAbort => {
+export default (command: string, env: NodeJS.ProcessEnv = {} as NodeJS.ProcessEnv): PromiseWithAbort => {
     let childProcess: ChildProcess;
     const promise: PromiseWithAbort = new Promise<string | void>((resolve, reject) => {
         const finalEnv: NodeJS.ProcessEnv = {

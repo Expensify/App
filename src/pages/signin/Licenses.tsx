@@ -19,7 +19,7 @@ function Licenses() {
                 {translate('termsOfUse.phrase5')}
                 <TextLink
                     style={[styles.textExtraSmallSupporting, styles.link]}
-                    href={CONST.LICENSES_URL}
+                    href={CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}
                 >
                     {' '}
                     {translate('termsOfUse.phrase6')}

@@ -1,4 +1,4 @@
-import GenericBank from '@assets/images/bankicons/generic-bank-account.svg';
+import GenericBank from '@assets/images/bank-icons/generic-bank-account.svg';
 import GenericBankCard from '@assets/images/cardicons/generic-bank-card.svg';
 import type {BankIconParams} from '@components/Icon/BankIconsUtils';
 import {getBankIconAsset, getBankNameKey} from '@components/Icon/BankIconsUtils';
@@ -34,9 +34,9 @@ export default function getBankIcon({styles, bankName, isCard = false}: BankIcon
         bankIcon.iconSize = variables.iconSizeExtraLarge;
         bankIcon.iconStyles = [styles.bankIconContainer];
     } else {
-        bankIcon.iconHeight = variables.bankCardHeight;
-        bankIcon.iconWidth = variables.bankCardWidth;
-        bankIcon.iconStyles = [styles.assignedCardsIconContainer];
+        bankIcon.iconHeight = variables.cardIconHeight;
+        bankIcon.iconWidth = variables.cardIconWidth;
+        bankIcon.iconStyles = [styles.cardIcon];
     }
 
     return bankIcon;

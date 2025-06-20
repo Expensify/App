@@ -155,6 +155,7 @@ export default function installNetworkInterceptor(
         const options = fetchArgsGetRequestInit(args);
         const headers = getFetchRequestHeadersAsObject(options);
         const url = fetchArgsGetUrl(args);
+
         // Check if headers contain any of the ignored headers, or if react native metro server:
         if (IGNORE_REQUEST_HEADERS.some((header) => headers[header] != null) || url.includes('8081')) {
             return originalFetch(...args);

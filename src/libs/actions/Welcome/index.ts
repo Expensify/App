@@ -1,18 +1,22 @@
-import {NativeModules} from 'react-native';
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
+import CONFIG from '@src/CONFIG';
 import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as OnboardingFlow from './OnboardingFlow';
+import {clearInitialPath} from './OnboardingFlow';
 
-type OnboardingData = Onboarding | [] | undefined;
+type OnboardingData = Onboarding | undefined;
 
 let isLoadingReportData = true;
 let tryNewDotData: TryNewDot | undefined;
@@ -43,7 +47,7 @@ function onServerDataReady(): Promise<void> {
 let isOnboardingInProgress = false;
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
-        if (Array.isArray(onboarding) || isEmptyObject(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
+        if (isEmptyObject(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
             onCanceled?.();
             return;
         }
@@ -91,10 +95,6 @@ function checkOnboardingDataReady() {
     resolveOnboardingFlowStatus();
 }
 
-function setOnboardingCustomChoices(value: OnboardingPurpose[]) {
-    Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, value ?? []);
-}
-
 function setOnboardingPurposeSelected(value: OnboardingPurpose) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
 }
@@ -119,15 +119,28 @@ function updateOnboardingLastVisitedPath(path: string) {
     Onyx.merge(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, path);
 }
 
+function updateOnboardingValuesAndNavigation(onboardingValues: Onboarding | undefined) {
+    Onyx.set(ONYXKEYS.NVP_ONBOARDING, {...onboardingValues, shouldValidate: undefined});
+
+    // We need to have the Onyx values updated before navigating back
+    // Because we navigate based no useEffect logic and we need to clear `shouldValidate` value before going back
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        Navigation.goBack(ROUTES.ONBOARDING_WORK_EMAIL.getRoute());
+    });
+}
+
+function setOnboardingMergeAccountStepValue(value: boolean) {
+    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value});
+}
 function completeHybridAppOnboarding() {
-    if (!NativeModules.HybridAppModule) {
+    if (!CONFIG.IS_HYBRID_APP) {
         return;
     }
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_TRYNEWDOT,
+            key: ONYXKEYS.NVP_TRY_NEW_DOT,
             value: {
                 classicRedirect: {
                     completedHybridAppOnboarding: true,
@@ -144,7 +157,7 @@ function completeHybridAppOnboarding() {
 
         // No matter what the response is, we want to mark the onboarding as completed (user saw the explanation modal)
         Log.info(`[HybridApp] Onboarding status has changed. Propagating new value to OldDot`, true);
-        NativeModules.HybridAppModule.completeOnboarding(true);
+        HybridAppModule.completeOnboarding({status: true});
     });
 }
 
@@ -166,7 +179,7 @@ Onyx.connect({
 });
 
 Onyx.connect({
-    key: ONYXKEYS.NVP_TRYNEWDOT,
+    key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (value) => {
         tryNewDotData = value;
         checkTryNewDotDataReady();
@@ -182,10 +195,15 @@ function resetAllChecks() {
     });
     isLoadingReportData = true;
     isOnboardingInProgress = false;
-    OnboardingFlow.clearInitialPath();
+    clearInitialPath();
 }
 
-function setSelfTourViewed() {
+function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
+    if (shouldUpdateOnyxDataOnlyLocally) {
+        Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true});
+        return;
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -199,10 +217,28 @@ function setSelfTourViewed() {
     API.write(WRITE_COMMANDS.SELF_TOUR_VIEWED, null, {optimisticData});
 }
 
+function dismissProductTraining(elementName: string, isDismissedUsingCloseButton = false) {
+    const date = new Date();
+    const dismissedMethod = isDismissedUsingCloseButton ? 'x' : 'click';
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
+            value: {
+                [elementName]: {
+                    timestamp: DateUtils.getDBTime(date.valueOf()),
+                    dismissedMethod,
+                },
+            },
+        },
+    ];
+    API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: elementName, dismissedMethod}, {optimisticData});
+}
+
 export {
     onServerDataReady,
     isOnboardingFlowCompleted,
-    setOnboardingCustomChoices,
+    dismissProductTraining,
     setOnboardingPurposeSelected,
     updateOnboardingLastVisitedPath,
     resetAllChecks,
@@ -212,4 +248,6 @@ export {
     setOnboardingErrorMessage,
     setOnboardingCompanySize,
     setSelfTourViewed,
+    setOnboardingMergeAccountStepValue,
+    updateOnboardingValuesAndNavigation,
 };

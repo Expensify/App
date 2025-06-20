@@ -1,15 +1,17 @@
 import React from 'react';
-import {Animated} from 'react-native';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type TextInputLabelProps from './types';
 
 function TextInputLabel({label, labelScale, labelTranslateY}: TextInputLabelProps) {
     const styles = useThemeStyles();
 
+    const animatedStyle = useAnimatedStyle(() => styles.textInputLabelTransformation(labelTranslateY, labelScale));
+
     return (
         <Animated.Text
             allowFontScaling={false}
-            style={[styles.textInputLabel, styles.textInputLabelTransformation(labelTranslateY, labelScale)]}
+            style={[styles.textInputLabel, animatedStyle]}
         >
             {label}
         </Animated.Text>

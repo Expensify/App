@@ -24,7 +24,6 @@ function SearchFiltersInPage() {
     return (
         <ScreenWrapper
             testID={SearchFiltersInPage.displayName}
-            includeSafeAreaPaddingBottom={false}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             onEntryTransitionEnd={handleScreenTransitionEnd}

@@ -6,14 +6,14 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as Chronos from '@userActions/Chronos';
+import {getOriginalMessage} from '@libs/ReportActionsUtils';
+import {removeEvent} from '@userActions/Chronos';
 import type CONST from '@src/CONST';
 import type ReportAction from '@src/types/onyx/ReportAction';
 
 type ChronosOOOListActionsProps = {
     /** The ID of the report */
-    reportID: string;
+    reportID: string | undefined;
 
     /** All the data of the action */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST>;
@@ -22,9 +22,9 @@ type ChronosOOOListActionsProps = {
 function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
     const styles = useThemeStyles();
 
-    const {translate, preferredLocale} = useLocalize();
+    const {translate, getLocalDateFromDatetime} = useLocalize();
 
-    const events = ReportActionsUtils.getOriginalMessage(action)?.events ?? [];
+    const events = getOriginalMessage(action)?.events ?? [];
 
     if (!events.length) {
         return (
@@ -38,8 +38,8 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
         <OfflineWithFeedback pendingAction={action.pendingAction}>
             <View style={styles.chatItemMessage}>
                 {events.map((event) => {
-                    const start = DateUtils.getLocalDateFromDatetime(preferredLocale, event?.start?.date ?? '');
-                    const end = DateUtils.getLocalDateFromDatetime(preferredLocale, event?.end?.date ?? '');
+                    const start = getLocalDateFromDatetime(event?.start?.date ?? '');
+                    const end = getLocalDateFromDatetime(event?.end?.date ?? '');
                     return (
                         <View
                             key={event.id}
@@ -61,7 +61,7 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
                             <Button
                                 small
                                 style={styles.pl2}
-                                onPress={() => Chronos.removeEvent(reportID, action.reportActionID, event.id, events)}
+                                onPress={() => removeEvent(reportID, action.reportActionID, event.id, events)}
                             >
                                 <Text style={styles.buttonSmallText}>{translate('common.remove')}</Text>
                             </Button>

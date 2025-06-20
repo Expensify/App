@@ -1,4 +1,5 @@
 import crashlytics from '@react-native-firebase/crashlytics';
+import canCapturePerformanceMetrics from '@libs/Metrics';
 import Performance from '@libs/Performance';
 import CONFIG from '@src/CONFIG';
 
@@ -10,5 +11,7 @@ export default function () {
         crashlytics().setCrashlyticsCollectionEnabled(false);
     }
 
-    Performance.setupPerformanceObserver();
+    if (canCapturePerformanceMetrics()) {
+        Performance.enableMonitoring();
+    }
 }

@@ -8,8 +8,8 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as Card from '@userActions/Card';
+import {setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {getApprovalWorkflow} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -22,9 +22,10 @@ type LimitTypeStepProps = {
 function LimitTypeStep({policy}: LimitTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+    const policyID = policy?.id;
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
-    const areApprovalsConfigured = PolicyUtils.getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultType = areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
 
     const [typeSelected, setTypeSelected] = useState(issueNewCard?.data?.limitType ?? defaultType);
@@ -32,20 +33,21 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
     const isEditing = issueNewCard?.isEditing;
 
     const submit = useCallback(() => {
-        Card.setIssueNewCardStepAndData({
+        setIssueNewCardStepAndData({
             step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.LIMIT,
             data: {limitType: typeSelected},
             isEditing: false,
+            policyID,
         });
-    }, [isEditing, typeSelected]);
+    }, [isEditing, typeSelected, policyID]);
 
     const handleBackButtonPress = useCallback(() => {
         if (isEditing) {
-            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
+            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
             return;
         }
-        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE});
-    }, [isEditing]);
+        setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE, policyID});
+    }, [isEditing, policyID]);
 
     const data = useMemo(() => {
         const options = [];
@@ -89,6 +91,7 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={2}
             stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseLimitType')}</Text>
             <SelectionList
@@ -99,14 +102,16 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
                 initiallyFocusedOptionKey={typeSelected}
                 shouldUpdateFocusedIndex
                 isAlternateTextMultilineSupported
-            />
-            <Button
-                success
-                large
-                pressOnEnter
-                text={translate(isEditing ? 'common.confirm' : 'common.next')}
-                onPress={submit}
-                style={styles.m5}
+                addBottomSafeAreaPadding
+                footerContent={
+                    <Button
+                        success
+                        large
+                        pressOnEnter
+                        text={translate(isEditing ? 'common.confirm' : 'common.next')}
+                        onPress={submit}
+                    />
+                }
             />
         </InteractiveStepWrapper>
     );

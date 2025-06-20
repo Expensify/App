@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ChronosOOOEvent} from '@src/types/onyx/OriginalMessage';
 
-const removeEvent = (reportID: string, reportActionID: string, eventID: string, events: ChronosOOOEvent[]) => {
+const removeEvent = (reportID: string | undefined, reportActionID: string, eventID: string, events: ChronosOOOEvent[]) => {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

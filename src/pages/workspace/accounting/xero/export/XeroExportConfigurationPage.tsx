@@ -1,24 +1,35 @@
-import React, {useMemo} from 'react';
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, getCurrentXeroOrganizationName, settingsPendingAction} from '@libs/PolicyUtils';
+import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
+import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT>>();
+    const backTo = route?.params?.backTo;
     const policyOwner = policy?.owner ?? '';
 
     const {export: exportConfiguration, errorFields, pendingFields} = policy?.connections?.xero?.config ?? {};
+    const shouldGoBackToSpecificRoute = !exportConfiguration?.nonReimbursableAccount;
+
+    const goBack = useCallback(() => {
+        return goBackFromExportConnection(shouldGoBackToSpecificRoute, backTo);
+    }, [backTo, shouldGoBackToSpecificRoute]);
 
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const selectedBankAccountName = useMemo(() => {
@@ -31,9 +42,11 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const menuItems = [
         {
             description: translate('workspace.accounting.preferredExporter'),
-            onPress: () => {
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.getRoute(policyID));
-            },
+            onPress: !policyID
+                ? undefined
+                : () => {
+                      Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.getRoute(policyID, Navigation.getActiveRoute()));
+                  },
             title: exportConfiguration?.exporter ?? policyOwner,
             subscribedSettings: [CONST.XERO_CONFIG.EXPORTER],
         },
@@ -46,13 +59,13 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.xero.purchaseBillDate'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.getRoute(policyID)),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
             title: exportConfiguration?.billDate ? translate(`workspace.xero.exportDate.values.${exportConfiguration.billDate}.label`) : undefined,
             subscribedSettings: [CONST.XERO_CONFIG.BILL_DATE],
         },
         {
             description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID)),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID, Navigation.getActiveRoute())),
             title: exportConfiguration?.billStatus?.purchase ? translate(`workspace.xero.invoiceStatus.values.${exportConfiguration.billStatus.purchase}`) : undefined,
             subscribedSettings: [CONST.XERO_CONFIG.BILL_STATUS],
         },
@@ -72,7 +85,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.xero.xeroBankAccount'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.getRoute(policyID)),
+            onPress: () => (!policyID ? undefined : Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT.getRoute(policyID, Navigation.getActiveRoute()))),
             title: selectedBankAccountName,
             subscribedSettings: [CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
         },
@@ -86,6 +99,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             title="workspace.xero.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
+            onBackButtonPress={goBack}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
@@ -94,7 +108,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             {menuItems.map((menuItem) => (
                 <OfflineWithFeedback
                     key={menuItem.description}
-                    pendingAction={PolicyUtils.settingsPendingAction(menuItem?.subscribedSettings ?? [], pendingFields)}
+                    pendingAction={settingsPendingAction(menuItem?.subscribedSettings ?? [], pendingFields)}
                 >
                     <MenuItemWithTopDescription
                         title={menuItem.title}
@@ -102,7 +116,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                         description={menuItem.description}
                         shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
                         onPress={menuItem?.onPress}
-                        brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(menuItem?.subscribedSettings ?? [], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={areSettingsInErrorFields(menuItem?.subscribedSettings ?? [], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         helperText={menuItem?.helperText}
                     />
                 </OfflineWithFeedback>

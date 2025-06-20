@@ -23,7 +23,7 @@ index 7c60081..4a13a3c 100644
    # we don't want this to be seen by Swift
    s.private_header_files = 'ios/PLKFabricHelpers.h'
    
-+  if ENV['USE_FRAMEWORKS'] == '1'
++  if ENV['USE_FRAMEWORKS'] != nil
 +    s.pod_target_xcconfig = {
 +      "OTHER_CFLAGS" => "$(inherited) -DUSE_FRAMEWORKS",
 +      "OTHER_CPLUSPLUSFLAGS" => "$(inherited) -DUSE_FRAMEWORKS",

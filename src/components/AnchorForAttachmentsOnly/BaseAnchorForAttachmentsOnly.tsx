@@ -35,7 +35,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
 
     return (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
+            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                 <PressableWithoutFeedback
                     style={[style, (isOffline || !sourceID) && styles.cursorDefault]}
                     onPress={() => {
@@ -48,23 +48,24 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}
                     onLongPress={(event) => {
-                        if (isDisabled) {
+                        if (isDisabled || !shouldDisplayContextMenu) {
                             return;
                         }
-                        showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report, reportNameValuePairs));
+                        showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs));
                     }}
                     shouldUseHapticsOnLongPress
                     accessibilityLabel={displayName}
                     role={CONST.ROLE.BUTTON}
                 >
                     <AttachmentView
-                        source={sourceURLWithAuth}
+                        source={source}
                         file={{name: displayName}}
                         shouldShowDownloadIcon={!!sourceID && !isOffline}
                         shouldShowLoadingSpinnerIcon={isDownloading}
                         isUsedAsChatAttachment
                         isDeleted={!!isDeleted}
                         isUploading={!sourceID}
+                        isAuthTokenRequired={!!sourceID}
                     />
                 </PressableWithoutFeedback>
             )}

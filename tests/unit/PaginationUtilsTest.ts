@@ -163,7 +163,30 @@ describe('PaginationUtils', () => {
             expect(result.hasNextPage).toBe(false);
         });
 
-        it('given an input ID and the report only contains pending actions, it will return an empty array', () => {
+        it('given an input ID and the report only contains pending actions, it will return all actions', () => {
+            const input = createItems([
+                // Given these sortedItems
+                '7',
+                '6',
+                '5',
+                '4',
+                '3',
+                '2',
+                '1',
+            ]);
+
+            const pages: Pages = [];
+
+            // Expect these sortedItems
+            const expectedResult = [...input];
+            const result = PaginationUtils.getContinuousChain(input, pages, getID, '4');
+            // Expect the result to be the same
+            expect(result.data).toStrictEqual(expectedResult);
+            expect(result.hasPreviousPage).toBe(false);
+            expect(result.hasNextPage).toBe(false);
+        });
+
+        it('given an input ID of 8 which does not exist in Onyx and the report only contains pending actions, it will return an empty array', () => {
             const input = createItems([
                 // Given these sortedItems
                 '7',
@@ -179,7 +202,7 @@ describe('PaginationUtils', () => {
 
             // Expect these sortedItems
             const expectedResult: Item[] = [];
-            const result = PaginationUtils.getContinuousChain(input, pages, getID, '4');
+            const result = PaginationUtils.getContinuousChain(input, pages, getID, '8');
             expect(result.data).toStrictEqual(expectedResult);
             expect(result.hasPreviousPage).toBe(false);
             expect(result.hasNextPage).toBe(false);

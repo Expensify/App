@@ -1,27 +1,35 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef, useState} from 'react';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {CheckSquare} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import SelectionList from '@components/SelectionList';
-import type {BaseSelectionListProps, ListItem, SelectionListHandle} from '@components/SelectionList/types';
+import type {ListItem, SelectionListHandle, SelectionListProps} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
 
-type SelectionListWithModalProps<TItem extends ListItem> = BaseSelectionListProps<TItem> & {
+type SelectionListWithModalProps<TItem extends ListItem> = SelectionListProps<TItem> & {
     turnOnSelectionModeOnLongPress?: boolean;
     onTurnOnSelectionMode?: (item: TItem | null) => void;
-    shouldAutoTurnOff?: boolean;
     isSelected?: (item: TItem) => boolean;
     isScreenFocused?: boolean;
 };
 
 function SelectionListWithModal<TItem extends ListItem>(
-    {turnOnSelectionModeOnLongPress, onTurnOnSelectionMode, onLongPressRow, isScreenFocused = false, sections, shouldAutoTurnOff, isSelected, ...rest}: SelectionListWithModalProps<TItem>,
+    {
+        turnOnSelectionModeOnLongPress,
+        onTurnOnSelectionMode,
+        onLongPressRow,
+        isScreenFocused = false,
+        sections,
+        isSelected,
+        selectedItems: selectedItemsProp,
+        ...rest
+    }: SelectionListWithModalProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -33,7 +41,7 @@ function SelectionListWithModal<TItem extends ListItem>(
     const {isSmallScreenWidth} = useResponsiveLayout();
     const isFocused = useIsFocused();
 
-    const {selectionMode} = useMobileSelectionMode(shouldAutoTurnOff);
+    const {selectionMode} = useMobileSelectionMode();
     // Check if selection should be on when the modal is opened
     const wasSelectionOnRef = useRef(false);
     // Keep track of the number of selected items to determine if we should turn off selection mode
@@ -41,12 +49,14 @@ function SelectionListWithModal<TItem extends ListItem>(
 
     useEffect(() => {
         // We can access 0 index safely as we are not displaying multiple sections in table view
-        const selectedItems = sections[0].data.filter((item) => {
-            if (isSelected) {
-                return isSelected(item);
-            }
-            return !!item.isSelected;
-        });
+        const selectedItems =
+            selectedItemsProp ??
+            sections[0].data.filter((item) => {
+                if (isSelected) {
+                    return isSelected(item);
+                }
+                return !!item.isSelected;
+            });
         selectionRef.current = selectedItems.length;
 
         if (!isSmallScreenWidth) {
@@ -66,7 +76,8 @@ function SelectionListWithModal<TItem extends ListItem>(
         } else if (selectedItems.length === 0 && selectionMode?.isEnabled && !wasSelectionOnRef.current) {
             turnOffMobileSelectionMode();
         }
-    }, [sections, selectionMode, isSmallScreenWidth, isSelected, isFocused]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [sections, selectedItemsProp, selectionMode, isSmallScreenWidth, isSelected, isFocused]);
 
     useEffect(
         () => () => {
@@ -83,6 +94,11 @@ function SelectionListWithModal<TItem extends ListItem>(
         if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || (!isFocused && !isScreenFocused)) {
             return;
         }
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            rest?.onCheckboxPress?.(item);
+            return;
+        }
+
         setLongPressedItem(item);
         setIsModalVisible(true);
 
@@ -105,7 +121,10 @@ function SelectionListWithModal<TItem extends ListItem>(
             <SelectionList
                 ref={ref}
                 sections={sections}
+                selectedItems={selectedItemsProp}
                 onLongPressRow={handleLongPressRow}
+                isScreenFocused={isScreenFocused}
+                isSmallScreenWidth={isSmallScreenWidth}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
@@ -113,15 +132,18 @@ function SelectionListWithModal<TItem extends ListItem>(
                 isVisible={isModalVisible}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={() => setIsModalVisible(false)}
+                shouldPreventScrollOnFocus
             >
                 <MenuItem
                     title={translate('common.select')}
-                    icon={Expensicons.Checkmark}
+                    icon={CheckSquare}
                     onPress={turnOnSelectionMode}
+                    pressableTestID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
                 />
             </Modal>
         </>
     );
 }
 
+export type {SelectionListWithModalProps};
 export default forwardRef(SelectionListWithModal);

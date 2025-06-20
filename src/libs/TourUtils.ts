@@ -8,7 +8,12 @@ function getNavatticURL(environment: ValueOf<typeof CONST.ENVIRONMENT>, introSel
     return introSelected === CONST.SELECTABLE_ONBOARDING_CHOICES.MANAGE_TEAM ? adminTourURL : employeeTourURL;
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    getNavatticURL,
-};
+function getTestDriveURL(shouldUseNarrowLayout: boolean, introSelected?: OnboardingPurpose) {
+    if (shouldUseNarrowLayout) {
+        return introSelected === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ? CONST.STORYLANE.TRACK_WORKSPACE_TOUR_MOBILE : CONST.STORYLANE.ADMIN_TOUR_MOBILE;
+    }
+
+    return introSelected === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ? CONST.STORYLANE.TRACK_WORKSPACE_TOUR : CONST.STORYLANE.ADMIN_TOUR;
+}
+
+export {getNavatticURL, getTestDriveURL};

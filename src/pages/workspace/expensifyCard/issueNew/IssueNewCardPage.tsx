@@ -1,11 +1,15 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useInitial from '@hooks/useInitial';
+import {startIssueNewCardFlow} from '@libs/actions/Card';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -16,49 +20,59 @@ import ConfirmationStep from './ConfirmationStep';
 import LimitStep from './LimitStep';
 import LimitTypeStep from './LimitTypeStep';
 
-type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW>;
+type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW>;
 
 function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
-    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
-
+    const policyID = policy?.id;
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const {currentStep} = issueNewCard ?? {};
-
-    const policyID = policy?.id ?? '-1';
     const backTo = route?.params?.backTo;
+    const firstAssigneeEmail = useInitial(issueNewCard?.data?.assigneeEmail);
+    const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === issueNewCard?.data?.assigneeEmail;
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
 
     useEffect(() => {
-        Card.startIssueNewCardFlow(policyID);
+        startIssueNewCardFlow(policyID);
     }, [policyID]);
-
-    useEffect(() => {
-        return () => {
-            Card.clearIssueNewCardFlow();
-        };
-    }, []);
 
     const getCurrentStep = () => {
         switch (currentStep) {
             case CONST.EXPENSIFY_CARD.STEP.ASSIGNEE:
                 return <AssigneeStep policy={policy} />;
             case CONST.EXPENSIFY_CARD.STEP.CARD_TYPE:
-                return <CardTypeStep />;
+                return <CardTypeStep policyID={policyID} />;
             case CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE:
                 return <LimitTypeStep policy={policy} />;
             case CONST.EXPENSIFY_CARD.STEP.LIMIT:
-                return <LimitStep />;
+                return <LimitStep policyID={policyID} />;
             case CONST.EXPENSIFY_CARD.STEP.CARD_NAME:
-                return <CardNameStep />;
+                return <CardNameStep policyID={policyID} />;
             case CONST.EXPENSIFY_CARD.STEP.CONFIRMATION:
                 return (
                     <ConfirmationStep
                         policyID={policyID}
-                        backTo={backTo}
+                        backTo={shouldUseBackToParam ? backTo : undefined}
                     />
                 );
             default:
                 return <AssigneeStep policy={policy} />;
         }
     };
+
+    if (isActingAsDelegate) {
+        return (
+            <ScreenWrapper
+                testID={IssueNewCardPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnablePickerAvoiding={false}
+            >
+                <DelegateNoAccessWrapper
+                    accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
+                />
+            </ScreenWrapper>
+        );
+    }
 
     return (
         <AccessOrNotFoundWrapper

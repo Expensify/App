@@ -38,7 +38,6 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
             contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            shouldIncludeSafeAreaPaddingBottom
             shouldUseScrollView={false}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID))}
         >
@@ -85,7 +84,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                             <Text>{translate('workspace.intacct.detailedInstructionsRestOfSentence')}</Text>
                         </Text>
                     </View>
-                    <ScrollView>
+                    <ScrollView addBottomSafeAreaPadding>
                         {userDimensions.map((userDimension) => (
                             <OfflineWithFeedback
                                 key={userDimension.dimension}
@@ -107,7 +106,10 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                     </ScrollView>
                 </>
             )}
-            <FixedFooter style={[styles.mt5]}>
+            <FixedFooter
+                style={[styles.mt5]}
+                addBottomSafeAreaPadding
+            >
                 <Button
                     success
                     text={translate('workspace.intacct.addUserDefinedDimension')}

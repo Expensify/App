@@ -6,12 +6,14 @@ import HeaderGap from '@components/HeaderGap';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as AppUpdate from '@libs/actions/AppUpdate';
+import {updateApp} from '@userActions/AppUpdate';
+import CONFIG from '@src/CONFIG';
 
 function UpdateRequiredView() {
     const insets = useSafeAreaInsets();
@@ -19,8 +21,12 @@ function UpdateRequiredView() {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    const {isProduction} = useEnvironment();
+    const isStandaloneNewAppProduction = isProduction && !CONFIG.IS_HYBRID_APP;
+
     return (
-        <View style={[styles.appBG, styles.h100, StyleUtils.getSafeAreaPadding(insets)]}>
+        <View style={[styles.appBG, styles.h100, StyleUtils.getPlatformSafeAreaPadding(insets)]}>
             <HeaderGap />
             <View style={[styles.pt5, styles.ph5, styles.updateRequiredViewHeader]}>
                 <Header title={translate('updateRequiredView.updateRequired')} />
@@ -37,17 +43,21 @@ function UpdateRequiredView() {
                 <View style={[styles.ph5, styles.alignItemsCenter, styles.mt5]}>
                     <View style={styles.updateRequiredViewTextContainer}>
                         <View style={[styles.mb3]}>
-                            <Text style={[styles.newKansasLarge, styles.textAlignCenter]}>{translate('updateRequiredView.pleaseInstall')}</Text>
+                            <Text style={[styles.newKansasLarge, styles.textAlignCenter]}>
+                                {isStandaloneNewAppProduction ? translate('updateRequiredView.pleaseInstallExpensifyClassic') : translate('updateRequiredView.pleaseInstall')}
+                            </Text>
                         </View>
                         <View style={styles.mb5}>
-                            <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('updateRequiredView.toGetLatestChanges')}</Text>
+                            <Text style={[styles.textAlignCenter, styles.textSupporting]}>
+                                {isStandaloneNewAppProduction ? translate('updateRequiredView.newAppNotAvailable') : translate('updateRequiredView.toGetLatestChanges')}
+                            </Text>
                         </View>
                     </View>
                 </View>
                 <Button
                     success
                     large
-                    onPress={() => AppUpdate.updateApp()}
+                    onPress={() => updateApp(isProduction)}
                     text={translate('common.update')}
                     style={styles.updateRequiredViewTextContainer}
                 />

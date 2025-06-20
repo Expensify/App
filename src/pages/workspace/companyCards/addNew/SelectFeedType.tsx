@@ -10,42 +10,65 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {isPlaidSupportedCountry} from '@libs/CardUtils';
+import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function SelectFeedType() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
     const [hasError, setHasError] = useState(false);
+    const {isBetaEnabled} = usePermissions();
+    const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
+    const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
 
     const submit = () => {
         if (!typeSelected) {
             setHasError(true);
             return;
         }
-        CompanyCards.setAddNewCompanyCardStepAndData({
-            step: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT ? CONST.COMPANY_CARDS.STEP.BANK_CONNECTION : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+        const isDirectSelected = typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT;
+
+        if (!isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) || !isDirectSelected) {
+            setAddNewCompanyCardStepAndData({
+                step: isDirectSelected ? CONST.COMPANY_CARDS.STEP.BANK_CONNECTION : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+                data: {selectedFeedType: typeSelected},
+            });
+            return;
+        }
+        const step = isUSCountry ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION;
+        setAddNewCompanyCardStepAndData({
+            step,
             data: {selectedFeedType: typeSelected},
         });
     };
 
     useEffect(() => {
-        setTypeSelected(addNewCard?.data.selectedFeedType);
-    }, [addNewCard?.data.selectedFeedType]);
+        if (addNewCard?.data.selectedFeedType) {
+            setTypeSelected(addNewCard?.data.selectedFeedType);
+            return;
+        }
+        if (doesCountrySupportPlaid) {
+            setTypeSelected(CONST.COMPANY_CARDS.FEED_TYPE.DIRECT);
+        }
+    }, [addNewCard?.data.selectedFeedType, doesCountrySupportPlaid]);
 
     const handleBackButtonPress = () => {
-        CompanyCards.setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+        setAddNewCompanyCardStepAndData({step: isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY : CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
     const data = [
         {
             value: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
-            text: translate('workspace.companyCards.customFeed'),
-            alternateText: translate('workspace.companyCards.addNewCard.customFeedDetails'),
+            text: translate('workspace.companyCards.commercialFeed'),
+            alternateText: translate(
+                isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? 'workspace.companyCards.addNewCard.commercialFeedPlaidDetails' : 'workspace.companyCards.addNewCard.commercialFeedDetails',
+            ),
             keyForList: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
             isSelected: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
         },
@@ -58,22 +81,35 @@ function SelectFeedType() {
         },
     ];
 
+    const getFinalData = () => {
+        if (!isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS)) {
+            return data;
+        }
+        if (doesCountrySupportPlaid) {
+            return data.reverse();
+        }
+
+        return data.slice(0, 1);
+    };
+
+    const finalData = getFinalData();
+
     return (
         <ScreenWrapper
             testID={SelectFeedType.displayName}
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCardFeed')}
+                title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
 
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.howDoYouWantToConnect')}</Text>
             <Text style={[styles.textSupporting, styles.ph5, styles.mb6]}>
-                {`${translate('workspace.companyCards.addNewCard.learnMoreAboutConnections.text')}`}
-                <TextLink href={CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}>{`${translate('workspace.companyCards.addNewCard.learnMoreAboutConnections.linkText')}.`}</TextLink>
+                {`${translate('workspace.companyCards.addNewCard.learnMoreAboutOptions.text')}`}
+                <TextLink href={CONST.COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL}>{`${translate('workspace.companyCards.addNewCard.learnMoreAboutOptions.linkText')}`}</TextLink>
             </Text>
 
             <SelectionList
@@ -82,15 +118,16 @@ function SelectFeedType() {
                     setTypeSelected(value);
                     setHasError(false);
                 }}
-                sections={[{data}]}
+                sections={[{data: finalData}]}
                 shouldSingleExecuteRowSelect
                 isAlternateTextMultilineSupported
                 alternateTextNumberOfLines={3}
-                initiallyFocusedOptionKey={addNewCard?.data.selectedFeedType}
+                initiallyFocusedOptionKey={typeSelected}
                 shouldUpdateFocusedIndex
                 showConfirmButton
                 confirmButtonText={translate('common.next')}
                 onConfirm={submit}
+                addBottomSafeAreaPadding
             >
                 {hasError && (
                     <View style={[styles.ph5, styles.mb3]}>

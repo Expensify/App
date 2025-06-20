@@ -1,7 +1,7 @@
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
-import Animations from '..';
-import type SlideFromRightTransitionNavigationOptions from './types';
+import type {PlatformSpecificNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import {InternalPlatformAnimations} from '..';
 
-const transition: SlideFromRightTransitionNavigationOptions = {animation: Animations.IOS_FROM_RIGHT} satisfies NativeStackNavigationOptions;
+const transition: PlatformSpecificNavigationOptions = {animation: InternalPlatformAnimations.IOS_FROM_RIGHT} satisfies NativeStackNavigationOptions;
 
 export default transition;

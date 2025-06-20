@@ -1,48 +1,101 @@
 ---
-title: General Product Troubleshooting
-description: How to troubleshoot a website issue
+title: general-product-troubleshooting.md
+description: Learn how to troubleshoot common Expensify issues, including login problems, error messages, and performance concerns.
+keywords: login issues, error messages, troubleshooting, browser issues, report errors, Expensify support
 ---
-<!-- The lines above are required by Jekyll to process the .md file -->
 
-# Issues with a specific feature
-If you're having issues with a specific feature, please reffer to the corresponding section of the help docs for detailed explinations of common errors and troubleshooting steps. If you cannot find an answer to your question, please reach out to Concierge via in-product chat or by emailing us at concierge@expensify.com.
+# General Product Troubleshooting
 
-# Troubleshooting local issues
-Is your webpage not loading? Try these steps:
-- Try clicking [here](https://www.expensify.com/signout.php?clean=true), which will force a clean sign-out from the site, which can be very helpful in removing any stale data that can cause issues.
-- Clear cookies & cache on your browser.
-- Try using an Incognito or Private browsing window.
-- Try on a different browser.
+If you’re encountering an issue in Expensify, these troubleshooting steps will help you solve it. 
 
-# JavaScript Console
-A developer console is a tool that logs information about the backend operations of the sites you visit and the applications you run. This information can help our developers solve any issue that you may experience.
+---
 
-If you've been asked to provide a screenshot of your developer console, scroll down to find the instructions for the browser or application you're using.
+## Common Issues & Solutions
 
-## Chrome 
+## Can't Log In?
 
-- Keyboard shortcut 
-  - Mac: Cmd + Option + J
-  - Windows: Ctrl + Shift + J
-- From the menu: View > Developer > JavaScript Console
+If you're having trouble accessing your account, try the following:
 
-## Firefox
+- **Check your internet connection** – Ensure you're connected to a stable network.
+- **Force a clean sign-out** – [Click here](https://www.expensify.com/signout.php?clean=true) to force a clean sign out, then try signing in again.
+- **Try a different browser or device** – See if the issue persists elsewhere.
+- **Troubleshoot Magic Code issues** – If you're not receiving the Magic Code, refer to the [email troubleshooting guide](https://help.expensify.com/articles/expensify-classic/settings/Email-Notifications).
+- **Troubleshoot 2FA issues** – If you're having trouble with Two-Factor Authentication, check the [2FA troubleshooting guide](https://help.expensify.com/articles/expensify-classic/settings/Two-Factor-Authentication).
 
-- Keyboard shortcut: 
-  - Mac: Cmd + Option + K
-  - Windows: Ctrl + Shift + J
-- From the menu: Menu Bar > More Tools > Web Developer Tools > Console tab
+**Still having trouble?** Reach out to Concierge and provide the details of the issue you are experiencing. 
 
-## Safari
- 
-Before opening the console you will need to enable it in Safari by clicking the Safari Menu > Settings > Advanced > and selecting the "Show features for web developers" checkbox. Once enabled, you can locate the console in the developer menu or open it using the keyboard shortcut:
+---
 
-- Keyboard shortcut: Cmd + Option + C
-- From the menu: Develop Menu > Show JavaScript Console
+## Seeing an Error Message?
 
-## Microsoft Edge 
+If you encounter a generic or "Oops!" error, try these steps:
 
-- Keyboard shortcut:
-  - Mac: Cmd + Option + J
-  - Windows: Ctrl + Shift + J 
-- From the menu: Right-click a webpage > Inspect > Console
+- **Open an Incognito/Private Browsing window** and attempt the action again.
+- **Clear your browser’s cache and cookies** – Follow these guides for [Chrome](https://support.google.com/chrome/answer/2392709), [Firefox](https://support.mozilla.org/en-US/kb/how-clear-firefox-cache), or [Edge](https://support.microsoft.com/en-us/microsoft-edge/view-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09).
+- **Switch browsers or devices** – Determine if the issue is browser-specific.
+
+**Still experiencing the error?** Take a screenshot and contact Concierge with the details.
+
+---
+
+## Issues with Transactions, Reports, or Receipts?
+
+If you’re encountering problems such as missing transactions, report submission failures, or receipt upload issues, try these:
+
+- **Refresh the page** – Use `Ctrl + R` (Windows) or `Cmd + R` (Mac).
+- **Check your bank/card connection** – Navigate to `Settings > Account > Wallet` to confirm there are no connection issues. If you see an error, follow [this guide] (https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Troubleshooting-Company-Cards) to resolve it.  
+- **Try a different device** – If using the mobile app, switch to the web version (or vice versa).
+- **Restart your device** – A reboot can resolve many common issues.
+
+**Still not working?** Ensure your app or browser is updated to the latest version.
+
+---
+
+## Experiencing Slow Performance or Display Issues?
+
+- **Disable browser extensions** – Some extensions may interfere with Expensify.
+- **Try a different network** – Switch between WiFi and mobile data to test connectivity.
+- **Check for Expensify outages** – Visit the [Expensify Status Page](https://status.expensify.com).
+
+---
+
+## Next Steps if the Issue Persists
+
+If troubleshooting hasn’t resolved the issue:
+
+1. **Check the Expensify Status Page** to see if there’s a known outage.  
+2. **Gather key details:**  
+   - The exact error message (if applicable).  
+   - Your device and browser details (e.g., "Chrome on Windows 10" or "Expensify iOS app").  
+   - A screenshot of the issue (if possible).  
+3. **Contact Concierge** with the above details for further assistance.
+
+---
+
+## Advanced Troubleshooting: JavaScript Console
+
+If a Concierge requests a screenshot of your **developer console**, follow these steps:
+
+### Chrome
+- **Mac:** `Cmd + Option + J`
+- **Windows:** `Ctrl + Shift + J`
+- **Menu:** `View > Developer > JavaScript Console`
+
+### Firefox
+- **Mac:** `Cmd + Option + K`
+- **Windows:** `Ctrl + Shift + J`
+- **Menu:** `Menu Bar > More Tools > Web Developer Tools > Console tab`
+
+### Safari
+1. Go to **Safari Menu** > **Settings** > **Advanced**.
+2. Enable **Show features for web developers**.
+3. Open the console: `Cmd + Option + C` or **Develop Menu > Show JavaScript Console**.
+
+### Microsoft Edge
+- **Mac:** `Cmd + Option + J`
+- **Windows:** `Ctrl + Shift + J`
+- **Menu:** Right-click on the page > **Inspect** > **Console**.
+
+---
+
+This guide should help resolve most common Expensify issues. If you still need assistance, reach out to **Concierge** so we can help.

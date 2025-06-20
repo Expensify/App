@@ -1,20 +1,15 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as HeaderUtils from '@libs/HeaderUtils';
-import * as Localize from '@libs/Localize';
-import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {RootStackParamList, State} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as ReportActions from '@userActions/Report';
-import * as Session from '@userActions/Session';
+import {getPinMenuItem, getShareMenuItem} from '@libs/HeaderUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import type {ReportAction} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
@@ -30,77 +25,44 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
     [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo?: string) => PromotedAction;
 } & {
     [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
-} & {
-    [CONST.PROMOTED_ACTIONS.HOLD]: (params: {
-        isTextHold: boolean;
-        reportAction: ReportAction | undefined;
-        reportID?: string;
-        isDelegateAccessRestricted: boolean;
-        setIsNoDelegateAccessMenuVisible: (isVisible: boolean) => void;
-        currentSearchHash?: number;
-    }) => PromotedAction;
 };
 
 const PromotedActions = {
     pin: (report) => ({
         key: CONST.PROMOTED_ACTIONS.PIN,
-        ...HeaderUtils.getPinMenuItem(report),
+        ...getPinMenuItem(report),
     }),
     share: (report, backTo) => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
-        ...HeaderUtils.getShareMenuItem(report, backTo),
+        ...getShareMenuItem(report, backTo),
     }),
     join: (report) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
         icon: Expensicons.ChatBubbles,
-        text: Localize.translateLocal('common.join'),
-        onSelected: Session.checkIfActionIsAllowed(() => {
+        translationKey: 'common.join',
+        onSelected: callFunctionIfActionIsAllowed(() => {
             Navigation.dismissModal();
-            ReportActions.joinRoom(report);
+            joinRoom(report);
         }),
     }),
     message: ({reportID, accountID, login}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
         icon: Expensicons.CommentBubbles,
-        text: Localize.translateLocal('common.message'),
+        translationKey: 'common.message',
         onSelected: () => {
             if (reportID) {
-                Navigation.dismissModal(reportID);
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                 return;
             }
 
             // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
-                ReportActions.navigateToAndOpenReport([login]);
+                navigateToAndOpenReport([login], false);
                 return;
             }
             if (accountID) {
-                ReportActions.navigateToAndOpenReportWithAccountIDs([accountID]);
+                navigateToAndOpenReportWithAccountIDs([accountID]);
             }
-        },
-    }),
-    hold: ({isTextHold, reportAction, reportID, isDelegateAccessRestricted, setIsNoDelegateAccessMenuVisible, currentSearchHash}) => ({
-        key: CONST.PROMOTED_ACTIONS.HOLD,
-        icon: Expensicons.Stopwatch,
-        text: Localize.translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
-        onSelected: () => {
-            if (isDelegateAccessRestricted) {
-                setIsNoDelegateAccessMenuVisible(true); // Show the menu
-                return;
-            }
-
-            if (!isTextHold) {
-                Navigation.goBack();
-            }
-            const targetedReportID = reportID ?? reportAction?.childReportID ?? '';
-            const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
-
-            if (topmostCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE && isTextHold) {
-                ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(targetedReportID));
-                return;
-            }
-
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute({reportID: targetedReportID}), currentSearchHash);
         },
     }),
 } satisfies PromotedActionsType;
@@ -116,6 +78,7 @@ type PromotedActionsBarProps = {
 function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     if (promotedActions.length === 0) {
         return null;
@@ -123,7 +86,7 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
 
     return (
         <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2, styles.mw100, styles.w100, styles.justifyContentCenter, containerStyle]}>
-            {promotedActions.map(({key, onSelected, ...props}) => (
+            {promotedActions.map(({key, onSelected, translationKey, ...props}) => (
                 <View
                     style={[styles.flex1, styles.mw50]}
                     key={key}
@@ -131,6 +94,7 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
                     <Button
                         onPress={onSelected}
                         iconFill={theme.icon}
+                        text={translate(translationKey)}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     />

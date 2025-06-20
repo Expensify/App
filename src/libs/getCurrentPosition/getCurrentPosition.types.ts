@@ -55,4 +55,4 @@ type GetCurrentPosition = (success: GeolocationSuccessCallback, error: Geolocati
 
 export {GeolocationErrorCode};
 
-export type {GeolocationSuccessCallback, GeolocationErrorCallback, GeolocationOptions, GetCurrentPosition, GeolocationErrorCodeType};
+export type {GeolocationErrorCallback, GetCurrentPosition, GeolocationErrorCodeType};

@@ -1,8 +1,8 @@
-import type {Animated} from 'react-native';
+import type {SharedValue} from 'react-native-reanimated';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type GrowlNotificationContainerProps = ChildrenProps & {
-    translateY: Animated.Value;
+    translateY: SharedValue<number>;
 };
 
 export default GrowlNotificationContainerProps;

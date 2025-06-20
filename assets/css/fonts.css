@@ -41,6 +41,20 @@
 }
 
 @font-face {
+    font-family: Expensify Mono;
+    font-weight: 400;
+    font-style: italic;
+    src: url('/fonts/ExpensifyMono-Italic.woff2') format('woff2'),  url('/fonts/ExpensifyMono-Italic.woff') format('woff');
+}
+
+@font-face {
+    font-family: Expensify Mono;
+    font-weight: 700;
+    font-style: italic;
+    src: url('/fonts/ExpensifyMono-BoldItalic.woff2') format('woff2'),  url('/fonts/ExpensifyMono-BoldItalic.woff') format('woff');
+}
+
+@font-face {
     font-family: Expensify New Kansas;
     font-weight: 500;
     font-style: normal;

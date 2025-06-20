@@ -1,4 +1,5 @@
-import type {StackScreenProps} from '@react-navigation/stack';
+import {useNavigationState} from '@react-navigation/native';
+import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -17,25 +18,28 @@ import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflowApprover} from '@libs/actions/Workflow';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
-import * as Workflow from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceWorkflowsApprovalsApproverPageProps = WithPolicyAndFullscreenLoadingProps &
-    StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER>;
+    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER>;
 
 type SelectionListApprover = {
     text: string;
@@ -52,17 +56,19 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
+    const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
     const [allApprovers, setAllApprovers] = useState<SelectionListApprover[]>([]);
     const shouldShowTextInput = allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
+    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
     const approverIndex = Number(route.params.approverIndex) ?? 0;
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
     const defaultApprover = policy?.approver ?? policy?.owner;
     const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
+    const rhpRoutes = useNavigationState((state) => state.routes);
 
     useEffect(() => {
         const currentApprover = approvalWorkflow?.approvers[approverIndex];
@@ -76,8 +82,13 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const employeeList = policy?.employeeList;
     const approversFromWorkflow = approvalWorkflow?.approvers;
     const isDefault = approvalWorkflow?.isDefault;
+    const membersEmail = useMemo(() => approvalWorkflow?.members.map((member) => member.email), [approvalWorkflow?.members]);
     const sections: ApproverSection[] = useMemo(() => {
         const approvers: SelectionListApprover[] = [];
+
+        if (isApprovalWorkflowLoading) {
+            return [];
+        }
 
         if (employeeList) {
             const availableApprovers = Object.values(employeeList)
@@ -86,6 +97,10 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     const email = employee.email;
 
                     if (!email) {
+                        return null;
+                    }
+
+                    if (policy?.preventSelfApproval && membersEmail?.includes(email)) {
                         return null;
                     }
 
@@ -100,7 +115,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                         return null;
                     }
 
-                    const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(employeeList);
+                    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
                     const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
                     const {avatar, displayName = email} = personalDetails?.[accountID] ?? {};
 
@@ -122,15 +137,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         }
 
         const filteredApprovers =
-            debouncedSearchTerm !== ''
-                ? approvers.filter((option) => {
-                      const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm);
-                      const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-                      return isPartOfSearchTerm;
-                  })
-                : approvers;
+            debouncedSearchTerm !== '' ? tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']) : approvers;
 
-        const data = OptionsListUtils.sortAlphabetically(filteredApprovers, 'text');
+        const data = sortAlphabetically(filteredApprovers, 'text');
         return [
             {
                 title: undefined,
@@ -138,16 +147,42 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 shouldShow: true,
             },
         ];
-    }, [approversFromWorkflow, isDefault, approverIndex, debouncedSearchTerm, defaultApprover, personalDetails, employeeList, selectedApproverEmail, translate]);
+    }, [
+        isApprovalWorkflowLoading,
+        approversFromWorkflow,
+        isDefault,
+        approverIndex,
+        debouncedSearchTerm,
+        defaultApprover,
+        personalDetails,
+        employeeList,
+        selectedApproverEmail,
+        membersEmail,
+        policy?.preventSelfApproval,
+        translate,
+    ]);
 
-    const shouldShowListEmptyContent = !debouncedSearchTerm && approvalWorkflow && !sections.at(0)?.data.length;
+    const shouldShowListEmptyContent = !debouncedSearchTerm && !!approvalWorkflow && !sections.at(0)?.data.length && !isApprovalWorkflowLoading;
+
+    const goBack = useCallback(() => {
+        let backTo;
+        if (isInitialCreationFlow) {
+            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID);
+            clearApprovalWorkflowApprovers();
+        } else if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
+            backTo = rhpRoutes.length > 1 ? undefined : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
+        } else {
+            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
+        }
+        Navigation.goBack(backTo);
+    }, [isInitialCreationFlow, approvalWorkflow?.action, route.params.policyID, rhpRoutes.length, firstApprover]);
 
     const nextStep = useCallback(() => {
         if (selectedApproverEmail) {
-            const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(employeeList);
+            const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
             const accountID = Number(policyMemberEmailsToAccountIDs[selectedApproverEmail] ?? '');
             const {avatar, displayName = selectedApproverEmail} = personalDetails?.[accountID] ?? {};
-            Workflow.setApprovalWorkflowApprover(
+            setApprovalWorkflowApprover(
                 {
                     email: selectedApproverEmail,
                     avatar,
@@ -157,15 +192,15 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 route.params.policyID,
             );
         } else {
-            Workflow.clearApprovalWorkflowApprover(approverIndex);
+            clearApprovalWorkflowApprover(approverIndex);
         }
 
-        if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
+        if (isInitialCreationFlow) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
         } else {
-            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
+            goBack();
         }
-    }, [approvalWorkflow?.action, firstApprover, approverIndex, personalDetails, employeeList, route.params.policyID, selectedApproverEmail]);
+    }, [selectedApproverEmail, employeeList, personalDetails, approverIndex, route.params.policyID, isInitialCreationFlow, goBack]);
 
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
@@ -181,30 +216,22 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 onSubmit={nextStep}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
+                shouldBlendOpacity
             />
         );
     }, [isInitialCreationFlow, nextStep, selectedApproverEmail, shouldShowListEmptyContent, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
 
-    const goBack = useCallback(() => {
-        let backTo;
-        if (isInitialCreationFlow) {
-            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID);
-            Workflow.clearApprovalWorkflowApprovers();
-        } else if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
-            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
-        } else {
-            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
-        }
-        Navigation.goBack(backTo);
-    }, [isInitialCreationFlow, route.params.policyID, approvalWorkflow?.action, firstApprover]);
-
-    const toggleApprover = (approver: SelectionListApprover) => {
-        if (selectedApproverEmail === approver.login) {
-            setSelectedApproverEmail(undefined);
-            return;
-        }
-        setSelectedApproverEmail(approver.login);
-    };
+    const toggleApprover = useCallback(
+        (approver: SelectionListApprover) =>
+            debounce(() => {
+                if (selectedApproverEmail === approver.login) {
+                    setSelectedApproverEmail(undefined);
+                    return;
+                }
+                setSelectedApproverEmail(approver.login);
+            }, 200)(),
+        [selectedApproverEmail],
+    );
 
     const headerMessage = useMemo(() => (searchTerm && !sections.at(0)?.data?.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
 
@@ -230,14 +257,15 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
                 testID={WorkspaceWorkflowsApprovalsApproverPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+                    onBackButtonPress={goBackFromInvalidPolicy}
+                    onLinkPress={goBackFromInvalidPolicy}
+                    addBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsPage.approver')}
@@ -255,12 +283,14 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                         headerMessage={headerMessage}
                         onSelectRow={toggleApprover}
                         showScrollIndicator
-                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         footerContent={button}
                         listEmptyContent={listEmptyContent}
                         shouldShowListEmptyContent={shouldShowListEmptyContent}
-                        shouldHighlightSelectedItem
+                        initiallyFocusedOptionKey={selectedApproverEmail}
+                        shouldUpdateFocusedIndex
                         shouldShowTextInput={shouldShowTextInput}
+                        addBottomSafeAreaPadding
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>

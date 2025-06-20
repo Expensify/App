@@ -23,7 +23,7 @@ function BaseAttachmentViewPdf({
         if (!attachmentCarouselPagerContext) {
             return;
         }
-        attachmentCarouselPagerContext.onScaleChanged(1);
+        attachmentCarouselPagerContext.onScaleChanged?.(1);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
     }, []);
 
@@ -40,7 +40,7 @@ function BaseAttachmentViewPdf({
 
             // When a pdf is shown in a carousel, we want to disable the pager scroll when the pdf is zoomed in
             if (attachmentCarouselPagerContext?.pagerRef) {
-                attachmentCarouselPagerContext.onScaleChanged(newScale);
+                attachmentCarouselPagerContext.onScaleChanged?.(newScale);
             }
         },
         [attachmentCarouselPagerContext, onScaleChangedProp],
@@ -58,8 +58,8 @@ function BaseAttachmentViewPdf({
                 onPressProp(event);
             }
 
-            if (attachmentCarouselPagerContext !== null && isScrollEnabled?.value) {
-                attachmentCarouselPagerContext.onTap();
+            if (attachmentCarouselPagerContext !== null && isScrollEnabled?.get()) {
+                attachmentCarouselPagerContext.onTap?.();
             }
         },
         [attachmentCarouselPagerContext, isScrollEnabled, onPressProp],

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, {useContext} from 'react';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
@@ -9,14 +10,22 @@ import ROUTES from '@src/ROUTES';
 function RequestEarlyCancellationMenuItem() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
+    const handleRequestEarlyCancellationPress = () => {
+        if (isActingAsDelegate) {
+            showDelegateNoAccessModal();
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION);
+    };
     return (
         <MenuItem
             title={translate('subscription.requestEarlyCancellation.title')}
             icon={Expensicons.CalendarSolid}
             shouldShowRightIcon
             wrapperStyle={styles.sectionMenuItemTopDescription}
-            onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION)}
+            onPress={handleRequestEarlyCancellationPress}
         />
     );
 }

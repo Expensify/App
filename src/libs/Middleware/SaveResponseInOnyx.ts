@@ -17,7 +17,7 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
     requestResponse.then((response = {}) => {
         const onyxUpdates = response?.onyxData ?? [];
 
-        // Sometimes we call requests that are successfull but they don't have any response or any success/failure/finally data to set. Let's return early since
+        // Sometimes we call requests that are successful but they don't have any response or any success/failure/finally data to set. Let's return early since
         // we don't need to store anything here.
         if (!onyxUpdates && !request.successData && !request.failureData && !request.finallyData) {
             return Promise.resolve(response);
@@ -25,13 +25,16 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
 
         const responseToApply = {
             type: CONST.ONYX_UPDATE_TYPES.HTTPS,
-            lastUpdateID: Number(response?.lastUpdateID ?? 0),
-            previousUpdateID: Number(response?.previousUpdateID ?? 0),
+            lastUpdateID: Number(response?.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID),
+            previousUpdateID: Number(response?.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
             request,
             response: response ?? {},
         };
 
-        if (requestsToIgnoreLastUpdateID.includes(request.command) || !OnyxUpdates.doesClientNeedToBeUpdated(Number(response?.previousUpdateID ?? 0))) {
+        if (
+            requestsToIgnoreLastUpdateID.includes(request.command) ||
+            !OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: Number(response?.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID)})
+        ) {
             return OnyxUpdates.apply(responseToApply);
         }
 

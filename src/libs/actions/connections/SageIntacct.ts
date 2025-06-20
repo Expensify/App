@@ -109,7 +109,10 @@ function prepareOnyxDataForMappingUpdate(
     return {optimisticData, failureData, successData};
 }
 
-function updateSageIntacctBillable(policyID: string, enabled: boolean) {
+function updateSageIntacctBillable(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        return;
+    }
     const parameters = {
         policyID,
         enabled,
@@ -163,7 +166,86 @@ function changeMappingsValueFromDefaultToTag(policyID: string, mappings?: SageIn
     }
 }
 
-function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolean) {
+function UpdateSageIntacctTaxSolutionID(policyID: string | undefined, taxSolutionID: string) {
+    if (!policyID) {
+        return;
+    }
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            tax: {
+                                taxSolutionID,
+                            },
+                            pendingFields: {
+                                tax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                taxSolutionID: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            tax: {
+                                taxSolutionID: null,
+                            },
+                            pendingFields: {
+                                tax: null,
+                            },
+                            errorFields: {
+                                taxSolutionID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            pendingFields: {
+                                tax: null,
+                            },
+                            errorFields: {
+                                taxSolutionID: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_TAX_SOLUTION_ID, {policyID, taxSolutionID}, {optimisticData, failureData, successData});
+}
+
+function updateSageIntacctSyncTaxConfiguration(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        return;
+    }
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -357,11 +439,15 @@ function removeSageIntacctUserDimensions(policyID: string, dimensionName: string
 }
 
 function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof SageIntacctExportConfig, settingValue: string | null, oldSettingValue?: string | null) {
+    const exporterOptimisticData = settingName === CONST.SAGE_INTACCT_CONFIG.EXPORTER ? {exporter: settingValue} : {};
+    const exporterErrorData = settingName === CONST.SAGE_INTACCT_CONFIG.EXPORTER ? {exporter: oldSettingValue} : {};
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...exporterOptimisticData,
                 connections: {
                     intacct: {
                         config: {
@@ -386,6 +472,7 @@ function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof Sag
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...exporterErrorData,
                 connections: {
                     intacct: {
                         config: {
@@ -532,7 +619,7 @@ function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Sag
     }
 }
 
-function clearSageIntacctErrorField(policyID: string, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectionsConfig) {
+function clearSageIntacctErrorField(policyID: string | undefined, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectionsConfig) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {errorFields: {[key]: null}}}}});
 }
 
@@ -849,4 +936,5 @@ export {
     updateSageIntacctSyncReimbursementAccountID,
     updateSageIntacctEntity,
     changeMappingsValueFromDefaultToTag,
+    UpdateSageIntacctTaxSolutionID,
 };

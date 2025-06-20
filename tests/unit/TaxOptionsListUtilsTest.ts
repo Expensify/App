@@ -1,11 +1,16 @@
-import type {CategorySection} from '@libs/OptionsListUtils';
-import * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
+import type {Section} from '@libs/OptionsListUtils';
+import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
+import TranslationStore from '@src/languages/TranslationStore';
 import type {Policy, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
 
 describe('TaxOptionsListUtils', () => {
+    beforeAll(() => {
+        TranslationStore.load('en');
+    });
     it('getTaxRatesSection()', () => {
         const search = 'rate';
         const emptySearch = '';
+        const tokenizeSearch = 'Tax 2';
         const wrongSearch = 'bla bla';
 
         const taxRatesWithDefault: TaxRatesWithDefault = {
@@ -45,7 +50,7 @@ describe('TaxOptionsListUtils', () => {
             taxCode: 'CODE1',
         } as Transaction;
 
-        const resultList: CategorySection[] = [
+        const resultList: Section[] = [
             {
                 data: [
                     {
@@ -84,7 +89,7 @@ describe('TaxOptionsListUtils', () => {
             },
         ];
 
-        const searchResultList: CategorySection[] = [
+        const searchResultList: Section[] = [
             {
                 data: [
                     {
@@ -103,7 +108,7 @@ describe('TaxOptionsListUtils', () => {
             },
         ];
 
-        const wrongSearchResultList: CategorySection[] = [
+        const wrongSearchResultList: Section[] = [
             {
                 data: [],
                 shouldShow: true,
@@ -111,7 +116,7 @@ describe('TaxOptionsListUtils', () => {
             },
         ];
 
-        const result = TaxOptionsListUtils.getTaxRatesSection({
+        const result = getTaxRatesSection({
             policy,
             searchValue: emptySearch,
             transaction,
@@ -119,14 +124,21 @@ describe('TaxOptionsListUtils', () => {
 
         expect(result).toStrictEqual(resultList);
 
-        const searchResult = TaxOptionsListUtils.getTaxRatesSection({
+        const searchResult = getTaxRatesSection({
             policy,
             searchValue: search,
             transaction,
         });
         expect(searchResult).toStrictEqual(searchResultList);
 
-        const wrongSearchResult = TaxOptionsListUtils.getTaxRatesSection({
+        const tokenizeSearchResult = getTaxRatesSection({
+            policy,
+            searchValue: tokenizeSearch,
+            transaction,
+        });
+        expect(tokenizeSearchResult).toStrictEqual(searchResultList);
+
+        const wrongSearchResult = getTaxRatesSection({
             policy,
             searchValue: wrongSearch,
             transaction,

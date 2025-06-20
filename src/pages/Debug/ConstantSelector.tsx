@@ -1,5 +1,8 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useEffect} from 'react';
+import type {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -21,9 +24,19 @@ type ConstantSelectorProps = {
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types
     inputID: string;
+
+    /** Type of debug form - required to access constant field options for a specific form */
+    formType: ValueOf<typeof CONST.DEBUG.FORMS>;
+
+    policyID?: string;
 };
 
-function ConstantSelector({errorText = '', name, value, onInputChange}: ConstantSelectorProps) {
+function ConstantSelector(
+    {formType, policyID, errorText = '', name, value, onInputChange}: ConstantSelectorProps,
+    // The ref is required by React.forwardRef to avoid warnings, even though it's not used yet.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    ref: ForwardedRef<View>,
+) {
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {
@@ -49,7 +62,7 @@ function ConstantSelector({errorText = '', name, value, onInputChange}: Constant
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}
             onPress={() => {
-                Navigation.navigate(ROUTES.DETAILS_CONSTANT_PICKER_PAGE.getRoute(name, value, Navigation.getActiveRoute()));
+                Navigation.navigate(ROUTES.DETAILS_CONSTANT_PICKER_PAGE.getRoute(formType, name, value, policyID, Navigation.getActiveRoute()));
             }}
             shouldShowRightIcon
         />
@@ -58,4 +71,4 @@ function ConstantSelector({errorText = '', name, value, onInputChange}: Constant
 
 ConstantSelector.displayName = 'ConstantSelector';
 
-export default ConstantSelector;
+export default forwardRef(ConstantSelector);

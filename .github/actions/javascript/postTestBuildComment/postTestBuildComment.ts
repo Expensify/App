@@ -1,37 +1,63 @@
 import * as core from '@actions/core';
 import {context} from '@actions/github';
+import type {TupleToUnion} from 'type-fest';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 
-function getTestBuildMessage(): string {
-    console.log('Input for android', core.getInput('ANDROID', {required: true}));
-    const androidSuccess = core.getInput('ANDROID', {required: true}) === 'success';
-    const desktopSuccess = core.getInput('DESKTOP', {required: true}) === 'success';
-    const iOSSuccess = core.getInput('IOS', {required: true}) === 'success';
-    const webSuccess = core.getInput('WEB', {required: true}) === 'success';
+function getTestBuildMessage(appPr?: number, mobileExpensifyPr?: number): string {
+    const inputs = ['ANDROID', 'DESKTOP', 'IOS', 'WEB'] as const;
+    const names = {
+        [inputs[0]]: 'Android',
+        [inputs[1]]: 'Desktop',
+        [inputs[2]]: 'iOS',
+        [inputs[3]]: 'Web',
+    };
 
-    const androidLink = androidSuccess ? core.getInput('ANDROID_LINK') : '❌ FAILED ❌';
-    const desktopLink = desktopSuccess ? core.getInput('DESKTOP_LINK') : '❌ FAILED ❌';
-    const iOSLink = iOSSuccess ? core.getInput('IOS_LINK') : '❌ FAILED ❌';
-    const webLink = webSuccess ? core.getInput('WEB_LINK') : '❌ FAILED ❌';
+    const result = inputs.reduce(
+        (acc, platform) => {
+            const input = core.getInput(platform, {required: false});
 
-    const androidQRCode = androidSuccess
-        ? `![Android](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${androidLink})`
-        : "The QR code can't be generated, because the android build failed";
-    const desktopQRCode = desktopSuccess
-        ? `![Desktop](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${desktopLink})`
-        : "The QR code can't be generated, because the Desktop build failed";
-    const iOSQRCode = iOSSuccess ? `![iOS](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${iOSLink})` : "The QR code can't be generated, because the iOS build failed";
-    const webQRCode = webSuccess ? `![Web](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${webLink})` : "The QR code can't be generated, because the web build failed";
+            if (!input) {
+                acc[platform] = {link: 'N/A', qrCode: 'N/A'};
+                return acc;
+            }
 
-    const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
+            let link = '';
+            let qrCode = '';
+            switch (input) {
+                case 'success':
+                    link = core.getInput(`${platform}_LINK`);
+                    qrCode = `![${names[platform]}](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${link})`;
+                    break;
+                case 'skipped':
+                    link = '⏩ SKIPPED ⏩';
+                    qrCode = `The build for ${names[platform]} was skipped`;
+                    break;
+                default:
+                    link = '❌ FAILED ❌';
+                    qrCode = `The QR code can't be generated, because the ${names[platform]} build failed`;
+            }
+
+            acc[platform] = {
+                link,
+                qrCode,
+            };
+            return acc;
+        },
+        {} as Record<TupleToUnion<typeof inputs>, {link: string; qrCode: string}>,
+    );
+
+    const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS${appPr ? ', Desktop, and Web' : ''}. Happy testing! :test_tube::test_tube:
+Built from${appPr ? ` App PR Expensify/App#${appPr}` : ''}${mobileExpensifyPr ? ` Mobile-Expensify PR Expensify/Mobile-Expensify#${mobileExpensifyPr}` : ''}.
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
-| ${androidLink}  | ${iOSLink}  |
-| ${androidQRCode}  | ${iOSQRCode}  |
+| ${result.ANDROID.link}  | ${result.IOS.link}  |
+| ${result.ANDROID.qrCode}  | ${result.IOS.qrCode}  |
+
 | Desktop :computer: | Web :spider_web: |
-| ${desktopLink}  | ${webLink}  |
-| ${desktopQRCode}  | ${webQRCode}  |
+| ------------- | ------------- |
+| ${result.DESKTOP.link}  | ${result.WEB.link}  |
+| ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |
 
 ---
 
@@ -42,11 +68,11 @@ function getTestBuildMessage(): string {
 }
 
 /** Comment on a single PR */
-async function commentPR(PR: number, message: string) {
+async function commentPR(REPO: string, PR: number, message: string) {
     console.log(`Posting test build comment on #${PR}`);
     try {
-        await GithubUtils.createComment(context.repo.repo, PR, message);
-        console.log(`Comment created on #${PR} successfully 🎉`);
+        await GithubUtils.createComment(REPO, PR, message);
+        console.log(`Comment created on #${PR} (${REPO}) successfully 🎉`);
     } catch (err) {
         console.log(`Unable to write comment on #${PR} 😞`);
 
@@ -57,14 +83,28 @@ async function commentPR(PR: number, message: string) {
 }
 
 async function run() {
-    const PR_NUMBER = Number(core.getInput('PR_NUMBER', {required: true}));
+    const APP_PR_NUMBER = Number(core.getInput('APP_PR_NUMBER', {required: false}));
+    const MOBILE_EXPENSIFY_PR_NUMBER = Number(core.getInput('MOBILE_EXPENSIFY_PR_NUMBER', {required: false}));
+    const REPO = String(core.getInput('REPO', {required: true}));
+
+    if (REPO !== CONST.APP_REPO && REPO !== CONST.MOBILE_EXPENSIFY_REPO) {
+        core.setFailed(`Invalid repository used to place output comment: ${REPO}`);
+        return;
+    }
+
+    if ((REPO === CONST.APP_REPO && !APP_PR_NUMBER) || (REPO === CONST.MOBILE_EXPENSIFY_REPO && !MOBILE_EXPENSIFY_PR_NUMBER)) {
+        core.setFailed(`Please provide ${REPO} pull request number`);
+        return;
+    }
+
+    const destinationPRNumber = REPO === CONST.APP_REPO ? APP_PR_NUMBER : MOBILE_EXPENSIFY_PR_NUMBER;
     const comments = await GithubUtils.paginate(
         GithubUtils.octokit.issues.listComments,
         {
             owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
+            repo: REPO,
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            issue_number: PR_NUMBER,
+            issue_number: destinationPRNumber,
             // eslint-disable-next-line @typescript-eslint/naming-convention
             per_page: 100,
         },
@@ -83,7 +123,7 @@ async function run() {
             }
         `);
     }
-    await commentPR(PR_NUMBER, getTestBuildMessage());
+    await commentPR(REPO, destinationPRNumber, getTestBuildMessage(APP_PR_NUMBER, MOBILE_EXPENSIFY_PR_NUMBER));
 }
 
 if (require.main === module) {

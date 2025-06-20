@@ -13,8 +13,12 @@ const parseNotificationAndReportIDs = (pushPayload: PushPayload) => {
     };
 };
 
-const clearReportNotifications: ClearReportNotifications = (reportID: string) => {
+const clearReportNotifications: ClearReportNotifications = (reportID: string | undefined) => {
     Log.info('[PushNotification] clearing report notifications', false, {reportID});
+
+    if (!reportID) {
+        return;
+    }
 
     Airship.push
         .getActiveNotifications()
@@ -31,7 +35,7 @@ const clearReportNotifications: ClearReportNotifications = (reportID: string) =>
             reportNotificationIDs.forEach((notificationID) => Airship.push.clearNotification(notificationID));
         })
         .catch((error: unknown) => {
-            Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} [PushNotification] BrowserNotifications.clearReportNotifications threw an error. This should never happen.`, {reportID, error});
+            Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} [PushNotification] BrowserNotifications.clearReportNotifications threw an error. This should never happen.`, {reportID, error});
         });
 };
 

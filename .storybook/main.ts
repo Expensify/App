@@ -1,4 +1,4 @@
-import type {StorybookConfig} from '@storybook/types';
+import type {StorybookConfig} from 'storybook/internal/types';
 
 const main: StorybookConfig = {
     stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|ts|tsx)'],
@@ -14,9 +14,7 @@ const main: StorybookConfig = {
         name: '@storybook/react-webpack5',
         options: {},
     },
-    docs: {
-        autodocs: false,
-    },
+    docs: {},
 };
 
 export default main;

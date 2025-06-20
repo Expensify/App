@@ -20,14 +20,15 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
     const isAnonymous = isAnonymousUser();
 
     const opacity = useSharedValue(0);
-    const animatedStyle = useAnimatedStyle(() => ({opacity: opacity.value}));
+    const animatedStyle = useAnimatedStyle(() => ({opacity: opacity.get()}));
     // This sets the opacity animation for the background image once it has loaded.
     function setOpacityAnimation() {
-        // eslint-disable-next-line react-compiler/react-compiler
-        opacity.value = withTiming(1, {
-            duration: CONST.MICROSECONDS_PER_MS,
-            easing: Easing.ease,
-        });
+        opacity.set(
+            withTiming(1, {
+                duration: CONST.MICROSECONDS_PER_MS,
+                easing: Easing.ease,
+            }),
+        );
     }
 
     useEffect(() => {

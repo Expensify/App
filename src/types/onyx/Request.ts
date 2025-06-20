@@ -14,6 +14,9 @@ type OnyxData = {
 
     /** Onyx instructions that are executed before request is made to the server */
     optimisticData?: OnyxUpdate[];
+
+    /** Onyx instructions that are executed when Onyx queue is flushed */
+    queueFlushedData?: OnyxUpdate[];
 };
 
 /** HTTP request method names */
@@ -53,6 +56,19 @@ type RequestData = {
 
     /** Whether the app should skip the web proxy to connect to API endpoints */
     shouldSkipWebProxy?: boolean;
+
+    /**
+     * Whether the request is initiated offline.
+     *
+     * This field is used to indicate if the app initiates the request while offline.
+     * It is particularly useful for scenarios such as receipts recreating, where
+     * the app needs to regenerate a blob once the user gets back online.
+     * More info https://github.com/Expensify/App/issues/51761
+     */
+    initiatedOffline?: boolean;
+
+    /** The unique ID of the request */
+    requestID?: number;
 };
 
 /**
@@ -152,9 +168,9 @@ type RequestConflictResolver = {
     persistWhenOngoing?: boolean;
 
     /**
-     * A boolean flag to mark a request as rollbacked, if set to true it means the request failed and was added back into the queue.
+     * A boolean flag to mark a request as rollback, if set to true it means the request failed and was added back into the queue.
      */
-    isRollbacked?: boolean;
+    isRollback?: boolean;
 };
 
 /** Model of requests sent to the API */

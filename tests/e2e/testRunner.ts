@@ -22,6 +22,7 @@ import compare from './compare/compare';
 import defaultConfig from './config';
 import createServerInstance from './server';
 import reversePort from './utils/androidReversePort';
+import closeANRPopup from './utils/closeANRPopup';
 import installApp from './utils/installApp';
 import killApp from './utils/killApp';
 import launchApp from './utils/launchApp';
@@ -86,8 +87,8 @@ try {
 // START OF TEST CODE
 const runTests = async (): Promise<void> => {
     Logger.info('Installing apps and reversing port');
-    await installApp(config.MAIN_APP_PACKAGE, mainAppPath);
-    await installApp(config.DELTA_APP_PACKAGE, deltaAppPath);
+    await installApp(config.MAIN_APP_PACKAGE, mainAppPath, undefined, defaultConfig.FLAG);
+    await installApp(config.DELTA_APP_PACKAGE, deltaAppPath, undefined, defaultConfig.FLAG);
     await reversePort();
 
     // Start the HTTP server
@@ -240,8 +241,8 @@ const runTests = async (): Promise<void> => {
         const test = Object.values(config.TESTS_CONFIG).at(testIndex);
 
         // re-instal app for each new test suite
-        await installApp(config.MAIN_APP_PACKAGE, mainAppPath);
-        await installApp(config.DELTA_APP_PACKAGE, deltaAppPath);
+        await installApp(config.MAIN_APP_PACKAGE, mainAppPath, undefined, defaultConfig.FLAG);
+        await installApp(config.DELTA_APP_PACKAGE, deltaAppPath, undefined, defaultConfig.FLAG);
 
         // check if we want to skip the test
         if (args.includes('--includes')) {
@@ -254,7 +255,7 @@ const runTests = async (): Promise<void> => {
             }
         }
 
-        // Having the cooldown right at the beginning lowers the chances of heat
+        // Having the cool-down right at the beginning lowers the chances of heat
         // throttling from the previous run (which we have no control over and will be a
         // completely different AWS DF customer/app). It also gives the time to cool down between tests.
         Logger.info(`Cooling down for ${config.BOOT_COOL_DOWN / 1000}s`);
@@ -287,6 +288,7 @@ const runTests = async (): Promise<void> => {
                     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     Logger.error(`Warmup failed with error: ${e}`);
 
+                    await closeANRPopup();
                     MeasureUtils.stop('error-warmup');
                     server.clearAllTestDoneListeners();
 
@@ -310,10 +312,11 @@ const runTests = async (): Promise<void> => {
 
             // We run each test multiple time to average out the results
             for (let testIteration = 0; testIteration < config.RUNS; testIteration++) {
-                const onError = (e: Error) => {
+                const onError = async (e: Error) => {
                     // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                     Logger.error(`Unexpected error during test execution: ${e}. `);
                     MeasureUtils.stop('error');
+                    await closeANRPopup();
                     server.clearAllTestDoneListeners();
                     errorCountRef.errorCount += 1;
                     if (testIteration === 0 || errorCountRef.errorCount === errorCountRef.allowedExceptions) {
@@ -341,7 +344,7 @@ const runTests = async (): Promise<void> => {
                     // Run the test on the delta app:
                     await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, config.BRANCH_DELTA, launchArgs);
                 } catch (e) {
-                    onError(e as Error);
+                    await onError(e as Error);
                 }
             }
         } catch (exception) {
@@ -354,7 +357,7 @@ const runTests = async (): Promise<void> => {
     // Calculate statistics and write them to our work file
     Logger.info('Calculating statics and writing results');
     await compare(results.main, results.delta, {
-        outputFile: `${config.OUTPUT_DIR}/output.md`,
+        outputDir: config.OUTPUT_DIR,
         outputFormat: 'all',
         metricForTest,
         skippedTests,

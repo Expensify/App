@@ -1,7 +1,8 @@
 import React, {useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useSingleExecution from '@hooks/useSingleExecution';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import mergeRefs from '@libs/mergeRefs';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -63,39 +64,51 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
      */
     const secondaryInteraction = (link: MenuItemLink | undefined, event: GestureResponderEvent | MouseEvent) => {
         if (typeof link === 'function') {
-            link().then((url) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, url, popoverAnchor.current));
+            link().then((url) =>
+                showContextMenu({
+                    type: CONST.CONTEXT_MENU_TYPES.LINK,
+                    event,
+                    selection: url,
+                    contextMenuAnchor: popoverAnchor.current,
+                }),
+            );
         } else if (link) {
-            ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, link, popoverAnchor.current);
+            showContextMenu({
+                type: CONST.CONTEXT_MENU_TYPES.LINK,
+                event,
+                selection: link,
+                contextMenuAnchor: popoverAnchor.current,
+            });
         }
     };
 
     return (
-        <>
-            {menuItems.map(({key, ...menuItemProps}) => (
-                <OfflineWithFeedback
+        // ref is accessed for MenuItem's ref initialization
+        // eslint-disable-next-line react-compiler/react-compiler
+        menuItems.map(({key, ref, ...menuItemProps}) => (
+            <OfflineWithFeedback
+                key={key ?? menuItemProps.title}
+                pendingAction={menuItemProps.pendingAction}
+                onClose={menuItemProps.onPendingActionDismiss}
+                errors={menuItemProps.error}
+                shouldForceOpacity={menuItemProps.shouldForceOpacity}
+            >
+                <MenuItem
                     key={key ?? menuItemProps.title}
-                    pendingAction={menuItemProps.pendingAction}
-                    onClose={menuItemProps.onPendingActionDismiss}
-                    errors={menuItemProps.error}
-                    shouldForceOpacity={menuItemProps.shouldForceOpacity}
-                >
-                    <MenuItem
-                        key={key ?? menuItemProps.title}
-                        wrapperStyle={wrapperStyle}
-                        onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
-                        ref={popoverAnchor}
-                        shouldBlockSelection={!!menuItemProps.link}
-                        icon={icon}
-                        iconWidth={iconWidth}
-                        iconHeight={iconHeight}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...menuItemProps}
-                        disabled={!!menuItemProps.disabled || isExecuting}
-                        onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
-                    />
-                </OfflineWithFeedback>
-            ))}
-        </>
+                    wrapperStyle={wrapperStyle}
+                    onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
+                    ref={mergeRefs(ref, popoverAnchor)}
+                    shouldBlockSelection={!!menuItemProps.link}
+                    icon={icon}
+                    iconWidth={iconWidth}
+                    iconHeight={iconHeight}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...menuItemProps}
+                    disabled={!!menuItemProps.disabled || isExecuting}
+                    onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
+                />
+            </OfflineWithFeedback>
+        ))
     );
 }
 

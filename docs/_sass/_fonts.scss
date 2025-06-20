@@ -26,6 +26,20 @@
   src: url('/assets/fonts/ExpensifyNewKansas-MediumItalic.woff2') format('woff2'), url('/assets/fonts/ExpensifyNewKansas-MediumItalic.woff') format('woff');
 }
 
+@font-face {
+  font-family: Expensify Mono;
+  font-weight: 400;
+  font-style: normal;
+  src: url('/assets/fonts/ExpensifyMono-Regular.woff2') format('woff2'), url('/assets/fonts/ExpensifyMono-Regular.woff') format('woff');
+}
+
+@font-face {
+  font-family: Expensify Mono;
+  font-weight: 700;
+  font-style: normal;
+  src: url('/assets/fonts/ExpensifyMono-Bold.woff2') format('woff2'), url('/assets/fonts/ExpensifyMono-Bold.woff') format('woff');
+}
+
 * {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

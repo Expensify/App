@@ -1,6 +1,6 @@
 type SearchForRoomsToMentionParams = {
     query: string;
-    policyID: string;
+    policyID?: string;
 };
 
 export default SearchForRoomsToMentionParams;

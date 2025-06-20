@@ -10,19 +10,17 @@ const GUTTER_WIDTH = variables.gutterWidth;
  * Compute the amount the tooltip needs to be horizontally shifted in order to keep it from displaying in the gutters.
  *
  * @param windowWidth - The width of the window.
- * @param xOffset - The distance between the left edge of the window
+ * @param tooltipLeftEdge - The distance between the left edge of the tooltip
  *                           and the left edge of the wrapped component.
- * @param componentWidth - The width of the wrapped component.
  * @param tooltipWidth - The width of the tooltip itself.
- * @param [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
- *                                         A positive value shifts it to the right,
- *                                         and a negative value shifts it to the left.
  */
-const computeHorizontalShift: ComputeHorizontalShift = (windowWidth, xOffset, componentWidth, tooltipWidth, manualShiftHorizontal) => {
-    // First find the left and right edges of the tooltip (by default, it is centered on the component).
-    const componentCenter = xOffset + componentWidth / 2 + manualShiftHorizontal;
-    const tooltipLeftEdge = componentCenter - tooltipWidth / 2;
-    const tooltipRightEdge = componentCenter + tooltipWidth / 2;
+const computeHorizontalShift: ComputeHorizontalShift = (windowWidth, tooltipLeftEdge, tooltipWidth, tooltipWrapperLeft, tooltipWrapperWidth) => {
+    const tooltipRightEdge = tooltipLeftEdge + tooltipWidth;
+    const tooltipWrapperRight = tooltipWrapperLeft + tooltipWrapperWidth;
+
+    if (tooltipWrapperLeft < 0 || tooltipWrapperRight > windowWidth) {
+        return 0;
+    }
 
     if (tooltipLeftEdge < GUTTER_WIDTH) {
         // Tooltip is in left gutter, shift right by a multiple of four.

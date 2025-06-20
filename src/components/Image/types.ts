@@ -1,18 +1,12 @@
-import type {ImageSource} from 'expo-image';
-import type {ImageRequireSource, ImageResizeMode, ImageStyle, ImageURISource, StyleProp} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {ImagePrefetchOptions, ImageSource} from 'expo-image';
+import type {ImageRequireSource, ImageResizeMode, ImageStyle, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoadingIndicator';
 import type CONST from '@src/CONST';
-import type {Session} from '@src/types/onyx';
 
 type ExpoImageSource = ImageSource | number | ImageSource[];
 
 type ImageObjectPosition = ValueOf<typeof CONST.IMAGE_OBJECT_POSITION>;
-
-type ImageOnyxProps = {
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-};
 
 type ImageOnLoadEvent = {
     nativeEvent: {
@@ -30,6 +24,9 @@ type BaseImageProps = {
 
     /** Styles for the Image */
     style?: StyleProp<ImageStyle>;
+
+    /** The image cache policy */
+    cachePolicy?: ImagePrefetchOptions['cachePolicy'];
 };
 
 type ImageOwnProps = BaseImageProps & {
@@ -38,6 +35,12 @@ type ImageOwnProps = BaseImageProps & {
 
     /** How should the image fit within its container */
     resizeMode?: ImageResizeMode;
+
+    /** The size of the loading indicator */
+    loadingIconSize?: FullScreenLoadingIndicatorIconSize;
+
+    /** The style of the loading indicator */
+    loadingIndicatorStyles?: StyleProp<ViewStyle>;
 
     /** Event for when the image begins loading */
     onLoadStart?: () => void;
@@ -53,8 +56,15 @@ type ImageOwnProps = BaseImageProps & {
 
     /** The object position of image */
     objectPosition?: ImageObjectPosition;
+
+    /**
+     *  Called when the image should wait for a valid session to reload
+     *  At the moment this function is called, the image is not in cache anymore
+     *  cf https://github.com/Expensify/App/issues/51888
+     */
+    waitForSession?: () => void;
 };
 
-type ImageProps = ImageOnyxProps & ImageOwnProps;
+type ImageProps = ImageOwnProps;
 
-export type {BaseImageProps, ImageOwnProps, ImageOnyxProps, ImageProps, ExpoImageSource, ImageOnLoadEvent, ImageObjectPosition};
+export type {BaseImageProps, ImageProps, ImageOnLoadEvent, ImageObjectPosition};

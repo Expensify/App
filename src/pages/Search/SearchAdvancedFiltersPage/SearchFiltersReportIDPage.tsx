@@ -35,7 +35,7 @@ function SearchFiltersReportIDPage() {
             testID={SearchFiltersReportIDPage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
@@ -50,6 +50,7 @@ function SearchFiltersReportIDPage() {
                 onSubmit={updateReportIDFilter}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <View style={styles.mb5}>
                     <InputWrapper

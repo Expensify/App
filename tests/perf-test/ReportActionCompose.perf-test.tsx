@@ -1,10 +1,8 @@
 import {fireEvent, screen} from '@testing-library/react-native';
-import type {ComponentType, EffectCallback} from 'react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
 import {measureRenders} from 'reassure';
-import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import type {EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
 import type Navigation from '@libs/Navigation/Navigation';
 import ComposeProviders from '@src/components/ComposeProviders';
@@ -23,6 +21,9 @@ jest.mock('@gorhom/portal');
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     useAnimatedRef: jest.fn(),
+    LayoutAnimationConfig: () => {
+        return ({children}: {children: React.ReactNode}) => children;
+    },
 }));
 
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
@@ -40,7 +41,7 @@ jest.mock('@react-navigation/native', () => {
         }),
         useIsFocused: () => true,
         useNavigationState: () => {},
-        useFocusEffect: (cb: EffectCallback) => cb(),
+        useFocusEffect: jest.fn(),
     };
 });
 
@@ -59,26 +60,10 @@ jest.mock('@src/libs/actions/EmojiPickerAction', () => {
     };
 });
 
-jest.mock('@src/components/withNavigationFocus', <TProps extends WithNavigationFocusProps>() => (Component: ComponentType<TProps>) => {
-    function WithNavigationFocus(props: Omit<TProps, keyof WithNavigationFocusProps>) {
-        return (
-            <Component
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(props as TProps)}
-                isFocused={false}
-            />
-        );
-    }
-
-    WithNavigationFocus.displayName = 'WithNavigationFocus';
-
-    return WithNavigationFocus;
-});
-
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
-        safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
     }),
 );
 

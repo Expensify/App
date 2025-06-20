@@ -8,9 +8,6 @@ type TravelSettings = {
 
     /** Whether the user is setup for staging travelDot */
     testAccount?: boolean;
-
-    /** Whether the user is waiting for the API response after accepting terms */
-    isLoading?: boolean;
 };
 
 /** Model of workspace travel information to connect with Spotnana */
@@ -18,8 +15,11 @@ type WorkspaceTravelSettings = {
     /** The UUID that spotnana provides us when we create a “company” in their system */
     spotnanaCompanyID: string;
 
-    /** The UUID that spotnana provides us when we provision the workspace as an “entity” in their system */
-    spotnanaEntityID: boolean;
+    /** The UUID of the associated Spotnana Entity */
+    associatedTravelDomainAccountID: string;
+
+    /** Indicates whether an admin of the workspace accepted Spotnana Terms and Conditions */
+    hasAcceptedTerms: boolean;
 };
 
 export type {TravelSettings, WorkspaceTravelSettings};

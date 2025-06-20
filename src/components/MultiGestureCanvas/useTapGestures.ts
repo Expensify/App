@@ -111,19 +111,20 @@ const useTapGestures = ({
                 offsetAfterZooming.y = 0;
             }
 
-            // eslint-disable-next-line react-compiler/react-compiler
-            offsetX.value = withSpring(offsetAfterZooming.x, SPRING_CONFIG);
-            offsetY.value = withSpring(offsetAfterZooming.y, SPRING_CONFIG);
-            zoomScale.value = withSpring(doubleTapScale, SPRING_CONFIG, callback);
-            pinchScale.value = doubleTapScale;
+            offsetX.set(withSpring(offsetAfterZooming.x, SPRING_CONFIG));
+            offsetY.set(withSpring(offsetAfterZooming.y, SPRING_CONFIG));
+            zoomScale.set(withSpring(doubleTapScale, SPRING_CONFIG, callback));
+            pinchScale.set(doubleTapScale);
         },
-        [stopAnimation, scaledContentWidth, scaledContentHeight, canvasSize, doubleTapScale, offsetX, offsetY, zoomScale, pinchScale],
+        [stopAnimation, canvasSize.width, canvasSize.height, scaledContentWidth, scaledContentHeight, doubleTapScale, offsetX, offsetY, zoomScale, pinchScale],
     );
 
     const doubleTapGesture = Gesture.Tap()
         // The first argument is not used, but must be defined
         .onTouchesDown((_evt, state) => {
-            if (!shouldDisableTransformationGestures.value) {
+            'worklet';
+
+            if (!shouldDisableTransformationGestures.get()) {
                 return;
             }
 
@@ -133,17 +134,19 @@ const useTapGestures = ({
         .maxDelay(150)
         .maxDistance(20)
         .onEnd((evt) => {
+            'worklet';
+
             const triggerScaleChangedEvent = () => {
                 'worklet';
 
                 if (onScaleChanged != null) {
-                    runOnJS(onScaleChanged)(zoomScale.value);
+                    runOnJS(onScaleChanged)(zoomScale.get());
                 }
             };
 
             // If the content is already zoomed, we want to reset the zoom,
             // otherwise we want to zoom in
-            if (zoomScale.value > 1) {
+            if (zoomScale.get() > 1) {
                 reset(true, triggerScaleChangedEvent);
             } else {
                 zoomToCoordinates(evt.x, evt.y, triggerScaleChangedEvent);
@@ -154,9 +157,13 @@ const useTapGestures = ({
         .numberOfTaps(1)
         .maxDuration(125)
         .onBegin(() => {
+            'worklet';
+
             stopAnimation();
         })
         .onFinalize((_evt, success) => {
+            'worklet';
+
             if (!success || onTap === undefined) {
                 return;
             }

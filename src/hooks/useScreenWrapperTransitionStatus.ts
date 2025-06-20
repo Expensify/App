@@ -6,12 +6,12 @@ import {ScreenWrapperStatusContext} from '@components/ScreenWrapper';
  * Use this hook if you can't get the transition status from the ScreenWrapper itself. Usually when ScreenWrapper is used inside TopTabNavigator.
  * @returns `didScreenTransitionEnd` flag to indicate if navigation transition ended.
  */
-export default function useScreenWrapperTranstionStatus() {
-    const value = useContext(ScreenWrapperStatusContext);
+export default function useScreenWrapperTransitionStatus() {
+    const context = useContext(ScreenWrapperStatusContext);
 
-    if (value === undefined) {
+    if (context === undefined) {
         throw new Error("Couldn't find values for screen ScreenWrapper transition status. Are you inside a screen in ScreenWrapper?");
     }
 
-    return value;
+    return {didScreenTransitionEnd: context.didScreenTransitionEnd};
 }

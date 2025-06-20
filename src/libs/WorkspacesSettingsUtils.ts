@@ -2,18 +2,15 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import type {PolicySelector} from '@hooks/useReportIDs';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, PriorityMode, ReimbursementAccount, Report, ReportAction, ReportActions, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Policy, ReimbursementAccount, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {PolicyConnectionSyncProgress, Unit} from '@src/types/onyx/Policy';
 import {isConnectionInProgress} from './actions/connections';
-import * as CurrencyUtils from './CurrencyUtils';
-import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasSyncError, hasTaxRateError} from './PolicyUtils';
-import * as ReportActionsUtils from './ReportActionsUtils';
-import * as ReportUtils from './ReportUtils';
-import SidebarUtils from './SidebarUtils';
+import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
+import {convertToDisplayString} from './CurrencyUtils';
+import {isPolicyAdmin, shouldShowCustomUnitsError, shouldShowEmployeeListError, shouldShowPolicyError, shouldShowSyncError, shouldShowTaxRateError} from './PolicyUtils';
 
 type CheckingMethod = () => boolean;
 
@@ -28,72 +25,22 @@ Onyx.connect({
     },
 });
 
-let allReportActions: OnyxCollection<ReportActions>;
+let reportAttributes: ReportAttributesDerivedValue['reports'];
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
-    callback: (actions) => {
-        if (!actions) {
-            return;
-        }
-        allReportActions = actions;
-    },
-});
-
-let allTransactionViolations: NonNullable<OnyxCollection<TransactionViolations>> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
+    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     callback: (value) => {
         if (!value) {
-            allTransactionViolations = {};
             return;
         }
-
-        allTransactionViolations = value;
+        reportAttributes = value.reports;
     },
 });
-
 /**
  * @param altReportActions Replaces (local) allReportActions used within (local) function getWorkspacesBrickRoads
  * @returns BrickRoad for the policy passed as a param and optionally actionsByReport (if passed)
  */
-const getBrickRoadForPolicy = (report: Report, altReportActions?: OnyxCollection<ReportActions>): BrickRoad => {
-    const reportActions = (altReportActions ?? allReportActions)?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
-    const reportErrors = ReportUtils.getAllReportErrors(report, reportActions);
-    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions);
-    let doesReportContainErrors = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-
-    if (!doesReportContainErrors) {
-        const shouldDisplayViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, allTransactionViolations);
-        const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(report.reportID);
-        const hasViolations = shouldDisplayViolations || shouldDisplayReportViolations;
-        if (hasViolations) {
-            doesReportContainErrors = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-        }
-    }
-
-    if (oneTransactionThreadReportID && !doesReportContainErrors) {
-        const oneTransactionThreadReport = ReportUtils.getReport(oneTransactionThreadReportID);
-
-        if (ReportUtils.shouldDisplayViolationsRBRInLHN(oneTransactionThreadReport, allTransactionViolations)) {
-            doesReportContainErrors = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-        }
-    }
-
-    if (doesReportContainErrors) {
-        return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    }
-
-    // To determine if the report requires attention from the current user, we need to load the parent report action
-    let itemParentReportAction: OnyxEntry<ReportAction>;
-    if (report.parentReportID) {
-        const itemParentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`] ?? {};
-        itemParentReportAction = report.parentReportActionID ? itemParentReportActions[report.parentReportActionID] : undefined;
-    }
-    const reportOption = {...report, isUnread: ReportUtils.isUnread(report), isUnreadWithMention: ReportUtils.isUnreadWithMention(report)};
-    const shouldShowGreenDotIndicator = ReportUtils.requiresAttentionFromCurrentUser(reportOption, itemParentReportAction);
-    return shouldShowGreenDotIndicator ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
+const getBrickRoadForPolicy = (report: Report): BrickRoad => {
+    return reportAttributes?.[report.reportID]?.brickRoadStatus;
 };
 
 function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, allConnectionProgresses: OnyxCollection<PolicyConnectionSyncProgress>) {
@@ -102,50 +49,42 @@ function hasGlobalWorkspaceSettingsRBR(policies: OnyxCollection<Policy>, allConn
     const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id));
 
     const errorCheckingMethods: CheckingMethod[] = [
-        () => Object.values(cleanPolicies).some(hasPolicyError),
-        () => Object.values(cleanPolicies).some(hasCustomUnitsError),
-        () => Object.values(cleanPolicies).some(hasTaxRateError),
-        () => Object.values(cleanPolicies).some(hasEmployeeListError),
+        () => Object.values(cleanPolicies).some(shouldShowPolicyError),
+        () => Object.values(cleanPolicies).some(shouldShowCustomUnitsError),
+        () => Object.values(cleanPolicies).some(shouldShowTaxRateError),
+        () => Object.values(cleanPolicies).some(shouldShowEmployeeListError),
+        () => Object.values(cleanPolicies).some(shouldShowQBOReimbursableExportDestinationAccountError),
         () =>
             Object.values(cleanPolicies).some((cleanPolicy) =>
-                hasSyncError(cleanPolicy, isConnectionInProgress(allConnectionProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy)),
+                shouldShowSyncError(cleanPolicy, isConnectionInProgress(allConnectionProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${cleanPolicy?.id}`], cleanPolicy)),
             ),
-        () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
+        () => Object.values(cleanPolicies).some((cleanPolicy) => isPolicyAdmin(cleanPolicy) && Object.keys(reimbursementAccount?.errors ?? {}).length > 0),
     ];
 
     return errorCheckingMethods.some((errorCheckingMethod) => errorCheckingMethod());
 }
 
 function hasWorkspaceSettingsRBR(policy: Policy) {
-    const policyMemberError = hasEmployeeListError(policy);
-    const taxRateError = hasTaxRateError(policy);
+    const policyMemberError = shouldShowEmployeeListError(policy);
+    const taxRateError = shouldShowTaxRateError(policy);
 
-    return Object.keys(reimbursementAccount?.errors ?? {}).length > 0 || hasPolicyError(policy) || hasCustomUnitsError(policy) || policyMemberError || taxRateError;
+    return (
+        (isPolicyAdmin(policy) && Object.keys(reimbursementAccount?.errors ?? {}).length > 0) ||
+        shouldShowPolicyError(policy) ||
+        shouldShowCustomUnitsError(policy) ||
+        policyMemberError ||
+        taxRateError
+    );
 }
 
-function getChatTabBrickRoadReport(
-    policyID: string | undefined,
-    currentReportId: string | null,
-    reports: OnyxCollection<Report>,
-    betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<PolicySelector>,
-    priorityMode: OnyxEntry<PriorityMode>,
-    transactionViolations: OnyxCollection<TransactionViolation[]>,
-    policyMemberAccountIDs: number[] = [],
-): OnyxEntry<Report> {
-    const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportId, reports, betas, policies, priorityMode, transactionViolations, policyID, policyMemberAccountIDs);
-    if (!reportIDs.length) {
+function getChatTabBrickRoadReport(orderedReports: Array<OnyxEntry<Report>> = []): OnyxEntry<Report> {
+    if (!orderedReports.length) {
         return undefined;
     }
 
-    const allReports = reportIDs.map((reportID) => reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
-
-    // If policyID is undefined, then all reports are checked whether they contain any brick road
-    const policyReports = policyID ? Object.values(allReports).filter((report) => report?.policyID === policyID) : Object.values(allReports);
-
     let reportWithGBR: OnyxEntry<Report>;
 
-    const reportWithRBR = policyReports.find((report) => {
+    const reportWithRBR = orderedReports.find((report) => {
         const brickRoad = report ? getBrickRoadForPolicy(report) : undefined;
         if (!reportWithGBR && brickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
             reportWithGBR = report;
@@ -165,24 +104,15 @@ function getChatTabBrickRoadReport(
     return undefined;
 }
 
-function getChatTabBrickRoad(
-    policyID: string | undefined,
-    currentReportId: string | null,
-    reports: OnyxCollection<Report>,
-    betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<PolicySelector>,
-    priorityMode: OnyxEntry<PriorityMode>,
-    transactionViolations: OnyxCollection<TransactionViolation[]>,
-    policyMemberAccountIDs: number[] = [],
-): BrickRoad | undefined {
-    const report = getChatTabBrickRoadReport(policyID, currentReportId, reports, betas, policies, priorityMode, transactionViolations, policyMemberAccountIDs);
+function getChatTabBrickRoad(orderedReports: Array<OnyxEntry<Report>>): BrickRoad | undefined {
+    const report = getChatTabBrickRoadReport(orderedReports);
     return report ? getBrickRoadForPolicy(report) : undefined;
 }
 
 /**
  * @returns a map where the keys are policyIDs and the values are BrickRoads for each policy
  */
-function getWorkspacesBrickRoads(reports: OnyxCollection<Report>, policies: OnyxCollection<Policy>, reportActions: OnyxCollection<ReportActions>): Record<string, BrickRoad> {
+function getWorkspacesBrickRoads(reports: OnyxCollection<Report>, policies: OnyxCollection<Policy>): Record<string, BrickRoad> {
     if (!reports) {
         return {};
     }
@@ -205,7 +135,7 @@ function getWorkspacesBrickRoads(reports: OnyxCollection<Report>, policies: Onyx
         if (!report || workspacesBrickRoadsMap[policyID] === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
             return;
         }
-        const workspaceBrickRoad = getBrickRoadForPolicy(report, reportActions);
+        const workspaceBrickRoad = getBrickRoadForPolicy(report);
 
         if (!workspaceBrickRoad && !!workspacesBrickRoadsMap[policyID]) {
             return;
@@ -215,30 +145,6 @@ function getWorkspacesBrickRoads(reports: OnyxCollection<Report>, policies: Onyx
     });
 
     return workspacesBrickRoadsMap;
-}
-
-/**
- * @returns a map where the keys are policyIDs and the values are truthy booleans if policy has unread content
- */
-function getWorkspacesUnreadStatuses(reports: OnyxCollection<Report>): Record<string, boolean> {
-    if (!reports) {
-        return {};
-    }
-
-    const workspacesUnreadStatuses: Record<string, boolean> = {};
-
-    Object.values(reports).forEach((report) => {
-        const policyID = report?.policyID;
-        if (!policyID || workspacesUnreadStatuses[policyID]) {
-            return;
-        }
-
-        // When the only message of a report is deleted lastVisibileActionCreated is not reset leading to wrongly
-        // setting it Unread so we add additional condition here to avoid read workspace indicator from being bold.
-        workspacesUnreadStatuses[policyID] = ReportUtils.isUnread(report) && !!report.lastActorAccountID;
-    });
-
-    return workspacesUnreadStatuses;
 }
 
 /**
@@ -285,7 +191,7 @@ function getOwnershipChecksDisplayText(
             title = translate('workspace.changeOwner.ownerOwesAmountTitle');
             text = translate('workspace.changeOwner.ownerOwesAmountText', {
                 email: ownerOwesAmount?.ownerEmail,
-                amount: CurrencyUtils.convertToDisplayString(ownerOwesAmount?.amount, ownerOwesAmount?.currency),
+                amount: convertToDisplayString(ownerOwesAmount?.amount, ownerOwesAmount?.currency),
             });
             buttonText = translate('workspace.changeOwner.ownerOwesAmountButtonText');
             break;
@@ -329,7 +235,6 @@ export {
     getChatTabBrickRoadReport,
     getBrickRoadForPolicy,
     getWorkspacesBrickRoads,
-    getWorkspacesUnreadStatuses,
     hasGlobalWorkspaceSettingsRBR,
     hasWorkspaceSettingsRBR,
     getChatTabBrickRoad,

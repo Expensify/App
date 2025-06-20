@@ -1,6 +1,6 @@
 import React from 'react';
-import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,7 +18,7 @@ type SearchRowSkeletonProps = {
 
 const barHeight = 8;
 const longBarWidth = 120;
-const leftPaneWidth = variables.sideBarWidth;
+const leftPaneWidth = variables.sideBarWithLHBWidth + variables.navigationTabBarSize;
 
 // 12 is the gap between the element and the right button
 const gapWidth = 12;
@@ -42,7 +42,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
             <View style={[styles.flex1, containerStyle]}>
                 <ItemListSkeletonView
                     itemViewHeight={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT}
-                    itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.mh5]}
+                    itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.ml5]}
                     gradientOpacityEnabled={gradientOpacityEnabled}
                     shouldAnimate={shouldAnimate}
                     fixedNumItems={fixedNumItems}
@@ -126,7 +126,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                 shouldAnimate={shouldAnimate}
                 fixedNumItems={fixedNumItems}
                 gradientOpacityEnabled={gradientOpacityEnabled}
-                itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.mh5]}
+                itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.ml5]}
                 renderSkeletonItem={() => (
                     <>
                         <Rect

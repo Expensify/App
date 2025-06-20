@@ -1,190 +1,156 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useLayoutEffect, useRef} from 'react';
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, ScrollViewProps, TextStyle, ViewStyle} from 'react-native';
+import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Animated, {FadeIn} from 'react-native-reanimated';
 import MenuItem from '@components/MenuItem';
-import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
+import MenuItemList from '@components/MenuItemList';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
+import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as SearchActions from '@libs/actions/Search';
+import {clearAllFilters} from '@libs/actions/Search';
+import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates, hasWorkspaceWithInvoices} from '@libs/PolicyUtils';
-import {hasInvoiceReports} from '@libs/ReportUtils';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import * as SearchUIUtils from '@libs/SearchUIUtils';
+import {getAllTaxRates} from '@libs/PolicyUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
+import type {SavedSearchMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, createTypeMenuSections, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import type IconAsset from '@src/types/utils/IconAsset';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
-import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
-
-type SavedSearchMenuItem = MenuItemWithLink & {
-    key: string;
-    hash: string;
-    query: string;
-    styles: Array<ViewStyle | TextStyle>;
-};
 
 type SearchTypeMenuProps = {
-    queryJSON: SearchQueryJSON;
-    searchName?: string;
+    queryJSON: SearchQueryJSON | undefined;
 };
 
-type SearchTypeMenuItem = {
-    title: string;
-    type: SearchDataTypes;
-    icon: IconAsset;
-    getRoute: (policyID?: string) => Route;
-};
+function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
+    const {hash} = queryJSON ?? {};
 
-function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
-    const {type, hash} = queryJSON;
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const [shouldShowSavedSearchRenameTooltip] = useOnyx(ONYXKEYS.SHOULD_SHOW_SAVED_SEARCH_RENAME_TOOLTIP);
-    const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-
-    const personalDetails = usePersonalDetails();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const taxRates = getAllTaxRates();
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const {isOffline} = useNetwork();
+    const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
+    const isFocused = useIsFocused();
+    const {
+        shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
+        renderProductTrainingTooltip: renderSavedSearchTooltip,
+        hideProductTrainingTooltip: hideSavedSearchTooltip,
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH, shouldShowSavedSearchesMenuItemTitle && isFocused);
+    const {
+        shouldShowProductTrainingTooltip: shouldShowExpenseReportsTypeTooltip,
+        renderProductTrainingTooltip: renderExpenseReportsTypeTooltip,
+        hideProductTrainingTooltip: hideExpenseReportsTypeTooltip,
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.EXPENSE_REPORTS_FILTER, true);
+    const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const personalDetails = usePersonalDetails();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
+    const taxRates = getAllTaxRates();
+    const {clearSelectedTransactions} = useSearchContext();
+    const initialSearchKeys = useRef<string[]>([]);
 
-    const typeMenuItems: SearchTypeMenuItem[] = [
-        {
-            title: translate('common.expenses'),
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Receipt,
-            getRoute: (policyID?: string) => {
-                const query = SearchQueryUtils.buildCannedSearchQuery({policyID});
-                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
-            },
-        },
-        {
-            title: translate('common.chats'),
-            type: CONST.SEARCH.DATA_TYPES.CHAT,
-            icon: Expensicons.ChatBubbles,
-            getRoute: (policyID?: string) => {
-                const query = SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
-                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
-            },
-        },
-    ];
+    const cardFeedNamesWithType = useMemo(() => {
+        return getCardFeedNamesWithType({workspaceCardFeeds, translate});
+    }, [translate, workspaceCardFeeds]);
 
-    if (hasWorkspaceWithInvoices(session?.email) || hasInvoiceReports()) {
-        typeMenuItems.push({
-            title: translate('workspace.common.invoices'),
-            type: CONST.SEARCH.DATA_TYPES.INVOICE,
-            icon: Expensicons.InvoiceGeneric,
-            getRoute: (policyID?: string) => {
-                const query = SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.INVOICE, status: CONST.SEARCH.STATUS.INVOICE.ALL, policyID});
-                return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
-            },
-        });
-    }
-    typeMenuItems.push({
-        title: translate('travel.trips'),
-        type: CONST.SEARCH.DATA_TYPES.TRIP,
-        icon: Expensicons.Suitcase,
-        getRoute: (policyID?: string) => {
-            const query = SearchQueryUtils.buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TRIP, status: CONST.SEARCH.STATUS.TRIP.ALL, policyID});
-            return ROUTES.SEARCH_CENTRAL_PANE.getRoute({query});
-        },
-    });
+    const typeMenuSections: SearchTypeMenuSection[] = useMemo(() => {
+        const sections = createTypeMenuSections(session, allPolicies);
 
-    const getOverflowMenu = useCallback(
-        (itemName: string, itemHash: number, itemQuery: string) => SearchUIUtils.getOverflowMenu(itemName, itemHash, itemQuery, showDeleteModal),
-        [showDeleteModal],
-    );
-
-    const createSavedSearchMenuItem = (item: SaveSearchItem, key: string, isNarrow: boolean, index: number) => {
-        let title = item.name;
-        if (title === item.query) {
-            const jsonQuery = SearchQueryUtils.buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-            title = SearchQueryUtils.buildUserReadableQueryString(jsonQuery, personalDetails, cardList, reports, taxRates);
+        // The first time we render all of the sections the user can see, we need to mark these as 'rendered', such that we dont animate them in
+        // We only animate in items that a user gains access to later on
+        if (!initialSearchKeys.current.length) {
+            initialSearchKeys.current = sections.flatMap((section) => section.menuItems.map((item) => item.translationPath));
         }
 
-        const baseMenuItem: SavedSearchMenuItem = {
-            key,
-            title,
-            hash: key,
-            query: item.query,
-            shouldShowRightComponent: true,
-            focused: Number(key) === hash,
-            onPress: () => {
-                SearchActions.clearAllFilters();
-                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query: item?.query ?? '', name: item?.name}));
-            },
-            rightComponent: (
-                <SavedSearchItemThreeDotMenu
-                    menuItems={getOverflowMenu(title, Number(key), item.query)}
-                    isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                />
-            ),
-            styles: [styles.alignItemsCenter],
-            pendingAction: item.pendingAction,
-            disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            shouldIconUseAutoWidthStyle: true,
-        };
+        return sections;
+    }, [session, allPolicies]);
 
-        if (!isNarrow) {
+    const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
+    const createSavedSearchMenuItem = useCallback(
+        (item: SaveSearchItem, key: string, index: number) => {
+            let title = item.name;
+            if (title === item.query) {
+                const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
+                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies);
+            }
+
+            const isItemFocused = Number(key) === hash;
+            const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
+
             return {
                 ...baseMenuItem,
-                shouldRenderTooltip: index === 0 && shouldShowSavedSearchRenameTooltip === true,
+                onPress: () => {
+                    clearAllFilters();
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
+                },
+                rightComponent: (
+                    <SavedSearchItemThreeDotMenu
+                        menuItems={getOverflowMenu(title, Number(key), item.query)}
+                        isDisabledItem={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                        hideProductTrainingTooltip={index === 0 && shouldShowSavedSearchTooltip ? hideSavedSearchTooltip : undefined}
+                        shouldRenderTooltip={index === 0 && shouldShowSavedSearchTooltip}
+                        renderTooltipContent={renderSavedSearchTooltip}
+                    />
+                ),
+                style: [styles.alignItemsCenter],
                 tooltipAnchorAlignment: {
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 },
-                tooltipShiftHorizontal: -32,
-                tooltipShiftVertical: 15,
-                tooltipWrapperStyle: [styles.bgPaleGreen, styles.mh4, styles.pv2],
-                onHideTooltip: SearchActions.dismissSavedSearchRenameTooltip,
-                renderTooltipContent: () => {
-                    return (
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            <Expensicons.Lightbulb
-                                width={16}
-                                height={16}
-                                fill={styles.colorGreenSuccess.color}
-                            />
-                            <Text style={[styles.ml1, styles.quickActionTooltipSubtitle]}>{translate('search.saveSearchTooltipText')}</Text>
-                        </View>
-                    );
-                },
+                tooltipShiftHorizontal: variables.savedSearchShiftHorizontal,
+                tooltipShiftVertical: variables.savedSearchShiftVertical,
+                tooltipWrapperStyle: [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper],
+                renderTooltipContent: renderSavedSearchTooltip,
             };
-        }
-
-        return baseMenuItem;
-    };
+        },
+        [
+            hash,
+            getOverflowMenu,
+            shouldShowSavedSearchTooltip,
+            hideSavedSearchTooltip,
+            renderSavedSearchTooltip,
+            styles.alignItemsCenter,
+            styles.mh4,
+            styles.pv2,
+            styles.productTrainingTooltipWrapper,
+            personalDetails,
+            reports,
+            taxRates,
+            allCards,
+            cardFeedNamesWithType,
+            allPolicies,
+        ],
+    );
 
     const route = useRoute();
     const scrollViewRef = useRef<RNScrollView>(null);
     const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
     const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
         (e) => {
-            // If the layout measurement is 0, it means the flashlist is not displayed but the onScroll may be triggered with offset value 0.
+            // If the layout measurement is 0, it means the flash list is not displayed but the onScroll may be triggered with offset value 0.
             // We should ignore this case.
             if (e.nativeEvent.layoutMeasurement.height === 0) {
                 return;
@@ -202,16 +168,31 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
 
-    const savedSearchesMenuItems = () => {
+    const {savedSearchesMenuItems, isSavedSearchActive} = useMemo(() => {
+        let savedSearchFocused = false;
+
         if (!savedSearches) {
-            return [];
+            return {
+                isSavedSearchActive: false,
+                savedSearchesMenuItems: [],
+            };
         }
-        return Object.entries(savedSearches).map(([key, item], index) => createSavedSearchMenuItem(item, key, shouldUseNarrowLayout, index));
-    };
+
+        const menuItems = Object.entries(savedSearches).map(([key, item], index) => {
+            const baseMenuItem = createSavedSearchMenuItem(item, key, index);
+            savedSearchFocused ||= !!baseMenuItem.focused;
+            return baseMenuItem;
+        });
+
+        return {
+            savedSearchesMenuItems: menuItems,
+            isSavedSearchActive: savedSearchFocused,
+        };
+    }, [createSavedSearchMenuItem, savedSearches]);
 
     const renderSavedSearchesSection = useCallback(
         (menuItems: MenuItemWithLink[]) => (
-            <View style={[styles.pb4, styles.mh3]}>
+            <View style={[styles.pb4]}>
                 <MenuItemList
                     menuItems={menuItems}
                     wrapperStyle={styles.sectionMenuItem}
@@ -225,67 +206,89 @@ function SearchTypeMenu({queryJSON, searchName}: SearchTypeMenuProps) {
         [styles],
     );
 
-    const isCannedQuery = SearchQueryUtils.isCannedSearchQuery(queryJSON);
-    const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === type) : -1;
+    const activeItemIndex = useMemo(() => {
+        // If we have a suggested search, then none of the menu items are active
+        if (isSavedSearchActive) {
+            return -1;
+        }
 
-    if (shouldUseNarrowLayout) {
-        const title = searchName ?? (isCannedQuery ? undefined : SearchQueryUtils.buildUserReadableQueryString(queryJSON, personalDetails, cardList, reports, taxRates));
+        const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
 
-        return (
-            <SearchTypeMenuNarrow
-                typeMenuItems={typeMenuItems}
-                activeItemIndex={activeItemIndex}
-                queryJSON={queryJSON}
-                title={title}
-                savedSearchesMenuItems={savedSearchesMenuItems()}
-            />
-        );
-    }
-    const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
+        return flattenedMenuItems.findIndex((item) => {
+            const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
+            return searchQueryJSON?.hash === hash;
+        });
+    }, [hash, isSavedSearchActive, typeMenuSections]);
 
     return (
-        <>
-            <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                {typeMenuItems.map((item, index) => {
-                    const onPress = singleExecution(() => {
-                        SearchActions.clearAllFilters();
-                        Navigation.navigate(item.getRoute(queryJSON.policyID));
-                    });
+        <ScrollView
+            onScroll={onScroll}
+            ref={scrollViewRef}
+            showsVerticalScrollIndicator={false}
+        >
+            <View style={[styles.pb4, styles.mh3, styles.gap4]}>
+                {typeMenuSections.map((section, sectionIndex) => (
+                    <View key={section.translationPath}>
+                        <Text style={styles.sectionTitle}>{translate(section.translationPath)}</Text>
 
-                    return (
-                        <MenuItem
-                            key={item.title}
-                            disabled={false}
-                            interactive
-                            title={item.title}
-                            icon={item.icon}
-                            iconWidth={variables.iconSizeNormal}
-                            iconHeight={variables.iconSizeNormal}
-                            wrapperStyle={styles.sectionMenuItem}
-                            focused={index === activeItemIndex}
-                            onPress={onPress}
-                            shouldIconUseAutoWidthStyle
-                        />
-                    );
-                })}
+                        {section.menuItems.map((item, itemIndex) => {
+                            const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
+                            const flattenedIndex = previousItemCount + itemIndex;
+                            const focused = activeItemIndex === flattenedIndex;
+                            const shouldShowTooltip = item.translationPath === 'common.expenseReports' && !focused && shouldShowExpenseReportsTypeTooltip;
+
+                            const onPress = singleExecution(() => {
+                                if (shouldShowTooltip) {
+                                    hideExpenseReportsTypeTooltip();
+                                }
+                                clearAllFilters();
+                                clearSelectedTransactions();
+                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.getSearchQuery()}));
+                            });
+
+                            const isInitialItem = initialSearchKeys.current.includes(item.translationPath);
+
+                            return (
+                                <Animated.View entering={!isInitialItem ? FadeIn : undefined}>
+                                    <MenuItem
+                                        key={item.translationPath}
+                                        disabled={false}
+                                        interactive
+                                        title={translate(item.translationPath)}
+                                        icon={item.icon}
+                                        iconWidth={variables.iconSizeNormal}
+                                        iconHeight={variables.iconSizeNormal}
+                                        wrapperStyle={styles.sectionMenuItem}
+                                        focused={focused}
+                                        onPress={onPress}
+                                        shouldIconUseAutoWidthStyle
+                                        shouldRenderTooltip={shouldShowTooltip}
+                                        renderTooltipContent={renderExpenseReportsTypeTooltip}
+                                        tooltipAnchorAlignment={{
+                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                                        }}
+                                        tooltipShiftHorizontal={variables.expenseReportsTypeTooltipShiftHorizontal}
+                                        tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
+                                        onEducationTooltipPress={onPress}
+                                    />
+                                </Animated.View>
+                            );
+                        })}
+                    </View>
+                ))}
+                {shouldShowSavedSearchesMenuItemTitle && (
+                    <View>
+                        <Text style={styles.sectionTitle}>{translate('search.savedSearchesMenuItemTitle')}</Text>
+                        {renderSavedSearchesSection(savedSearchesMenuItems)}
+                        <DeleteConfirmModal />
+                    </View>
+                )}
             </View>
-            {shouldShowSavedSearchesMenuItemTitle && (
-                <>
-                    <Text style={[styles.sectionTitle, styles.pb1, styles.mh3, styles.mt3]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
-                    <ScrollView
-                        onScroll={onScroll}
-                        ref={scrollViewRef}
-                    >
-                        {renderSavedSearchesSection(savedSearchesMenuItems())}
-                    </ScrollView>
-                    <DeleteConfirmModal />
-                </>
-            )}
-        </>
+        </ScrollView>
     );
 }
 
 SearchTypeMenu.displayName = 'SearchTypeMenu';
 
 export default SearchTypeMenu;
-export type {SearchTypeMenuItem};

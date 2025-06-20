@@ -40,7 +40,8 @@ export default function useViewportOffsetTop(shouldAdjustScrollView = false): nu
     useEffect(() => addViewportResizeListener(updateOffsetTop), [updateOffsetTop]);
 
     useEffect(() => {
-        if (!shouldAdjustScrollView) {
+        // We don't want to trigger window.scrollTo when we are already at the target position. It causes unnecessary style recalculations.
+        if (!shouldAdjustScrollView || viewportOffsetTop === window.scrollY) {
             return;
         }
         window.scrollTo({top: viewportOffsetTop, behavior: 'smooth'});

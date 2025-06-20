@@ -4,8 +4,10 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
-import Confirmation from './substeps/Confirmation';
+import ONYXKEYS from '@src/ONYXKEYS';
+import Confirmation from './subSteps/Confirmation';
 
 type CountryProps = {
     /** Handles back button press */
@@ -13,20 +15,37 @@ type CountryProps = {
 
     /** Handles submit button press */
     onSubmit: () => void;
+
+    /** ID of current policy */
+    policyID: string | undefined;
 };
 
-const bodyContent: Array<ComponentType<SubStepProps>> = [Confirmation];
+type CountryStepProps = {
+    /** ID of current policy */
+    policyID: string | undefined;
+} & SubStepProps;
 
-function Country({onBackButtonPress, onSubmit}: CountryProps) {
+const bodyContent: Array<ComponentType<CountryStepProps>> = [Confirmation];
+
+function Country({onBackButtonPress, onSubmit, policyID}: CountryProps) {
     const {translate} = useLocalize();
 
     const submit = () => {
         onSubmit();
     };
 
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
+    const {
+        componentToRender: SubStep,
+        isEditing,
+        screenIndex,
+        nextScreen,
+        prevScreen,
+        moveTo,
+        goToTheLastStep,
+    } = useSubStep<CountryStepProps>({bodyContent, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
             goToTheLastStep();
             return;
@@ -51,6 +70,7 @@ function Country({onBackButtonPress, onSubmit}: CountryProps) {
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}
+                policyID={policyID}
             />
         </InteractiveStepWrapper>
     );

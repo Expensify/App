@@ -1,13 +1,14 @@
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {useCallback, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useTransactionViolations from '@hooks/useTransactionViolations';
+import {setMoneyRequestAttendees, updateMoneyRequestAttendees} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {getAttendees} from '@libs/TransactionUtils';
 import MoneyRequestAttendeeSelector from '@pages/iou/request/MoneyRequestAttendeeSelector';
-import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -39,25 +40,26 @@ function IOURequestStepAttendees({
     policyCategories,
 }: IOURequestStepAttendeesProps) {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || -1}`);
-    const [attendees, setAttendees] = useState<Attendee[]>(TransactionUtils.getAttendees(transaction));
+    // eslint-disable-next-line rulesdir/no-default-id-values
+    const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const [attendees, setAttendees] = useState<Attendee[]>(() => getAttendees(transaction));
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
-    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+    const transactionViolations = useTransactionViolations(transactionID);
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
             return;
         }
-        if (!lodashIsEqual(previousAttendees, attendees)) {
-            IOU.setMoneyRequestAttendees(transactionID, attendees, !isEditing);
+        if (!deepEqual(previousAttendees, attendees)) {
+            setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             if (isEditing) {
-                IOU.updateMoneyRequestAttendees(transactionID, reportID, attendees, policy, policyTags, policyCategories, violations);
+                updateMoneyRequestAttendees(transactionID, reportID, attendees, policy, policyTags, policyCategories, transactionViolations ?? undefined);
             }
         }
 
         Navigation.goBack(backTo);
-    }, [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID, violations]);
+    }, [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID, transactionViolations]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

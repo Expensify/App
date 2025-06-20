@@ -28,7 +28,7 @@ function SearchFiltersTaxRatePage() {
             selectedTaxesItems.push({name: taxRateName, value: taxRateKeys});
         });
     });
-    const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
+    const policyID = searchAdvancedFiltersForm?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const singlePolicyTaxRates = policy?.taxRates?.taxes;
 
@@ -36,7 +36,7 @@ function SearchFiltersTaxRatePage() {
         if (!singlePolicyTaxRates) {
             return Object.entries(allTaxRates).map(([taxRateName, taxRateKeys]) => ({name: taxRateName, value: taxRateKeys}));
         }
-        return Object.entries(singlePolicyTaxRates).map(([taxRatekey, taxRate]) => ({name: taxRate.name, value: [taxRatekey]}));
+        return Object.entries(singlePolicyTaxRates).map(([taxRateKey, taxRate]) => ({name: taxRate.name, value: [taxRateKey]}));
     }, [allTaxRates, singlePolicyTaxRates]);
 
     const updateTaxRateFilters = useCallback((values: string[]) => SearchActions.updateAdvancedFilters({taxRate: values}), []);
@@ -46,7 +46,6 @@ function SearchFiltersTaxRatePage() {
             testID={SearchFiltersTaxRatePage.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton

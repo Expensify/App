@@ -1,13 +1,24 @@
 import React from 'react';
-import AnimatedStepProvider from '@components/AnimatedStep/AnimatedStepProvider';
-import TwoFactorAuthSteps from './TwoFactorAuthSteps';
+import {useOnyx} from 'react-native-onyx';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+import CopyCodesPage from './CopyCodesPage';
+import EnabledPage from './EnabledPage';
 
-function TwoFactorAuthPage() {
-    return (
-        <AnimatedStepProvider>
-            <TwoFactorAuthSteps />
-        </AnimatedStepProvider>
-    );
+type TwoFactorAuthPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.ROOT>;
+
+function TwoFactorAuthPage(props: TwoFactorAuthPageProps) {
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    if (account?.requiresTwoFactorAuth) {
+        return <EnabledPage />;
+    }
+
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <CopyCodesPage {...props} />;
 }
 
 export default TwoFactorAuthPage;
+export type {TwoFactorAuthPageProps};

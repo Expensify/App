@@ -131,7 +131,7 @@ You will need to pass your Apple ID (username) and an [app-specific password](ht
 Now that your credentials have been set up properly, you can push a build to Min.IO. Start by updating the version value in `package.json` to be much higher than it is currently (1.0.0-0 -> 2.0.0-0) so that the uploaded version is always higher than the version you're testing on. Then run the following, where `RootUserKey` and `RootPassKey` are the `RootUser` and `RootPass` values from step 3:
 
 ```shell
-AWS_ACCESS_KEY_ID=RootUserKey AWS_SECRET_ACCESS_KEY=RootPassKey APPLE_ID=YOUR_APPLE_ID APPLE_APP_SPECIFIC_PASSWORD=YOUR_APP_SPECIFIC_PW npm run desktop-build
+AWS_ACCESS_KEY_ID=RootUserKey AWS_SECRET_ACCESS_KEY=RootPassKey APPLE_ID=YOUR_APPLE_ID APPLE_TEAM_ID=YOUR_APPLE_TEAM_ID APPLE_APP_SPECIFIC_PASSWORD=YOUR_APP_SPECIFIC_PW npm run desktop-build
 ```
 
 This command will create a build, notarize it, and push your build to the server. Note that it can take around 10 minutes for the command to complete.

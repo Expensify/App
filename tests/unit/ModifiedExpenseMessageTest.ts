@@ -1,9 +1,17 @@
+import Onyx from 'react-native-onyx';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
+import {translate} from '@src/libs/Localize';
+import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('ModifiedExpenseMessage', () => {
+    beforeAll(() => {
+        TranslationStore.load(CONST.LOCALES.EN);
+    });
     describe('getForAction', () => {
         const report = createRandomReport(1);
         describe('when the amount is changed', () => {
@@ -19,9 +27,9 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `changed the amount to $18.00 (previously $12.55).`;
+                const expectedResult = `changed the amount to $18.00 (previously $12.55)`;
 
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -40,9 +48,9 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the amount to $18.00.`;
+                const expectedResult = `set the amount to $18.00`;
 
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -63,9 +71,9 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = 'changed the amount to $18.00 (previously $12.55).\nremoved the description (previously "this is for the shuttle").';
+                const expectedResult = 'changed the amount to $18.00 (previously $12.55)\nremoved the description (previously "this is for the shuttle")';
 
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -88,9 +96,9 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = 'changed the amount to $18.00 (previously $12.55).\nset the category to "Benefits".\nremoved the description (previously "this is for the shuttle").';
+                const expectedResult = 'changed the amount to $18.00 (previously $12.55)\nset the category to "Benefits"\nremoved the description (previously "this is for the shuttle")';
 
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -111,9 +119,9 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = 'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly").';
+                const expectedResult = 'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly")';
 
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -139,9 +147,9 @@ describe('ModifiedExpenseMessage', () => {
 
             it('returns the correct text message', () => {
                 const expectedResult =
-                    'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly").\nset the category to "Benefits".\nremoved the description (previously "this is for the shuttle").';
+                    'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly")\nset the category to "Benefits"\nremoved the description (previously "this is for the shuttle")';
 
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -165,9 +173,9 @@ describe('ModifiedExpenseMessage', () => {
 
             it('returns the correct text message', () => {
                 const expectedResult =
-                    'changed the amount to $18.00 (previously $12.55), the description to "I bought it on the way" (previously "from the business trip"), and the merchant to "Taco Bell" (previously "Big Belly").';
+                    'changed the amount to $18.00 (previously $12.55), the description to "I bought it on the way" (previously "from the business trip"), and the merchant to "Taco Bell" (previously "Big Belly")';
 
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -184,9 +192,9 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `removed the merchant (previously "Big Belly").`;
+                const expectedResult = `removed the merchant (previously "Big Belly")`;
 
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -203,9 +211,9 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the merchant to "KFC".`;
+                const expectedResult = `set the merchant to "KFC"`;
 
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -219,14 +227,14 @@ describe('ModifiedExpenseMessage', () => {
                     merchant: '',
                     oldMerchant: 'Big Belly',
                     newComment: '',
-                    oldComment: 'minishore',
+                    oldComment: 'mini shore',
                 },
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `removed the description (previously "minishore") and the merchant (previously "Big Belly").`;
+                const expectedResult = `removed the description (previously "mini shore") and the merchant (previously "Big Belly")`;
 
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -240,16 +248,16 @@ describe('ModifiedExpenseMessage', () => {
                     merchant: '',
                     oldMerchant: 'Big Belly',
                     newComment: '',
-                    oldComment: 'minishore',
+                    oldComment: 'mini shore',
                     category: '',
                     oldCategory: 'Benefits',
                 },
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `removed the description (previously "minishore"), the merchant (previously "Big Belly"), and the category (previously "Benefits").`;
+                const expectedResult = `removed the description (previously "mini shore"), the merchant (previously "Big Belly"), and the category (previously "Benefits")`;
 
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -266,9 +274,9 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the merchant to "Big Belly".`;
+                const expectedResult = `set the merchant to "Big Belly"`;
 
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -282,14 +290,14 @@ describe('ModifiedExpenseMessage', () => {
                     oldMerchant: '',
                     merchant: 'Big Belly',
                     oldComment: '',
-                    newComment: 'minishore',
+                    newComment: 'mini shore',
                 },
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the description to "minishore" and the merchant to "Big Belly".`;
+                const expectedResult = `set the description to "mini shore" and the merchant to "Big Belly"`;
 
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -303,16 +311,16 @@ describe('ModifiedExpenseMessage', () => {
                     oldMerchant: '',
                     merchant: 'Big Belly',
                     oldComment: '',
-                    newComment: 'minishore',
+                    newComment: 'mini shore',
                     oldCategory: '',
                     category: 'Benefits',
                 },
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the description to "minishore", the merchant to "Big Belly", and the category to "Benefits".`;
+                const expectedResult = `set the description to "mini shore", the merchant to "Big Belly", and the category to "Benefits"`;
 
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -329,9 +337,9 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = 'changed the date to 2023-12-27 (previously 2023-12-26).';
+                const expectedResult = 'changed the date to 2023-12-27 (previously 2023-12-26)';
 
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -349,7 +357,7 @@ describe('ModifiedExpenseMessage', () => {
             it('returns the correct text message', () => {
                 const expectedResult = 'changed the expense';
 
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
                 expect(result).toEqual(expectedResult);
             });
@@ -360,18 +368,18 @@ describe('ModifiedExpenseMessage', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                 originalMessage: {
-                    oldMerchant: '1.00 mi @ $0.67 / mi',
-                    merchant: '10.00 mi @ $0.67 / mi',
-                    oldAmount: 67,
-                    amount: 670,
+                    oldMerchant: '1.00 mi @ $0.70 / mi',
+                    merchant: '10.00 mi @ $0.70 / mi',
+                    oldAmount: 70,
+                    amount: 700,
                     oldCurrency: CONST.CURRENCY.USD,
                     currency: CONST.CURRENCY.USD,
                 },
             };
 
             it('then the message says the distance is changed and shows the new and old merchant and amount', () => {
-                const expectedResult = `changed the distance to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $6.70 (previously $0.67)`;
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const expectedResult = `changed the distance to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $7.00 (previously $0.70)`;
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
                 expect(result).toEqual(expectedResult);
             });
         });
@@ -381,9 +389,9 @@ describe('ModifiedExpenseMessage', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                 originalMessage: {
-                    oldMerchant: '56.36 mi @ $0.67 / mi',
+                    oldMerchant: '56.36 mi @ $0.70 / mi',
                     merchant: '56.36 mi @ $0.99 / mi',
-                    oldAmount: 3776,
+                    oldAmount: 3945,
                     amount: 5580,
                     oldCurrency: CONST.CURRENCY.USD,
                     currency: CONST.CURRENCY.USD,
@@ -391,8 +399,115 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('then the message says the rate is changed and shows the new and old merchant and amount', () => {
-                const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $37.76)`;
-                const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+                const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $39.45)`;
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when moving an expense', () => {
+            beforeEach(() => Onyx.clear());
+            it('return the message "moved expense to personal space" when moving an expense from an expense chat or 1:1 DM to selfDM', async () => {
+                // Given the selfDM report and report action
+                const selfDMReport = {
+                    ...report,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                };
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        movedToReportID: selfDMReport.reportID,
+                    },
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`]: selfDMReport});
+                await waitForBatchedUpdates();
+
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
+
+                // When the expense is moved from an expense chat or 1:1 DM to selfDM
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: selfDMReport.reportID, reportAction});
+                // Then it should return the correct text message
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('return the message "changed the expense" when reportName and workspace name are empty', async () => {
+                // Given the policyExpenseChat with reportName is empty and report action
+                const policyExpenseChat = {
+                    ...report,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    reportName: '',
+                    isOwnPolicyExpenseChat: false,
+                };
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        movedToReportID: policyExpenseChat.reportID,
+                    },
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat});
+                await waitForBatchedUpdates();
+
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.changedTheExpense');
+
+                // When the expense is moved to an expense chat with reportName empty
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction});
+                // Then it should return the correct text message
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('return the message "moved expense from personal space to policyName" when both reportName and policyName are present', async () => {
+                // Given the policyExpenseChat with both reportName and policyName are present and report action
+                const policyExpenseChat = {
+                    ...report,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: false,
+                    policyName: 'fake policyName',
+                };
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        movedToReportID: policyExpenseChat.reportID,
+                    },
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat});
+                await waitForBatchedUpdates();
+
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {
+                    reportName: policyExpenseChat.reportName,
+                    workspaceName: policyExpenseChat.policyName,
+                });
+
+                // When the expense is moved to an expense chat with both reportName and policyName are present
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction});
+                // Then it should return the correct text message
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('return the message "moved expense from personal space to chat with reportName" when only reportName is present', async () => {
+                // Given the policyExpenseChat with only reportName is present and report action
+                const policyExpenseChat = {
+                    ...report,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    isOwnPolicyExpenseChat: false,
+                };
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        movedToReportID: policyExpenseChat.reportID,
+                    },
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}`, {[`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat});
+                await waitForBatchedUpdates();
+
+                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', {reportName: policyExpenseChat.reportName});
+
+                // When the expense is moved to an expense chat with only reportName is present
+                const result = ModifiedExpenseMessage.getForReportAction({reportOrID: policyExpenseChat.reportID, reportAction});
+                // Then it should return the correct text message
                 expect(result).toEqual(expectedResult);
             });
         });

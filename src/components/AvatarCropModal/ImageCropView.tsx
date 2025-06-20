@@ -59,12 +59,12 @@ function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.P
     const imageStyle = useAnimatedStyle(() => {
         'worklet';
 
-        const height = originalImageHeight.value;
-        const width = originalImageWidth.value;
+        const height = originalImageHeight.get();
+        const width = originalImageWidth.get();
         const aspectRatio = height > width ? height / width : width / height;
-        const rotate = interpolate(rotation.value, [0, 360], [0, 360]);
+        const rotate = interpolate(rotation.get(), [0, 360], [0, 360]);
         return {
-            transform: [{translateX: translateX.value}, {translateY: translateY.value}, {scale: scale.value * aspectRatio}, {rotate: `${rotate}deg`}],
+            transform: [{translateX: translateX.get()}, {translateY: translateY.get()}, {scale: scale.get() * aspectRatio}, {rotate: `${rotate}deg`}],
         };
     }, [originalImageHeight, originalImageWidth, rotation, translateX, translateY, scale]);
 
