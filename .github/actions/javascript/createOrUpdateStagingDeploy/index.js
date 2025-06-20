@@ -11912,15 +11912,6 @@ function getValidMergedPRs(commits) {
     });
     return Array.from(mergedPRs);
 }
-// async function getPullRequestsDeployedBetween(fromTag: string, toTag: string) {
-//     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-//     const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
-//     console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
-//     // Find which commit messages correspond to merged PR's
-//     const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
-//     console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-//     return pullRequestNumbers;
-// }
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
  *
