@@ -6501,9 +6501,9 @@ const translations = {
             subscriptionCanceled: {
                 title: 'Abonnement storniert',
                 subtitle: 'Ihr Jahresabonnement wurde storniert.',
-                info: 'Wenn Sie Ihre Arbeitsbereiche weiterhin auf Pay-per-Use-Basis nutzen m\u00F6chten, ist alles bereit.',
+                info: 'Wenn Sie Ihre Arbeitsbereiche weiterhin auf Pay-per-Use-Basis nutzen möchten, sind Sie startklar.',
                 preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
-                    `Wenn Sie zuk\u00FCnftige Aktivit\u00E4ten und Geb\u00FChren verhindern m\u00F6chten, m\u00FCssen Sie <a href="${workspacesListRoute}">l\u00F6schen Sie Ihren Arbeitsbereich/Ihre Arbeitsbereiche</a> . Beachten Sie, dass Ihnen beim L\u00F6schen Ihrer Arbeitsbereiche alle ausstehenden Aktivit\u00E4ten, die im aktuellen Kalendermonat angefallen sind, in Rechnung gestellt werden.`,
+                    `Wenn Sie zukünftige Aktivitäten und Gebühren verhindern möchten, müssen Sie <a href="${workspacesListRoute}">löschen Sie Ihren Arbeitsbereich/Ihre Arbeitsbereiche</a> Beachten Sie, dass Ihnen beim Löschen Ihrer Arbeitsbereiche alle ausstehenden Aktivitäten, die im aktuellen Kalendermonat angefallen sind, in Rechnung gestellt werden.`,
             },
             requestSubmitted: {
                 title: 'Anfrage eingereicht',

@@ -6466,10 +6466,10 @@ const translations = {
             subtitle: 'Wat is de belangrijkste reden waarom je een vroegtijdige annulering aanvraagt?',
             subscriptionCanceled: {
                 title: 'Abonnement geannuleerd',
-                subtitle: 'Je jaarlijkse abonnement is geannuleerd.',
-                info: 'Als je je werkruimte(s) op basis van betalen per gebruik wilt blijven gebruiken, ben je helemaal klaar.',
+                subtitle: 'Uw jaarlijkse abonnement is geannuleerd.',
+                info: 'Als je je werkruimte(s) op een pay-per-use basis wilt blijven gebruiken, ben je helemaal klaar.',
                 preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
-                    `Als u toekomstige activiteiten en kosten wilt voorkomen, moet u <a href="${workspacesListRoute}">verwijder uw werkruimte(s)</a> . Merk op dat wanneer je je werkruimte(s) verwijdert, je wordt gefactureerd voor alle openstaande activiteiten die zijn gemaakt tijdens de huidige kalendermaand.`,
+                    `Als je toekomstige activiteiten en kosten wilt voorkomen, moet je <a href="${workspacesListRoute}">verwijder je werkruimte(s)</a> . Let op dat wanneer je je werkruimte(s) verwijdert, je wordt gefactureerd voor alle openstaande activiteiten die in de huidige kalendermaand zijn gemaakt.`,
             },
             requestSubmitted: {
                 title: 'Verzoek ingediend',

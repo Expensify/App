@@ -6463,9 +6463,9 @@ const translations = {
             subscriptionCanceled: {
                 title: 'Assinatura cancelada',
                 subtitle: 'Sua assinatura anual foi cancelada.',
-                info: 'Se voc\u00EA quiser continuar usando seu(s) espa\u00E7o(s) de trabalho em uma base de pagamento por uso, est\u00E1 tudo certo.',
+                info: 'Se você quiser continuar usando seu(s) espaço(s) de trabalho em uma base de pagamento por uso, está tudo certo.',
                 preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
-                    `Se voc\u00EA quiser evitar atividades e cobran\u00E7as futuras, voc\u00EA deve <a href="${workspacesListRoute}">excluir seu(s) espa\u00E7o(s) de trabalho</a> . Observe que, ao excluir seu(s) espa\u00E7o(s) de trabalho, voc\u00EA ser\u00E1 cobrado por qualquer atividade pendente que tenha ocorrido durante o m\u00EAs calend\u00E1rio atual.`,
+                    `Se você deseja evitar atividades e cobranças futuras, você deve <a href="${workspacesListRoute}">excluir seu(s) espaço(s) de trabalho</a> . Observe que, ao excluir seu(s) workspace(s), você será cobrado por qualquer atividade pendente que tenha ocorrido durante o mês corrente.`,
             },
             requestSubmitted: {
                 title: 'Solicitação enviada',

@@ -6504,11 +6504,11 @@ const translations = {
             title: 'Demander une annulation anticipée',
             subtitle: 'Quelle est la principale raison pour laquelle vous demandez une annulation anticipée ?',
             subscriptionCanceled: {
-                title: 'Abonnement annul\u00E9',
-                subtitle: 'Votre abonnement annuel a \u00E9t\u00E9 annul\u00E9.',
-                info: "Si vous souhaitez continuer \u00E0 utiliser votre/vos espace(s) de travail sur une base de paiement \u00E0 l'utilisation, vous \u00EAtes pr\u00EAt.",
+                title: 'Abonnement annulé',
+                subtitle: 'Votre abonnement annuel a été annulé.',
+                info: "Si vous souhaitez continuer à utiliser votre/vos espace(s) de travail sur une base de paiement à l'utilisation, vous êtes prêt.",
                 preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
-                    `Si vous souhaitez \u00E9viter toute activit\u00E9 et frais futurs, vous devez <a href="${workspacesListRoute}">supprimer votre/vos espace(s) de travail</a> . Notez que lorsque vous supprimez votre/vos espace(s) de travail, vous serez factur\u00E9 pour toute activit\u00E9 en cours qui a \u00E9t\u00E9 engag\u00E9e au cours du mois civil en cours.`,
+                    `Si vous souhaitez éviter toute activité et frais futurs, vous devez <a href="${workspacesListRoute}">supprimer votre/vos espace(s) de travail</a> . Notez que lorsque vous supprimez votre(vos) espace(s) de travail, vous serez facturé pour toute activité en cours qui a été engagée au cours du mois civil en cours.`,
             },
             requestSubmitted: {
                 title: 'Demande soumise',
