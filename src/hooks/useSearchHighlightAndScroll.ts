@@ -202,7 +202,14 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             }
 
             // Perform the scrolling action
-            ref.scrollToIndex(indexOfNewItem);
+            if (indexOfNewItem === data.length - 1) {
+                // Scrolling to last item needs a delay to work due to FlatList internal bug.
+                setTimeout(() => {
+                    ref.scrollToIndex(indexOfNewItem);
+                }, 100);
+            } else {
+                ref.scrollToIndex(indexOfNewItem);
+            }
             // Reset the trigger flag to prevent unintended future scrolls and highlights
             triggeredByHookRef.current = false;
         },
