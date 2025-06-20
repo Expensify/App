@@ -1,10 +1,10 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -91,19 +91,9 @@ function SearchFiltersExportedRootView({value, applyChanges, resetChanges, setVi
             </View>
 
             <FixedFooter style={styles.mtAuto}>
-                <Button
-                    large
-                    style={[styles.mt4]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                />
-                <Button
-                    large
-                    success
-                    pressOnEnter
-                    style={[styles.mt4]}
-                    text={translate('common.save')}
-                    onPress={applyChanges}
+                <SearchFilterPageFooterButtons
+                    resetChanges={resetChanges}
+                    applyChanges={applyChanges}
                 />
             </FixedFooter>
         </ScreenWrapper>
