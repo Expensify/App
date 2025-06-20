@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -960,6 +961,7 @@ const translations = {
         deleteReceipt: '删除收据',
         deleteConfirmation: '您确定要删除此收据吗？',
         addReceipt: '添加收据',
+        scanFailed: '无法扫描收据，因为缺少商家、日期或金额。',
     },
     quickAction: {
         scanReceipt: '扫描收据',
@@ -4178,7 +4180,7 @@ const translations = {
                 pendingFeedDescription: `我们正在审核您的提要详情。完成后，我们会通过以下方式与您联系`,
                 pendingBankTitle: '检查您的浏览器窗口',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) => `请通过刚刚打开的浏览器窗口连接到${bankName}。如果没有打开，`,
-                pendingBankLink: '请点击这里。',
+                pendingBankLink: '请点击这里',
                 giveItNameInstruction: '给这张卡片起一个与众不同的名字。',
                 updating: '正在更新...',
                 noAccountsFound: '未找到账户',
@@ -4430,7 +4432,7 @@ const translations = {
             newWorkspace: '新工作区',
             getTheExpensifyCardAndMore: '获取Expensify卡及更多内容',
             confirmWorkspace: '确认工作区',
-            myGroupWorkspace: '我的群组工作区',
+            myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `我的群组工作区${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
             workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `${userName}的工作区${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
         },
         people: {
@@ -5859,8 +5861,8 @@ const translations = {
         principalWorkEmail: '主要工作邮箱',
         updateYourEmail: '更新您的电子邮件地址',
         updateEmail: '更新电子邮件地址',
-        contactMethods: '联系方式。',
-        schoolMailAsDefault: '在继续之前，请确保将您的学校电子邮件设置为默认联系方式。您可以在 设置 > 个人资料 中进行设置。',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `在继续之前，请确保将您的学校电子邮件设置为默认联系方式。您可以在 设置 > 个人资料 > <a href="${contactMethodsRoute}">联系方式</a> 中进行设置。`,
         error: {
             enterPhoneEmail: '请输入有效的电子邮件或电话号码',
             enterEmail: '输入电子邮件地址',
