@@ -66,9 +66,6 @@ type ReportActionItemFragmentProps = {
     actionName?: ReportActionName;
 
     moderationDecision?: DecisionName;
-
-    /** Whether the fragment should show a tooltip */
-    shouldShowTooltip?: boolean;
 };
 
 const MUTED_ACTIONS = [
@@ -99,7 +96,6 @@ function ReportActionItemFragment({
     isFragmentContainingDisplayName = false,
     displayAsGroup = false,
     moderationDecision,
-    shouldShowTooltip = true,
 }: ReportActionItemFragmentProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -176,7 +172,6 @@ function ReportActionItemFragment({
                     fragmentText={fragment.text}
                     actorIcon={actorIcon}
                     isSingleLine={isSingleLine}
-                    shouldShowTooltip={shouldShowTooltip}
                 />
             );
         }
