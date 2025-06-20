@@ -15,7 +15,7 @@ function Licenses() {
         <>
             <Text style={[styles.textExtraSmallSupporting, styles.mb4]}>{`© ${currentYear} Expensify`}</Text>
             <Text style={[styles.textExtraSmallSupporting]}>
-                <RenderHTML html={`<muted-text>${translate('termsOfUse.licenses')}</muted-text>`} />
+                <RenderHTML html={`<muted-text-label>${translate('termsOfUse.licenses')}</muted-text-label>`} />
             </Text>
             <View style={[styles.mt4, styles.alignItemsCenter, styles.mb2, styles.flexRow, styles.justifyContentBetween]}>
                 <LocalePicker size="small" />

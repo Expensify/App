@@ -18,7 +18,7 @@ function Terms() {
 
     return (
         <Text style={containerStyles}>
-            <RenderHTML html={`<muted-text>${translate('termsOfUse.terms')}</muted-text>`} />
+            <RenderHTML html={`<muted-text-label>${translate('termsOfUse.terms')}</muted-text-label>`} />
         </Text>
     );
 }
