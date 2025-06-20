@@ -519,12 +519,12 @@ function SearchAutocompleteList(
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
         });
-        Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
         if (filteredOptions.userToInvite) {
             reportOptions.push(filteredOptions.userToInvite);
         }
+        Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
         return reportOptions.slice(0, 20);
     }, [autocompleteQueryValue, filterOptions, searchOptions, isFastSearchInitialized]);
 
