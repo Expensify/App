@@ -73,7 +73,6 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     policy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;
     lastTransactionViolations: TransactionViolations;
-    isDelegateAccessRestricted: boolean;
 };
 
 type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps &
