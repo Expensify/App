@@ -2,7 +2,6 @@
 import * as core from '@actions/core';
 import {getOctokitOptions, GitHub} from '@actions/github/lib/utils';
 import type {Octokit as OctokitCore} from '@octokit/core';
-import {RequestError} from '@octokit/request-error';
 import type {graphql} from '@octokit/graphql/dist-types/types';
 import type {components as OctokitComponents} from '@octokit/openapi-types/types';
 import type {PaginateInterface} from '@octokit/plugin-paginate-rest';
@@ -11,6 +10,7 @@ import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-method
 import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
 import type {Api} from '@octokit/plugin-rest-endpoint-methods/dist-types/types';
 import {throttling} from '@octokit/plugin-throttling';
+import {RequestError} from '@octokit/request-error';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arrayDifference from '@src/utils/arrayDifference';
 import CONST from './CONST';

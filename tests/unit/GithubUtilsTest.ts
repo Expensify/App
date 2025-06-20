@@ -4,11 +4,11 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
-import type {Writable} from 'type-fest';
 import {RequestError} from '@octokit/request-error';
+import type {Writable} from 'type-fest';
+import CONST from '@github/libs/CONST';
 import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
-import CONST from '@github/libs/CONST';
 
 const mockGetInput = jest.fn();
 const mockListIssues = jest.fn();
@@ -656,14 +656,14 @@ describe('GithubUtils', () => {
                         sha: 'abc123',
                         commit: {
                             message: 'First commit',
-                            author: { name: 'Author One' },
+                            author: {name: 'Author One'},
                         },
                     },
                     {
-                        sha: 'def456', 
+                        sha: 'def456',
                         commit: {
                             message: 'Second commit',
-                            author: { name: 'Author Two' },
+                            author: {name: 'Author Two'},
                         },
                     },
                 ],
@@ -704,9 +704,9 @@ describe('GithubUtils', () => {
 
         test('should call GitHub API with correct parameters', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
-            
+
             await GithubUtils.getCommitHistoryBetweenTags('v1.0.0', 'v1.0.1');
-            
+
             expect(mockCompareCommits).toHaveBeenCalledWith({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
@@ -731,18 +731,18 @@ describe('GithubUtils', () => {
 
         test('should handle multiple commits correctly', async () => {
             mockCompareCommits.mockResolvedValue(commitHistoryData.multipleCommitsResponse);
-            
+
             const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
-            
+
             expect(result).toHaveLength(2);
             expect(result[0]).toEqual({
                 commit: 'abc123',
-                subject: 'First commit', 
+                subject: 'First commit',
                 authorName: 'Author One',
             });
             expect(result[1]).toEqual({
                 commit: 'def456',
-                subject: 'Second commit', 
+                subject: 'Second commit',
                 authorName: 'Author Two',
             });
         });
@@ -756,15 +756,12 @@ describe('GithubUtils', () => {
                     headers: {},
                 },
             });
-            
+
             mockCompareCommits.mockRejectedValue(requestError);
 
-            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1'))
-                .rejects.toThrow(requestError);
-            
-            expect(consoleErrorSpy).toHaveBeenCalledWith(
-                expect.stringContaining("Failed to compare commits with the GitHub API")
-            );
+            await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1')).rejects.toThrow(requestError);
+
+            expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Failed to compare commits with the GitHub API'));
         });
 
         test('should handle generic API errors gracefully', async () => {
