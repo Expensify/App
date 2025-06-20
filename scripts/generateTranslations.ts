@@ -22,6 +22,14 @@ import DummyTranslator from './utils/Translator/DummyTranslator';
 import type Translator from './utils/Translator/Translator';
 import TSCompilerUtils from './utils/TSCompilerUtils';
 
+/**
+ * This represents a string to translate. In the context of translation, two strings are considered equal only if their contexts are also equal.
+ */
+type StringWithContext = {
+    text: string;
+    context?: string;
+};
+
 const GENERATED_FILE_PREFIX = dedent(`
     /**
      *   _____                      __         __
@@ -35,14 +43,6 @@ const GENERATED_FILE_PREFIX = dedent(`
      * - Improve context annotations in src/languages/en.ts
      */
 `);
-
-/**
- * This represents a string to translate. In the context of translation, two strings are considered equal only if their contexts are also equal.
- */
-type StringWithContext = {
-    text: string;
-    context?: string;
-};
 
 /**
  * This class encapsulates most of the non-CLI logic to generate translations.
