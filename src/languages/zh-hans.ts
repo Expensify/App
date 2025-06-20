@@ -1495,7 +1495,7 @@ const translations = {
         restoreStashed: '恢复暂存的登录信息',
         signOutConfirmationText: '如果您退出登录，任何离线更改都将丢失。',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `阅读该内容 <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>服务条款</a> 和 <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>隐私</a>`,
+        readTheTermsAndPrivacy: `阅读该内容 <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>服务条款</a> 和 <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>隐私</a>.`,
         help: '帮助',
         accountSettings: '账户设置',
         account: '账户',

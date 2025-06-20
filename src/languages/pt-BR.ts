@@ -1509,7 +1509,7 @@ const translations = {
         restoreStashed: 'Restaurar login armazenado',
         signOutConfirmationText: 'Você perderá todas as alterações offline se sair.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `Leia o <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Termos de Serviço</a> e <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>Privacidade</a>`,
+        readTheTermsAndPrivacy: `Leia o <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Termos de Serviço</a> e <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>Privacidade</a>.`,
         help: 'Ajuda',
         accountSettings: 'Configurações da conta',
         account: 'Conta',

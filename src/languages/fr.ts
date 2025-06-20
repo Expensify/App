@@ -1516,7 +1516,7 @@ const translations = {
         restoreStashed: 'Restaurer la connexion mise en attente',
         signOutConfirmationText: 'Vous perdrez toutes les modifications hors ligne si vous vous déconnectez.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `Lire le <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Conditions d'utilisation</a> et <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>Confidentialité</a>`,
+        readTheTermsAndPrivacy: `Lire le <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Conditions d'utilisation</a> et <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>Confidentialité</a>.`,
         help: 'Aide',
         accountSettings: 'Paramètres du compte',
         account: 'Compte',
