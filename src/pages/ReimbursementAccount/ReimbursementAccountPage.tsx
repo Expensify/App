@@ -387,7 +387,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const throttledDate = reimbursementAccount?.throttledDate ?? '';
 
     if (userHasPhonePrimaryEmail) {
-        errorText = <RenderHTML html={translate('bankAccount.hasPhoneLoginError', {contactMethodsRoute})} />;
+        errorText = (
+            <Text style={styles.flexRow}>
+                <RenderHTML html={translate('bankAccount.hasPhoneLoginError', {contactMethodsRoute})} />
+            </Text>
+        );
     } else if (throttledDate) {
         errorText = translate('bankAccount.hasBeenThrottledError');
     } else if (hasUnsupportedCurrency) {
