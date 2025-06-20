@@ -2,6 +2,7 @@ import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ListItem} from '@components/SelectionList/types';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +23,7 @@ type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {backTo, action} = route.params;
     const reportID = transaction?.reportID === '0' ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
