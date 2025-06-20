@@ -181,6 +181,36 @@ const setupCategoriesTask: OnboardingTask = {
         `![Set up categories](${CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
 };
 
+const inviteAccountantTask: OnboardingTask = {
+    type: 'inviteAccountant',
+    autoCompleted: false,
+    mediaAttributes: {},
+    title: ({workspaceMembersLink}) => `Invite your [accountant](${workspaceMembersLink})`,
+    description: ({workspaceMembersLink}) =>
+        '*Invite your accountant* to collaborate on your workspace and manage your business expenses.\n' +
+        '\n' +
+        '1. Click *Settings*.\n' +
+        '2. Go to *Workspaces*.\n' +
+        '3. Select your workspace.\n' +
+        '4. Click *Members*.\n' +
+        '5. Click *Invite member*.\n' +
+        '6. Enter your accountant\'s email address.\n' +
+        '\n' +
+        `[Invite your accountant now](${workspaceMembersLink}).`,
+};
+
+const reviewWorkspaceSettingsTask: OnboardingTask = {
+    type: 'reviewWorkspaceSettings',
+    autoCompleted: false,
+    mediaAttributes: {},
+    title: ({workspaceSettingsLink}) => `Review your [workspace settings](${workspaceSettingsLink})`,
+    description: ({workspaceSettingsLink}) =>
+        "Here's how to review and update your workspace settings:\n" +
+        '1. Click the settings tab.\n' +
+        '2. Click *Workspaces* > [Your workspace].\n' +
+        `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
+};
+
 const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     tasks: [
@@ -5634,22 +5664,11 @@ const CONST = {
             tasks: [
                 createWorkspaceTask,
                 testDriveAdminTask,
-                {
-                    type: 'createReport',
-                    autoCompleted: false,
-                    mediaAttributes: {},
-                    title: 'Create your first report',
-                    description:
-                        'Here’s how to create a report:\n' +
-                        '\n' +
-                        '1. Click the green *+* button.\n' +
-                        '2. Choose *Create report*.\n' +
-                        '3. Click *Add expense*.\n' +
-                        '4. Add your first expense.\n' +
-                        '\n' +
-                        'And you’re done!',
-                },
-            ],
+                createReportTask,
+                setupCategoriesTask,
+                inviteAccountantTask,
+                reviewWorkspaceSettingsTask,
+                ],
         },
         [onboardingChoices.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
         [onboardingChoices.CHAT_SPLIT]: {
