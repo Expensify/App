@@ -2071,8 +2071,8 @@ const translations = {
         chooseThemeBelowOrSync: 'Scegli un tema qui sotto o sincronizza con le impostazioni del tuo dispositivo.',
     },
     termsOfUse: {
-        terms: `Accedendo, accetti i <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Termini di Servizio</a> e <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>Privacy</a>`,
-        licenses: `La trasmissione di denaro è fornita da ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) in base al suo <a href=${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}>licenze</a>`,
+        terms: `Accedendo, accetti i <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Termini di Servizio</a> e <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>Privacy</a>.`,
+        licenses: `La trasmissione di denaro è fornita da ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) in base al suo <a href=${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}>licenze</a>.`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Non hai ricevuto un codice magico?',

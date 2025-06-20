@@ -2080,8 +2080,8 @@ const translations = {
         chooseThemeBelowOrSync: 'Wählen Sie ein Thema unten aus oder synchronisieren Sie es mit den Einstellungen Ihres Geräts.',
     },
     termsOfUse: {
-        terms: `Mit der Anmeldung stimmen Sie den <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>'Nutzungsbedingungen</a> und <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>Datenschutz</a>`,
-        licenses: `Geldübermittlung wird bereitgestellt von ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) gemäß seiner <a href=${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}>Lizenzen</a>`,
+        terms: `Mit der Anmeldung stimmen Sie den <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>'Nutzungsbedingungen</a> und <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>Datenschutz</a>.`,
+        licenses: `Geldübermittlung wird bereitgestellt von ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) gemäß seiner <a href=${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}>Lizenzen</a>.`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Keinen magischen Code erhalten?',
