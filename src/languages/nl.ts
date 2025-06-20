@@ -2370,8 +2370,10 @@ const translations = {
         vacationDelegate: 'Vakantievervanger',
         setVacationDelegate: `Stel een vakantievervanger in om rapporten namens jou goed te keuren terwijl je afwezig bent.`,
         vacationDelegateError: 'Er is een fout opgetreden bij het bijwerken van je vakantievervanger.',
-        asVacationDelegate: ({managerName}: VacationDelegateParams) => `als vakantievervanger van ${managerName}`,
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `als vakantievervanger van ${managerName}`,
         toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `aan ${submittedToName} als vakantievervanger van ${vacationDelegateName}`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `Je wijst ${nameOrEmail} aan als je vakantievervanger. Deze persoon zit nog niet in al je werkruimtes. Als je doorgaat, wordt er een e-mail gestuurd naar alle beheerders van je werkruimtes om hem/haar toe te voegen.`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Stap ${step}`;

@@ -2382,9 +2382,11 @@ const translations = {
         vacationDelegate: 'Délégué de vacances',
         setVacationDelegate: `Définissez un délégué de vacances pour approuver les rapports en votre absence.`,
         vacationDelegateError: 'Une erreur est survenue lors de la mise à jour de votre délégué de vacances.',
-        asVacationDelegate: ({managerName}: VacationDelegateParams) => `en tant que délégué de vacances de ${managerName}`,
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `en tant que délégué de vacances de ${managerName}`,
         toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) =>
             `à ${submittedToName} en tant que délégué de vacances de ${vacationDelegateName}`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `Vous assignez ${nameOrEmail} en tant que délégué de vacances. Il/elle n'est pas encore présent(e) dans tous vos espaces de travail. Si vous choisissez de continuer, un e-mail sera envoyé à tous les administrateurs de vos espaces pour l’ajouter.`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Étape ${step}`;

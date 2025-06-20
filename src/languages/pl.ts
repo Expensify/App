@@ -2365,8 +2365,10 @@ const translations = {
         vacationDelegate: 'Zastępca urlopowy',
         setVacationDelegate: `Ustaw zastępcę urlopowego, który będzie zatwierdzał raporty w twoim imieniu podczas twojej nieobecności.`,
         vacationDelegateError: 'Wystąpił błąd podczas aktualizacji twojego zastępcy urlopowego.',
-        asVacationDelegate: ({managerName}: VacationDelegateParams) => `jako zastępca urlopowy ${managerName}`,
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `jako zastępca urlopowy ${managerName}`,
         toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `do ${submittedToName} jako zastępca urlopowy ${vacationDelegateName}`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `Przydzielasz ${nameOrEmail} jako swojego zastępcę urlopowego. Osoba ta nie jest jeszcze członkiem wszystkich twoich przestrzeni roboczych. Jeśli zdecydujesz się kontynuować, zostanie wysłany e-mail do wszystkich administratorów twoich przestrzeni roboczych z prośbą o jej dodanie.`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Krok ${step}`;

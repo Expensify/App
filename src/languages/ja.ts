@@ -2355,8 +2355,10 @@ const translations = {
         vacationDelegate: '休暇代理人',
         setVacationDelegate: `不在中にレポートを承認してもらうため、休暇代理人を設定してください。`,
         vacationDelegateError: '休暇代理人の更新中にエラーが発生しました。',
-        asVacationDelegate: ({managerName}: VacationDelegateParams) => `${managerName}の休暇代理人として`,
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `${managerName}の休暇代理人として`,
         toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `${submittedToName}へ、${vacationDelegateName}の休暇代理人として`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `${nameOrEmail} を休暇代理人として設定しています。まだすべてのワークスペースに参加していません。続行すると、すべてのワークスペース管理者に追加を依頼するメールが送信されます。`,
         untilTomorrow: '明日まで',
         untilTime: ({time}: UntilTimeParams) => `${time}まで`,
         date: '日付',

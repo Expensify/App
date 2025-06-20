@@ -2367,8 +2367,10 @@ const translations = {
         vacationDelegate: 'Delegado de férias',
         setVacationDelegate: `Defina um delegado de férias para aprovar relatórios em seu nome enquanto estiver fora do escritório.`,
         vacationDelegateError: 'Ocorreu um erro ao atualizar seu delegado de férias.',
-        asVacationDelegate: ({managerName}: VacationDelegateParams) => `como delegado de férias de ${managerName}`,
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `como delegado de férias de ${managerName}`,
         toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `para ${submittedToName} como delegado de férias de ${vacationDelegateName}`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `Você está designando ${nameOrEmail} como seu delegado de férias. Essa pessoa ainda não está em todos os seus espaços de trabalho. Se você continuar, um e-mail será enviado para todos os administradores dos seus espaços solicitando a inclusão dela.`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Etapa ${step}`;

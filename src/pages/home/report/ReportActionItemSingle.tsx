@@ -368,7 +368,7 @@ function ReportActionItemSingle({
                 )}
                 {!!managerOnVacation && (
                     <Text style={[styles.chatDelegateMessage]}>
-                        {translate('statusPage.asVacationDelegate', {managerName: vacationDelegateDetailsForApprove?.displayName ?? managerOnVacation ?? ''})}
+                        {translate('statusPage.asVacationDelegate', {nameOrEmail: vacationDelegateDetailsForApprove?.displayName ?? managerOnVacation ?? ''})}
                     </Text>
                 )}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>

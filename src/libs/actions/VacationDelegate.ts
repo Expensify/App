@@ -2,14 +2,14 @@ import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {SetVacationDelegateParams} from '@libs/API/parameters';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {VacationDelegate} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function setVacationDelegate(creator: string, delegate: string) {
+function setVacationDelegate(creator: string, delegate: string, shouldOverridePolicyDiffWarning = false) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -47,10 +47,12 @@ function setVacationDelegate(creator: string, delegate: string) {
     const parameters: SetVacationDelegateParams = {
         creator,
         vacationDelegateEmail: delegate,
-        overridePolicyDiffWarning: true,
+        overridePolicyDiffWarning: shouldOverridePolicyDiffWarning,
     };
 
-    API.write(WRITE_COMMANDS.SET_VACATION_DELEGATE, parameters, {optimisticData, successData, failureData});
+    // We need to read the API response for showing a warning if there is a policy diff warning.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
 function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {

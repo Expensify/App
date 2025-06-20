@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useBetas} from '@components/OnyxProvider';
@@ -13,7 +14,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
-import {deleteVacationDelegate, setVacationDelegate} from '@libs/actions/VacationDelegate';
+import {clearVacationDelegateError, deleteVacationDelegate, setVacationDelegate} from '@libs/actions/VacationDelegate';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {filterAndOrderOptions, getHeaderMessage, getValidOptions} from '@libs/OptionsListUtils';
@@ -91,6 +92,8 @@ function useOptions() {
 function VacationDelegatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
+    const [newVacationDelegate, setNewVacationDelegate] = useState('');
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
@@ -170,8 +173,17 @@ function VacationDelegatePage() {
                 return;
             }
 
-            setVacationDelegate(currentUserLogin ?? '', option?.login ?? '');
-            Navigation.goBack(ROUTES.SETTINGS_STATUS);
+            setVacationDelegate(currentUserLogin ?? '', option?.login ?? '').then((response) => {
+                if (!response?.jsonCode) {
+                    Navigation.goBack(ROUTES.SETTINGS_STATUS);
+                    return;
+                }
+
+                if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
+                    setIsWarningModalVisible(true);
+                    setNewVacationDelegate(option?.login ?? '');
+                }
+            });
         },
         [currentUserLogin, vacationDelegate],
     );
@@ -181,29 +193,46 @@ function VacationDelegatePage() {
     }, [debouncedSearchValue]);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={VacationDelegatePage.displayName}
-        >
-            <HeaderWithBackButton
-                title={translate('statusPage.vacationDelegate')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
-            />
-            <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                <SelectionList
-                    sections={areOptionsInitialized ? sections : []}
-                    ListItem={UserListItem}
-                    onSelectRow={onSelectRow}
-                    shouldSingleExecuteRowSelect
-                    onChangeText={setSearchValue}
-                    textInputValue={searchValue}
-                    headerMessage={headerMessage}
-                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                    showLoadingPlaceholder={!areOptionsInitialized}
-                    isLoadingNewOptions={!!isSearchingForReports}
+        <>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={VacationDelegatePage.displayName}
+            >
+                <HeaderWithBackButton
+                    title={translate('statusPage.vacationDelegate')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS)}
                 />
-            </View>
-        </ScreenWrapper>
+                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                    <SelectionList
+                        sections={areOptionsInitialized ? sections : []}
+                        ListItem={UserListItem}
+                        onSelectRow={onSelectRow}
+                        shouldSingleExecuteRowSelect
+                        onChangeText={setSearchValue}
+                        textInputValue={searchValue}
+                        headerMessage={headerMessage}
+                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                        showLoadingPlaceholder={!areOptionsInitialized}
+                        isLoadingNewOptions={!!isSearchingForReports}
+                    />
+                </View>
+            </ScreenWrapper>
+            <ConfirmModal
+                isVisible={isWarningModalVisible}
+                title={translate('common.headsUp')}
+                prompt={translate('statusPage.vacationDelegateWarning', {nameOrEmail: newVacationDelegate})}
+                onConfirm={() => {
+                    setIsWarningModalVisible(false);
+                    setVacationDelegate(currentUserLogin ?? '', newVacationDelegate, true).then(() => Navigation.goBack(ROUTES.SETTINGS_STATUS));
+                }}
+                onCancel={() => {
+                    setIsWarningModalVisible(false);
+                    clearVacationDelegateError();
+                }}
+                confirmText={translate('common.confirm')}
+                cancelText={translate('common.cancel')}
+            />
+        </>
     );
 }
 

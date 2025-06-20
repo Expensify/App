@@ -2382,8 +2382,11 @@ const translations = {
         vacationDelegate: 'Urlaubsvertretung',
         setVacationDelegate: `Legen Sie eine Urlaubsvertretung fest, die Berichte in Ihrer Abwesenheit genehmigt.`,
         vacationDelegateError: 'Beim Aktualisieren Ihrer Urlaubsvertretung ist ein Fehler aufgetreten.',
-        asVacationDelegate: ({managerName}: VacationDelegateParams) => `als Urlaubsvertretung von ${managerName}`,
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `als Urlaubsvertretung von ${managerName}`,
         toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `an ${submittedToName} als Urlaubsvertretung von ${vacationDelegateName}`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `Sie weisen ${nameOrEmail} als Ihre Urlaubsvertretung zu. Diese Person ist noch nicht in all Ihren Workspaces. Wenn Sie fortfahren, wird eine E-Mail an alle Ihre Workspace-Administratoren gesendet, um sie hinzuzufügen.`,
+
         clearAfter: 'Nach dem Löschen',
         whenClearStatus: 'Wann sollten wir Ihren Status löschen?',
     },

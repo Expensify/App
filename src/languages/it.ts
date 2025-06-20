@@ -2369,8 +2369,10 @@ const translations = {
         vacationDelegate: 'Delegato per le vacanze',
         setVacationDelegate: `Imposta un delegato per le vacanze per approvare i report al tuo posto mentre sei fuori ufficio.`,
         vacationDelegateError: 'Si è verificato un errore durante l’aggiornamento del delegato per le vacanze.',
-        asVacationDelegate: ({managerName}: VacationDelegateParams) => `come delegato per le vacanze di ${managerName}`,
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `come delegato per le vacanze di ${managerName}`,
         toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `a ${submittedToName} come delegato per le vacanze di ${vacationDelegateName}`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `Stai assegnando ${nameOrEmail} come tuo delegato per le vacanze. Non è ancora presente in tutti i tuoi workspace. Se scegli di continuare, verrà inviata un'e-mail a tutti gli amministratori dei tuoi workspace per aggiungerlo.`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Passo ${step}`;

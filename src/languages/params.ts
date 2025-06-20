@@ -557,7 +557,7 @@ type DelegateRoleParams = {role: DelegateRole};
 
 type DelegatorParams = {delegator: string};
 
-type VacationDelegateParams = {managerName: string};
+type VacationDelegateParams = {nameOrEmail: string};
 
 type SubmittedToVacationDelegateParams = {submittedToName: string; vacationDelegateName: string};
 
