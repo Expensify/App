@@ -109,7 +109,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         }
         const newOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             shouldAcceptName: true,
             selectedOptions: attendees.map((attendee) => ({
@@ -131,9 +130,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
         }
-        const fiveRecents = [...chatOptions.recentReports].slice(0, 5);
-        const restOfRecents = [...chatOptions.recentReports].slice(5);
-        const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
 
         const formatResults = formatSectionsFromSearchTerm(
             cleanSearchTerm,
@@ -153,14 +149,14 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
         newSections.push({
             title: translate('common.recents'),
-            data: fiveRecents,
-            shouldShow: fiveRecents.length > 0,
+            data: chatOptions.recentReports,
+            shouldShow: chatOptions.recentReports.length > 0,
         });
 
         newSections.push({
             title: translate('common.contacts'),
-            data: contactsWithRestOfRecents,
-            shouldShow: contactsWithRestOfRecents.length > 0,
+            data: chatOptions.personalDetails,
+            shouldShow: chatOptions.personalDetails.length > 0,
         });
 
         if (

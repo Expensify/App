@@ -17,6 +17,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     getCleanedTagName,
     getDistanceRateCustomUnitRate,
@@ -683,7 +684,21 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
  * Return the list of modified attendees if present otherwise list of attendees
  */
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
-    return transaction?.modifiedAttendees ? transaction.modifiedAttendees : (transaction?.comment?.attendees ?? []);
+    const attendees = transaction?.modifiedAttendees ? transaction.modifiedAttendees : (transaction?.comment?.attendees ?? []);
+    if (attendees.length === 0) {
+        const details = getPersonalDetailByEmail(currentUserEmail);
+        attendees.push({
+            email: currentUserEmail,
+            login: details?.login ?? currentUserEmail,
+            displayName: details?.displayName ?? currentUserEmail,
+            accountID: currentUserAccountID,
+            text: details?.displayName ?? currentUserEmail,
+            searchText: details?.displayName ?? currentUserEmail,
+            avatarUrl: details?.avatarThumbnail ?? '',
+            selected: true,
+        });
+    }
+    return attendees;
 }
 
 /**
