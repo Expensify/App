@@ -27,6 +27,7 @@ import {initMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
@@ -36,7 +37,9 @@ import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspac
 import IOURequestStepScan from './step/IOURequestStepScan';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
-type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE>;
+type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE> & {
+    defaultSelectedTab: SelectedTabRequest;
+};
 
 function IOURequestStartPage({
     route,
@@ -44,6 +47,8 @@ function IOURequestStartPage({
         params: {iouType, reportID},
     },
     navigation,
+    // This is currently only being used for testing
+    defaultSelectedTab = CONST.TAB_REQUEST.SCAN,
 }: IOURequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -192,7 +197,7 @@ function IOURequestStartPage({
                         {shouldUseTab ? (
                             <OnyxTabNavigator
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
-                                defaultSelectedTab={CONST.TAB_REQUEST.SCAN}
+                                defaultSelectedTab={defaultSelectedTab}
                                 onTabSelected={resetIOUTypeIfChanged}
                                 tabBar={TabSelector}
                                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
