@@ -132,7 +132,7 @@ function setLocale(localeString: Locale | undefined) {
     }
     // Try to get cached locale first for immediate use
     const cachedLocale = DateLocaleStore.get(localeString);
-    if (!cachedLocale) {
+    if (cachedLocale) {
         setDefaultOptions({locale: cachedLocale});
     } else {
         // Load asynchronously and set when ready
