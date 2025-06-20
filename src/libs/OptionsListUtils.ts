@@ -1613,7 +1613,6 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
             chatReport,
             currentReportId: topmostReportId,
             betas,
-            policies,
             doesReportHaveViolations,
             isInFocusMode: false,
             excludeEmptyChats: false,

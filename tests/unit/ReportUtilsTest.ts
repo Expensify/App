@@ -1879,7 +1879,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                 }),
@@ -1931,7 +1930,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: true,
                     excludeEmptyChats: false,
                 }),
@@ -1953,7 +1951,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                 }),
@@ -1975,7 +1972,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                 }),
@@ -1997,7 +1993,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                 }),
@@ -2032,7 +2027,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                 }),
@@ -2062,7 +2056,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
@@ -2093,7 +2086,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     isReportArchived: isReportArchived.current,
@@ -2117,7 +2109,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                     includeSelfDM,
@@ -2144,7 +2135,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                 }),
@@ -2163,7 +2153,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                 }),
@@ -2185,7 +2174,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                 }),
@@ -2227,7 +2215,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                 }),
@@ -2246,7 +2233,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
                 }),
@@ -2265,7 +2251,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     login: '+@domain.com',
                     excludeEmptyChats: false,
@@ -2312,7 +2297,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                 }),
@@ -2331,7 +2315,6 @@ describe('ReportUtils', () => {
                     currentReportId,
                     isInFocusMode,
                     betas,
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: false,
                 }),
@@ -2364,7 +2347,6 @@ describe('ReportUtils', () => {
                     currentReportId: '',
                     isInFocusMode: false,
                     betas: [],
-                    policies: {},
                     doesReportHaveViolations: false,
                     excludeEmptyChats: true,
                 }),
@@ -2466,12 +2448,17 @@ describe('ReportUtils', () => {
     });
 
     describe('canEditWriteCapability', () => {
+        afterEach(async () => {
+            await Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {});
+        });
         it('should return false for expense chat', () => {
             const workspaceChat: Report = {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
-            expect(canEditWriteCapability(workspaceChat, {...policy, role: CONST.POLICY.ROLE.ADMIN})).toBe(false);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(workspaceChat?.reportID));
+
+            expect(canEditWriteCapability(workspaceChat, {...policy, role: CONST.POLICY.ROLE.ADMIN}, isReportArchived.current)).toBe(false);
         });
 
         const policyAnnounceRoom: Report = {
@@ -2481,22 +2468,31 @@ describe('ReportUtils', () => {
         const adminPolicy = {...policy, role: CONST.POLICY.ROLE.ADMIN};
 
         it('should return true for non-archived policy announce room', () => {
-            expect(canEditWriteCapability(policyAnnounceRoom, adminPolicy, false)).toBe(true);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyAnnounceRoom?.reportID));
+
+            expect(canEditWriteCapability(policyAnnounceRoom, adminPolicy, isReportArchived.current)).toBe(true);
         });
 
-        it('should return false for archived policy announce room', () => {
-            expect(canEditWriteCapability(policyAnnounceRoom, adminPolicy, true)).toBe(false);
+        it('should return false for archived policy announce room', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${policyAnnounceRoom.reportID}`, {private_isArchived: DateUtils.getDBTime()});
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyAnnounceRoom?.reportID));
+
+            expect(canEditWriteCapability(policyAnnounceRoom, adminPolicy, isReportArchived.current)).toBe(false);
         });
 
         it('should return false for non-admin user', () => {
             const normalChat = createRandomReport(11);
             const memberPolicy = {...policy, role: CONST.POLICY.ROLE.USER};
-            expect(canEditWriteCapability(normalChat, memberPolicy, false)).toBe(false);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(normalChat?.reportID));
+
+            expect(canEditWriteCapability(normalChat, memberPolicy, isReportArchived.current)).toBe(false);
         });
 
         it('should return false for admin room', () => {
             const adminRoom: Report = {...createRandomReport(12), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS};
-            expect(canEditWriteCapability(adminRoom, adminPolicy, false)).toBe(false);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(adminRoom?.reportID));
+
+            expect(canEditWriteCapability(adminRoom, adminPolicy, isReportArchived.current)).toBe(false);
         });
 
         it('should return false for thread reports', () => {
@@ -2506,14 +2502,16 @@ describe('ReportUtils', () => {
                 parentReportID: parent.reportID,
                 parentReportActionID: '2',
             };
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(thread?.reportID));
 
-            expect(canEditWriteCapability(thread, adminPolicy, false)).toBe(false);
+            expect(canEditWriteCapability(thread, adminPolicy, isReportArchived.current)).toBe(false);
         });
 
         it('should return false for invoice rooms', () => {
             const invoiceRoom = {...createRandomReport(13), chatType: CONST.REPORT.CHAT_TYPE.INVOICE};
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(invoiceRoom?.reportID));
 
-            expect(canEditWriteCapability(invoiceRoom, adminPolicy, false)).toBe(false);
+            expect(canEditWriteCapability(invoiceRoom, adminPolicy, isReportArchived.current)).toBe(false);
         });
     });
 

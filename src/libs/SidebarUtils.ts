@@ -264,7 +264,6 @@ function getOrderedReportIDs(
                 currentReportId,
                 isInFocusMode,
                 betas,
-                policies: policies as OnyxCollection<Policy>,
                 excludeEmptyChats: true,
                 doesReportHaveViolations,
                 includeSelfDM: true,
