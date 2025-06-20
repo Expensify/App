@@ -403,7 +403,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         );
     } else if (throttledDate) {
         errorText = translate('bankAccount.hasBeenThrottledError');
-    } else {
+    } else if (hasUnsupportedCurrency) {
         errorText = (
             <Text style={styles.flexRow}>
                 <RenderHTML html={translate('bankAccount.hasCurrencyError', {workspaceRoute})} />
