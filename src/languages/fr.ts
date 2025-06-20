@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -970,6 +971,7 @@ const translations = {
         deleteReceipt: 'Supprimer le reçu',
         deleteConfirmation: 'Êtes-vous sûr de vouloir supprimer ce reçu ?',
         addReceipt: 'Ajouter un reçu',
+        scanFailed: 'Le reçu n’a pas pu être scanné, car il manque le commerçant, la date ou le montant.',
     },
     quickAction: {
         scanReceipt: 'Scanner le reçu',
@@ -4284,7 +4286,7 @@ const translations = {
                 pendingBankTitle: 'Vérifiez la fenêtre de votre navigateur',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) =>
                     `Veuillez vous connecter à ${bankName} via la fenêtre de votre navigateur qui vient de s'ouvrir. Si aucune ne s'est ouverte,`,
-                pendingBankLink: 'veuillez cliquer ici.',
+                pendingBankLink: 'veuillez cliquer ici',
                 giveItNameInstruction: 'Donnez un nom à la carte qui la distingue des autres.',
                 updating: 'Mise à jour...',
                 noAccountsFound: 'Aucun compte trouvé',
@@ -4539,7 +4541,7 @@ const translations = {
             newWorkspace: 'Nouvel espace de travail',
             getTheExpensifyCardAndMore: 'Obtenez la carte Expensify et plus encore',
             confirmWorkspace: "Confirmer l'espace de travail",
-            myGroupWorkspace: 'Mon espace de travail de groupe',
+            myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `Mon espace de travail de groupe${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
             workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `Espace de travail de ${userName}${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
         },
         people: {
@@ -6008,9 +6010,8 @@ const translations = {
         principalWorkEmail: 'Email professionnel principal',
         updateYourEmail: 'Mettez à jour votre adresse e-mail',
         updateEmail: "Mettre à jour l'adresse e-mail",
-        contactMethods: 'Méthodes de contact.',
-        schoolMailAsDefault:
-            'Avant de continuer, veuillez vous assurer de définir votre e-mail scolaire comme méthode de contact par défaut. Vous pouvez le faire dans Paramètres > Profil >',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `Avant de continuer, veuillez vous assurer de définir votre e-mail scolaire comme méthode de contact par défaut. Vous pouvez le faire dans Paramètres > Profil > <a href="${contactMethodsRoute}">Méthodes de contact</a>.`,
         error: {
             enterPhoneEmail: 'Entrez un e-mail ou un numéro de téléphone valide',
             enterEmail: 'Entrez un e-mail',

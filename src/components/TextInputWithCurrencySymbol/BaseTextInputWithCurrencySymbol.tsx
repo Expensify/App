@@ -5,7 +5,7 @@ import CurrencySymbolButton from '@components/CurrencySymbolButton';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getLocalizedCurrencySymbol, isCurrencySymbolLTR} from '@libs/CurrencyUtils';
+import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {addLeadingZero, replaceAllDigits} from '@libs/MoneyRequestUtils';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import type BaseTextInputWithCurrencySymbolProps from './types';
@@ -31,16 +31,7 @@ function BaseTextInputWithCurrencySymbol(
 ) {
     const {fromLocaleDigit} = useLocalize();
     const currencySymbol = getLocalizedCurrencySymbol(selectedCurrencyCode);
-    const shouldShowCurrencySymbolLTR = isCurrencySymbolLTR(selectedCurrencyCode);
     const styles = useThemeStyles();
-
-    const currencySymbolButton = !hideCurrencySymbol && (
-        <CurrencySymbolButton
-            currencySymbol={currencySymbol ?? ''}
-            onCurrencyButtonPress={onCurrencyButtonPress}
-            isCurrencyPressable={isCurrencyPressable}
-        />
-    );
 
     /**
      * Set a new amount value properly formatted
@@ -52,41 +43,32 @@ function BaseTextInputWithCurrencySymbol(
         onChangeAmount(newAmount);
     };
 
-    const amountTextInput = (
-        <AmountTextInput
-            formattedAmount={formattedAmount}
-            onChangeAmount={setFormattedAmount}
-            placeholder={placeholder}
-            ref={ref}
-            selection={selection}
-            onSelectionChange={(event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-                onSelectionChange(event);
-            }}
-            onKeyPress={onKeyPress}
-            style={[styles.pr1, style]}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...rest}
-        />
-    );
-
     const negativeSymbol = <Text style={[styles.iouAmountText]}>-</Text>;
-
-    if (shouldShowCurrencySymbolLTR) {
-        return (
-            <>
-                {isNegative && negativeSymbol}
-                {currencySymbolButton}
-                {amountTextInput}
-                {extraSymbol}
-            </>
-        );
-    }
 
     return (
         <>
             {isNegative && negativeSymbol}
-            {amountTextInput}
-            {currencySymbolButton}
+            {!hideCurrencySymbol && (
+                <CurrencySymbolButton
+                    currencySymbol={currencySymbol ?? ''}
+                    onCurrencyButtonPress={onCurrencyButtonPress}
+                    isCurrencyPressable={isCurrencyPressable}
+                />
+            )}
+            <AmountTextInput
+                formattedAmount={formattedAmount}
+                onChangeAmount={setFormattedAmount}
+                placeholder={placeholder}
+                ref={ref}
+                selection={selection}
+                onSelectionChange={(event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+                    onSelectionChange(event);
+                }}
+                onKeyPress={onKeyPress}
+                style={[styles.pr1, style]}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...rest}
+            />
             {extraSymbol}
         </>
     );
