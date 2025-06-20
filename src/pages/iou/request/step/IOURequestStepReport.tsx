@@ -43,11 +43,21 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
     };
 
+    const removeFromReport = () => {
+        if (!transaction) {
+            return;
+        }
+        changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID);
+        Navigation.dismissModal();
+    };
+
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
             transactionsReports={transactionReport ? [transactionReport] : []}
             selectReport={selectReport}
+            removeFromReport={removeFromReport}
+            isEditing={isEditing}
         />
     );
 }
