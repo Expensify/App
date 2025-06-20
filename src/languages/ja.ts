@@ -64,7 +64,8 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
-    ContactMethodRouteParams,
+    ContactMethodParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -2386,7 +2387,7 @@ const translations = {
         toGetStarted: '銀行口座を追加して、経費を払い戻し、Expensifyカードを発行し、請求書の支払いを受け取り、すべてを一箇所で支払います。',
         plaidBodyCopy: '従業員に会社の経費を支払う、そして払い戻しを受ける、より簡単な方法を提供しましょう。',
         checkHelpLine: '口座の小切手にルーティング番号と口座番号が記載されています。',
-        hasPhoneLoginError: ({contactMethodRoute}: ContactMethodRouteParams) =>
+        hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `銀行口座を接続するには、お願いします <a href="${contactMethodRoute}">メールをプライマリーログインとして追加する</a> もう一度試してください。電話番号をセカンダリログインとして追加できます。`,
         hasBeenThrottledError: '銀行口座の追加中にエラーが発生しました。数分待ってから再試行してください。',
         hasCurrencyError: {

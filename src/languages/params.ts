@@ -5,10 +5,6 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
-type ContactMethodRouteParams = {
-    contactMethodRoute: string;
-};
-
 type AddressLineParams = {
     lineNumber: number;
 };
@@ -775,8 +771,13 @@ type ContactMethodsRouteParams = {
     contactMethodsRoute: string;
 };
 
+type ContactMethodParams = {
+    contactMethodRoute: string;
+};
+
 export type {
-    ContactMethodRouteParams,
+    ContactMethodsRouteParams,
+    ContactMethodParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
