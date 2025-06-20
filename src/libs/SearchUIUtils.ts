@@ -1423,7 +1423,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
         // s77rt TODO
     }
 
-    if (accountingSection.menuItems.length > 0) {
+    if (accountingSection.menuItems.length > 0 && session?.email?.endsWith('@abdelhafidh.com')) {
         typeMenuSections.push(accountingSection);
     }
 
