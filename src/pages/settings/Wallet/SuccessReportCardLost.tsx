@@ -10,7 +10,7 @@ import ROUTES from '@src/ROUTES';
 function SuccessReportCardLost({cardID}: {cardID: string}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const styleUtils = useStyleUtils();
+    const StyleUtils = useStyleUtils();
 
     return (
         <ConfirmationPage
@@ -23,7 +23,7 @@ function SuccessReportCardLost({cardID}: {cardID: string}) {
             }}
             buttonText={translate('common.buttonConfirm')}
             containerStyle={styles.h100}
-            illustrationStyle={[styles.w100, styleUtils.getSuccessIllustrationStyle()]}
+            illustrationStyle={[styles.w100, StyleUtils.getSuccessReportCardLostIllustrationStyle()]}
             innerContainerStyle={styles.ph0}
             descriptionStyle={[styles.ph4, styles.textSupporting]}
         />
