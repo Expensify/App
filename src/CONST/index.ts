@@ -7226,6 +7226,8 @@ const CONST = {
         REGISTER_FOR_WEBINAR: 'registerForWebinar',
     },
 
+    ONBOARDING_2FA_REQUIRED_ERROR_MESSAGE: '401 work account uses 2FA',
+
     SCHEDULE_CALL_STATUS: {
         CREATED: 'created',
         RESCHEDULED: 'rescheduled',

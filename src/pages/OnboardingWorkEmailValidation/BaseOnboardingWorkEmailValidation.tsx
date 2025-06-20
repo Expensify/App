@@ -2,10 +2,8 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
+import OnboardingMergingAccountBlocked from '@components/OnboardingMergingAccountBlocked';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
@@ -16,7 +14,6 @@ import AccountUtils from '@libs/AccountUtils';
 import {openOldDotLink} from '@libs/actions/Link';
 import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
 import {MergeIntoAccountAndLogin} from '@userActions/Session';
 import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -89,27 +86,9 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
             />
             {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                    <BlockingView
-                        icon={Illustrations.ToddBehindCloud}
-                        iconWidth={variables.modalTopIconWidth}
-                        iconHeight={variables.modalTopIconHeight}
-                        title={translate('onboarding.mergeBlockScreen.title')}
-                        subtitle={translate('onboarding.mergeBlockScreen.subtitle', {workEmail})}
-                        subtitleStyle={[styles.colorMuted]}
-                    />
-                    <Button
-                        success={onboardingValues?.isMergingAccountBlocked}
-                        large
-                        style={[styles.mb5]}
-                        text={translate('common.buttonConfirm')}
-                        onPress={() => {
-                            setOnboardingErrorMessage('');
-                            if (isVsb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
-                        }}
+                    <OnboardingMergingAccountBlocked
+                        workEmail={workEmail}
+                        isVsb={isVsb}
                     />
                 </View>
             ) : (
