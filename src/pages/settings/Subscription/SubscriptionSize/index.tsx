@@ -6,11 +6,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import * as FormActions from '@userActions/FormActions';
-import * as Subscription from '@userActions/Subscription';
+import {updateSubscriptionSize} from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -23,14 +23,14 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [Size, Confirmatio
 type SubscriptionSizePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.SUBSCRIPTION.SIZE>;
 
 function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT);
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: false});
+    const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT, {canBeMissing: false});
     const {translate} = useLocalize();
     const canChangeSubscriptionSize = !!(route.params?.canChangeSize ?? 1);
     const startFrom = canChangeSubscriptionSize ? 0 : 1;
 
     const onFinished = () => {
-        Subscription.updateSubscriptionSize(subscriptionSizeFormDraft ? Number(subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE]) : 0, privateSubscription?.userCount ?? 0);
+        updateSubscriptionSize(subscriptionSizeFormDraft ? Number(subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE]) : 0, privateSubscription?.userCount ?? 0);
         Navigation.goBack();
     };
 
@@ -47,7 +47,7 @@ function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
 
     useEffect(
         () => () => {
-            FormActions.clearDraftValues(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM);
+            clearDraftValues(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM);
         },
         [],
     );

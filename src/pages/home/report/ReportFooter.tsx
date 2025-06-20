@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -96,13 +96,13 @@ function ReportFooter({
                 return new Date(dateString) >= new Date();
             } catch (error) {
                 // If the NVP is malformed, we'll assume the user is not blocked from chat. This is not expected, so if it happens we'll log an alert.
-                Log.alert(`[${CONST.ERROR.ENSURE_BUGBOT}] Found malformed ${ONYXKEYS.NVP_BLOCKED_FROM_CHAT} nvp`, dateString);
+                Log.alert(`[${CONST.ERROR.ENSURE_BUG_BOT}] Found malformed ${ONYXKEYS.NVP_BLOCKED_FROM_CHAT} nvp`, dateString);
                 return false;
             }
         },
         canBeMissing: true,
     });
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: false});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = isArchivedNonExpenseReport(report, reportNameValuePairs);
@@ -122,7 +122,7 @@ function ReportFooter({
 
     const handleCreateTask = useCallback(
         (text: string): boolean => {
-            const match = text.match(CONST.REGEX.TASK_TITLE_WITH_OPTONAL_SHORT_MENTION);
+            const match = text.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
             if (!match) {
                 return false;
             }
@@ -164,7 +164,7 @@ function ReportFooter({
             if (isTaskCreated) {
                 return;
             }
-            addComment(report.reportID, text);
+            addComment(report.reportID, text, true);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask],
@@ -238,12 +238,12 @@ ReportFooter.displayName = 'ReportFooter';
 export default memo(
     ReportFooter,
     (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.report, nextProps.report) &&
+        deepEqual(prevProps.report, nextProps.report) &&
         prevProps.pendingAction === nextProps.pendingAction &&
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
-        lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
-        lodashIsEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
-        lodashIsEqual(prevProps.policy?.role, nextProps.policy?.role),
+        deepEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
+        deepEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
+        deepEqual(prevProps.policy?.role, nextProps.policy?.role),
 );

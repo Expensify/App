@@ -358,10 +358,11 @@ describe('actions/PolicyMember', () => {
             expect(adminRoom?.participants?.[userAccountID]).toBeUndefined();
         });
 
-        it('should unarchive existing workspace chat when adding back a member', async () => {
-            // Given an archived workspace chat
+        it('should unarchive existing workspace expense chat and expense report when adding back a member', async () => {
+            // Given an archived workspace expense chat and expense report
             const policyID = '1';
             const workspaceReportID = '1';
+            const expenseReportID = '2';
             const userAccountID = 1236;
             const userEmail = 'user@example.com';
 
@@ -371,7 +372,18 @@ describe('actions/PolicyMember', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 ownerAccountID: userAccountID,
             });
+            const expenseAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: expenseReportID,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceReportID}`, {
+                [expenseAction.reportActionID]: expenseAction,
+            });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`, {
+                private_isArchived: DateUtils.getDBTime(),
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReportID}`, {
                 private_isArchived: DateUtils.getDBTime(),
             });
 
@@ -380,8 +392,8 @@ describe('actions/PolicyMember', () => {
 
             await waitForBatchedUpdates();
 
-            // Then the member workspace chat should be unarchived optimistically
-            const isArchived = await new Promise<boolean>((resolve) => {
+            // Then the member workspace expense chat and expense report should be unarchive optimistically
+            const isWorkspaceChatArchived = await new Promise<boolean>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`,
                     callback: (nvp) => {
@@ -390,7 +402,16 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            expect(isArchived).toBe(false);
+            const isExpenseReportArchived = await new Promise<boolean>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReportID}`,
+                    callback: (nvp) => {
+                        Onyx.disconnect(connection);
+                        resolve(!!nvp?.private_isArchived);
+                    },
+                });
+            });
+            expect(isWorkspaceChatArchived && isExpenseReportArchived).toBe(false);
         });
     });
 
@@ -473,10 +494,11 @@ describe('actions/PolicyMember', () => {
             expect(successAdminRoomMetadata?.pendingChatMembers).toBeUndefined();
         });
 
-        it('should archive the member workspace chat', async () => {
-            // Given a workspace chat
+        it('should archive the member expense chat and expense report', async () => {
+            // Given a workspace expense chat and expense report
             const policyID = '1';
             const workspaceReportID = '1';
+            const expenseReportID = '2';
             const userAccountID = 1236;
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
@@ -485,6 +507,14 @@ describe('actions/PolicyMember', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 ownerAccountID: userAccountID,
             });
+            const expenseAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: expenseReportID,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceReportID}`, {
+                [expenseAction.reportActionID]: expenseAction,
+            });
 
             // When removing a member from the workspace
             mockFetch?.pause?.();
@@ -492,8 +522,8 @@ describe('actions/PolicyMember', () => {
 
             await waitForBatchedUpdates();
 
-            // Then the member workspace chat should be archived optimistically
-            const isArchived = await new Promise<boolean>((resolve) => {
+            // Then the member workspace expense chat and expense report should be archived optimistically
+            const isWorkspaceChatArchived = await new Promise<boolean>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${workspaceReportID}`,
                     callback: (nvp) => {
@@ -502,7 +532,16 @@ describe('actions/PolicyMember', () => {
                     },
                 });
             });
-            expect(isArchived).toBe(true);
+            const isExpenseReportArchived = await new Promise<boolean>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReportID}`,
+                    callback: (nvp) => {
+                        Onyx.disconnect(connection);
+                        resolve(!!nvp?.private_isArchived);
+                    },
+                });
+            });
+            expect(isWorkspaceChatArchived && isExpenseReportArchived).toBe(true);
             await mockFetch?.resume?.();
         });
     });
@@ -531,7 +570,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member added success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 1, updated: 0}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 1, updated: 0}));
         });
 
         it('should show a "multiple members added message" when multiple new members are added', async () => {
@@ -560,7 +599,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member added success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 2, updated: 0}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 2, updated: 0}));
         });
 
         it('should show a "no members added/updated message" when no new members are added or updated', async () => {
@@ -593,7 +632,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the no member added/updated message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 0, updated: 0}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 0}));
         });
 
         it('should show a "single member updated message" when a member is updated', async () => {
@@ -626,7 +665,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member updated success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 0, updated: 1}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 1}));
         });
 
         it('should show a "multiple members updated message" when multiple members are updated', async () => {
@@ -667,7 +706,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member updated success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 0, updated: 2}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 2}));
         });
 
         it('should show a "single member added and updated message" when a member is both added and updated', async () => {
@@ -703,7 +742,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member added and updated success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 1, updated: 1}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 1, updated: 1}));
         });
 
         it('should show a "multiple members added and updated message" when multiple members are both added and updated', async () => {
@@ -746,7 +785,7 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member added and updated success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: 2, updated: 2}));
+            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 2, updated: 2}));
         });
     });
 });

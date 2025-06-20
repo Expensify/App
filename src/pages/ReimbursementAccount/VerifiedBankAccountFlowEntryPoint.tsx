@@ -138,6 +138,7 @@ function VerifiedBankAccountFlowEntryPoint({
             setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
             setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
         } else if (optionPressed.current === CONST.BANK_ACCOUNT.SUBSTEP.PLAID) {
+            setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
             setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
             openPlaidView();
         }
@@ -191,7 +192,7 @@ function VerifiedBankAccountFlowEntryPoint({
                 <Section
                     title={translate(shouldShowContinueSetupButton === true ? 'workspace.bankAccount.almostDone' : 'workspace.bankAccount.streamlinePayments')}
                     titleStyles={styles.textHeadline}
-                    subtitle={translate(shouldShowContinueSetupButton === true ? 'workspace.bankAccount.youreAlmostDone' : 'bankAccount.toGetStarted')}
+                    subtitle={translate(shouldShowContinueSetupButton === true ? 'workspace.bankAccount.youAreAlmostDone' : 'bankAccount.toGetStarted')}
                     subtitleStyles={styles.textSupporting}
                     subtitleMuted
                     illustration={LottieAnimations.FastMoney}

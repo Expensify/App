@@ -13,7 +13,6 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import playSound, {SOUNDS} from '@libs/Sound';
 import {extractUrlDomain} from '@libs/Url';
 import {getFieldRequiredErrors, isPublicDomain, isValidWebsite} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
@@ -73,7 +72,6 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-        playSound(SOUNDS.DONE);
         sendInvoice(currentUserPersonalDetails.accountID, transaction, report, undefined, policy, policyTags, policyCategories, values.companyName, companyWebsite);
     };
 

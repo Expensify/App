@@ -70,7 +70,7 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** If the action is being hovered */
     isHovered?: boolean;
 
-    /** If the action is being actived */
+    /** If the action is active */
     isActive?: boolean;
 
     /** Policies */
@@ -200,14 +200,18 @@ function ReportActionItemSingle({
         id: avatarId,
     };
 
+    const showMultipleUserAvatarPattern = displayAllActors && !shouldShowSubscriptAvatar;
+
+    const headingText = showMultipleUserAvatarPattern ? `${icon.name} & ${secondaryAvatar.name}` : displayName;
+
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
-    const personArray = displayName
+    const personArray = headingText
         ? [
               {
                   type: 'TEXT',
-                  text: displayName,
+                  text: headingText,
               },
           ]
         : action?.person;
@@ -231,7 +235,7 @@ function ReportActionItemSingle({
     const shouldDisableDetailPage = useMemo(
         () =>
             CONST.RESTRICTED_ACCOUNT_IDS.includes(actorAccountID ?? CONST.DEFAULT_NUMBER_ID) ||
-            (!isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : actorAccountID ?? CONST.DEFAULT_NUMBER_ID)),
+            (!isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (actorAccountID ?? CONST.DEFAULT_NUMBER_ID))),
         [action, isWorkspaceActor, actorAccountID],
     );
 
@@ -267,7 +271,7 @@ function ReportActionItemSingle({
         }
         return (
             <UserDetailsTooltip
-                accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : icon.id ?? CONST.DEFAULT_NUMBER_ID)}
+                accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : (icon.id ?? CONST.DEFAULT_NUMBER_ID))}
                 delegateAccountID={action?.delegateAccountID}
                 icon={icon}
             >
@@ -318,12 +322,13 @@ function ReportActionItemSingle({
                                 <ReportActionItemFragment
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={`person-${action?.reportActionID}-${index}`}
-                                    accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : icon.id ?? CONST.DEFAULT_NUMBER_ID)}
+                                    accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : (icon.id ?? CONST.DEFAULT_NUMBER_ID))}
                                     fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
                                     delegateAccountID={action?.delegateAccountID}
                                     isSingleLine
                                     actorIcon={icon}
                                     moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                                    shouldShowTooltip={!showMultipleUserAvatarPattern}
                                 />
                             ))}
                         </PressableWithoutFeedback>

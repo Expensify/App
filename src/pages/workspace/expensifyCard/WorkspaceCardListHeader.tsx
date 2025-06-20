@@ -1,102 +1,32 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardSettings} from '@src/types/onyx';
-import WorkspaceCardsListLabel from './WorkspaceCardsListLabel';
 
 type WorkspaceCardListHeaderProps = {
-    /** ID of the current policy */
-    policyID: string;
-
     /** Card settings */
     cardSettings: ExpensifyCardSettings | undefined;
 };
 
-function WorkspaceCardListHeader({policyID, cardSettings}: WorkspaceCardListHeaderProps) {
+function WorkspaceCardListHeader({cardSettings}: WorkspaceCardListHeaderProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
-
-    const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`);
 
     const errorMessage = getLatestErrorMessage(cardSettings) ?? '';
 
-    const shouldShowSettlementButtonOrDate = !!cardSettings?.isMonthlySettlementAllowed || cardManualBilling;
-
-    const getLabelsLayout = () => {
-        if (!isLessThanMediumScreen) {
-            return (
-                <>
-                    <WorkspaceCardsListLabel
-                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
-                    />
-                    <WorkspaceCardsListLabel
-                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
-                    />
-                    <WorkspaceCardsListLabel
-                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
-                    />
-                </>
-            );
-        }
-        return shouldShowSettlementButtonOrDate ? (
-            <>
-                <WorkspaceCardsListLabel
-                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
-                    value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
-                />
-                <View style={[styles.flexRow, !isLessThanMediumScreen && styles.flex2, isLessThanMediumScreen && styles.mt5]}>
-                    <WorkspaceCardsListLabel
-                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
-                    />
-                    <WorkspaceCardsListLabel
-                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
-                    />
-                </View>
-            </>
-        ) : (
-            <>
-                <View style={[styles.flexRow, isLessThanMediumScreen && styles.mb5]}>
-                    <WorkspaceCardsListLabel
-                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] ?? 0}
-                    />
-                    <WorkspaceCardsListLabel
-                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
-                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
-                    />
-                </View>
-                <WorkspaceCardsListLabel
-                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
-                    value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
-                />
-            </>
-        );
-    };
-
     return (
         <View style={styles.appBG}>
-            <View style={[isLessThanMediumScreen ? styles.flexColumn : styles.flexRow, styles.mt5, styles.mh5, styles.ph4]}>{getLabelsLayout()}</View>
             {!!errorMessage && (
-                <View style={[styles.mh5, styles.ph4, styles.mt2]}>
+                <View style={[styles.mh5, styles.pr4, styles.mt2]}>
                     <FormHelpMessage
                         isError
                         message={errorMessage}

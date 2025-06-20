@@ -44,7 +44,7 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
             onClose={onClose}
             isVisible={isVisible}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
-            shouldUseNewModal
+            innerContainerStyle={styles.pv0}
         >
             <View style={[styles.m5]}>
                 <View>

@@ -4,6 +4,7 @@ import type {StyleProp, TextStyle} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import StatsCounter from '@libs/actions/StatsCounter';
 import Navigation from '@libs/Navigation/Navigation';
@@ -78,6 +79,7 @@ function FullPageNotFoundView({
     addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
 }: FullPageNotFoundViewProps) {
     const styles = useThemeStyles();
+    const {isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
 
     if (shouldShow) {
@@ -87,7 +89,7 @@ function FullPageNotFoundView({
                 <HeaderWithBackButton
                     onBackButtonPress={onBackButtonPress}
                     shouldShowBackButton={shouldShowBackButton}
-                    shouldDisplaySearchRouter={shouldDisplaySearchRouter}
+                    shouldDisplaySearchRouter={shouldDisplaySearchRouter && (isMediumScreenWidth || isLargeScreenWidth)}
                 />
                 <View
                     style={[styles.flex1, styles.blockingViewContainer]}

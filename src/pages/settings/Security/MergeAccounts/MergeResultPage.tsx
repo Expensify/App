@@ -1,11 +1,10 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {useRoute} from '@react-navigation/native';
-import React, {useContext, useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
+import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import type {ConfirmationPageProps} from '@components/ConfirmationPage';
-import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
@@ -14,6 +13,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {closeReactNativeApp} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -23,12 +23,11 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
 function MergeResultPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT>>();
     const {result, login} = params;
@@ -152,8 +151,7 @@ function MergeResultPage() {
                 secondaryButtonText: translate('mergeAccountsPage.mergePendingSAML.goToExpensifyClassic'),
                 onSecondaryButtonPress: () => {
                     if (CONFIG.IS_HYBRID_APP) {
-                        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-                        setRootStatusBarEnabled(false);
+                        closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
                         return;
                     }
                     openOldDotLink(CONST.OLDDOT_URLS.INBOX, false);
@@ -225,8 +223,29 @@ function MergeResultPage() {
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 illustration: Illustrations.LockClosedOrange,
             },
+            [CONST.MERGE_ACCOUNT_RESULTS.ERR_MERGE_SELF]: {
+                heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
+                description: translate('mergeAccountsPage.mergeFailureSelfMerge.description'),
+                buttonText: translate('common.buttonConfirm'),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                illustration: Illustrations.LockClosedOrange,
+            },
         };
-    }, [setRootStatusBarEnabled, login, translate, userEmailOrPhone, styles]);
+    }, [login, translate, userEmailOrPhone, styles]);
+
+    useEffect(() => {
+        /**
+         * If the result is success, we need to remove the initial screen from the navigation state
+         * so that the back button closes the modal instead of going back to the initial screen.
+         */
+        if (result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS) {
+            return;
+        }
+
+        InteractionManager.runAfterInteractions(() => {
+            Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS);
+        });
+    }, [result]);
 
     const {
         heading,
@@ -253,7 +272,7 @@ function MergeResultPage() {
                 title={translate('mergeAccountsPage.mergeAccount')}
                 shouldShowBackButton={result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute(login));
+                    Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
                 }}
                 shouldDisplayHelpButton={false}
             />

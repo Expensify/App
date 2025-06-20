@@ -4,7 +4,6 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import {hasReportViolations, isReportOwner, isSettled, shouldDisplayViolationsRBRInLHN} from '@src/libs/ReportUtils';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -15,7 +14,7 @@ import type {OptionRowLHNDataProps} from './types';
  * re-render if the data really changed.
  */
 function OptionRowLHNData({
-    isFocused = false,
+    isOptionFocused = false,
     fullReport,
     reportAttributes,
     oneTransactionThreadReport,
@@ -36,14 +35,9 @@ function OptionRowLHNData({
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
     const currentReportIDValue = useCurrentReportID();
-    const isReportFocused = isFocused && currentReportIDValue?.currentReportID === reportID;
+    const isReportFocused = isOptionFocused && currentReportIDValue?.currentReportID === reportID;
 
     const optionItemRef = useRef<OptionData | undefined>(undefined);
-
-    const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(fullReport, transactionViolations);
-    const isReportSettled = isSettled(fullReport);
-    const shouldDisplayReportViolations = !isReportSettled && isReportOwner(fullReport) && hasReportViolations(reportID);
-
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
@@ -51,14 +45,10 @@ function OptionRowLHNData({
             reportAttributes,
             oneTransactionThreadReport,
             reportNameValuePairs,
-            reportActions,
             personalDetails,
-            preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
-            hasViolations: !!shouldDisplayViolations || shouldDisplayReportViolations,
             lastMessageTextFromReport,
-            transactionViolations,
             invoiceReceiverPolicy,
         });
         // eslint-disable-next-line react-compiler/react-compiler
@@ -76,7 +66,8 @@ function OptionRowLHNData({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
         fullReport,
-        reportAttributes,
+        reportAttributes?.brickRoadStatus,
+        reportAttributes?.reportName,
         oneTransactionThreadReport,
         reportNameValuePairs,
         lastReportActionTransaction,
@@ -87,10 +78,8 @@ function OptionRowLHNData({
         parentReportAction,
         iouReportReportActions,
         transaction,
-        transactionViolations,
         receiptTransactions,
         invoiceReceiverPolicy,
-        shouldDisplayReportViolations,
         lastMessageTextFromReport,
         reportAttributes,
     ]);
@@ -99,8 +88,9 @@ function OptionRowLHNData({
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToForward}
-            isFocused={isReportFocused}
+            isOptionFocused={isReportFocused}
             optionItem={optionItem}
+            report={fullReport}
         />
     );
 }

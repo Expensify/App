@@ -14,6 +14,7 @@ type MoneyRequestReportPreviewStyleType = {
     contentContainerStyle: ViewStyle;
     transactionPreviewStyle: TransactionPreviewStyle;
     componentStyle: StyleProp<ViewStyle>;
+    expenseCountVisible: boolean;
 };
 
 type MoneyRequestReportPreviewProps = {
@@ -28,9 +29,6 @@ type MoneyRequestReportPreviewProps = {
 
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
-
-    /** Extra styles to pass to View wrapper */
-    containerStyles?: StyleProp<ViewStyle>;
 
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor?: ContextMenuAnchor;
@@ -69,7 +67,6 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     policy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;
     lastTransactionViolations: TransactionViolations;
-    isDelegateAccessRestricted: boolean;
 };
 
 type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps &
@@ -80,8 +77,14 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
         /** MoneyRequestReportPreview's current width */
         currentWidth: number;
 
-        /** Callback passed to onLayout  */
-        onLayout: (e: LayoutChangeEvent) => void;
+        /** Extra styles to pass to View wrapper */
+        containerStyles?: StyleProp<ViewStyle>;
+
+        /** Callback passed to Carousel's onLayout  */
+        onCarouselLayout: (e: LayoutChangeEvent) => void;
+
+        /** Callback passed to Component wrapper view's onLayout */
+        onWrapperLayout: (e: LayoutChangeEvent) => void;
 
         /** Callback to render a transaction preview item */
         renderTransactionItem: ListRenderItem<Transaction>;

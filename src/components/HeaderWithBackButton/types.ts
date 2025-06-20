@@ -156,6 +156,11 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** The URL link associated with the attachment's subtitle, if available */
     subTitleLink?: string;
+
+    /** If true, display the individual button instead of the three-dot menu when there's only one menu item */
+    shouldMinimizeMenuButton?: boolean;
+    /** Whether to open the parent report link in the current tab if possible */
+    openParentReportInCurrentTab?: boolean;
 };
 
 export type {ThreeDotsMenuItem};

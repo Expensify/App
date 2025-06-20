@@ -5,7 +5,7 @@ type EmbeddedDemoProps = {
     /** Embedded demo URL */
     url: string;
 
-    /** **(web/desktop)** Description for screenreaders */
+    /** **(web/desktop)** Description for screen readers */
     iframeTitle?: string;
 
     /** **(web/desktop)** Additional iframe props */

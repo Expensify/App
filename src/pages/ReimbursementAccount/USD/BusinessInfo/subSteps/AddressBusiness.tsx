@@ -23,7 +23,7 @@ const STEP_FIELDS = [COMPANY_BUSINESS_INFO_KEY.STREET, COMPANY_BUSINESS_INFO_KEY
 function AddressBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
 
     const defaultValues = {
@@ -31,6 +31,7 @@ function AddressBusiness({onNext, onMove, isEditing}: SubStepProps) {
         city: reimbursementAccount?.achData?.addressCity ?? '',
         state: reimbursementAccount?.achData?.addressState ?? '',
         zipCode: reimbursementAccount?.achData?.addressZipCode ?? '',
+        country: reimbursementAccount?.achData?.country ?? '',
     };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -49,12 +50,13 @@ function AddressBusiness({onNext, onMove, isEditing}: SubStepProps) {
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('businessInfoStep.enterYourCompanysAddress')}
+            formTitle={translate('businessInfoStep.enterYourCompanyAddress')}
             formPOBoxDisclaimer={translate('common.noPO')}
             onSubmit={handleSubmit}
             stepFields={STEP_FIELDS}
             inputFieldsIDs={INPUT_KEYS}
             defaultValues={defaultValues}
+            shouldAllowCountryChange={false}
             streetTranslationKey="common.companyAddress"
         />
     );

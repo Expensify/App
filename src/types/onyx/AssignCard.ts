@@ -1,3 +1,5 @@
+import type {LinkAccount} from 'react-native-plaid-link-sdk';
+import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
@@ -26,6 +28,18 @@ type AssignCardData = {
 
     /** An option based on which the transaction start date is chosen */
     dateOption: string;
+
+    /** bank id for Plaid */
+    institutionId?: string;
+
+    /** access token for Plaid bank */
+    plaidAccessToken?: string;
+
+    /** Plaid feed name */
+    plaidConnectedFeedName?: string;
+
+    /** Plaid accounts */
+    plaidAccounts?: LinkAccount[] | PlaidAccount[];
 };
 
 /** Model of assign card flow */

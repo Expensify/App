@@ -1,4 +1,4 @@
-import type {MoveSelectiontoEnd, ScrollInput} from './types';
+import type {MoveSelectionToEnd, ScrollInput} from './types';
 
 const scrollToBottom: ScrollInput = (input) => {
     if (!('scrollTop' in input)) {
@@ -17,7 +17,7 @@ const scrollToRight: ScrollInput = (input) => {
     input.scrollLeft = input.scrollWidth;
 };
 
-const moveSelectionToEnd: MoveSelectiontoEnd = (input) => {
+const moveSelectionToEnd: MoveSelectionToEnd = (input) => {
     if (!('setSelectionRange' in input)) {
         return;
     }
