@@ -193,6 +193,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -244,6 +245,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -609,6 +611,7 @@ const translations = {
         workspacesTabTitle: 'Espaces de travail',
         getTheApp: "Obtenez l'application",
         scanReceiptsOnTheGo: 'Numérisez les reçus depuis votre téléphone',
+        headsUp: 'Attention !',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1111,6 +1114,7 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Payer ${formattedAmount} ailleurs` : `Payer ailleurs`),
         nextStep: 'Étapes suivantes',
         finished: 'Terminé',
+        flip: 'Inverser',
         sendInvoice: ({amount}: RequestAmountParams) => `Envoyer une facture de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Soumettre ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `pour ${comment}` : ''}`,
@@ -2376,6 +2380,14 @@ const translations = {
         time: 'Temps',
         clearAfter: 'Effacer après',
         whenClearStatus: 'Quand devrions-nous effacer votre statut ?',
+        vacationDelegate: 'Délégué de vacances',
+        setVacationDelegate: `Définissez un délégué de vacances pour approuver les rapports en votre absence.`,
+        vacationDelegateError: 'Une erreur est survenue lors de la mise à jour de votre délégué de vacances.',
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `en tant que délégué de vacances de ${managerName}`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) =>
+            `à ${submittedToName} en tant que délégué de vacances de ${vacationDelegateName}`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `Vous assignez ${nameOrEmail} en tant que délégué de vacances. Il/elle n'est pas encore présent(e) dans tous vos espaces de travail. Si vous choisissez de continuer, un e-mail sera envoyé à tous les administrateurs de vos espaces pour l’ajouter.`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Étape ${step}`;
