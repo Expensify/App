@@ -205,6 +205,7 @@ function VacationDelegatePage() {
                     ListItem={UserListItem}
                     onSelectRow={onSelectRow}
                     shouldSingleExecuteRowSelect
+                    textInputAutoFocus={false}
                     onChangeText={setSearchValue}
                     textInputValue={searchValue}
                     headerMessage={headerMessage}
