@@ -91,7 +91,9 @@ async function run() {
     const assistantID = getInput('PROPOSAL_POLICE_ASSISTANT_ID', {required: true});
     const openAI = new OpenAIUtils(apiKey);
 
+    /* eslint-disable rulesdir/no-default-id-values */
     const issueNumber = payload.issue?.number ?? -1;
+    /* eslint-disable rulesdir/no-default-id-values */
     const commentID = payload.comment?.id ?? -1;
 
     // DUPLICATE PROPOSAL DETECTION
