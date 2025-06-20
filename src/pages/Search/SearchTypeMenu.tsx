@@ -77,7 +77,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     }, [translate, workspaceCardFeeds]);
 
     const typeMenuSections: SearchTypeMenuSection[] = useMemo(() => {
-        const sections = createTypeMenuSections(session, allPolicies);
+        const sections = createTypeMenuSections(session, allPolicies, allCards);
 
         // The first time we render all of the sections the user can see, we need to mark these as 'rendered', such that we dont animate them in
         // We only animate in items that a user gains access to later on
@@ -86,7 +86,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         }
 
         return sections;
-    }, [session, allPolicies]);
+    }, [session, allPolicies, allCards]);
 
     const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
     const createSavedSearchMenuItem = useCallback(

@@ -49,7 +49,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
     const cardFeedNamesWithType = useMemo(() => getCardFeedNamesWithType({workspaceCardFeeds, translate}), [workspaceCardFeeds, translate]);
 
-    const typeMenuSections = useMemo(() => createTypeMenuSections(session, allPolicies), [allPolicies, session]);
+    const typeMenuSections = useMemo(() => createTypeMenuSections(session, allPolicies, allCards), [allPolicies, session, allCards]);
 
     // this is a performance fix, rendering popover menu takes a lot of time and we don't need this component initially, that's why we postpone rendering it until everything else is rendered
     const [delayPopoverMenuFirstRender, setDelayPopoverMenuFirstRender] = useState(true);

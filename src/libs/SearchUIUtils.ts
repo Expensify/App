@@ -43,7 +43,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {canReview} from './ReportPreviewActionUtils';
 import {
@@ -1163,8 +1163,9 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies: OnyxCollection<OnyxTypes.Policy> = {}): SearchTypeMenuSection[] {
+function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies: OnyxCollection<OnyxTypes.Policy> = {}, cards: OnyxTypes.CardList): SearchTypeMenuSection[] {
     const email = session?.email;
+    const hasCardFeed = Object.keys(cards).length > 0;
 
     // Start building the sections by requiring the following sections to always be present
     const typeMenuSections: SearchTypeMenuSection[] = [
@@ -1397,32 +1398,133 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
         menuItems: [],
     };
 
-    const showShowStatementsSuggesion = false; // s77rt
-    const showShowUnapprovedSuggesion = true; // s77rt
-    const showShowUnapprovedCashSuggesion = false; // s77rt
-    const showShowUnapprovedCompanyCardsSuggesion = false; // s77rt
-    const showShowReconciliationSuggesion = false; // s77rt
+    let maybeHaveUnapprovedOutOfPocketExpenses = false;
+    let maybeHaveUnapprovedCompanyCardExpenses = false;
 
-    if (showShowStatementsSuggesion) {
+    let shouldShowStatementsSuggesion = false,
+        shouldShowUnapprovedSuggesion = false,
+        shouldShowReconciliationSuggesion = false;
+
+    Object.values(policies).some((policy) => {
+        if (!policy || !isPaidGroupPolicy(policy)) {
+            return false;
+        }
+
+        const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+        const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+        const isPaymentEnabled = arePaymentsEnabled(policy);
+
+        maybeHaveUnapprovedOutOfPocketExpenses ||= isPaymentEnabled;
+        maybeHaveUnapprovedCompanyCardExpenses ||= (policy.areCompanyCardsEnabled === true || policy.areExpensifyCardsEnabled === true) && hasCardFeed;
+
+        shouldShowStatementsSuggesion ||= false; // s77rt
+        shouldShowUnapprovedSuggesion ||= isAdmin && isApprovalEnabled && (maybeHaveUnapprovedOutOfPocketExpenses || maybeHaveUnapprovedCompanyCardExpenses);
+        shouldShowReconciliationSuggesion ||= false; // s77rt
+
+        // If all search variables are true return early to avoid redundant iterations
+        return (
+            maybeHaveUnapprovedOutOfPocketExpenses &&
+            maybeHaveUnapprovedCompanyCardExpenses &&
+            shouldShowStatementsSuggesion &&
+            shouldShowUnapprovedSuggesion &&
+            shouldShowReconciliationSuggesion
+        );
+    });
+
+    if (shouldShowStatementsSuggesion) {
         // s77rt TODO
     }
 
-    if (showShowUnapprovedSuggesion) {
+    if (shouldShowUnapprovedSuggesion) {
+        if (maybeHaveUnapprovedOutOfPocketExpenses && maybeHaveUnapprovedCompanyCardExpenses) {
+            accountingSection.menuItems.push(
+                {
+                    translationPath: 'search.unapprovedCash',
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    icon: Expensicons.MoneySearch, // s77rt
+                    emptyState: {
+                        headerMedia: DotLottieAnimations.Fireworks,
+                        title: 'search.searchResults.emptyUnapprovedResults.title',
+                        subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
+                    },
+                    getSearchQuery: () => {
+                        const queryString = buildQueryStringFromFilterFormValues({
+                            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                            groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                            status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                            reimbursable: CONST.SEARCH.BOOLEAN.YES,
+                        });
+                        return queryString;
+                    },
+                },
+                {
+                    translationPath: 'search.unapprovedCompanyCards',
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    icon: Expensicons.CreditCardHourglass,
+                    emptyState: {
+                        headerMedia: DotLottieAnimations.Fireworks,
+                        title: 'search.searchResults.emptyUnapprovedResults.title',
+                        subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
+                    },
+                    getSearchQuery: () => {
+                        const queryString = buildQueryStringFromFilterFormValues({
+                            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                            groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
+                            feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
+                            status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                        });
+                        return queryString;
+                    },
+                },
+            );
+        } else if (maybeHaveUnapprovedOutOfPocketExpenses) {
+            accountingSection.menuItems.push({
+                translationPath: 'search.unapproved',
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                icon: Expensicons.Hourglass,
+                emptyState: {
+                    headerMedia: DotLottieAnimations.Fireworks,
+                    title: 'search.searchResults.emptyUnapprovedResults.title',
+                    subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
+                },
+                getSearchQuery: () => {
+                    const queryString = buildQueryStringFromFilterFormValues({
+                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                        status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                        reimbursable: CONST.SEARCH.BOOLEAN.YES,
+                    });
+                    return queryString;
+                },
+            });
+        } else {
+            accountingSection.menuItems.push({
+                translationPath: 'search.unapproved',
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                icon: Expensicons.Hourglass,
+                emptyState: {
+                    headerMedia: DotLottieAnimations.Fireworks,
+                    title: 'search.searchResults.emptyUnapprovedResults.title',
+                    subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
+                },
+                getSearchQuery: () => {
+                    const queryString = buildQueryStringFromFilterFormValues({
+                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                        groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
+                        feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
+                        status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                    });
+                    return queryString;
+                },
+            });
+        }
+    }
+
+    if (shouldShowReconciliationSuggesion) {
         // s77rt TODO
     }
 
-    if (showShowUnapprovedCashSuggesion) {
-        // s77rt TODO
-    }
-
-    if (showShowUnapprovedCompanyCardsSuggesion) {
-        // s77rt TODO
-    }
-
-    if (showShowReconciliationSuggesion) {
-        // s77rt TODO
-    }
-
+    // s77rt (remove email lock)
     if (accountingSection.menuItems.length > 0 && session?.email?.endsWith('@abdelhafidh.com')) {
         typeMenuSections.push(accountingSection);
     }
