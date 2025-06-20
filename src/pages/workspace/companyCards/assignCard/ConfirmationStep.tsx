@@ -59,7 +59,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
         if (backTo ?? lastRoute?.name === SCREENS.WORKSPACE.COMPANY_CARDS) {
             Navigation.goBack(backTo);
         } else {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
         }
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
     }, [assignCard, backTo, policyID, currentFullScreenRoute?.state?.routes]);
