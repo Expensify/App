@@ -1,5 +1,5 @@
 import type {GestureResponderEvent} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {Merge, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
