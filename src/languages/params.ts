@@ -165,6 +165,8 @@ type PayerPaidParams = {payer: string};
 
 type PayerSettledParams = {amount: number | string};
 
+type CreateExpensesParams = {expensesNumber: number};
+
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type CanceledRequestParams = {amount: string; submitterDisplayName: string};
@@ -765,11 +767,16 @@ type TravelTypeParams = {
     id?: string;
 };
 
+type ContactMethodsRouteParams = {
+    contactMethodsRoute: string;
+};
+
 type BusinessTaxIDParams = {
     country: string;
 };
 
 export type {
+    ContactMethodsRouteParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
@@ -1032,6 +1039,7 @@ export type {
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     SubscriptionSettingsSummaryParams,
     ReviewParams,
+    CreateExpensesParams,
     CurrencyInputDisabledTextParams,
     EmployeeInviteMessageParams,
     FlightParams,

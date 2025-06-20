@@ -658,6 +658,15 @@ function isValidRegistrationNumber(registrationNumber: string, country: Country 
 }
 
 /**
+ * Checks if the `inputValue` byte length exceeds the specified byte length,
+ * returning `isValid` (boolean) and `byteLength` (number) to be used in dynamic error copy.
+ */
+function isValidInputLength(inputValue: string, byteLength: number) {
+    const valueByteLength = StringUtils.getUTF8ByteLength(inputValue);
+    return {isValid: valueByteLength <= byteLength, byteLength: valueByteLength};
+}
+
+/**
  * Validates the given value as a U.S. Employer Identification Number (EIN).
  * Format: XX-XXXXXXX
  * @param ein - The EIN to validate.
@@ -767,5 +776,6 @@ export {
     isValidZipCodeInternational,
     isValidOwnershipPercentage,
     isValidRegistrationNumber,
+    isValidInputLength,
     isValidTaxIDEINNumber,
 };
