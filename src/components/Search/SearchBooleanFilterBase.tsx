@@ -84,7 +84,6 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
                     shouldSingleExecuteRowSelect
                     sections={[{data: items}]}
                     ListItem={SingleSelectListItem}
-                    initiallyFocusedOptionKey={selectedItem}
                     onSelectRow={updateFilter}
                 />
             </View>
