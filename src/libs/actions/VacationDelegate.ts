@@ -9,14 +9,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {VacationDelegate} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-let vacationDelegate: VacationDelegate;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE,
-    callback: (val) => {
-        vacationDelegate = val ?? {};
-    },
-});
-
 function setVacationDelegate(creator: string, delegate: string) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -61,7 +53,7 @@ function setVacationDelegate(creator: string, delegate: string) {
     API.write(WRITE_COMMANDS.SET_VACATION_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
-function deleteVacationDelegate() {
+function deleteVacationDelegate(vacationDelegate?: VacationDelegate) {
     if (isEmptyObject(vacationDelegate)) {
         return;
     }

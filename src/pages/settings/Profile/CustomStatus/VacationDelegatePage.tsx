@@ -85,7 +85,7 @@ function useOptions() {
         };
     }, [debouncedSearchValue, defaultOptions, excludeLogins]);
 
-    return {...options, currentVacationDelegate, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, delegatePersonalDetails};
+    return {...options, vacationDelegate, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized, delegatePersonalDetails};
 }
 
 function VacationDelegatePage() {
@@ -95,7 +95,7 @@ function VacationDelegatePage() {
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
     const {
-        currentVacationDelegate,
+        vacationDelegate,
         userToInvite,
         recentReports,
         personalDetails,
@@ -110,7 +110,7 @@ function VacationDelegatePage() {
     const sections = useMemo(() => {
         const sectionsList = [];
 
-        if (currentVacationDelegate && delegatePersonalDetails) {
+        if (vacationDelegate && delegatePersonalDetails) {
             sectionsList.push({
                 title: undefined,
                 data: [
@@ -170,12 +170,12 @@ function VacationDelegatePage() {
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [currentVacationDelegate, delegatePersonalDetails, personalDetails, recentReports, translate, userToInvite]);
+    }, [vacationDelegate, delegatePersonalDetails, personalDetails, recentReports, translate, userToInvite]);
 
     const onSelectRow = useCallback(
         (option: Participant) => {
-            if (option?.login === currentVacationDelegate) {
-                deleteVacationDelegate();
+            if (option?.login === vacationDelegate?.delegate) {
+                deleteVacationDelegate(vacationDelegate);
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
                 return;
             }
@@ -183,7 +183,7 @@ function VacationDelegatePage() {
             setVacationDelegate(currentUserLogin ?? '', option?.login ?? '');
             Navigation.goBack(ROUTES.SETTINGS_STATUS);
         },
-        [currentUserLogin, currentVacationDelegate],
+        [currentUserLogin, vacationDelegate],
     );
 
     useEffect(() => {
