@@ -4,6 +4,9 @@ import type IconAsset from '@src/types/utils/IconAsset';
 type AttachmentSource = string | IconAsset | number;
 
 type Attachment = {
+    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
+    source: AttachmentSource;
+
     /** Report action ID of the attachment */
     reportActionID?: string;
 
@@ -12,9 +15,6 @@ type Attachment = {
 
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
-
-    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
-    source: AttachmentSource;
 
     /** URL to preview-sized attachment that is also used for the thumbnail */
     previewSource?: AttachmentSource;
