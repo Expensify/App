@@ -206,7 +206,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
                 // Scrolling to last item needs a delay to work due to FlatList internal bug.
                 setTimeout(() => {
                     ref.scrollToIndex(indexOfNewItem);
-                }, 100);
+                }, 200);
             } else {
                 ref.scrollToIndex(indexOfNewItem);
             }
