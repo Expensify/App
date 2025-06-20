@@ -131,7 +131,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     danger
                 />
                 <Text style={[styles.textMicroSupporting, styles.m5]}>
-                    {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euDisclaimer' : 'workspace.expensifyCard.disclaimer')}
+                    {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
                 </Text>
             </View>
         </WorkspacePageWithSections>
