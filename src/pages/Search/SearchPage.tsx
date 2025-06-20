@@ -378,17 +378,20 @@ function SearchPage({route}: SearchPageProps) {
         });
     };
 
-    const saveFileAndInitMoneyRequest = (file: FileObject) => {
-        const source = URL.createObjectURL(file as Blob);
-        const newReportID = generateReportID();
-        initMoneyRequest({
-            isFromGlobalCreate: true,
-            reportID: newReportID,
-            newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+    const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
+        files.forEach((file) => {
+            const source = URL.createObjectURL(file as Blob);
+            const newReportID = generateReportID();
+            console.log(file);
+            // initMoneyRequest({
+            //     isFromGlobalCreate: true,
+            //     reportID: newReportID,
+            //     newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            // });
+            // // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            // setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, file.name || '', true);
+            // navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
         });
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, file.name || '', true);
-        navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
     };
 
     const {validateFiles, isLoadingReceipt, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);

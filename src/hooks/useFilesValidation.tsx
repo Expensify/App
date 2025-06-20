@@ -19,7 +19,7 @@ type ErrorObject = {
     fileExtension?: string;
 };
 
-function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
+function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => void) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
@@ -59,7 +59,6 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
             resetValidationState();
         });
     }, [resetValidationState]);
-
 
     const setErrorAndOpenModal = (error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>) => {
         setFileError(error);
@@ -111,14 +110,10 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
                 setIsErrorModalVisible(true);
             }
         } else if (validFiles.current.length > 0) {
-            // No errors, proceed with valid files
-            const firstValidFile = validFiles.current.at(0);
-            if (firstValidFile) {
-                proceedWithFileAction(firstValidFile);
-                resetValidationState();
-            }
+            proceedWithFilesAction(validFiles.current);
+            resetValidationState();
         }
-    }, [pdfFilesToRender.length, proceedWithFileAction, resetValidationState]);
+    }, [pdfFilesToRender.length, proceedWithFilesAction, resetValidationState]);
 
     const validateAndResizeFiles = (files: FileObject[]) => {
         // Reset collected errors for new validation
@@ -166,12 +161,8 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
                             setIsErrorModalVisible(true);
                         }
                     } else if (processedImages.length > 0) {
-                        // No errors, proceed with valid files immediately
-                        const firstValidFile = processedImages.at(0);
-                        if (firstValidFile) {
-                            proceedWithFileAction(firstValidFile);
-                            resetValidationState();
-                        }
+                        proceedWithFilesAction(processedImages);
+                        resetValidationState();
                     }
                 }
             });
@@ -207,11 +198,7 @@ function useFilesValidation(proceedWithFileAction: (file: FileObject) => void) {
             }
         }
 
-        // All errors have been shown, proceed with valid files
-        const firstValidFile = validFilesToUpload.at(0);
-        if (firstValidFile) {
-            proceedWithFileAction(firstValidFile);
-        }
+        proceedWithFilesAction(validFilesToUpload);
         hideModalAndReset();
     };
 
