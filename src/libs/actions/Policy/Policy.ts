@@ -4088,15 +4088,19 @@ function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: string) {
 /**
  *
  * @param policyID
- * @param prohibitedExpenses
+ * @param prohibitedExpense
  */
-function setPolicyProhibitedExpenses(policyID: string, prohibitedExpense: keyof ProhibitedExpenses) {
+function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof ProhibitedExpenses) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     const originalProhibitedExpenses = policy?.prohibitedExpenses;
     const prohibitedExpenses = {
-        ...originalProhibitedExpenses,
+        [CONST.POLICY.PROHIBITED_EXPENSES.ADULT_ENTERTAINMENT]: originalProhibitedExpenses?.[CONST.POLICY.PROHIBITED_EXPENSES.ADULT_ENTERTAINMENT],
+        [CONST.POLICY.PROHIBITED_EXPENSES.ALCOHOL]: originalProhibitedExpenses?.[CONST.POLICY.PROHIBITED_EXPENSES.ALCOHOL],
+        [CONST.POLICY.PROHIBITED_EXPENSES.GAMBLING]: originalProhibitedExpenses?.[CONST.POLICY.PROHIBITED_EXPENSES.GAMBLING],
+        [CONST.POLICY.PROHIBITED_EXPENSES.HOTEL_INCIDENTALS]: originalProhibitedExpenses?.[CONST.POLICY.PROHIBITED_EXPENSES.HOTEL_INCIDENTALS],
+        [CONST.POLICY.PROHIBITED_EXPENSES.TOBACCO]: originalProhibitedExpenses?.[CONST.POLICY.PROHIBITED_EXPENSES.TOBACCO],
         [prohibitedExpense]: !originalProhibitedExpenses?.[prohibitedExpense],
     };
 
@@ -5448,7 +5452,7 @@ export {
     setPolicyMaxExpenseAmount,
     setPolicyMaxExpenseAge,
     updateCustomRules,
-    setPolicyProhibitedExpenses,
+    setPolicyProhibitedExpense,
     setPolicyBillableMode,
     disableWorkspaceBillableExpenses,
     setWorkspaceEReceiptsEnabled,

@@ -13,7 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {setPolicyProhibitedExpenses} from '@userActions/Policy/Policy';
+import {setPolicyProhibitedExpense} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
@@ -50,14 +50,17 @@ function RulesProhibitedDefaultPage({
                     </Text>
 
                     {Object.values(CONST.POLICY.PROHIBITED_EXPENSES).map((prohibitedExpense) => (
-                        <OfflineWithFeedback pendingAction={policy?.prohibitedExpenses?.pendingFields?.[prohibitedExpense]}>
+                        <OfflineWithFeedback
+                            pendingAction={policy?.prohibitedExpenses?.pendingFields?.[prohibitedExpense]}
+                            key={translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
+                        >
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mt3, styles.mh5, styles.mb5]}>
                                 <Text>{translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}</Text>
                                 <Switch
                                     isOn={policy?.prohibitedExpenses?.[prohibitedExpense] ?? false}
-                                    accessibilityLabel={translate('workspace.rules.individualExpenseRules.adultEntertainment')}
+                                    accessibilityLabel={translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
                                     onToggle={() => {
-                                        setPolicyProhibitedExpenses(policyID, prohibitedExpense);
+                                        setPolicyProhibitedExpense(policyID, prohibitedExpense);
                                     }}
                                 />
                             </View>
