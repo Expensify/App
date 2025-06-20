@@ -115,6 +115,16 @@ function SearchPage({route}: SearchPageProps) {
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
+    const beginExportWithTemplate = useCallback(
+        (templateName: string, templateType: string, policyID: string | undefined) => {
+            setIsExportModalVisible(true);
+            const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+            queueExportSearchWithTemplate({templateName, templateType, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys, policyID});
+            clearSelectedTransactions();
+        },
+        [queryJSON, selectedReports, selectedTransactionsKeys, clearSelectedTransactions],
+    );
+
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || !status || !hash) {
             return [];
@@ -125,8 +135,6 @@ function SearchPage({route}: SearchPageProps) {
 
         // Gets the list of options for the export sub-menu
         const getExportOptions = () => {
-            const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-
             // We provide the basic and expense level export options by default
             const exportOptions: PopoverMenuItem[] = [
                 {
@@ -147,7 +155,7 @@ function SearchPage({route}: SearchPageProps) {
                             {
                                 query: status,
                                 jsonQuery: JSON.stringify(queryJSON),
-                                reportIDList,
+                                reportIDList: selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [],
                                 transactionIDList: selectedTransactionsKeys,
                             },
                             () => {
@@ -160,24 +168,9 @@ function SearchPage({route}: SearchPageProps) {
                 {
                     text: translate('export.expenseLevelExport'),
                     icon: Expensicons.Table,
-                    onSelected: () => {
-                        if (isOffline) {
-                            setIsOfflineModalVisible(true);
-                            return;
-                        }
-
-                        setIsExportModalVisible(true);
-                        queueExportSearchWithTemplate({
-                            templateName: CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
-                            templateType: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
-                            jsonQuery: JSON.stringify(queryJSON),
-                            reportIDList,
-                            transactionIDList: selectedTransactionsKeys,
-                            // The expense level export template is not policy specific, so we don't need to pass a policyID
-                            policyID: '',
-                        });
-                        clearSelectedTransactions();
-                    },
+                    onSelected: () =>
+                        // The report level export template is not policy specific, so we don't need to pass a policyID
+                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined),
                 },
             ];
 
@@ -192,24 +185,9 @@ function SearchPage({route}: SearchPageProps) {
                 exportOptions.push({
                     text: translate('export.reportLevelExport'),
                     icon: Expensicons.Table,
-                    onSelected: () => {
-                        if (isOffline) {
-                            setIsOfflineModalVisible(true);
-                            return;
-                        }
-
-                        setIsExportModalVisible(true);
-                        queueExportSearchWithTemplate({
-                            templateName: CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
-                            templateType: CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS,
-                            jsonQuery: JSON.stringify(queryJSON),
-                            reportIDList,
-                            transactionIDList: selectedTransactionsKeys,
-                            // The expense level export template is not policy specific, so we don't need to pass a policyID
-                            policyID: '',
-                        });
-                        clearSelectedTransactions();
-                    },
+                    onSelected: () =>
+                        // The report level export template is not policy specific, so we don't need to pass a policyID
+                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined),
                 });
             }
 
@@ -445,6 +423,7 @@ function SearchPage({route}: SearchPageProps) {
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
+        beginExportWithTemplate,
     ]);
 
     const handleDeleteExpenses = () => {
