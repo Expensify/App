@@ -613,3 +613,58 @@ describe('getViolationTranslation', () => {
         expect(ViolationsUtils.getViolationTranslation(brokenCardConnection530Violation, translateLocal)).toBe(brokenCardConnection530ViolationExpected);
     });
 });
+
+describe('getRBRMessages', () => {
+    const mockTransaction: Transaction = {
+        transactionID: 'test-transaction-id',
+        reportID: 'test-report-id',
+        amount: 100,
+        currency: CONST.CURRENCY.USD,
+        created: '2023-07-24 13:46:20',
+        merchant: 'Test Merchant',
+    };
+
+    it('should return all violations and missing field error', () => {
+        const violations: TransactionViolation[] = [
+            {
+                name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            },
+            {
+                name: CONST.VIOLATIONS.MISSING_TAG,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            },
+        ];
+
+        const missingFieldError = 'Missing required field';
+
+        const result = ViolationsUtils.getRBRMessages(mockTransaction, violations, translateLocal, missingFieldError, []);
+
+        const expectedResult = `Missing required field. ${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
+
+        expect(result).toBe(expectedResult);
+    });
+
+    it('should filter out empty strings', () => {
+        const violations = [
+            {
+                name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            },
+            {
+                name: '',
+                type: '',
+            },
+            {
+                name: CONST.VIOLATIONS.MISSING_TAG,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            },
+        ] as TransactionViolation[];
+
+        const result = ViolationsUtils.getRBRMessages(mockTransaction, violations, translateLocal, undefined, []);
+
+        const expectedResult = `${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
+
+        expect(result).toBe(expectedResult);
+    });
+});
