@@ -19,7 +19,7 @@ const STEP_FIELDS = [COMPANY_INCORPORATION_CODE_KEY];
 function IncorporationCode({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -49,7 +49,7 @@ function IncorporationCode({onNext, isEditing}: SubStepProps) {
             submitButtonStyles={[styles.ph5, styles.mb0]}
             shouldHideFixErrorsAlert
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('companyStep.industryClassification')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb6]}>{translate('companyStep.industryClassification')}</Text>
             <InputWrapper
                 InputComponent={IndustryCodeSelector}
                 inputID={COMPANY_INCORPORATION_CODE_KEY}
