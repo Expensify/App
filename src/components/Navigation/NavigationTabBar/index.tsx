@@ -23,14 +23,15 @@ import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import {getLastVisitedTabPath, getSettingsTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
+import {isWorkspacesTabScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import {getLastVisitedTabPath, getSettingsTabStateFromSessionStorage, getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
-import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State} from '@navigation/types';
+import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/home/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/home/sidebar/NavigationTabBarFloatingActionButton';
 import variables from '@styles/variables';
@@ -54,7 +55,26 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {orderedReports} = useSidebarOrderedReports();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {initialValue: {}, canBeMissing: true});
+    const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+        selector: (val) => {
+            const rootState = navigationRef.getRootState();
+            const workspacesTabStateFromSessionStorage = getWorkspacesTabStateFromSessionStorage() ?? rootState;
+            const lastWorkspacesTabNavigatorRoute = workspacesTabStateFromSessionStorage.routes.findLast((route) => isWorkspacesTabScreenName(route.name));
+            let workspacesTabState = lastWorkspacesTabNavigatorRoute?.state;
+
+            if (!workspacesTabState && lastWorkspacesTabNavigatorRoute?.key) {
+                workspacesTabState = getPreservedNavigatorState(lastWorkspacesTabNavigatorRoute.key);
+            }
+
+            if (!lastWorkspacesTabNavigatorRoute || lastWorkspacesTabNavigatorRoute.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+                return undefined;
+            }
+
+            const params = workspacesTabState?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
+            return val?.[`${ONYXKEYS.COLLECTION.POLICY}${params.policyID}`];
+        },
+    });
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -141,8 +161,8 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
      * If the user clicks on the settings tab while on this tab, this button should go back to the previous screen within the tab.
      */
     const showWorkspaces = useCallback(() => {
-        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policies});
-    }, [shouldUseNarrowLayout, currentUserLogin, policies]);
+        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy});
+    }, [shouldUseNarrowLayout, currentUserLogin, policy]);
 
     if (!shouldUseNarrowLayout) {
         return (
