@@ -735,12 +735,12 @@ describe('GithubUtils', () => {
             const result = await GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
 
             expect(result).toHaveLength(2);
-            expect(result[0]).toEqual({
+            expect(result.at(0)).toEqual({
                 commit: 'abc123',
                 subject: 'First commit',
                 authorName: 'Author One',
             });
-            expect(result[1]).toEqual({
+            expect(result.at(1)).toEqual({
                 commit: 'def456',
                 subject: 'Second commit',
                 authorName: 'Author Two',
