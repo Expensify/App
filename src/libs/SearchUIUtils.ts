@@ -1392,6 +1392,41 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
         typeMenuSections.push(section);
     }
 
+    const accountingSection: SearchTypeMenuSection = {
+        translationPath: 'workspace.common.accounting',
+        menuItems: [],
+    };
+
+    const showShowStatementsSuggesion = false; // s77rt
+    const showShowUnapprovedSuggesion = true; // s77rt
+    const showShowUnapprovedCashSuggesion = false; // s77rt
+    const showShowUnapprovedCompanyCardsSuggesion = false; // s77rt
+    const showShowReconciliationSuggesion = false; // s77rt
+
+    if (showShowStatementsSuggesion) {
+        // s77rt TODO
+    }
+
+    if (showShowUnapprovedSuggesion) {
+        // s77rt TODO
+    }
+
+    if (showShowUnapprovedCashSuggesion) {
+        // s77rt TODO
+    }
+
+    if (showShowUnapprovedCompanyCardsSuggesion) {
+        // s77rt TODO
+    }
+
+    if (showShowReconciliationSuggesion) {
+        // s77rt TODO
+    }
+
+    if (accountingSection.menuItems.length > 0) {
+        typeMenuSections.push(accountingSection);
+    }
+
     return typeMenuSections;
 }
 
