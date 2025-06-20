@@ -220,7 +220,7 @@ function VacationDelegatePage() {
             <ConfirmModal
                 isVisible={isWarningModalVisible}
                 title={translate('common.headsUp')}
-                prompt={translate('statusPage.vacationDelegateWarning', {nameOrEmail: newVacationDelegate})}
+                prompt={translate('statusPage.vacationDelegateWarning', {nameOrEmail: getPersonalDetailByEmail(newVacationDelegate)?.displayName ?? newVacationDelegate})}
                 onConfirm={() => {
                     setIsWarningModalVisible(false);
                     setVacationDelegate(currentUserLogin ?? '', newVacationDelegate, true).then(() => Navigation.goBack(ROUTES.SETTINGS_STATUS));
