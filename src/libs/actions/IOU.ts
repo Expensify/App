@@ -9224,12 +9224,7 @@ function isLastApprover(approvalChain: string[]): boolean {
     return approvalChain.at(-1) === currentUserEmail;
 }
 
-function approveMoneyRequest(
-    expenseReport: OnyxEntry<OnyxTypes.Report>,
-    full?: boolean,
-    reportTransactions: OnyxTypes.Transaction[] = [],
-    allSnapshots?: OnyxCollection<OnyxTypes.SearchResults>,
-) {
+function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean, reportTransactions: OnyxTypes.Transaction[] = [], snapshot?: OnyxTypes.SearchResults) {
     if (!expenseReport) {
         return;
     }
@@ -9376,8 +9371,6 @@ function approveMoneyRequest(
 
     const hash = currentSearchQueryJSON?.hash;
     if (hash) {
-        const snapshot = allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`];
-
         reportTransactions.forEach((transaction) => {
             const snapshotTransaction = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] ?? {}) as SearchTransaction;
             optimisticData.push({
@@ -9703,7 +9696,7 @@ function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     API.write(WRITE_COMMANDS.RETRACT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>, reportTransactions: OnyxTypes.Transaction[] = [], allSnapshots?: OnyxCollection<OnyxTypes.SearchResults>) {
+function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>, reportTransactions: OnyxTypes.Transaction[] = [], snapshot?: OnyxTypes.SearchResults) {
     if (isEmptyObject(expenseReport)) {
         return;
     }
@@ -9822,7 +9815,6 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>, repo
 
     const hash = currentSearchQueryJSON?.hash;
     if (hash) {
-        const snapshot = allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`];
         const canHold = () => {
             const iouOrExpenseReport = isMoneyRequestReportReportUtils(expenseReport);
             if (!iouOrExpenseReport) {

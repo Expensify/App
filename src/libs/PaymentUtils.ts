@@ -121,7 +121,7 @@ const selectPaymentType = (
     isUserValidated?: boolean,
     confirmApproval?: () => void,
     iouReport?: OnyxEntry<Report>,
-    allSnapshots?: OnyxCollection<SearchResults>,
+    snapshot?: SearchResults,
     transactions?: Transaction[],
 ) => {
     if (policy && shouldRestrictUserBillableActions(policy.id)) {
@@ -143,7 +143,7 @@ const selectPaymentType = (
         if (confirmApproval) {
             confirmApproval();
         } else {
-            approveMoneyRequest(iouReport, false, transactions, allSnapshots);
+            approveMoneyRequest(iouReport, false, transactions, snapshot);
         }
         return;
     }

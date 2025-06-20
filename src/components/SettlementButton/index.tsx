@@ -10,7 +10,8 @@ import usePaymentOptions from '@hooks/usePaymentOptions';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
-import {doesReportBelongToWorkspace, getReportTransactions, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
+import {doesReportBelongToWorkspace, isInvoiceReport as isInvoiceReportUtil, reportTransactionsSelector} from '@libs/ReportUtils';
+import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {savePreferredPaymentMethod as savePreferredPaymentMethodIOU} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,8 +68,15 @@ function SettlementButton({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {canBeMissing: true});
-    const transactions = getReportTransactions(iouReport?.reportID);
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+    const hash = currentSearchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true});
+
+    const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (_transactions) => reportTransactionsSelector(_transactions, iouReport?.reportID),
+        initialValue: [],
+        canBeMissing: true,
+    });
 
     const paymentButtonOptions = usePaymentOptions({
         addBankAccountRoute,
@@ -91,7 +99,7 @@ function SettlementButton({
             showLockedAccountModal();
             return;
         }
-        selectPaymentType(event, iouPaymentType, triggerKYCFlow, policy, onPress, isUserValidated, confirmApproval, iouReport, allSnapshots, transactions);
+        selectPaymentType(event, iouPaymentType, triggerKYCFlow, policy, onPress, isUserValidated, confirmApproval, iouReport, snapshot, transactions);
     };
 
     const savePreferredPaymentMethod = (id: string, value: PaymentMethodType) => {

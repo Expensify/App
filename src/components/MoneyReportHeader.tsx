@@ -47,6 +47,7 @@ import {
     navigateToDetailsPage,
     reportTransactionsSelector,
 } from '@libs/ReportUtils';
+import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
@@ -235,7 +236,9 @@ function MoneyReportHeader({
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
-    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {canBeMissing: true});
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+    const hash = currentSearchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true});
 
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason, canBeMissing: true});
 
@@ -333,7 +336,7 @@ function MoneyReportHeader({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(moneyRequestReport, true, transactions, allSnapshots);
+            approveMoneyRequest(moneyRequestReport, true, transactions, snapshot);
         }
     };
 
@@ -715,7 +718,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                unapproveExpenseReport(moneyRequestReport, transactions, allSnapshots);
+                unapproveExpenseReport(moneyRequestReport, transactions, snapshot);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
@@ -1019,7 +1022,7 @@ function MoneyReportHeader({
                         }
                     }}
                     transactionCount={transactionIDs?.length ?? 0}
-                    allSnapshots={allSnapshots}
+                    snapshot={snapshot}
                     transactions={transactions}
                 />
             )}
@@ -1127,7 +1130,7 @@ function MoneyReportHeader({
                 confirmText={translate('iou.unapproveReport')}
                 onConfirm={() => {
                     setIsUnapproveModalVisible(false);
-                    unapproveExpenseReport(moneyRequestReport, transactions, allSnapshots);
+                    unapproveExpenseReport(moneyRequestReport, transactions, snapshot);
                 }}
                 cancelText={translate('common.cancel')}
                 onCancel={() => setIsUnapproveModalVisible(false)}

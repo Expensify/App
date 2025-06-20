@@ -45,8 +45,8 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Callback for displaying payment animation on IOU preview component */
     startAnimation?: () => void;
 
-    /** All snapshots */
-    allSnapshots?: OnyxCollection<OnyxTypes.SearchResults>;
+    /** Snapshot of search results */
+    snapshot?: OnyxTypes.SearchResults;
 
     /** Transactions of the report */
     transactions?: OnyxTypes.Transaction[];
@@ -63,7 +63,7 @@ function ProcessMoneyReportHoldMenu({
     moneyRequestReport,
     transactionCount,
     startAnimation,
-    allSnapshots,
+    snapshot,
     transactions,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
@@ -77,7 +77,7 @@ function ProcessMoneyReportHoldMenu({
             if (startAnimation) {
                 startAnimation();
             }
-            approveMoneyRequest(moneyRequestReport, full, transactions, allSnapshots);
+            approveMoneyRequest(moneyRequestReport, full, transactions, snapshot);
             // eslint-disable-next-line rulesdir/no-default-id-values
             if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '-1', moneyRequestReport?.reportID ?? '')) {
                 // eslint-disable-next-line rulesdir/no-default-id-values
