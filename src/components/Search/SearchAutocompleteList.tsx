@@ -12,6 +12,7 @@ import type {SearchQueryItem, SearchQueryListItemProps} from '@components/Select
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useDebounce from '@hooks/useDebounce';
 import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -527,15 +528,19 @@ function SearchAutocompleteList(
         return reportOptions.slice(0, 20);
     }, [autocompleteQueryValue, filterOptions, searchOptions, isFastSearchInitialized]);
 
-    useEffect(() => {
-        if (!handleSearch) {
-            return;
-        }
-        const timeout = setTimeout(() => {
+    const debounceHandleSearch = useDebounce(
+        useCallback(() => {
+            if (!handleSearch || !autocompleteQueryWithoutFilters) {
+                return;
+            }
             handleSearch(autocompleteQueryWithoutFilters);
-        }, 300);
-        return () => clearTimeout(timeout);
-    }, [autocompleteQueryWithoutFilters, handleSearch]);
+        }, [handleSearch, autocompleteQueryWithoutFilters]),
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+    );
+
+    useEffect(() => {
+        debounceHandleSearch();
+    }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
 
     /* Sections generation */
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
