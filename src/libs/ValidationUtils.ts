@@ -700,6 +700,7 @@ function isValidBN(bn: string): boolean {
  * @param vat - The VAT number to validate.
  * @returns True if the value is a valid EU VAT number; otherwise, false.
  */
+// cspell:disable-next-line
 function isValidEUVATNumber(vat: string): boolean {
     return /^[A-Z]{2}[A-Z0-9]{8,12}$/.test(vat);
 }
