@@ -52,7 +52,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || undefined}`, {canBeMissing: false});
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID || undefined}`, {canBeMissing: true});
-    const isArchivedRoom = isArchivedNonExpenseReport(report, reportNameValuePairs);
+    const isArchivedRoom = isArchivedNonExpenseReport(report, reportNameValuePairs?.private_isArchived);
     const isChatRoom = isChatRoomReportUtils(report);
     const isSelfDM = isSelfDMReportUtils(report);
     const isInvoiceRoom = isInvoiceRoomReportUtils(report);

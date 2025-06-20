@@ -105,7 +105,7 @@ function ReportFooter({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
-    const isArchivedRoom = isArchivedNonExpenseReport(report, reportNameValuePairs);
+    const isArchivedRoom = isArchivedNonExpenseReport(report, reportNameValuePairs?.private_isArchived);
 
     const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth) < variables.anonymousReportFooterBreakpoint;
 
