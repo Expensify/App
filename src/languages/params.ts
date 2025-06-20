@@ -5,10 +5,6 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
-type WorkspaceInitialRouteParams = {
-    workspaceInitialRoute: string;
-};
-
 type AddressLineParams = {
     lineNumber: number;
 };
@@ -139,6 +135,10 @@ type MovedFromReportParams = {
 
 type SettleExpensifyCardParams = {
     formattedAmount: string;
+};
+
+type WorkspaceRouteParams = {
+    workspaceRoute: string;
 };
 
 type RequestAmountParams = {amount: string};
@@ -772,7 +772,6 @@ type TravelTypeParams = {
 };
 
 export type {
-    WorkspaceInitialRouteParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
@@ -1042,4 +1041,5 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    WorkspaceRouteParams,
 };

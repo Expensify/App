@@ -267,10 +267,10 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
-    WorkspaceInitialRouteParams,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -2413,8 +2413,8 @@ const translations = {
             phrase2: 'et réessayez. Vous pouvez ajouter votre numéro de téléphone comme connexion secondaire.',
         },
         hasBeenThrottledError: "Une erreur s'est produite lors de l'ajout de votre compte bancaire. Veuillez attendre quelques minutes et réessayer.",
-        hasCurrencyError: ({workspaceInitialRoute}: WorkspaceInitialRouteParams) =>
-            `Oups ! Il semble que la devise de votre espace de travail soit différente de l'USD. Pour continuer, veuillez aller sur <a href="${workspaceInitialRoute}">vos paramètres d'espace de travail</a> pour le régler sur USD et réessayer.`,
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Oups ! Il semble que la devise de votre espace de travail soit différente de l'USD. Pour continuer, veuillez aller sur <a href="${workspaceRoute}">vos paramètres d'espace de travail</a> pour le régler sur USD et réessayer.`,
         error: {
             youNeedToSelectAnOption: 'Veuillez sélectionner une option pour continuer',
             noBankAccountAvailable: "Désolé, aucun compte bancaire n'est disponible.",

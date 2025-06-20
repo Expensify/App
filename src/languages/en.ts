@@ -255,10 +255,10 @@ import type {
     WeSentYouMagicSignInLinkParams,
     WorkEmailMergingBlockedParams,
     WorkEmailResendCodeParams,
-    WorkspaceInitialRouteParams,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -2376,8 +2376,8 @@ const translations = {
             phrase2: ' and try again. You can add your phone number as a secondary login.',
         },
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
-        hasCurrencyError: ({workspaceInitialRoute}: WorkspaceInitialRouteParams) =>
-            `Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to <a href="${workspaceInitialRoute}">your workspace settings</a> to set it to USD and try again.`,
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to <a href="${workspaceRoute}">your workspace settings</a> to set it to USD and try again.`,
         error: {
             youNeedToSelectAnOption: 'Please select an option to proceed',
             noBankAccountAvailable: "Sorry, there's no bank account available",
