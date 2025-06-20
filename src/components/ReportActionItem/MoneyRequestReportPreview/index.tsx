@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
@@ -15,7 +14,6 @@ import Navigation from '@navigation/Navigation';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
@@ -23,8 +21,9 @@ import type {MoneyRequestReportPreviewProps} from './types';
 
 function MoneyRequestReportPreview({
     iouReportID,
+    iouReport,
     policyID,
-    chatReportID,
+    chatReport,
     action,
     contextMenuAnchor,
     isHovered = false,
@@ -35,21 +34,16 @@ function MoneyRequestReportPreview({
     shouldDisplayContextMenu = true,
     isInvoice = false,
     shouldShowBorder,
+    invoiceReceiverPolicy,
+    invoiceReceiverPersonalDetail,
+    sessionAccountID,
+    personalDetailsList,
+    walletTermsErrors,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
-    const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
-        {canBeMissing: true},
-    );
-    const [invoiceReceiverPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetails) =>
-            personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
-        canBeMissing: true,
-    });
-    const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
+    const [transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
@@ -83,7 +77,7 @@ function MoneyRequestReportPreview({
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
-            chatReportID={chatReportID}
+            chatReport={chatReport}
             action={getIOUActionForReportID(item.reportID, item.transactionID)}
             contextAction={action}
             reportID={item.reportID}
@@ -92,7 +86,7 @@ function MoneyRequestReportPreview({
             contextMenuAnchor={contextMenuAnchor}
             isWhisper={isWhisper}
             isHovered={isHovered}
-            iouReportID={iouReportID}
+            iouReport={iouReport}
             containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewStyle]}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewStyle.width}
@@ -100,13 +94,16 @@ function MoneyRequestReportPreview({
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
             shouldShowIOUData={shouldShowIOUData}
+            sessionAccountID={sessionAccountID}
+            personalDetailsList={personalDetailsList}
+            walletTermsErrors={walletTermsErrors}
         />
     );
 
     return (
         <MoneyRequestReportPreviewContent
             iouReportID={iouReportID}
-            chatReportID={chatReportID}
+            chatReportID={chatReport?.reportID}
             iouReport={iouReport}
             chatReport={chatReport}
             action={action}

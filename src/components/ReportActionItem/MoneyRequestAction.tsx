@@ -3,6 +3,7 @@ import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useMemo, useState} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -33,6 +34,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TransactionPreview from './TransactionPreview';
 
@@ -40,11 +42,11 @@ type MoneyRequestActionProps = {
     /** All the data of the action */
     action: OnyxTypes.ReportAction;
 
-    /** The ID of the associated chatReport */
-    chatReportID: string | undefined;
+    /** The IOU/Expense report */
+    iouReport: OnyxTypes.Report | undefined;
 
-    /** The ID of the associated expense report */
-    requestReportID: string | undefined;
+    /** The associated chatReport */
+    chatReport: OnyxEntry<OnyxTypes.Report>;
 
     /** The ID of the current report */
     reportID: string | undefined;
@@ -69,12 +71,21 @@ type MoneyRequestActionProps = {
 
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
+
+    /** Session account ID */
+    sessionAccountID: number | undefined;
+
+    /** Personal details list */
+    personalDetailsList: OnyxTypes.PersonalDetailsList | undefined;
+
+    /** Records any errors related to wallet terms. */
+    walletTermsErrors: Errors | undefined;
 };
 
 function MoneyRequestAction({
     action,
-    chatReportID,
-    requestReportID,
+    chatReport,
+    iouReport,
     reportID,
     isMostRecentIOUReportAction,
     contextMenuAnchor,
@@ -83,10 +94,11 @@ function MoneyRequestAction({
     style,
     isWhisper = false,
     shouldDisplayContextMenu = true,
+    sessionAccountID,
+    personalDetailsList,
+    walletTermsErrors,
 }: MoneyRequestActionProps) {
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`, {canBeMissing: true});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false, canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`, {canEvict: false, canBeMissing: true});
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -120,7 +132,7 @@ function MoneyRequestAction({
             return;
         }
         if (isSplitBillAction) {
-            Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
+            Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReport?.reportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
             return;
         }
 
@@ -170,8 +182,8 @@ function MoneyRequestAction({
 
     const TransactionPreviewComponent = (
         <TransactionPreview
-            iouReportID={requestReportID}
-            chatReportID={chatReportID}
+            chatReport={chatReport}
+            iouReport={iouReport}
             reportID={reportID}
             action={action}
             transactionPreviewWidth={renderCondition ? previewWidth : singleTransactionPreviewWidth}
@@ -185,6 +197,9 @@ function MoneyRequestAction({
             isHovered={isHovered}
             isWhisper={isWhisper}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
+            sessionAccountID={sessionAccountID}
+            personalDetailsList={personalDetailsList}
+            walletTermsErrors={walletTermsErrors}
         />
     );
 

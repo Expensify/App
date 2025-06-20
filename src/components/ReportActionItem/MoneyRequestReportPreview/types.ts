@@ -2,7 +2,8 @@ import type {LayoutChangeEvent, ListRenderItem, StyleProp, ViewStyle} from 'reac
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type TransactionPreviewStyle = {
     [key in keyof TransactionPreviewStyleType]: number;
@@ -24,11 +25,17 @@ type MoneyRequestReportPreviewProps = {
     /** All the data of the action */
     action: ReportAction;
 
+    /** The associated chatReport id */
+    chatReportID?: string | undefined;
+
     /** The associated chatReport */
-    chatReportID: string | undefined;
+    chatReport?: OnyxEntry<Report>;
 
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
+
+    /** The IOU/Expense report */
+    iouReport?: Report | undefined;
 
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor?: ContextMenuAnchor;
@@ -56,6 +63,21 @@ type MoneyRequestReportPreviewProps = {
 
     /** Whether to show a border to separate Reports Chat Item and Money Request Report Preview */
     shouldShowBorder?: boolean;
+
+    /** Invoice receiver policy for the chat report */
+    invoiceReceiverPolicy?: OnyxEntry<Policy>;
+
+    /** Invoice receiver personal details for the chat report */
+    invoiceReceiverPersonalDetail?: OnyxEntry<PersonalDetails>;
+
+    /** Session account ID */
+    sessionAccountID?: number;
+
+    /** Personal details list */
+    personalDetailsList?: PersonalDetailsList;
+
+    /** Records any errors related to wallet terms. */
+    walletTermsErrors?: Errors | undefined;
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {

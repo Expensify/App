@@ -72,7 +72,6 @@ function ReportActionItem({allReports, action, report, shouldShowDraftMessage = 
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || undefined}`];
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const blockedFromConcierge = useBlockedFromConcierge();
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const targetReport = isChatThread(report) ? parentReport : report;
@@ -82,12 +81,15 @@ function ReportActionItem({allReports, action, report, shouldShowDraftMessage = 
     const linkedReport = originalMessage && 'linkedReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.linkedReportID}`] : undefined;
     const iouReportOfLinkedReport = linkedReport && 'iouReportID' in linkedReport ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedReport.iouReportID}`] : undefined;
 
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID ?? action?.reportID}`];
+
     return (
         <PureReportActionItem
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             action={action}
             report={report}
+            chatReport={chatReport}
             policy={policy}
             draftMessage={draftMessage}
             iouReport={iouReport}
@@ -99,7 +101,6 @@ function ReportActionItem({allReports, action, report, shouldShowDraftMessage = 
             reportNameValuePairs={reportNameValuePairs}
             isUserValidated={isUserValidated}
             parentReport={parentReport}
-            personalDetails={personalDetails}
             blockedFromConcierge={blockedFromConcierge}
             originalReportID={originalReportID}
             deleteReportActionDraft={deleteReportActionDraft}

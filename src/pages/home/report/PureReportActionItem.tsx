@@ -188,6 +188,9 @@ type PureReportActionItemProps = {
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    /** The associated chatReport */
+    chatReport?: OnyxEntry<OnyxTypes.Report>;
+
     /** Policy for this action */
     policy?: OnyxEntry<OnyxTypes.Policy>;
 
@@ -279,7 +282,7 @@ type PureReportActionItemProps = {
     parentReport?: OnyxTypes.Report;
 
     /** Personal details list */
-    personalDetails?: OnyxTypes.PersonalDetailsList;
+    personalDetailsList?: OnyxTypes.PersonalDetailsList;
 
     /** Whether or not the user is blocked from concierge */
     blockedFromConcierge?: OnyxTypes.BlockedFromConcierge;
@@ -358,6 +361,18 @@ type PureReportActionItemProps = {
 
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
+
+    /** Invoice receiver policy for the chat report */
+    invoiceReceiverPolicy?: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Invoice receiver personal details for the chat report */
+    invoiceReceiverPersonalDetail?: OnyxEntry<OnyxTypes.PersonalDetails>;
+
+    /** Session account ID */
+    sessionAccountID?: number;
+
+    /** Records any errors related to wallet terms. */
+    walletTermsErrors?: Errors | undefined;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -374,6 +389,7 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 function PureReportActionItem({
     action,
     report,
+    chatReport,
     policy,
     transactionThreadReport,
     linkedReportActionID,
@@ -400,7 +416,7 @@ function PureReportActionItem({
     reportNameValuePairs,
     isUserValidated,
     parentReport,
-    personalDetails,
+    personalDetailsList,
     blockedFromConcierge,
     originalReportID = '-1',
     deleteReportActionDraft = () => {},
@@ -422,6 +438,10 @@ function PureReportActionItem({
     userBillingFundID,
     policies,
     shouldShowBorder,
+    invoiceReceiverPolicy,
+    invoiceReceiverPersonalDetail,
+    sessionAccountID,
+    walletTermsErrors,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -843,13 +863,10 @@ function PureReportActionItem({
             const isSplitScanWithNoAmount = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && moneyRequestOriginalMessage?.amount === 0;
             const shouldShowSplitPreview = isSplitInGroupChat || isSplitScanWithNoAmount;
             const chatReportID = moneyRequestOriginalMessage?.IOUReportID ? report?.chatReportID : reportID;
-            // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
-            const iouReportID = moneyRequestOriginalMessage?.IOUReportID?.toString();
             children = (
                 <MoneyRequestAction
-                    // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
-                    chatReportID={chatReportID}
-                    requestReportID={iouReportID}
+                    iouReport={iouReport}
+                    chatReport={chatReport}
                     reportID={reportID}
                     action={action}
                     isMostRecentIOUReportAction={isMostRecentIOUReportAction}
@@ -859,6 +876,9 @@ function PureReportActionItem({
                     style={displayAsGroup ? [] : [styles.mt2]}
                     isWhisper={isWhisper}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
+                    sessionAccountID={sessionAccountID}
+                    personalDetailsList={personalDetailsList}
+                    walletTermsErrors={walletTermsErrors}
                 />
             );
 
@@ -867,8 +887,8 @@ function PureReportActionItem({
                     children = (
                         <View style={[styles.mt1, styles.w100]}>
                             <TransactionPreview
-                                iouReportID={getIOUReportIDFromReportActionPreview(action)}
-                                chatReportID={reportID}
+                                iouReport={iouReport}
+                                chatReport={chatReport}
                                 reportID={reportID}
                                 action={action}
                                 shouldDisplayContextMenu={shouldDisplayContextMenu}
@@ -889,6 +909,9 @@ function PureReportActionItem({
                                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
                                 }}
                                 isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
+                                sessionAccountID={sessionAccountID}
+                                personalDetailsList={personalDetailsList}
+                                walletTermsErrors={walletTermsErrors}
                             />
                         </View>
                     );
@@ -915,8 +938,9 @@ function PureReportActionItem({
             children = (
                 <MoneyRequestReportPreview
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
+                    iouReport={iouReport}
                     policyID={report?.policyID}
-                    chatReportID={reportID}
+                    chatReport={chatReport}
                     action={action}
                     contextMenuAnchor={popoverAnchorRef.current}
                     isHovered={hovered}
@@ -927,6 +951,11 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
                     shouldShowBorder={shouldShowBorder}
+                    invoiceReceiverPolicy={invoiceReceiverPolicy}
+                    invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
+                    sessionAccountID={sessionAccountID}
+                    personalDetailsList={personalDetailsList}
+                    walletTermsErrors={walletTermsErrors}
                 />
             );
         } else if (isTaskAction(action)) {
@@ -950,7 +979,7 @@ function PureReportActionItem({
             );
         } else if (isReimbursementQueuedAction(action)) {
             const targetReport = isChatThread(report) ? parentReport : report;
-            const submitterDisplayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails?.[targetReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]));
+            const submitterDisplayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetailsList?.[targetReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]));
             const paymentType = getOriginalMessage(action)?.paymentType ?? '';
 
             children = (
@@ -1288,7 +1317,7 @@ function PureReportActionItem({
                             numberOfReplies={numberOfThreadReplies}
                             mostRecentReply={`${action.childLastVisibleActionCreated}`}
                             isHovered={hovered || isContextMenuActive}
-                            icons={getIconsForParticipants(oldestFourAccountIDs, personalDetails)}
+                            icons={getIconsForParticipants(oldestFourAccountIDs, personalDetailsList)}
                             onSecondaryInteraction={showPopover}
                             isActive={isReportActionActive && !isContextMenuActive}
                         />
@@ -1394,7 +1423,7 @@ function PureReportActionItem({
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0;
     const whisperedToPersonalDetails = isWhisper
-        ? (Object.values(personalDetails ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? CONST.DEFAULT_NUMBER_ID)) as OnyxTypes.PersonalDetails[])
+        ? (Object.values(personalDetailsList ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? CONST.DEFAULT_NUMBER_ID)) as OnyxTypes.PersonalDetails[])
         : [];
     const isWhisperOnlyVisibleByUser = isWhisper && isCurrentUserTheOnlyParticipant(whisperedTo);
     const displayNamesWithTooltips = isWhisper ? getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
@@ -1590,7 +1619,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.reportNameValuePairs, nextProps.reportNameValuePairs) &&
         prevProps.isUserValidated === nextProps.isUserValidated &&
         prevProps.parentReport?.reportID === nextProps.parentReport?.reportID &&
-        deepEqual(prevProps.personalDetails, nextProps.personalDetails) &&
+        deepEqual(prevProps.personalDetailsList, nextProps.personalDetailsList) &&
         deepEqual(prevProps.blockedFromConcierge, nextProps.blockedFromConcierge) &&
         prevProps.originalReportID === nextProps.originalReportID &&
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
@@ -1599,6 +1628,11 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
-        prevProps.userBillingFundID === nextProps.userBillingFundID
+        prevProps.userBillingFundID === nextProps.userBillingFundID &&
+        prevProps.chatReport?.reportID === nextProps.chatReport?.reportID &&
+        deepEqual(prevProps.invoiceReceiverPolicy, nextProps.invoiceReceiverPolicy) &&
+        deepEqual(prevProps.invoiceReceiverPersonalDetail, nextProps.invoiceReceiverPersonalDetail) &&
+        prevProps.sessionAccountID === nextProps.sessionAccountID &&
+        deepEqual(prevProps.walletTermsErrors, nextProps.walletTermsErrors)
     );
 });

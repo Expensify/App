@@ -11,11 +11,11 @@ type TransactionPreviewStyleType = {
 };
 
 type TransactionPreviewProps = {
-    /** The active IOUReport, used for Onyx subscription */
-    iouReportID: string | undefined;
+    /** The IOU/Expense report */
+    iouReport: Report | undefined;
 
     /** The associated chatReport */
-    chatReportID: string | undefined;
+    chatReport: OnyxEntry<Report>;
 
     /** The ID of the current report */
     reportID: string | undefined;
@@ -69,6 +69,15 @@ type TransactionPreviewProps = {
 
     /** In case we want to override context menu action */
     contextAction?: OnyxEntry<ReportAction>;
+
+    /** Session account ID */
+    sessionAccountID: number | undefined;
+
+    /** Personal details list */
+    personalDetailsList: PersonalDetailsList | undefined;
+
+    /** Records any errors related to wallet terms. */
+    walletTermsErrors: Errors | undefined;
 };
 
 type TransactionPreviewContentProps = {
@@ -111,8 +120,8 @@ type TransactionPreviewContentProps = {
     /** Holds the chat report entry from Onyx */
     chatReport?: Report;
 
-    /** Optional details about people involved in the transaction */
-    personalDetails?: PersonalDetailsList;
+    /** Personal details list */
+    personalDetailsList?: PersonalDetailsList;
 
     /** Indicates whether the transaction consists of duplicates */
     areThereDuplicates: boolean;

@@ -29,34 +29,31 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const {translate} = useLocalize();
     const {
         action,
-        chatReportID,
+        chatReport,
         reportID,
         contextMenuAnchor,
         checkIfContextMenuActive = () => {},
         shouldDisplayContextMenu,
-        iouReportID,
+        iouReport,
         transactionID: transactionIDFromProps,
         onPreviewPressed,
         reportPreviewAction,
         contextAction,
+        sessionAccountID,
+        personalDetailsList,
+        walletTermsErrors,
     } = props;
 
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: true});
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const violations = useTransactionViolations(transaction?.transactionID);
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
     const allDuplicates = useMemo(() => violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [], [violations]);
     const duplicates = useMemo(() => removeSettledAndApprovedTransactions(allDuplicates), [allDuplicates]);
-    const sessionAccountID = session?.accountID;
     const areThereDuplicates = allDuplicates.length > 0 && duplicates.length > 0 && allDuplicates.length === duplicates.length;
 
     const transactionDetails = useMemo(() => getTransactionDetails(transaction), [transaction]);
@@ -66,13 +63,13 @@ function TransactionPreview(props: TransactionPreviewProps) {
         if (!shouldDisplayContextMenu) {
             return;
         }
-        showContextMenuForReport(event, contextMenuAnchor, contextAction ? chatReportID : reportID, contextAction ?? action, checkIfContextMenuActive);
+        showContextMenuForReport(event, contextMenuAnchor, contextAction ? chatReport?.reportID : reportID, contextAction ?? action, checkIfContextMenuActive);
     };
 
     const offlineWithFeedbackOnClose = useCallback(() => {
         clearWalletTermsError();
-        clearIOUError(chatReportID);
-    }, [chatReportID]);
+        clearIOUError(chatReport?.reportID);
+    }, [chatReport?.reportID]);
 
     const navigateToReviewFields = useCallback(() => {
         Navigation.navigate(getReviewNavigationRoute(route, report, transaction, duplicates));
@@ -86,7 +83,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         transactionPreview = originalTransaction;
     }
 
-    const iouAction = isBillSplit && originalTransaction ? (getIOUActionForReportID(chatReportID, originalTransaction.transactionID) ?? action) : action;
+    const iouAction = isBillSplit && originalTransaction ? (getIOUActionForReportID(chatReport?.reportID, originalTransaction.transactionID) ?? action) : action;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isTransactionMadeWithCard = isCardTransaction(transaction);
@@ -110,7 +107,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     action={iouAction}
                     isBillSplit={isBillSplit}
                     chatReport={chatReport}
-                    personalDetails={personalDetails}
+                    personalDetailsList={personalDetailsList}
                     transaction={transactionPreview}
                     iouReport={iouReport}
                     violations={violations}
@@ -118,7 +115,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     navigateToReviewFields={navigateToReviewFields}
                     areThereDuplicates={areThereDuplicates}
                     sessionAccountID={sessionAccountID}
-                    walletTermsErrors={walletTerms?.errors}
+                    walletTermsErrors={walletTermsErrors}
                     routeName={route.name}
                     isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
                 />
@@ -133,7 +130,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             action={iouAction}
             isBillSplit={isBillSplit}
             chatReport={chatReport}
-            personalDetails={personalDetails}
+            personalDetailsList={personalDetailsList}
             transaction={originalTransaction}
             iouReport={iouReport}
             violations={violations}
@@ -141,7 +138,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             navigateToReviewFields={navigateToReviewFields}
             areThereDuplicates={areThereDuplicates}
             sessionAccountID={sessionAccountID}
-            walletTermsErrors={walletTerms?.errors}
+            walletTermsErrors={walletTermsErrors}
             routeName={route.name}
             reportPreviewAction={reportPreviewAction}
             isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}

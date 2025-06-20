@@ -18,6 +18,7 @@ import {
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
 import ReportActionItem from './ReportActionItem';
@@ -57,6 +58,21 @@ type ReportActionItemParentActionProps = {
 
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
+
+    /** Invoice receiver policy for the chat report */
+    invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Invoice receiver personal details for the chat report */
+    invoiceReceiverPersonalDetail: OnyxEntry<OnyxTypes.PersonalDetails>;
+
+    /** Session account ID */
+    sessionAccountID?: number;
+
+    /** Personal details list */
+    personalDetailsList?: OnyxTypes.PersonalDetailsList;
+
+    /** Records any errors related to wallet terms. */
+    walletTermsErrors?: Errors | undefined;
 };
 
 function ReportActionItemParentAction({
@@ -70,6 +86,11 @@ function ReportActionItemParentAction({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
+    invoiceReceiverPolicy,
+    invoiceReceiverPersonalDetail,
+    sessionAccountID,
+    personalDetailsList,
+    walletTermsErrors,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
@@ -155,6 +176,11 @@ function ReportActionItemParentAction({
                             isFirstVisibleReportAction={isFirstVisibleReportAction}
                             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                             isThreadReportParentAction
+                            invoiceReceiverPolicy={invoiceReceiverPolicy}
+                            invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
+                            sessionAccountID={sessionAccountID}
+                            personalDetailsList={personalDetailsList}
+                            walletTermsErrors={walletTermsErrors}
                         />
                     </OfflineWithFeedback>
                 );

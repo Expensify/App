@@ -168,7 +168,23 @@ function ReportActionsList({
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
+
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`];
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
+        {canBeMissing: true},
+    );
+    const [invoiceReceiverPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetails) =>
+            personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
+        canBeMissing: true,
+    });
+
     const participantsContext = useContext(PersonalDetailsContext);
+    const [walletTermsErrors] = useOnyx(ONYXKEYS.WALLET_TERMS, {
+        selector: (walletTerms) => walletTerms?.errors,
+        canBeMissing: true,
+    });
 
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
@@ -596,6 +612,11 @@ function ReportActionsList({
                     shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                    invoiceReceiverPolicy={invoiceReceiverPolicy}
+                    invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
+                    sessionAccountID={accountID}
+                    personalDetailsList={personalDetailsList}
+                    walletTermsErrors={walletTermsErrors}
                 />
             );
         },
@@ -613,6 +634,11 @@ function ReportActionsList({
             shouldUseThreadDividerLine,
             firstVisibleReportActionID,
             unreadMarkerReportActionID,
+            invoiceReceiverPolicy,
+            invoiceReceiverPersonalDetail,
+            accountID,
+            personalDetailsList,
+            walletTermsErrors,
         ],
     );
 
