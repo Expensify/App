@@ -833,6 +833,7 @@ const CONST = {
         TRACK_FLOWS: 'trackFlows',
         STATIC_AI_TRANSLATIONS: 'staticAITranslations',
         EUR_BILLING: 'eurBilling',
+        MANUAL_DISTANCE: 'manualDistance',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
