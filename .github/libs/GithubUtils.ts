@@ -560,6 +560,20 @@ class GithubUtils {
             })
             .then((response) => response.url);
     }
+
+    /**
+     * Get the contents of a file from the API at a given ref as a string.
+     */
+    static async getFileContents(path: string, ref = 'main'): Promise<string> {
+        const response = await this.octokit.repos.getContent({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            path,
+            ref,
+        });
+        const content = 'content' in response.data ? response.data.content : '';
+        return Buffer.from(content, 'base64').toString('utf8');
+    }
 }
 
 export default GithubUtils;
