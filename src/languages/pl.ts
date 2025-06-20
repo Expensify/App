@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -964,6 +965,7 @@ const translations = {
         deleteReceipt: 'Usuń paragon',
         deleteConfirmation: 'Czy na pewno chcesz usunąć ten paragon?',
         addReceipt: 'Dodaj paragon',
+        scanFailed: 'Paragon nie może być zeskanowany, ponieważ brakuje sprzedawcy, daty lub kwoty.',
     },
     quickAction: {
         scanReceipt: 'Skanuj paragon',
@@ -4242,7 +4244,7 @@ const translations = {
                 pendingBankTitle: 'Sprawdź okno przeglądarki',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) =>
                     `Proszę połączyć się z ${bankName} za pomocą okna przeglądarki, które właśnie się otworzyło. Jeśli się nie otworzyło,`,
-                pendingBankLink: 'proszę kliknij tutaj.',
+                pendingBankLink: 'proszę kliknij tutaj',
                 giveItNameInstruction: 'Nadaj karcie nazwę, która wyróżni ją spośród innych.',
                 updating: 'Aktualizowanie...',
                 noAccountsFound: 'Nie znaleziono kont',
@@ -5955,8 +5957,8 @@ const translations = {
         principalWorkEmail: 'Główny służbowy adres e-mail',
         updateYourEmail: 'Zaktualizuj swój adres e-mail',
         updateEmail: 'Zaktualizuj adres e-mail',
-        contactMethods: 'Metody kontaktu.',
-        schoolMailAsDefault: 'Zanim przejdziesz dalej, upewnij się, że ustawiłeś swój szkolny e-mail jako domyślną metodę kontaktu. Możesz to zrobić w Ustawieniach > Profil >',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `Zanim przejdziesz dalej, upewnij się, że ustawiłeś swój szkolny e-mail jako domyślną metodę kontaktu. Możesz to zrobić w Ustawieniach > Profil > <a href="${contactMethodsRoute}">Metody kontaktu</a>.`,
         error: {
             enterPhoneEmail: 'Wprowadź prawidłowy adres e-mail lub numer telefonu',
             enterEmail: 'Wprowadź adres e-mail',
