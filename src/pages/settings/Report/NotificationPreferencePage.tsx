@@ -9,11 +9,18 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {
+    getReportNotificationPreference,
+    goBackToDetailsPage,
+    isArchivedNonExpenseReport,
+    isHiddenForCurrentUser,
+    isMoneyRequestReport as isMoneyRequestReportUtils,
+    isSelfDM,
+} from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
-import * as ReportActions from '@userActions/Report';
+import {updateNotificationPreference as updateNotificationPreferenceReportActionUtils} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -24,14 +31,12 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>>();
     const {translate} = useLocalize();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID || undefined}`);
-    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-    const currentNotificationPreference = ReportUtils.getReportNotificationPreference(report);
+    const isMoneyRequestReport = isMoneyRequestReportUtils(report);
+    const currentNotificationPreference = getReportNotificationPreference(report);
     const shouldDisableNotificationPreferences =
-        ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs?.private_isArchived) ||
-        ReportUtils.isSelfDM(report) ||
-        (!isMoneyRequestReport && ReportUtils.isHiddenForCurrentUser(currentNotificationPreference));
+        isArchivedNonExpenseReport(report, reportNameValuePairs?.private_isArchived) || isSelfDM(report) || (!isMoneyRequestReport && isHiddenForCurrentUser(currentNotificationPreference));
     const notificationPreferenceOptions = Object.values(CONST.REPORT.NOTIFICATION_PREFERENCE)
-        .filter((pref) => !ReportUtils.isHiddenForCurrentUser(pref))
+        .filter((pref) => !isHiddenForCurrentUser(pref))
         .map((preference) => ({
             value: preference,
             text: translate(`notificationPreferencesPage.notificationPreferences.${preference}`),
@@ -40,12 +45,12 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
         }));
 
     const goBack = useCallback(() => {
-        ReportUtils.goBackToDetailsPage(report, route.params.backTo);
+        goBackToDetailsPage(report, route.params.backTo);
     }, [report, route.params.backTo]);
 
     const updateNotificationPreference = useCallback(
         (value: ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>) => {
-            ReportActions.updateNotificationPreference(report.reportID, currentNotificationPreference, value, undefined, undefined);
+            updateNotificationPreferenceReportActionUtils(report.reportID, currentNotificationPreference, value, undefined, undefined);
             goBack();
         },
         [report.reportID, currentNotificationPreference, goBack],

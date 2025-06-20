@@ -37,7 +37,7 @@ function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) 
     const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {canBeMissing: true});
     const isArchivedNonExpenseReport = isArchivedNonExpenseReportUtils(report, reportNameValuePairs?.private_isArchived);
     // The workspace the report is on, null if the user isn't a member of the workspace
     const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID), [policies, report?.policyID]);
