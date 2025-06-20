@@ -10,6 +10,7 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PDFThumbnail from '@components/PDFThumbnail';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -56,7 +57,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchResults} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
-import { PopoverMenuItem } from '@components/PopoverMenu';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
@@ -130,7 +130,7 @@ function SearchPage({route}: SearchPageProps) {
             // We provide the basic and expense level export options by default
             const exportOptions: PopoverMenuItem[] = [
                 {
-                    text: translate('export.basicExport') ,
+                    text: translate('export.basicExport'),
                     icon: Expensicons.Table,
                     onSelected: () => {
                         if (isOffline) {
@@ -178,13 +178,13 @@ function SearchPage({route}: SearchPageProps) {
                         });
                         clearSelectedTransactions();
                     },
-                }
+                },
             ];
 
             // Determine if only full reports are selected by comparing the reportIDs of the selected transactions and the reportIDs of the selected reports
-            const selectedTransactionReportIDs = [... new Set(Object.values(selectedTransactions).map(transaction => transaction.reportID))];
-            const selectedReportIDs = Object.values(selectedReports).map(report => report.reportID);
-            const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every(id => selectedReportIDs.includes(id));
+            const selectedTransactionReportIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))];
+            const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
+            const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
             const groupByReports = queryJSON?.groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
             // Add the report level export if fully reports are selected and we're on the report page
