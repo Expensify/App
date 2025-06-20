@@ -1,10 +1,10 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
 import getPlatform from '@libs/getPlatform';
-import {createOptionFromReport, createOptionList, processReport} from '@libs/OptionsListUtils';
+import {createOptionFromReport, createOptionList, processReport, shallowOptionsListCompare} from '@libs/OptionsListUtils';
 import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -273,6 +273,26 @@ const useOptionsListContext = () => useContext(OptionsListContext);
 const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
     const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
+    const [internalOptions, setInternalOptions] = useState<OptionList>(optionsList);
+    const prevOptions = useRef<OptionList>();
+
+    useEffect(() => {
+        if (!prevOptions.current) {
+            prevOptions.current = optionsList;
+            setInternalOptions(optionsList);
+            return;
+        }
+        /**
+         * optionsList reference can change multiple times even the value of its arrays is the same. We perform shallow comparison to check if the options have truly changed.
+         * This is necessary to avoid unnecessary re-renders in components that use this context.
+         */
+        const areOptionsEqual = shallowOptionsListCompare(prevOptions.current, optionsList);
+        prevOptions.current = optionsList;
+        if (areOptionsEqual) {
+            return;
+        }
+        setInternalOptions(optionsList);
+    }, [optionsList]);
 
     useEffect(() => {
         if (!shouldInitialize || areOptionsInitialized) {
@@ -282,12 +302,15 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
         initializeOptions();
     }, [shouldInitialize, initializeOptions, areOptionsInitialized]);
 
-    return {
-        initializeOptions,
-        options: optionsList,
-        areOptionsInitialized,
-        resetOptions,
-    };
+    return useMemo(
+        () => ({
+            initializeOptions,
+            options: internalOptions,
+            areOptionsInitialized,
+            resetOptions,
+        }),
+        [initializeOptions, internalOptions, areOptionsInitialized, resetOptions],
+    );
 };
 
 export default OptionsListContextProvider;
