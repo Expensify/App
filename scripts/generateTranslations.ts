@@ -56,6 +56,9 @@ type StringWithContext = {
  *  - It also formats the files using prettier.
  */
 class TranslationGenerator {
+    /**
+     * Regex to match context annotations.
+     */
     private static readonly CONTEXT_REGEX = /^\s*(?:\/{2}|\*|\/\*)?\s*@context\s+([^\n*/]+)/;
 
     /**
@@ -78,18 +81,18 @@ class TranslationGenerator {
      */
     private readonly translator: Translator;
 
-    private readonly compareRef?: string;
+    private readonly compareRef: string;
 
-    private readonly verbose?: boolean;
+    private readonly verbose: boolean;
 
-    constructor(config: {targetLanguages: TranslationTargetLocale[]; languagesDir: string; sourceFile: string; translator: Translator; compareRef?: string; verbose?: boolean}) {
+    constructor(config: {targetLanguages: TranslationTargetLocale[]; languagesDir: string; sourceFile: string; translator: Translator; compareRef: string; verbose: boolean}) {
         this.targetLanguages = config.targetLanguages;
         this.languagesDir = config.languagesDir;
         const sourceCode = fs.readFileSync(config.sourceFile, 'utf8');
         this.sourceFile = ts.createSourceFile(config.sourceFile, sourceCode, ts.ScriptTarget.Latest, true);
         this.translator = config.translator;
         this.compareRef = config.compareRef;
-        this.verbose = !!config.verbose;
+        this.verbose = config.verbose;
     }
 
     public async generateTranslations(): Promise<void> {
@@ -501,16 +504,15 @@ async function main(): Promise<void> {
     const languagesDir = process.env.LANGUAGES_DIR || path.join(__dirname, '../src/languages');
     const enSourceFile = path.join(languagesDir, 'en.ts');
 
-    const translationConfig: ConstructorParameters<typeof TranslationGenerator>[0] = {
+    const generator = new TranslationGenerator({
         targetLanguages: cli.namedArgs.locales,
         languagesDir,
         sourceFile: enSourceFile,
         translator,
-    };
-    if (cli.namedArgs['compare-ref']) {
-        translationConfig.compareRef = cli.namedArgs['compare-ref'];
-    }
-    const generator = new TranslationGenerator(translationConfig);
+        compareRef: cli.namedArgs['compare-ref'],
+        verbose: cli.flags.verbose,
+    });
+
     await generator.generateTranslations();
 }
 
