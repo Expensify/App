@@ -10,6 +10,7 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PDFThumbnail from '@components/PDFThumbnail';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -35,6 +36,7 @@ import {
     getLastPolicyPaymentMethod,
     payMoneyRequestOnSearch,
     queueExportSearchItemsToCSV,
+    queueExportSearchWithTemplate,
     search,
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
@@ -66,7 +68,7 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
+    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
 
@@ -74,6 +76,8 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
+    const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
+
     const {
         validateAndResizeFile,
         setIsAttachmentInvalid,
@@ -86,11 +90,8 @@ function SearchPage({route}: SearchPageProps) {
         isLoadingReceipt,
     } = useFileValidation();
 
-    const {q} = route.params;
-
     const {isBetaEnabled} = usePermissions();
-
-    const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]);
+    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
@@ -114,6 +115,23 @@ function SearchPage({route}: SearchPageProps) {
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
+    const beginExportWithTemplate = useCallback(
+        (templateName: string, templateType: string, policyID: string | undefined) => {
+            setIsExportWithTemplateModalVisible(true);
+
+            // If the user has selected a large number of items, we'll use the queryJSON to search for the reportIDs and transactionIDs necessary for the export
+            if (areAllMatchingItemsSelected) {
+                queueExportSearchWithTemplate({templateName, templateType, jsonQuery: JSON.stringify(queryJSON), reportIDList: [], transactionIDList: [], policyID});
+            } else {
+                // Otherwise, we will use the selected transactionIDs and reportIDs directly
+                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                queueExportSearchWithTemplate({templateName, templateType, jsonQuery: '{}', reportIDList, transactionIDList: selectedTransactionsKeys, policyID});
+            }
+            clearSelectedTransactions();
+        },
+        [queryJSON, selectedReports, selectedTransactionsKeys, clearSelectedTransactions, areAllMatchingItemsSelected],
+    );
+
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || !status || !hash) {
             return [];
@@ -122,15 +140,12 @@ function SearchPage({route}: SearchPageProps) {
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
-        const downloadButtonOption: DropdownOption<SearchHeaderOptionValue> = {
-            icon: Expensicons.Export,
-            text: translate('common.export'),
-            backButtonText: translate('common.export'),
-            value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
-            shouldCloseModalOnSelect: true,
-            subMenuItems: [
+        // Gets the list of options for the export sub-menu
+        const getExportOptions = () => {
+            // We provide the basic and expense level export options by default
+            const exportOptions: PopoverMenuItem[] = [
                 {
-                    text: translate('common.basicExport'),
+                    text: translate('export.basicExport'),
                     icon: Expensicons.Table,
                     onSelected: () => {
                         if (isOffline) {
@@ -138,17 +153,16 @@ function SearchPage({route}: SearchPageProps) {
                             return;
                         }
 
-                        if (isExportMode) {
+                        if (areAllMatchingItemsSelected) {
                             setIsDownloadExportModalVisible(true);
                             return;
                         }
 
-                        const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
                         exportSearchItemsToCSV(
                             {
                                 query: status,
                                 jsonQuery: JSON.stringify(queryJSON),
-                                reportIDList,
+                                reportIDList: selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [],
                                 transactionIDList: selectedTransactionsKeys,
                             },
                             () => {
@@ -158,13 +172,50 @@ function SearchPage({route}: SearchPageProps) {
                         clearSelectedTransactions();
                     },
                 },
-            ],
+                {
+                    text: translate('export.expenseLevelExport'),
+                    icon: Expensicons.Table,
+                    onSelected: () =>
+                        // The report level export template is not policy specific, so we don't need to pass a policyID
+                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined),
+                },
+            ];
+
+            // Determine if only full reports are selected by comparing the reportIDs of the selected transactions and the reportIDs of the selected reports
+            const selectedTransactionReportIDs = [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))];
+            const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
+            const areFullReportsSelected = selectedTransactionReportIDs.length === selectedReportIDs.length && selectedTransactionReportIDs.every((id) => selectedReportIDs.includes(id));
+            const groupByReports = queryJSON?.groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
+
+            // Add the report level export if fully reports are selected and we're on the report page
+            if (groupByReports && areFullReportsSelected) {
+                exportOptions.push({
+                    text: translate('export.reportLevelExport'),
+                    icon: Expensicons.Table,
+                    onSelected: () =>
+                        // The report level export template is not policy specific, so we don't need to pass a policyID
+                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, undefined),
+                });
+            }
+
+            return exportOptions;
         };
 
-        if (isExportMode) {
-            return [downloadButtonOption];
+        const exportButtonOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: Expensicons.Export,
+            text: translate('common.export'),
+            backButtonText: translate('common.export'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
+            shouldCloseModalOnSelect: true,
+            subMenuItems: getExportOptions(),
+        };
+
+        // If all matching items are selected, we don't give the user additional options, we only allow them to export the selected items
+        if (areAllMatchingItemsSelected) {
+            return [exportButtonOption];
         }
 
+        // Otherwise, we provide the full set of options depending on the state of the selected transactions and reports
         const shouldShowApproveOption =
             !isOffline &&
             !isAnyTransactionOnHold &&
@@ -273,7 +324,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        options.push(downloadButtonOption);
+        options.push(exportButtonOption);
 
         const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
 
@@ -371,7 +422,7 @@ function SearchPage({route}: SearchPageProps) {
         hash,
         selectedTransactions,
         translate,
-        isExportMode,
+        areAllMatchingItemsSelected,
         isOffline,
         selectedReports,
         queryJSON,
@@ -381,6 +432,7 @@ function SearchPage({route}: SearchPageProps) {
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
+        beginExportWithTemplate,
     ]);
 
     const handleDeleteExpenses = () => {
@@ -440,9 +492,9 @@ function SearchPage({route}: SearchPageProps) {
             reportIDList,
             transactionIDList: selectedTransactionsKeys,
         });
-        setExportMode(false);
+        selectAllMatchingItems(false);
         clearSelectedTransactions();
-    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, setExportMode, clearSelectedTransactions]);
+    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, selectAllMatchingItems, clearSelectedTransactions]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
@@ -645,6 +697,14 @@ function SearchPage({route}: SearchPageProps) {
                     prompt={translate('search.exportSearchResults.description')}
                     confirmText={translate('search.exportSearchResults.title')}
                     cancelText={translate('common.cancel')}
+                />
+                <ConfirmModal
+                    isVisible={isExportWithTemplateModalVisible}
+                    onConfirm={() => setIsExportWithTemplateModalVisible(false)}
+                    title={translate('export.exportInProgress')}
+                    prompt={translate('export.conciergeWillSend')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
                 />
                 <DecisionModal
                     title={translate('common.youAppearToBeOffline')}

@@ -151,9 +151,9 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         shouldTurnOffSelectionMode,
         setShouldShowFiltersBarLoading,
         lastSearchType,
-        setShouldShowExportModeOption,
-        isExportMode,
-        setExportMode,
+        shouldShowSelectAllMatchingItems,
+        areAllMatchingItemsSelected,
+        selectAllMatchingItems,
     } = useSearchContext();
     const {selectionMode} = useMobileSelectionMode();
     const [offset, setOffset] = useState(0);
@@ -267,7 +267,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 if (!Object.hasOwn(transaction, 'transactionID') || !('transactionID' in transaction)) {
                     return;
                 }
-                if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !isExportMode) {
+                if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !areAllMatchingItemsSelected) {
                     return;
                 }
                 newTransactionList[transaction.transactionID] = {
@@ -277,7 +277,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     canUnhold: transaction.canUnhold,
                     canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    isSelected: isExportMode || selectedTransactions[transaction.transactionID].isSelected,
+                    isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
                     canDelete: transaction.canDelete,
                     reportID: transaction.reportID,
                     policyID: transaction.policyID,
@@ -290,7 +290,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     return;
                 }
                 report.transactions.forEach((transaction) => {
-                    if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !isExportMode) {
+                    if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !areAllMatchingItemsSelected) {
                         return;
                     }
                     newTransactionList[transaction.transactionID] = {
@@ -300,7 +300,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         canUnhold: transaction.canUnhold,
                         canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        isSelected: isExportMode || selectedTransactions[transaction.transactionID].isSelected,
+                        isSelected: areAllMatchingItemsSelected || selectedTransactions[transaction.transactionID].isSelected,
                         canDelete: transaction.canDelete,
                         reportID: transaction.reportID,
                         policyID: transaction.policyID,
@@ -313,7 +313,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [data, setSelectedTransactions, isExportMode]);
+    }, [data, setSelectedTransactions, areAllMatchingItemsSelected]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -344,13 +344,15 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         }
         const areItemsOfReportType = shouldGroupByReports;
         const flattenedItems = areItemsOfReportType ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
-        const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
+        const areAllItemsSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 
-        setShouldShowExportModeOption(!!(isAllSelected && searchResults?.search?.hasMoreResults));
-        if (!isAllSelected) {
-            setExportMode(false);
+        // If the user has selected all the expenses in their view but there are more expenses matched by the search
+        // give them the option to select all matching expenses
+        shouldShowSelectAllMatchingItems(!!(areAllItemsSelected && searchResults?.search?.hasMoreResults));
+        if (!areAllItemsSelected) {
+            selectAllMatchingItems(false);
         }
-    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, setExportMode, setShouldShowExportModeOption, shouldGroupByReports]);
+    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, selectAllMatchingItems, shouldShowSelectAllMatchingItems, shouldGroupByReports]);
 
     const toggleTransaction = useCallback(
         (item: SearchListItem) => {
