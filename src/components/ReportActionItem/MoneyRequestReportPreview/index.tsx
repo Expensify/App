@@ -62,7 +62,7 @@ function MoneyRequestReportPreview({
         [StyleUtils, currentWidth, currentWrapperWidth, shouldUseNarrowLayout, transactions.length],
     );
 
-    const shouldShowIOUData = useMemo(() => {
+    const shouldShowPayerAndReceiver = useMemo(() => {
         if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
             return false;
         }
@@ -99,7 +99,7 @@ function MoneyRequestReportPreview({
             transactionID={item.transactionID}
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
-            shouldShowIOUData={shouldShowIOUData}
+            shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
         />
     );
 

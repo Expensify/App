@@ -11,7 +11,7 @@ type TransactionPreviewStyleType = {
 };
 
 type TransactionPreviewProps = {
-    /** The active IOUReport, used for Onyx subscription */
+    /** The active reportID linked to the transaction */
     iouReportID: string | undefined;
 
     /** The associated chatReport */
@@ -65,7 +65,7 @@ type TransactionPreviewProps = {
     reportPreviewAction?: ReportAction;
 
     /** Whether to show payer/receiver data in the preview */
-    shouldShowIOUData?: boolean;
+    shouldShowPayerAndReceiver?: boolean;
 
     /** In case we want to override context menu action */
     contextAction?: OnyxEntry<ReportAction>;
@@ -93,8 +93,8 @@ type TransactionPreviewContentProps = {
     /** Records any errors related to wallet terms. */
     walletTermsErrors: Errors | undefined;
 
-    /** Represents the IOU report entry from Onyx */
-    iouReport: OnyxEntry<Report>;
+    /** Represents the report linked to the transaction */
+    report: OnyxEntry<Report>;
 
     /** Flag to determine if a transaction involves a bill split among multiple parties. */
     isBillSplit: boolean;
@@ -130,7 +130,7 @@ type TransactionPreviewContentProps = {
     reportPreviewAction?: ReportAction;
 
     /** Whether to show payer/receiver data in the preview */
-    shouldShowIOUData?: boolean;
+    shouldShowPayerAndReceiver?: boolean;
 
     /** Is this component used during duplicate review flow */
     isReviewDuplicateTransactionPage?: boolean;
