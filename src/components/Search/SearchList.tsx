@@ -338,6 +338,7 @@ function SearchList(
                     policies={policies}
                     isDisabled={isDisabled}
                     allReports={allReports}
+                    groupBy={groupBy}
                 />
             );
         },

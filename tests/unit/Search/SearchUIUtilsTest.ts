@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ReportActionListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import TranslationStore from '@src/languages/TranslationStore';
@@ -950,7 +950,7 @@ const reportsListItems = [
         },
         transactions: [transactionsListItems.at(2), transactionsListItems.at(3)],
     },
-] as TransactionGroupListItemType[];
+] as TransactionReportGroupListItemType[];
 
 describe('SearchUIUtils', () => {
     beforeAll(async () => {

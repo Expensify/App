@@ -12,7 +12,16 @@ import ChatListItem from '@components/SelectionList/ChatListItem';
 import TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ListItem, ReportActionListItemType, SearchListItem, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {
+    ListItem,
+    ReportActionListItemType,
+    SearchListItem,
+    TaskListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionReportGroupListItemType,
+} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -289,6 +298,20 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
  */
 function isTransactionGroupListItemType(item: ListItem): item is TransactionGroupListItemType {
     return 'transactions' in item;
+}
+
+/**
+ * Type guard that checks if something is a TransactionReportGroupListItemType
+ */
+function isTransactionReportGroupListItemType(item: ListItem): item is TransactionReportGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'reportID' in item;
+}
+
+/**
+ * Type guard that checks if something is a TransactionMemberGroupListItemType
+ */
+function isTransactionMemberGroupListItemType(item: ListItem): item is TransactionMemberGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'accountID' in item;
 }
 
 /**
@@ -872,7 +895,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
     // Get violations - optimize by using a Map for faster lookups
     const allViolations = getViolations(data);
 
-    const reportIDToTransactions: Record<string, TransactionGroupListItemType> = {};
+    const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
     for (const key in data) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
             const reportItem = {...data[key]};
@@ -1617,6 +1640,8 @@ export {
     getShouldShowMerchant,
     getSortedSections,
     isTransactionGroupListItemType,
+    isTransactionReportGroupListItemType,
+    isTransactionMemberGroupListItemType,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,
