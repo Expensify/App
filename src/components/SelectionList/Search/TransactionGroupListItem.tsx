@@ -3,7 +3,14 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BaseListItem from '@components/SelectionList/BaseListItem';
-import type {ListItem, TransactionGroupListItemProps, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
+import type {
+    ListItem,
+    TransactionGroupListItemProps,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionMemberGroupListItemType,
+    TransactionReportGroupListItemType,
+} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -20,6 +27,7 @@ import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavig
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 
 function TransactionGroupListItem<TItem extends ListItem>({
@@ -65,7 +73,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const listItemPressableStyle = [
         styles.selectionListPressableItemWrapper,
-        styles.pv1half,
+        styles.pv2,
         styles.ph0,
         styles.overflowHidden,
         // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
@@ -121,8 +129,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         />
                     );
                 case CONST.SEARCH.GROUP_BY.MEMBERS:
-                    // s77rt
-                    return null;
+                    <MemberListItemHeader
+                        member={groupItem as unknown as TransactionMemberGroupListItemType}
+                        onCheckboxPress={onCheckboxPress}
+                        isDisabled={isDisabledOrEmpty}
+                        canSelectMultiple={canSelectMultiple}
+                    />;
                 default:
                     return null;
             }
@@ -180,7 +192,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                         openReportInRHP(transaction);
                                     }}
                                     isParentHovered={hovered}
-                                    columnWrapperStyles={[styles.ph3, styles.pv1half]}
+                                    columnWrapperStyles={[styles.ph3, styles.pv1Half]}
                                     isReportItemChild
                                     isInSingleTransactionReport={groupItem.transactions.length === 1}
                                 />
