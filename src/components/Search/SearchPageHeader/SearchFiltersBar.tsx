@@ -31,7 +31,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
+import {getGroupByOptions, getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -123,6 +123,24 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         [translate, type, typeOptions, updateFilterForm],
     );
 
+    const groupByComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            const items = getGroupByOptions();
+            const value = items.find((option) => option.value === groupBy) ?? null;
+
+            return (
+                <SingleSelectPopup
+                    label={translate('search.groupBy')}
+                    items={items}
+                    value={value}
+                    closeOverlay={closeOverlay}
+                    onChange={(item) => updateFilterForm({groupBy: item?.value})}
+                />
+            );
+        },
+        [translate, groupBy, updateFilterForm],
+    );
+
     const statusComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const items = getStatusOptions(type, groupBy);
@@ -211,6 +229,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 value: translate(`common.${type}`),
             },
             {
+                label: translate('search.groupBy'),
+                PopoverComponent: groupByComponent,
+                value: groupBy ? translate(`search.filters.groupBy.${groupBy}`) : null,
+            },
+            {
                 label: translate('common.status'),
                 PopoverComponent: statusComponent,
                 value: statusValue.map((option) => translate(option.translation)),
@@ -237,6 +260,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         filterFormValues.from,
         translate,
         typeComponent,
+        groupByComponent,
         statusComponent,
         datePickerComponent,
         userPickerComponent,

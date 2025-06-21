@@ -1,9 +1,9 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BaseListItem from '@components/SelectionList/BaseListItem';
-import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ListItem, TransactionGroupListItemProps, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ReportListItemHeader from './ReportListItemHeader';
 
-function ReportListItem<TItem extends ListItem>({
+function TransactionGroupListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -33,27 +33,28 @@ function ReportListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-}: ReportListItemProps<TItem>) {
-    const reportItem = item as unknown as ReportListItemType;
+    groupBy,
+}: TransactionGroupListItemProps<TItem>) {
+    const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: true});
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID}`];
-    const isEmptyReport = reportItem.transactions.length === 0;
-    const isDisabledOrEmpty = isEmptyReport || isDisabled;
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${groupItem?.policyID}`];
+    const isEmpty = groupItem.transactions.length === 0;
+    const isDisabledOrEmpty = isEmpty || isDisabled;
     const {isLargeScreenWidth} = useResponsiveLayout();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
-        const isAmountColumnWide = reportItem.transactions.some((transaction) => isTransactionAmountTooLong(transaction));
-        const isTaxAmountColumnWide = reportItem.transactions.some((transaction) => isTransactionTaxAmountTooLong(transaction));
-        const shouldShowYearForSomeTransaction = reportItem.transactions.some((transaction) => shouldShowTransactionYear(transaction));
+        const isAmountColumnWide = groupItem.transactions.some((transaction) => isTransactionAmountTooLong(transaction));
+        const isTaxAmountColumnWide = groupItem.transactions.some((transaction) => isTransactionTaxAmountTooLong(transaction));
+        const shouldShowYearForSomeTransaction = groupItem.transactions.some((transaction) => shouldShowTransactionYear(transaction));
         return {
             amountColumnSize: isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             taxAmountColumnSize: isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             dateColumnSize: shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
         };
-    }, [reportItem.transactions]);
+    }, [groupItem.transactions]);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -77,7 +78,7 @@ function ReportListItem<TItem extends ListItem>({
         const backTo = Navigation.getActiveRoute();
 
         const reportID = getReportIDForTransaction(transactionItem);
-        const siblingTransactionThreadIDs = reportItem.transactions.map(getReportIDForTransaction);
+        const siblingTransactionThreadIDs = groupItem.transactions.map(getReportIDForTransaction);
 
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
@@ -86,11 +87,7 @@ function ReportListItem<TItem extends ListItem>({
         });
     };
 
-    if (!reportItem?.reportName && reportItem.transactions.length > 1) {
-        return null;
-    }
-
-    const sampleTransaction = reportItem.transactions.at(0);
+    const sampleTransaction = groupItem.transactions.at(0);
     const {COLUMNS} = CONST.REPORT.TRANSACTION_LIST;
 
     const columns = [
@@ -106,6 +103,32 @@ function ReportListItem<TItem extends ListItem>({
         COLUMNS.TOTAL_AMOUNT,
         COLUMNS.ACTION,
     ] satisfies Array<ValueOf<typeof COLUMNS>>;
+
+    const getHeader = useCallback(
+        (isHovered: boolean) => {
+            switch (groupBy) {
+                case CONST.SEARCH.GROUP_BY.REPORTS:
+                    return (
+                        <ReportListItemHeader
+                            report={groupItem as unknown as TransactionReportGroupListItemType}
+                            policy={policy}
+                            onSelectRow={onSelectRow}
+                            onCheckboxPress={onCheckboxPress}
+                            isDisabled={isDisabledOrEmpty}
+                            isHovered={isHovered}
+                            isFocused={isFocused}
+                            canSelectMultiple={canSelectMultiple}
+                        />
+                    );
+                case CONST.SEARCH.GROUP_BY.MEMBERS:
+                    // s77rt
+                    return null;
+                default:
+                    return null;
+            }
+        },
+        [groupBy, groupItem, canSelectMultiple, isDisabledOrEmpty, isFocused, onCheckboxPress, onSelectRow, policy],
+    );
 
     return (
         <BaseListItem
@@ -129,17 +152,8 @@ function ReportListItem<TItem extends ListItem>({
         >
             {(hovered) => (
                 <View style={[styles.flex1]}>
-                    <ReportListItemHeader
-                        report={reportItem}
-                        policy={policy}
-                        onSelectRow={onSelectRow}
-                        onCheckboxPress={onCheckboxPress}
-                        isDisabled={isDisabledOrEmpty}
-                        isHovered={hovered}
-                        isFocused={isFocused}
-                        canSelectMultiple={canSelectMultiple}
-                    />
-                    {isEmptyReport ? (
+                    {getHeader(hovered)}
+                    {isEmpty ? (
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mnh13]}>
                             <Text
                                 style={[styles.textLabelSupporting]}
@@ -149,7 +163,7 @@ function ReportListItem<TItem extends ListItem>({
                             </Text>
                         </View>
                     ) : (
-                        reportItem.transactions.map((transaction) => (
+                        groupItem.transactions.map((transaction) => (
                             <View>
                                 <TransactionItemRow
                                     transactionItem={transaction}
@@ -168,7 +182,7 @@ function ReportListItem<TItem extends ListItem>({
                                     isParentHovered={hovered}
                                     columnWrapperStyles={[styles.ph3, styles.pv1half]}
                                     isReportItemChild
-                                    isInSingleTransactionReport={reportItem.transactions.length === 1}
+                                    isInSingleTransactionReport={groupItem.transactions.length === 1}
                                 />
                             </View>
                         ))
@@ -179,6 +193,6 @@ function ReportListItem<TItem extends ListItem>({
     );
 }
 
-ReportListItem.displayName = 'ReportListItem';
+TransactionGroupListItem.displayName = 'TransactionGroupListItem';
 
-export default ReportListItem;
+export default TransactionGroupListItem;

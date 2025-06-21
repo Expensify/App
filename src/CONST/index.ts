@@ -6580,6 +6580,7 @@ const CONST = {
         },
         GROUP_BY: {
             REPORTS: 'reports',
+            MEMBERS: 'members',
         },
         BOOLEAN: {
             YES: 'yes',

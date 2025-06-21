@@ -5,7 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {ListItem, ReportListItemType} from '@components/SelectionList/types';
+import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -20,7 +20,7 @@ import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 type ReportListItemHeaderProps<TItem extends ListItem> = {
     /** The report currently being looked at */
-    report: ReportListItemType;
+    report: TransactionReportGroupListItemType;
 
     /** The policy tied to the expense report */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -46,7 +46,7 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
     /** The report currently being looked at */
-    report: ReportListItemType;
+    report: TransactionReportGroupListItemType;
 
     /** The policy tied to the expense report */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -73,7 +73,7 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
 type ReportCellProps = {
     showTooltip: boolean;
     isLargeScreenWidth: boolean;
-    reportItem: ReportListItemType;
+    reportItem: TransactionReportGroupListItemType;
 };
 
 function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProps) {
