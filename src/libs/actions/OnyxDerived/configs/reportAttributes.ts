@@ -7,7 +7,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 let isFullyComputed = false;
-let recentlyUpdated: string[] = [];
 
 const prepareReportKeys = (keys: string[]) => {
     return [
@@ -89,16 +88,15 @@ export default createOnyxDerivedValueConfig({
             // if there are report-related updates, iterate over the updates
             if (updates.length > 0) {
                 dataToIterate = prepareReportKeys(updates);
-                recentlyUpdated = updates;
             } else if (!!transactionsUpdates || !!transactionViolationsUpdates) {
                 let transactionReportIDs: string[] = [];
                 if (transactionsUpdates) {
                     transactionReportIDs = Object.values(transactionsUpdates).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
                 }
-                // if transactions are updated, they might not be directly related to the reports yet (e.g. transaction is optimistically created)
-                // so we use report keys that were updated before to recompute the reports
-                const recentReportKeys = prepareReportKeys([...recentlyUpdated, ...transactionReportIDs]);
-                dataToIterate = recentReportKeys;
+                dataToIterate = prepareReportKeys(transactionReportIDs);
+            } else {
+                // No updates to process, return current value to prevent unnecessary computation
+                return currentValue ?? {reports: {}, locale: null};
             }
         }
         const reportAttributes = dataToIterate.reduce<ReportAttributesDerivedValue['reports']>((acc, key) => {
