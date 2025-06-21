@@ -1,45 +1,49 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {SectionListData} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
+import { FallbackAvatar } from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import { useOptionsList } from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {Section} from '@components/SelectionList/types';
+import type { Section } from '@components/SelectionList/types';
 import Text from '@components/Text';
+import type { WithNavigationTransitionEndProps } from '@components/withNavigationTransitionEnd';
+import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
-import {setApprovalWorkflowMembers, setIsInApprovalWorkflowInviteFlow} from '@libs/actions/Workflow';
-import {searchInServer} from '@libs/actions/Report';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import { setWorkspaceInviteMembersDraft } from '@libs/actions/Policy/Member';
+import { searchInServer } from '@libs/actions/Report';
+import { setApprovalWorkflowMembers, setIsInApprovalWorkflowInviteFlow } from '@libs/actions/Workflow';
+import { canUseTouchScreen } from '@libs/DeviceCapabilities';
+import { appendCountryCode } from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {filterAndOrderOptions, formatMemberForList, getMemberInviteOptions, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
-import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import type {OptionData} from '@libs/ReportUtils';
+import type { PlatformStackScreenProps } from '@libs/Navigation/PlatformStackNavigation/types';
+import type { WorkspaceSplitNavigatorParamList } from '@libs/Navigation/types';
+import { filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail, sortAlphabetically } from '@libs/OptionsListUtils';
+import { addSMSDomainIfPhoneNumber, parsePhoneNumber } from '@libs/PhoneNumber';
+import { getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin } from '@libs/PolicyUtils';
+import type { OptionData } from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type { WithPolicyAndFullscreenLoadingProps } from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Member} from '@src/types/onyx/ApprovalWorkflow';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { Member } from '@src/types/onyx/ApprovalWorkflow';
+import type { Icon } from '@src/types/onyx/OnyxCommon';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import variables from '@styles/variables';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import type { SectionListData } from 'react-native';
+import { useOnyx } from 'react-native-onyx';
 
 type SelectionListMember = {
     text: string;
@@ -55,9 +59,10 @@ type SelectionListMember = {
 type MembersSection = SectionListData<SelectionListMember, Section<SelectionListMember>>;
 
 type WorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenLoadingProps &
+    WithNavigationTransitionEndProps &
     PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM>;
 
-function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsExpensesFromPageProps) {
+function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportData = true, route, didScreenTransitionEnd}: WorkspaceWorkflowsApprovalsExpensesFromPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -65,12 +70,12 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListMember[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+
     // States for invite functionality
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
-    const [didScreenTransitionEnd] = useState(true); // Default to true for this page
-    
+
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -83,15 +88,18 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     // Create excluded users list for invite functionality
     const excludedUsers = useMemo(() => {
-        const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
-        return ineligibleInvites.reduce(
+        // For approval workflows, we only need to exclude Expensify emails
+        // We should NOT exclude existing workspace members because they should be available for approval workflows
+        const excludedLogins: string[] = [...CONST.EXPENSIFY_EMAILS];
+
+        return excludedLogins.reduce(
             (acc: Record<string, boolean>, login: string) => {
                 acc[login] = true;
                 return acc;
             },
             {} as Record<string, boolean>,
         );
-    }, [policy?.employeeList]);
+    }, []);
 
     // Default options for invite functionality
     const defaultOptions = useMemo(() => {
@@ -192,8 +200,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         }
 
         // Add personal details that are not already in available members
-        const availableMemberLogins = new Set(approvalWorkflow?.availableMembers?.map(member => member.email) ?? []);
-        const personalDetailsWithoutExisting = personalDetails.filter(detail => !availableMemberLogins.has(detail.login ?? ''));
+        const availableMemberLogins = new Set(approvalWorkflow?.availableMembers?.map((member) => member.email) ?? []);
+        const personalDetailsWithoutExisting = personalDetails.filter((detail) => !availableMemberLogins.has(detail.login ?? ''));
         const personalDetailsFormatted = personalDetailsWithoutExisting
             .map((item) => formatMemberForList(item))
             .map((member) => ({
@@ -222,7 +230,17 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 shouldShow: true,
             },
         ];
-    }, [approvalWorkflow?.availableMembers, debouncedSearchTerm, policy?.preventSelfApproval, policy?.employeeList, selectedMembers, translate, approversEmail, personalDetails, usersToInvite]);
+    }, [
+        approvalWorkflow?.availableMembers,
+        debouncedSearchTerm,
+        policy?.preventSelfApproval,
+        policy?.employeeList,
+        selectedMembers,
+        translate,
+        approversEmail,
+        personalDetails,
+        usersToInvite,
+    ]);
 
     const goBack = useCallback(() => {
         let backTo;
@@ -237,30 +255,30 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const nextStep = useCallback(() => {
         // Only store serializable data - no React components
         const members: Member[] = selectedMembers.map((member) => ({
-            displayName: member.text, 
+            displayName: member.text,
             avatar: typeof member.icons?.at(0)?.source === 'string' ? member.icons.at(0)?.source : undefined, // Only store string avatars
-            email: member.login
+            email: member.login,
         }));
         setApprovalWorkflowMembers(members);
 
         // Check if any selected members are new users (not in existing workspace)
         const existingMemberEmails = new Set(Object.keys(policy?.employeeList ?? {}));
-        const newUsersSelected = selectedMembers.filter(member => !existingMemberEmails.has(member.login));
-        
+        const newUsersSelected = selectedMembers.filter((member) => !existingMemberEmails.has(member.login));
+
         if (newUsersSelected.length > 0) {
             // If there are new users, set the flag to indicate we're in approval workflow invite flow
             setIsInApprovalWorkflowInviteFlow(true);
-            
+
             // Set up the invite draft
             const invitedEmailsToAccountIDs: Record<string, number> = {};
             newUsersSelected.forEach((member) => {
                 const login = member.login ?? '';
                 const accountID = member.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                if (login.toLowerCase().trim() && accountID) {
+                if (login.toLowerCase().trim() && accountID !== undefined) {
                     invitedEmailsToAccountIDs[login] = Number(accountID);
                 }
             });
-            
+
             if (Object.keys(invitedEmailsToAccountIDs).length > 0) {
                 setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
                 // Navigate to invite message page
@@ -300,7 +318,20 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         setSelectedMembers(isAlreadySelected ? selectedMembers.filter((selectedOption) => selectedOption.login !== member.login) : [...selectedMembers, {...member, isSelected: true}]);
     };
 
-    const headerMessage = useMemo(() => (searchTerm && !sections.at(0)?.data?.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
+    // Header message with proper validation
+    const headerMessage = useMemo(() => {
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+        if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+            return translate('messages.errorMessageInvalidEmail');
+        }
+        if (
+            usersToInvite.length === 0 &&
+            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
+        ) {
+            return translate('messages.userIsAlreadyMember', {login: searchValue, name: policy?.name ?? ''});
+        }
+        return getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
+    }, [excludedUsers, translate, debouncedSearchTerm, policy?.name, usersToInvite, personalDetails.length]);
 
     // Add search functionality
     useEffect(() => {
@@ -361,7 +392,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         footerContent={button}
                         listEmptyContent={listEmptyContent}
                         shouldShowListEmptyContent={shouldShowListEmptyContent}
-                        showLoadingPlaceholder={isLoadingApprovalWorkflow}
+                        showLoadingPlaceholder={isLoadingApprovalWorkflow || !areOptionsInitialized || !didScreenTransitionEnd}
+                        isLoadingNewOptions={!!isSearchingForReports}
                         addBottomSafeAreaPadding
                     />
                 </FullPageNotFoundView>
@@ -372,4 +404,4 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
 WorkspaceWorkflowsApprovalsExpensesFromPage.displayName = 'WorkspaceWorkflowsApprovalsExpensesFromPage';
 
-export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsExpensesFromPage);
+export default withNavigationTransitionEnd(withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsExpensesFromPage));
