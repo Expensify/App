@@ -20,7 +20,7 @@ function SearchFilterPageFooterButtons({resetChanges, applyChanges}: SearchFilte
         <View>
             <Button
                 large
-                style={[styles.mt4]}
+                style={[styles.mt3]}
                 text={translate('common.reset')}
                 onPress={resetChanges}
             />
@@ -28,7 +28,7 @@ function SearchFilterPageFooterButtons({resetChanges, applyChanges}: SearchFilte
                 large
                 success
                 pressOnEnter
-                style={[styles.mt4]}
+                style={[styles.mt3]}
                 text={translate('common.save')}
                 onPress={applyChanges}
             />
