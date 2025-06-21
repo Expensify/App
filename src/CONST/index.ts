@@ -2225,6 +2225,7 @@ const CONST = {
             TAG: 'TAG',
             REPORT_FIELD: 'REPORT_FIELD',
         },
+        ACCOUNTING_METHOD: 'accountingMethod',
     },
 
     SAGE_INTACCT_MAPPING_VALUE: {
