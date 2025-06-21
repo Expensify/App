@@ -5,7 +5,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
-import {clearErrors, clearErrorFields} from '@userActions/FormActions';
+import {clearErrorFields, clearErrors} from '@userActions/FormActions';
 import {declineMoneyRequest} from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
