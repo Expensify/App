@@ -68,7 +68,7 @@ function SearchPage({route}: SearchPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
+    const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, areAllMatchingItemsSelected, selectAllMatchingItems} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
 
@@ -146,7 +146,7 @@ function SearchPage({route}: SearchPageProps) {
                             return;
                         }
 
-                        if (isExportMode) {
+                        if (areAllMatchingItemsSelected) {
                             setIsDownloadExportModalVisible(true);
                             return;
                         }
@@ -203,7 +203,7 @@ function SearchPage({route}: SearchPageProps) {
             subMenuItems: getExportOptions(),
         };
 
-        if (isExportMode) {
+        if (areAllMatchingItemsSelected) {
             return [exportButtonOption];
         }
 
@@ -413,7 +413,7 @@ function SearchPage({route}: SearchPageProps) {
         hash,
         selectedTransactions,
         translate,
-        isExportMode,
+        areAllMatchingItemsSelected,
         isOffline,
         selectedReports,
         queryJSON,
@@ -483,9 +483,9 @@ function SearchPage({route}: SearchPageProps) {
             reportIDList,
             transactionIDList: selectedTransactionsKeys,
         });
-        setExportMode(false);
+        selectAllMatchingItems(false);
         clearSelectedTransactions();
-    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, setExportMode, clearSelectedTransactions]);
+    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, selectAllMatchingItems, clearSelectedTransactions]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
