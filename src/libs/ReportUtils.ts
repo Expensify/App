@@ -17,6 +17,7 @@ import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBDSquare, QBOSquare, Xer
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
+import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {IOUAction, IOUType, OnboardingAccounting, OnboardingCompanySize, OnboardingPurpose, OnboardingTaskLinks} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -930,6 +931,34 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
+});
+
+let allPolicyTagLists: OnyxCollection<PolicyTagLists> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            allPolicyTagLists = {};
+            return;
+        }
+        allPolicyTagLists = value;
+    },
+});
+
+let allPolicyCategories: OnyxCollection<PolicyCategories> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicyCategories = val),
+});
+
+let allTransactionViolations: OnyxCollection<TransactionViolations> = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allTransactionViolations = value),
 });
 
 let allReports: OnyxCollection<Report>;
