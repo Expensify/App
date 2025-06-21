@@ -151,13 +151,11 @@ function PaymentCardForm({
 
         let value = newValue.replace(CONST.REGEX.NON_NUMERIC, '');
 
-        let didAutoCorrectFirstDigit = false;
 
         if (value.length === 1) {
             const firstDigit = value.charAt(0);
             if (parseInt(firstDigit, 10) > 1) {
                 value = `0${firstDigit}`;
-                didAutoCorrectFirstDigit = true;
             }
         }
 
@@ -173,7 +171,7 @@ function PaymentCardForm({
 
         const prevValue = previousvalueRef.current.replace(CONST.REGEX.NON_NUMERIC, '');
 
-        if ((value.length === 2 && prevValue.length < 2) || didAutoCorrectFirstDigit) {
+        if ((value.length === 2 && prevValue.length < 2)) {
             formattedValue = `${value}/`;
         } else if (value.length > 2) {
             formattedValue = `${value.slice(0, 2)}/${value.slice(2, 4)}`;
