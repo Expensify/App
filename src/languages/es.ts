@@ -7153,12 +7153,6 @@ const translations = {
             part2: 'los aprobadores',
         },
         globalCreateTooltip: '<strong>Crea gastos</strong>, empieza a chatear\ny más. ¡Pruébalo!',
-        GBRRBRChat: {
-            part1: 'Verás 🟢 en ',
-            part2: 'acciones a realizar',
-            part3: ',\ny 🔴 en ',
-            part4: 'elementos para revisar.',
-        },
         GBRRBRChat: 'Verás 🟢 en <strong>acciones a realizar</strong>,\ny 🔴 en <strong>elementos para revisar.</strong>',
         accountSwitcher: {
             part1: 'Accede a tus ',
