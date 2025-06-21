@@ -260,6 +260,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         filterFormValues.from,
         translate,
         typeComponent,
+        groupByComponent,
         statusComponent,
         datePickerComponent,
         userPickerComponent,

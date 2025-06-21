@@ -1169,7 +1169,7 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies: OnyxCollection<OnyxTypes.Policy> = {}, cards: OnyxTypes.CardList): SearchTypeMenuSection[] {
+function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies: OnyxCollection<OnyxTypes.Policy> = {}, cards: OnyxTypes.CardList = {}): SearchTypeMenuSection[] {
     const email = session?.email;
     const hasCardFeed = Object.keys(cards).length > 0;
 
@@ -1404,10 +1404,10 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
         menuItems: [],
     };
 
-    let shouldShowStatementsSuggesion = false,
-        showShowUnapprovedCashSuggesion = false,
-        showShowUnapprovedCompanyCardsSuggesion = false,
-        shouldShowReconciliationSuggesion = false;
+    let shouldShowStatementsSuggesion = false;
+    let showShowUnapprovedCashSuggesion = false;
+    let showShowUnapprovedCompanyCardsSuggesion = false;
+    let shouldShowReconciliationSuggesion = false;
 
     Object.values(policies).some((policy) => {
         if (!policy || !isPaidGroupPolicy(policy)) {
