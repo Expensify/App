@@ -13,13 +13,14 @@ import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getSubmitToAccountID} from '@libs/PolicyUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {hasHeldExpenses} from '@libs/ReportUtils';
 import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src/types/onyx';
+import type {LastPaymentMethod, LastPaymentMethodType, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 
@@ -38,6 +39,31 @@ Onyx.connect({
         allSnapshots = val;
     },
     waitForCollectionCallback: true,
+});
+
+let allReportActions: OnyxCollection<ReportActions>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
+    callback: (actions) => {
+        if (!actions) {
+            return;
+        }
+        allReportActions = actions;
+    },
+});
+
+let allTransactions: OnyxCollection<Transaction> = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => !!transaction));
+    },
 });
 
 function handleActionButtonPress(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void, isInMobileSelectionMode: boolean) {
@@ -280,6 +306,22 @@ function updateSearchResultsWithTransactionThreadReportID(hash: number, transact
 
 function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+    transactionIDList.forEach((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {};
+        const iouReportAction = getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
+        if (iouReportAction) {
+            optimisticData.push({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    [iouReportAction.reportActionID]: {
+                        childVisibleActionCount: (iouReportAction?.childVisibleActionCount ?? 0) + 1,
+                    },
+                },
+            });
+        }
+    });
 
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
