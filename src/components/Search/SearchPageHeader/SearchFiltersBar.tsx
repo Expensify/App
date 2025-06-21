@@ -15,11 +15,10 @@ import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/Dro
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
-import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchGroupBy, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
+import type {SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -32,81 +31,17 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
 type SearchFiltersBarProps = {
     queryJSON: SearchQueryJSON;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
 };
-
-const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
-    {translation: 'common.expense', value: CONST.SEARCH.DATA_TYPES.EXPENSE},
-    {translation: 'common.chat', value: CONST.SEARCH.DATA_TYPES.CHAT},
-    {translation: 'common.invoice', value: CONST.SEARCH.DATA_TYPES.INVOICE},
-    {translation: 'common.trip', value: CONST.SEARCH.DATA_TYPES.TRIP},
-    {translation: 'common.task', value: CONST.SEARCH.DATA_TYPES.TASK},
-];
-
-const expenseStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'common.unreported', value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
-    {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
-    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
-    {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
-    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
-    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
-];
-
-const expenseReportStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
-    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
-    {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
-    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.EXPENSE.PAID},
-    {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
-];
-
-const chatStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'common.unread', value: CONST.SEARCH.STATUS.CHAT.UNREAD},
-    {translation: 'common.sent', value: CONST.SEARCH.STATUS.CHAT.SENT},
-    {translation: 'common.attachments', value: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS},
-    {translation: 'common.links', value: CONST.SEARCH.STATUS.CHAT.LINKS},
-    {translation: 'search.filters.pinned', value: CONST.SEARCH.STATUS.CHAT.PINNED},
-];
-
-const invoiceStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.INVOICE.OUTSTANDING},
-    {translation: 'iou.settledExpensify', value: CONST.SEARCH.STATUS.INVOICE.PAID},
-];
-
-const tripStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'search.filters.current', value: CONST.SEARCH.STATUS.TRIP.CURRENT},
-    {translation: 'search.filters.past', value: CONST.SEARCH.STATUS.TRIP.PAST},
-];
-
-const taskStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
-    {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.TASK.OUTSTANDING},
-    {translation: 'search.filters.completed', value: CONST.SEARCH.STATUS.TASK.COMPLETED},
-];
-
-function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
-    switch (type) {
-        case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            return expenseStatusOptions;
-        case CONST.SEARCH.DATA_TYPES.CHAT:
-            return chatStatusOptions;
-        case CONST.SEARCH.DATA_TYPES.INVOICE:
-            return invoiceStatusOptions;
-        case CONST.SEARCH.DATA_TYPES.TRIP:
-            return tripStatusOptions;
-        case CONST.SEARCH.DATA_TYPES.TASK:
-            return taskStatusOptions;
-        default:
-            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS ? expenseReportStatusOptions : expenseStatusOptions;
-    }
-}
 
 function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarProps) {
     const {hash, type, groupBy, status} = queryJSON;
@@ -121,8 +56,10 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption, shouldShowFiltersBarLoading} = useSearchContext();
 
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: true});
@@ -137,32 +74,41 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || (!!selectionMode && selectionMode.isEnabled));
 
+    const typeOptions = useMemo(() => getTypeOptions(allPolicies, session?.email), [allPolicies, session?.email]);
+
     const filterFormValues = useMemo(() => {
         return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
     }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
+
+    const updateFilterForm = useCallback(
+        (values: Partial<SearchAdvancedFiltersForm>) => {
+            const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
+                ...filterFormValues,
+                ...values,
+            };
+
+            // If the type has changed, reset the status so we dont have an invalid status selected
+            if (updatedFilterFormValues.type !== filterFormValues.type) {
+                updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
+            }
+
+            const filterString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
+            const searchQueryJSON = buildSearchQueryJSON(filterString);
+            const queryString = buildSearchQueryString(searchQueryJSON);
+
+            Navigation.setParams({q: queryString});
+        },
+        [filterFormValues],
+    );
 
     const openAdvancedFilters = useCallback(() => {
         updateAdvancedFilters(filterFormValues);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [filterFormValues]);
 
-    // We need to create a stable key for filterFormValues so that we don't infinitely
-    // re-render components that access all of the filterFormValues. This is due to the way
-    // that react calculates diffs (it doesn't know how to compare objects).
-    const filterFormValuesKey = JSON.stringify(filterFormValues);
-
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const value = typeOptions.find((option) => option.value === type) ?? null;
-
-            const onChange = (item: SingleSelectItem<SearchDataTypes> | null) => {
-                const hasTypeChanged = item?.value !== type;
-                const newType = item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-                // If the type has changed, reset the status so we dont have an invalid status selected
-                const newStatus = hasTypeChanged ? CONST.SEARCH.STATUS.EXPENSE.ALL : status;
-                const query = buildSearchQueryString({...queryJSON, type: newType, status: newStatus});
-                Navigation.setParams({q: query});
-            };
 
             return (
                 <SingleSelectPopup
@@ -170,23 +116,22 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                     value={value}
                     items={typeOptions}
                     closeOverlay={closeOverlay}
-                    onChange={onChange}
+                    onChange={(item) => updateFilterForm({type: item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE})}
                 />
             );
         },
-        [queryJSON, status, translate, type],
+        [translate, type, typeOptions, updateFilterForm],
     );
 
     const statusComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const items = getStatusOptions(type, groupBy);
-            const selected = Array.isArray(status) ? items.filter((option) => status.includes(option.value)) : items.find((option) => option.value === status) ?? [];
+            const selected = Array.isArray(status) ? items.filter((option) => status.includes(option.value)) : (items.find((option) => option.value === status) ?? []);
             const value = [selected].flat();
 
             const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
                 const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : CONST.SEARCH.STATUS.EXPENSE.ALL;
-                const query = buildSearchQueryString({...queryJSON, status: newStatus});
-                Navigation.setParams({q: query});
+                updateFilterForm({status: newStatus});
             };
 
             return (
@@ -199,7 +144,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [groupBy, queryJSON, status, translate, type],
+        [groupBy, status, translate, type, updateFilterForm],
     );
 
     const datePickerComponent = useCallback(
@@ -211,19 +156,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             };
 
             const onChange = (selectedDates: DateSelectPopupValue) => {
-                const newFilterFormValues = {
-                    ...filterFormValues,
-                    ...queryJSON,
+                const dateFormValues = {
                     dateAfter: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? undefined,
                     dateBefore: selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? undefined,
                     dateOn: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON] ?? undefined,
                 };
 
-                const filterString = buildQueryStringFromFilterFormValues(newFilterFormValues);
-                const newJSON = buildSearchQueryJSON(filterString);
-                const queryString = buildSearchQueryString(newJSON);
-
-                Navigation.setParams({q: queryString});
+                updateFilterForm(dateFormValues);
             };
 
             return (
@@ -234,10 +173,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        // Disable exhaustive deps because we use filterFormValuesKey as the dependency, which is a stable key based on filterFormValues
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [filterFormValuesKey, queryJSON],
+        [filterFormValues.dateAfter, filterFormValues.dateBefore, filterFormValues.dateOn, updateFilterForm],
     );
 
     const userPickerComponent = useCallback(
@@ -248,18 +184,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 <UserSelectPopup
                     value={value}
                     closeOverlay={closeOverlay}
-                    onChange={(selectedUsers) => {
-                        const newFilterFormValues = {...filterFormValues, from: selectedUsers};
-                        const queryString = buildQueryStringFromFilterFormValues(newFilterFormValues);
-                        Navigation.setParams({q: queryString});
-                    }}
+                    onChange={(selectedUsers) => updateFilterForm({from: selectedUsers})}
                 />
             );
         },
-        // Disable exhaustive deps because we use filterFormValuesKey as the dependency, which is a stable key based on filterFormValues
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [filterFormValuesKey],
+        [filterFormValues.from, updateFilterForm],
     );
 
     /**
@@ -267,7 +196,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
      * filter bar
      */
     const filters = useMemo(() => {
-        const typeValue = typeOptions.find((option) => option.value === type) ?? null;
         const statusValue = getStatusOptions(type, groupBy).filter((option) => status.includes(option.value));
         const dateValue = [
             filterFormValues.dateAfter ? `${translate('common.after')} ${DateUtils.formatToReadableString(filterFormValues.dateAfter)}` : null,
@@ -280,7 +208,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             {
                 label: translate('common.type'),
                 PopoverComponent: typeComponent,
-                value: typeValue?.translation ? translate(typeValue.translation) : null,
+                value: translate(`common.${type}`),
             },
             {
                 label: translate('common.status'),
@@ -303,10 +231,10 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     }, [
         type,
         groupBy,
-        filterFormValues.from,
         filterFormValues.dateAfter,
         filterFormValues.dateBefore,
         filterFormValues.dateOn,
+        filterFormValues.from,
         translate,
         typeComponent,
         statusComponent,
@@ -356,10 +284,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 </View>
             ) : (
                 <ScrollView
+                    horizontal
+                    keyboardShouldPersistTaps="always"
                     style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0]}
                     contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
                     ref={scrollRef}
-                    horizontal
                     showsHorizontalScrollIndicator={false}
                 >
                     {filters.map((filter) => (

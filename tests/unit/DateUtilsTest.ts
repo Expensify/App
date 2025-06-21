@@ -4,6 +4,7 @@ import {toZonedTime, format as tzFormat} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -34,6 +35,11 @@ describe('DateUtils', () => {
         return waitForBatchedUpdates();
     });
 
+    beforeEach(() => {
+        TranslationStore.load(LOCALE);
+        DateUtils.setLocale(LOCALE);
+    });
+
     afterEach(() => {
         jest.restoreAllMocks();
         jest.useRealTimers();
@@ -45,7 +51,7 @@ describe('DateUtils', () => {
 
     it('getZoneAbbreviation should show zone abbreviation from the datetime', () => {
         const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone);
-        expect(zoneAbbreviation).toBe('PST');
+        expect(zoneAbbreviation).toBe('GMT-8');
     });
 
     it('formatToLongDateWithWeekday should return a long date with a weekday', () => {
@@ -94,7 +100,7 @@ describe('DateUtils', () => {
             () =>
                 ({
                     resolvedOptions: () => ({timeZone: 'America/Chicago'}),
-                } as Intl.DateTimeFormat),
+                }) as Intl.DateTimeFormat,
         );
         Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}}).then(() => {
             const result = DateUtils.getCurrentTimezone();
@@ -110,7 +116,7 @@ describe('DateUtils', () => {
             () =>
                 ({
                     resolvedOptions: () => ({timeZone: UTC}),
-                } as Intl.DateTimeFormat),
+                }) as Intl.DateTimeFormat,
         );
         Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}}).then(() => {
             const result = DateUtils.getCurrentTimezone();

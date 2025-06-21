@@ -163,6 +163,20 @@ Some Workspaces automatically handle this. Otherwise, submit manually.
 
 **Note:** Reports with **Instant Submit** cannot be fully retracted. Only individual expenses can be edited.
 
+## Delete an Open Report
+
+**On Desktop:**
+1. Click on the Reports tab.
+2. Select the checkbox next to the Open Report you wish to delete.
+3. Click on the red trash icon.
+
+**On Mobile:**
+1. Tap ☰ and go to **Reports**.
+2. Long-press the Open Report that you wish to delete.
+3. Select the **Delete** button.
+
+**Note:** Deleted expenses are moved to a Deleted folder and can be restored if needed.
+
 ---
 
 # Add Comments & Attachments to a Report
@@ -203,6 +217,8 @@ Every report passes through several statuses. Here’s what they mean:
 - **Approved** – Fully approved but not reimbursed.
 - **Reimbursed** – Payment sent. **Withdrawing** or **Confirmed** may appear based on ACH status. 
 - **Closed** – Finalized and no longer editable.
+
+**Note:** A report will only move to the **Closed** status if it's submitted on an **Individual workspace** or a **Group workspace** using the **Submit & Close** approval workflow.
 
 ## Finalized state by workflow
 

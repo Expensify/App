@@ -80,9 +80,9 @@ function BaseModal(
         swipeThreshold = 150,
         swipeDirection,
         shouldPreventScrollOnFocus = false,
+        disableAnimationIn = false,
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
-        canBeClosedByOtherModal = true,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -140,7 +140,7 @@ function BaseModal(
         if (isVisible) {
             willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-            if (canBeClosedByOtherModal) {
+            if (onClose) {
                 removeOnCloseListener = setCloseModal(onClose);
             }
         }
@@ -151,7 +151,7 @@ function BaseModal(
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose, type, canBeClosedByOtherModal]);
+    }, [isVisible, wasVisible, onClose, type]);
 
     useEffect(() => {
         hideModalCallbackRef.current = hideModal;
@@ -184,7 +184,7 @@ function BaseModal(
         if (onBackdropPress) {
             onBackdropPress();
         } else {
-            onClose();
+            onClose?.();
         }
     };
 
@@ -214,8 +214,9 @@ function BaseModal(
                 popoverAnchorPosition,
                 innerContainerStyle,
                 outerStyle,
+                shouldUseModalPaddingStyle,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle],
+        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseModalPaddingStyle],
     );
 
     const modalPaddingStyles = useMemo(() => {
@@ -251,11 +252,28 @@ function BaseModal(
         [isVisible, type],
     );
 
+    const animationInProps = useMemo(() => {
+        if (disableAnimationIn) {
+            // We need to apply these animation props to completely disable the "animation in". Simply setting it to 0 and undefined will not work.
+            // Based on: https://github.com/react-native-modal/react-native-modal/issues/191
+            return {
+                animationIn: {from: {opacity: 1}, to: {opacity: 1}},
+                animationInTiming: 0,
+            };
+        }
+
+        return {
+            animationIn: animationIn ?? modalStyleAnimationIn,
+            animationInDelay,
+            animationInTiming,
+        };
+    }, [animationIn, animationInDelay, animationInTiming, disableAnimationIn, modalStyleAnimationIn]);
+
     // In Modals we need to reset the ScreenWrapperOfflineIndicatorContext to allow nested ScreenWrapper components to render offline indicators,
     // except if we are in a narrow pane navigator. In this case, we use the narrow pane's original values.
     const {isInNarrowPane} = useContext(NarrowPaneContext);
     const {originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
-    const offlineIndicatorContextValue = useMemo(() => (isInNarrowPane ? originalValues ?? {} : {}), [isInNarrowPane, originalValues]);
+    const offlineIndicatorContextValue = useMemo(() => (isInNarrowPane ? (originalValues ?? {}) : {}), [isInNarrowPane, originalValues]);
 
     return (
         <ModalContext.Provider value={modalContextValue}>
@@ -284,7 +302,7 @@ function BaseModal(
                         }}
                         onModalWillHide={onModalWillHide}
                         onDismiss={handleDismissModal}
-                        onSwipeComplete={() => onClose?.()}
+                        onSwipeComplete={onClose}
                         swipeDirection={swipeDirection}
                         swipeThreshold={swipeThreshold}
                         isVisible={isVisible}
@@ -296,14 +314,13 @@ function BaseModal(
                         style={[modalStyle, sidePanelStyle]}
                         deviceHeight={windowHeight}
                         deviceWidth={windowWidth}
-                        animationIn={animationIn ?? modalStyleAnimationIn}
-                        animationInDelay={animationInDelay}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...animationInProps}
                         animationOut={animationOut ?? modalStyleAnimationOut}
+                        animationOutTiming={animationOutTiming}
                         useNativeDriver={useNativeDriver}
                         useNativeDriverForBackdrop={useNativeDriverForBackdrop}
                         hideModalContentWhileAnimating={hideModalContentWhileAnimating}
-                        animationInTiming={animationInTiming}
-                        animationOutTiming={animationOutTiming}
                         statusBarTranslucent={statusBarTranslucent}
                         navigationBarTranslucent={navigationBarTranslucent}
                         onLayout={onLayout}

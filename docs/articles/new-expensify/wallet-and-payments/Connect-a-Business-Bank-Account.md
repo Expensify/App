@@ -12,21 +12,29 @@ Follow the steps below to connect your business bank account and enable payment 
 ---
 
 # Step 1: Enable Make or Track Payments
-1. Navigate to **Settings > Workspaces > [Workspace Name] > More Features**.
-2. Click **Enable Workflows**.
-3. A **Workflows** setting will appear in the left-hand menu.
-4. Click **Workflows** and enable **Make or Track Payments**.
+
+1. Click **Workspaces** in the left-hand menu
+2. Navigate to **[Workspace Name] > More Features**.
+3. Click **Enable Workflows**.
+4. A **Workflows** setting will appear in the left-hand menu.
+5. Click **Workflows** and enable **Make or Track Payments**.
 
 ![Insert alt text for accessibility here]({{site.url}}/assets/images/ExpensifyHelp_ConnectBankAccount_1_Light.png){:width="100%"}
 
 ![Insert alt text for accessibility here]({{site.url}}/assets/images/ExpensifyHelp_ConnectBankAccount_2_Light.png){:width="100%"}
 
+---
+
 # Step 2: Connect a Bank Account
+
 1. Click **Connect Bank Account**.
 2. Select either **Connect online with Plaid (preferred)** or **Connect manually**.
 3. Enter your bank details.
 
+---
+
 # Step 3: Upload ID 
+
 After entering your personal details, you’ll be prompted to complete identity verification:
 1. Upload a photo of the **front and back** of your ID (**cannot be a photo of an existing image**).
 2. Use your device to take a **selfie** and record a **short video** of yourself.
@@ -35,12 +43,17 @@ After entering your personal details, you’ll be prompted to complete identity 
 - Issued in the **US**.
 - Current (**expiration date must be in the future**).
 
+---
+
 # Step 4: Enter Company Information
+
 Add your company details, including:
 - **Company Address:** Must be a **physical** US location (**PO Boxes or mail drop addresses will be flagged for review and may delay verification**).
 - **Tax Identification Number (TIN):** Assigned by the **IRS**.
 - **Company Website:** Required to access most **Expensify payment features**.
 - **Industry Classification Code:** Find the list of codes [here](https://www.census.gov/naics/?input=software&year=2022).
+
+---
 
 # Step 5: Additional Information
 1. Check the appropriate box under **Beneficial Owner**:
@@ -58,6 +71,24 @@ If additional verification is required, the Concierge will notify you of the nex
 To add a **business bank account** for **ACH reimbursements (US) or Expensify Cards**:
 - Enter a **physical address** for yourself, any **Beneficial Owner** (if applicable), and the **business**.
 - **US photo ID, address, and SSN** are required for all individuals associated with the account.
+
+## Are there certain industries or businesses for which Expensify cannot process automatic, in-app payments?
+Yes, Expensify cannot process direct payments for businesses in the following industries:
+
+- Security Brokers & Dealers
+- Dating & Escort Services
+- Massage Parlors
+- Casinos & Gambling/Betting Services
+- Non-FI, Money Orders
+- Wires, Money Orders
+- Government-Owned Lotteries
+- Government-Licensed Online Casinos (Online Gambling)
+- Government-Licensed Horse/Dog Racing
+- Crypto-currency businesses
+- Internet gambling
+- Marijuana-related businesses
+- Firearm-related businesses (manufacturing and selling)
+- NFT (non-fungible token) services
 
 ## What is a Beneficial Owner?
 A **Beneficial Owner** is an **individual** who owns **25% or more** of the business. If no individual meets this threshold, you do **not** need to list a **Beneficial Owner**.

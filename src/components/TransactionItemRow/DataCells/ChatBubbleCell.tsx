@@ -19,18 +19,24 @@ import type Transaction from '@src/types/onyx/Transaction';
 const isReportUnread = ({lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = ''}: Report): boolean =>
     lastReadTime < lastVisibleActionCreated || lastReadTime < (lastMentionedTime ?? '');
 
-function ChatBubbleCell({transaction, containerStyles}: {transaction: Transaction; containerStyles?: ViewStyle[]}) {
+function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionReport}: {transaction: Transaction; containerStyles?: ViewStyle[]; isInSingleTransactionReport?: boolean}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [iouReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`, {
         selector: (reportActions) => getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID),
+        canBeMissing: true,
+    });
+
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportAction?.childReportID}`, {
+        canBeMissing: true,
+    });
+
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`, {
         canBeMissing: false,
     });
 
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportAction?.childReportID}`, {
-        canBeMissing: false,
-    });
+    const transactionReport = isInSingleTransactionReport ? parentReport : childReport;
 
     const threadMessages = useMemo(
         () => ({

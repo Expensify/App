@@ -5,7 +5,7 @@ import RadioListItem from './RadioListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
 
 /**
- * SingleSelectListItem mirrors the behavior of a default radiolistitem, but adds support
+ * SingleSelectListItem mirrors the behavior of a default RadioListItem, but adds support
  * for the new style of single selection lists.
  */
 function SingleSelectListItem<TItem extends ListItem>({
@@ -30,7 +30,8 @@ function SingleSelectListItem<TItem extends ListItem>({
     const radioCheckboxComponent = useCallback(() => {
         return (
             <Checkbox
-                containerStyle={{borderRadius: 999}}
+                shouldSelectOnPressEnter
+                containerBorderRadius={999}
                 accessibilityLabel="SingleSelectListItem"
                 isChecked={isSelected}
                 onPress={() => onSelectRow(item)}

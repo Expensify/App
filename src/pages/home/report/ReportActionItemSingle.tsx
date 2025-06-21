@@ -21,7 +21,7 @@ import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getReportActionMessage} from '@libs/ReportActionsUtils';
+import {getManagerOnVacation, getReportActionMessage, getSubmittedTo, getVacationer} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
@@ -123,6 +123,17 @@ function ReportActionItemSingle({
     let displayName = getDisplayNameForParticipant({accountID: actorAccountID, personalDetailsData: personalDetails});
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
+
+    // Vacation delegate details for submitted action
+    const vacationer = getVacationer(action);
+    const submittedTo = getSubmittedTo(action);
+    const vacationDelegateDetailsForSubmit = getPersonalDetailByEmail(vacationer ?? '');
+    const submittedToDetails = getPersonalDetailByEmail(submittedTo ?? '');
+
+    // Vacation delegate details for approved action
+    const managerOnVacation = getManagerOnVacation(action);
+    const vacationDelegateDetailsForApprove = getPersonalDetailByEmail(managerOnVacation ?? '');
+
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = isTripRoomReportUtils(report);
@@ -200,14 +211,18 @@ function ReportActionItemSingle({
         id: avatarId,
     };
 
+    const showMultipleUserAvatarPattern = displayAllActors && !shouldShowSubscriptAvatar;
+
+    const headingText = showMultipleUserAvatarPattern ? `${icon.name} & ${secondaryAvatar.name}` : displayName;
+
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
-    const personArray = displayName
+    const personArray = headingText
         ? [
               {
                   type: 'TEXT',
-                  text: displayName,
+                  text: headingText,
               },
           ]
         : action?.person;
@@ -231,7 +246,7 @@ function ReportActionItemSingle({
     const shouldDisableDetailPage = useMemo(
         () =>
             CONST.RESTRICTED_ACCOUNT_IDS.includes(actorAccountID ?? CONST.DEFAULT_NUMBER_ID) ||
-            (!isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : actorAccountID ?? CONST.DEFAULT_NUMBER_ID)),
+            (!isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (actorAccountID ?? CONST.DEFAULT_NUMBER_ID))),
         [action, isWorkspaceActor, actorAccountID],
     );
 
@@ -267,7 +282,7 @@ function ReportActionItemSingle({
         }
         return (
             <UserDetailsTooltip
-                accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : icon.id ?? CONST.DEFAULT_NUMBER_ID)}
+                accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : (icon.id ?? CONST.DEFAULT_NUMBER_ID))}
                 delegateAccountID={action?.delegateAccountID}
                 icon={icon}
             >
@@ -284,6 +299,7 @@ function ReportActionItemSingle({
             </UserDetailsTooltip>
         );
     };
+
     const hasEmojiStatus = !displayAllActors && status?.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
     const statusText = status?.text ?? '';
@@ -318,12 +334,13 @@ function ReportActionItemSingle({
                                 <ReportActionItemFragment
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={`person-${action?.reportActionID}-${index}`}
-                                    accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : icon.id ?? CONST.DEFAULT_NUMBER_ID)}
+                                    accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : (icon.id ?? CONST.DEFAULT_NUMBER_ID))}
                                     fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
                                     delegateAccountID={action?.delegateAccountID}
                                     isSingleLine
                                     actorIcon={icon}
                                     moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                                    shouldShowTooltip={!showMultipleUserAvatarPattern}
                                 />
                             ))}
                         </PressableWithoutFeedback>
@@ -340,6 +357,19 @@ function ReportActionItemSingle({
                 ) : null}
                 {!!action?.delegateAccountID && (
                     <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>
+                )}
+                {!!vacationer && !!submittedTo && (
+                    <Text style={[styles.chatDelegateMessage]}>
+                        {translate('statusPage.toAsVacationDelegate', {
+                            submittedToName: submittedToDetails?.displayName ?? submittedTo ?? '',
+                            vacationDelegateName: vacationDelegateDetailsForSubmit?.displayName ?? vacationer ?? '',
+                        })}
+                    </Text>
+                )}
+                {!!managerOnVacation && (
+                    <Text style={[styles.chatDelegateMessage]}>
+                        {translate('statusPage.asVacationDelegate', {nameOrEmail: vacationDelegateDetailsForApprove?.displayName ?? managerOnVacation ?? ''})}
+                    </Text>
                 )}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
             </View>
