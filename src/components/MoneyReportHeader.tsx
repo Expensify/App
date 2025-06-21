@@ -316,7 +316,7 @@ function MoneyReportHeader({
                 payInvoice(type, chatReport, moneyRequestReport, payAsBusiness, methodID, paymentMethod);
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, true);
+                payMoneyRequest(type, chatReport, moneyRequestReport, undefined, true);
             }
         },
         [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, showDelegateNoAccessModal, isInvoiceReport, moneyRequestReport, startAnimation],
@@ -526,6 +526,7 @@ function MoneyReportHeader({
                 isPaidAnimationRunning={isPaidAnimationRunning}
                 isApprovedAnimationRunning={isApprovedAnimationRunning}
                 onAnimationFinish={stopAnimation}
+                formattedAmount={totalAmount}
                 canIOUBePaid
                 onlyShowPayElsewhere={onlyShowPayElsewhere}
                 currency={moneyRequestReport?.currency}

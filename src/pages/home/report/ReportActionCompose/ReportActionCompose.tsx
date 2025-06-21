@@ -51,6 +51,7 @@ import {
     isGroupChat,
     isInvoiceReport,
     isReportTransactionThread,
+    isSettled,
     isUserCreatedPolicyRoom,
 } from '@libs/ReportUtils';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
@@ -227,7 +228,8 @@ function ReportActionCompose({
             !isAdminRoom(report) &&
             !isConciergeChatReport(report) &&
             !isInvoiceReport(report) &&
-            !isGroupChat(report),
+            !isGroupChat(report) &&
+            !isSettled(report),
         [report],
     );
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
