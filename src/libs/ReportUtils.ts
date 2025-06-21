@@ -4915,6 +4915,15 @@ function getReportActionMessage({
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
         return translateLocal('iou.unheldExpense');
     }
+
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.DECLINEDTRANSACTION_THREAD) {
+        return translateLocal('iou.decline.reportActions.declinedExpense');
+    }
+
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {
+        return translateLocal('iou.decline.reportActions.markedAsResolved');
+    }
+
     if (isApprovedOrSubmittedReportAction(reportAction) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
         return getReportActionMessageText(reportAction);
     }
@@ -11149,7 +11158,7 @@ function buildOptimisticRemoveReportAction(amount: string, reportID: string, mer
     const textForComment = Parser.htmlToText(htmlForComment);
     return {
         reportActionID: rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.DECLINEDTRANSACTION_THREAD,
+        actionName: CONST.REPORT.ACTIONS.TYPE.DECLINED_TRANSACTION,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
         message: [

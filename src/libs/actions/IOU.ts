@@ -11520,6 +11520,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             },
         });
+        movedToReportID = reportID;
         urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
     }
 
@@ -11605,9 +11606,6 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
     const updatedViolations = currentViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.REJECTED_EXPENSE);
     const optimisticMarkedAsResolvedReportAction = buildOptimisticMarkedAsResolvedReportAction();
 
-    const reportAction = getIOUActionForReportID(reportID, transactionID);
-    const childReportID = reportAction?.childReportID;
-
     // Build optimistic data
     const optimisticData: OnyxUpdate[] = [
         {
@@ -11617,7 +11615,7 @@ function markDeclineViolationAsResolved(transactionID: string, reportID?: string
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
             value: {
                 [optimisticMarkedAsResolvedReportAction.reportActionID]: optimisticMarkedAsResolvedReportAction,
             },
