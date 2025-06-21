@@ -272,10 +272,10 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
     }
 
     const isInvoiceReport = isInvoiceReportUtils(report);
-    const isReportSender = isCurrentUserSubmitter(report.reportID);
 
-    if (isInvoiceReport && isReportSender) {
-        return true;
+    // We don't allow export to accounting for invoice reports in OD so we want to align with that here.
+    if (isInvoiceReport) {
+        return false;
     }
 
     const isExpenseReport = isExpenseReportUtils(report);

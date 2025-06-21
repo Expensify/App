@@ -45,6 +45,7 @@ import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
+import {canReview} from './ReportPreviewActionUtils';
 import {
     getIcons,
     getPersonalDetailsForAccountID,
@@ -680,6 +681,9 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
 
     // Only check for violations if we need to (when user has permission to review)
     if ((isSubmitter || isApprover || isAdmin) && hasViolations(report.reportID, allViolations, undefined, allReportTransactions)) {
+        if (isSubmitter && !isApprover && !isAdmin && !canReview(report, allViolations, policy, allReportTransactions)) {
+            return CONST.SEARCH.ACTION_TYPES.VIEW;
+        }
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
     // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
@@ -1199,11 +1203,11 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
     ];
 
     // Begin adding conditional sections, based on the policies the user has access to
-    const showSubmitSuggestion = Object.values(policies).filter((p) => p?.type && p.type !== CONST.POLICY.TYPE.PERSONAL).length > 0;
+    const showSubmitSuggestion = Object.values(policies).filter((p) => isPaidGroupPolicy(p)).length > 0;
 
     const showApproveSuggestion =
         Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
-            if (!policy || !email || policy.type === CONST.POLICY.TYPE.PERSONAL) {
+            if (!policy || !email || !isPaidGroupPolicy(policy)) {
                 return false;
             }
 
@@ -1215,18 +1219,26 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
             return isPolicyApprover || isSubmittedTo;
         }).length > 0;
 
-    // TODO: This option will be enabled soon (removing the && false). We are waiting on BE changes to support this
-    // feature, but lets keep the code here for simplicity
-    // https://github.com/Expensify/Expensify/issues/505932
     const showPaySuggestion =
-        Object.values(policies).filter<OnyxTypes.Policy>(
-            (policy): policy is OnyxTypes.Policy =>
-                !!policy &&
-                policy.role === CONST.POLICY.ROLE.ADMIN &&
-                policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ||
-                    policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL),
-        ).length > 0 && false;
+        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
+            if (!policy || !isPaidGroupPolicy(policy)) {
+                return false;
+            }
+
+            const reimburser = policy.reimburser;
+            const isReimburser = reimburser === email;
+            const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+
+            if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+                return reimburser ? isReimburser : isAdmin;
+            }
+
+            if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+                return isAdmin;
+            }
+
+            return false;
+        }).length > 0;
 
     // TODO: This option will be enabled soon (removing the && false). We are waiting on changes to support this
     // feature fully, but lets keep the code here for simplicity
