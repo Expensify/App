@@ -129,12 +129,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         />
                     );
                 case CONST.SEARCH.GROUP_BY.MEMBERS:
-                    <MemberListItemHeader
-                        member={groupItem as unknown as TransactionMemberGroupListItemType}
-                        onCheckboxPress={onCheckboxPress}
-                        isDisabled={isDisabledOrEmpty}
-                        canSelectMultiple={canSelectMultiple}
-                    />;
+                    return (
+                        <MemberListItemHeader
+                            member={groupItem as unknown as TransactionMemberGroupListItemType}
+                            onCheckboxPress={onCheckboxPress}
+                            isDisabled={isDisabledOrEmpty}
+                            canSelectMultiple={canSelectMultiple}
+                        />
+                    );
                 default:
                     return null;
             }

@@ -3,12 +3,8 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import type {ListItem, TransactionMemberGroupListItemType} from '@components/SelectionList/types';
-import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -28,10 +24,8 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 
 function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onCheckboxPress, isDisabled, canSelectMultiple}: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const theme = useTheme();
-    const {isLargeScreenWidth} = useResponsiveLayout();
-    const shouldShowAction = isLargeScreenWidth;
+
+    // s77rt add total cell and action cell
 
     return (
         <View>
@@ -51,25 +45,23 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onChe
                                 <Avatar
                                     source={memberItem.avatar}
                                     type={CONST.ICON_TYPE_AVATAR}
-                                    name={memberItem.displayName || memberItem.login}
+                                    name={memberItem.displayName ?? memberItem.login}
                                     avatarID={memberItem.accountID}
                                 />
                             </View>
                         </UserDetailsTooltip>
                         <View style={[styles.gapHalf]}>
                             <TextWithTooltip
-                                text={memberItem.displayName || memberItem.login || ''}
+                                text={memberItem.displayName ?? memberItem.login ?? ''}
                                 style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}
                             />
                             <TextWithTooltip
-                                text={memberItem.login || ''}
+                                text={memberItem.login ?? ''}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         </View>
                     </View>
                 </View>
-                <Text>Total s77rt</Text>
-                {shouldShowAction && <Text>Action s77rt</Text>}
             </View>
             <View style={[styles.pv2, styles.ph3]}>
                 <View style={[styles.borderBottom]} />
