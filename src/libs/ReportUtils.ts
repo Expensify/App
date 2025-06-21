@@ -11461,6 +11461,7 @@ export {
     navigateOnDeleteExpense,
     hasReportBeenReopened,
     getMoneyReportPreviewName,
+    isActionOrReportPreviewOwner,
     getNextApproverAccountID,
     isOneTransactionReport,
     isWorkspaceTaskReport,

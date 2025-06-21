@@ -4,7 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLinkedTransactionHeld} from '@libs/ReportActionsUtils';
-import * as IOU from '@userActions/IOU';
+import {approveMoneyRequest, payMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -44,6 +44,12 @@ type ProcessMoneyReportHoldMenuProps = {
 
     /** Callback for displaying payment animation on IOU preview component */
     startAnimation?: () => void;
+
+    /** Snapshot of search results */
+    snapshot?: OnyxTypes.SearchResults;
+
+    /** Transactions of the report */
+    transactions?: OnyxTypes.Transaction[];
 };
 
 function ProcessMoneyReportHoldMenu({
@@ -57,6 +63,8 @@ function ProcessMoneyReportHoldMenu({
     moneyRequestReport,
     transactionCount,
     startAnimation,
+    snapshot,
+    transactions,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
@@ -69,15 +77,17 @@ function ProcessMoneyReportHoldMenu({
             if (startAnimation) {
                 startAnimation();
             }
-            IOU.approveMoneyRequest(moneyRequestReport, full);
+            approveMoneyRequest(moneyRequestReport, full, transactions, snapshot);
+            // eslint-disable-next-line rulesdir/no-default-id-values
             if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '-1', moneyRequestReport?.reportID ?? '')) {
+                // eslint-disable-next-line rulesdir/no-default-id-values
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID ?? ''));
             }
         } else if (chatReport && paymentType) {
             if (startAnimation) {
                 startAnimation();
             }
-            IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
+            payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
         }
         onClose();
     };
