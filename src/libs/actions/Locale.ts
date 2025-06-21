@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {getDevicePreferredLocale} from '@libs/Localize';
+import DateLocaleStore from '@src/languages/DateLocaleStore';
 import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -14,6 +15,7 @@ function init() {
         callback: (locale) => {
             Onyx.disconnect(connection);
             TranslationStore.load(locale ?? getDevicePreferredLocale());
+            DateLocaleStore.load(locale ?? getDevicePreferredLocale());
         },
     });
 }
