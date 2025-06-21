@@ -160,6 +160,7 @@ import {
     getReportActionHtml,
     getReportActionMessage as getReportActionMessageReportUtils,
     getReportActionMessageText,
+    getReportActions,
     getReportActionText,
     getRetractedMessage,
     getTravelUpdateMessage,
@@ -8830,14 +8831,20 @@ function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: b
     const parentReportAction = getReportAction(ancestor.report.parentReportID, ancestor.report.parentReportActionID);
 
     let newAncestor = ancestor;
-    // If `parentReport` is an IOU or Expense report, navigate directly to `parentReport`,
+    // If `parentReport` is an money report with one transaction, navigate directly to `parentReport`,
     // preventing redundant navigation when threading back to the parent chat thread
-    if (parentReport && parentReportAction && (isIOUReport(parentReport) || isExpenseReport(parentReport))) {
-        newAncestor = {
-            ...ancestor,
-            report: parentReport,
-            reportAction: parentReportAction,
-        };
+    if (parentReport && parentReportAction) {
+        const allParentReportActions = getReportActions(parentReport);
+        const visibleParentReportActions = Object.values(allParentReportActions ?? {}).filter(
+            (action) => !isMessageDeleted(action) || (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isOffline),
+        );
+        if (getOneTransactionThreadReportID(parentReport, getReportOrDraftReport(parentReport.chatReportID), visibleParentReportActions)) {
+            newAncestor = {
+                ...ancestor,
+                report: parentReport,
+                reportAction: parentReportAction,
+            };
+        }
     }
 
     if (isInNarrowPaneModal) {
