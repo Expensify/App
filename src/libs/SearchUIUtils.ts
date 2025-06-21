@@ -886,7 +886,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionGroupListItemType[] {
+function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionReportGroupListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
@@ -967,7 +967,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getMemberSections(_data: OnyxTypes.SearchResults['data'], _metadata: OnyxTypes.SearchResults['search']): TransactionGroupListItemType[] {
+function getMemberSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionMemberGroupListItemType[] {
     return []; // s77rt
 }
 
@@ -1025,10 +1025,10 @@ function getSortedSections(
         return getSortedTaskData(data as TaskListItemType[], sortBy, sortOrder);
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
-        return getSortedReportData(data as TransactionGroupListItemType[]);
+        return getSortedReportData(data as TransactionReportGroupListItemType[]);
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.MEMBERS) {
-        return getSortedMemberData(data as TransactionGroupListItemType[]);
+        return getSortedMemberData(data as TransactionMemberGroupListItemType[]);
     }
     return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
 }
@@ -1103,7 +1103,7 @@ function getSortedTaskData(data: TaskListItemType[], sortBy?: SearchColumnType, 
  * @private
  * Sorts report sections based on a specified column and sort order.
  */
-function getSortedReportData(data: TransactionGroupListItemType[]) {
+function getSortedReportData(data: TransactionReportGroupListItemType[]) {
     for (const report of data) {
         report.transactions = getSortedTransactionData(report.transactions, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
     }
@@ -1123,7 +1123,7 @@ function getSortedReportData(data: TransactionGroupListItemType[]) {
  * @private
  * Sorts report sections based on a specified column and sort order.
  */
-function getSortedMemberData(_data: TransactionGroupListItemType[]) {
+function getSortedMemberData(data: TransactionMemberGroupListItemType[]) {
     return []; // s77rt
 }
 
