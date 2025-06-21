@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type {SearchStatus} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
-import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
+import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
@@ -22,7 +22,7 @@ type ListItemType<C extends SearchDataTypes, T extends SearchStatus> = C extends
     ? typeof ChatListItem
     : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
       ? typeof TransactionListItem
-      : typeof ReportListItem;
+      : typeof TransactionGroupListItem;
 
 /** Model of search list item data type */
 type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT

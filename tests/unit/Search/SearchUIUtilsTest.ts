@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ChatListItem from '@components/SelectionList/ChatListItem';
-import ReportListItem from '@components/SelectionList/Search/ReportListItem';
+import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -1172,16 +1172,16 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, 'all', false)).toStrictEqual(TransactionListItem);
         });
 
-        it('should return ReportListItem when type is EXPENSE and shouldGroupByReports is true', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, 'all', true)).toStrictEqual(ReportListItem);
+        it('should return TransactionGroupListItem when type is EXPENSE and shouldGroupByReports is true', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, 'all', true)).toStrictEqual(TransactionGroupListItem);
         });
 
-        it('should return ReportListItem when type is TRIP and shouldGroupByReports is true', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, 'all', true)).toStrictEqual(ReportListItem);
+        it('should return TransactionGroupListItem when type is TRIP and shouldGroupByReports is true', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.TRIP, 'all', true)).toStrictEqual(TransactionGroupListItem);
         });
 
-        it('should return ReportListItem when type is INVOICE and shouldGroupByReports is true', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, 'all', true)).toStrictEqual(ReportListItem);
+        it('should return TransactionGroupListItem when type is INVOICE and shouldGroupByReports is true', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.INVOICE, 'all', true)).toStrictEqual(TransactionGroupListItem);
         });
     });
 

@@ -33,8 +33,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type ChatListItem from './ChatListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
-import type ReportListItem from './Search/ReportListItem';
 import type SearchQueryListItem from './Search/SearchQueryListItem';
+import type TransactionGroupListItem from './Search/TransactionGroupListItem';
 import type TransactionListItem from './Search/TransactionListItem';
 import type TableListItem from './TableListItem';
 import type TravelDomainListItem from './TravelDomainListItem';
@@ -468,7 +468,7 @@ type ValidListItem =
     | typeof TableListItem
     | typeof InviteMemberListItem
     | typeof TransactionListItem
-    | typeof ReportListItem
+    | typeof TransactionGroupListItem
     | typeof ChatListItem
     | typeof SearchQueryListItem
     | typeof SearchRouterItem

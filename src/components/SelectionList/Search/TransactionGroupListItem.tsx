@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ReportListItemHeader from './ReportListItemHeader';
 
-function ReportListItem<TItem extends ListItem>({
+function TransactionGroupListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -179,6 +179,6 @@ function ReportListItem<TItem extends ListItem>({
     );
 }
 
-ReportListItem.displayName = 'ReportListItem';
+TransactionGroupListItem.displayName = 'TransactionGroupListItem';
 
-export default ReportListItem;
+export default TransactionGroupListItem;

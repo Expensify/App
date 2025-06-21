@@ -9,8 +9,8 @@ import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSele
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SearchQueryString, SearchStatus, SingularSearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
-import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TaskListItem from '@components/SelectionList/Search/TaskListItem';
+import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportActionListItemType, ReportListItemType, SearchListItem, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -951,7 +951,7 @@ function getListItem(type: SearchDataTypes, status: SearchStatus, shouldGroupByR
     if (!shouldGroupByReports) {
         return TransactionListItem;
     }
-    return ReportListItem;
+    return TransactionGroupListItem;
 }
 
 /**
