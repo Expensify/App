@@ -4104,22 +4104,33 @@ function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: string) {
 /**
  *
  * @param policyID
- * @param prohibitedExpenses
+ * @param prohibitedExpense
  */
-function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: ProhibitedExpenses) {
+function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof ProhibitedExpenses) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     const originalProhibitedExpenses = policy?.prohibitedExpenses;
+    const prohibitedExpenses = {
+        [CONST.POLICY.PROHIBITED_EXPENSES.ADULT_ENTERTAINMENT]: originalProhibitedExpenses?.[CONST.POLICY.PROHIBITED_EXPENSES.ADULT_ENTERTAINMENT],
+        [CONST.POLICY.PROHIBITED_EXPENSES.ALCOHOL]: originalProhibitedExpenses?.[CONST.POLICY.PROHIBITED_EXPENSES.ALCOHOL],
+        [CONST.POLICY.PROHIBITED_EXPENSES.GAMBLING]: originalProhibitedExpenses?.[CONST.POLICY.PROHIBITED_EXPENSES.GAMBLING],
+        [CONST.POLICY.PROHIBITED_EXPENSES.HOTEL_INCIDENTALS]: originalProhibitedExpenses?.[CONST.POLICY.PROHIBITED_EXPENSES.HOTEL_INCIDENTALS],
+        [CONST.POLICY.PROHIBITED_EXPENSES.TOBACCO]: originalProhibitedExpenses?.[CONST.POLICY.PROHIBITED_EXPENSES.TOBACCO],
+        [prohibitedExpense]: !originalProhibitedExpenses?.[prohibitedExpense],
+    };
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    prohibitedExpenses,
-                    pendingFields: {
-                        prohibitedExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    prohibitedExpenses: {
+                        ...prohibitedExpenses,
+                        pendingFields: {
+                            [prohibitedExpense]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
                     },
                 },
             },
@@ -4129,7 +4140,11 @@ function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: Prohi
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    pendingFields: {prohibitedExpenses: null},
+                    prohibitedExpenses: {
+                        pendingFields: {
+                            [prohibitedExpense]: null,
+                        },
+                    },
                     errorFields: null,
                 },
             },
@@ -4140,7 +4155,6 @@ function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: Prohi
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     prohibitedExpenses: originalProhibitedExpenses,
-                    pendingFields: {prohibitedExpenses: null},
                     errorFields: {prohibitedExpenses: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 },
             },
@@ -5454,7 +5468,7 @@ export {
     setPolicyMaxExpenseAmount,
     setPolicyMaxExpenseAge,
     updateCustomRules,
-    setPolicyProhibitedExpenses,
+    setPolicyProhibitedExpense,
     setPolicyBillableMode,
     disableWorkspaceBillableExpenses,
     setWorkspaceEReceiptsEnabled,
