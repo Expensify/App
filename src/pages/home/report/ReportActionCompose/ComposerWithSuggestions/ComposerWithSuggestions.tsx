@@ -830,19 +830,21 @@ function ComposerWithSuggestions(
                 />
             </View>
 
-            <Suggestions
-                ref={suggestionsRef}
-                isComposerFocused={textInputRef.current?.isFocused()}
-                updateComment={updateComment}
-                measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
-                isGroupPolicyReport={isGroupPolicyReport}
-                policyID={policyID}
-                // Input
-                value={value}
-                selection={selection}
-                setSelection={setSelection}
-                resetKeyboardInput={resetKeyboardInput}
-            />
+            {textInputRef.current?.isFocused() && value.length > 0 ? (
+                <Suggestions
+                    ref={suggestionsRef}
+                    isComposerFocused={textInputRef.current?.isFocused()}
+                    updateComment={updateComment}
+                    measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+                    isGroupPolicyReport={isGroupPolicyReport}
+                    policyID={policyID}
+                    // Input
+                    value={value}
+                    selection={selection}
+                    setSelection={setSelection}
+                    resetKeyboardInput={resetKeyboardInput}
+                />
+            ) : null}
 
             {isValidReportIDFromPath(reportID) && (
                 <SilentCommentUpdater
