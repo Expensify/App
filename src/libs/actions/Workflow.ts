@@ -337,6 +337,16 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
     return isEmptyObject(errors);
 }
 
+/** Set flag when starting invite flow from approval workflow */
+function setIsInApprovalWorkflowInviteFlow(isInFlow: boolean) {
+    Onyx.set(ONYXKEYS.IS_IN_APPROVAL_WORKFLOW_INVITE_FLOW, isInFlow);
+}
+
+/** Clear approval workflow invite flow flag */
+function clearIsInApprovalWorkflowInviteFlow() {
+    Onyx.set(ONYXKEYS.IS_IN_APPROVAL_WORKFLOW_INVITE_FLOW, false);
+}
+
 export {
     createApprovalWorkflow,
     updateApprovalWorkflow,
@@ -348,4 +358,6 @@ export {
     clearApprovalWorkflowApprovers,
     clearApprovalWorkflow,
     validateApprovalWorkflow,
+    setIsInApprovalWorkflowInviteFlow,
+    clearIsInApprovalWorkflowInviteFlow,
 };
