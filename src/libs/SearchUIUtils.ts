@@ -1565,7 +1565,7 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
             return taskStatusOptions;
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
-            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS ? expenseReportStatusOptions : expenseStatusOptions;
+            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS ? expenseReportStatusOptions : expenseStatusOptions; // s77rt (to check group by)
     }
 }
 
@@ -1581,6 +1581,10 @@ function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserL
 
     // Remove the invoice option if the user is not allowed to send invoices
     return shouldHideInvoiceOption ? typeOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE) : typeOptions;
+}
+
+function getGroupByOptions() {
+    return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({translation: `search.filters.groupBy.${value}`, value}));
 }
 
 export {
@@ -1606,6 +1610,7 @@ export {
     isSearchDataLoaded,
     getStatusOptions,
     getTypeOptions,
+    getGroupByOptions,
     getWideAmountIndicators,
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
