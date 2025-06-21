@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BaseListItem from '@components/SelectionList/BaseListItem';
-import type {ListItem, ReportListItemProps, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ListItem, TransactionGroupListItemProps, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -33,7 +33,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-}: ReportListItemProps<TItem>) {
+}: TransactionGroupListItemProps<TItem>) {
     const reportItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
     const styles = useThemeStyles();

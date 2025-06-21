@@ -859,7 +859,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
 
 /**
  * @private
- * Organizes data into List Sections for display, for the TransactionGroupListItemType of Search Results.
+ * Organizes data into List Sections grouped by report for display, for the TransactionGroupListItemType of Search Results.
  *
  * Do not use directly, use only via `getSections()` facade.
  */
@@ -939,6 +939,16 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 }
 
 /**
+ * @private
+ * Organizes data into List Sections grouped by member for display, for the TransactionGroupListItemType of Search Results.
+ *
+ * Do not use directly, use only via `getSections()` facade.
+ */
+function getMemberSections(_data: OnyxTypes.SearchResults['data'], _metadata: OnyxTypes.SearchResults['search']): TransactionGroupListItemType[] {
+    return []; // s77rt
+}
+
+/**
  * Returns the appropriate list item component based on the type and status of the search data.
  */
 function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: SearchGroupBy): ListItemType<typeof type, typeof status> {
@@ -968,7 +978,7 @@ function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxType
         return getReportSections(data, metadata);
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.MEMBERS) {
-        // s77rt TODO
+        return getMemberSections(data, metadata);
     }
 
     return getTransactionsSections(data, metadata);
@@ -995,7 +1005,7 @@ function getSortedSections(
         return getSortedReportData(data as TransactionGroupListItemType[]);
     }
     if (groupBy === CONST.SEARCH.GROUP_BY.MEMBERS) {
-        // s77rt TODO
+        return getSortedMemberData(data as TransactionGroupListItemType[]);
     }
     return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
 }
@@ -1084,6 +1094,14 @@ function getSortedReportData(data: TransactionGroupListItemType[]) {
 
         return bNewestTransaction.toLowerCase().localeCompare(aNewestTransaction);
     });
+}
+
+/**
+ * @private
+ * Sorts report sections based on a specified column and sort order.
+ */
+function getSortedMemberData(_data: TransactionGroupListItemType[]) {
+    return []; // s77rt
 }
 
 /**

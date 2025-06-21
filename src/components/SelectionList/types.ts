@@ -316,6 +316,7 @@ type TaskListItemType = ListItem &
         shouldShowYear: boolean;
     };
 
+// s77rt remove SearchReport type?
 type TransactionGroupListItemType = ListItem &
     SearchReport & {
         /** The personal details of the user requesting money */
@@ -450,7 +451,7 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
 };
 
-type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     queryJSONHash?: number;
@@ -860,7 +861,7 @@ export type {
     RadioListItemProps,
     SingleSelectListItemProps,
     MultiSelectListItemProps,
-    ReportListItemProps,
+    TransactionGroupListItemProps,
     TransactionGroupListItemType,
     Section,
     SectionListDataType,
