@@ -6656,18 +6656,8 @@ const translations = {
             part1: 'Czat z',
             part2: 'zatwierdzający',
         },
-        globalCreateTooltip: {
-            part1: 'Utwórz wydatki',
-            part2: ', rozpocznij czat,',
-            part3: 'i więcej.',
-            part4: 'Wypróbuj to!',
-        },
-        GBRRBRChat: {
-            part1: 'Zobaczysz 🟢 na',
-            part2: 'działania do podjęcia',
-            part3: ', i 🔴 na',
-            part4: 'elementy do przejrzenia.',
-        },
+        globalCreateTooltip: '<strong>Utwórz wydatki</strong>, rozpocznij czat,\ni więcej. Wypróbuj to!',
+        GBRRBRChat: 'Zobaczysz 🟢 na <strong>działania do podjęcia</strong>, i 🔴 na <strong>elementy do przejrzenia.</strong>',
         accountSwitcher: {
             part1: 'Uzyskaj dostęp do swojego',
             part2: 'Konta Copilot',

@@ -65,10 +65,11 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [GLOBAL_CREATE_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.globalCreateTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.globalCreateTooltip.part2', isBold: false},
-            {text: 'productTrainingTooltip.globalCreateTooltip.part3', isBold: false},
-            {text: 'productTrainingTooltip.globalCreateTooltip.part4', isBold: false},
+            {
+                text: () => {
+                    return React.createElement(RenderHTML, {html: 'productTrainingTooltip.globalCreateTooltip'});
+                },
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(GLOBAL_CREATE_TOOLTIP, isDismissedUsingCloseButton),
         name: GLOBAL_CREATE_TOOLTIP,
@@ -99,10 +100,11 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [GBR_RBR_CHAT]: {
         content: [
-            {text: 'productTrainingTooltip.GBRRBRChat.part1', isBold: false},
-            {text: 'productTrainingTooltip.GBRRBRChat.part2', isBold: true},
-            {text: 'productTrainingTooltip.GBRRBRChat.part3', isBold: false},
-            {text: 'productTrainingTooltip.GBRRBRChat.part4', isBold: true},
+            {
+                text: () => {
+                    return React.createElement(RenderHTML, {html: 'productTrainingTooltip.GBRRBRChat'});
+                },
+            },
         ],
         onHideTooltip: () => dismissProductTraining(GBR_RBR_CHAT),
         name: GBR_RBR_CHAT,

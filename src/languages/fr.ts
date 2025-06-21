@@ -6710,18 +6710,8 @@ const translations = {
             part1: 'Discuter avec',
             part2: 'approbateurs',
         },
-        globalCreateTooltip: {
-            part1: 'Créer des dépenses',
-            part2: ', commencer à discuter,',
-            part3: 'et plus.',
-            part4: 'Essayez-le !',
-        },
-        GBRRBRChat: {
-            part1: 'Vous verrez 🟢 sur',
-            part2: 'actions à entreprendre',
-            part3: ',\net 🔴 sur',
-            part4: 'éléments à examiner.',
-        },
+        globalCreateTooltip: '<strong>Créer des dépenses</strong>, commencer à discuter,\net plus. Essayez-le !',
+        GBRRBRChat: 'Vous verrez 🟢 sur <strong>actions à entreprendre</strong>,\net 🔴 sur <strong>éléments à examiner.</strong>',
         accountSwitcher: {
             part1: 'Accédez à votre',
             part2: 'Comptes Copilot',
