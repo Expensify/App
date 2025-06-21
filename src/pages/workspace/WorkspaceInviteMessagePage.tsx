@@ -106,7 +106,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs, workspaceInviteRoleDraft);
         setWorkspaceInviteMessageDraft(route.params.policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
-        
+
         // Check if we're coming from approval workflow
         if (isInApprovalWorkflowInviteFlow) {
             // Clear the flag and continue to the approver page
@@ -114,7 +114,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
             return;
         }
-        
+
         if ((route.params?.backTo as string)?.endsWith('members')) {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
             return;

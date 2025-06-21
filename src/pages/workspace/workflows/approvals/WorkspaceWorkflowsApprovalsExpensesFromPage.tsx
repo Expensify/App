@@ -152,7 +152,15 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         setSelectedMembers(
             approvalWorkflow.members.map((member) => {
                 const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-                const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
+                let accountID = Number(policyMemberEmailsToAccountIDs[member.email]);
+                
+                // If not found in workspace members, look up in personal details or users to invite
+                if (!accountID) {
+                    const personalDetail = personalDetails.find((detail) => detail.login === member.email);
+                    const userToInvite = usersToInvite.find((user) => user.login === member.email);
+                    accountID = personalDetail?.accountID ?? userToInvite?.accountID ?? 0;
+                }
+                
                 const isAdmin = policy?.employeeList?.[member.email]?.role === CONST.REPORT.ROLE.ADMIN;
 
                 return {
@@ -167,7 +175,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 };
             }),
         );
-    }, [approvalWorkflow?.members, policy?.employeeList, translate]);
+    }, [approvalWorkflow?.members, policy?.employeeList, translate, personalDetails, usersToInvite]);
 
     const approversEmail = useMemo(() => approvalWorkflow?.approvers.map((member) => member?.email), [approvalWorkflow?.approvers]);
     const sections: MembersSection[] = useMemo(() => {
@@ -315,7 +323,15 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     const toggleMember = (member: SelectionListMember) => {
         const isAlreadySelected = selectedMembers.some((selectedOption) => selectedOption.login === member.login);
-        setSelectedMembers(isAlreadySelected ? selectedMembers.filter((selectedOption) => selectedOption.login !== member.login) : [...selectedMembers, {...member, isSelected: true}]);
+        
+        if (isAlreadySelected) {
+            const newSelectedMembers = selectedMembers.filter((selectedOption) => selectedOption.login !== member.login);
+            setSelectedMembers(newSelectedMembers);
+        } else {
+            const memberToAdd = {...member, isSelected: true};
+            const newSelectedMembers = [...selectedMembers, memberToAdd];
+            setSelectedMembers(newSelectedMembers);
+        }
     };
 
     // Header message with proper validation
