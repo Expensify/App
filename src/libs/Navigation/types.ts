@@ -1766,6 +1766,7 @@ type ReportsSplitNavigatorParamList = {
         moneyRequestReportActionID?: string;
         transactionID?: string;
     };
+    [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
 };
 
 type SettingsSplitNavigatorParamList = {
@@ -1973,6 +1974,7 @@ type SharedScreensParamList = {
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
         authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
+        // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
         exitTo?: Routes | HybridAppRoute;
         shouldForceLogin: string;
         domain?: Routes;
@@ -1981,6 +1983,7 @@ type SharedScreensParamList = {
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
         validateCode: string;
+        // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
         exitTo?: Routes | HybridAppRoute;
     };
 };
