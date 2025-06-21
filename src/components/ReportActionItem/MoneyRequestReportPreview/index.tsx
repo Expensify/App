@@ -93,9 +93,9 @@ function MoneyRequestReportPreview({
             isWhisper={isWhisper}
             isHovered={isHovered}
             iouReportID={iouReportID}
-            containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewStyle]}
+            containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle]}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
-            transactionPreviewWidth={reportPreviewStyles.transactionPreviewStyle.width}
+            transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
             transactionID={item.transactionID}
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
