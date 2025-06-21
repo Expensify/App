@@ -12,7 +12,7 @@ import ChatListItem from '@components/SelectionList/ChatListItem';
 import TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ListItem, ReportActionListItemType, ReportListItemType, SearchListItem, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ListItem, ReportActionListItemType, SearchListItem, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -285,9 +285,9 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
 }
 
 /**
- * Type guard that checks if something is a ReportListItemType
+ * Type guard that checks if something is a TransactionGroupListItemType
  */
-function isReportListItemType(item: ListItem): item is ReportListItemType {
+function isTransactionGroupListItemType(item: ListItem): item is TransactionGroupListItemType {
     return 'transactions' in item;
 }
 
@@ -331,7 +331,7 @@ function isTransactionTaxAmountTooLong(transactionItem: TransactionListItemType 
     return isAmountTooLong(taxAmount);
 }
 
-function getWideAmountIndicators(data: TransactionListItemType[] | ReportListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']): {
+function getWideAmountIndicators(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']): {
     shouldShowAmountInWideColumn: boolean;
     shouldShowTaxAmountInWideColumn: boolean;
 } {
@@ -345,7 +345,7 @@ function getWideAmountIndicators(data: TransactionListItemType[] | ReportListIte
 
     if (Array.isArray(data)) {
         data.some((item) => {
-            if (isReportListItemType(item)) {
+            if (isTransactionGroupListItemType(item)) {
                 const transactions = item.transactions ?? [];
                 for (const transaction of transactions) {
                     processTransaction(transaction);
@@ -377,18 +377,18 @@ function getWideAmountIndicators(data: TransactionListItemType[] | ReportListIte
 /**
  * Checks if the date of transactions or reports indicate the need to display the year because they are from a past year.
  */
-function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']) {
+function shouldShowYear(data: TransactionListItemType[] | TransactionGroupListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']) {
     const currentYear = new Date().getFullYear();
 
     if (Array.isArray(data)) {
-        return data.some((item: TransactionListItemType | ReportListItemType | TaskListItemType) => {
+        return data.some((item: TransactionListItemType | TransactionGroupListItemType | TaskListItemType) => {
             if (isTaskListItemType(item)) {
                 const taskYear = new Date(item.created).getFullYear();
                 return taskYear !== currentYear;
             }
 
-            if (isReportListItemType(item)) {
-                // If the item is a ReportListItemType, iterate over its transactions and check them
+            if (isTransactionGroupListItemType(item)) {
+                // If the item is a TransactionGroupListItemType, iterate over its transactions and check them
                 return item.transactions.some((transaction) => {
                     const transactionYear = new Date(getTransactionCreatedDate(transaction)).getFullYear();
                     return transactionYear !== currentYear;
@@ -859,11 +859,11 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
 
 /**
  * @private
- * Organizes data into List Sections for display, for the ReportListItemType of Search Results.
+ * Organizes data into List Sections for display, for the TransactionGroupListItemType of Search Results.
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): ReportListItemType[] {
+function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionGroupListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
@@ -872,7 +872,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
     // Get violations - optimize by using a Map for faster lookups
     const allViolations = getViolations(data);
 
-    const reportIDToTransactions: Record<string, ReportListItemType> = {};
+    const reportIDToTransactions: Record<string, TransactionGroupListItemType> = {};
     for (const key in data) {
         if (isReportEntry(key) && (data[key].type === CONST.REPORT.TYPE.IOU || data[key].type === CONST.REPORT.TYPE.EXPENSE || data[key].type === CONST.REPORT.TYPE.INVOICE)) {
             const reportItem = {...data[key]};
@@ -941,34 +941,37 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 /**
  * Returns the appropriate list item component based on the type and status of the search data.
  */
-function getListItem(type: SearchDataTypes, status: SearchStatus, shouldGroupByReports = false): ListItemType<typeof type, typeof status> {
+function getListItem(type: SearchDataTypes, status: SearchStatus, groupBy?: SearchGroupBy): ListItemType<typeof type, typeof status> {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return ChatListItem;
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return TaskListItem;
     }
-    if (!shouldGroupByReports) {
-        return TransactionListItem;
+    if (groupBy) {
+        return TransactionGroupListItem;
     }
-    return TransactionGroupListItem;
+    return TransactionListItem;
 }
 
 /**
  * Organizes data into appropriate list sections for display based on the type of search results.
  */
-function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], shouldGroupByReports = false) {
+function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], groupBy?: SearchGroupBy) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return getTaskSections(data);
     }
-    if (!shouldGroupByReports) {
-        return getTransactionsSections(data, metadata);
+    if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+        return getReportSections(data, metadata);
+    }
+    if (groupBy === CONST.SEARCH.GROUP_BY.MEMBERS) {
+        // s77rt TODO
     }
 
-    return getReportSections(data, metadata);
+    return getTransactionsSections(data, metadata);
 }
 
 /**
@@ -980,7 +983,7 @@ function getSortedSections(
     data: ListItemDataType<typeof type, typeof status>,
     sortBy?: SearchColumnType,
     sortOrder?: SortOrder,
-    shouldGroupByReports = false,
+    groupBy?: SearchGroupBy,
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getSortedReportActionData(data as ReportActionListItemType[]);
@@ -988,10 +991,13 @@ function getSortedSections(
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return getSortedTaskData(data as TaskListItemType[], sortBy, sortOrder);
     }
-    if (!shouldGroupByReports) {
-        return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
+    if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+        return getSortedReportData(data as TransactionGroupListItemType[]);
     }
-    return getSortedReportData(data as ReportListItemType[]);
+    if (groupBy === CONST.SEARCH.GROUP_BY.MEMBERS) {
+        // s77rt TODO
+    }
+    return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
 }
 
 /**
@@ -1064,7 +1070,7 @@ function getSortedTaskData(data: TaskListItemType[], sortBy?: SearchColumnType, 
  * @private
  * Sorts report sections based on a specified column and sort order.
  */
-function getSortedReportData(data: ReportListItemType[]) {
+function getSortedReportData(data: TransactionGroupListItemType[]) {
     for (const report of data) {
         report.transactions = getSortedTransactionData(report.transactions, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC);
     }
@@ -1592,7 +1598,7 @@ export {
     getSections,
     getShouldShowMerchant,
     getSortedSections,
-    isReportListItemType,
+    isTransactionGroupListItemType,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,

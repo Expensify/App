@@ -3,7 +3,7 @@ import type {SearchStatus} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from './OnyxCommon';
@@ -31,7 +31,7 @@ type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C ext
       ? TaskListItemType[]
       : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
         ? TransactionListItemType[]
-        : ReportListItemType[];
+        : TransactionGroupListItemType[];
 
 /** Model of columns to show for search results */
 type ColumnsToShow = {

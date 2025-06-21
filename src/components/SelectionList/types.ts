@@ -316,7 +316,7 @@ type TaskListItemType = ListItem &
         shouldShowYear: boolean;
     };
 
-type ReportListItemType = ListItem &
+type TransactionGroupListItemType = ListItem &
     SearchReport & {
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
@@ -845,7 +845,7 @@ type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem
 
 type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
 
-type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
+type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
 
 export type {
     BaseListItemProps,
@@ -861,7 +861,7 @@ export type {
     SingleSelectListItemProps,
     MultiSelectListItemProps,
     ReportListItemProps,
-    ReportListItemType,
+    TransactionGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,

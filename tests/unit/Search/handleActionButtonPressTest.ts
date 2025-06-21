@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {ReportListItemType} from '@components/SelectionList/types';
+import type {TransactionGroupListItemType} from '@components/SelectionList/types';
 import {handleActionButtonPress} from '@libs/actions/Search';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -190,7 +190,7 @@ const mockReportItemWithHold = {
         },
     ],
     isSelected: false,
-} as ReportListItemType;
+} as TransactionGroupListItemType;
 
 const updatedMockReportItem = {
     ...mockReportItemWithHold,
