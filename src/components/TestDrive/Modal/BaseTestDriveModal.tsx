@@ -9,7 +9,16 @@ import CONST from '@src/CONST';
 
 type BaseTestDriveModalProps = Pick<
     FeatureTrainingModalProps,
-    'children' | 'description' | 'onConfirm' | 'shouldCloseOnConfirm' | 'shouldRenderHTMLDescription' | 'avoidKeyboard' | 'shouldShowConfirmationLoader' | 'canConfirmWhileOffline' | 'onHelp'
+    | 'children'
+    | 'description'
+    | 'onConfirm'
+    | 'shouldCloseOnConfirm'
+    | 'shouldRenderHTMLDescription'
+    | 'avoidKeyboard'
+    | 'shouldShowConfirmationLoader'
+    | 'canConfirmWhileOffline'
+    | 'onHelp'
+    | 'shouldCallOnHelpWhenModalHidden'
 >;
 
 function BaseTestDriveModal({
@@ -22,6 +31,7 @@ function BaseTestDriveModal({
     avoidKeyboard,
     shouldShowConfirmationLoader,
     canConfirmWhileOffline,
+    shouldCallOnHelpWhenModalHidden,
 }: BaseTestDriveModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -46,6 +56,7 @@ function BaseTestDriveModal({
             shouldShowConfirmationLoader={shouldShowConfirmationLoader}
             shouldUseScrollView
             canConfirmWhileOffline={canConfirmWhileOffline}
+            shouldCallOnHelpWhenModalHidden={shouldCallOnHelpWhenModalHidden}
         >
             {children}
         </FeatureTrainingModal>
