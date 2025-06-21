@@ -2772,6 +2772,13 @@ const CONST = {
         HELP_WANTED: 'Help Wanted',
         CP_STAGING: 'CP Staging',
     },
+    STATE: {
+        OPEN: 'open',
+    },
+    COMMENT: {
+        TYPE_BOT: 'Bot',
+        NAME_GITHUB_ACTIONS: 'github-actions',
+    },
     ACTIONS: {
         CREATED: 'created',
         EDITED: 'edited',
@@ -2790,6 +2797,7 @@ const CONST = {
     NO_ACTION: 'NO_ACTION',
     ACTION_EDIT: 'ACTION_EDIT',
     ACTION_REQUIRED: 'ACTION_REQUIRED',
+    ACTION_HIDE_DUPLICATE: 'ACTION_HIDE_DUPLICATE',
 };
 exports["default"] = CONST;
 
