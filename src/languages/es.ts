@@ -1499,12 +1499,7 @@ const translations = {
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: 'Leer los',
-            phrase2: 'Términos de Servicio',
-            phrase3: 'y',
-            phrase4: 'Privacidad',
-        },
+        readTheTermsAndPrivacy: `Leer los <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Términos de Servicio</a> y <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>Privacidad</a>.`,
         help: 'Ayuda',
         accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',
