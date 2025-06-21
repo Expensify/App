@@ -6589,6 +6589,9 @@ const CONST = {
             NORMAL: 'normal',
             WIDE: 'wide',
         },
+        EXPORT_STATUS: {
+            FAILED: 'failed',
+        },
         STATUS: {
             EXPENSE: {
                 ALL: 'all',
@@ -6688,6 +6691,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
+            EXPORT_STATUS: 'exportStatus',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6730,6 +6734,7 @@ const CONST = {
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            EXPORT_STATUS: 'export-status',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',
