@@ -15,6 +15,7 @@ type OpenReportParams = {
     optimisticAccountIDList?: string;
     file?: File | CustomRNImageManipulatorResult;
     guidedSetupData?: string;
+    useLastUnreadReportAction?: boolean;
     /**
      * This flag decides in what order should the api return report actions, and it's used by MoneyRequestReportView
      * By default api returns report actions newest-first, and then older ones on subsequent pagination calls.
