@@ -162,7 +162,6 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         policy,
         travelSettings?.hasAcceptedTerms,
         styles.flexRow,
-        styles.link,
         StyleUtils,
         translate,
         hybridApp?.isSingleNewDotEntry,
