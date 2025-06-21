@@ -1613,13 +1613,13 @@ const translations = {
         mergeFailureGenericHeading: '无法合并账户',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: '报告可疑活动',
         lockAccount: '锁定账户',
         unlockAccount: '解锁账户',
-        compromisedDescription: '如果您怀疑您的Expensify账户被泄露，您可以锁定它以防止新的Expensify卡交易并阻止不必要的账户更改。',
-        domainAdminsDescriptionPartOne: '对于域管理员，',
-        domainAdminsDescriptionPartTwo: '此操作将停止所有 Expensify Card 活动和管理员操作。',
-        domainAdminsDescriptionPartThree: '在您的域中。',
-        warning: `一旦您的账户被锁定，我们的团队将进行调查并移除任何未经授权的访问。要重新获得访问权限，您需要与Concierge合作以确保您的账户安全。`,
+        compromisedDescription: '发现您的账户有异常? 报告后将立即锁定账户, 阻止新的Expensify卡交易, 并防止任何账户更改。',
+        domainAdminsDescription: '对于域管理员: 这也会暂停您域中所有Expensify卡活动和管理员操作。',
+        areYouSure: '您确定要锁定您的Expensify账户吗?',
+        ourTeamWill: '我们的团队将调查并移除任何未经授权的访问。若要恢复访问权限, 您需与Concierge协作。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: '无法锁定账户',

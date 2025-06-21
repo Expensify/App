@@ -1626,14 +1626,13 @@ const translations = {
         mergeFailureGenericHeading: 'Nie można połączyć kont',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: 'Zgłoś podejrzaną aktywność',
         lockAccount: 'Zablokuj konto',
         unlockAccount: 'Odblokuj konto',
-        compromisedDescription:
-            'Jeśli podejrzewasz, że Twoje konto Expensify zostało naruszone, możesz je zablokować, aby zapobiec nowym transakcjom kartą Expensify i zablokować niechciane zmiany na koncie.',
-        domainAdminsDescriptionPartOne: 'Dla administratorów domeny,',
-        domainAdminsDescriptionPartTwo: 'ta akcja wstrzymuje wszystkie działania związane z kartą Expensify oraz działania administratora',
-        domainAdminsDescriptionPartThree: 'w Twojej domenie/domenach.',
-        warning: `Gdy Twoje konto zostanie zablokowane, nasz zespół przeprowadzi dochodzenie i usunie wszelkie nieautoryzowane dostępy. Aby odzyskać dostęp, będziesz musiał współpracować z Concierge, aby zabezpieczyć swoje konto.`,
+        compromisedDescription: 'Zauważyłeś coś podejrzanego? Zgłoszenie spowoduje natychmiastowe zablokowanie konta, zatrzymanie transakcji kartą Expensify i uniemożliwienie zmian.',
+        domainAdminsDescription: 'Dla administratorów domen: wstrzymuje to również wszystkie działania kart Expensify i działania administracyjne w Twoich domenach.',
+        areYouSure: 'Czy na pewno chcesz zablokować swoje konto Expensify?',
+        ourTeamWill: 'Nasz zespół zbada sprawę i usunie nieautoryzowany dostęp. Aby odzyskać dostęp, musisz współpracować z Concierge.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Nie udało się zablokować konta',

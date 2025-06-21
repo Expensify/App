@@ -1628,14 +1628,13 @@ const translations = {
         mergeFailureGenericHeading: 'アカウントを統合できません',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: '疑わしい活動を報告',
         lockAccount: 'アカウントをロックする',
-        unlockAccount: 'アカウントを解除する',
-        compromisedDescription:
-            'Expensifyアカウントが不正アクセスされた疑いがある場合、新しいExpensifyカードの取引を防ぎ、不要なアカウント変更をブロックするためにアカウントをロックすることができます。',
-        domainAdminsDescriptionPartOne: 'ドメイン管理者向け、',
-        domainAdminsDescriptionPartTwo: 'この操作は、すべてのExpensifyカードのアクティビティと管理者のアクションを停止します。',
-        domainAdminsDescriptionPartThree: 'あなたのドメイン全体で。',
-        warning: `アカウントがロックされると、当社のチームが調査を行い、不正アクセスを削除します。アクセスを回復するには、Conciergeと協力してアカウントを保護する必要があります。`,
+        unlockAccount: 'アカウントをアンロック',
+        compromisedDescription: 'アカウントに不安を感じましたか？報告すると、すぐにアカウントがロックされ、Expensifyカードの新しい取引が停止され、変更も防止されます。',
+        domainAdminsDescription: 'ドメイン管理者へ：これにより、ドメイン全体のExpensifyカード活動と管理操作も一時停止されます。',
+        areYouSure: '本当にExpensifyアカウントをロックしますか？',
+        ourTeamWill: 'チームが調査を行い、不正アクセスを削除します。アクセスを回復するには、Conciergeと連携する必要があります。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'アカウントのロックに失敗しました',
