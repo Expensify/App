@@ -775,8 +775,13 @@ type ContactMethodsRouteParams = {
     contactMethodsRoute: string;
 };
 
+type ContactMethodParams = {
+    contactMethodRoute: string;
+};
+
 export type {
     ContactMethodsRouteParams,
+    ContactMethodParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
