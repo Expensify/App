@@ -15,9 +15,6 @@ type ReportActionItemMessageHeaderSenderProps = {
 
     /** Actor icon */
     actorIcon?: OnyxCommon.Icon;
-
-    /** Whether the fragment should show a tooltip */
-    shouldShowTooltip?: boolean;
 };
 
 export default ReportActionItemMessageHeaderSenderProps;
