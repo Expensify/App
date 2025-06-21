@@ -102,7 +102,7 @@ function SearchContextProvider({children}: ChildrenProps) {
 
             // Unselect all transactions and hide the "select all matching items" option
             shouldShowSelectAllMatchingItems(false);
-            selectAllMatchingItems(true);
+            selectAllMatchingItems(false);
         },
         [searchContextData.currentSearchHash, setSelectedTransactions],
     );

@@ -76,7 +76,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
-    const [isExportModalVisible, setIsExportModalVisible] = useState(false);
+    const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
 
     const {
         validateAndResizeFile,
@@ -117,12 +117,19 @@ function SearchPage({route}: SearchPageProps) {
 
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, policyID: string | undefined) => {
-            setIsExportModalVisible(true);
-            const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-            queueExportSearchWithTemplate({templateName, templateType, jsonQuery: JSON.stringify(queryJSON), reportIDList, transactionIDList: selectedTransactionsKeys, policyID});
+            setIsExportWithTemplateModalVisible(true);
+
+            // If the user has selected a large number of items, we'll use the queryJSON to search for the reportIDs and transactionIDs necessary for the export
+            if (areAllMatchingItemsSelected) {
+                queueExportSearchWithTemplate({templateName, templateType, jsonQuery: JSON.stringify(queryJSON), reportIDList: [], transactionIDList: [], policyID});
+            } else {
+                // Otherwise, we will use the selected transactionIDs and reportIDs directly
+                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                queueExportSearchWithTemplate({templateName, templateType, jsonQuery: '{}', reportIDList, transactionIDList: selectedTransactionsKeys, policyID});
+            }
             clearSelectedTransactions();
         },
-        [queryJSON, selectedReports, selectedTransactionsKeys, clearSelectedTransactions],
+        [queryJSON, selectedReports, selectedTransactionsKeys, clearSelectedTransactions, areAllMatchingItemsSelected],
     );
 
     const headerButtonsOptions = useMemo(() => {
@@ -203,10 +210,12 @@ function SearchPage({route}: SearchPageProps) {
             subMenuItems: getExportOptions(),
         };
 
+        // If all matching items are selected, we don't give the user additional options, we only allow them to export the selected items
         if (areAllMatchingItemsSelected) {
             return [exportButtonOption];
         }
 
+        // Otherwise, we provide the full set of options depending on the state of the selected transactions and reports
         const shouldShowApproveOption =
             !isOffline &&
             !isAnyTransactionOnHold &&
@@ -690,8 +699,8 @@ function SearchPage({route}: SearchPageProps) {
                     cancelText={translate('common.cancel')}
                 />
                 <ConfirmModal
-                    isVisible={isExportModalVisible}
-                    onConfirm={() => setIsExportModalVisible(false)}
+                    isVisible={isExportWithTemplateModalVisible}
+                    onConfirm={() => setIsExportWithTemplateModalVisible(false)}
                     title={translate('export.exportInProgress')}
                     prompt={translate('export.conciergeWillSend')}
                     confirmText={translate('common.buttonConfirm')}
