@@ -16,7 +16,9 @@ import {getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type Nullable from '@src/types/utils/Nullable';
 
 function SearchFiltersTypePage() {
     const styles = useThemeStyles();
@@ -44,16 +46,26 @@ function SearchFiltersTypePage() {
 
     const applyChanges = useCallback(() => {
         const hasTypeChanged = selectedItem !== searchAdvancedFiltersForm?.type;
-        const updatedFilters = {
+        const updatedFilters: Partial<Nullable<SearchAdvancedFiltersForm>> = {
             type: selectedItem,
-            ...(hasTypeChanged && {
-                groupBy: null,
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
-            }),
         };
+
+        if (hasTypeChanged) {
+            Object.keys(searchAdvancedFiltersForm ?? {})
+                .filter((key) => key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE)
+                .forEach((key) => {
+                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
+                        updatedFilters[key] = CONST.SEARCH.STATUS.EXPENSE.ALL;
+                        return;
+                    }
+
+                    updatedFilters[key as keyof SearchAdvancedFiltersForm] = null;
+                });
+        }
+
         updateAdvancedFilters(updatedFilters);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-    }, [searchAdvancedFiltersForm?.type, selectedItem]);
+    }, [searchAdvancedFiltersForm, selectedItem]);
 
     return (
         <ScreenWrapper
