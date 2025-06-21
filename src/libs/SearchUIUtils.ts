@@ -1404,10 +1404,10 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
         menuItems: [],
     };
 
-    let shouldShowStatementsSuggesion = false;
-    let showShowUnapprovedCashSuggesion = false;
-    let showShowUnapprovedCompanyCardsSuggesion = false;
-    let shouldShowReconciliationSuggesion = false;
+    let shouldShowStatementsSuggestion = false;
+    let showShowUnapprovedCashSuggestion = false;
+    let showShowUnapprovedCompanyCardsSuggestion = false;
+    let shouldShowReconciliationSuggestion = false;
 
     Object.values(policies).some((policy) => {
         if (!policy || !isPaidGroupPolicy(policy)) {
@@ -1418,20 +1418,20 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
         const isPaymentEnabled = arePaymentsEnabled(policy);
 
-        shouldShowStatementsSuggesion ||= false; // s77rt
-        showShowUnapprovedCashSuggesion ||= isAdmin && isApprovalEnabled && isPaymentEnabled;
-        showShowUnapprovedCompanyCardsSuggesion ||= isAdmin && isApprovalEnabled && (policy.areCompanyCardsEnabled === true || policy.areExpensifyCardsEnabled === true) && hasCardFeed;
-        shouldShowReconciliationSuggesion ||= false; // s77rt
+        shouldShowStatementsSuggestion ||= false; // s77rt
+        showShowUnapprovedCashSuggestion ||= isAdmin && isApprovalEnabled && isPaymentEnabled;
+        showShowUnapprovedCompanyCardsSuggestion ||= isAdmin && isApprovalEnabled && (policy.areCompanyCardsEnabled === true || policy.areExpensifyCardsEnabled === true) && hasCardFeed;
+        shouldShowReconciliationSuggestion ||= false; // s77rt
 
         // If all search variables are true return early to avoid redundant iterations
-        return shouldShowStatementsSuggesion && showShowUnapprovedCashSuggesion && showShowUnapprovedCompanyCardsSuggesion && shouldShowReconciliationSuggesion;
+        return shouldShowStatementsSuggestion && showShowUnapprovedCashSuggestion && showShowUnapprovedCompanyCardsSuggestion && shouldShowReconciliationSuggestion;
     });
 
-    if (shouldShowStatementsSuggesion) {
+    if (shouldShowStatementsSuggestion) {
         // s77rt TODO
     }
 
-    if (showShowUnapprovedCashSuggesion && showShowUnapprovedCompanyCardsSuggesion) {
+    if (showShowUnapprovedCashSuggestion && showShowUnapprovedCompanyCardsSuggestion) {
         accountingSection.menuItems.push(
             {
                 translationPath: 'search.unapprovedCash',
@@ -1472,7 +1472,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                 },
             },
         );
-    } else if (showShowUnapprovedCashSuggesion) {
+    } else if (showShowUnapprovedCashSuggestion) {
         accountingSection.menuItems.push({
             translationPath: 'search.unapproved',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -1492,7 +1492,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                 return queryString;
             },
         });
-    } else if (showShowUnapprovedCompanyCardsSuggesion) {
+    } else if (showShowUnapprovedCompanyCardsSuggestion) {
         accountingSection.menuItems.push({
             translationPath: 'search.unapproved',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -1514,7 +1514,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
         });
     }
 
-    if (shouldShowReconciliationSuggesion) {
+    if (shouldShowReconciliationSuggestion) {
         // s77rt TODO
     }
 
