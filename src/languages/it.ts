@@ -6715,7 +6715,7 @@ const translations = {
             part1: 'Filtra per spese che',
             part2: 'necessita approvazione',
         },
-        scanTestDriveTooltip: 'Invia questa ricevuta a <strong>completa il test drive!</strong>',
+        scanTestDriveTooltip: 'Invia questa ricevuta a\n<strong>completa il test drive!</strong>',
     },
     discardChangesConfirmation: {
         title: 'Eliminare le modifiche?',

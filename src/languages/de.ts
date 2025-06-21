@@ -6733,7 +6733,7 @@ const translations = {
             part1: 'Filter für Ausgaben, die',
             part2: 'Genehmigung erforderlich',
         },
-        scanTestDriveTooltip: 'Diesen Beleg senden an <strong>Beenden Sie die Probefahrt!</strong>',
+        scanTestDriveTooltip: 'Diesen Beleg senden an\n<strong>Beenden Sie die Probefahrt!</strong>',
     },
     discardChangesConfirmation: {
         title: 'Änderungen verwerfen?',

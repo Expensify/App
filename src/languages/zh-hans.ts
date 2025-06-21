@@ -6570,7 +6570,7 @@ const translations = {
             part1: '筛选符合以下条件的费用：',
             part2: '需要批准',
         },
-        scanTestDriveTooltip: '将此收据发送给 <strong>完成试驾！</strong>',
+        scanTestDriveTooltip: '将此收据发送给\n<strong>完成试驾！</strong>',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',

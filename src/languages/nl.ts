@@ -6699,7 +6699,7 @@ const translations = {
             part1: 'Filter voor uitgaven die',
             part2: 'goedkeuring nodig',
         },
-        scanTestDriveTooltip: 'Verzend deze bon naar <strong>voltooi de proefrit!</strong>',
+        scanTestDriveTooltip: 'Verzend deze bon naar\n<strong>voltooi de proefrit!</strong>',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',
