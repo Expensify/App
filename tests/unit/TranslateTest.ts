@@ -94,6 +94,47 @@ describe('Translation Keys', () => {
     });
 });
 
+describe('Duplicate Translation values', () => {
+    function traverseKeyValuePairs(source: FlatTranslationsObject): Record<string, string[]> {
+        const pairsObject: Record<string, string[]> = {};
+        // eslint-disable-next-line rulesdir/prefer-early-return
+        Object.entries(source).forEach(([key, value]) => {
+            if (typeof value !== 'function') {
+                pairsObject[value] = pairsObject[value] ?? [];
+                pairsObject[value].push(key);
+            }
+        });
+
+        return pairsObject;
+    }
+
+    function testDuplicates(valueIndexedObj: Record<string, string[]>): string {
+        const result: string[] = [];
+        // eslint-disable-next-line rulesdir/prefer-early-return
+        Object.entries(valueIndexedObj).forEach(([value, keys]) => {
+            if (keys.length > 1) {
+                result.push(`🔥 [ ${keys.join(', ')} ] are using the same value [ ${value} ]`);
+            }
+        });
+        return result.join('\n');
+    }
+
+    const languages = Object.keys(originalTranslations.default);
+
+    languages.forEach((ln) => {
+        const languageValueIndex = traverseKeyValuePairs(originalTranslations.default[ln as keyof typeof originalTranslations.default]);
+
+        it(`Does ${ln} locale have duplicate keys`, () => {
+            const errorMessage = testDuplicates(languageValueIndex);
+            if (errorMessage) {
+                console.debug(errorMessage);
+                Error(errorMessage);
+            }
+            expect(errorMessage).toBe('');
+        });
+    });
+});
+
 type ReportContentArgs = {content: string};
 
 describe('flattenObject', () => {
