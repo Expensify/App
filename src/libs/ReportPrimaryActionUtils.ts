@@ -302,7 +302,7 @@ function isMarkAsResolvedAction(report?: Report, transaction?: Transaction) {
     if (!isReportSubmitter) {
         return false;
     }
-    
+
     // Check if transaction has been declined (has rterRejectedExpense in comment)
     return !!transaction.comment?.[CONST.VIOLATIONS.REJECTED_EXPENSE];
 }

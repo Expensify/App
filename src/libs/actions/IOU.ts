@@ -108,6 +108,8 @@ import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
+    buildOptimisticDeclinedReportActionComment,
+    buildOptimisticDeclineReportAction,
     buildOptimisticDetachReceipt,
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticExpenseReport,
@@ -116,9 +118,11 @@ import {
     buildOptimisticInvoiceReport,
     buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
+    buildOptimisticMarkedAsResolvedReportAction,
     buildOptimisticModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedTransactionAction,
+    buildOptimisticRemoveReportAction,
     buildOptimisticReopenedReportAction,
     buildOptimisticReportPreview,
     buildOptimisticResolvedDuplicatesReportAction,
@@ -159,6 +163,7 @@ import {
     isOneTransactionThread,
     isOpenExpenseReport as isOpenExpenseReportReportUtils,
     isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
+    isOpenReport,
     isOptimisticPersonalDetail,
     isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils,
     isPayer as isPayerReportUtils,
@@ -173,11 +178,6 @@ import {
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
-    buildOptimisticRemoveReportAction,
-    buildOptimisticDeclineReportAction,
-    buildOptimisticDeclinedReportActionComment,
-    buildOptimisticMarkedAsResolvedReportAction,
-    isOpenReport,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSession} from '@libs/SessionUtils';
@@ -229,7 +229,7 @@ import {buildOptimisticPolicyRecentlyUsedDestinations} from './Policy/PerDiem';
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy/Tag';
 import type {GuidedSetupData} from './Report';
-import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction, createNewReport} from './Report';
+import {buildInviteToRoomOnyxData, completeOnboarding, createNewReport, getCurrentUserAccountID, notifyNewAction} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
@@ -11471,11 +11471,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         // 1. Update report total
         // 2. Remove expense from report
         // 3. Add to existing draft report or create new one
-        const existingOpenReport = Object.values(allReports ?? {}).find(
-            (r) => r?.chatReportID === report.chatReportID && 
-            r?.type === CONST.REPORT.TYPE.EXPENSE && 
-            isOpenReport(r)
-        );
+        const existingOpenReport = Object.values(allReports ?? {}).find((r) => r?.chatReportID === report.chatReportID && r?.type === CONST.REPORT.TYPE.EXPENSE && isOpenReport(r));
 
         if (existingOpenReport) {
             movedToReport = existingOpenReport;
@@ -11549,7 +11545,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
     // Create system messages in both expense report and expense thread
     const optimisticDeclineReportAction = buildOptimisticDeclineReportAction();
     const optimisticDeclineReportActionComment = buildOptimisticDeclinedReportActionComment(comment);
-    
+
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
@@ -11568,7 +11564,11 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         },
     });
 
-    const optimisticRemoveReportAction = buildOptimisticRemoveReportAction(convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency ?? ''), reportID, transaction?.merchant ?? '');
+    const optimisticRemoveReportAction = buildOptimisticRemoveReportAction(
+        convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency ?? ''),
+        reportID,
+        transaction?.merchant ?? '',
+    );
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -11596,7 +11596,6 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
 }
 
 function markDeclineViolationAsResolved(transactionID: string, reportID?: string) {
-
     if (!reportID) {
         return;
     }

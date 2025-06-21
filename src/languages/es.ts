@@ -1304,7 +1304,8 @@ const translations = {
             markAsResolved: 'Marcar como resuelto',
             declinedStatus: 'Este gasto fue rechazado. Esperando a que arregles el problema(s) y marque como resuelto para habilitar el envío.',
             reportActions: {
-                removedFromReport: ({ amount, linkToReport, merchant }: { amount: string; linkToReport: string; merchant?: string }) => `eliminado <a href="${linkToReport}">${amount}${merchant ? ` de ${merchant}` : ''}</a>`,
+                removedFromReport: ({amount, linkToReport, merchant}: {amount: string; linkToReport: string; merchant?: string}) =>
+                    `eliminado <a href="${linkToReport}">${amount}${merchant ? ` de ${merchant}` : ''}</a>`,
                 declinedExpense: `rechazó este gasto`,
                 markedAsResolved: `marcó el motivo del rechazo como resuelto`,
                 autoAddedToReport: ({amount, merchant}: {amount: string; merchant?: string}) => `se agregaron ${amount} ${merchant ? `de ${merchant}` : ``}`,

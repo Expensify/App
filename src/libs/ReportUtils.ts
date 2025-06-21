@@ -11144,7 +11144,7 @@ function buildOptimisticRemoveReportAction(amount: string, reportID: string, mer
     const htmlForComment = translateLocal('iou.decline.reportActions.removedFromReport', {
         amount,
         merchant,
-        linkToReport
+        linkToReport,
     });
     const textForComment = Parser.htmlToText(htmlForComment);
     return {
@@ -11156,7 +11156,7 @@ function buildOptimisticRemoveReportAction(amount: string, reportID: string, mer
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 html: htmlForComment,
-                text: textForComment
+                text: textForComment,
             },
         ],
         person: [
