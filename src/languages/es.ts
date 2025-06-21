@@ -7147,12 +7147,7 @@ const translations = {
             part3: '\ny más.',
             part4: ' ¡Pruébalo!',
         },
-        GBRRBRChat: {
-            part1: 'Verás 🟢 en ',
-            part2: 'acciones a realizar',
-            part3: ',\ny 🔴 en ',
-            part4: 'elementos para revisar.',
-        },
+        GBRRBRChat: 'Verás 🟢 en <strong>acciones a realizar</strong>,\ny 🔴 en  <strong>elementos para revisar.</strong>',
         accountSwitcher: {
             part1: 'Accede a tus ',
             part2: 'cuentas copiloto',

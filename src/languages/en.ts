@@ -6622,12 +6622,7 @@ const translations = {
             part3: '\nand more.',
             part4: ' Try it out!',
         },
-        GBRRBRChat: {
-            part1: 'You’ll see 🟢 on ',
-            part2: 'actions to take',
-            part3: ',\nand 🔴 on ',
-            part4: 'items to review.',
-        },
+        GBRRBRChat: 'You’ll see 🟢 on <strong>actions to take</strong>,\nand 🔴 on <strong>items to review.</strong>',
         accountSwitcher: {
             part1: 'Access your ',
             part2: 'Copilot accounts',

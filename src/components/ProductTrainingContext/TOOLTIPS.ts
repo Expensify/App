@@ -1,4 +1,7 @@
+import React, {useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
+import RenderHTML from '@components/RenderHTML';
+import useLocalize from '@hooks/useLocalize';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -30,7 +33,7 @@ type ShouldShowConditionProps = {
 };
 
 type TooltipData = {
-    content: Array<{text: TranslationPaths; isBold: boolean}>;
+    content: Array<{text: TranslationPaths | (() => React.ReactNode); isBold?: boolean}>;
     onHideTooltip: (isDismissedUsingCloseButton?: boolean) => void;
     name: ProductTrainingTooltipName;
     priority: number;
@@ -97,10 +100,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [GBR_RBR_CHAT]: {
         content: [
-            {text: 'productTrainingTooltip.GBRRBRChat.part1', isBold: false},
-            {text: 'productTrainingTooltip.GBRRBRChat.part2', isBold: true},
-            {text: 'productTrainingTooltip.GBRRBRChat.part3', isBold: false},
-            {text: 'productTrainingTooltip.GBRRBRChat.part4', isBold: true},
+            {
+                text: () => {
+                    const {translate} = useLocalize();
+                    const html = translate('productTrainingTooltip.GBRRBRChat');
+                    const RenderHtml = useMemo(() => React.createElement(RenderHTML, {html}), []);
+                    return RenderHtml;
+                },
+            },
         ],
         onHideTooltip: () => dismissProductTraining(GBR_RBR_CHAT),
         name: GBR_RBR_CHAT,
