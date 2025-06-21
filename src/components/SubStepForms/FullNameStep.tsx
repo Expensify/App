@@ -8,7 +8,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getFieldRequiredErrors, isRequiredFulfilled, isValidLegalName} from '@libs/ValidationUtils';
+import {doesContainReservedWord, getFieldRequiredErrors, isRequiredFulfilled, isValidLegalName} from '@libs/ValidationUtils';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
@@ -87,6 +87,11 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                 });
             }
 
+            if (doesContainReservedWord(firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                // @ts-expect-error type mismatch to be fixed
+                errors[firstNameInputID] = translate('personalDetails.error.containsReservedWord');
+            }
+
             const lastName = values[lastNameInputID as keyof FormOnyxValues<TFormID>] as string;
             if (!isRequiredFulfilled(lastName)) {
                 // @ts-expect-error type mismatch to be fixed
@@ -100,6 +105,11 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     length: lastName.length,
                     limit: CONST.LEGAL_NAME.MAX_LENGTH,
                 });
+            }
+
+            if (doesContainReservedWord(lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                // @ts-expect-error type mismatch to be fixed
+                errors[lastNameInputID] = translate('personalDetails.error.containsReservedWord');
             }
             return errors;
         },
