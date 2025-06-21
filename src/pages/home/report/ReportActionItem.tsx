@@ -28,7 +28,7 @@ import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {clearError} from '@userActions/Transaction';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
@@ -38,9 +38,12 @@ type ReportActionItemProps = Omit<PureReportActionItemProps, 'taskReport' | 'lin
 
     /** Whether to show the draft message or not */
     shouldShowDraftMessage?: boolean;
+
+    /** All the data of the transaction collection */
+    transactions?: Array<OnyxEntry<Transaction>>;
 };
 
-function ReportActionItem({allReports, action, report, shouldShowDraftMessage = true, ...props}: ReportActionItemProps) {
+function ReportActionItem({allReports, action, report, transactions, shouldShowDraftMessage = true, ...props}: ReportActionItemProps) {
     const reportID = report?.reportID;
     const originalMessage = getOriginalMessage(action);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -109,7 +112,7 @@ function ReportActionItem({allReports, action, report, shouldShowDraftMessage = 
             createDraftTransactionAndNavigateToParticipantSelector={createDraftTransactionAndNavigateToParticipantSelector}
             resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
             resolveActionableMentionWhisper={resolveActionableMentionWhisper}
-            isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport)}
+            isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactions)}
             isCurrentUserTheOnlyParticipant={isCurrentUserTheOnlyParticipant}
             missingPaymentMethod={missingPaymentMethod}
             reimbursementDeQueuedOrCanceledActionMessage={getReimbursementDeQueuedOrCanceledActionMessage(
