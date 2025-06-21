@@ -149,6 +149,7 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PhoneErrorRouteParams,
     PolicyAddedReportFieldOptionParams,
     PolicyDisabledReportFieldAllOptionsParams,
     PolicyDisabledReportFieldOptionParams,
@@ -3045,11 +3046,8 @@ const translations = {
         tripSummary: 'Résumé du voyage',
         departs: 'Départs',
         errorMessage: 'Un problème est survenu. Veuillez réessayer plus tard.',
-        phoneError: {
-            phrase1: "S'il vous plaît",
-            link: 'ajoutez un e-mail professionnel comme identifiant principal',
-            phrase2: 'pour réserver un voyage.',
-        },
+        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
+            `S'il vous plaît <a href="${phoneErrorMethodsRoute}">ajoutez un e-mail professionnel comme identifiant principal</a> pour réserver un voyage.`,
         domainSelector: {
             title: 'Domaine',
             subtitle: "Choisissez un domaine pour la configuration d'Expensify Travel.",
