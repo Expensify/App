@@ -437,6 +437,22 @@ function getViolations(data: OnyxTypes.SearchResults['data']): OnyxCollection<On
 
 /**
  * @private
+ * Calculates the correct from/to personal details for transactions and reports
+ */
+function getFromToPersonalDetails(
+    data: OnyxTypes.SearchResults['data'],
+    accountID: number,
+    managerID?: number,
+    shouldShowBlankTo = false,
+): {from: SearchPersonalDetails; to: SearchPersonalDetails} {
+    const from = data.personalDetailsList?.[accountID] ?? emptyPersonalDetails;
+    const to = managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
+
+    return {from, to};
+}
+
+/**
+ * @private
  * Generates a display name for IOU reports considering the personal details of the payer and the transaction details.
  */
 function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: SearchReport) {
@@ -885,8 +901,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 ...reportItem,
                 action: getAction(data, allViolations, key),
                 keyForList: reportItem.reportID,
-                from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
-                to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
+                ...getFromToPersonalDetails(data, reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID, reportItem.managerID),
                 transactions,
                 ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
             };
@@ -902,8 +917,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
             const transactionViolations = getTransactionViolations(allViolations, transactionItem);
 
-            const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = transactionItem.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
+            const {from, to} = getFromToPersonalDetails(data, transactionItem.accountID, transactionItem.managerID, shouldShowBlankTo);
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 

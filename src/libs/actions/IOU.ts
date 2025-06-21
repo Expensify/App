@@ -1566,12 +1566,12 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         const isTestReceipt = transaction.receipt?.isTestReceipt ?? false;
         const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
         const optimisticIOUReportAction = buildOptimisticIOUReportAction({
-            type: isScanRequest && !isTestReceipt ? CONST.IOU.REPORT_ACTION_TYPE.CREATE : CONST.IOU.REPORT_ACTION_TYPE.PAY,
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount: iou.report?.total ?? 0,
             currency: iou.report?.currency ?? '',
             comment: '',
             participants: [managerMcTestParticipant],
-            paymentType: isScanRequest && !isTestReceipt ? undefined : CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            paymentType: undefined,
             iouReportID: iou.report.reportID,
             transactionID: transaction.transactionID,
         });
@@ -1587,7 +1587,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
                 value: {
                     ...iou.report,
-                    ...(!isScanRequest || isTestReceipt ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED} : undefined),
                     hasOutstandingChildRequest: false,
                     lastActorAccountID: currentUserPersonalDetails?.accountID,
                 },
