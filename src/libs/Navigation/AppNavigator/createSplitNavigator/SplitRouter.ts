@@ -44,10 +44,14 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
     const lastRoute = state.routes.at(-1) as NavigationPartialRoute;
     const routePolicyID = getRoutePolicyID(lastRoute);
 
-    // If invalid policy page is displayed on narrow layout, sidebar screen should not be pushed to the navigation state to avoid adding redundant not found page
+    const routes = [...state.routes];
+    let modified = false;
+
+    // If invalid policy page is displayed on narrow layout, sidebar screen should not be
+    // pushed to the navigation state to avoid adding redundant not found page
     if (isNarrowLayout && !!routePolicyID) {
         if (shouldDisplayPolicyNotFoundPage(routePolicyID)) {
-            return;
+            return state; // state is unchanged
         }
     }
 
@@ -65,24 +69,19 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
         // We don't want to get an empty object as params because it breaks some navigation logic when comparing if routes are the same.
         const params = isEmptyObject(copiedParams) ? undefined : copiedParams;
 
-        // @ts-expect-error Updating read only property
-        // eslint-disable-next-line no-param-reassign
-        state.stale = true;
-
-        // @ts-expect-error Updating read only property
-        // Unshift the root screen to fill left pane.
-        state.routes.unshift({
+        routes.unshift({
             name: sidebarScreen,
             // This handles the case where the sidebar should have params included in the central screen e.g. policyID for workspace initial.
             params,
         });
+        modified = true;
     }
 
     // If the screen is wide, there should be at least two screens inside:
     // - sidebarScreen to cover left pane.
     // - defaultCentralScreen to cover central pane.
     if (!isNarrowLayout) {
-        if (state.routes.length === 1 && state.routes[0].name === sidebarScreen) {
+        if (routes.length === 1 && routes.at(0)?.name === sidebarScreen) {
             const previousSameNavigator = rootState?.routes.filter((route) => route.name === parentRoute.name).at(-2);
 
             // If we have optimization for not rendering all split navigators, then last selected option may not be in the state. In this case state has to be read from the preserved state.
@@ -90,22 +89,24 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
             const previousSelectedCentralScreen =
                 previousSameNavigatorState?.routes && previousSameNavigatorState.routes.length > 1 ? previousSameNavigatorState.routes.at(-1)?.name : undefined;
 
-            // @ts-expect-error Updating read only property
-            // eslint-disable-next-line no-param-reassign
-            state.stale = true;
-
-            // @ts-expect-error Updating read only property
-            // Push the default settings central pane screen.
-            state.routes.push({
+            routes.push({
                 name: previousSelectedCentralScreen ?? defaultCentralScreen,
                 params: state.routes.at(0)?.params,
             });
+            modified = true;
         }
     }
 
-    // @ts-expect-error Updating read only property
-    // eslint-disable-next-line no-param-reassign
-    state.index = state.routes.length - 1;
+    if (!modified) {
+        return state;
+    }
+
+    return {
+        ...state,
+        routes,
+        stale: true,
+        index: routes.length - 1,
+    } as StackState;
 }
 
 function isPushingSidebarOnCentralPane(state: StackState, action: CommonActions.Action | StackActionType, options: SplitNavigatorRouterOptions) {
@@ -127,30 +128,22 @@ function SplitRouter(options: SplitNavigatorRouterOptions) {
             }
             return stackRouter.getStateForAction(state, action, configOptions);
         },
-        getInitialState({routeNames, routeParamList, routeGetIdList}: RouterConfigOptions) {
-            const preservedState = getPreservedNavigatorState(options.parentRoute.key);
-            const initialState = preservedState ?? stackRouter.getInitialState({routeNames, routeParamList, routeGetIdList});
 
-            adaptStateIfNecessary({
-                state: initialState,
-                options,
-            });
+        getInitialState({routeNames, routeParamList, routeGetIdList}: RouterConfigOptions) {
+            const initialState = getPreservedNavigatorState(options.parentRoute.key) ?? stackRouter.getInitialState({routeNames, routeParamList, routeGetIdList});
+            const maybeAdaptedState = adaptStateIfNecessary({state: initialState, options});
 
             // If we needed to modify the state we need to rehydrate it to get keys for new routes.
-            if (initialState.stale) {
-                return stackRouter.getRehydratedState(initialState, {routeNames, routeParamList, routeGetIdList});
+            if (maybeAdaptedState.stale) {
+                return stackRouter.getRehydratedState(maybeAdaptedState, {routeNames, routeParamList, routeGetIdList});
             }
 
-            return initialState;
+            return maybeAdaptedState as StackNavigationState<ParamListBase>;
         },
-        getRehydratedState(partialState: StackState, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
-            adaptStateIfNecessary({
-                state: partialState,
-                options,
-            });
 
-            const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList, routeGetIdList});
-            return state;
+        getRehydratedState(partialState: StackState, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
+            const adaptedState = adaptStateIfNecessary({state: partialState, options});
+            return stackRouter.getRehydratedState(adaptedState, {routeNames, routeParamList, routeGetIdList});
         },
     };
 }

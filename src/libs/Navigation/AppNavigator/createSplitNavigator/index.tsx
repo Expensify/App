@@ -1,4 +1,4 @@
-import type {ParamListBase} from '@react-navigation/native';
+import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
 import {createNavigatorFactory} from '@react-navigation/native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
@@ -43,10 +43,25 @@ const SplitNavigatorComponent = createPlatformStackNavigatorComponent('SplitNavi
     NavigationContentWrapper: SidebarSpacerWrapper,
 });
 
-function createSplitNavigator<ParamList extends ParamListBase>() {
-    return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof SplitNavigatorComponent>(
-        SplitNavigatorComponent,
-    )<ParamList>();
+function createSplitNavigator<
+    const ParamList extends ParamListBase,
+    const NavigatorID extends string | undefined = undefined,
+    const TypeBag extends NavigatorTypeBagBase = {
+        ParamList: ParamList;
+        NavigatorID: NavigatorID;
+        State: PlatformStackNavigationState<ParamList>;
+        ScreenOptions: PlatformStackNavigationOptions;
+        EventMap: PlatformStackNavigationEventMap;
+        NavigationList: {
+            [RouteName in keyof ParamList]: NavigationProp<ParamList, RouteName, NavigatorID>;
+        };
+        Navigator: typeof SplitNavigatorComponent;
+    },
+    const Config extends StaticConfig<TypeBag> = StaticConfig<TypeBag>,
+>(config?: Config): TypedNavigator<TypeBag, Config> {
+    // In React Navigation 7 createNavigatorFactory returns any
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return createNavigatorFactory(SplitNavigatorComponent)(config);
 }
 
 export default createSplitNavigator;

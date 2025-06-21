@@ -42,7 +42,7 @@ function useTabNavigatorFocus({tabIndex}: UseTabNavigatorFocusParams): boolean {
         // Even a minimal scroll towards the camera page (e.g., a value of 0.001 at start) should activate the camera for immediate responsiveness.
         // STOP!!!!!!! This is not a pattern to be followed! We are conditionally rendering this hook because when used in the edit flow we'll never be inside a tab navigator.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/rules-of-hooks
-        tabPositionAnimation = useTabAnimation();
+        tabPositionAnimation = useTabAnimation().position;
     } catch (error) {
         tabPositionAnimation = null;
     }

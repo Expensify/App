@@ -1,6 +1,6 @@
 import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
-import type {EventMapCore, NavigationState, ScreenListeners} from '@react-navigation/native';
+import type {EventMapCore, NavigationState, ParamListBase, ScreenListeners} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
@@ -63,8 +63,7 @@ type OnyxTabNavigatorProps = ChildrenProps & {
     onTabSelect?: ({index}: {index: number}) => void;
 };
 
-// eslint-disable-next-line rulesdir/no-inline-named-export
-const TopTab = createMaterialTopTabNavigator();
+const TopTab = createMaterialTopTabNavigator<ParamListBase, string>();
 
 // The TabFocusTrapContext is to collect the focus trap container element of each tab screen.
 // This provider is placed in the OnyxTabNavigator component and the consumer is in the TabScreenWithFocusTrapWrapper component.

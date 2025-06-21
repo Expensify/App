@@ -36,8 +36,7 @@ jest.mock('@react-navigation/native', () => ({
     useIsFocused: () => true,
     useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),
     useFocusEffect: jest.fn(),
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    UNSTABLE_usePreventRemove: jest.fn(),
+    usePreventRemove: jest.fn(),
 }));
 
 describe('IOURequestStepConfirmationPageTest', () => {
