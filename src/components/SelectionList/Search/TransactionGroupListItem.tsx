@@ -2,6 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {SearchGroupBy} from '@components/Search/types';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {
     ListItem,
@@ -112,37 +113,36 @@ function TransactionGroupListItem<TItem extends ListItem>({
         COLUMNS.ACTION,
     ] satisfies Array<ValueOf<typeof COLUMNS>>;
 
-    const getHeader = useCallback(
-        (isHovered: boolean) => {
-            switch (groupBy) {
-                case CONST.SEARCH.GROUP_BY.REPORTS:
-                    return (
-                        <ReportListItemHeader
-                            report={groupItem as unknown as TransactionReportGroupListItemType}
-                            policy={policy}
-                            onSelectRow={onSelectRow}
-                            onCheckboxPress={onCheckboxPress}
-                            isDisabled={isDisabledOrEmpty}
-                            isHovered={isHovered}
-                            isFocused={isFocused}
-                            canSelectMultiple={canSelectMultiple}
-                        />
-                    );
-                case CONST.SEARCH.GROUP_BY.MEMBERS:
-                    return (
-                        <MemberListItemHeader
-                            member={groupItem as unknown as TransactionMemberGroupListItemType}
-                            onCheckboxPress={onCheckboxPress}
-                            isDisabled={isDisabledOrEmpty}
-                            canSelectMultiple={canSelectMultiple}
-                        />
-                    );
-                default:
-                    return null;
-            }
-        },
-        [groupBy, groupItem, canSelectMultiple, isDisabledOrEmpty, isFocused, onCheckboxPress, onSelectRow, policy],
-    );
+    const getHeader = (isHovered: boolean) => {
+        const headers: Record<SearchGroupBy, React.JSX.Element> = {
+            [CONST.SEARCH.GROUP_BY.REPORTS]: (
+                <ReportListItemHeader
+                    report={groupItem as unknown as TransactionReportGroupListItemType}
+                    policy={policy}
+                    onSelectRow={onSelectRow}
+                    onCheckboxPress={onCheckboxPress}
+                    isDisabled={isDisabledOrEmpty}
+                    isHovered={isHovered}
+                    isFocused={isFocused}
+                    canSelectMultiple={canSelectMultiple}
+                />
+            ),
+            [CONST.SEARCH.GROUP_BY.MEMBERS]: (
+                <MemberListItemHeader
+                    member={groupItem as unknown as TransactionMemberGroupListItemType}
+                    onCheckboxPress={onCheckboxPress}
+                    isDisabled={isDisabledOrEmpty}
+                    canSelectMultiple={canSelectMultiple}
+                />
+            ),
+        };
+
+        if (!groupBy) {
+            return null;
+        }
+
+        return headers[groupBy];
+    };
 
     return (
         <BaseListItem
