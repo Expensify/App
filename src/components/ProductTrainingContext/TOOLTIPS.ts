@@ -1,6 +1,6 @@
-import React, {useMemo} from 'react';
+import React from 'react';
+import RenderHtml from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
-import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import CONST from '@src/CONST';
@@ -103,9 +103,11 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {
                 text: () => {
                     const {translate} = useLocalize();
-                    const html = translate('productTrainingTooltip.GBRRBRChat');
-                    const RenderHtml = useMemo(() => React.createElement(RenderHTML, {html}), []);
-                    return RenderHtml;
+                    const html = `<span style="color: white">${translate('productTrainingTooltip.GBRRBRChat')}<span>`;
+                    const source = {
+                        html,
+                    };
+                    return React.createElement(RenderHtml, {source});
                 },
             },
         ],

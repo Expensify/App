@@ -290,7 +290,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             const translatedText = typeof text === 'string' ? translate(text) : text();
                             return (
                                 <Text
-                                    key={typeof text === 'string' ? text : 'dynamicText'}
+                                    key={typeof text === 'string' ? text : text.toString()}
                                     style={[styles.productTrainingTooltipText, isBold && styles.textBold]}
                                 >
                                     {translatedText}
