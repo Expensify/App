@@ -56,6 +56,11 @@ const baseFilterConfig = {
         description: 'common.type' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TYPE,
     },
+    groupBy: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.groupBy' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_TYPE, // s77rt
+    },
     status: {
         getTitle: getStatusFilterDisplayTitle,
         description: 'common.status' as const,

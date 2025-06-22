@@ -6764,6 +6764,7 @@ const CONST = {
                     this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
                     this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
                     this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                    this.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
                 ],
                 [
                     this.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
@@ -6825,6 +6826,7 @@ const CONST = {
                     this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
                     this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
                     this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                    this.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
                 ],
                 [
                     this.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
