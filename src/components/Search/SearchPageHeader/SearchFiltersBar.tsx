@@ -31,7 +31,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getGroupByOptions, getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
+import {getGroupByOptions, getStatusOptions, getTypeOptions, isFilterSupported} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -227,28 +227,33 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 label: translate('common.type'),
                 PopoverComponent: typeComponent,
                 value: translate(`common.${type}`),
+                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
             },
             {
                 label: translate('search.groupBy'),
                 PopoverComponent: groupByComponent,
                 value: groupBy ? translate(`search.filters.groupBy.${groupBy}`) : null,
+                keyForList: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
             },
             {
                 label: translate('common.status'),
                 PopoverComponent: statusComponent,
                 value: statusValue.map((option) => translate(option.translation)),
+                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             },
             {
                 label: translate('common.date'),
                 PopoverComponent: datePickerComponent,
                 value: dateValue,
+                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             },
             {
                 label: translate('common.from'),
                 PopoverComponent: userPickerComponent,
                 value: fromValue,
+                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             },
-        ];
+        ].filter((filterItem) => isFilterSupported(filterItem.keyForList, type));
 
         return filterList;
     }, [
