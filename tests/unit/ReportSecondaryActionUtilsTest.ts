@@ -308,7 +308,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
 
-    it('includes EXPORT option for invoice submitter', async () => {
+    it('does not include EXPORT option for invoice reports', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.INVOICE,
@@ -322,7 +322,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING)).toBe(true);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING)).toBe(false);
     });
 
     it('includes EXPORT option for expense report with payments enabled', () => {

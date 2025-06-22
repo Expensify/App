@@ -1750,6 +1750,10 @@ function getReopenedMessage(): string {
     return translateLocal('iou.reopened');
 }
 
+function getReceiptScanFailedMessage() {
+    return translateLocal('receipt.scanFailed');
+}
+
 function getUpdateRoomDescriptionFragment(reportAction: ReportAction): Message {
     const html = getUpdateRoomDescriptionMessage(reportAction);
     return {
@@ -2936,6 +2940,30 @@ function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>): strin
     return translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage});
 }
 
+function getManagerOnVacation(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isApprovedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.managerOnVacation;
+}
+
+function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isSubmittedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.vacationer;
+}
+
+function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isSubmittedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.to;
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -3101,6 +3129,10 @@ export {
     isReopenedAction,
     getIntegrationSyncFailedMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
+    getManagerOnVacation,
+    getVacationer,
+    getSubmittedTo,
+    getReceiptScanFailedMessage,
 };
 
 export type {LastVisibleMessage};
