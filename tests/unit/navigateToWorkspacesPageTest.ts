@@ -20,7 +20,7 @@ jest.mock('@libs/PolicyUtils');
 jest.mock('@libs/interceptAnonymousUser');
 
 const fakePolicyID = '344559B2CCF2B6C1';
-const mockPolicy = createRandomPolicy(0);
+const mockPolicy = {...createRandomPolicy(0), id: fakePolicyID};
 const mockParams = {currentUserLogin: 'test@example.com', shouldUseNarrowLayout: false, policy: mockPolicy};
 
 describe('navigateToWorkspacesPage', () => {

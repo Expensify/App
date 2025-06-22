@@ -23,9 +23,8 @@ import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import {isWorkspacesTabScreenName} from '@libs/Navigation/helpers/isNavigatorName';
-import {getLastVisitedTabPath, getSettingsTabStateFromSessionStorage, getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
-import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspacesPage';
+import {getLastVisitedTabPath, getSettingsTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
+import navigateToWorkspacesPage, {getWorkspaceNavigationRouteState} from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -55,17 +54,10 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {orderedReports} = useSidebarOrderedReports();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+    const [lastViewedPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
         selector: (val) => {
-            const rootState = navigationRef.getRootState();
-            const workspacesTabStateFromSessionStorage = getWorkspacesTabStateFromSessionStorage() ?? rootState;
-            const lastWorkspacesTabNavigatorRoute = workspacesTabStateFromSessionStorage.routes.findLast((route) => isWorkspacesTabScreenName(route.name));
-            let workspacesTabState = lastWorkspacesTabNavigatorRoute?.state;
-
-            if (!workspacesTabState && lastWorkspacesTabNavigatorRoute?.key) {
-                workspacesTabState = getPreservedNavigatorState(lastWorkspacesTabNavigatorRoute.key);
-            }
+            const {lastWorkspacesTabNavigatorRoute, workspacesTabState} = getWorkspaceNavigationRouteState();
 
             if (!lastWorkspacesTabNavigatorRoute || lastWorkspacesTabNavigatorRoute.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
                 return undefined;
@@ -161,8 +153,8 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
      * If the user clicks on the settings tab while on this tab, this button should go back to the previous screen within the tab.
      */
     const showWorkspaces = useCallback(() => {
-        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy});
-    }, [shouldUseNarrowLayout, currentUserLogin, policy]);
+        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy});
+    }, [shouldUseNarrowLayout, currentUserLogin, lastViewedPolicy]);
 
     if (!shouldUseNarrowLayout) {
         return (
