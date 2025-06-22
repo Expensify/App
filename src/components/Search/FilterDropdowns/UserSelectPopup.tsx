@@ -1,5 +1,5 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -7,6 +7,7 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -35,6 +36,7 @@ type UserSelectPopupProps = {
 };
 
 function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) {
+    const selectionListRef = useRef<SelectionListHandle | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {options} = useOptionsList();
@@ -89,6 +91,12 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
             }))
             .sort((a, b) => {
+                if (a.isSelected && !b.isSelected) {
+                    return -1;
+                }
+                if (!a.isSelected && b.isSelected) {
+                    return 1;
+                }
                 // Put the current user at the top of the list
                 if (a.accountID === session?.accountID) {
                     return -1;
@@ -137,6 +145,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 const newSelectedOptions = [...selectedOptions.slice(0, optionIndex), ...selectedOptions.slice(optionIndex + 1)];
                 setSelectedOptions(newSelectedOptions);
             }
+            selectionListRef?.current?.scrollToIndex(0, true);
         },
         [selectedOptions],
     );
@@ -162,9 +171,9 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     return (
         <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
             <SelectionList
+                ref={selectionListRef}
                 canSelectMultiple
                 textInputAutoFocus
-                shouldClearInputOnSelect={false}
                 headerMessage={headerMessage}
                 sections={sections}
                 ListItem={UserSelectionListItem}
