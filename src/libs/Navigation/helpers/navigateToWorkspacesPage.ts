@@ -19,6 +19,10 @@ type Params = {
 
 const getWorkspaceNavigationRouteState = () => {
     const rootState = navigationRef.getRootState();
+    const topmostFullScreenRoute = rootState.routes.findLast((route) => isFullScreenName(route.name));
+    if (!topmostFullScreenRoute) {
+        return {};
+    }
     const workspacesTabStateFromSessionStorage = getWorkspacesTabStateFromSessionStorage() ?? rootState;
     const lastWorkspacesTabNavigatorRoute = workspacesTabStateFromSessionStorage.routes.findLast((route) => isWorkspacesTabScreenName(route.name));
     let workspacesTabState = lastWorkspacesTabNavigatorRoute?.state;
@@ -32,7 +36,7 @@ const getWorkspaceNavigationRouteState = () => {
 
 const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy}: Params) => {
     const {rootState, lastWorkspacesTabNavigatorRoute} = getWorkspaceNavigationRouteState();
-    const topmostFullScreenRoute = rootState.routes.findLast((route) => isFullScreenName(route.name));
+    const topmostFullScreenRoute = rootState?.routes.findLast((route) => isFullScreenName(route.name));
     if (!topmostFullScreenRoute) {
         return;
     }
