@@ -7,7 +7,17 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
-import type {SearchColumnType, SearchDatePreset, SearchGroupBy, SearchQueryJSON, SearchQueryString, SearchStatus, SingularSearchStatus, SortOrder} from '@components/Search/types';
+import type {
+    SearchColumnType,
+    SearchDatePreset,
+    SearchFilterKey,
+    SearchGroupBy,
+    SearchQueryJSON,
+    SearchQueryString,
+    SearchStatus,
+    SingularSearchStatus,
+    SortOrder,
+} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
@@ -1638,6 +1648,10 @@ function isSearchDatePreset(date: string | undefined): date is SearchDatePreset 
     return Object.values(CONST.SEARCH.DATE_PRESETS).some((datePreset) => datePreset === date);
 }
 
+function isFilterSupported(filter: SearchFilterKey, type: SearchDataTypes) {
+    CONST.SEARCH_TYPE_FILTERS_KEYS[type].flat().some((supportedFilter) => supportedFilter === filter);
+}
+
 export {
     getListItem,
     getSections,
@@ -1668,5 +1682,6 @@ export {
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
     isSearchDatePreset,
+    isFilterSupported,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower};

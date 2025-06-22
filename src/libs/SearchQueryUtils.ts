@@ -23,7 +23,7 @@ import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
-import {isSearchDatePreset} from './SearchUIUtils';
+import {isFilterSupported, isSearchDatePreset} from './SearchUIUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
 
@@ -376,9 +376,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${sanitizedType}`);
     }
 
-    // If the type is not an expense, then we need to remove remove grouping, because we cannot
-    // group other data types
-    if (groupBy && type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
+    if (type && groupBy && isFilterSupported(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY, type)) {
         const sanitizedGroupBy = sanitizeSearchValue(groupBy);
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${sanitizedGroupBy}`);
     }
