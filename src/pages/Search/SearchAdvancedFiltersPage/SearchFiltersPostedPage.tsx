@@ -7,6 +7,7 @@ function SearchFiltersPostedPage() {
         <SearchDatePresetFilterBase
             dateKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED}
             titleKey="search.filters.posted"
+            presets={[CONST.SEARCH.DATE_PRESETS.LAST_MONTH]}
         />
     );
 }

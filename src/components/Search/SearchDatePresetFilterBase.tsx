@@ -1,17 +1,13 @@
-import {format} from 'date-fns';
 import React, {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import DatePicker from '@components/DatePicker';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
-import FormProvider from '@components/Form/FormProvider';
-import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
@@ -22,7 +18,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchDateFilterKeys} from './types';
+import type {SearchDateFilterKeys, SearchDatePreset} from './types';
 
 type SearchDatePresetFilterBaseProps = {
     /** Key used for the date filter */
@@ -31,10 +27,11 @@ type SearchDatePresetFilterBaseProps = {
     /** The translation key for the page title */
     titleKey: TranslationPaths;
 
-    // s77rt add presets prop
+    /** The date presets */
+    presets?: SearchDatePreset[];
 };
 
-function SearchDatePresetFilterBase({dateKey, titleKey}: SearchDatePresetFilterBaseProps) {
+function SearchDatePresetFilterBase({dateKey, titleKey, presets}: SearchDatePresetFilterBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
@@ -48,7 +45,22 @@ function SearchDatePresetFilterBase({dateKey, titleKey}: SearchDatePresetFilterB
 
     const setDateValue = useCallback((dateModifier: SearchDateModifier, value: string | undefined) => {
         setDateValues((prevDateValues) => {
-            // s77rt
+            if (dateModifier === CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(value)) {
+                return {
+                    [CONST.SEARCH.DATE_MODIFIERS.ON]: value,
+                    [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
+                    [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
+                };
+            }
+
+            if (dateModifier !== CONST.SEARCH.DATE_MODIFIERS.ON && isSearchDatePreset(prevDateValues[CONST.SEARCH.DATE_MODIFIERS.ON])) {
+                return {
+                    ...prevDateValues,
+                    [dateModifier]: value,
+                    [CONST.SEARCH.DATE_MODIFIERS.ON]: undefined,
+                };
+            }
+
             return {...prevDateValues, [dateModifier]: value};
         });
     }, []);
@@ -60,7 +72,7 @@ function SearchDatePresetFilterBase({dateKey, titleKey}: SearchDatePresetFilterB
 
         return {
             // dateOn could be a preset e.g. Last month which should not be displayed as the On field
-            [CONST.SEARCH.DATE_MODIFIERS.ON]: dateOn && !isSearchDatePreset(dateOn) ? dateOn : undefined,
+            [CONST.SEARCH.DATE_MODIFIERS.ON]: isSearchDatePreset(dateOn) ? undefined : dateOn,
             [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: dateBefore,
             [CONST.SEARCH.DATE_MODIFIERS.AFTER]: dateAfter,
         };
@@ -135,6 +147,17 @@ function SearchDatePresetFilterBase({dateKey, titleKey}: SearchDatePresetFilterB
             <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                 {!selectedDateModifier ? (
                     <>
+                        {presets?.map((preset) => (
+                            <SingleSelectListItem
+                                key={preset}
+                                showTooltip
+                                item={{
+                                    text: translate(`search.filters.date.presets.${preset}`),
+                                    isSelected: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] === preset,
+                                }}
+                                onSelectRow={() => setDateValue(CONST.SEARCH.DATE_MODIFIERS.ON, preset)}
+                            />
+                        ))}
                         <MenuItem
                             shouldShowRightIcon
                             viewMode={CONST.OPTION_MODE.COMPACT}

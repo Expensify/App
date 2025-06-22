@@ -1634,7 +1634,7 @@ function getGroupByOptions() {
     return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({translation: `search.filters.groupBy.${value}`, value}));
 }
 
-function isSearchDatePreset(date: string): date is SearchDatePreset {
+function isSearchDatePreset(date: string | undefined): date is SearchDatePreset {
     return Object.values(CONST.SEARCH.DATE_PRESETS).some((datePreset) => datePreset === date);
 }
 
