@@ -1649,7 +1649,7 @@ function isSearchDatePreset(date: string | undefined): date is SearchDatePreset 
 }
 
 function isFilterSupported(filter: SearchFilterKey, type: SearchDataTypes) {
-    CONST.SEARCH_TYPE_FILTERS_KEYS[type].flat().some((supportedFilter) => supportedFilter === filter);
+    return CONST.SEARCH_TYPE_FILTERS_KEYS[type].flat().some((supportedFilter) => supportedFilter === filter);
 }
 
 export {
