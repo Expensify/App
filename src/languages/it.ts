@@ -6682,12 +6682,7 @@ const translations = {
             part3: 'e altro ancora.',
             part4: 'Provalo!',
         },
-        GBRRBRChat: {
-            part1: 'Vedrai 🟢 su',
-            part2: 'azioni da intraprendere',
-            part3: ',\ne 🔴 su',
-            part4: 'elementi da rivedere.',
-        },
+        GBRRBRChat: 'Vedrai 🟢 su <strong>azioni da intraprendere</strong> ,\ne 🔴 su <strong>elementi da rivedere.</strong>',
         accountSwitcher: {
             part1: 'Accedi al tuo',
             part2: 'Account Copilot',

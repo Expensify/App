@@ -6536,12 +6536,7 @@ const translations = {
             part3: '和更多。',
             part4: '试试看！',
         },
-        GBRRBRChat: {
-            part1: '您将在 🟢 上看到',
-            part2: '采取的行动',
-            part3: '，和🔴在',
-            part4: '待审核项目。',
-        },
+        GBRRBRChat: '您将在 🟢 上看到 <strong>采取的行动</strong> ,\n和🔴在 <strong>待审核项目。</strong>',
         accountSwitcher: {
             part1: '访问您的',
             part2: 'Copilot 账户',

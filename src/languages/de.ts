@@ -6700,12 +6700,7 @@ const translations = {
             part3: 'und mehr.',
             part4: 'Probieren Sie es aus!',
         },
-        GBRRBRChat: {
-            part1: 'Du wirst 🟢 auf sehen',
-            part2: 'Maßnahmen ergreifen',
-            part3: ',\nund 🔴 auf',
-            part4: 'Elemente zur Überprüfung.',
-        },
+        GBRRBRChat: 'Du wirst 🟢 auf sehen <strong>Maßnahmen ergreifen</strong> ,\nund 🔴 auf <strong>Elemente zur Überprüfung.</strong>',
         accountSwitcher: {
             part1: 'Zugriff auf Ihre',
             part2: 'Copilot-Konten',

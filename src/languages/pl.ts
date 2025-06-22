@@ -6651,12 +6651,7 @@ const translations = {
             part3: 'i więcej.',
             part4: 'Wypróbuj to!',
         },
-        GBRRBRChat: {
-            part1: 'Zobaczysz 🟢 na',
-            part2: 'działania do podjęcia',
-            part3: ', i 🔴 na',
-            part4: 'elementy do przejrzenia.',
-        },
+        GBRRBRChat: 'Zobaczysz 🟢 na <strong>działania do podjęcia</strong> ,\n i 🔴 na <strong>elementy do przejrzenia.</strong>',
         accountSwitcher: {
             part1: 'Uzyskaj dostęp do swojego',
             part2: 'Konta Copilot',

@@ -6619,12 +6619,7 @@ const translations = {
             part3: 'その他。',
             part4: '試してみてください！',
         },
-        GBRRBRChat: {
-            part1: 'あなたは🟢を見るでしょう',
-            part2: '取るべき行動',
-            part3: '、\nおよび 🔴 に',
-            part4: 'レビューする項目。',
-        },
+        GBRRBRChat: 'あなたは🟢を見るでしょう <strong>取るべき行動</strong> 、\nおよび 🔴 に <strong>レビューする項目。</strong>',
         accountSwitcher: {
             part1: 'アクセスする',
             part2: 'Copilotアカウント',

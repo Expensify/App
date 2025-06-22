@@ -6666,12 +6666,7 @@ const translations = {
             part3: 'en meer.',
             part4: 'Probeer het uit!',
         },
-        GBRRBRChat: {
-            part1: 'Je zult 🟢 zien op',
-            part2: 'acties om te ondernemen',
-            part3: ',\nen 🔴 op',
-            part4: 'items om te beoordelen.',
-        },
+        GBRRBRChat: 'Je zult 🟢 zien op <strong>acties om te ondernemen</strong> ,\nen 🔴 op <strong>items om te beoordelen.</strong>',
         accountSwitcher: {
             part1: 'Toegang tot uw',
             part2: 'Copilot-accounts',

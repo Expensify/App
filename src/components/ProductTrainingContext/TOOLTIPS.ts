@@ -1,7 +1,8 @@
 import React from 'react';
-import RenderHtml from 'react-native-render-html';
+import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -103,11 +104,14 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {
                 text: () => {
                     const {translate} = useLocalize();
+                    const {windowWidth} = useWindowDimensions();
+                    const systemFonts = [...defaultSystemFonts, 'MyCustomFont'];
+
                     const html = `<span style="color: white">${translate('productTrainingTooltip.GBRRBRChat')}<span>`;
                     const source = {
                         html,
                     };
-                    return React.createElement(RenderHtml, {source});
+                    return React.createElement(RenderHtml, {source, systemFonts, contentWidth: windowWidth});
                 },
             },
         ],
