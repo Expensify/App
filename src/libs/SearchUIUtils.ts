@@ -968,7 +968,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
  * Do not use directly, use only via `getSections()` facade.
  */
 function getMemberSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionMemberGroupListItemType[] {
-    return []; // s77rt
+    return data && metadata ? [] : []; // s77rt TODO
 }
 
 /**
@@ -1124,7 +1124,7 @@ function getSortedReportData(data: TransactionReportGroupListItemType[]) {
  * Sorts report sections based on a specified column and sort order.
  */
 function getSortedMemberData(data: TransactionMemberGroupListItemType[]) {
-    return []; // s77rt
+    return data ? [] : []; // s77rt TODO
 }
 
 /**

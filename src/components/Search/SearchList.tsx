@@ -352,6 +352,7 @@ function SearchList(
             onSelectRow,
             policies,
             hash,
+            groupBy,
             setFocusedIndex,
             shouldPreventDefaultFocusOnSelectRow,
             allReports,
