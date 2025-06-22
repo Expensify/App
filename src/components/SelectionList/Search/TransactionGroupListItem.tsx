@@ -1,8 +1,8 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {SearchGroupBy} from '@components/Search/types';
+import type {SearchGroupBy} from '@components/Search/types';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {
     ListItem,
