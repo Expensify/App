@@ -6662,10 +6662,7 @@ const translations = {
             part1: '以下の条件に一致する経費をフィルタリング',
             part2: '承認が必要です',
         },
-        scanTestDriveTooltip: {
-            part1: 'この領収書を送信先',
-            part2: 'テストドライブを完了してください！',
-        },
+        scanTestDriveTooltip: 'この領収書を送信先 <br /> <strong>テストドライブを完了してください！</strong>',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',

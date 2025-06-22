@@ -6694,10 +6694,7 @@ const translations = {
             part1: 'Filtruj wydatki, które',
             part2: 'potrzebna zgoda',
         },
-        scanTestDriveTooltip: {
-            part1: 'Wyślij ten paragon do',
-            part2: 'ukończ jazdę próbną!',
-        },
+        scanTestDriveTooltip: 'Wyślij ten paragon do <br /> <strong>ukończ jazdę próbną!</strong>',
     },
     discardChangesConfirmation: {
         title: 'Odrzucić zmiany?',

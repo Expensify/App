@@ -6748,10 +6748,7 @@ const translations = {
             part1: 'Filtrer les dépenses qui',
             part2: "besoin d'approbation",
         },
-        scanTestDriveTooltip: {
-            part1: 'Envoyer ce reçu à',
-            part2: "complétez l'essai !",
-        },
+        scanTestDriveTooltip: "Envoyer ce reçu à <br /> <strong>complétez l'essai !</strong>",
     },
     discardChangesConfirmation: {
         title: 'Annuler les modifications ?',
