@@ -27,7 +27,6 @@ import type { WorkspaceSplitNavigatorParamList } from '@libs/Navigation/types';
 import { filterAndOrderOptions, formatMemberForList, getHeaderMessage, getMemberInviteOptions, getSearchValueForPhoneOrEmail, sortAlphabetically } from '@libs/OptionsListUtils';
 import { addSMSDomainIfPhoneNumber, parsePhoneNumber } from '@libs/PhoneNumber';
 import { getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin } from '@libs/PolicyUtils';
-import type { OptionData } from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type { WithPolicyAndFullscreenLoadingProps } from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -72,10 +71,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
-    // States for invite functionality
-    const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
-    const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
-
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -86,13 +81,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && approvalWorkflow && approvalWorkflow.availableMembers.length === 0;
     const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
 
-    // Create excluded users list for invite functionality
+    // Create excluded users list - only exclude Expensify emails for approval workflows
     const excludedUsers = useMemo(() => {
-        // For approval workflows, we only need to exclude Expensify emails
-        // We should NOT exclude existing workspace members because they should be available for approval workflows
-        const excludedLogins: string[] = [...CONST.EXPENSIFY_EMAILS];
-
-        return excludedLogins.reduce(
+        return CONST.EXPENSIFY_EMAILS.reduce(
             (acc: Record<string, boolean>, login: string) => {
                 acc[login] = true;
                 return acc;
@@ -101,49 +92,19 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         );
     }, []);
 
-    // Default options for invite functionality
+    // Get invite options using existing utilities
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
         const inviteOptions = getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, true);
-
         return {...inviteOptions, recentReports: [], currentUserOption: null};
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
 
-    // Filtered invite options based on search term
     const inviteOptions = useMemo(() => filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers}), [debouncedSearchTerm, defaultOptions, excludedUsers]);
 
-    // Update personal details and users to invite when options change
-    useEffect(() => {
-        if (!areOptionsInitialized) {
-            return;
-        }
-
-        const newUsersToInviteDict: Record<number, OptionData> = {};
-        const newPersonalDetailsDict: Record<number, OptionData> = {};
-
-        const userToInvite = inviteOptions.userToInvite;
-
-        // Only add the user to the invites list if it is valid
-        if (typeof userToInvite?.accountID === 'number') {
-            newUsersToInviteDict[userToInvite.accountID] = userToInvite;
-        }
-
-        // Add all personal details to the new dict
-        inviteOptions.personalDetails.forEach((details) => {
-            if (typeof details.accountID !== 'number') {
-                return;
-            }
-            newPersonalDetailsDict[details.accountID] = details;
-        });
-
-        // Strip out dictionary keys and update arrays
-        setUsersToInvite(Object.values(newUsersToInviteDict));
-        setPersonalDetails(Object.values(newPersonalDetailsDict));
-    }, [areOptionsInitialized, inviteOptions.personalDetails, inviteOptions.userToInvite]);
-
+    // Map approval workflow members to selected members format
     useEffect(() => {
         if (!approvalWorkflow?.members) {
             return;
@@ -156,8 +117,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 
                 // If not found in workspace members, look up in personal details or users to invite
                 if (!accountID) {
-                    const personalDetail = personalDetails.find((detail) => detail.login === member.email);
-                    const userToInvite = usersToInvite.find((user) => user.login === member.email);
+                    const personalDetail = inviteOptions.personalDetails.find((detail) => detail.login === member.email);
+                    const userToInvite = inviteOptions.userToInvite?.login === member.email ? inviteOptions.userToInvite : null;
                     accountID = personalDetail?.accountID ?? userToInvite?.accountID ?? 0;
                 }
                 
@@ -175,13 +136,15 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 };
             }),
         );
-    }, [approvalWorkflow?.members, policy?.employeeList, translate, personalDetails, usersToInvite]);
+    }, [approvalWorkflow?.members, policy?.employeeList, translate, inviteOptions.personalDetails, inviteOptions.userToInvite]);
 
     const approversEmail = useMemo(() => approvalWorkflow?.approvers.map((member) => member?.email), [approvalWorkflow?.approvers]);
+    
     const sections: MembersSection[] = useMemo(() => {
         const members: SelectionListMember[] = [...selectedMembers];
 
         // Add existing workspace members from approval workflow
+        const workspaceMembers: SelectionListMember[] = [];
         if (approvalWorkflow?.availableMembers) {
             const availableMembers = approvalWorkflow.availableMembers
                 .map((member) => {
@@ -204,37 +167,44 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     (member) => (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) && !selectedMembers.some((selectedOption) => selectedOption.login === member.login),
                 );
 
-            members.push(...availableMembers);
+            workspaceMembers.push(...availableMembers);
         }
 
-        // Add personal details that are not already in available members
+        // Add personal details and users to invite that are not already in available members
         const availableMemberLogins = new Set(approvalWorkflow?.availableMembers?.map((member) => member.email) ?? []);
-        const personalDetailsWithoutExisting = personalDetails.filter((detail) => !availableMemberLogins.has(detail.login ?? ''));
+        const selectedLogins = selectedMembers.map(({login}) => login);
+
+        // Add personal details
+        const personalDetailsWithoutExisting = inviteOptions.personalDetails.filter((detail) => !availableMemberLogins.has(detail.login ?? '') && !selectedLogins.includes(detail.login ?? ''));
         const personalDetailsFormatted = personalDetailsWithoutExisting
             .map((item) => formatMemberForList(item))
             .map((member) => ({
                 ...member,
                 rightElement: policy?.employeeList?.[member.login]?.role === CONST.REPORT.ROLE.ADMIN ? <Badge text={translate('common.admin')} /> : undefined,
-            }))
-            .filter((member) => !selectedMembers.some((selectedOption) => selectedOption.login === member.login));
+            }));
 
-        members.push(...personalDetailsFormatted);
+        // Add user to invite
+        const hasUnselectedUserToInvite = inviteOptions.userToInvite && !selectedLogins.includes(inviteOptions.userToInvite.login ?? '');
+        const userToInviteFormatted = hasUnselectedUserToInvite && inviteOptions.userToInvite ? [formatMemberForList(inviteOptions.userToInvite)] : [];
 
-        // Add users to invite
-        Object.values(usersToInvite).forEach((userToInvite) => {
-            const hasUnselectedUserToInvite = !selectedMembers.some((selectedMember) => selectedMember.login === userToInvite.login);
-            if (hasUnselectedUserToInvite) {
-                members.push(formatMemberForList(userToInvite));
-            }
-        });
+        // Add workspace members first, then external users
+        const externalUsers = [...personalDetailsFormatted, ...userToInviteFormatted];
+        members.push(...workspaceMembers, ...externalUsers);
 
-        const filteredMembers =
-            debouncedSearchTerm !== '' ? tokenizedSearch(members, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']) : members;
+        let filteredMembers: SelectionListMember[];
+        if (debouncedSearchTerm !== '') {
+            filteredMembers = tokenizedSearch(members, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']);
+        } else {
+            // Sort workspace members and external users separately, then combine
+            const sortedWorkspaceMembers = sortAlphabetically(workspaceMembers, 'text');
+            const sortedExternalUsers = sortAlphabetically(externalUsers, 'text');
+            filteredMembers = [...selectedMembers, ...sortedWorkspaceMembers, ...sortedExternalUsers];
+        }
 
         return [
             {
                 title: undefined,
-                data: sortAlphabetically(filteredMembers, 'text'),
+                data: filteredMembers,
                 shouldShow: true,
             },
         ];
@@ -246,8 +216,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         selectedMembers,
         translate,
         approversEmail,
-        personalDetails,
-        usersToInvite,
+        inviteOptions.personalDetails,
+        inviteOptions.userToInvite,
     ]);
 
     const goBack = useCallback(() => {
@@ -337,17 +307,17 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     // Header message with proper validation
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
-        if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+        if (!inviteOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
             return translate('messages.errorMessageInvalidEmail');
         }
         if (
-            usersToInvite.length === 0 &&
+            !inviteOptions.userToInvite &&
             excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policy?.name ?? ''});
         }
-        return getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
-    }, [excludedUsers, translate, debouncedSearchTerm, policy?.name, usersToInvite, personalDetails.length]);
+        return getHeaderMessage(inviteOptions.personalDetails.length !== 0, !!inviteOptions.userToInvite, searchValue);
+    }, [excludedUsers, translate, debouncedSearchTerm, policy?.name, inviteOptions.userToInvite, inviteOptions.personalDetails.length]);
 
     // Add search functionality
     useEffect(() => {
