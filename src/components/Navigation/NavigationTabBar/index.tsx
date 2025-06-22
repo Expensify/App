@@ -1,3 +1,4 @@
+import {findFocusedRoute} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -16,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
@@ -53,6 +55,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const {translate} = useLocalize();
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {orderedReports} = useSidebarOrderedReports();
+    const subscriptionPlan = useSubscriptionPlan();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [lastViewedPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
@@ -136,6 +139,11 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         interceptAnonymousUser(() => {
             const settingsTabState = getSettingsTabStateFromSessionStorage();
             if (settingsTabState && !shouldUseNarrowLayout) {
+                const stateRoute = findFocusedRoute(settingsTabState);
+                if (!subscriptionPlan && stateRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ROOT) {
+                    Navigation.navigate(ROUTES.SETTINGS_PROFILE.route);
+                    return;
+                }
                 const lastVisitedSettingsRoute = getLastVisitedTabPath(settingsTabState);
                 if (lastVisitedSettingsRoute) {
                     Navigation.navigate(lastVisitedSettingsRoute);
@@ -144,7 +152,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             }
             Navigation.navigate(ROUTES.SETTINGS);
         });
-    }, [selectedTab, shouldUseNarrowLayout]);
+    }, [selectedTab, subscriptionPlan, shouldUseNarrowLayout]);
 
     /**
      * The settings tab is related to SettingsSplitNavigator and WorkspaceSplitNavigator.
