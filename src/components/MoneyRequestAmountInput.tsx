@@ -95,6 +95,18 @@ type MoneyRequestAmountInputProps = {
     /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
     shouldApplyPaddingToContainer?: boolean;
 
+    /** Whether the amount is negative */
+    isNegative?: boolean;
+
+    /** Function to toggle the amount to negative */
+    toggleNegative?: () => void;
+
+    /** Function to clear the negative amount */
+    clearNegative?: () => void;
+
+    /** Whether to allow flipping amount */
+    allowFlippingAmount?: boolean;
+
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
 } & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace' | 'submitBehavior'>;
@@ -134,6 +146,10 @@ function MoneyRequestAmountInput(
         autoGrow = true,
         autoGrowExtraSpace,
         contentWidth,
+        isNegative = false,
+        allowFlippingAmount = false,
+        toggleNegative,
+        clearNegative,
         testID,
         submitBehavior,
         shouldApplyPaddingToContainer = false,
@@ -168,6 +184,10 @@ function MoneyRequestAmountInput(
      */
     const setNewAmount = useCallback(
         (newAmount: string) => {
+            if (allowFlippingAmount && newAmount.startsWith('-') && toggleNegative) {
+                toggleNegative();
+            }
+
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
@@ -196,7 +216,7 @@ function MoneyRequestAmountInput(
                 return strippedAmount;
             });
         },
-        [decimals, onAmountChange],
+        [allowFlippingAmount, decimals, onAmountChange, toggleNegative],
     );
 
     useImperativeHandle(moneyRequestAmountInputRef, () => ({
@@ -256,6 +276,11 @@ function MoneyRequestAmountInput(
      */
     const textInputKeyPress = ({nativeEvent}: NativeSyntheticEvent<KeyboardEvent>) => {
         const key = nativeEvent?.key.toLowerCase();
+
+        if (!textInput.current?.value && key === 'backspace' && isNegative) {
+            clearNegative?.();
+        }
+
         if (isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
             // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac accessibility keyboard is being
             // used for input). If the Control-D shortcut doesn't get sent, the ref will still be reset on the next key press.
@@ -347,6 +372,7 @@ function MoneyRequestAmountInput(
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             contentWidth={contentWidth}
+            isNegative={isNegative}
             testID={testID}
             submitBehavior={submitBehavior}
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
