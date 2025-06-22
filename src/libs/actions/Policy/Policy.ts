@@ -81,6 +81,7 @@ import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPo
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
+import {buildTaskData} from '@userActions/Task';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -660,6 +661,7 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                reimburser: reimburserEmail,
                 achAccount: {reimburser: reimburserEmail},
                 errorFields: {reimburser: null},
                 pendingFields: {reimburser: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -779,6 +781,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             value: {
                 reimbursementChoice,
                 isLoadingWorkspaceReimbursement: true,
+                reimburser: reimburserEmail,
                 achAccount: {reimburser: reimburserEmail},
                 errorFields: {reimbursementChoice: null},
                 pendingFields: {reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -1674,12 +1677,13 @@ function generateDefaultWorkspaceName(email = ''): string {
         displayNameForWorkspace = userDetails?.phoneNumber ?? '';
     }
 
-    if (`@${domain}` === CONST.SMS.DOMAIN) {
-        return translateLocal('workspace.new.myGroupWorkspace');
+    const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
+    if (isSMSDomain) {
+        displayNameForWorkspace = translateLocal('workspace.new.myGroupWorkspace', {});
     }
 
     if (isEmptyObject(allPolicies)) {
-        return translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace});
+        return isSMSDomain ? translateLocal('workspace.new.myGroupWorkspace', {}) : translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace});
     }
 
     // find default named workspaces and increment the last number
@@ -1688,7 +1692,7 @@ function generateDefaultWorkspaceName(email = ''): string {
         .map((lang) => translate(lang, 'workspace.common.workspace'))
         .join('|');
 
-    const workspaceRegex = new RegExp(`^(?=.*${escapedName})(?:.*(?:${workspaceTranslations})\\s*(\\d+)?)`, 'i');
+    const workspaceRegex = isSMSDomain ? new RegExp(`^${escapedName}\\s*(\\d+)?$`, 'i') : new RegExp(`^(?=.*${escapedName})(?:.*(?:${workspaceTranslations})\\s*(\\d+)?)`, 'i');
 
     const workspaceNumbers = Object.values(allPolicies)
         .map((policy) => workspaceRegex.exec(policy?.name ?? ''))
@@ -1696,6 +1700,9 @@ function generateDefaultWorkspaceName(email = ''): string {
         .map((match) => Number(match?.[1] ?? '0'));
     const lastWorkspaceNumber = workspaceNumbers.length > 0 ? Math.max(...workspaceNumbers) : undefined;
 
+    if (isSMSDomain) {
+        return translateLocal('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
+    }
     return translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace, workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
 }
 
@@ -2171,6 +2178,20 @@ function buildPolicyData(
         failureData.push(...taskFailureData);
     }
 
+    // For test drive receivers, we want to complete the createWorkspace task in concierge, instead of #admin room
+    if (introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER && introSelected.createWorkspace) {
+        const createWorkspaceTaskReport = {reportID: introSelected.createWorkspace};
+        const {
+            optimisticData: optimisticCreateWorkspaceTaskData,
+            successData: successCreateWorkspaceTaskData,
+            failureData: failureCreateWorkspaceTaskData,
+        } = buildTaskData(createWorkspaceTaskReport, introSelected.createWorkspace);
+
+        optimisticData.push(...optimisticCreateWorkspaceTaskData);
+        successData.push(...successCreateWorkspaceTaskData);
+        failureData.push(...failureCreateWorkspaceTaskData);
+    }
+
     return {successData, optimisticData, failureData, params};
 }
 
@@ -2197,6 +2218,7 @@ function createWorkspace(
         shouldAddOnboardingTasks,
         companySize,
     );
+
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
     // Publish a workspace created event if this is their first policy
