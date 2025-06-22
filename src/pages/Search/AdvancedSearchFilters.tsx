@@ -28,7 +28,7 @@ import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getCleanedTagName, getTagNamesFromTagsLists, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
-import {getExpenseTypeTranslationKey, getStatusOptions} from '@libs/SearchUIUtils';
+import {getExpenseTypeTranslationKey, getStatusOptions, isSearchDatePreset} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -376,7 +376,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
         }
 
         if (dateOn) {
-            dateValue.push(dateOn === CONST.SEARCH.NEVER ? translate('common.never') : translate('search.filters.date.on', {date: dateOn}));
+            dateValue.push(isSearchDatePreset(dateOn) ? translate(`search.filters.date.presets.${dateOn}`) : translate('search.filters.date.on', {date: dateOn}));
         }
 
         if (dateAfter) {

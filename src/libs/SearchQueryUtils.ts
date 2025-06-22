@@ -570,7 +570,7 @@ function buildFilterFormValuesFromQuery(
 
             // When using 'exported', we use the 'on' filter to set the value to either a date, or 'never'
             if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED) {
-                const on = filterList.find((filter) => filter.operator === 'eq' && (isValidDate(filter.value.toString()) || filter.value.toString() === CONST.SEARCH.NEVER));
+                const on = filterList.find((filter) => filter.operator === 'eq' && (isValidDate(filter.value.toString()) || filter.value.toString() === CONST.SEARCH.DATE_PRESETS.NEVER));
                 filtersForm[onKey] = on?.value.toString() ?? filtersForm[onKey];
             }
         }
