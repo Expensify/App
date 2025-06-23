@@ -19,8 +19,9 @@ import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getMCardNumberString, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
-import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit, continueSetup} from '@userActions/PaymentMethods';
+import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -79,7 +80,7 @@ function AddPaymentCard() {
             return;
         }
 
-        continueSetup();
+        Navigation.goBack();
     }, [prevFormDataSetupComplete, formData?.setupComplete]);
 
     return (
