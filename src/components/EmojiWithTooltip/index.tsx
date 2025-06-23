@@ -11,7 +11,7 @@ function EmojiWithTooltip({emojiCode, style = {}}: EmojiWithTooltipProps) {
     const {preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const emoji = findEmojiByCode(emojiCode);
-    const emojiName = getLocalizedEmojiName(emoji.name, preferredLocale);
+    const emojiName = getLocalizedEmojiName(emoji?.name, preferredLocale);
 
     const emojiTooltipContent = useCallback(
         () => (
