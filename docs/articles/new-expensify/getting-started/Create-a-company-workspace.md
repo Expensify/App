@@ -1,6 +1,7 @@
 ---
 title: Configure your Expensify Workspace
 description: Get started with Expensify by creating a workspace for your company 
+keywords: [New Expensify, how to get started, new workspace]
 ---
 <div id="new-expensify" markdown="1">
 
@@ -8,7 +9,7 @@ Setting up an Expensify workspace is the first step to managing company expenses
 
 # 1. Create a workspace 
 
-Workspaces help manage company expenses, enforce policies, and integrate with accounting software. Each workspace has its own set of rules, settings, company card feeds, and integrations. Once invited to a workspace, members can submit expenses according to its rules.
+Workspaces help manage company expenses, enforce policies, and integrate with accounting software. Each workspace has its own set of rules, settings, company card feeds, and integrations. Once invited to a workspace, members can submit expenses according to the workspace's rules.
 
 ## Steps to Create a Workspace:
 <ol type="a">
@@ -46,7 +47,7 @@ If you use <b>QuickBooks Online (QBO)</b>, <b>Xero</b>, <b>NetSuite</b>, or <b>S
 
 # 3. Add categories
 
-Categories help organize expenses. If you connected to accounting software, Expensify imports your chart of accounts automatically.
+Categories help organize expenses. If you are connected to accounting software, Expensify imports your chart of accounts automatically.
 
 ## Steps to Manage Categories:
 
@@ -94,7 +95,7 @@ Admins manage workspace settings, reports, and approvals. The table below shows 
 | &#10004; Approve reports submitted to them| &#10004; Approve reports submitted to them |
 |                                           | &#10004; View all workspace reports        |
 |                                           | &#10004; Approve all workspace reports     |
-|                                           | &#10004; Edit workspace settings           |
+|                                           | &#10004; Edit workspace            |
 
 ## Steps to Assign Admins:
 
@@ -153,7 +154,7 @@ You can customize your workspace by enabling features such as:
 <ol type="a">
    <li>Click <b>More Features</b> in the left menu.</li>
    <li>Enable desired features.</li>
-   <li>Click the new menu item to configure settings.</li>
+   <li>Click the new menu item to configure .</li>
 </ol>
 
 # 8. Monitor Your Free Trial
