@@ -1478,7 +1478,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
             {
                 translationPath: 'search.unapprovedCash',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.MoneySearch, // s77rt change icon
+                icon: Expensicons.MoneyHourglass,
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
