@@ -307,7 +307,11 @@ function createTransactionPreviewConditionals({
 
     const shouldShowSkeleton = isEmptyObject(transaction) && !isMessageDeleted(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowTag = !!tag && isReportAPolicyExpenseChat;
-    const shouldShowCategory = !!category && isReportAPolicyExpenseChat;
+
+    const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
+    const categoryForDisplay = emptyCategories.includes(category ?? '') ? '' : category;
+
+    const shouldShowCategory = !!categoryForDisplay && isReportAPolicyExpenseChat;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const hasAnyViolations = hasViolationsOfTypeNotice || hasWarningTypeViolation(transaction?.transactionID, violations, true) || hasViolation(transaction, violations, true);

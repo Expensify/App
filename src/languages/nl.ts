@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -194,6 +195,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -245,6 +247,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -609,6 +612,7 @@ const translations = {
         workspacesTabTitle: 'Werkruimtes',
         getTheApp: 'Download de app',
         scanReceiptsOnTheGo: 'Scan bonnetjes vanaf je telefoon',
+        headsUp: 'Let op!',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -974,6 +978,7 @@ const translations = {
         deleteReceipt: 'Verwijder bonnetje',
         deleteConfirmation: 'Weet je zeker dat je dit bonnetje wilt verwijderen?',
         addReceipt: 'Bon toevoegen',
+        scanFailed: 'De bon kon niet worden gescand omdat de handelaar, datum of het bedrag ontbreekt.',
     },
     quickAction: {
         scanReceipt: 'Scan bonnetje',
@@ -1114,6 +1119,7 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} ergens anders` : `Elders betalen`),
         nextStep: 'Volgende stappen',
         finished: 'Voltooid',
+        flip: 'Omdraaien',
         sendInvoice: ({amount}: RequestAmountParams) => `Verstuur ${amount} factuur`,
         submitAmount: ({amount}: RequestAmountParams) => `Verstuur ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `voor ${comment}` : ''}`,
@@ -2370,6 +2376,13 @@ const translations = {
         time: 'Tijd',
         clearAfter: 'Wissen na',
         whenClearStatus: 'Wanneer moeten we je status wissen?',
+        vacationDelegate: 'Vakantievervanger',
+        setVacationDelegate: `Stel een vakantievervanger in om rapporten namens jou goed te keuren terwijl je afwezig bent.`,
+        vacationDelegateError: 'Er is een fout opgetreden bij het bijwerken van je vakantievervanger.',
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `als vakantievervanger van ${managerName}`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `aan ${submittedToName} als vakantievervanger van ${vacationDelegateName}`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `Je wijst ${nameOrEmail} aan als je vakantievervanger. Deze persoon zit nog niet in al je werkruimtes. Als je doorgaat, wordt er een e-mail gestuurd naar alle beheerders van je werkruimtes om hem/haar toe te voegen.`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Stap ${step}`;
@@ -4263,7 +4276,7 @@ const translations = {
                 pendingFeedDescription: `We zijn momenteel uw feedgegevens aan het beoordelen. Zodra dat is voltooid, nemen we contact met u op via`,
                 pendingBankTitle: 'Controleer uw browservenster',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) => `Verbind met ${bankName} via het browservenster dat zojuist is geopend. Als er geen is geopend,`,
-                pendingBankLink: 'klik hier alstublieft.',
+                pendingBankLink: 'klik hier alstublieft',
                 giveItNameInstruction: 'Geef de kaart een naam die hem onderscheidt van anderen.',
                 updating: 'Bijwerken...',
                 noAccountsFound: 'Geen accounts gevonden',
@@ -4517,7 +4530,7 @@ const translations = {
             newWorkspace: 'Nieuwe werkruimte',
             getTheExpensifyCardAndMore: 'Krijg de Expensify Card en meer',
             confirmWorkspace: 'Werkruimte bevestigen',
-            myGroupWorkspace: 'Mijn Groepswerkruimte',
+            myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `Mijn Groepswerkruimte${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
             workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `${userName}'s Werkruimte${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
         },
         people: {
@@ -5979,8 +5992,8 @@ const translations = {
         principalWorkEmail: 'Primaire werk e-mail',
         updateYourEmail: 'Werk uw e-mailadres bij',
         updateEmail: 'E-mailadres bijwerken',
-        contactMethods: 'Contactmethoden.',
-        schoolMailAsDefault: 'Voordat je verder gaat, zorg ervoor dat je je school e-mailadres instelt als je standaard contactmethode. Dit kun je doen in Instellingen > Profiel >',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `Voordat je verder gaat, zorg ervoor dat je je school e-mailadres instelt als je standaard contactmethode. Dit kun je doen in Instellingen > Profiel > <a href="${contactMethodsRoute}">Contactmethoden</a>.`,
         error: {
             enterPhoneEmail: 'Voer een geldig e-mailadres of telefoonnummer in',
             enterEmail: 'Voer een e-mailadres in',
