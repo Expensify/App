@@ -825,7 +825,6 @@ function PureReportActionItem({
         isBetaEnabled,
     ]);
 
-
     /**
      * Get the content of ReportActionItem
      * @param hovered whether the ReportActionItem is hovered
