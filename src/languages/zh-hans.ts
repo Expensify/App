@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -193,6 +194,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -244,6 +246,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -609,6 +612,7 @@ const translations = {
         workspacesTabTitle: '工作区',
         getTheApp: '获取应用程序',
         scanReceiptsOnTheGo: '用手机扫描收据',
+        headsUp: '\u6CE8\u610F\uFF01',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -961,6 +965,7 @@ const translations = {
         deleteReceipt: '删除收据',
         deleteConfirmation: '您确定要删除此收据吗？',
         addReceipt: '添加收据',
+        scanFailed: '无法扫描收据，因为缺少商家、日期或金额。',
     },
     quickAction: {
         scanReceipt: '扫描收据',
@@ -1098,6 +1103,7 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `在其他地方支付${formattedAmount}` : `在其他地方支付`),
         nextStep: '下一步',
         finished: '完成',
+        flip: '翻转',
         sendInvoice: ({amount}: RequestAmountParams) => `发送 ${amount} 发票`,
         submitAmount: ({amount}: RequestAmountParams) => `提交 ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `对于${comment}` : ''}`,
@@ -2334,6 +2340,14 @@ const translations = {
         time: '时间',
         clearAfter: '清除后',
         whenClearStatus: '我们应该何时清除您的状态？',
+        vacationDelegate: '\u4F11\u5047\u4EE3\u7406\u4EBA',
+        setVacationDelegate: '\u8BBE\u7F6E\u4E00\u4F4D\u4F11\u5047\u4EE3\u7406\u4EBA\uFF0C\u5728\u60A8\u5916\u51FA\u65F6\u4EE3\u60A8\u6279\u51C6\u62A5\u544A\u3002',
+        vacationDelegateError: '\u66F4\u65B0\u4F11\u5047\u4EE3\u7406\u4EBA\u65F6\u51FA\u9519\u3002',
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `\u4F5C\u4E3A ${managerName} \u7684\u4F11\u5047\u4EE3\u7406\u4EBA`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) =>
+            `\u53D1\u9001\u7ED9 ${submittedToName}\uFF0C\u4F5C\u4E3A ${vacationDelegateName} \u7684\u4F11\u5047\u4EE3\u7406\u4EBA`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `\u60A8\u6B63\u5728\u6307\u5B9A ${nameOrEmail} \u4F5C\u4E3A\u60A8\u7684\u4F11\u5047\u4EE3\u7406\u4EBA\u3002\u4ED6/\u5979\u8FD8\u672A\u52A0\u5165\u60A8\u7684\u6240\u6709\u5DE5\u4F5C\u7A7A\u95F4\u3002\u5982\u679C\u60A8\u9009\u62E9\u7EE7\u7EED\uFF0C\u5C06\u5411\u6240\u6709\u5DE5\u4F5C\u7A7A\u95F4\u7BA1\u7406\u5458\u53D1\u9001\u90AE\u4EF6\uFF0C\u901A\u77E5\u4ED6\u4EEC\u6DFB\u52A0\u8BE5\u4EBA\u3002`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `步骤 ${step}`;
@@ -4177,7 +4191,7 @@ const translations = {
                 pendingFeedDescription: `我们正在审核您的提要详情。完成后，我们会通过以下方式与您联系`,
                 pendingBankTitle: '检查您的浏览器窗口',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) => `请通过刚刚打开的浏览器窗口连接到${bankName}。如果没有打开，`,
-                pendingBankLink: '请点击这里。',
+                pendingBankLink: '请点击这里',
                 giveItNameInstruction: '给这张卡片起一个与众不同的名字。',
                 updating: '正在更新...',
                 noAccountsFound: '未找到账户',
@@ -5858,8 +5872,8 @@ const translations = {
         principalWorkEmail: '主要工作邮箱',
         updateYourEmail: '更新您的电子邮件地址',
         updateEmail: '更新电子邮件地址',
-        contactMethods: '联系方式。',
-        schoolMailAsDefault: '在继续之前，请确保将您的学校电子邮件设置为默认联系方式。您可以在 设置 > 个人资料 中进行设置。',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `在继续之前，请确保将您的学校电子邮件设置为默认联系方式。您可以在 设置 > 个人资料 > <a href="${contactMethodsRoute}">联系方式</a> 中进行设置。`,
         error: {
             enterPhoneEmail: '请输入有效的电子邮件或电话号码',
             enterEmail: '输入电子邮件地址',

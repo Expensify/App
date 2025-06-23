@@ -15,7 +15,6 @@ import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/Dro
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
-import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -36,7 +35,7 @@ import {getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
 type SearchFiltersBarProps = {
@@ -81,33 +80,35 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
     }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
-    // We need to create a stable key for filterFormValues so that we don't infinitely
-    // re-render components that access all of the filterFormValues. This is due to the way
-    // that react calculates diffs (it doesn't know how to compare objects).
-    const filterFormValuesKey = JSON.stringify(filterFormValues);
+    const updateFilterForm = useCallback(
+        (values: Partial<SearchAdvancedFiltersForm>) => {
+            const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
+                ...filterFormValues,
+                ...values,
+            };
+
+            // If the type has changed, reset the status so we dont have an invalid status selected
+            if (updatedFilterFormValues.type !== filterFormValues.type) {
+                updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
+            }
+
+            const filterString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
+            const searchQueryJSON = buildSearchQueryJSON(filterString);
+            const queryString = buildSearchQueryString(searchQueryJSON);
+
+            Navigation.setParams({q: queryString});
+        },
+        [filterFormValues],
+    );
 
     const openAdvancedFilters = useCallback(() => {
         updateAdvancedFilters(filterFormValues);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
-
-        // Disable exhaustive deps because we use filterFormValuesKey as the dependency, which is a stable key based on filterFormValues
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filterFormValuesKey]);
+    }, [filterFormValues]);
 
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const value = typeOptions.find((option) => option.value === type) ?? null;
-
-            const onChange = (item: SingleSelectItem<SearchDataTypes> | null) => {
-                const hasTypeChanged = item?.value !== type;
-                const newType = item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-                // If the type has changed, reset the status so we dont have an invalid status selected
-                const newStatus = hasTypeChanged ? CONST.SEARCH.STATUS.EXPENSE.ALL : status;
-                const newGroupBy = hasTypeChanged ? undefined : groupBy;
-                const query = buildSearchQueryString({...queryJSON, type: newType, status: newStatus, groupBy: newGroupBy});
-                Navigation.setParams({q: query});
-            };
 
             return (
                 <SingleSelectPopup
@@ -115,11 +116,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                     value={value}
                     items={typeOptions}
                     closeOverlay={closeOverlay}
-                    onChange={onChange}
+                    onChange={(item) => updateFilterForm({type: item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE})}
                 />
             );
         },
-        [groupBy, queryJSON, status, translate, type, typeOptions],
+        [translate, type, typeOptions, updateFilterForm],
     );
 
     const statusComponent = useCallback(
@@ -130,8 +131,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
             const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
                 const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : CONST.SEARCH.STATUS.EXPENSE.ALL;
-                const query = buildSearchQueryString({...queryJSON, status: newStatus});
-                Navigation.setParams({q: query});
+                updateFilterForm({status: newStatus});
             };
 
             return (
@@ -144,7 +144,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [groupBy, queryJSON, status, translate, type],
+        [groupBy, status, translate, type, updateFilterForm],
     );
 
     const datePickerComponent = useCallback(
@@ -156,19 +156,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             };
 
             const onChange = (selectedDates: DateSelectPopupValue) => {
-                const newFilterFormValues = {
-                    ...filterFormValues,
-                    ...queryJSON,
+                const dateFormValues = {
                     dateAfter: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? undefined,
                     dateBefore: selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? undefined,
                     dateOn: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON] ?? undefined,
                 };
 
-                const filterString = buildQueryStringFromFilterFormValues(newFilterFormValues);
-                const newJSON = buildSearchQueryJSON(filterString);
-                const queryString = buildSearchQueryString(newJSON);
-
-                Navigation.setParams({q: queryString});
+                updateFilterForm(dateFormValues);
             };
 
             return (
@@ -179,10 +173,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        // Disable exhaustive deps because we use filterFormValuesKey as the dependency, which is a stable key based on filterFormValues
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [filterFormValuesKey, queryJSON],
+        [filterFormValues.dateAfter, filterFormValues.dateBefore, filterFormValues.dateOn, updateFilterForm],
     );
 
     const userPickerComponent = useCallback(
@@ -193,18 +184,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 <UserSelectPopup
                     value={value}
                     closeOverlay={closeOverlay}
-                    onChange={(selectedUsers) => {
-                        const newFilterFormValues = {...filterFormValues, from: selectedUsers};
-                        const queryString = buildQueryStringFromFilterFormValues(newFilterFormValues);
-                        Navigation.setParams({q: queryString});
-                    }}
+                    onChange={(selectedUsers) => updateFilterForm({from: selectedUsers})}
                 />
             );
         },
-        // Disable exhaustive deps because we use filterFormValuesKey as the dependency, which is a stable key based on filterFormValues
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [filterFormValuesKey],
+        [filterFormValues.from, updateFilterForm],
     );
 
     /**

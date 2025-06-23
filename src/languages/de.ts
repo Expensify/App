@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -193,6 +194,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -244,6 +246,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -610,6 +613,7 @@ const translations = {
         workspacesTabTitle: 'Arbeitsbereiche',
         getTheApp: 'Hole dir die App',
         scanReceiptsOnTheGo: 'Scannen Sie Belege von Ihrem Telefon aus',
+        headsUp: 'Achtung!',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -971,6 +975,7 @@ const translations = {
         deleteReceipt: 'Beleg löschen',
         deleteConfirmation: 'Möchten Sie diesen Beleg wirklich löschen?',
         addReceipt: 'Beleg hinzufügen',
+        scanFailed: 'Der Beleg konnte nicht gescannt werden, da Händler, Datum oder Betrag fehlen.',
     },
     quickAction: {
         scanReceipt: 'Beleg scannen',
@@ -1111,6 +1116,7 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Zahle ${formattedAmount} anderswo` : `Anderswo bezahlen`),
         nextStep: 'Nächste Schritte',
         finished: 'Fertiggestellt',
+        flip: 'Umkehren',
         sendInvoice: ({amount}: RequestAmountParams) => `Sende ${amount} Rechnung`,
         submitAmount: ({amount}: RequestAmountParams) => `Einreichen ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `für ${comment}` : ''}`,
@@ -2376,6 +2382,13 @@ const translations = {
         untilTime: ({time}: UntilTimeParams) => `Bis ${time}`,
         date: 'Datum',
         time: 'Zeit',
+        vacationDelegate: 'Urlaubsvertretung',
+        setVacationDelegate: `Legen Sie eine Urlaubsvertretung fest, die Berichte in Ihrer Abwesenheit genehmigt.`,
+        vacationDelegateError: 'Beim Aktualisieren Ihrer Urlaubsvertretung ist ein Fehler aufgetreten.',
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `als Urlaubsvertretung von ${managerName}`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `an ${submittedToName} als Urlaubsvertretung von ${vacationDelegateName}`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `Sie weisen ${nameOrEmail} als Ihre Urlaubsvertretung zu. Diese Person ist noch nicht in all Ihren Workspaces. Wenn Sie fortfahren, wird eine E-Mail an alle Ihre Workspace-Administratoren gesendet, um sie hinzuzufügen.`,
         clearAfter: 'Nach dem Löschen',
         whenClearStatus: 'Wann sollten wir Ihren Status löschen?',
     },
@@ -4274,7 +4287,7 @@ const translations = {
                 pendingBankTitle: 'Überprüfen Sie Ihr Browserfenster',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) =>
                     `Bitte verbinden Sie sich mit ${bankName} über das Browserfenster, das sich gerade geöffnet hat. Falls sich keines geöffnet hat,`,
-                pendingBankLink: 'Bitte hier klicken.',
+                pendingBankLink: 'Bitte hier klicken',
                 giveItNameInstruction: 'Geben Sie der Karte einen Namen, der sie von anderen abhebt.',
                 updating: 'Aktualisierung...',
                 noAccountsFound: 'Keine Konten gefunden',
@@ -6001,9 +6014,8 @@ const translations = {
         principalWorkEmail: 'Hauptarbeits-E-Mail-Adresse',
         updateYourEmail: 'Aktualisieren Sie Ihre E-Mail-Adresse',
         updateEmail: 'E-Mail-Adresse aktualisieren',
-        contactMethods: 'Kontaktmethoden.',
-        schoolMailAsDefault:
-            'Bevor Sie fortfahren, stellen Sie bitte sicher, dass Sie Ihre Schul-E-Mail als Ihre Standardkontaktmethode festlegen. Sie können dies unter Einstellungen > Profil > tun.',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `Bevor Sie fortfahren, stellen Sie bitte sicher, dass Sie Ihre Schul-E-Mail als Ihre Standardkontaktmethode festlegen. Sie können dies unter Einstellungen > Profil > <a href="${contactMethodsRoute}">Kontaktmethoden</a>.`,
         error: {
             enterPhoneEmail: 'Geben Sie eine gültige E-Mail-Adresse oder Telefonnummer ein',
             enterEmail: 'Geben Sie eine E-Mail-Adresse ein',
