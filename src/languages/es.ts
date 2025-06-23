@@ -1611,14 +1611,14 @@ const translations = {
         mergeFailureGenericHeading: 'No se pueden fusionar cuentas',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: 'Informar de actividad sospechosa',
         lockAccount: 'Bloquear cuenta',
         unlockAccount: 'Desbloquear cuenta',
         compromisedDescription:
-            'Si sospechas que tu cuenta de Expensify ha sido comprometida, puedes bloquearla para evitar nuevas transacciones con la Tarjeta Expensify y bloquear cambios no deseados en la cuenta.',
-        domainAdminsDescriptionPartOne: 'Para los administradores de dominio, ',
-        domainAdminsDescriptionPartTwo: 'esta acción detiene toda la actividad de la Tarjeta Expensify y las acciones administrativas ',
-        domainAdminsDescriptionPartThree: 'en todos tus dominios.',
-        warning: `Una vez que tu cuenta esté bloqueada, nuestro equipo investigará y eliminará cualquier acceso no autorizado. Para recuperar el acceso, deberás trabajar con Concierge para asegurar tu cuenta.`,
+            '¿Notas algo extraño en tu cuenta? Informarlo bloqueará tu cuenta de inmediato, detendrá nuevas transacciones con la Tarjeta Expensify y evitará cualquier cambio en la cuenta.',
+        domainAdminsDescription: 'Para administradores de dominio: Esto también detiene toda la actividad de la Tarjeta Expensify y las acciones administrativas en tus dominios.',
+        areYouSure: '¿Estás seguro de que deseas bloquear tu cuenta de Expensify?',
+        ourTeamWill: 'Nuestro equipo investigará y eliminará cualquier acceso no autorizado. Para recuperar el acceso, tendrás que trabajar con Concierge.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'No se pudo bloquear la cuenta',
