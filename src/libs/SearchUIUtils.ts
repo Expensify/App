@@ -7,17 +7,7 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
-import type {
-    SearchColumnType,
-    SearchDatePreset,
-    SearchFilterKey,
-    SearchGroupBy,
-    SearchQueryJSON,
-    SearchQueryString,
-    SearchStatus,
-    SingularSearchStatus,
-    SortOrder,
-} from '@components/Search/types';
+import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SearchQueryString, SearchStatus, SingularSearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
