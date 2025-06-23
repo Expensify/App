@@ -5,7 +5,7 @@ import type {Emoji} from '@assets/emojis/types';
 import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
 import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 
-type PickerRefElement = RefObject<TextInput | View>;
+type PickerRefElement = RefObject<TextInput | View | null>;
 
 type OpenPickerCallback = (element?: PickerRefElement, anchorOrigin?: AnchorOrigin) => void;
 

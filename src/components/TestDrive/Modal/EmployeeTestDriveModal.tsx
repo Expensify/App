@@ -110,6 +110,7 @@ function EmployeeTestDriveModal() {
             avoidKeyboard
             shouldShowConfirmationLoader={isLoading}
             canConfirmWhileOffline={false}
+            shouldCallOnHelpWhenModalHidden
         >
             <TextInput
                 placeholder={translate('testDrive.modal.employee.email')}

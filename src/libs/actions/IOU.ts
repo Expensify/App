@@ -11712,7 +11712,12 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
 
     const firstIOU = iouActions.at(0);
     if (firstIOU) {
-        const {updatedReportAction, iouReport} = prepareToCleanUpMoneyRequest(originalTransactionID, firstIOU);
+        const {updatedReportAction, iouReport, transactionThread} = prepareToCleanUpMoneyRequest(originalTransactionID, firstIOU);
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
+            value: null,
+        });
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
@@ -11728,6 +11733,11 @@ function saveSplitTransactions(draftTransaction: OnyxEntry<OnyxTypes.Transaction
                     pendingAction: null,
                 },
             },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
+            value: transactionThread,
         });
     }
 
