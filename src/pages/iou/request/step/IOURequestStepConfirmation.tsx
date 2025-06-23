@@ -36,7 +36,7 @@ import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {generateReportID, getBankAccountRoute, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
-import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, isScanRequest} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, hasReceipt, isScanRequest} from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
@@ -160,6 +160,7 @@ function IOURequestStepConfirmation({
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
+    const isEditingReceipt = hasReceipt(transaction);
     const customUnitRateID = getRateID(transaction) ?? '';
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
@@ -1092,9 +1093,9 @@ function IOURequestStepConfirmation({
                             }}
                         >
                             <DropZoneUI
-                                icon={Expensicons.ReplaceReceipt}
+                                icon={isEditingReceipt ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
                                 dropStyles={styles.receiptDropOverlay(true)}
-                                dropTitle={translate('dropzone.replaceReceipt')}
+                                dropTitle={translate(isEditingReceipt ? 'dropzone.replaceReceipt' : 'dropzone.scanReceipts')}
                                 dropTextStyles={styles.receiptDropText}
                                 dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
                             />
