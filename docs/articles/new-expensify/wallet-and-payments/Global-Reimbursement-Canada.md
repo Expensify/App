@@ -63,8 +63,8 @@ To comply with financial regulations, the following documents are needed:
    * If any beneficial owner is also a director, their info is reused automatically.
    * Otherwise, manually enter the director’s personal info.
    * Upload ID and Address Proof for Director
-7. Once you've agreed to the terms, Expensify’s Compliance Team will review your submission.
-8. You’ll receive a message from our support team if any additional documentation is needed.
+
+Once you've agreed to the terms, Expensify’s Compliance Team will review your submission. You’ll receive a message from our support team if any additional documentation is needed.
 
 ## Acceptable Documents
 
