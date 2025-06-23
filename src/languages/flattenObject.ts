@@ -1,5 +1,3 @@
-import en from './en';
-import es from './es';
 import type {FlatTranslationsObject, TranslationDeepObject} from './types';
 
 /**
@@ -9,9 +7,7 @@ import type {FlatTranslationsObject, TranslationDeepObject} from './types';
  * Input: { common: { yes: "Yes", no: "No" }}
  * Output: { "common.yes": "Yes", "common.no": "No" }
  */
-// Necessary to export so that it is accessible to the unit tests
-// eslint-disable-next-line rulesdir/no-inline-named-export
-export function flattenObject<TTranslations>(obj: TranslationDeepObject<TTranslations>): FlatTranslationsObject {
+function flattenObject<TTranslations>(obj: TranslationDeepObject<TTranslations>): FlatTranslationsObject {
     const result: Record<string, unknown> = {};
 
     const recursive = (data: TranslationDeepObject, key: string): void => {
@@ -41,7 +37,4 @@ export function flattenObject<TTranslations>(obj: TranslationDeepObject<TTransla
     return result as FlatTranslationsObject;
 }
 
-export default {
-    en: flattenObject(en),
-    es: flattenObject(es),
-};
+export default flattenObject;
