@@ -5230,6 +5230,7 @@ const CONST = {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
+            NAVIGATE_DEPRECATED: 'NAVIGATE_DEPRECATED',
             SET_PARAMS: 'SET_PARAMS',
 
             /** These action types are custom for RootNavigator */
