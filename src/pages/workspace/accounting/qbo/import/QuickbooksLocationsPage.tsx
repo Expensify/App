@@ -6,10 +6,10 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, isControlPolicy, settingsPendingAction} from '@libs/PolicyUtils';
 import {shouldShowLocationsLineItemsRestriction, shouldSwitchLocationsToReportFields} from '@pages/workspace/accounting/qbo/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -22,22 +22,25 @@ import type {IntegrationEntityMap} from '@src/types/onyx/Policy';
 function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const isSwitchOn = !!(qboConfig?.syncLocations && qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTagsSelected = qboConfig?.syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
     const shouldShowLineItemsRestriction = shouldShowLocationsLineItemsRestriction(qboConfig);
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isSwitchOn);
 
-    const updateQuickbooksOnlineSyncLocations = useCallback(
+    const updateQBOSyncLocations = useCallback(
         (settingValue: IntegrationEntityMap) => {
-            if (settingValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD && !PolicyUtils.isControlPolicy(policy)) {
+            if (settingValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD && !isControlPolicy(policy)) {
                 Navigation.navigate(
                     ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.REPORT_FIELDS_FEATURE.qbo.locations, ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID)),
                 );
                 return;
             }
-            QuickbooksOnline.updateQuickbooksOnlineSyncLocations(policyID, settingValue, qboConfig?.syncLocations);
+            if (!policy) {
+                return;
+            }
+            updateQuickbooksOnlineSyncLocations(policy, settingValue, qboConfig?.syncLocations);
         },
         [policy, policyID, qboConfig?.syncLocations],
     );
@@ -46,8 +49,8 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
         if (!shouldSwitchLocationsToReportFields(qboConfig)) {
             return;
         }
-        updateQuickbooksOnlineSyncLocations(CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD);
-    }, [qboConfig, updateQuickbooksOnlineSyncLocations]);
+        updateQBOSyncLocations(CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD);
+    }, [qboConfig, updateQBOSyncLocations]);
 
     return (
         <ConnectionLayout
@@ -66,7 +69,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                 switchAccessibilityLabel={translate('workspace.qbo.locations')}
                 isActive={isSwitchOn}
                 onToggle={() =>
-                    updateQuickbooksOnlineSyncLocations(
+                    updateQBOSyncLocations(
                         // eslint-disable-next-line no-nested-ternary
                         isSwitchOn
                             ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
@@ -75,15 +78,15 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                               : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                     )
                 }
-                errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}
+                errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}
                 onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}
-                pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.pendingFields)}
+                pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.pendingFields)}
             />
             <Accordion
                 isExpanded={isAccordionExpanded}
                 isToggleTriggered={shouldAnimateAccordionSection}
             >
-                <OfflineWithFeedback pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.pendingFields)}>
+                <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.pendingFields)}>
                     <MenuItemWithTopDescription
                         interactive={!shouldShowLineItemsRestriction}
                         title={!isTagsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
@@ -91,9 +94,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS.getRoute(policyID))}
                         shouldShowRightIcon={!shouldShowLineItemsRestriction}
                         wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
-                        brickRoadIndicator={
-                            PolicyUtils.areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                        }
+                        brickRoadIndicator={areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         hintText={translate('workspace.qbo.locationsLineItemsRestrictionDescription')}
                     />
                 </OfflineWithFeedback>

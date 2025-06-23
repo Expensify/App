@@ -253,14 +253,51 @@ function updateQuickbooksOnlineReimbursableExpensesAccount<TSettingValue extends
 }
 
 function updateQuickbooksOnlineSyncLocations<TSettingValue extends Connections['quickbooksOnline']['config']['syncLocations']>(
-    policyID: string,
+    policy: Policy,
     settingValue: TSettingValue,
     oldSettingValue?: TSettingValue,
 ) {
-    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS, settingValue, oldSettingValue);
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policy.id, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS, settingValue, oldSettingValue);
+
+    const newReportFieldsEnabled = settingValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
+    const newTagsEnabled = settingValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
+    onyxData.optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+        value: {
+            areReportFieldsEnabled: newReportFieldsEnabled,
+            areTagsEnabled: newTagsEnabled,
+            pendingFields: {
+                areReportFieldsEnabled: newReportFieldsEnabled !== policy.areReportFieldsEnabled ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null,
+                areTagsEnabled: newTagsEnabled !== policy.areTagsEnabled ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null,
+            },
+        },
+    });
+    onyxData.successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+        value: {
+            pendingFields: {
+                areReportFieldsEnabled: null,
+                areTagsEnabled: null,
+            },
+        },
+    });
+    onyxData.failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+        value: {
+            areReportFieldsEnabled: policy.areReportFieldsEnabled,
+            areTagsEnabled: policy.areTagsEnabled,
+            pendingFields: {
+                areReportFieldsEnabled: null,
+                areTagsEnabled: null,
+            },
+        },
+    });
 
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
-        policyID,
+        policyID: policy.id,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS),
     };
