@@ -606,7 +606,6 @@ const translations = {
         after: '後',
         reschedule: '再スケジュールする',
         general: '一般',
-        never: '決して',
         workspacesTabTitle: 'ワークスペース',
         getTheApp: 'アプリを入手',
         scanReceiptsOnTheGo: '携帯電話から領収書をスキャンする',

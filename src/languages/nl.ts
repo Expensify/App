@@ -605,7 +605,6 @@ const translations = {
         after: 'Na',
         reschedule: 'Opnieuw plannen',
         general: 'Algemeen',
-        never: 'Never',
         workspacesTabTitle: 'Werkruimtes',
         getTheApp: 'Download de app',
         scanReceiptsOnTheGo: 'Scan bonnetjes vanaf je telefoon',

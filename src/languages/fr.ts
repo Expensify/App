@@ -606,7 +606,6 @@ const translations = {
         after: 'Après',
         reschedule: 'Reprogrammer',
         general: 'Général',
-        never: 'Never',
         workspacesTabTitle: 'Espaces de travail',
         getTheApp: "Obtenez l'application",
         scanReceiptsOnTheGo: 'Numérisez les reçus depuis votre téléphone',

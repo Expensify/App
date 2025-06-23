@@ -596,7 +596,6 @@ const translations = {
         after: 'After',
         reschedule: 'Reschedule',
         general: 'General',
-        never: 'Never', // s77rt remove on all translations
         workspacesTabTitle: 'Workspaces',
         getTheApp: 'Get the app',
         scanReceiptsOnTheGo: 'Scan receipts from your phone',

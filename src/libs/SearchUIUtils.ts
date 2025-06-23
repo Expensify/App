@@ -1459,10 +1459,10 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
         const isPaymentEnabled = arePaymentsEnabled(policy);
 
-        shouldShowStatementsSuggestion ||= false; // s77rt
+        shouldShowStatementsSuggestion ||= false; // s77rt TODO
         showShowUnapprovedCashSuggestion ||= isAdmin && isApprovalEnabled && isPaymentEnabled;
         showShowUnapprovedCompanyCardsSuggestion ||= isAdmin && isApprovalEnabled && hasCardFeed;
-        shouldShowReconciliationSuggestion ||= false; // s77rt
+        shouldShowReconciliationSuggestion ||= false; // s77rt TODO
 
         // If all search variables are true return early to avoid redundant iterations
         return shouldShowStatementsSuggestion && showShowUnapprovedCashSuggestion && showShowUnapprovedCompanyCardsSuggestion && shouldShowReconciliationSuggestion;
