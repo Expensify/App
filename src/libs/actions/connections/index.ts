@@ -14,10 +14,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
-function removePolicyConnection(policyID: string, connectionName: PolicyConnectionName) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
-    const policy = PolicyUtils.getPolicy(policyID);
+function removePolicyConnection(policyID: string, connectionName: PolicyConnectionName, policy: Policy) {
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const optimisticData: OnyxUpdate[] = [
