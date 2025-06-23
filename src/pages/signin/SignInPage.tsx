@@ -106,7 +106,8 @@ function getRenderOptions({
     // SAML required users may reload the login page after having already entered their login details, in which
     // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
     // SSO provider's login page
-    if (hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading) {
+    // Don't clear if we don't have account data - this prevents clearing during app resets when state is inconsistent
+    if (hasAccount && hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading) {
         clearSignInData();
     }
 
@@ -178,6 +179,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
      *  if we need to clear their sign in details so they can enter a login */
     const [hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin] = useState(false);
 
+
     const isClientTheLeader = !!activeClients && isClientTheLeaderActiveClientManager();
     // We need to show "Another login page is opened" message if the page isn't active and visible
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -224,7 +226,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
         hasInitiatedSAMLLogin,
         shouldShowAnotherLoginPageOpenedMessage,
         credentials,
-        isAccountValidated,
+        isAccountValidated
     });
 
     if (shouldInitiateSAMLLogin) {
