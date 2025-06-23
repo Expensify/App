@@ -4096,11 +4096,7 @@ function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof P
     const policy = getPolicy(policyID);
     const originalProhibitedExpenses = policy?.prohibitedExpenses;
     const prohibitedExpenses = {
-        [CONST.POLICY.PROHIBITED_EXPENSES.ADULT_ENTERTAINMENT]: originalProhibitedExpenses?.[CONST.POLICY.PROHIBITED_EXPENSES.ADULT_ENTERTAINMENT],
-        [CONST.POLICY.PROHIBITED_EXPENSES.ALCOHOL]: originalProhibitedExpenses?.[CONST.POLICY.PROHIBITED_EXPENSES.ALCOHOL],
-        [CONST.POLICY.PROHIBITED_EXPENSES.GAMBLING]: originalProhibitedExpenses?.[CONST.POLICY.PROHIBITED_EXPENSES.GAMBLING],
-        [CONST.POLICY.PROHIBITED_EXPENSES.HOTEL_INCIDENTALS]: originalProhibitedExpenses?.[CONST.POLICY.PROHIBITED_EXPENSES.HOTEL_INCIDENTALS],
-        [CONST.POLICY.PROHIBITED_EXPENSES.TOBACCO]: originalProhibitedExpenses?.[CONST.POLICY.PROHIBITED_EXPENSES.TOBACCO],
+        ...originalProhibitedExpenses,
         [prohibitedExpense]: !originalProhibitedExpenses?.[prohibitedExpense],
     };
 
@@ -4145,9 +4141,11 @@ function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof P
         ],
     };
 
+    // Remove pendingFields before sending to the API
+    const {pendingFields, ...prohibitedExpensesWithoutPendingFields} = prohibitedExpenses;
     const parameters: SetPolicyProhibitedExpensesParams = {
         policyID,
-        prohibitedExpenses: JSON.stringify(prohibitedExpenses),
+        prohibitedExpenses: JSON.stringify(prohibitedExpensesWithoutPendingFields),
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES, parameters, onyxData);
