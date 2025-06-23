@@ -1,7 +1,11 @@
 import React, {useContext, useMemo} from 'react';
 import SCREENS from '@src/SCREENS';
 import AttachmentModalContext from './AttachmentModalContext';
+import ProfileAvatarModalContent from './routes/ProfileAvatarModalContent';
 import ReportAttachmentModalContent from './routes/ReportAttachmentModalContent';
+import ReportAvatarModalContent from './routes/ReportAvatarModalContent';
+import TransactionReceiptModalContent from './routes/TransactionReceiptModalContent';
+import WorkspaceAvatarModalContent from './routes/WorkspaceAvatarModalContent';
 import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from './types';
 
 /**
@@ -26,6 +30,42 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
                 navigation={navigation}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...paramsWithContext}
+            />
+        );
+    }
+
+    if (route.name === SCREENS.TRANSACTION_RECEIPT) {
+        return (
+            <TransactionReceiptModalContent
+                route={{...route, params: paramsWithContext}}
+                navigation={navigation}
+            />
+        );
+    }
+
+    if (route.name === SCREENS.PROFILE_AVATAR) {
+        return (
+            <ProfileAvatarModalContent
+                route={{...route, params: paramsWithContext}}
+                navigation={navigation}
+            />
+        );
+    }
+
+    if (route.name === SCREENS.WORKSPACE_AVATAR) {
+        return (
+            <WorkspaceAvatarModalContent
+                route={{...route, params: paramsWithContext}}
+                navigation={navigation}
+            />
+        );
+    }
+
+    if (route.name === SCREENS.REPORT_AVATAR) {
+        return (
+            <ReportAvatarModalContent
+                route={{...route, params: paramsWithContext}}
+                navigation={navigation}
             />
         );
     }
