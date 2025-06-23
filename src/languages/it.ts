@@ -44,6 +44,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -2686,14 +2687,40 @@ const translations = {
         whatsTheBusinessAddress: "Qual è l'indirizzo dell'azienda?",
         whatsTheBusinessContactInformation: 'Quali sono le informazioni di contatto aziendali?',
         whatsTheBusinessRegistrationNumber: "Qual è il numero di registrazione dell'azienda?",
-        whatsTheBusinessTaxIDEIN: "Qual è il numero di partita IVA/ID fiscale/EIN/registrazione IVA/GST dell'azienda?",
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'Qual è il numero di identificazione del datore di lavoro (EIN)?';
+                case CONST.COUNTRY.CA:
+                    return 'Qual è il numero aziendale (BN)?';
+                case CONST.COUNTRY.GB:
+                    return 'Qual è il numero di partita IVA (VRN)?';
+                case CONST.COUNTRY.AU:
+                    return 'Qual è il numero aziendale australiano (ABN)?';
+                default:
+                    return 'Qual è il numero di partita IVA UE?';
+            }
+        },
         whatsThisNumber: 'Qual è questo numero?',
         whereWasTheBusinessIncorporated: "Dove è stata costituita l'azienda?",
         whatTypeOfBusinessIsIt: 'Che tipo di attività è?',
         whatsTheBusinessAnnualPayment: "Qual è il volume di pagamento annuale dell'azienda?",
         whatsYourExpectedAverageReimbursements: "Qual è l'importo medio di rimborso previsto?",
         registrationNumber: 'Numero di registrazione',
-        taxIDEIN: 'Numero di identificazione fiscale/EIN',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'IVA UE';
+            }
+        },
         businessAddress: 'Indirizzo aziendale',
         businessType: 'Tipo di attività',
         incorporation: 'Incorporazione',
@@ -2717,6 +2744,20 @@ const translations = {
         findAverageReimbursement: "Trova l'importo medio del rimborso",
         error: {
             registrationNumber: 'Si prega di fornire un numero di registrazione valido',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return 'Si prega di fornire un numero di identificazione del datore di lavoro (EIN) valido';
+                    case CONST.COUNTRY.CA:
+                        return 'Si prega di fornire un numero aziendale (BN) valido';
+                    case CONST.COUNTRY.GB:
+                        return 'Si prega di fornire un numero di partita IVA (VRN) valido';
+                    case CONST.COUNTRY.AU:
+                        return 'Si prega di fornire un numero aziendale australiano (ABN) valido';
+                    default:
+                        return 'Si prega di fornire un numero di partita IVA UE valido';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
