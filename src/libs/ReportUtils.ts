@@ -4124,9 +4124,10 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
     const isExpenseType = isExpenseReport(report);
     const isOpen = isOpenReport(report);
     const isSubmitted = isProcessingReport(report);
+    const isReimbursed = isReportManuallyReimbursed(report);
 
     if (isIOUType) {
-        return isOpen || isSubmitted;
+        return isOpen || isSubmitted || isReimbursed;
     }
 
     if (isInvoiceType) {
