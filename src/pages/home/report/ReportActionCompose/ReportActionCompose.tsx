@@ -9,7 +9,6 @@ import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import AttachmentModal from '@components/AttachmentModal';
-import ConfirmModal from '@components/ConfirmModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import DualDropZone from '@components/DropZone/DualDropZone';
@@ -21,10 +20,9 @@ import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import PDFThumbnail from '@components/PDFThumbnail';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
-import useFileValidation from '@hooks/useFileValidation';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
 import useLocalize from '@hooks/useLocalize';
@@ -36,7 +34,6 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
-import {getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
 import getModalState from '@libs/getModalState';
 import Performance from '@libs/Performance';
 import {
@@ -65,6 +62,7 @@ import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActio
 import {initMoneyRequest, replaceReceipt, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {addAttachment as addAttachmentReportActions, setIsComposerFullSize} from '@userActions/Report';
 import Timing from '@userActions/Timing';
+import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -149,8 +147,6 @@ function ReportActionCompose({
 
     // TODO: remove beta check after the feature is enabled
     const {isBetaEnabled} = usePermissions();
-
-    const {validateAndResizeFile, setIsAttachmentInvalid, isAttachmentInvalid, setUploadReceiptError, pdfFile, setPdfFile, fileError} = useFileValidation();
 
     /**
      * Updates the Highlight state of the composer
@@ -394,6 +390,7 @@ function ReportActionCompose({
     const composerRefShared = useSharedValue<{
         clear: (() => void) | undefined;
     }>({clear: undefined});
+
     const handleSendMessage = useCallback(() => {
         'worklet';
 
@@ -476,51 +473,48 @@ function ReportActionCompose({
         [isComposerFullSize, reportID, debouncedValidate],
     );
 
-    // TODO: to be refactored in step 3
-    const hideReceiptModal = () => {
-        setIsAttachmentInvalid(false);
-    };
-
-    const saveFileAndInitMoneyRequest = (file: FileObject) => {
-        const source = URL.createObjectURL(file as Blob);
-
+    const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         if (isTransactionThreadView && transactionID) {
-            replaceReceipt({transactionID, file: file as File, source});
+            const source = URL.createObjectURL(files.at(0) as Blob);
+            replaceReceipt({transactionID, file: files.at(0) as File, source});
         } else {
-            initMoneyRequest({reportID, newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, file.name || '', true);
-            setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report).then(() => {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+            const initialTransaction = initMoneyRequest({
+                reportID,
+                newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             });
+
+            files.forEach((file, index) => {
+                const source = URL.createObjectURL(file as Blob);
+                const newTransaction =
+                    index === 0
+                        ? (initialTransaction as Partial<OnyxTypes.Transaction>)
+                        : buildOptimisticTransactionAndCreateDraft({
+                              initialTransaction: initialTransaction as Partial<OnyxTypes.Transaction>,
+                              currentUserPersonalDetails,
+                              reportID,
+                          });
+                const newTransactionID = newTransaction?.transactionID ?? '';
+                setMoneyRequestReceipt(newTransactionID, source, file.name ?? '', true);
+                setMoneyRequestParticipantsFromReport(newTransactionID, report);
+            });
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
         }
     };
 
-    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        validateAndResizeFile(originalFile, saveFileAndInitMoneyRequest, isPdfValidated);
-    };
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
 
     const handleAddingReceipt = (e: DragEvent) => {
-        const file = e?.dataTransfer?.files[0];
-        if (file) {
-            file.uri = URL.createObjectURL(file);
-            setReceiptAndNavigate(file);
+        const files = Array.from(e?.dataTransfer?.files ?? []);
+        if (files.length === 0) {
+            return;
         }
-    };
+        files.forEach((file) => {
+            // eslint-disable-next-line no-param-reassign
+            file.uri = URL.createObjectURL(file);
+        });
 
-    // TODO: to be refactored in step 3
-    const PDFThumbnailView = pdfFile ? (
-        <PDFThumbnail
-            style={styles.invisiblePDF}
-            previewSourceURL={pdfFile.uri ?? ''}
-            onLoadSuccess={() => {
-                setPdfFile(null);
-                setReceiptAndNavigate(pdfFile, true);
-            }}
-            onPassword={() => setUploadReceiptError(CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE)}
-            onLoadError={() => setUploadReceiptError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED)}
-        />
-    ) : null;
+        validateFiles(files);
+    };
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
@@ -547,7 +541,7 @@ function ReportActionCompose({
                             !!exceededMaxLength && styles.borderColorDanger,
                         ]}
                     >
-                        {PDFThumbnailView}
+                        {PDFValidationComponent}
                         <AttachmentModal
                             headerTitle={translate('reportActionCompose.sendAttachment')}
                             onConfirm={addAttachment}
@@ -700,15 +694,7 @@ function ReportActionCompose({
                             handleSendMessage={handleSendMessage}
                         />
                     </View>
-                    <ConfirmModal
-                        title={getFileValidationErrorText(fileError).title}
-                        onConfirm={hideReceiptModal}
-                        onCancel={hideReceiptModal}
-                        isVisible={isAttachmentInvalid}
-                        prompt={getFileValidationErrorText(fileError).reason}
-                        confirmText={translate('common.close')}
-                        shouldShowCancelButton={false}
-                    />
+                    {ErrorModal}
                     <View
                         style={[
                             styles.flexRow,
