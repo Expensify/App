@@ -3,11 +3,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
 // Commands that should trigger the LoadingBar to show
-const RELEVANT_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT]);
+const RELEVANT_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT, WRITE_COMMANDS.READ_NEWEST_ACTION]);
 
 /**
  * Hook that determines whether LoadingBar should be visible based on active queue requests
- * Shows LoadingBar when OpenReport/OpenApp/ReconnectApp requests are being processed
+ * Shows LoadingBar when OpenReport/OpenApp/ReconnectApp/ReadNewestAction requests are being processed
  */
 export default function useLoadingBarVisibility(): boolean {
     const [persistedRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {canBeMissing: false});
