@@ -59,12 +59,16 @@ To comply with financial regulations, the following documents are needed:
 5. **Add Beneficial Owner Information**
    * Required for anyone owning 25% or more
    * Full name, birthdate, residential address
-6. **Add Director Information**
-   * If any beneficial owner is also a director, their info is reused automatically.
-   * Otherwise, manually enter the director’s personal info.
-   * Upload ID and Address Proof for Director
+6. **Add Director Information**: Expensify must verify that the signer is a Director or Senior Officer.
+   - If **you are** a Director/Senior Officer:
+     - Provide your full legal name, address, and ID.
+     - Upload proof of address and a valid form of identification (PDF, PNG, or JPEG only).
+   - If **you are not** a Director/Senior Officer:
+     - Enter details for someone who is.
+     - Expensify will send a message to the Director/Senior Officer outlining what's required. 
+     - They must also provide ID and proof of address.
 
-Once you've agreed to the terms, Expensify’s Compliance Team will review your submission. You’ll receive a message from our support team if any additional documentation is needed.
+Once you agree to the terms, Expensify’s Compliance Team will review your submission. If any additional documentation is needed, our support team will message you.
 
 ## Acceptable Documents
 
