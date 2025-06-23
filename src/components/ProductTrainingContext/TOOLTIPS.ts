@@ -1,4 +1,8 @@
+import React from 'react';
+import RenderHtml, {defaultSystemFonts} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
+import useLocalize from '@hooks/useLocalize';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -30,7 +34,7 @@ type ShouldShowConditionProps = {
 };
 
 type TooltipData = {
-    content: Array<{text: TranslationPaths; isBold: boolean}>;
+    content: Array<{text: TranslationPaths | (() => React.ReactNode); isBold?: boolean}>;
     onHideTooltip: (isDismissedUsingCloseButton?: boolean) => void;
     name: ProductTrainingTooltipName;
     priority: number;
@@ -41,8 +45,19 @@ type TooltipData = {
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     [CONCIERGE_LHN_GBR]: {
         content: [
-            {text: 'productTrainingTooltip.conciergeLHNGBR.part1', isBold: false},
-            {text: 'productTrainingTooltip.conciergeLHNGBR.part2', isBold: true},
+            {
+                text: () => {
+                    const {translate} = useLocalize();
+                    const {windowWidth} = useWindowDimensions();
+                    const systemFonts = [...defaultSystemFonts, 'MyCustomFont'];
+
+                    const html = `<span style="color: white">${translate('productTrainingTooltip.conciergeLHNGBR')}<span>`;
+                    const source = {
+                        html,
+                    };
+                    return React.createElement(RenderHtml, {source, systemFonts, contentWidth: windowWidth});
+                },
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONCIERGE_LHN_GBR, isDismissedUsingCloseButton),
         name: CONCIERGE_LHN_GBR,

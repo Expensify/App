@@ -6524,10 +6524,7 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
-            part1: '开始使用',
-            part2: '这里！',
-        },
+        conciergeLHNGBR: '开始使用 <strong>这里！</strong>',
         saveSearchTooltip: {
             part1: '重命名您保存的搜索',
             part2: '这里！',

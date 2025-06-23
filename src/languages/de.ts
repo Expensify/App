@@ -6687,10 +6687,7 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
-            part1: 'Loslegen',
-            part2: 'hier!',
-        },
+        conciergeLHNGBR: 'Loslegen <strong>hier!</strong>',
         saveSearchTooltip: {
             part1: 'Benennen Sie Ihre gespeicherten Suchen um',
             part2: 'hier!',
