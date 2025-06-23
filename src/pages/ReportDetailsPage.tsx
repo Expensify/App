@@ -92,6 +92,7 @@ import {
     shouldUseFullTitleToDisplay,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import {isDemoTransaction} from '@libs/TransactionUtils';
 import {deleteMoneyRequest, deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete, getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU';
 import {
     clearAvatarErrors,
@@ -279,7 +280,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransactionID);
-    const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID}`, {canBeMissing: true});
+    const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(transaction);
     useEffect(() => {
         if (canDeleteRequest) {
             return;

@@ -48,6 +48,7 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
     isCardTransaction as isCardTransactionUtils,
+    isDemoTransaction,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
@@ -412,6 +413,10 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === getCurrentUserAccountID() : false;
     const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
     const isSingleTransaction = reportTransactions.length === 1;
+
+    if (reportTransactions.every((t) => isDemoTransaction(t))) {
+        return true;
+    }
 
     if (isUnreported) {
         return isOwner;
