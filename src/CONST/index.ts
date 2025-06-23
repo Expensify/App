@@ -5664,7 +5664,7 @@ const CONST = {
             tasks: [
                 createWorkspaceTask,
                 testDriveAdminTask,
-                createReportTask,
+                createWorkspaceTask,
                 setupCategoriesTask,
                 inviteAccountantTask,
                 reviewWorkspaceSettingsTask,
