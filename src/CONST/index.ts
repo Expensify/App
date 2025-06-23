@@ -194,7 +194,7 @@ const inviteAccountantTask: OnboardingTask = {
         '3. Select your workspace.\n' +
         '4. Click *Members*.\n' +
         '5. Click *Invite member*.\n' +
-        '6. Enter your accountant\'s email address.\n' +
+        "6. Enter your accountant's email address.\n" +
         '\n' +
         `[Invite your accountant now](${workspaceMembersLink}).`,
 };
@@ -5678,14 +5678,7 @@ const CONST = {
                 width: 1280,
                 height: 960,
             },
-            tasks: [
-                createWorkspaceTask,
-                testDriveAdminTask,
-                createReportTask,
-                setupCategoriesTask,
-                inviteAccountantTask,
-                reviewWorkspaceSettingsTask,
-                ],
+            tasks: [createWorkspaceTask, testDriveAdminTask, createReportTask, setupCategoriesTask, inviteAccountantTask, reviewWorkspaceSettingsTask],
         },
         [onboardingChoices.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
         [onboardingChoices.CHAT_SPLIT]: {
