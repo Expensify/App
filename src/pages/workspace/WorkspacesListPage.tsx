@@ -501,7 +501,9 @@ function WorkspacesListPage() {
             >
                 <TopBar breadcrumbLabel={translate('common.workspaces')} />
                 {shouldShowLoadingIndicator ? (
-                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <View style={[styles.flex1]}>
+                        <FullScreenLoadingIndicator style={[styles.pRelative]} />
+                    </View>
                 ) : (
                     <ScrollView
                         contentContainerStyle={styles.pt2}
