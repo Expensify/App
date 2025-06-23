@@ -6532,12 +6532,7 @@ const translations = {
             part1: '重命名您保存的搜索',
             part2: '这里！',
         },
-        bottomNavInboxTooltip: {
-            part1: '检查什么',
-            part2: '需要您的注意',
-            part3: '和',
-            part4: '聊天关于费用。',
-        },
+        bottomNavInboxTooltip: '检查什么 <strong>需要您的注意</strong> 和 <strong>聊天关于费用。</strong>',
         workspaceChatTooltip: {
             part1: '与 交谈',
             part2: '审批人',

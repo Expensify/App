@@ -6657,12 +6657,7 @@ const translations = {
             part1: 'Renomeie suas pesquisas salvas',
             part2: 'aqui!',
         },
-        bottomNavInboxTooltip: {
-            part1: 'Verificar o quê?',
-            part2: 'precisa da sua atenção',
-            part3: 'e',
-            part4: 'conversar sobre despesas.',
-        },
+        bottomNavInboxTooltip: 'Verificar o quê? <strong>precisa da sua atenção</strong> e <strong>conversar sobre despesas.</strong>',
         workspaceChatTooltip: {
             part1: 'Converse com',
             part2: 'aprovadores',

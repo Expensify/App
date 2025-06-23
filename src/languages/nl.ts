@@ -6661,12 +6661,7 @@ const translations = {
             part1: 'Hernoem uw opgeslagen zoekopdrachten',
             part2: 'hier!',
         },
-        bottomNavInboxTooltip: {
-            part1: 'Check wat',
-            part2: 'heeft uw aandacht nodig',
-            part3: 'en',
-            part4: 'chat over uitgaven.',
-        },
+        bottomNavInboxTooltip: 'Check wat <strong>heeft uw aandacht nodig</strong> en <strong>chat over uitgaven.</strong>',
         workspaceChatTooltip: {
             part1: 'Chat met',
             part2: 'goedkeurders',

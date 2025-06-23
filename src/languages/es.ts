@@ -7142,12 +7142,7 @@ const translations = {
             part1: 'Renombra tus búsquedas guardadas',
             part2: ' aquí',
         },
-        bottomNavInboxTooltip: {
-            part1: 'Revisa lo que ',
-            part2: 'necesita tu atención',
-            part3: '\ny ',
-            part4: 'chatea sobre los gastos.',
-        },
+        bottomNavInboxTooltip: 'Revisa lo que <strong>necesita tu atención</strong>\ny <strong>chatea sobre los gastos.</strong>',
         workspaceChatTooltip: {
             part1: 'Chatea con ',
             part2: 'los aprobadores',

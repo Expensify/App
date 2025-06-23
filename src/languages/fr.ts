@@ -6700,12 +6700,7 @@ const translations = {
             part1: 'Renommez vos recherches enregistrées',
             part2: 'ici !',
         },
-        bottomNavInboxTooltip: {
-            part1: 'Vérifier quoi',
-            part2: 'nécessite votre attention',
-            part3: 'et',
-            part4: 'discuter des dépenses.',
-        },
+        bottomNavInboxTooltip: 'Vérifier quoi <strong>nécessite votre attention</strong> et <strong>discuter des dépenses.</strong>',
         workspaceChatTooltip: {
             part1: 'Discuter avec',
             part2: 'approbateurs',
