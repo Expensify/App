@@ -825,7 +825,6 @@ function PureReportActionItem({
         isBetaEnabled,
     ]);
 
-    const movedIOUReport = isExpenseReport(parentReport) ? parentReport : report;
 
     /**
      * Get the content of ReportActionItem
@@ -1068,6 +1067,7 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={getDeletedTransactionMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
+            const movedIOUReport = isExpenseReport(parentReport) ? parentReport : report;
             children = (
                 <ReportActionItemBasicMessage message="">
                     <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(parentReportAction, movedIOUReport)}</muted-text></comment>`} />

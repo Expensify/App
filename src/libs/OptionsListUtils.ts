@@ -722,8 +722,6 @@ function getLastMessageTextForReport(
     reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>,
 ): string {
     const reportID = report?.reportID;
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
-    const movedIOUReport = isExpenseReport(parentReport) ? parentReport : report;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
@@ -789,6 +787,8 @@ function getLastMessageTextForReport(
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction});
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+        const movedIOUReport = isExpenseReport(parentReport) ? parentReport : report;
         lastMessageTextFromReport = getMovedTransactionMessage(lastReportAction, movedIOUReport);
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
