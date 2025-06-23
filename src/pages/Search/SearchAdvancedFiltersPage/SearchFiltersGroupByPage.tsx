@@ -42,7 +42,7 @@ function SearchFiltersGroupByPage() {
     const applyChanges = useCallback(() => {
         updateAdvancedFilters({groupBy: selectedItem ?? null});
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-    }, [searchAdvancedFiltersForm?.type, selectedItem]);
+    }, [selectedItem]);
 
     return (
         <ScreenWrapper

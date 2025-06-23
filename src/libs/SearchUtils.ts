@@ -1,6 +1,6 @@
 import type {SearchDatePreset, SearchFilterKey} from '@components/Search/types';
 import CONST from '@src/CONST';
-import {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 function isSearchDatePreset(date: string | undefined): date is SearchDatePreset {
     return Object.values(CONST.SEARCH.DATE_PRESETS).some((datePreset) => datePreset === date);

@@ -1559,7 +1559,8 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
         // s77rt TODO
     }
 
-    // s77rt remove false condition after BE changes are live
+    // s77rt remove false condition (and lint disable line) after BE changes are live
+    // eslint-disable-next-line no-constant-condition
     if (accountingSection.menuItems.length > 0 && false) {
         typeMenuSections.push(accountingSection);
     }
