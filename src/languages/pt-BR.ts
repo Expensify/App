@@ -64,6 +64,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -193,6 +194,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -244,6 +246,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -608,6 +611,7 @@ const translations = {
         workspacesTabTitle: 'Workspaces',
         getTheApp: 'Obtenha o aplicativo',
         scanReceiptsOnTheGo: 'Digitalize recibos com seu celular',
+        headsUp: 'Atenção!',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -967,6 +971,7 @@ const translations = {
         deleteReceipt: 'Excluir recibo',
         deleteConfirmation: 'Tem certeza de que deseja excluir este recibo?',
         addReceipt: 'Adicionar recibo',
+        scanFailed: 'O recibo não pôde ser escaneado, pois está faltando o comerciante, a data ou o valor.',
     },
     quickAction: {
         scanReceipt: 'Escanear recibo',
@@ -1107,6 +1112,7 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pague ${formattedAmount} em outro lugar` : `Pague em outro lugar`),
         nextStep: 'Próximos passos',
         finished: 'Concluído',
+        flip: 'Inverter',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar fatura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Enviar ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `para ${comment}` : ''}`,
@@ -2360,6 +2366,13 @@ const translations = {
         time: 'Tempo',
         clearAfter: 'Limpar após',
         whenClearStatus: 'Quando devemos limpar seu status?',
+        vacationDelegate: 'Delegado de férias',
+        setVacationDelegate: `Defina um delegado de férias para aprovar relatórios em seu nome enquanto estiver fora do escritório.`,
+        vacationDelegateError: 'Ocorreu um erro ao atualizar seu delegado de férias.',
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `como delegado de férias de ${managerName}`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `para ${submittedToName} como delegado de férias de ${vacationDelegateName}`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `Você está designando ${nameOrEmail} como seu delegado de férias. Essa pessoa ainda não está em todos os seus espaços de trabalho. Se você continuar, um e-mail será enviado para todos os administradores dos seus espaços solicitando a inclusão dela.`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Etapa ${step}`;
@@ -4249,7 +4262,7 @@ const translations = {
                 pendingBankTitle: 'Verifique a janela do seu navegador',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) =>
                     `Por favor, conecte-se ao ${bankName} através da janela do navegador que acabou de abrir. Se nenhuma tiver sido aberta,`,
-                pendingBankLink: 'por favor, clique aqui.',
+                pendingBankLink: 'por favor, clique aqui',
                 giveItNameInstruction: 'Dê um nome ao cartão que o diferencie dos outros.',
                 updating: 'Atualizando...',
                 noAccountsFound: 'Nenhuma conta encontrada',
@@ -4503,7 +4516,7 @@ const translations = {
             newWorkspace: 'Novo workspace',
             getTheExpensifyCardAndMore: 'Obtenha o Expensify Card e mais',
             confirmWorkspace: 'Confirmar Workspace',
-            myGroupWorkspace: 'Meu Espaço de Trabalho em Grupo',
+            myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `Meu Espaço de Trabalho em Grupo${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
             workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `Workspace de ${userName}${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
         },
         people: {
@@ -5969,8 +5982,8 @@ const translations = {
         principalWorkEmail: 'Email principal de trabalho',
         updateYourEmail: 'Atualize seu endereço de e-mail',
         updateEmail: 'Atualizar endereço de e-mail',
-        contactMethods: 'Métodos de contato.',
-        schoolMailAsDefault: 'Antes de prosseguir, certifique-se de definir seu e-mail escolar como seu método de contato padrão. Você pode fazer isso em Configurações > Perfil >',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `Antes de prosseguir, certifique-se de definir seu e-mail escolar como seu método de contato padrão. Você pode fazer isso em Configurações > Perfil > <a href="${contactMethodsRoute}">Métodos de contato</a>.`,
         error: {
             enterPhoneEmail: 'Insira um e-mail ou número de telefone válido',
             enterEmail: 'Digite um e-mail',

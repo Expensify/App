@@ -557,6 +557,10 @@ type DelegateRoleParams = {role: DelegateRole};
 
 type DelegatorParams = {delegator: string};
 
+type VacationDelegateParams = {nameOrEmail: string};
+
+type SubmittedToVacationDelegateParams = {submittedToName: string; vacationDelegateName: string};
+
 type RoleNamesParams = {role: string};
 
 type AssignCardParams = {
@@ -767,7 +771,12 @@ type TravelTypeParams = {
     id?: string;
 };
 
+type ContactMethodsRouteParams = {
+    contactMethodsRoute: string;
+};
+
 export type {
+    ContactMethodsRouteParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
@@ -792,6 +801,7 @@ export type {
     SpreadCategoriesParams,
     DelegateRoleParams,
     DelegatorParams,
+    VacationDelegateParams,
     ReconciliationWorksParams,
     LastSyncAccountingParams,
     SyncStageNameConnectionsParams,
@@ -860,6 +870,7 @@ export type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
+    SubmittedToVacationDelegateParams,
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
