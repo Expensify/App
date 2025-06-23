@@ -6,6 +6,7 @@ import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import {openReport} from '@libs/actions/Report';
 import validateAttachmentFile from '@libs/AttachmentUtils';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
@@ -102,6 +103,11 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         },
         [reportID, type, accountID, hashKey],
     );
+
+    const onClose = useCallback(() => {
+        // This enables Composer refocus when the attachments modal is closed by the browser navigation
+        ComposerFocusManager.setReadyToFocus();
+    }, []);
 
     /**
      * If our attachment is a PDF, return the unswipeable Modal type.
@@ -230,6 +236,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             contentProps={contentProps}
             modalType={modalType}
             onShow={onShow}
+            onClose={onClose}
         />
     );
 }

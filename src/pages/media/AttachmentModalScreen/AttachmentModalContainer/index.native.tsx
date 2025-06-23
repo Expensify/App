@@ -1,5 +1,6 @@
 import React, {memo, useCallback, useContext, useEffect} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
+import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
@@ -12,18 +13,21 @@ function AttachmentModalContainer({contentProps, navigation, onShow, onClose}: A
 
     const closeScreen = useCallback(
         (options?: OnCloseOptions) => {
-            onClose?.();
             attachmentsContext.setCurrentAttachment(undefined);
 
-            // If a custom navigation callback is provided, call it instead of navigating back
-            if (options?.navigateBack) {
-                options?.navigateBack();
-                return;
-            }
+            const close = () => {
+                onClose?.();
+                Navigation.goBack();
+                options?.onAfterClose?.();
+            };
 
-            Navigation.goBack(contentProps.fallbackRoute);
+            if (options?.shouldCallDirectly) {
+                close();
+            } else {
+                attachmentModalHandler.handleModalClose(close);
+            }
         },
-        [attachmentsContext, contentProps.fallbackRoute, onClose],
+        [attachmentsContext, onClose],
     );
 
     useEffect(() => {
