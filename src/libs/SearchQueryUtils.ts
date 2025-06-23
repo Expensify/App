@@ -23,7 +23,7 @@ import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
-import {isFilterSupported, isSearchDatePreset} from './SearchUIUtils';
+import {isFilterSupported, isSearchDatePreset} from './SearchUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
 

@@ -1644,14 +1644,6 @@ function getGroupByOptions() {
     return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({translation: `search.filters.groupBy.${value}`, value}));
 }
 
-function isSearchDatePreset(date: string | undefined): date is SearchDatePreset {
-    return Object.values(CONST.SEARCH.DATE_PRESETS).some((datePreset) => datePreset === date);
-}
-
-function isFilterSupported(filter: SearchFilterKey, type: SearchDataTypes) {
-    return CONST.SEARCH_TYPE_FILTERS_KEYS[type].flat().some((supportedFilter) => supportedFilter === filter);
-}
-
 export {
     getListItem,
     getSections,
@@ -1681,7 +1673,5 @@ export {
     getWideAmountIndicators,
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
-    isSearchDatePreset,
-    isFilterSupported,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower};
