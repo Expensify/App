@@ -6,5 +6,7 @@ declare namespace NodeJS {
         GITHUB_TOKEN: string | undefined;
         PORT: number | undefined;
         WORKING_DIRECTORY: string | undefined;
+        OPENAI_API_KEY: string | undefined;
+        LANGUAGES_DIR: string | undefined;
     }
 }
