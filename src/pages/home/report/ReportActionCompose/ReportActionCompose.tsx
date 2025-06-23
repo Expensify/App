@@ -232,6 +232,8 @@ function ReportActionCompose({
 
     const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
 
+    const isEditingReceipt = isTransactionThreadView && transactionID && hasReceipt;
+
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
         if (includesConcierge && userBlockedFromConcierge) {
@@ -474,7 +476,7 @@ function ReportActionCompose({
     );
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
-        if (isTransactionThreadView && transactionID) {
+        if (isEditingReceipt) {
             const source = URL.createObjectURL(files.at(0) as Blob);
             replaceReceipt({transactionID, file: files.at(0) as File, source});
         } else {
@@ -504,6 +506,15 @@ function ReportActionCompose({
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
 
     const handleAddingReceipt = (e: DragEvent) => {
+        if (isEditingReceipt) {
+            const file = e?.dataTransfer?.files?.[0];
+            if (file) {
+                file.uri = URL.createObjectURL(file);
+                validateFiles([file]);
+                return;
+            }
+        }
+
         const files = Array.from(e?.dataTransfer?.files ?? []);
         if (files.length === 0) {
             return;
