@@ -133,7 +133,7 @@ function filterOutRangesWithCorrectValue(
     }) as string[];
     const groupByList = Object.values(CONST.SEARCH.GROUP_BY) as string[];
     const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
-    const exportStatusList = Object.values(CONST.SEARCH.EXPORT_STATUS) as string[];
+    const actionList = Object.values(CONST.SEARCH.ACTION) as string[];
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
@@ -158,8 +158,8 @@ function filterOutRangesWithCorrectValue(
             return expenseTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
             return statusList.includes(range.value);
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORT_STATUS:
-            return exportStatusList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
+            return actionList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY:
             return categoryList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:

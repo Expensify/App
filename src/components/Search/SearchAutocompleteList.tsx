@@ -459,9 +459,9 @@ function SearchAutocompleteList(
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
                 }));
             }
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORT_STATUS: {
-                return Object.values(CONST.SEARCH.EXPORT_STATUS).map((status) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPORT_STATUS,
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION: {
+                return Object.values(CONST.SEARCH.ACTION).map((status) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ACTION,
                     text: status,
                 }));
             }

@@ -58,7 +58,7 @@ const FILTER_KEYS = {
     ASSIGNEE: 'assignee',
     REIMBURSABLE: 'reimbursable',
     BILLABLE: 'billable',
-    EXPORT_STATUS: 'exportStatus',
+    ACTION: 'action',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -251,7 +251,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ASSIGNEE]: string[];
         [FILTER_KEYS.REIMBURSABLE]: string;
         [FILTER_KEYS.BILLABLE]: string;
-        [FILTER_KEYS.EXPORT_STATUS]: string;
+        [FILTER_KEYS.ACTION]: string;
     }
 >;
 

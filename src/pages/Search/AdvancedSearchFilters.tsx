@@ -622,7 +622,7 @@ function AdvancedSearchFilters() {
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
-                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORT_STATUS
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION
                     ) {
                         return;
                     }
