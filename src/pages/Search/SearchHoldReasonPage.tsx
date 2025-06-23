@@ -2,6 +2,7 @@ import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {holdMoneyRequestOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -9,7 +10,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import type {SearchReportParamList} from '@navigation/types';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
-import {putTransactionsOnHold} from '@userActions/IOU';
+import {bulkHold} from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
@@ -18,11 +19,20 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
     const {translate} = useLocalize();
     const {backTo = '', reportID} = route.params ?? {};
     const context = useSearchContext();
-
+    const [reports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {canBeMissing: false});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: false});
+    const [transactions] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {canBeMissing: false});
+    const [transactionsViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true});
+    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${context.currentSearchHash}`, {canBeMissing: true});
+    
+    
+    
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(context.selectedTransactionIDs, comment, reportID);
+                if (reportActions) {
+                    bulkHold(comment, reportID, reports, Object.values(reportActions), context.selectedTransactionIDs, transactions, transactionsViolations, context.currentSearchHash, snapshot);
+                }
                 context.clearSelectedTransactions(true);
             } else {
                 holdMoneyRequestOnSearch(context.currentSearchHash, Object.keys(context.selectedTransactions), comment);
@@ -31,7 +41,7 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
 
             Navigation.goBack();
         },
-        [route.name, context, reportID],
+        [route.name, reportID, reports, reportActions, context, transactions, transactionsViolations, snapshot],
     );
 
     const validate = useCallback(

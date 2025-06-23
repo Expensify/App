@@ -203,6 +203,7 @@ const WRITE_COMMANDS = {
     UPDATE_MONEY_REQUEST_DESCRIPTION: 'UpdateMoneyRequestDescription',
     UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY: 'UpdateMoneyRequestAmountAndCurrency',
     HOLD_MONEY_REQUEST: 'HoldRequest',
+    BULK_HOLD_REQUEST: 'BulkHoldRequest',
     UPDATE_BILLING_CARD_CURRENCY: 'UpdateBillingCardCurrency',
     UNHOLD_MONEY_REQUEST: 'UnHoldRequest',
     REQUEST_MONEY: 'RequestMoney',
@@ -676,6 +677,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.HOLD_MONEY_REQUEST]: Parameters.HoldMoneyRequestParams;
+    [WRITE_COMMANDS.BULK_HOLD_REQUEST]: Parameters.BulkHoldRequestParams;
     [WRITE_COMMANDS.UNHOLD_MONEY_REQUEST]: Parameters.UnHoldMoneyRequestParams;
     [WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY]: Parameters.UpdateMoneyRequestParams;
     [WRITE_COMMANDS.REQUEST_MONEY]: Parameters.RequestMoneyParams;
