@@ -17,12 +17,17 @@ Companies located in the United States can enable global reimbursements to issue
 
 ---
 
-## US Document Requirements
+## Required Documents (United States)
 
+To comply with financial regulations, the following documents are needed:
 * ✅ Address verification document
-* ✅ Bank statement for direct debit setup
-* ✅ Proof of Beneficial Ownership
-* ✅ Certified ID & Proof of Address for all signatories
+* ✅ Bank statement for direct debit
+
+## Acceptable Documents
+
+* Government-issued photo ID
+* Utility bill or bank statement (for proof of address)
+* File types: PDF, PNG, JPEG
 
 ---
 
@@ -33,22 +38,32 @@ Companies located in the United States can enable global reimbursements to issue
 3. From the workspace settings left-hand menu, click **Workflows > enable Make or track payments**
 4. Under **Connect bank account > Confirm currency and country (United States - USD$)**
 5. Click **Confirm**.
-
----
-
-# Step 2: Submit Bank Details and Required Documentation
-
-1. Choose between connecting via **Plaid** or entering your bank account details manually:
+     - See [this help article](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account) for more details on connecting a US business bank account.
+6. Choose between connecting via **Plaid** or entering your bank account details manually (see [this help article](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account) for more details on connecting a US business bank account):
    * Routing number
    * Account number
    * Account name
+
+---
+
+# Step 2: Submit Required Documentation
+
+1.Under **Account > Wallet**, choose **Enable Global Reimbursements**.
 2. Upload your latest bank statement and click **Next** to confirm the account details.
 3. On the next screen, upload the following documents:
    * Address verification document
    * Proof of Beneficial Ownership
    * Certified ID & Proof of Address for all signatories
-4. Once you've agreed to the terms, Expensify’s Compliance Team will review your submission.
-5. You’ll receive a message from our support team if any additional documentation is needed.
+4. **Add Director Information**: Expensify must verify that the signer is a Director or Senior Officer.
+   - If **you are** a Director/Senior Officer:
+     - Provide your full legal name, address, and ID.
+     - Upload proof of address and a valid form of identification (PDF, PNG, or JPEG only).
+   - If **you are not** a Director/Senior Officer:
+     - Enter details for someone who is.
+     - Expensify will send a message to the Director/Senior Officer outlining what's required. 
+     - They must also provide ID and proof of address.
+
+Once you agree to the terms, Expensify’s Compliance Team will review your submission. If any additional documentation is needed, our support team will message you.
 
 ---
 
