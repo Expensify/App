@@ -329,6 +329,7 @@ const translations = {
         twoFactorCode: 'Kod dwuskładnikowy',
         workspaces: 'Przestrzenie robocze',
         inbox: 'Skrzynka odbiorcza',
+        success: 'Sukces',
         group: 'Grupa',
         profile: 'Profil',
         referral: 'Polecenie',
@@ -6003,7 +6004,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Zgłoś utratę / uszkodzenie fizycznej karty',
         screenTitle: 'Karta raportu zgubiona lub uszkodzona',
         nextButtonLabel: 'Następny',
         reasonTitle: 'Dlaczego potrzebujesz nowej karty?',
@@ -6016,6 +6016,8 @@ const translations = {
         deactivateCardButton: 'Dezaktywuj kartę',
         shipNewCardButton: 'Wyślij nową kartę',
         addressError: 'Adres jest wymagany',
+        successTitle: 'Twoja nowa karta jest w drodze!',
+        successDescription: 'Po jej otrzymaniu, będziesz musiał(a) ją aktywować. W międzyczasie możesz korzystać z karty wirtualnej.',
         reasonError: 'Powód jest wymagany',
     },
     eReceipt: {

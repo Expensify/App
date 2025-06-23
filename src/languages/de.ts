@@ -329,6 +329,7 @@ const translations = {
         twoFactorCode: 'Zwei-Faktor-Code',
         workspaces: 'Arbeitsbereiche',
         inbox: 'Posteingang',
+        success: 'Erfolgreich',
         group: 'Gruppe',
         profile: 'Profil',
         referral: 'Empfehlung',
@@ -6046,7 +6047,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Verlust / Beschädigung der physischen Karte melden',
         screenTitle: 'Zeugnis verloren oder beschädigt',
         nextButtonLabel: 'Nächste',
         reasonTitle: 'Warum benötigen Sie eine neue Karte?',
@@ -6060,6 +6060,8 @@ const translations = {
         shipNewCardButton: 'Neue Karte versenden',
         addressError: 'Adresse ist erforderlich',
         reasonError: 'Grund ist erforderlich',
+        successTitle: 'Ihre neue Karte ist auf dem Weg!',
+        successDescription: 'Sie müssen sie aktivieren, sobald sie in wenigen Werktagen ankommt. In der Zwischenzeit ist Ihre virtuelle Karte einsatzbereit.',
     },
     eReceipt: {
         guaranteed: 'Garantierter eReceipt',
