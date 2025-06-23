@@ -734,7 +734,7 @@ function IOURequestStepScan({
         }
 
         submitReceipts(newReceiptFiles);
-    }, [receiptFiles, showBlink, initialTransaction, initialTransactionID, isEditing, isMultiScanEnabled, submitReceipts, requestCameraPermission, updateScanAndNavigate]);
+    }, [isMultiScanEnabled, initialTransaction, currentUserPersonalDetails, reportID, initialTransactionID, receiptFiles, isEditing, submitReceipts, requestCameraPermission, showBlink, updateScanAndNavigate]);
 
     const toggleMultiScan = () => {
         if (!dismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]) {

@@ -17,6 +17,7 @@ import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {PaymentData, SearchParams} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -47,11 +48,12 @@ import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUti
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import variables from '@styles/variables';
 import {initMoneyRequest, setMoneyRequestReceipt} from '@userActions/IOU';
+import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SearchResults} from '@src/types/onyx';
+import type {SearchResults, Transaction} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
@@ -65,6 +67,7 @@ function SearchPage({route}: SearchPageProps) {
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
 
@@ -379,19 +382,26 @@ function SearchPage({route}: SearchPageProps) {
     };
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
-        files.forEach((file) => {
-            const source = URL.createObjectURL(file as Blob);
-            const newReportID = generateReportID();
-            console.log(file);
-            // initMoneyRequest({
-            //     isFromGlobalCreate: true,
-            //     reportID: newReportID,
-            //     newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
-            // });
-            // // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            // setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, source, file.name || '', true);
-            // navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
+        const newReportID = generateReportID();
+        const initialTransaction = initMoneyRequest({
+            isFromGlobalCreate: true,
+            reportID: newReportID,
+            newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
         });
+
+        files.forEach((file, index) => {
+            const source = URL.createObjectURL(file as Blob);
+            const transaction =
+                index === 0
+                    ? (initialTransaction as Partial<Transaction>)
+                    : buildOptimisticTransactionAndCreateDraft({
+                          initialTransaction: initialTransaction as Partial<Transaction>,
+                          currentUserPersonalDetails,
+                          reportID: newReportID,
+                      });
+            setMoneyRequestReceipt(transaction?.transactionID ?? '', source, file.name ?? '', true);
+        });
+        navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
     };
 
     const {validateFiles, isLoadingReceipt, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
