@@ -5,11 +5,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getBankName, getCardFeedIcon, isCard, isCardClosed, isCardHiddenFromSearch} from './CardUtils';
+import {getBankName, getCardFeedIcon, getPlaidInstitutionIconUrl, getPlaidInstitutionId, isCard, isCardClosed, isCardHiddenFromSearch} from './CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
 
-type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string};
+type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string; plaidUrl?: string};
 type DomainFeedData = {bank: string; domainName: string; correspondingCardIDs: string[]; fundID?: string};
 type ItemsGroupedBySelection = {selected: CardFilterItem[]; unselected: CardFilterItem[]};
 type CardFeedNamesWithType = Record<string, {name: string; type: 'domain' | 'workspace'}>;
@@ -162,21 +162,24 @@ function getWorkspaceCardFeedData(cardFeed: WorkspaceCardsList | undefined, repe
     if (!representativeCard || !cardFeedArray.some((cardFeedItem) => isCard(cardFeedItem) && !isCardHiddenFromSearch(cardFeedItem))) {
         return;
     }
-    const {domainName, bank} = representativeCard;
+    const {domainName, bank, cardName} = representativeCard;
     const isBankRepeating = repeatingBanks.includes(bank);
     const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const correspondingPolicy = getPolicy(policyID?.toUpperCase());
     const cardFeedLabel = isBankRepeating ? correspondingPolicy?.name : undefined;
-    const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : getBankName(bank as CompanyCardFeed);
-    const cardName =
+    const isPlaid = !!getPlaidInstitutionId(bank);
+    const companyCardBank = isPlaid && cardName ? cardName : getBankName(bank as CompanyCardFeed);
+
+    const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : companyCardBank;
+    const fullCardName =
         cardFeedBankName === CONST.COMPANY_CARDS.CARD_TYPE.CSV
             ? translate('search.filters.card.cardFeedNameCSV', {cardFeedLabel})
             : translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
 
     return {
-        cardName,
+        cardName: fullCardName,
         bank,
         label: cardFeedLabel,
         type: 'workspace',
@@ -268,6 +271,7 @@ function createCardFeedItem({
     illustrations: IllustrationsType;
 }): CardFilterItem {
     const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
+    const plaidUrl = getPlaidInstitutionIconUrl(bank);
 
     const icon = getCardFeedIcon(bank as CompanyCardFeed, illustrations);
     return {
@@ -278,6 +282,7 @@ function createCardFeedItem({
         bankIcon: {
             icon,
         },
+        plaidUrl,
         cardFeedKey,
         isCardFeed: true,
         correspondingCards: correspondingCardIDs,

@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import SelectCircle from '@components/SelectCircle';
 import BaseListItem from '@components/SelectionList/BaseListItem';
@@ -19,7 +20,15 @@ import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {BankIcon} from '@src/types/onyx/Bank';
 
-type AdditionalCardProps = {shouldShowOwnersAvatar?: boolean; cardOwnerPersonalDetails?: PersonalDetails; bankIcon?: BankIcon; lastFourPAN?: string; isVirtual?: boolean; cardName?: string};
+type AdditionalCardProps = {
+    shouldShowOwnersAvatar?: boolean;
+    cardOwnerPersonalDetails?: PersonalDetails;
+    bankIcon?: BankIcon;
+    lastFourPAN?: string;
+    isVirtual?: boolean;
+    cardName?: string;
+    plaidUrl?: string;
+};
 type CardListItemProps<TItem extends ListItem> = BaseListItemProps<TItem & AdditionalCardProps>;
 
 function CardListItem<TItem extends ListItem>({
@@ -112,12 +121,17 @@ function CardListItem<TItem extends ListItem>({
                                 </View>
                             </View>
                         ) : (
-                            <Icon
-                                src={item.bankIcon.icon}
-                                width={variables.cardIconWidth}
-                                height={variables.cardIconHeight}
-                                additionalStyles={styles.cardIcon}
-                            />
+                            <>
+                                {!!item?.plaidUrl && <PlaidCardFeedIcon plaidUrl={item.plaidUrl} />}
+                                {!item?.plaidUrl && (
+                                    <Icon
+                                        src={item.bankIcon.icon}
+                                        width={variables.cardIconWidth}
+                                        height={variables.cardIconHeight}
+                                        additionalStyles={styles.cardIcon}
+                                    />
+                                )}
+                            </>
                         )}
                     </View>
                 )}
