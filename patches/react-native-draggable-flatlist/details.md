@@ -4,7 +4,7 @@
 
 - Reason: Ensures items can't be dragged into the list footer by accounting for its height when constraining drag bounds.
 - Upstream PR/issue: https://github.com/computerjazz/react-native-draggable-flatlist/pull/592
-- E/App issue: [#57312](https://github.com/Expensify/App/issues/57312)
+- E/App issue: 🛑
 - PR Introducing Patch: [#61380](https://github.com/Expensify/App/pull/61380)
 
 
@@ -13,4 +13,4 @@
 - Reason: Prevents console warning when adding a new item due to incorrect `ref.measureLayout` call.
 - Upstream PR/issue: https://github.com/computerjazz/react-native-draggable-flatlist/pull/544
 - E/App issue: 🛑
-- PR Introducing Patch: [#43810](https://github.com/Expensify/App/pull/43810)
+- PR Introducing Patch: [#55066](https://github.com/Expensify/App/pull/55066)
