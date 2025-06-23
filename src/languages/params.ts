@@ -219,8 +219,6 @@ type StepCounterParams = {step: number; total?: number; text?: string};
 
 type UserIsAlreadyMemberParams = {login: string; name: string};
 
-type GoToRoomParams = {roomName: string};
-
 type NewWorkspaceNameParams = {userName: string; workspaceNumber?: number};
 
 type RoomNameReservedErrorParams = {reservedName: string};
@@ -869,7 +867,6 @@ export type {
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
-    GoToRoomParams,
     SubmittedToVacationDelegateParams,
     HeldRequestParams,
     InstantSummaryParams,
