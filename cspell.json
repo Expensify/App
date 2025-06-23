@@ -451,6 +451,7 @@
         "positionMillis",
         "Postharvest",
         "Postproduction",
+        "Précédent",
         "precheck",
         "Precheck",
         "prescribers",
@@ -602,6 +603,7 @@
         "uimanager",
         "ukkonen",
         "unapprove",
+        "unapproves",
         "unassigning",
         "Unassigning",
         "unassigns",
@@ -679,7 +681,8 @@
         "zoneinfo",
         "zxcv",
         "zxldvw",
-        "مثال"
+        "مثال",
+        "pnrs"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

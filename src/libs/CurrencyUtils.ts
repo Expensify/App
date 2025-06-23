@@ -65,19 +65,6 @@ function getCurrencySymbol(currencyCode: string): string | undefined {
 }
 
 /**
- * Whether the currency symbol is left-to-right.
- */
-function isCurrencySymbolLTR(currencyCode: string): boolean {
-    const parts = formatToParts(TranslationStore.getCurrentLocale(), 0, {
-        style: 'currency',
-        currency: currencyCode,
-    });
-
-    // Currency is LTR when the first part is of currency type.
-    return parts.at(0)?.type === 'currency';
-}
-
-/**
  * Takes an amount as a floating point number and converts it to an integer equivalent to the amount in "cents".
  * This is because the backend always stores amounts in "cents". The backend works in integer cents to avoid precision errors
  * when doing math operations.
@@ -213,7 +200,6 @@ export {
     getCurrencyUnit,
     getLocalizedCurrencySymbol,
     getCurrencySymbol,
-    isCurrencySymbolLTR,
     convertToBackendAmount,
     convertToFrontendAmountAsInteger,
     convertToFrontendAmountAsString,
