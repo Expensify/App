@@ -5283,11 +5283,11 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
             retryParams,
             shouldGenerateOptimisticTransactionThread: false,
             testDriveCommentReportActionID,
-        optimisticChatReportID,
-        optimisticCreatedReportActionID,
-        optimisticIOUReportID,
-        optimisticReportPreviewActionID,
-    });
+            optimisticChatReportID,
+            optimisticCreatedReportActionID,
+            optimisticIOUReportID,
+            optimisticReportPreviewActionID,
+        });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
     if (shouldPlaySound) {
