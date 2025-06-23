@@ -20,6 +20,7 @@ import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup'
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -51,6 +52,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isDevelopment} = useEnvironment();
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -230,12 +232,17 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 value: translate(`common.${type}`),
                 keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
             },
-            {
-                label: translate('search.groupBy'),
-                PopoverComponent: groupByComponent,
-                value: groupBy ? translate(`search.filters.groupBy.${groupBy}`) : null,
-                keyForList: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
-            },
+            // s77rt remove DEV lock
+            ...(isDevelopment
+                ? [
+                      {
+                          label: translate('search.groupBy'),
+                          PopoverComponent: groupByComponent,
+                          value: groupBy ? translate(`search.filters.groupBy.${groupBy}`) : null,
+                          keyForList: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+                      },
+                  ]
+                : []),
             {
                 label: translate('common.status'),
                 PopoverComponent: statusComponent,

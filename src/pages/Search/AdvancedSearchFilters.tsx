@@ -12,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 import type {SearchDateFilterKeys, SearchFilterKey, SearchGroupBy} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -408,6 +409,7 @@ function isFeatureEnabledInPolicies(policies: OnyxCollection<Policy>, featureNam
 function AdvancedSearchFilters() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isDevelopment} = useEnvironment();
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -470,6 +472,9 @@ function AdvancedSearchFilters() {
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
 
+    // s77rt remove DEV lock
+    const shouldDisplayGroupByFilter = isDevelopment;
+
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     if (!Object.keys(CONST.SEARCH_TYPE_FILTERS_KEYS).includes(currentType)) {
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
@@ -524,8 +529,7 @@ function AdvancedSearchFilters() {
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
-                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE ||
-                        key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE
                     ) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
@@ -567,6 +571,11 @@ function AdvancedSearchFilters() {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, groupBy, translate);
+                    } else if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
+                        if (!shouldDisplayGroupByFilter) {
+                            return;
+                        }
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
                     }
                     return {
                         key,

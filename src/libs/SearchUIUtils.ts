@@ -46,6 +46,7 @@ import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport} from './actions/Report';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import {isDevelopment} from './Environment/Environment';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
@@ -1559,9 +1560,8 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
         // s77rt TODO
     }
 
-    // s77rt remove false condition (and lint disable line) after BE changes are live
-    // eslint-disable-next-line no-constant-condition
-    if (accountingSection.menuItems.length > 0 && false) {
+    // s77rt remove DEV lock
+    if (accountingSection.menuItems.length > 0 && isDevelopment()) {
         typeMenuSections.push(accountingSection);
     }
 
