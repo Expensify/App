@@ -87,7 +87,7 @@ function LockAccountPage() {
                 confirmText={translate('lockAccountPage.lockAccount')}
                 cancelText={translate('common.cancel')}
                 shouldDisableConfirmButtonWhenOffline
-                shouldShowCancelButton={false}
+                shouldShowCancelButton
             />
         </>
     );
