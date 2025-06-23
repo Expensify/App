@@ -331,6 +331,7 @@ const translations = {
         twoFactorCode: 'Twee-factor code',
         workspaces: 'Werkruimtes',
         inbox: 'Inbox',
+        success: 'Succes',
         group: 'Groep',
         profile: 'Profiel',
         referral: 'Verwijzing',
@@ -6031,7 +6032,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Rapporteer verlies / schade van fysieke kaart',
         screenTitle: 'Rapportkaart verloren of beschadigd',
         nextButtonLabel: 'Volgende',
         reasonTitle: 'Waarom heb je een nieuwe kaart nodig?',
@@ -6045,6 +6045,8 @@ const translations = {
         shipNewCardButton: 'Verzend nieuwe kaart',
         addressError: 'Adres is vereist',
         reasonError: 'Reden is vereist',
+        successTitle: 'Uw nieuwe kaart is onderweg!',
+        successDescription: 'U moet deze activeren zodra deze over een paar werkdagen aankomt. In de tussentijd kunt u uw virtuele kaart gebruiken.',
     },
     eReceipt: {
         guaranteed: 'Gegarandeerd eReceipt',

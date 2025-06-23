@@ -331,6 +331,7 @@ const translations = {
         twoFactorCode: 'Código de dois fatores',
         workspaces: 'Workspaces',
         inbox: 'Caixa de entrada',
+        success: 'Sucesso',
         group: 'Grupo',
         profile: 'Perfil',
         referral: 'Indicação',
@@ -6027,7 +6028,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Relatar perda / dano do cartão físico',
         screenTitle: 'Boletim perdido ou danificado',
         nextButtonLabel: 'Próximo',
         reasonTitle: 'Por que você precisa de um novo cartão?',
@@ -6041,6 +6041,8 @@ const translations = {
         shipNewCardButton: 'Enviar novo cartão',
         addressError: 'Endereço é obrigatório',
         reasonError: 'Motivo é obrigatório',
+        successTitle: 'Seu novo cartão está a caminho!',
+        successDescription: 'Você precisará ativá-lo assim que ele chegar em alguns dias úteis. Enquanto isso, seu cartão virtual já está pronto para uso.',
     },
     eReceipt: {
         guaranteed: 'eReceipt garantido',

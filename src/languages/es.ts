@@ -506,6 +506,7 @@ const translations = {
         default: 'Predeterminado',
         update: 'Actualizar',
         member: 'Miembro',
+        success: 'Éxito',
         auditor: 'Auditor',
         role: 'Role',
         currency: 'Divisa',
@@ -6508,7 +6509,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Notificar la pérdida / daño de la tarjeta física',
         screenTitle: 'Notificar la pérdida o deterioro de la tarjeta',
         nextButtonLabel: 'Siguiente',
         reasonTitle: '¿Por qué necesitas una tarjeta nueva?',
@@ -6522,6 +6522,8 @@ const translations = {
         shipNewCardButton: 'Enviar tarjeta nueva',
         addressError: 'La dirección es obligatoria',
         reasonError: 'Se requiere justificación',
+        successTitle: '¡Tu nueva tarjeta está en camino!',
+        successDescription: 'Tendrás que activarla cuando llegue en unos días hábiles. Mientras tanto, tu tarjeta virtual está lista para usar.',
     },
     eReceipt: {
         guaranteed: 'eRecibo garantizado',
