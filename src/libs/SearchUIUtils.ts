@@ -1471,7 +1471,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
 
         shouldShowStatementsSuggestion ||= false; // s77rt
         showShowUnapprovedCashSuggestion ||= isAdmin && isApprovalEnabled && isPaymentEnabled;
-        showShowUnapprovedCompanyCardsSuggestion ||= isAdmin && isApprovalEnabled && (policy.areCompanyCardsEnabled === true || policy.areExpensifyCardsEnabled === true) && hasCardFeed;
+        showShowUnapprovedCompanyCardsSuggestion ||= isAdmin && isApprovalEnabled && hasCardFeed;
         shouldShowReconciliationSuggestion ||= false; // s77rt
 
         // If all search variables are true return early to avoid redundant iterations
