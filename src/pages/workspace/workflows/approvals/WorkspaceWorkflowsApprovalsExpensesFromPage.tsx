@@ -129,15 +129,15 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 };
             });
 
-            const workflowMemberEmails = new Set(approvalWorkflow.members.map(member => member.email));
-            const preservedSelectedMembers = prevSelectedMembers.filter(member => !workflowMemberEmails.has(member.login));
-            
+            const workflowMemberEmails = new Set(approvalWorkflow.members.map((member) => member.email));
+            const preservedSelectedMembers = prevSelectedMembers.filter((member) => !workflowMemberEmails.has(member.login));
+
             return [...workflowMembers, ...preservedSelectedMembers];
         });
     }, [approvalWorkflow?.members, policy?.employeeList, translate, inviteOptions.personalDetails, inviteOptions.userToInvite]);
 
     const approversEmail = useMemo(() => approvalWorkflow?.approvers.map((member) => member?.email), [approvalWorkflow?.approvers]);
-    
+
     const sections: MembersSection[] = useMemo(() => {
         const members: SelectionListMember[] = [...selectedMembers];
 
@@ -170,7 +170,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         const availableMemberLogins = new Set(approvalWorkflow?.availableMembers?.map((member) => member.email) ?? []);
         const selectedLogins = selectedMembers.map(({login}) => login);
 
-        const personalDetailsWithoutExisting = inviteOptions.personalDetails.filter((detail) => !availableMemberLogins.has(detail.login ?? '') && !selectedLogins.includes(detail.login ?? ''));
+        const personalDetailsWithoutExisting = inviteOptions.personalDetails.filter(
+            (detail) => !availableMemberLogins.has(detail.login ?? '') && !selectedLogins.includes(detail.login ?? ''),
+        );
         const personalDetailsFormatted = personalDetailsWithoutExisting
             .map((item) => formatMemberForList(item))
             .map((member) => ({
@@ -279,7 +281,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     const toggleMember = (member: SelectionListMember) => {
         const isAlreadySelected = selectedMembers.some((selectedOption) => selectedOption.login === member.login);
-        
+
         if (isAlreadySelected) {
             const newSelectedMembers = selectedMembers.filter((selectedOption) => selectedOption.login !== member.login);
             setSelectedMembers(newSelectedMembers);
