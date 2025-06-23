@@ -270,10 +270,10 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
     }
 
     const isInvoiceReport = isInvoiceReportUtils(report);
-    const isReportSender = isCurrentUserSubmitter(report.reportID);
 
-    if (isInvoiceReport && isReportSender) {
-        return true;
+    // We don't allow export to accounting for invoice reports in OD so we want to align with that here.
+    if (isInvoiceReport) {
+        return false;
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
@@ -491,7 +491,6 @@ function getSecondaryReportActions({
     reportNameValuePairs,
     reportActions,
     policies,
-    canUseRetractNewDot,
     isChatReportArchived = false,
 }: {
     report: Report;
@@ -502,7 +501,6 @@ function getSecondaryReportActions({
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
     policies?: OnyxCollection<Policy>;
-    canUseRetractNewDot?: boolean;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
@@ -540,11 +538,11 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
     }
 
-    if (canUseRetractNewDot && isRetractAction(report, policy)) {
+    if (isRetractAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.RETRACT);
     }
 
-    if (canUseRetractNewDot && isReopenAction(report, policy)) {
+    if (isReopenAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REOPEN);
     }
 

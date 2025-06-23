@@ -270,4 +270,4 @@ function getReportPreviewAction(
     return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
 }
 
-export default getReportPreviewAction;
+export {canReview, getReportPreviewAction};
