@@ -100,10 +100,13 @@ function IOURequestStepMerchant({
             navigateBack();
             return;
         }
-        // When creating/editing an expense, newMerchant can be blank so we fall back on PARTIAL_TRANSACTION_MERCHANT
-        setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, !isEditing);
+
+        // Fallback to PARTIAL_TRANSACTION_MERCHANT only if merchant is null or undefined
+        const merchantValue = newMerchant ?? CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+
+        setMoneyRequestMerchant(transactionID, merchantValue, !isEditing);
         if (isEditing) {
-            updateMoneyRequestMerchant(transactionID, reportID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, policy, policyTags, policyCategories);
+            updateMoneyRequestMerchant(transactionID, reportID, merchantValue, policy, policyTags, policyCategories);
         }
         navigateBack();
     };

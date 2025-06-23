@@ -677,6 +677,15 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
             toLocaleDigit(TranslationStore.getCurrentLocale(), digit),
         );
     }
+
+    // Check if this is a workspace expense transaction
+    const report = getReportOrDraftReport(transaction?.reportID);
+    const isWorkspaceExpense = report?.type === CONST.REPORT.TYPE.EXPENSE;
+
+    // Allow empty merchant only for personal expenses, not workspace ones
+    if (transaction?.modifiedMerchant === '' && !isWorkspaceExpense) {
+        return '';
+    }
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '');
 }
 
