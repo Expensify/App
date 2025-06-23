@@ -68,8 +68,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListMember[]>([]);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
@@ -113,7 +113,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 if (!accountID) {
                     const personalDetail = inviteOptions.personalDetails.find((detail) => detail.login === member.email);
                     const userToInvite = inviteOptions.userToInvite?.login === member.email ? inviteOptions.userToInvite : null;
-                    accountID = personalDetail?.accountID ?? userToInvite?.accountID ?? 0;
+                    accountID = personalDetail?.accountID ?? userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 }
                 const isAdmin = policy?.employeeList?.[member.email]?.role === CONST.REPORT.ROLE.ADMIN;
 
