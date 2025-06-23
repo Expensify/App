@@ -12,12 +12,14 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import variables from '@styles/variables';
+import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import {updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,26 +81,25 @@ function ReportListItem<TItem extends ListItem>({
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
 
-        const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const reportID = getReportIDForTransaction(transactionItem);
+        const siblingTransactionThreadIDs = reportItem.transactions.map(getReportIDForTransaction);
 
-        // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
-        if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-            const transactionThreadReportID = generateReportID();
-            const {moneyRequestReportActionID, transactionID, reportID} = transactionItem;
-            const reportAction = getReportAction(reportID, moneyRequestReportActionID);
-            const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
+        // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
+        // to display prev/next arrows in RHP for navigation
+        setActiveTransactionThreadIDs(siblingTransactionThreadIDs).then(() => {
+            // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
+            if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                const transactionThreadReportID = generateReportID();
+                const {moneyRequestReportActionID, transactionID, reportID} = transactionItem;
+                const reportAction = getReportAction(reportID, moneyRequestReportActionID);
+                const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
 
-            updateSearchResultsWithTransactionThreadReportID(currentSearchHash, transactionID, transactionThreadReportID);
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReportID, backTo, moneyRequestReportActionID, transactionID, iouReportID}));
-            return;
-        }
-
-        const reportID =
-            (!transactionItem.isFromOneTransactionReport || isFromSelfDM) && transactionItem.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
-                ? transactionItem.transactionThreadReportID
-                : transactionItem.reportID;
-
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+                updateSearchResultsWithTransactionThreadReportID(currentSearchHash, transactionID, transactionThreadReportID);
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReportID, backTo, moneyRequestReportActionID, transactionID, iouReportID}));
+                return;
+            }
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+        });
     };
 
     if (!reportItem?.reportName && reportItem.transactions.length > 1) {

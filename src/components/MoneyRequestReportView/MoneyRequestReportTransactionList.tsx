@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import type {TupleToUnion} from 'type-fest';
@@ -23,11 +23,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
-import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {generateReportID, getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
@@ -41,11 +41,9 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
-import {setActiveTransactionThreadIDs} from './TransactionThreadReportIDRepository';
 
 type MoneyRequestReportTransactionListProps = {
     report: OnyxTypes.Report;
@@ -199,11 +197,6 @@ function MoneyRequestReportTransactionList({
 
             const backTo = Navigation.getActiveRoute() as Route;
 
-            // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
-            // to display prev/next arrows in RHP for navigating between transactions
-            const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
-            setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs);
-
             const routeParams = {
                 reportID: reportIDToNavigate,
                 backTo,
@@ -215,38 +208,15 @@ function MoneyRequestReportTransactionList({
                 routeParams.iouReportID = activeTransaction.reportID;
             }
 
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
+            // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
+            // to display prev/next arrows in RHP for navigation
+            const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
+            setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs).then(() => {
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
+            });
         },
         [reportActions, sortedTransactions],
     );
-
-    useEffect(() => {
-        const lastFullScreenRoute = navigationRef.getRootState()?.routes.findLast((route) => isFullScreenName(route.name));
-
-        // Only setActiveTransactionThreadIDs if current full screen report route is this report
-        if (lastFullScreenRoute?.name !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR && lastFullScreenRoute?.name !== NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
-            return;
-        }
-
-        // Check params contain reportID
-        const lastRoute = lastFullScreenRoute?.state?.routes?.at(-1);
-        if (!lastRoute?.params || !('reportID' in lastRoute.params)) {
-            return;
-        }
-
-        // Check lastRoute is a report screen
-        if (lastRoute?.name !== SCREENS.SEARCH.MONEY_REQUEST_REPORT && lastRoute?.name !== SCREENS.REPORT) {
-            return;
-        }
-
-        // Check lastRoute params has reportID equal with this reportID
-        if (lastRoute.params.reportID !== report.reportID) {
-            return;
-        }
-
-        const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, transactions);
-        setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs);
-    }, [report.reportID, reportActions, transactions]);
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = transactions.some((transaction) => isTransactionAmountTooLong(transaction));
