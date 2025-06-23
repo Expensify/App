@@ -1219,27 +1219,6 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
             return isPolicyApprover || isSubmittedTo;
         }).length > 0;
 
-    const showPaySuggestion =
-        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
-            if (!policy || !isPaidGroupPolicy(policy)) {
-                return false;
-            }
-
-            const reimburser = policy.reimburser;
-            const isReimburser = reimburser === email;
-            const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-
-            if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-                return reimburser ? isReimburser : isAdmin;
-            }
-
-            if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
-                return isAdmin;
-            }
-
-            return false;
-        }).length > 0;
-
     // TODO: This option will be enabled soon (removing the && false). We are waiting on changes to support this
     // feature fully, but lets keep the code here for simplicity
     // https://github.com/Expensify/Expensify/issues/505933
@@ -1258,11 +1237,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
             return isIntacctExporter || isNetSuiteExporter || isQuickbooksDesktopExporter || isQuickbooksOnlineExporter || isXeroExporter;
         }).length > 0 && false;
 
-    // We suggest specific filters for users based on their access in specific policies. Show the todo section
-    // only if any of these items are available
-    const showTodoSection = showSubmitSuggestion || showApproveSuggestion || showPaySuggestion || showExportSuggestion;
-
-    if (showTodoSection && session) {
+    if (session) {
         const section: SearchTypeMenuSection = {
             translationPath: 'common.todo',
             menuItems: [],
@@ -1345,27 +1320,26 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
             });
         }
 
-        if (showPaySuggestion) {
-            section.menuItems.push({
-                translationPath: 'search.bulkActions.pay',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.MoneyBag,
-                emptyState: {
-                    headerMedia: DotLottieAnimations.Fireworks,
-                    title: 'search.searchResults.emptyPayResults.title',
-                    subtitle: 'search.searchResults.emptyPayResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION.PAY,
-                        payer: session.accountID?.toString(),
-                    });
-                    return queryString;
-                },
-            });
-        }
+        // Always show pay, since any user can pay p2p requests
+        section.menuItems.push({
+            translationPath: 'search.bulkActions.pay',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.MoneyBag,
+            emptyState: {
+                headerMedia: DotLottieAnimations.Fireworks,
+                title: 'search.searchResults.emptyPayResults.title',
+                subtitle: 'search.searchResults.emptyPayResults.subtitle',
+            },
+            getSearchQuery: () => {
+                const queryString = buildQueryStringFromFilterFormValues({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                    action: CONST.SEARCH.ACTION.PAY,
+                    payer: session.accountID?.toString(),
+                });
+                return queryString;
+            },
+        });
 
         if (showExportSuggestion) {
             section.menuItems.push({
