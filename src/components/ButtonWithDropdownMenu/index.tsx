@@ -1,4 +1,4 @@
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
@@ -71,7 +71,7 @@ function ButtonWithDropdownMenu<IValueType>({
     const areAllOptionsDisabled = options.every((option) => option.disabled);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
-    const nullCheckRef = (ref: MutableRefObject<View | null>) => ref ?? null;
+    const nullCheckRef = (ref: RefObject<View | null>) => ref ?? null;
 
     useEffect(() => {
         if (!dropdownAnchor.current) {
