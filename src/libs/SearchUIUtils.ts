@@ -119,7 +119,7 @@ const expenseStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
     {translation: 'iou.done', value: CONST.SEARCH.STATUS.EXPENSE.DONE},
 ];
 
-const expenseReportStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
+const expenseReportedStatusOptions: Array<MultiSelectItem<SingularSearchStatus>> = [
     {translation: 'common.drafts', value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
     {translation: 'common.outstanding', value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
     {translation: 'iou.approved', value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
@@ -1477,7 +1477,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
             {
                 translationPath: 'search.unapprovedCash',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.MoneySearch, // s77rt
+                icon: Expensicons.MoneySearch, // s77rt change icon
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
@@ -1559,8 +1559,8 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
         // s77rt TODO
     }
 
-    // s77rt (remove email lock)
-    if (accountingSection.menuItems.length > 0 && session?.email?.endsWith('@abdelhafidh.com')) {
+    // s77rt remove false condition after BE changes are live
+    if (accountingSection.menuItems.length > 0 && false) {
         typeMenuSections.push(accountingSection);
     }
 
@@ -1612,7 +1612,7 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
             return taskStatusOptions;
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
         default:
-            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS ? expenseReportStatusOptions : expenseStatusOptions; // s77rt (to check group by)
+            return groupBy === CONST.SEARCH.GROUP_BY.REPORTS || groupBy === CONST.SEARCH.GROUP_BY.MEMBERS ? expenseReportedStatusOptions : expenseStatusOptions;
     }
 }
 
