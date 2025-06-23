@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import type {ForwardedRef, MutableRefObject} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
@@ -115,7 +115,7 @@ function BaseTextInput(
     const isLabelActive = useRef(initialActiveLabel);
     const didScrollToEndRef = useRef(false);
 
-    useHtmlPaste(input as MutableRefObject<TextInput | null>, undefined, isMarkdownEnabled);
+    useHtmlPaste(input as RefObject<TextInput | null>, undefined, isMarkdownEnabled);
 
     // AutoFocus which only works on mount:
     useEffect(() => {
