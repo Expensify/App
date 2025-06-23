@@ -6542,12 +6542,7 @@ const translations = {
             part1: '与 交谈',
             part2: '审批人',
         },
-        globalCreateTooltip: {
-            part1: '创建费用',
-            part2: '，开始聊天，',
-            part3: '和更多。',
-            part4: '试试看！',
-        },
+        globalCreateTooltip: '<strong>创建费用</strong>，开始聊天，\n和更多。试试看!',
         GBRRBRChat: {
             part1: '您将在 🟢 上看到',
             part2: '采取的行动',

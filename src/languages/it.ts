@@ -6687,12 +6687,7 @@ const translations = {
             part1: 'Chatta con',
             part2: 'approvatori',
         },
-        globalCreateTooltip: {
-            part1: 'Crea spese',
-            part2: ', inizia a chattare,',
-            part3: 'e altro ancora.',
-            part4: 'Provalo!',
-        },
+        globalCreateTooltip: '<strong>Crea spese</strong>, inizia a chattare,\ne altro ancora. Provalo!',
         GBRRBRChat: {
             part1: 'Vedrai 🟢 su',
             part2: 'azioni da intraprendere',

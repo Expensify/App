@@ -142,11 +142,11 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             if (
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER &&
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION &&
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION &&
+                // tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION &&
+                // tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_DRIVE_CONFIRMATION &&
                 isModalVisible
             ) {
-                return false;
+                return true;
             }
 
             return tooltipConfig.shouldShow({
@@ -287,10 +287,10 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     />
                     <Text style={[styles.productTrainingTooltipText, styles.textWrap, styles.mw100]}>
                         {tooltip.content.map(({text, isBold}) => {
-                            const translatedText = translate(text);
+                            const translatedText = typeof text === 'string' ? translate(text) : text();
                             return (
                                 <Text
-                                    key={text}
+                                    key={typeof text === 'string' ? text : text.toString()}
                                     style={[styles.productTrainingTooltipText, isBold && styles.textBold]}
                                 >
                                     {translatedText}
