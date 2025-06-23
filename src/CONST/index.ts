@@ -189,12 +189,11 @@ const inviteAccountantTask: OnboardingTask = {
     description: ({workspaceMembersLink}) =>
         '*Invite your accountant* to collaborate on your workspace and manage your business expenses.\n' +
         '\n' +
-        '1. Click *Settings*.\n' +
-        '2. Go to *Workspaces*.\n' +
-        '3. Select your workspace.\n' +
-        '4. Click *Members*.\n' +
-        '5. Click *Invite member*.\n' +
-        "6. Enter your accountant's email address.\n" +
+        '1. Click *Workspaces*.\n' +
+        '2. Select your workspace.\n' +
+        '3. Click *Members*.\n' +
+        '4. Click *Invite member*.\n' +
+        "5. Enter your accountant's email address.\n" +
         '\n' +
         `[Invite your accountant now](${workspaceMembersLink}).`,
 };
