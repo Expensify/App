@@ -194,6 +194,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -245,6 +246,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -610,6 +612,7 @@ const translations = {
         workspacesTabTitle: 'Przestrzenie robocze',
         getTheApp: 'Pobierz aplikację',
         scanReceiptsOnTheGo: 'Skanuj paragony za pomocą telefonu',
+        headsUp: 'Uwaga!',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1107,6 +1110,7 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Zapłać ${formattedAmount} gdzie indziej` : `Zapłać gdzie indziej`),
         nextStep: 'Następne kroki',
         finished: 'Zakończono',
+        flip: 'Odwróć',
         sendInvoice: ({amount}: RequestAmountParams) => `Wyślij fakturę na kwotę ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Zatwierdź ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `dla ${comment}` : ''}`,
@@ -2360,6 +2364,13 @@ const translations = {
         time: 'Czas',
         clearAfter: 'Wyczyść po',
         whenClearStatus: 'Kiedy powinniśmy usunąć Twój status?',
+        vacationDelegate: 'Zastępca urlopowy',
+        setVacationDelegate: `Ustaw zastępcę urlopowego, który będzie zatwierdzał raporty w twoim imieniu podczas twojej nieobecności.`,
+        vacationDelegateError: 'Wystąpił błąd podczas aktualizacji twojego zastępcy urlopowego.',
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `jako zastępca urlopowy ${managerName}`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `do ${submittedToName} jako zastępca urlopowy ${vacationDelegateName}`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `Przydzielasz ${nameOrEmail} jako swojego zastępcę urlopowego. Osoba ta nie jest jeszcze członkiem wszystkich twoich przestrzeni roboczych. Jeśli zdecydujesz się kontynuować, zostanie wysłany e-mail do wszystkich administratorów twoich przestrzeni roboczych z prośbą o jej dodanie.`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Krok ${step}`;
