@@ -1426,6 +1426,7 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
             paddingTop: 15,
             paddingBottom: 8,
+            height: '100%',
         },
 
         textInputSuffixWrapper: {
