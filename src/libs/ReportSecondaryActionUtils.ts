@@ -20,6 +20,7 @@ import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransaction
 import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
+    canDeclineReportAction,
     canEditReportPolicy,
     canHoldUnholdReportAction,
     getTransactionDetails,
@@ -570,6 +571,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
 
+    if (canDeclineReportAction(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DECLINE);
+    }
+
     return options;
 }
 
@@ -593,6 +598,10 @@ function getSecondaryTransactionThreadActions(
 
     if (isDeleteAction(parentReport, [reportTransaction], reportActions ?? [])) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
+    }
+
+    if (canDeclineReportAction(parentReport, policy)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DECLINE);
     }
 
     return options;
