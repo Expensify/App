@@ -211,6 +211,22 @@ const reviewWorkspaceSettingsTask: OnboardingTask = {
         `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
 };
 
+const createReportTask: OnboardingTask = {
+    type: 'createReport',
+    autoCompleted: false,
+    mediaAttributes: {},
+    title: 'Create a report',
+    description:
+        'Here’s how to create a report:\n' +
+        '\n' +
+        '1. Click the green *+* button.\n' +
+        '2. Choose *Create report*.\n' +
+        '3. Click *Add expense*.\n' +
+        '4. Add your first expense.\n' +
+        '\n' +
+        'And you’re done!',
+};
+
 const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     tasks: [
@@ -5663,23 +5679,9 @@ const CONST = {
                 height: 960,
             },
             tasks: [
-                {
-                    type: 'createReport',
-                    autoCompleted: false,
-                    mediaAttributes: {},
-                    title: 'Create a report',
-                    description:
-                        'Here’s how to create a report:\n' +
-                        '\n' +
-                        '1. Click the green *+* button.\n' +
-                        '2. Choose *Create report*.\n' +
-                        '3. Click *Add expense*.\n' +
-                        '4. Add your first expense.\n' +
-                        '\n' +
-                        'And you’re done!',
-                },
-                testDriveAdminTask,
                 createWorkspaceTask,
+                testDriveAdminTask,
+                createReportTask,
                 setupCategoriesTask,
                 inviteAccountantTask,
                 reviewWorkspaceSettingsTask,
@@ -5727,17 +5729,7 @@ const CONST = {
         [onboardingChoices.ADMIN]: {
             message: "As an admin, learn how to manage your team's workspace and submit expenses yourself.",
             tasks: [
-                {
-                    type: 'reviewWorkspaceSettings',
-                    autoCompleted: false,
-                    mediaAttributes: {},
-                    title: ({workspaceSettingsLink}) => `Review your [workspace settings](${workspaceSettingsLink})`,
-                    description: ({workspaceSettingsLink}) =>
-                        "Here's how to review and update your workspace settings:\n" +
-                        '1. Click the settings tab.\n' +
-                        '2. Click *Workspaces* > [Your workspace].\n' +
-                        `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
-                },
+                reviewWorkspaceSettingsTask,
                 {
                     type: 'submitExpense',
                     autoCompleted: false,
