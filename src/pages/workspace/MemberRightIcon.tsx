@@ -22,7 +22,7 @@ export default function MemberRightIcon({role, owner, login}: MemberRightIconPro
         badgeText = 'common.auditor';
     }
     if (badgeText) {
-        return <Badge text={translate(badgeText as TranslationPaths)} />;
+        return <Badge text={translate(badgeText)} />;
     }
     return null;
 }
