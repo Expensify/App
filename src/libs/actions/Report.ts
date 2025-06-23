@@ -5671,7 +5671,7 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
     const optimisticPolicyExpenseChatReportID = membersChats.reportCreationData[submitterEmail].reportID;
     const optimisticPolicyExpenseChatCreatedReportActionID = membersChats.reportCreationData[submitterEmail].reportActionID;
 
-    if (!optimisticPolicyExpenseChatReportID || !optimisticPolicyExpenseChatCreatedReportActionID) {
+    if (!optimisticPolicyExpenseChatReportID) {
         return;
     }
 
