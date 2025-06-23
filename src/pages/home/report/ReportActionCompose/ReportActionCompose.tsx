@@ -43,6 +43,7 @@ import {
     canShowReportRecipientLocalTime,
     chatIncludesChronos,
     chatIncludesConcierge,
+    getParentReport,
     getReportRecipientAccountIDs,
     isAdminRoom,
     isAnnounceRoom,
@@ -220,6 +221,7 @@ function ReportActionCompose({
     const includesConcierge = useMemo(() => chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
+    const parentReport = useMemo(() => getParentReport(report), [report]);
     const shouldDisplayDualDropZone = useMemo(
         () =>
             !isChatRoom(report) &&
@@ -229,8 +231,9 @@ function ReportActionCompose({
             !isConciergeChatReport(report) &&
             !isInvoiceReport(report) &&
             !isGroupChat(report) &&
+            !isSettled(parentReport) &&
             !isSettled(report),
-        [report],
+        [report, parentReport],
     );
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const transactionID = useMemo(() => getTransactionID(reportID), [reportID]);

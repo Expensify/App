@@ -1447,6 +1447,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius,
+        margin: 2,
     }),
 
     /**

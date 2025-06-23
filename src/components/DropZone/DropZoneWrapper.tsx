@@ -1,4 +1,5 @@
 /* eslint-disable react-compiler/react-compiler */
+import type {ReactNode} from 'react';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 import useDragAndDrop from '@hooks/useDragAndDrop';
@@ -11,7 +12,7 @@ type DropZoneWrapperProps = {
     onDrop: (event: DragEvent) => void;
 
     /** Function to render the children */
-    children: React.FC<{isDraggingOver: boolean}>;
+    children: (props: {isDraggingOver: boolean}) => ReactNode;
 };
 
 function DropZoneWrapper({onDrop, children}: DropZoneWrapperProps) {
