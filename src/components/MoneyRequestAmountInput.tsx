@@ -363,7 +363,7 @@ function MoneyRequestAmountInput(
             style={props.inputStyle}
             containerStyle={props.containerStyle}
             prefixStyle={props.prefixStyle}
-            prefixContainerStyle={[props.prefixContainerStyle]}
+            prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             maxLength={maxLength}
             hideFocusedState={hideFocusedState}
