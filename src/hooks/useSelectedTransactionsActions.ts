@@ -1,6 +1,7 @@
 import {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -24,7 +25,6 @@ import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useLocalize from './useLocalize';
 import useReportIsArchived from './useReportIsArchived';
-import { PopoverMenuItem } from '@components/PopoverMenu';
 
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
 const HOLD = 'HOLD';
@@ -201,7 +201,7 @@ function useSelectedTransactionsActions({
             }
 
             return exportOptions;
-        }
+        };
 
         options.push({
             value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
@@ -267,6 +267,7 @@ function useSelectedTransactionsActions({
         showDeleteModal,
         isReportArchived,
         beginExportWithTemplate,
+        allTransactionsLength,
     ]);
 
     return {

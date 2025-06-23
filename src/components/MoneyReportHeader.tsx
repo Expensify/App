@@ -190,7 +190,7 @@ function MoneyReportHeader({
     const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
     const [isReopenWarningModalVisible, setIsReopenWarningModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
-    const [isExportModalVisible, setIsExportModalVisible] = useState(false);
+    const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
 
@@ -260,7 +260,7 @@ function MoneyReportHeader({
                 return;
             }
 
-            setIsExportModalVisible(true);
+            setIsExportWithTemplateModalVisible(true);
             queueExportSearchWithTemplate({
                 templateName,
                 templateType,
@@ -1259,8 +1259,8 @@ function MoneyReportHeader({
                 </View>
             </Modal>
             <ConfirmModal
-                onConfirm={() => setIsExportModalVisible(false)}
-                isVisible={isExportModalVisible}
+                onConfirm={() => setIsExportWithTemplateModalVisible(false)}
+                isVisible={isExportWithTemplateModalVisible}
                 title={translate('export.exportInProgress')}
                 prompt={translate('export.conciergeWillSend')}
                 confirmText={translate('common.buttonConfirm')}
