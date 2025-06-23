@@ -674,8 +674,8 @@ function MoneyRequestConfirmationList({
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
-                    maxLength={formattedTotalAmount.length}
-                    contentWidth={formattedTotalAmount.length * 8}
+                    maxLength={formattedTotalAmount.length + 1}
+                    contentWidth={(formattedTotalAmount.length + 1) * 8}
                     shouldApplyPaddingToContainer
                 />
             ),

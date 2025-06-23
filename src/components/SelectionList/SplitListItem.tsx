@@ -140,8 +140,8 @@ function SplitListItem<TItem extends ListItem>({
                             inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
                             containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                             touchableInputWrapperStyle={[styles.ml3]}
-                            maxLength={formattedOriginalAmount.length}
-                            contentWidth={formattedOriginalAmount.length * 8}
+                            maxLength={formattedOriginalAmount.length + 1}
+                            contentWidth={(formattedOriginalAmount.length + 1) * 8}
                             shouldApplyPaddingToContainer
                         />
                     </View>

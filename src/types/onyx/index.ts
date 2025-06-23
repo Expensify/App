@@ -32,7 +32,6 @@ import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
-import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
@@ -266,5 +265,4 @@ export type {
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
     VacationDelegate,
-    HybridApp,
 };
