@@ -37,21 +37,34 @@ If your company’s business bank account is located in Australia, you can enabl
 
 ---
 
-# Step 2: Submit Bank Details and Required Documentation
+# Step 2: Submit Bank and Business Information
 
-1. Enter the business bank account details:
-     - BSB number
-     - Account number
-     - Account name
-2. Upload your latest bank statement and click **Next** to confirm the account details.
-3. On the next screen, upload the following documents:
-     - Address verification document
-     - Proof of Beneficial Ownership
-     - Certified ID & Proof of Address for all signatories
-     - Signed entity ownership chart (PDF/PNG/JPEG)
-     - If you are not a Director/ Senior officer, Expensify will require the email addresses of two Directors or Senior officers
-4. Once you've agreed to the terms, Expensify’s Compliance Team will review your submission.
-5. You’ll receive a message from our support team if any additional documentation is needed.
+1. **Enter Business Bank Account Details**
+   * Account name
+   * BSB
+   * Account number
+2. **Upload a Recent Bank Statement**
+   * The file must match the entered bank details
+3. **Enter Company Information**
+   * Address
+   * Phone number
+   * ABN (11 digits) or ACN (9 digits)
+   * Incorporation country and state
+4. **Complete Business Details**
+   * Incorporation type
+   * Business category
+   * Annual payment volume (AUD)
+5. **Add Beneficial Owner Information**
+   * Required for anyone owning 25% or more
+   * Full name, birthdate, residential address, ownership %
+   * Upload signed entity ownership chart
+6. **Add Director Information**
+   * If any beneficial owner is also a director, their info is reused automatically.
+   * Otherwise, enter the name and email address of the Director or Senior Officer.
+   * They’ll receive a message prompting them to securely enter their personal information in the setup flow.
+   * Once the Director has entered their info and uploaded ID and proof of address, the submission can proceed.
+
+**Note:** For global reimbursements, Expensify requires information from at least two Directors or Senior Officers for Australian companies. 
 
 ---
 
@@ -77,7 +90,7 @@ To begin reimbursing:
 
 # FAQ
 
-## How do employees add their deposit-only accounts? 
+## How do members add their deposit-only accounts? 
 
 An employee can add their deposit accounts by doing the following:
 1. Navigate to **Account > Wallet**.
