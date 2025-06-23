@@ -18,13 +18,21 @@ function sanitizeString(str: string): string {
  *  Check if the string would be empty if all invisible characters were removed.
  */
 function isEmptyString(value: string): boolean {
+    // We implemented a custom emoji on this Unicode Private Use Area (PUA) code point
+    // so we should not remove it.
+    // Temporarily replace \uE100 with a placeholder
+    const PLACEHOLDER = '<<KEEP_E100>>';
+    let transformed = value.replace(/\uE100/g, PLACEHOLDER);
+
     // \p{C} matches all 'Other' characters
     // \p{Z} matches all separators (spaces etc.)
     // Source: http://www.unicode.org/reports/tr18/#General_Category_Property
-    let transformed = value.replace(CONST.REGEX.INVISIBLE_CHARACTERS_GROUPS, '');
+    transformed = transformed.replace(CONST.REGEX.INVISIBLE_CHARACTERS_GROUPS, '');
 
     // Remove other invisible characters that are not in the above unicode categories
     transformed = transformed.replace(CONST.REGEX.OTHER_INVISIBLE_CHARACTERS, '');
+
+    transformed = transformed.replace(new RegExp(PLACEHOLDER, 'g'), '\uE100');
 
     // Check if after removing invisible characters the string is empty
     return transformed === '';
@@ -35,6 +43,12 @@ function isEmptyString(value: string): boolean {
  */
 function removeInvisibleCharacters(value: string): string {
     let result = value;
+
+    // We implemented a custom emoji on this Unicode Private Use Area (PUA) code point
+    // so we should not remove it.
+    // Temporarily replace \uE100 with a placeholder
+    const PLACEHOLDER = '<<KEEP_E100>>';
+    result = result.replace(/\uE100/g, PLACEHOLDER);
 
     // Remove spaces:
     // - \u200B: zero-width space
@@ -59,6 +73,9 @@ function removeInvisibleCharacters(value: string): string {
 
     // Remove all characters from the 'Separator' (Z) category except for Space Separator (Zs)
     result = result.replace(/[\p{Zl}\p{Zp}]/gu, '');
+
+    // Restore \uE100 from placeholder
+    result = result.replace(new RegExp(PLACEHOLDER, 'g'), '\uE100');
 
     // If the result consist of only invisible characters, return an empty string
     if (isEmptyString(result)) {

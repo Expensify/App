@@ -661,6 +661,24 @@ function getProcessedText(processedTextArray: TextWithEmoji[], style: StyleProp<
     );
 }
 
+function containsCustomEmoji(text?: string): boolean {
+    if (!text) {
+        return false;
+    }
+
+    const privateUseAreaRegex = CONST.REGEX.PRIVATE_USER_AREA;
+    return privateUseAreaRegex.test(text);
+}
+
+function containsOnlyCustomEmoji(text?: string): boolean {
+    if (!text) {
+        return false;
+    }
+
+    const privateUseAreaRegex = CONST.REGEX.ONLY_PRIVATE_USER_AREA;
+    return privateUseAreaRegex.test(text);
+}
+
 export type {HeaderIndices, EmojiPickerList, EmojiPickerListItem};
 
 export {
@@ -686,4 +704,6 @@ export {
     getRemovedSkinToneEmoji,
     getSpacersIndexes,
     splitTextWithEmojis,
+    containsCustomEmoji,
+    containsOnlyCustomEmoji,
 };
