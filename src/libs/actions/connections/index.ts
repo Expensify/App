@@ -14,7 +14,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
-function removePolicyConnection(policyID: string, connectionName: PolicyConnectionName, policy: Policy) {
+function removePolicyConnection(connectionName: PolicyConnectionName, policy: Policy) {
+    const policyID = policy.id;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const optimisticData: OnyxUpdate[] = [
