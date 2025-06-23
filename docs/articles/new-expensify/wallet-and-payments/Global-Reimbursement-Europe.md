@@ -17,36 +17,59 @@ European companies can enable global reimbursements to issue payments directly. 
 
 ---
 
-## EU Document Requirements
+## Required Documents (Europe)
 
+To comply with financial regulations, the following documents are needed:
 * ✅ Address verification document
-* ✅ Bank statement for direct debit setup
-* ✅ Proof of Beneficial Ownership
-* ✅ Certified ID & Proof of Address for all signatories
+* ✅ Bank statement for direct debit
+* ✅ Proof of beneficial ownership
+* ✅ Certified copies of ID and proof of address (Jersey only)
+* ✅ Direct Debit Authorization Mandate
 
 ---
 
-# Step 1: Connect Your European Bank Account
+# Step 1: Set Your Workspace Currency and Enable Payments
 
-1. In the left-hand menu, select **Workspaces > [Workspace Name] > Overview**.
-2. Under **Default currency**, select **EUR €**.
-3. From the workspace settings left-hand menu, click **Workflows > enable Make or track payments**
-4. Under **Connect bank account**, select your country from the list of eligible European countries.
-5. Confirm the selected country and ensure the currency is EUR.
-6. Click **Confirm** to proceed.
+1. From the left-hand menu, go to **Workspaces > [Workspace Name] > Overview**.
+2. Under **Default currency**, choose **EUR €**.
+3. Return to the left-hand menu and select **Workflows > Make or Track Payments**.
+4. Click **Connect bank account**, then confirm your **currency and country** (choose a supported European country – EUR €).
+5. Click **Confirm** to proceed.
 
 ---
 
-# Step 2: Submit Bank Details and Required Documentation
+# Step 2: Submit Bank and Business Information
 
-1. Enter your business bank account details based on the selected country’s required fields.
-2. Upload your latest bank statement and click **Next** to confirm the account details.
-3. On the next screen, upload the following documents:
-   * Address verification document
-   * Proof of Beneficial Ownership
-   * Certified ID & Proof of Address for all signatories
-4. Once you've agreed to the terms, Expensify’s Compliance Team will review your submission.
-5. You’ll receive a message from our support team if any additional documentation is needed.
+1. **Enter Business Bank Account Details**
+   * Bank account details will vary based on the selected country
+   * Upload a recent bank statement (the file must match the entered bank details).
+2. **Enter Company Information**
+   * Address
+   * Phone number
+   * Company registration number
+   * Incorporation country
+3. **Complete Business Details**
+   * Incorporation type
+   * Business category
+   * Annual payment volume (EUR)
+4. **Add Beneficial Owner Information** 
+   * Required for each owner with 25% or more
+   * Full name, birthdate, residential address, ownership %
+5. **Add Director Information** Expensify must verify that the signer is a Director or Senior Officer.
+   - If **you are** a Director/Senior Officer:
+     - Provide your full legal name, address, and ID.
+     - Upload proof of address and a valid form of identification (PDF, PNG, or JPEG only).
+   - If **you are not** a Director/Senior Officer:
+     - Enter details for someone who is.
+     - They must also provide ID and proof of address.
+6. Once you've agreed to the terms, Expensify’s Compliance Team will review your submission.
+7. You’ll receive a message from our support team if any additional documentation is needed.
+
+## Acceptable Documents
+
+* Government-issued photo ID
+* Utility bill or bank statement (for proof of address)
+* File types: PDF, PNG, JPEG
 
 ---
 
@@ -60,19 +83,18 @@ European companies can enable global reimbursements to issue payments directly. 
 
 # Step 4: Start Sending Global Reimbursements
 
-⏳**Timeline:** After submitting all required documentation, your account can be approved within 2–4 weeks. Once verified, you can start reimbursing within 2 business days.
+⏳**Timeline:** After submitting all required documentation, your account can be approved within 2–6 weeks. Once verified, you can start reimbursing within 2 business days.
 
 To begin reimbursing:
-
 1. In the left-hand menu, go to **Workspaces > [Workspace Name] > Make or track payments**.
-2. Set the verified EUR account as the default reimbursement method.
+2. Set the **verified EUR bank account** as the default reimbursement method.
 3. Ask employees to add their personal deposit account.
 
 ---
 
 # FAQ
 
-## How do employees add their deposit-only accounts?
+## How do members add their deposit-only accounts?
 
 An employee can add their deposit accounts by doing the following:
 
