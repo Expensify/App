@@ -7,7 +7,7 @@ import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 import ConfirmModal from '@components/ConfirmModal';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -65,10 +65,8 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
-    const isActingAsDelegate = !!userAccount?.delegatedAccess?.delegate || false;
+    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -191,7 +189,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             return;
         }
         if (isActingAsDelegate) {
-            setIsNoDelegateAccessMenuVisible(true);
+            showDelegateNoAccessModal();
             return;
         }
         if (isAccountLocked) {
@@ -578,7 +576,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                         ref={buttonRef as ForwardedRef<View>}
                                                         onPress={() => {
                                                             if (isActingAsDelegate) {
-                                                                setIsNoDelegateAccessMenuVisible(true);
+                                                                showDelegateNoAccessModal();
                                                                 return;
                                                             }
                                                             if (isAccountLocked) {
@@ -650,7 +648,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                     onPress={() => {
                                         if (isActingAsDelegate) {
                                             closeModal(() => {
-                                                setIsNoDelegateAccessMenuVisible(true);
+                                                showDelegateNoAccessModal();
                                             });
                                             return;
                                         }
@@ -671,7 +669,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                 onPress={() => {
                                     if (isActingAsDelegate) {
                                         closeModal(() => {
-                                            setIsNoDelegateAccessMenuVisible(true);
+                                            showDelegateNoAccessModal();
                                         });
                                         return;
                                     }
@@ -761,10 +759,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 onItemSelected={(method: string) => addPaymentMethodTypePressed(method)}
                 anchorRef={addPaymentMethodAnchorRef}
                 shouldShowPersonalBankAccountOption
-            />
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
             />
         </>
     );
