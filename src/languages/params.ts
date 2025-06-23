@@ -165,6 +165,8 @@ type PayerPaidParams = {payer: string};
 
 type PayerSettledParams = {amount: number | string};
 
+type CreateExpensesParams = {expensesNumber: number};
+
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type CanceledRequestParams = {amount: string; submitterDisplayName: string};
@@ -216,8 +218,6 @@ type UntilTimeParams = {time: string};
 type StepCounterParams = {step: number; total?: number; text?: string};
 
 type UserIsAlreadyMemberParams = {login: string; name: string};
-
-type GoToRoomParams = {roomName: string};
 
 type NewWorkspaceNameParams = {userName: string; workspaceNumber?: number};
 
@@ -555,6 +555,10 @@ type DelegateRoleParams = {role: DelegateRole};
 
 type DelegatorParams = {delegator: string};
 
+type VacationDelegateParams = {nameOrEmail: string};
+
+type SubmittedToVacationDelegateParams = {submittedToName: string; vacationDelegateName: string};
+
 type RoleNamesParams = {role: string};
 
 type AssignCardParams = {
@@ -765,7 +769,12 @@ type TravelTypeParams = {
     id?: string;
 };
 
+type ContactMethodsRouteParams = {
+    contactMethodsRoute: string;
+};
+
 export type {
+    ContactMethodsRouteParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
@@ -790,6 +799,7 @@ export type {
     SpreadCategoriesParams,
     DelegateRoleParams,
     DelegatorParams,
+    VacationDelegateParams,
     ReconciliationWorksParams,
     LastSyncAccountingParams,
     SyncStageNameConnectionsParams,
@@ -857,7 +867,7 @@ export type {
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
-    GoToRoomParams,
+    SubmittedToVacationDelegateParams,
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
@@ -1028,6 +1038,7 @@ export type {
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     SubscriptionSettingsSummaryParams,
     ReviewParams,
+    CreateExpensesParams,
     CurrencyInputDisabledTextParams,
     EmployeeInviteMessageParams,
     FlightParams,

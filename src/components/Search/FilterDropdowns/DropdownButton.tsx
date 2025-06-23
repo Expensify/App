@@ -1,5 +1,7 @@
+import type {ReactNode} from 'react';
 import React, {useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -10,6 +12,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type PopoverComponentProps = {
     closeOverlay: () => void;
@@ -26,7 +29,7 @@ type DropdownButtonProps = {
     viewportOffsetTop: number;
 
     /** The component to render in the popover */
-    PopoverComponent: React.FC<PopoverComponentProps>;
+    PopoverComponent: (props: PopoverComponentProps) => ReactNode;
 };
 
 const PADDING_MODAL = 8;
@@ -51,18 +54,26 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
         vertical: 0,
     });
 
+    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.willAlertModalBecomeVisible, canBeMissing: true});
+
+    const onTriggerLayout = () => {
+        triggerRef.current?.measureInWindow((x, y, _, height) => {
+            setPopoverTriggerPosition({
+                horizontal: x,
+                vertical: y + height + PADDING_MODAL,
+            });
+        });
+    };
+
     /**
      * Toggle the overlay between open & closed, and re-calculate the
      * position of the trigger
      */
     const toggleOverlay = () => {
         setIsOverlayVisible((previousValue) => {
-            triggerRef.current?.measureInWindow((x, y, _, height) => {
-                setPopoverTriggerPosition({
-                    horizontal: x,
-                    vertical: y + height + PADDING_MODAL,
-                });
-            });
+            if (!previousValue && willAlertModalBecomeVisible) {
+                return false;
+            }
 
             return !previousValue;
         });
@@ -96,6 +107,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                 ref={triggerRef}
                 innerStyles={[isOverlayVisible && styles.buttonHoveredBG, {maxWidth: 256}]}
                 onPress={toggleOverlay}
+                onLayout={onTriggerLayout}
             >
                 <CaretWrapper style={[styles.flex1, styles.mw100]}>
                     <Text
@@ -128,7 +140,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
             >
-                <PopoverComponent closeOverlay={toggleOverlay} />
+                {PopoverComponent({closeOverlay: toggleOverlay})}
             </PopoverWithMeasuredContent>
         </>
     );
