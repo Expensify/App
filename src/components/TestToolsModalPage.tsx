@@ -11,6 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Button from './Button';
 import ClientSideLoggingToolMenu from './ClientSideLoggingToolMenu';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ProfilingToolMenu from './ProfilingToolMenu';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import ScrollView from './ScrollView';
@@ -37,27 +38,35 @@ function TestToolsModalPage() {
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[{maxHeight}, styles.h100, styles.defaultModalContainer, safeAreaPaddingBottomStyle]}>
-                    <ScrollView style={[styles.flex1, styles.flexGrow1, styles.ph5]}>
-                        <Text
-                            style={[styles.textLabelSupporting, styles.mt5, styles.mb3]}
-                            numberOfLines={1}
+                    <ScrollView
+                        style={[styles.flex1, styles.ph5]}
+                        contentContainerStyle={styles.flexGrow1}
+                    >
+                        <PressableWithoutFeedback
+                            accessible={false}
+                            style={[styles.cursorDefault]}
                         >
-                            {translate('initialSettingsPage.troubleshoot.releaseOptions')}
-                        </Text>
-                        {shouldShowProfileTool() && <ProfilingToolMenu />}
-                        <ClientSideLoggingToolMenu />
-                        {!!shouldStoreLogs && (
-                            <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
-                                <Button
-                                    small
-                                    text={translate('initialSettingsPage.debugConsole.viewConsole')}
-                                    onPress={() => {
-                                        Navigation.navigate(route);
-                                    }}
-                                />
-                            </TestToolRow>
-                        )}
-                        <TestToolMenu />
+                            <Text
+                                style={[styles.textLabelSupporting, styles.mt5, styles.mb3]}
+                                numberOfLines={1}
+                            >
+                                {translate('initialSettingsPage.troubleshoot.releaseOptions')}
+                            </Text>
+                            {shouldShowProfileTool() && <ProfilingToolMenu />}
+                            <ClientSideLoggingToolMenu />
+                            {!!shouldStoreLogs && (
+                                <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
+                                    <Button
+                                        small
+                                        text={translate('initialSettingsPage.debugConsole.viewConsole')}
+                                        onPress={() => {
+                                            Navigation.navigate(route);
+                                        }}
+                                    />
+                                </TestToolRow>
+                            )}
+                            <TestToolMenu />
+                        </PressableWithoutFeedback>
                     </ScrollView>
                 </View>
             )}
