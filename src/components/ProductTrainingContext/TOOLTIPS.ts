@@ -139,7 +139,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(SCAN_TEST_TOOLTIP),
         name: SCAN_TEST_TOOLTIP,
         priority: 900,
-        shouldShow: ({isUserInPaidPolicy}) => !isUserInPaidPolicy,
+        shouldShow: ({isUserInPaidPolicy, hasBeenAddedToNudgeMigration}) => !isUserInPaidPolicy && !hasBeenAddedToNudgeMigration,
         shouldRenderActionButtons: true,
     },
     [SCAN_TEST_TOOLTIP_MANAGER]: {
@@ -151,7 +151,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_TOOLTIP_MANAGER, isDismissedUsingCloseButton),
         name: SCAN_TEST_TOOLTIP_MANAGER,
         priority: 1000,
-        shouldShow: () => true,
+        shouldShow: ({hasBeenAddedToNudgeMigration}) => !hasBeenAddedToNudgeMigration,
     },
     [SCAN_TEST_CONFIRMATION]: {
         content: [
@@ -162,7 +162,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_CONFIRMATION, isDismissedUsingCloseButton),
         name: SCAN_TEST_CONFIRMATION,
         priority: 1100,
-        shouldShow: () => true,
+        shouldShow: ({hasBeenAddedToNudgeMigration}) => !hasBeenAddedToNudgeMigration,
     },
     [OUTSTANDING_FILTER]: {
         content: [
