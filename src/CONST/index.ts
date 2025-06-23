@@ -5535,7 +5535,7 @@ const CONST = {
                         [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
                     title: ({integrationName, workspaceAccountingLink}) =>
-                        `Connect ${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'to'}[${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other && 'your'} ${integrationName}](${workspaceAccountingLink})`,
+                        `Connect ${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'to'} [${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other ? 'your' : ''} ${integrationName}](${workspaceAccountingLink})`,
                     description: ({integrationName, workspaceAccountingLink}) =>
                         `Connect ${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other ? 'your' : 'to'} ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
                         '\n' +
