@@ -330,6 +330,7 @@ const translations = {
         workspaces: 'ワークスペース',
         inbox: '受信トレイ',
         group: 'グループ',
+        success: '成功',
         profile: 'プロフィール',
         referral: '紹介',
         payments: '支払い',
@@ -5975,7 +5976,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: '物理カードの紛失/破損を報告する',
         screenTitle: '成績表が紛失または損傷しました',
         nextButtonLabel: '次へ',
         reasonTitle: 'なぜ新しいカードが必要なのですか？',
@@ -5989,6 +5989,8 @@ const translations = {
         shipNewCardButton: '新しいカードを発送する',
         addressError: '住所が必要です',
         reasonError: '理由が必要です',
+        successTitle: '新しいカードが発送中です！',
+        successDescription: '数営業日で届きます。届いたら有効化する必要があります。それまでは仮想カードを使用できます。',
     },
     eReceipt: {
         guaranteed: '保証付きeレシート',
