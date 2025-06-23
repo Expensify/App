@@ -5598,7 +5598,14 @@ const translations = {
                 title: 'Brak wydatków do eksportu',
                 subtitle: 'Czas się zrelaksować, dobra robota.',
             },
+            emptyUnapprovedResults: {
+                title: 'Brak wydatków do zatwierdzenia',
+                subtitle: 'Zero wydatków. Maksymalny relaks. Dobra robota!',
+            },
         },
+        unapproved: 'Não aprovado',
+        unapprovedCash: 'Dinheiro não aprovado',
+        unapprovedCompanyCards: 'Cartões de empresa não aprovados',
         saveSearch: 'Zapisz wyszukiwanie',
         deleteSavedSearch: 'Usuń zapisaną wyszukiwarkę',
         deleteSavedSearchConfirm: 'Czy na pewno chcesz usunąć to wyszukiwanie?',
@@ -5619,6 +5626,10 @@ const translations = {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Before ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `After ${date ?? ''}`,
                 on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
+                presets: {
+                    [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'No mês passado',
+                },
             },
             status: 'Status',
             keyword: 'Słowo kluczowe',
@@ -5651,7 +5662,12 @@ const translations = {
             posted: 'Data opublikowania',
             billable: 'Podlegające fakturowaniu',
             reimbursable: 'Podlegające zwrotowi',
+            groupBy: {
+                reports: 'Relatório',
+                members: 'Membro',
+            },
         },
+        groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Ten raport nie zawiera wydatków.',
             emptyStateSubtitle: 'Możesz dodać wydatki do tego raportu, używając przycisku powyżej.',

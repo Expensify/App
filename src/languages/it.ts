@@ -5627,7 +5627,14 @@ const translations = {
                 title: 'Nessuna spesa da esportare',
                 subtitle: 'È ora di rilassarsi, bel lavoro.',
             },
+            emptyUnapprovedResults: {
+                title: 'Nessuna spesa da approvare',
+                subtitle: 'Zero spese. Massimo relax. Ben fatto!',
+            },
         },
+        unapproved: 'Non approvato',
+        unapprovedCash: 'Contanti non approvati',
+        unapprovedCompanyCards: 'Carte aziendali non approvate',
         saveSearch: 'Salva ricerca',
         deleteSavedSearch: 'Elimina ricerca salvata',
         deleteSavedSearchConfirm: 'Sei sicuro di voler eliminare questa ricerca?',
@@ -5648,6 +5655,10 @@ const translations = {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Prima di ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `After ${date ?? ''}`,
                 on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
+                presets: {
+                    [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Mai',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Ultimo mese',
+                },
             },
             status: 'Stato',
             keyword: 'Parola chiave',
@@ -5680,7 +5691,12 @@ const translations = {
             posted: 'Data di pubblicazione',
             billable: 'Fatturabile',
             reimbursable: 'Rimborsabile',
+            groupBy: {
+                reports: 'Rapporto',
+                members: 'Membro',
+            },
         },
+        groupBy: 'Gruppo per',
         moneyRequestReport: {
             emptyStateTitle: 'Questo report non ha spese.',
             emptyStateSubtitle: 'Puoi aggiungere spese a questo rapporto utilizzando il pulsante sopra.',

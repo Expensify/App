@@ -5507,7 +5507,14 @@ const translations = {
                 title: '没有费用可导出',
                 subtitle: '是时候放松一下了，干得好。',
             },
+            emptyUnapprovedResults: {
+                title: '没有费用需要批准',
+                subtitle: '零报销。最大限度地放松。干得好！',
+            },
         },
+        unapproved: '未经批准',
+        unapprovedCash: '未经批准的现金',
+        unapprovedCompanyCards: '未经批准的公司卡',
         saveSearch: '保存搜索',
         deleteSavedSearch: '删除已保存的搜索',
         deleteSavedSearchConfirm: '您确定要删除此搜索吗？',
@@ -5528,6 +5535,10 @@ const translations = {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Before ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `After ${date ?? ''}`,
                 on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
+                presets: {
+                    [CONST.SEARCH.DATE_PRESETS.NEVER]: '从未',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '上个月',
+                },
             },
             status: '状态',
             keyword: '关键词',
@@ -5560,7 +5571,12 @@ const translations = {
             posted: '发布日期',
             billable: '可计费的',
             reimbursable: '可报销的',
+            groupBy: {
+                reports: '报告',
+                members: '成员',
+            },
         },
+        groupBy: '组别',
         moneyRequestReport: {
             emptyStateTitle: '此报告没有费用。',
             emptyStateSubtitle: '您可以使用上面的按钮将费用添加到此报告中。',

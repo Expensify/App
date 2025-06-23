@@ -5613,7 +5613,14 @@ const translations = {
                 title: 'Geen uitgaven om te exporteren',
                 subtitle: 'Tijd om het rustig aan te doen, goed werk.',
             },
+            emptyUnapprovedResults: {
+                title: 'Geen uitgaven om goed te keuren',
+                subtitle: 'Nul uitgaven. Maximale ontspanning. Goed gedaan!',
+            },
         },
+        unapproved: 'Niet goedgekeurd',
+        unapprovedCash: 'Niet goedgekeurd contant geld',
+        unapprovedCompanyCards: 'Ongoedgekeurde bedrijfskaarten',
         saveSearch: 'Zoekopdracht opslaan',
         deleteSavedSearch: 'Verwijder opgeslagen zoekopdracht',
         deleteSavedSearchConfirm: 'Weet je zeker dat je deze zoekopdracht wilt verwijderen?',
@@ -5634,6 +5641,10 @@ const translations = {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Voor ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `Na ${date ?? ''}`,
                 on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
+                presets: {
+                    [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nooit',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Laatste maand',
+                },
             },
             status: 'Status',
             keyword: 'Trefwoord',
@@ -5666,7 +5677,12 @@ const translations = {
             posted: 'Geplaatste datum',
             billable: 'Factureerbaar',
             reimbursable: 'Vergoedbaar',
+            groupBy: {
+                reports: 'Verslag',
+                members: 'Lid',
+            },
         },
+        groupBy: 'Groep per',
         moneyRequestReport: {
             emptyStateTitle: 'Dit rapport heeft geen uitgaven.',
             emptyStateSubtitle: 'Je kunt uitgaven aan dit rapport toevoegen met de knop hierboven.',

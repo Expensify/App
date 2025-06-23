@@ -5571,7 +5571,14 @@ const translations = {
                 title: 'エクスポートする経費はありません',
                 subtitle: 'ゆっくりする時間です。お疲れ様でした。',
             },
+            emptyUnapprovedResults: {
+                title: '承認する経費はありません',
+                subtitle: '経費ゼロ。最大限のリラックス。よくやった！',
+            },
         },
+        unapproved: '未承認',
+        unapprovedCash: '未承認現金',
+        unapprovedCompanyCards: '未承認の社用カード',
         saveSearch: '検索を保存',
         deleteSavedSearch: '保存された検索を削除',
         deleteSavedSearchConfirm: 'この検索を削除してもよろしいですか？',
@@ -5592,6 +5599,10 @@ const translations = {
                 before: ({date}: OptionalParam<DateParams> = {}) => `${date ?? ''}の前に`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `After ${date ?? ''}`,
                 on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
+                presets: {
+                    [CONST.SEARCH.DATE_PRESETS.NEVER]: '未承認',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
+                },
             },
             status: 'ステータス',
             keyword: 'キーワード',
@@ -5624,7 +5635,12 @@ const translations = {
             posted: '投稿日',
             billable: 'ビラブル',
             reimbursable: '払い戻し可能',
+            groupBy: {
+                reports: '報告',
+                members: 'メンバー',
+            },
         },
+        groupBy: 'グループ',
         moneyRequestReport: {
             emptyStateTitle: 'このレポートには経費がありません。',
             emptyStateSubtitle: 'このレポートに経費を追加するには、上のボタンを使用してください。',
