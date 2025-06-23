@@ -6614,7 +6614,7 @@ const translations = {
             part1: '保存した検索の名前を変更する',
             part2: 'ここにいます！',
         },
-        bottomNavInboxTooltip: '何を確認しますか？ <strong>あなたの注意が必要です</strong> および <strong>経費についてチャットする。</strong>',
+        bottomNavInboxTooltip: '何を確認しますか？ <strong>あなたの注意が必要です</strong>\nおよび <strong>経費についてチャットする。</strong>',
         workspaceChatTooltip: {
             part1: 'とチャット',
             part2: '承認者',

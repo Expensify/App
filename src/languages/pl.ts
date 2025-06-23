@@ -6646,7 +6646,7 @@ const translations = {
             part1: 'Zmień nazwę zapisanych wyszukiwań',
             part2: 'tutaj!',
         },
-        bottomNavInboxTooltip: 'Sprawdź co <strong>wymaga Twojej uwagi</strong> i <strong>rozmowa o wydatkach.</strong>',
+        bottomNavInboxTooltip: 'Sprawdź co <strong>wymaga Twojej uwagi</strong>\ni <strong>rozmowa o wydatkach.</strong>',
         workspaceChatTooltip: {
             part1: 'Czat z',
             part2: 'zatwierdzający',
