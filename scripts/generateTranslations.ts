@@ -81,8 +81,14 @@ class TranslationGenerator {
      */
     private readonly translator: Translator;
 
+    /**
+     * Ref to use for existing translations.
+     */
     private readonly compareRef: string;
 
+    /**
+     * Should we print verbose logs?
+     */
     private readonly verbose: boolean;
 
     constructor(config: {targetLanguages: TranslationTargetLocale[]; languagesDir: string; sourceFile: string; translator: Translator; compareRef: string; verbose: boolean}) {
@@ -97,7 +103,6 @@ class TranslationGenerator {
 
     public async generateTranslations(): Promise<void> {
         const promisePool = new PromisePool();
-
         for (const targetLanguage of this.targetLanguages) {
             // Extract strings to translate
             const stringsToTranslate = new Map<number, StringWithContext>();
