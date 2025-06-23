@@ -73,7 +73,18 @@ To comply with financial regulations, the following documents are needed:
 
 ---
 
-# Step 3: Confirm Test Transactions
+# Step 3: Sign Direct Debit Authorization Mandate
+
+**This is a signed document authorizing a client’s bank to pull payments via direct debit:**
+
+1. Expensify will send you a Direct Debit Authorization form to sign.
+2. Send the signed authorization form to your bank.
+3. Return the signed authorization form to Expensify.
+4. Once your bank confirms the bank account is set up for direct debits (typically takes 10 to 12 business days to complete), reach out to Expensify support letting us know that's complete.
+
+---
+
+# Step 4: Confirm Test Transactions
 
 1. Expensify will send test deposits to your bank account. Once you see those transactions, contact Concierge support to confirm that you received them.
 2. After you confirm the receipt of those test transactions, Expensify will complete the bank account verification.
@@ -81,7 +92,7 @@ To comply with financial regulations, the following documents are needed:
 
 ---
 
-# Step 4: Start Sending Global Reimbursements
+# Step 5: Start Sending Global Reimbursements
 
 ⏳**Timeline:** After submitting all required documentation, your account can be approved within 2–6 weeks. Once verified, you can start reimbursing within 2 business days.
 
