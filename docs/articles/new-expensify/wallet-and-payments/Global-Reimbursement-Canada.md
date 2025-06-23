@@ -46,11 +46,11 @@ To comply with financial regulations, the following documents are needed:
    * Account number
 2. **Upload a Recent Bank Statement**
    * The file must match the entered bank details
-   * Accepted formats: PDF, PNG, JPEG
 3. **Enter Company Information**
-   * Address, phone number
+   * Address
+   * Phone number
    * Business Number (BN), 9 digits (e.g., 123456789)
-   * Country and province are pre-filled
+   * Incorporation country and province 
 4. **Complete Business Details**
    * Incorporation country and province
    * Incorporation type
