@@ -25,7 +25,7 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onCheckboxPress, isDisabled, canSelectMultiple}: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
 
-    // s77rt add total cell,  action cell and collpase/expand button
+    // s77rt add total cell, action cell and collapse/expand button
 
     return (
         <View>
