@@ -3,7 +3,7 @@ import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import {handleMissingOnyxUpdates} from './OnyxUpdateManager';
-import * as OnyxUpdates from './OnyxUpdates';
+import {doesClientNeedToBeUpdated, apply as onyxApply, saveUpdateInformation} from './OnyxUpdates';
 
 type ApplyOnyxUpdatesReliablyOptions = {
     clientLastUpdateID?: number;
@@ -30,7 +30,7 @@ export default function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer,
         if (shouldRunSync) {
             handleMissingOnyxUpdates(updates, clientLastUpdateID);
         } else {
-            OnyxUpdates.saveUpdateInformation(updates);
+            saveUpdateInformation(updates);
         }
     };
 
@@ -42,8 +42,8 @@ export default function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer,
     }
 
     const previousUpdateID = Number(updates.previousUpdateID) ?? CONST.DEFAULT_NUMBER_ID;
-    if (!OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID})) {
-        OnyxUpdates.apply(updates);
+    if (!doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID})) {
+        onyxApply(updates);
         return;
     }
 
