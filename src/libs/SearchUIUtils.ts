@@ -1359,7 +1359,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.DONE],
+                        action: CONST.SEARCH.ACTION.PAY,
                         payer: session.accountID?.toString(),
                     });
                     return queryString;
@@ -1380,8 +1380,8 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                        action: CONST.SEARCH.ACTION.EXPORT,
                         exporter: [`${session.accountID}`],
-                        status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.PAID, CONST.SEARCH.STATUS.EXPENSE.DONE],
                         exportedOn: CONST.SEARCH.NEVER,
                     });
                     return queryString;
