@@ -5663,7 +5663,21 @@ const CONST = {
                 height: 960,
             },
             tasks: [
-                createWorkspaceTask,
+                {
+                    type: 'createReport',
+                    autoCompleted: false,
+                    mediaAttributes: {},
+                    title: 'Create a report',
+                    description:
+                        'Here’s how to create a report:\n' +
+                        '\n' +
+                        '1. Click the green *+* button.\n' +
+                        '2. Choose *Create report*.\n' +
+                        '3. Click *Add expense*.\n' +
+                        '4. Add your first expense.\n' +
+                        '\n' +
+                        'And you’re done!',
+                },
                 testDriveAdminTask,
                 createWorkspaceTask,
                 setupCategoriesTask,
