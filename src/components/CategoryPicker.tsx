@@ -1,9 +1,9 @@
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
 import type {Category} from '@libs/CategoryOptionListUtils';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';

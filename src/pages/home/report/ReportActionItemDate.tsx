@@ -1,7 +1,7 @@
 import React, {memo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
 

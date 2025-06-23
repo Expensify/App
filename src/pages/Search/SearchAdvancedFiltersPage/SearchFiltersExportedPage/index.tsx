@@ -1,5 +1,5 @@
 import React, {useCallback, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';

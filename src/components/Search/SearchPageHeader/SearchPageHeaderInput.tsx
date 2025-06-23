@@ -3,7 +3,6 @@ import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Animated, {FadeInRight, FadeOutRight} from 'react-native-reanimated';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -21,6 +20,7 @@ import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryLis
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';

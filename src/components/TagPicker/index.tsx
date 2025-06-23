@@ -1,8 +1,8 @@
 import React, {useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getCountOfEnabledTagsOfList, getTagList} from '@libs/PolicyUtils';

@@ -1,12 +1,12 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import DeviceInfo from 'react-native-device-info';
-import {useOnyx} from 'react-native-onyx';
 import {startProfiling, stopProfiling} from 'react-native-release-profiler';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import toggleProfileTool from '@libs/actions/ProfilingTool';
 import getPlatform from '@libs/getPlatform';

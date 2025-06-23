@@ -1,10 +1,10 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import {ChatBubbleCounter} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';

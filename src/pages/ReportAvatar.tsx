@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
+import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';

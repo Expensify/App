@@ -1,11 +1,11 @@
 import React, {useContext} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, PaymentType} from '@components/ButtonWithDropdownMenu/types';
 import KYCWall from '@components/KYCWall';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';

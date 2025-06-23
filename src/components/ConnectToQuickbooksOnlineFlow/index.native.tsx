@@ -1,11 +1,11 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {getQuickbooksOnlineSetupLink} from '@libs/actions/connections/QuickbooksOnline';
 import {enablePolicyTaxes} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';

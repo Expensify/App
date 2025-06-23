@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import AddReactionBubble from '@components/Reactions/AddReactionBubble';
 import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocalizedEmojiName, getPreferredEmojiCode} from '@libs/EmojiUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';

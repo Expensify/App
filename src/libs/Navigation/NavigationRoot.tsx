@@ -1,9 +1,9 @@
 import {DarkTheme, DefaultTheme, findFocusedRoute, getPathFromState, NavigationContainer} from '@react-navigation/native';
 import type {NavigationState} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useCurrentReportID from '@hooks/useCurrentReportID';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';

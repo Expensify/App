@@ -1,10 +1,10 @@
 import React, {useCallback, useEffect, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import type {PaymentCardParams} from '@libs/API/parameters';
 import Navigation from '@libs/Navigation/Navigation';

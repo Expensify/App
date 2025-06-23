@@ -1,7 +1,6 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderGap from '@components/HeaderGap';
 import Icon from '@components/Icon';
@@ -13,6 +12,7 @@ import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';

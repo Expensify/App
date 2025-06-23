@@ -1,7 +1,7 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import getPlatform from '@libs/getPlatform';
 import {createOptionFromReport, createOptionList, processReport} from '@libs/OptionsListUtils';
