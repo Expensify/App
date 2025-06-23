@@ -93,6 +93,22 @@ export default createOnyxDerivedValueConfig({
                 if (transactionsUpdates) {
                     transactionReportIDs = Object.values(transactionsUpdates).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
                 }
+                // Also handle transaction violations updates by extracting transaction IDs and finding their reports
+                if (transactionViolationsUpdates) {
+                    const violationTransactionIDs = Object.keys(transactionViolationsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ''));
+                    const violationReportIDs = violationTransactionIDs
+                        .map((transactionID) => transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID)
+                        .filter(Boolean)
+                        .map((reportID) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+
+                    // Also include chat reports for expense reports that have violations
+                    const chatReportIDs = violationReportIDs
+                        .map((reportKey) => reports?.[reportKey]?.chatReportID)
+                        .filter(Boolean)
+                        .map((chatReportID) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+
+                    transactionReportIDs = [...transactionReportIDs, ...violationReportIDs, ...chatReportIDs];
+                }
                 dataToIterate = prepareReportKeys(transactionReportIDs);
             } else {
                 // No updates to process, return current value to prevent unnecessary computation

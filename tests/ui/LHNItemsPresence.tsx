@@ -232,6 +232,7 @@ describe('SidebarLinksData', () => {
                 ...createReport(false, undefined, undefined, undefined, TEST_POLICY_ID),
                 ownerAccountID: TEST_USER_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: report.reportID,
             };
             const transaction = LHNTestUtils.getFakeTransaction(expenseReport.reportID);
             const transactionViolation = createFakeTransactionViolation();
