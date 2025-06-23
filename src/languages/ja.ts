@@ -6620,10 +6620,7 @@ const translations = {
             part3: 'および',
             part4: '経費についてチャットする。',
         },
-        workspaceChatTooltip: {
-            part1: 'とチャット',
-            part2: '承認者',
-        },
+        workspaceChatTooltip: 'とチャット <strong>承認者</strong>',
         globalCreateTooltip: {
             part1: '経費を作成',
             part2: ', チャットを開始,',

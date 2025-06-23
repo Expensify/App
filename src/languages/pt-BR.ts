@@ -6663,10 +6663,7 @@ const translations = {
             part3: 'e',
             part4: 'conversar sobre despesas.',
         },
-        workspaceChatTooltip: {
-            part1: 'Converse com',
-            part2: 'aprovadores',
-        },
+        workspaceChatTooltip: 'Converse com <strong>aprovadores</strong>',
         globalCreateTooltip: {
             part1: 'Criar despesas',
             part2: ', começar a conversar,',

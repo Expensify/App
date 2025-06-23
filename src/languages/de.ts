@@ -6701,10 +6701,7 @@ const translations = {
             part3: 'und',
             part4: 'über Ausgaben chatten.',
         },
-        workspaceChatTooltip: {
-            part1: 'Chatten mit',
-            part2: 'Genehmiger',
-        },
+        workspaceChatTooltip: 'Chatten mit <strong>Genehmiger</strong>',
         globalCreateTooltip: {
             part1: 'Ausgaben erstellen',
             part2: ', beginnen Sie zu chatten,',
