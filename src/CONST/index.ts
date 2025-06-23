@@ -824,7 +824,6 @@ const CONST = {
         CUSTOM_RULES: 'customRules',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
-        RETRACT_NEWDOT: 'retractNewDot',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         MULTI_LEVEL_TAGS: 'multiLevelTags',
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
@@ -5523,7 +5522,7 @@ const CONST = {
         [onboardingChoices.EMPLOYER]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.SUBMIT]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.MANAGE_TEAM]: {
-            message: ({onboardingCompanySize: companySize}) => `Here is a task list I’d recommend for a company of your size with ${companySize} submitters:`,
+            message: ({onboardingCompanySize: companySize}) => `Here is a task list I’d recommend for a company of your size${companySize ? ` with ${companySize} submitters` : ':'}`,
             tasks: [
                 createWorkspaceTask,
                 testDriveAdminTask,
