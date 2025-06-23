@@ -179,7 +179,6 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
      *  if we need to clear their sign in details so they can enter a login */
     const [hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin] = useState(false);
 
-
     const isClientTheLeader = !!activeClients && isClientTheLeaderActiveClientManager();
     // We need to show "Another login page is opened" message if the page isn't active and visible
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -226,7 +225,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
         hasInitiatedSAMLLogin,
         shouldShowAnotherLoginPageOpenedMessage,
         credentials,
-        isAccountValidated
+        isAccountValidated,
     });
 
     if (shouldInitiateSAMLLogin) {
