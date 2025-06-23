@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import React, {useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import Button from '@components/Button';
@@ -28,7 +29,7 @@ type DropdownButtonProps = {
     viewportOffsetTop: number;
 
     /** The component to render in the popover */
-    PopoverComponent: React.FC<PopoverComponentProps>;
+    PopoverComponent: (props: PopoverComponentProps) => ReactNode;
 };
 
 const PADDING_MODAL = 8;

@@ -145,7 +145,7 @@ type AttachmentModalBaseContentProps = {
     attachmentInvalidReasonTitle?: TranslationPaths | null;
 
     /** Ref to the submit button */
-    submitRef?: RefObject<View | HTMLElement>;
+    submitRef?: RefObject<View | HTMLElement | null>;
 
     /** Determines if the delete receipt confirm modal is visible or not */
     isDeleteReceiptConfirmModalVisible?: boolean;
