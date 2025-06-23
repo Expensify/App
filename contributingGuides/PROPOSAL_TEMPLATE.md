@@ -2,35 +2,50 @@
 
 ### Please re-state the problem that we are trying to solve in this issue.
 
+After an admin approves an expense, the status message incorrectly changes from "Waiting for admin to pay expense" to "Waiting for you to finish setting up business bank account" even when the expense has been properly approved and should be showing a payment-related status message. This creates user confusion as the displayed status doesn't match the actual workflow state.
+
 ### What is the root cause of that problem?
 
+The root cause is in the expense status message logic priority system. Currently, the system checks for bank account setup requirements before properly evaluating the approved expense state. When an expense transitions to the approved state, the status logic incorrectly prioritizes the bank account setup check over the "waiting for payment" state, causing the wrong message to display even though the expense is approved and ready for payment processing.
+
 ### What changes do you think we should make in order to solve the problem?
-<!-- DO NOT POST CODE DIFFS -->
+
+We should restructure the expense status message logic with proper priority ordering:
+
+1. **Fix Priority Logic in ReportUtils**: Update `getExpenseStatusMessage()` to check approved-but-unpaid state first, before checking bank account setup requirements.
+
+2. **Add State Guards**: Ensure bank account setup messages only show for expenses that haven't been approved yet.
+
+3. **Improve State Transitions**: Add proper state management in the approval flow to prevent intermediate state confusion.
+
+4. **Add Debouncing**: Implement debounced status updates to prevent rapid message changes during state transitions.
+
+The key change is reordering the conditional checks so that approved expenses always show payment-related messages, and bank account setup messages only appear for non-approved expenses.
 
 ### What specific scenarios should we cover in automated tests to prevent reintroducing this issue in the future?
-<!-- Clearly describe the different test cases you recommend adding or updating. Explain how they will ensure the problem is fully covered and that any future changes do not cause a regression. Consider edge cases, input variations, and typical user interactions that could trigger this issue. To get guidance on how to write tests, refer to the [README.md](https://github.com/Expensify/App/blob/main/tests/README.md) in the tests folder. -->
+
+**Unit Tests:**
+- Test `getExpenseStatusMessage()` returns "waiting for payment" when expense state is APPROVED and isPaid is false
+- Test that approved expenses never return bank account setup messages, regardless of bank account status
+- Test status message returns correct admin vs non-admin payment messages for approved expenses
+
+**Integration Tests:**
+- Test complete approval workflow: submit expense → approve → verify "waiting for payment" message displays
+- Test that status message remains stable after approval and doesn't revert to bank account setup
+- Test approval flow with various policy configurations (with/without bank accounts)
+
+**E2E Tests:**
+- Test user sees correct status progression: submitted → approved → waiting for payment
+- Test admin approval flow shows appropriate messages for both admin and employee views
+- Test that status messages remain consistent during network delays or slow API responses
 
 ### What alternative solutions did you explore? (Optional)
 
-**Reminder:** Please use plain English, be brief and avoid jargon. Feel free to use images, charts or pseudo-code if necessary. Do not post large multi-line diffs or write walls of text. Do not create PRs unless you have been hired for this job.
+**Alternative 1**: Add a new expense state specifically for "approved-awaiting-payment" - This would require more extensive backend changes and state machine updates.
 
-<!---
-ATTN: Contributor+
+**Alternative 2**: Use feature flags to gradually roll out the fix - This adds complexity without addressing the core logic issue.
 
-You are the first line of defense in making sure every proposal has a clear and easily understood problem with a "root cause". Do not approve any proposals that lack a satisfying explanation to the first two prompts. It is CRITICALLY important that we understand the root cause at a minimum even if the solution doesn't directly address it. When we avoid this step, we can end up solving the wrong problems entirely or just writing hacks and workarounds.
+**Alternative 3**: Cache status messages and only update on specific state changes - This could mask underlying state management issues rather than fixing them.
 
-Instructions for how to review a proposal:
-
-1. Address each contributor proposal one at a time and address each part of the question one at a time e.g. if a solution looks acceptable, but the stated problem is not clear, then you should provide feedback and make suggestions to improve each prompt before moving on to the next. Avoid responding to all sections of a proposal at once. Move from one question to the next each time asking the contributor to "Please update your original proposal and tag me again when it's ready for review".
-
-2. Limit excessive conversation and moderate issues to keep them on track. If someone is doing any of the following things, please kindly and humbly course-correct them:
-
-- Posting PRs.
-- Posting large multi-line diffs (this is basically a PR).
-- Skipping any of the required questions.
-- Not using the proposal template at all.
-- Suggesting that an existing issue is related to the current issue before a problem or root cause has been established.
-- Excessively wordy explanations.
-
-3. Choose the first proposal that has a reasonable answer to all the required questions.
--->
+The chosen solution directly addresses the root cause in the status logic priority system, making it the most straightforward and maintainable approach.[expensify-fix-64153.pdf](https://github.com/user-attachments/files/20864704/expensify-fix-64153.pdf)
+[expensify-solution-code.txt](https://github.com/user-attachments/files/20864703/expensify-solution-code.txt)
