@@ -72,7 +72,7 @@ describe('getSecondaryAction', () => {
             transactionID: TRANSACTION_ID,
         } as unknown as Transaction;
 
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [transaction], violations: {}, policy, canUseRetractNewDot: true});
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [transaction], violations: {}, policy});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE)).toBe(true);
     });
 
@@ -308,7 +308,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
     });
 
-    it('includes EXPORT option for invoice submitter', async () => {
+    it('does not include EXPORT option for invoice reports', async () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.INVOICE,
@@ -322,7 +322,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy});
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING)).toBe(true);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING)).toBe(false);
     });
 
     it('includes EXPORT option for expense report with payments enabled', () => {
@@ -491,7 +491,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies, canUseRetractNewDot: true});
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -524,7 +524,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies, canUseRetractNewDot: true});
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -577,7 +577,6 @@ describe('getSecondaryAction', () => {
             violations: {},
             policy: oldPolicy,
             policies,
-            canUseRetractNewDot: true,
         });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
@@ -624,7 +623,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: APPROVER_EMAIL, accountID: APPROVER_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies, canUseRetractNewDot: true});
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
@@ -672,7 +671,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
-        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies, canUseRetractNewDot: true});
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [], violations: {}, policy, policies});
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE)).toBe(true);
     });
 
