@@ -24,6 +24,7 @@ import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useLocalize from './useLocalize';
 import useReportIsArchived from './useReportIsArchived';
+import { PopoverMenuItem } from '@components/PopoverMenu';
 
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
 const HOLD = 'HOLD';
@@ -159,16 +160,13 @@ function useSelectedTransactionsActions({
             });
         }
 
-        options.push({
-            value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
-            text: translate('common.export'),
-            backButtonText: translate('common.export'),
-            icon: Expensicons.Export,
-            subMenuItems: [
+        // Gets the list of options for the export sub-menu
+        const getExportOptions = () => {
+            // We provide the basic and expense level export options by default
+            const exportOptions: PopoverMenuItem[] = [
                 {
                     text: translate('export.basicExport'),
                     icon: Expensicons.Table,
-                    value: CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV,
                     onSelected: () => {
                         if (!report) {
                             return;
@@ -182,7 +180,6 @@ function useSelectedTransactionsActions({
                 {
                     text: translate('export.expenseLevelExport'),
                     icon: Expensicons.Table,
-                    value: CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT,
                     onSelected: () => {
                         if (!report) {
                             return;
@@ -190,7 +187,28 @@ function useSelectedTransactionsActions({
                         beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs);
                     },
                 },
-            ],
+            ];
+
+            // If we've selected all the transactions on the report, we can also provide the report level export option
+            if (allTransactionsLength === selectedTransactionIDs.length) {
+                exportOptions.push({
+                    text: translate('export.reportLevelExport'),
+                    icon: Expensicons.Table,
+                    onSelected: () =>
+                        // The report level export template is not policy specific, so we don't need to pass a policyID
+                        beginExportWithTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS, selectedTransactionIDs),
+                });
+            }
+
+            return exportOptions;
+        }
+
+        options.push({
+            value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
+            text: translate('common.export'),
+            backButtonText: translate('common.export'),
+            icon: Expensicons.Export,
+            subMenuItems: getExportOptions(),
         });
 
         const canSelectedExpensesBeMoved = selectedTransactions.every((transaction) => {
