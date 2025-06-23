@@ -26,6 +26,7 @@ import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -44,7 +45,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
-import {setActiveTransactionIDs} from './TransactionIDsRepository';
+import {setActiveTransactionThreadIDs} from './TransactionThreadReportIDRepository';
 
 type MoneyRequestReportTransactionListProps = {
     report: OnyxTypes.Report;
@@ -198,10 +199,10 @@ function MoneyRequestReportTransactionList({
 
             const backTo = Navigation.getActiveRoute() as Route;
 
-            // Single transaction report will open in RHP, and we need to pass all transactionIDs
+            // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigating between transactions
-            const sortedSiblingTransactionIDs = sortedTransactions.map((transaction) => transaction.transactionID);
-            setActiveTransactionIDs(sortedSiblingTransactionIDs);
+            const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
+            setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs);
 
             const routeParams = {
                 reportID: reportIDToNavigate,
@@ -243,8 +244,8 @@ function MoneyRequestReportTransactionList({
             return;
         }
 
-        const sortedSiblingTransactionIDs = transactions.map((transaction) => transaction.transactionID);
-        setActiveTransactionIDs(sortedSiblingTransactionIDs);
+        const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, transactions);
+        setActiveTransactionThreadIDs(sortedSiblingTransactionReportIDs);
     }, [report.reportID, reportActions, transactions]);
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
