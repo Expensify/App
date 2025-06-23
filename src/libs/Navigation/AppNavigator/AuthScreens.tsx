@@ -185,11 +185,11 @@ function handleNetworkReconnect() {
 }
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
+
 // We want to delay the re-rendering for components(e.g. ReportActionCompose)
 // that depends on modal visibility until Modal is completely closed and its focused
 // When modal screen is focused, update modal visibility in Onyx
 // https://reactnavigation.org/docs/navigation-events/
-
 const modalScreenListeners = {
     focus: () => {
         Modal.setModalVisibility(true, CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED);
@@ -600,6 +600,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={SCREENS.ATTACHMENTS}
                     options={attachmentModalScreenOptions}
                     getComponent={loadAttachmentModalScreen}
+                    listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
                     name={SCREENS.PROFILE_AVATAR}
