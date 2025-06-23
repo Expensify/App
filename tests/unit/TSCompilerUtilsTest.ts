@@ -103,63 +103,103 @@ describe('TSCompilerUtils', () => {
     });
 
     describe('traverseASTsInParallel', () => {
-        it('visits all corresponding nodes in three aligned ASTs', () => {
-            const code1 = 'const x = "Hello";';
-            const code2 = 'const x = "Bonjour";';
-            const code3 = 'const x = "Ciao";';
+        it('visits all nodes in lockstep and applies individual visitors', () => {
+            const en = `const x = "Hello"; function greet(name: string) { return \`Hi \${name}\`; }`;
+            const it = `const x = "Ciao"; function greet(name: string) { return \`Ciao \${name}\`; }`;
 
-            const asts = [createSourceFile(code1), createSourceFile(code2), createSourceFile(code3)];
+            const enAST = createSourceFile(en);
+            const itAST = createSourceFile(it);
 
-            const visited: Array<[ts.SyntaxKind, ts.SyntaxKind, ts.SyntaxKind]> = [];
-            TSCompilerUtils.traverseASTsInParallel(asts, ([a, b, c]) => {
-                visited.push([a.kind, b.kind, c.kind]);
-            });
+            const enKinds: ts.SyntaxKind[] = [];
+            const itKinds: ts.SyntaxKind[] = [];
 
-            expect(visited.length).toBeGreaterThan(0);
-            for (const [a, b, c] of visited) {
-                expect(a).toBe(b);
-                expect(b).toBe(c);
+            TSCompilerUtils.traverseASTsInParallel([
+                {
+                    node: enAST,
+                    visit: (node) => {
+                        enKinds.push(node.kind);
+                    },
+                },
+                {
+                    node: itAST,
+                    visit: (node) => {
+                        itKinds.push(node.kind);
+                    },
+                },
+            ]);
+
+            expect(enKinds.length).toBe(itKinds.length);
+            for (let i = 0; i < enKinds.length; i++) {
+                expect(enKinds.at(i)).toBe(itKinds.at(i));
             }
         });
 
-        it('stops at the shallowest depth among ASTs', () => {
-            const code1 = 'const x = { a: "Hello", b: "World" };';
-            const code2 = 'const x = { a: "Bonjour" };';
-            const asts = [createSourceFile(code1), createSourceFile(code2)];
+        it('collects matching string literals from multiple ASTs', () => {
+            const en = `const a = "Hello"; const b = \`World\`;`;
+            const it = `const a = "Ciao"; const b = \`Mondo\`;`;
 
-            const visited: ts.SyntaxKind[][] = [];
-            TSCompilerUtils.traverseASTsInParallel(asts, (nodes) => {
-                visited.push(nodes.map((n) => n.kind));
-            });
+            const enAST = createSourceFile(en);
+            const itAST = createSourceFile(it);
 
-            expect(visited.length).toBeGreaterThan(0);
-        });
+            const enStrings: string[] = [];
+            const itStrings: string[] = [];
 
-        it('can collect parallel string literals across multiple ASTs', () => {
-            const code1 = 'const a = "One"; const b = `Two`;';
-            const code2 = 'const a = "Uno"; const b = `Dos`;';
-            const code3 = 'const a = "Eins"; const b = `Zwei`;';
-
-            const asts = [createSourceFile(code1), createSourceFile(code2), createSourceFile(code3)];
-
-            const strings: Array<[string, string, string]> = [];
-            TSCompilerUtils.traverseASTsInParallel(asts, ([a, b, c]) => {
-                const isStr = (n: ts.Node) => ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n);
-                if (isStr(a) && isStr(b) && isStr(c)) {
-                    strings.push([a.getText(), b.getText(), c.getText()]);
-                }
-            });
-
-            expect(strings).toEqual([
-                [`"One"`, `"Uno"`, `"Eins"`],
-                ['`Two`', '`Dos`', '`Zwei`'],
+            TSCompilerUtils.traverseASTsInParallel([
+                {
+                    node: enAST,
+                    visit: (node) => {
+                        if (!ts.isStringLiteral(node) && !ts.isNoSubstitutionTemplateLiteral(node)) {
+                            return;
+                        }
+                        enStrings.push(node.text);
+                    },
+                },
+                {
+                    node: itAST,
+                    visit: (node) => {
+                        if (!ts.isStringLiteral(node) && !ts.isNoSubstitutionTemplateLiteral(node)) {
+                            return;
+                        }
+                        itStrings.push(node.text);
+                    },
+                },
             ]);
+
+            expect(enStrings).toEqual(['Hello', 'World']);
+            expect(itStrings).toEqual(['Ciao', 'Mondo']);
         });
 
-        it('does nothing if given no ASTs', () => {
-            const visitor = jest.fn();
-            TSCompilerUtils.traverseASTsInParallel([], visitor);
-            expect(visitor).not.toHaveBeenCalled();
+        it('traverses only the shared structure when node counts differ', () => {
+            const code1 = `const x = { a: 1, b: 2 };`;
+            const code2 = `const x = { a: 1 };`;
+
+            const ast1 = createSourceFile(code1);
+            const ast2 = createSourceFile(code2);
+
+            let count1 = 0;
+            let count2 = 0;
+
+            TSCompilerUtils.traverseASTsInParallel([
+                {
+                    node: ast1,
+                    visit: () => {
+                        count1++;
+                    },
+                },
+                {
+                    node: ast2,
+                    visit: () => {
+                        count2++;
+                    },
+                },
+            ]);
+
+            // Expect both to visit the same number of shared nodes
+            expect(count1).toBe(count2);
+        });
+
+        it('does nothing when given an empty array', () => {
+            TSCompilerUtils.traverseASTsInParallel([]); // Should not throw
         });
     });
 });
