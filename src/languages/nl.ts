@@ -6735,6 +6735,10 @@ const translations = {
         },
         callScheduled: 'Oproep gepland',
     },
+    signingOutPage: {
+        title: 'Uitloggen...',
+        subtitle: 'Even geduld, alstublieft.',
+    },
     autoSubmitModal: {
         title: 'Alles duidelijk en ingediend!',
         description: 'Alle waarschuwingen en overtredingen zijn gewist, dus:',
