@@ -190,6 +190,34 @@ describe('getPrimaryAction', () => {
         );
     });
 
+    it('should not return EXPORT TO ACCOUNTING for invoice reports', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.INVOICE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            connections: {
+                intacct: {
+                    config: {
+                        export: {
+                            exporter: CURRENT_USER_EMAIL,
+                        },
+                    },
+                },
+            },
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy})).not.toBe(
+            CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING,
+        );
+    });
+
     it('should not return EXPORT TO ACCOUNTING for reports marked manually as exported', async () => {
         const report = {
             reportID: REPORT_ID,
