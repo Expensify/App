@@ -279,6 +279,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         userPickerComponent,
         status,
         personalDetails,
+        isDevelopment,
     ]);
 
     if (hasErrors) {
