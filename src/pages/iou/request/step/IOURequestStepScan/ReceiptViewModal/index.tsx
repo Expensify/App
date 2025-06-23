@@ -104,6 +104,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                         iconRight={Expensicons.Trashcan}
                         onPress={() => setIsDeleteReceiptConfirmModalVisible(true)}
                         innerStyles={styles.bgTransparent}
+                        large
                     />
                 </HeaderWithBackButton>
                 <AttachmentCarouselView
