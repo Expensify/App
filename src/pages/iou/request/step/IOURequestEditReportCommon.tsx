@@ -11,7 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOutstandingReportsForUser, getPolicyName} from '@libs/ReportUtils';
+import {getOutstandingReportsForUser, getPolicyName, isIOUReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -59,6 +59,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
 
     const onlyReport = transactionsReports.length === 1 ? transactionsReports.at(0) : undefined;
     const isOwner = onlyReport ? onlyReport.ownerAccountID === currentUserPersonalDetails.accountID : false;
+    const isReportIOU = onlyReport ? isIOUReport(onlyReport) : false;
 
     const expenseReports = useMemo(
         () =>
@@ -123,7 +124,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
                 initiallyFocusedOptionKey={transactionsReports.length === 1 ? transactionsReports.at(0)?.reportID : undefined}
                 ListItem={InviteMemberListItem}
                 listFooterContent={
-                    isEditing && isOwner ? (
+                    isEditing && isOwner && !isReportIOU ? (
                         <MenuItem
                             onPress={removeFromReport}
                             title={translate('iou.removeFromReport')}
