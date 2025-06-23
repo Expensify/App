@@ -13,7 +13,7 @@ type MemberRightIconProps = {
 export default function MemberRightIcon({role, owner, login}: MemberRightIconProps) {
     const {translate} = useLocalize();
 
-    let badgeText = '';
+    let badgeText: TranslationPaths | undefined;
     if (owner && owner === login) {
         badgeText = 'common.owner';
     } else if (role === CONST.POLICY.ROLE.ADMIN) {
