@@ -44,6 +44,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     singleExecution,
     titleContainerStyles,
     shouldUseDefaultRightHandSideCheckmark,
+    shouldAddCurrentUserPostfix,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isReportListItemType(item)) {
@@ -68,6 +69,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                         selectRow(item, index);
                     }
                 }}
+                shouldAddCurrentUserPostfix={shouldAddCurrentUserPostfix}
                 onCheckboxPress={handleOnCheckboxPress()}
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
