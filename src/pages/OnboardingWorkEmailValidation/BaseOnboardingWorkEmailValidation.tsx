@@ -62,7 +62,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
             return;
         }
 
-        if (!onboardingValues.isMergeAccountStepSkipped) {
+        if (!onboardingValues?.isMergeAccountStepSkipped) {
             Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
             return;
         }
