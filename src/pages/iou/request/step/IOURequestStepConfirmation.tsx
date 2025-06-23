@@ -1,8 +1,6 @@
-import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -12,12 +10,12 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import PDFThumbnail from '@components/PDFThumbnail';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useFetchRoute from '@hooks/useFetchRoute';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -26,7 +24,7 @@ import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {isLocalFile as isLocalFileFileUtils, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
+import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -62,7 +60,6 @@ import {
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
 import {removeDraftTransactions} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -115,7 +112,12 @@ function IOURequestStepConfirmation({
         () => (!isLoadingCurrentTransaction ? (optimisticTransaction ?? existingTransaction) : undefined),
         [existingTransaction, optimisticTransaction, isLoadingCurrentTransaction],
     );
-    const transactionsCategories = useDeepCompareRef(transactions.map(({transactionID, category}) => ({transactionID, category})));
+    const transactionsCategories = useDeepCompareRef(
+        transactions.map(({transactionID, category}) => ({
+            transactionID,
+            category,
+        })),
+    );
 
     const realPolicyID = getIOURequestPolicyID(initialTransaction, reportReal);
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
@@ -145,12 +147,6 @@ function IOURequestStepConfirmation({
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
-
-    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
-    const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
-    const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
-    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt | undefined>>({});
     const requestType = getRequestType(transaction);
@@ -222,21 +218,12 @@ function IOURequestStepConfirmation({
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const formHasBeenSubmitted = useRef(false);
 
-    const confirmModalPrompt = useMemo(() => {
-        if (!attachmentInvalidReason) {
-            return '';
-        }
-        if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
-            return translate(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
-        }
-        return translate(attachmentInvalidReason);
-    }, [attachmentInvalidReason, translate]);
-
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE_APPROVE);
     }, []);
+
     useEffect(() => {
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
@@ -310,51 +297,6 @@ function IOURequestStepConfirmation({
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [transactionIDs, requestType, defaultCategory, policy?.id]);
-
-    /**
-     * Sets the upload receipt error modal content when an invalid receipt is uploaded
-     */
-    const setUploadReceiptError = (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => {
-        setIsAttachmentInvalid(isInvalid);
-        setAttachmentInvalidReasonTitle(title);
-        setAttachmentValidReason(reason);
-        setPdfFile(null);
-    };
-
-    const hideReceiptModal = () => {
-        setIsAttachmentInvalid(false);
-    };
-
-    /**
-     * Sets the Receipt object when dragging and dropping a file
-     */
-    const setReceiptOnDrop = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        validateReceipt(originalFile, setUploadReceiptError).then((isFileValid) => {
-            if (!isFileValid) {
-                return;
-            }
-
-            // If we have a pdf file and if it is not validated then set the pdf file for validation and return
-            if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
-                setPdfFile(originalFile);
-                setIsLoadingReceipt(true);
-                return;
-            }
-
-            // With the image size > 24MB, we use manipulateAsync to resize the image.
-            // It takes a long time so we should display a loading indicator while the resize image progresses.
-            if (Str.isImage(originalFile.name ?? '') && (originalFile?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                setIsLoadingReceipt(true);
-            }
-            resizeImageIfNeeded(originalFile).then((file) => {
-                setIsLoadingReceipt(false);
-                // Store the receipt on the transaction object in Onyx
-                const source = URL.createObjectURL(file as Blob);
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                setMoneyRequestReceipt(currentTransactionID, source, file.name || '', true);
-            });
-        });
-    };
 
     const navigateBack = useCallback(() => {
         // If the action is categorize and there's no policies other than personal one, we simply call goBack(), i.e: dismiss the whole flow together
@@ -1000,29 +942,31 @@ function IOURequestStepConfirmation({
         setIsConfirming(false);
     };
 
-    if (isLoadingTransaction) {
+    /**
+     * Sets the Receipt object when dragging and dropping a file
+     */
+    const setReceiptOnDrop = (files: FileObject[]) => {
+        const file = files.at(0);
+        if (!file) {
+            return;
+        }
+        const source = URL.createObjectURL(file as Blob);
+        setMoneyRequestReceipt(currentTransactionID, source, file.name ?? '', true);
+    };
+
+    const {validateFiles, PDFValidationComponent, ErrorModal, isLoadingReceipt} = useFilesValidation(setReceiptOnDrop);
+
+    const handleDroppingReceipt = (e: DragEvent) => {
+        const file = e?.dataTransfer?.files[0];
+        if (file) {
+            file.uri = URL.createObjectURL(file);
+            validateFiles([file]);
+        }
+    };
+
+    if (isLoadingTransaction ?? isLoadingReceipt) {
         return <FullScreenLoadingIndicator />;
     }
-
-    const PDFThumbnailView = pdfFile ? (
-        <PDFThumbnail
-            style={styles.invisiblePDF}
-            previewSourceURL={pdfFile.uri ?? ''}
-            onLoadSuccess={() => {
-                setPdfFile(null);
-                setIsLoadingReceipt(false);
-                setReceiptOnDrop(pdfFile, true);
-            }}
-            onPassword={() => {
-                setIsLoadingReceipt(false);
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
-            }}
-            onLoadError={() => {
-                setIsLoadingReceipt(false);
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-            }}
-        />
-    ) : null;
 
     const showNextTransaction = () => {
         const nextTransaction = transactions.at(currentTransactionIndex + 1);
@@ -1080,18 +1024,10 @@ function IOURequestStepConfirmation({
                         ) : null}
                     </HeaderWithBackButton>
                     {(isLoading || isLoadingReceipt || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <FullScreenLoadingIndicator />}
-                    {PDFThumbnailView}
+                    {PDFValidationComponent}
                     {/* TODO: remove beta check after the feature is enabled */}
                     {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
-                        <DragAndDropConsumer
-                            onDrop={(e) => {
-                                const file = e?.dataTransfer?.files[0];
-                                if (file) {
-                                    file.uri = URL.createObjectURL(file);
-                                    setReceiptOnDrop(file);
-                                }
-                            }}
-                        >
+                        <DragAndDropConsumer onDrop={handleDroppingReceipt}>
                             <DropZoneUI
                                 icon={isEditingReceipt ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
                                 dropStyles={styles.receiptDropOverlay(true)}
@@ -1101,25 +1037,9 @@ function IOURequestStepConfirmation({
                             />
                         </DragAndDropConsumer>
                     ) : (
-                        <ReceiptDropUI
-                            onDrop={(e) => {
-                                const file = e?.dataTransfer?.files[0];
-                                if (file) {
-                                    file.uri = URL.createObjectURL(file);
-                                    setReceiptOnDrop(file);
-                                }
-                            }}
-                        />
+                        <ReceiptDropUI onDrop={handleDroppingReceipt} />
                     )}
-                    <ConfirmModal
-                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                        onConfirm={hideReceiptModal}
-                        onCancel={hideReceiptModal}
-                        isVisible={isAttachmentInvalid}
-                        prompt={confirmModalPrompt}
-                        confirmText={translate('common.close')}
-                        shouldShowCancelButton={false}
-                    />
+                    {ErrorModal}
                     {!!gpsRequired && (
                         <LocationPermissionModal
                             startPermissionFlow={startLocationPermissionFlow}
