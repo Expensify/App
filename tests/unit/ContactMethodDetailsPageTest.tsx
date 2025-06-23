@@ -13,7 +13,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
-jest.mock('@components/DelegateNoAccessModal');
+jest.mock('@components/DelegateNoAccessModalProvider');
 
 jest.mock('@libs/actions/User', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

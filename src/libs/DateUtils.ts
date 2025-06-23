@@ -32,25 +32,33 @@ import {
     subMinutes,
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
+import {de} from 'date-fns/locale/de';
 import {enGB} from 'date-fns/locale/en-GB';
 import {es} from 'date-fns/locale/es';
+import {fr} from 'date-fns/locale/fr';
+import {it} from 'date-fns/locale/it';
+import {ja} from 'date-fns/locale/ja';
+import {nl} from 'date-fns/locale/nl';
+import {pl} from 'date-fns/locale/pl';
+import {ptBR} from 'date-fns/locale/pt-BR';
+import {zhCN} from 'date-fns/locale/zh-CN';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
+import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {setCurrentDate} from './actions/CurrentDate';
 import {setNetworkLastOffline} from './actions/Network';
 import {translate, translateLocal} from './Localize';
-import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import Log from './Log';
 import memoize from './memoize';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
-type Locale = ValueOf<typeof CONST.LOCALES>;
 type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
@@ -86,23 +94,19 @@ Onyx.connect({
 });
 
 let networkTimeSkew = 0;
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: (value) => (networkTimeSkew = value?.timeSkew ?? 0),
-});
-
 let isOffline: boolean | undefined;
 
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => {
+        networkTimeSkew = val?.timeSkew ?? 0;
         if (!val?.lastOfflineAt) {
-            setNetworkLastOffline(getLocalDateFromDatetime(BaseLocaleListener.getPreferredLocale()));
+            setNetworkLastOffline(getLocalDateFromDatetime(TranslationStore.getCurrentLocale()));
         }
 
         const newIsOffline = val?.isOffline ?? val?.shouldForceOffline;
         if (newIsOffline && isOffline === false) {
-            setNetworkLastOffline(getLocalDateFromDatetime(BaseLocaleListener.getPreferredLocale()));
+            setNetworkLastOffline(getLocalDateFromDatetime(TranslationStore.getCurrentLocale()));
         }
         isOffline = newIsOffline;
     },
@@ -131,13 +135,37 @@ function getWeekEndsOn(): WeekDay {
 /**
  * Gets the locale string and setting default locale for date-fns
  */
-function setLocale(localeString: Locale) {
+function setLocale(localeString: Locale | undefined) {
     switch (localeString) {
         case CONST.LOCALES.EN:
             setDefaultOptions({locale: enGB});
             break;
         case CONST.LOCALES.ES:
             setDefaultOptions({locale: es});
+            break;
+        case CONST.LOCALES.FR:
+            setDefaultOptions({locale: fr});
+            break;
+        case CONST.LOCALES.DE:
+            setDefaultOptions({locale: de});
+            break;
+        case CONST.LOCALES.IT:
+            setDefaultOptions({locale: it});
+            break;
+        case CONST.LOCALES.JA:
+            setDefaultOptions({locale: ja});
+            break;
+        case CONST.LOCALES.NL:
+            setDefaultOptions({locale: nl});
+            break;
+        case CONST.LOCALES.PL:
+            setDefaultOptions({locale: pl});
+            break;
+        case CONST.LOCALES.PT_BR:
+            setDefaultOptions({locale: ptBR});
+            break;
+        case CONST.LOCALES.ZH_HANS:
+            setDefaultOptions({locale: zhCN});
             break;
         default:
             break;
@@ -149,8 +177,10 @@ function setLocale(localeString: Locale) {
  * Date object for the given ISO-formatted datetime string
  */
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSelectedTimezone: string | SelectedTimezone = timezone.selected): Date {
-    setLocale(locale);
+function getLocalDateFromDatetime(locale: Locale | undefined, datetime?: string, currentSelectedTimezone: string | SelectedTimezone = timezone.selected): Date {
+    if (locale) {
+        setLocale(locale);
+    }
     if (!datetime) {
         const res = toZonedTime(new Date(), currentSelectedTimezone);
         if (Number.isNaN(res.getTime())) {
@@ -240,7 +270,13 @@ const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): S
  * Jan 20 at 5:30 PM          within the past year
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
-function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZone = false, currentSelectedTimezone: SelectedTimezone = timezone.selected, isLowercase = false): string {
+function datetimeToCalendarTime(
+    locale: Locale | undefined,
+    datetime: string,
+    includeTimeZone = false,
+    currentSelectedTimezone: SelectedTimezone = timezone.selected,
+    isLowercase = false,
+): string {
     const date = getLocalDateFromDatetime(locale, datetime, fallbackToSupportedTimezone(currentSelectedTimezone));
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = translate(locale, 'common.todayAt');
@@ -286,7 +322,7 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZon
  * Jan 20               within the past year
  * Jan 20, 2019         anything over 1 year
  */
-function datetimeToRelative(locale: Locale, datetime: string): string {
+function datetimeToRelative(locale: Locale | undefined, datetime: string): string {
     const date = getLocalDateFromDatetime(locale, datetime);
     const now = getLocalDateFromDatetime(locale);
     return formatDistance(date, now, {addSuffix: true, locale: locale === CONST.LOCALES.EN ? enGB : es});
@@ -367,7 +403,7 @@ function getCurrentTimezone(): Required<Timezone> {
 /**
  * @returns [January, February, March, April, May, June, July, August, ...]
  */
-function getMonthNames(preferredLocale: Locale): string[] {
+function getMonthNames(preferredLocale: Locale = CONST.LOCALES.DEFAULT): string[] {
     if (preferredLocale) {
         setLocale(preferredLocale);
     }
@@ -383,7 +419,7 @@ function getMonthNames(preferredLocale: Locale): string[] {
 /**
  * @returns [Monday, Tuesday, Wednesday, ...]
  */
-function getDaysOfWeek(preferredLocale: Locale): string[] {
+function getDaysOfWeek(preferredLocale: Locale = CONST.LOCALES.DEFAULT): string[] {
     if (preferredLocale) {
         setLocale(preferredLocale);
     }
