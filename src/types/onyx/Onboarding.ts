@@ -27,6 +27,9 @@ type Onboarding = {
     /** A Boolean that informs whether the user has completed merge account step */
     isMergeAccountStepCompleted?: boolean;
 
+    /** A Boolean that informs whether the user has skipped merge account step */
+    isMergeAccountStepSkipped?: boolean;
+
     /** A Boolean that tells whether the onboarding flow is loading */
     isLoading?: boolean;
 };

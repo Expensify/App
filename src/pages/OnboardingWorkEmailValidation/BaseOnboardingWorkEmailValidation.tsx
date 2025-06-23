@@ -56,7 +56,12 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
             return;
         }
 
-        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
+        if (!onboardingValues.isMergeAccountStepSkipped) {
+            Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(), {forceReplace: true});
+            return;
+        }
+
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
     }, [onboardingValues, isVsb, isFocused]);
 
     const sendValidateCode = useCallback(() => {
@@ -125,14 +130,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                         shouldShowSkipButton
                         handleSkipButtonPress={() => {
                             setOnboardingErrorMessage('');
-                            setOnboardingMergeAccountStepValue(true);
-                            // Once we skip the private email step, we need to force replace the screen
-                            // so that we don't navigate back on back button press
-                            if (isVsb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+                            setOnboardingMergeAccountStepValue(true, true);
                         }}
                         isLoading={isValidateCodeFormSubmitting}
                         validateError={onboardingErrorMessage ? {invalidCodeError: onboardingErrorMessage} : undefined}
