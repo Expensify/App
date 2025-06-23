@@ -833,23 +833,6 @@ function addComment(reportID: string, text: string, shouldPlaySound?: boolean) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
-    // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
-    if (isMoneyRequestReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])) {
-        const reportActions = allReportActions?.[reportID];
-        if (reportActions) {
-            const moneyRequestPreviewActions = Object.values(reportActions).filter(
-                (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !ReportActionsUtils.isDeletedAction(action),
-            );
-            if (moneyRequestPreviewActions.length === 1) {
-                const transactionThreadReportID = moneyRequestPreviewActions.at(0)?.childReportID;
-                if (transactionThreadReportID) {
-                    addActions(transactionThreadReportID, text);
-                    return;
-                }
-            }
-        }
-    }
     addActions(reportID, text);
 }
 
@@ -5714,6 +5697,29 @@ function changeReportPolicyAndInviteSubmitter(report: Report, policyID: string, 
     navigateToTrainingModal(nvpDismissedProductTraining, report.reportID);
 }
 
+/**
+ * Resolves Concierge category options by adding a comment and updating the report action
+ * @param reportID - The report ID where the comment should be added
+ * @param actionReportID - The report ID where the report action should be updated (may be different for threads)
+ * @param reportActionID - The specific report action ID to update
+ * @param selectedCategory - The category selected by the user
+ */
+function resolveConciergeCategoryOptions(reportID: string | undefined, actionReportID: string | undefined, reportActionID: string | undefined, selectedCategory: string) {
+    if (!reportID || !actionReportID || !reportActionID) {
+        return;
+    }
+
+    addComment(reportID, selectedCategory);
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionReportID}`, {
+        [reportActionID]: {
+            originalMessage: {
+                selectedCategory,
+            },
+        },
+    } as Partial<ReportActions>);
+}
+
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
 
 export {
@@ -5781,6 +5787,7 @@ export {
     removeFromRoom,
     resolveActionableMentionWhisper,
     resolveActionableReportMentionWhisper,
+    resolveConciergeCategoryOptions,
     savePrivateNotesDraft,
     saveReportActionDraft,
     saveReportDraftComment,

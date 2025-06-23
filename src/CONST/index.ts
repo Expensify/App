@@ -634,7 +634,6 @@ const CONST = {
         CUSTOM_RULES: 'customRules',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
-        RETRACT_NEWDOT: 'retractNewDot',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         MULTI_LEVEL_TAGS: 'multiLevelTags',
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
@@ -643,6 +642,7 @@ const CONST = {
         TRACK_FLOWS: 'trackFlows',
         STATIC_AI_TRANSLATIONS: 'staticAITranslations',
         EUR_BILLING: 'eurBilling',
+        MANUAL_DISTANCE: 'manualDistance',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1240,6 +1240,7 @@ const CONST = {
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
                 },
+                RECEIPT_SCAN_FAILED: 'RECEIPTSCANFAILED',
                 RESOLVED_DUPLICATES: 'RESOLVEDDUPLICATES',
                 ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
@@ -1571,6 +1572,7 @@ const CONST = {
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
         INCORRECT_MAGIC_CODE: 451,
+        POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles
@@ -6246,6 +6248,8 @@ const CONST = {
             GROUP_BY: 'groupBy',
         },
         SYNTAX_FILTER_KEYS: {
+            TYPE: 'type',
+            STATUS: 'status',
             DATE: 'date',
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
