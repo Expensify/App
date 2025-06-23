@@ -41,6 +41,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             return;
         }
         changeTransactionsReport(selectedTransactionIDs, CONST.REPORT.UNREPORTED_REPORT_ID);
+        clearSelectedTransactions(true);
         Navigation.dismissModal();
     };
 
