@@ -499,10 +499,12 @@ function WorkspacesListPage() {
                 bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
                 enableEdgeToEdgeBottomSafeAreaPadding={false}
             >
-                <TopBar breadcrumbLabel={translate('common.workspaces')} />
+                <View style={styles.topBarWrapper}>
+                    <TopBar breadcrumbLabel={translate('common.workspaces')} />
+                </View>
                 {shouldShowLoadingIndicator ? (
                     <View style={[styles.flex1]}>
-                        <FullScreenLoadingIndicator style={[styles.pRelative]} />
+                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     </View>
                 ) : (
                     <ScrollView
