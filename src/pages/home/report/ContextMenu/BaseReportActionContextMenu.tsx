@@ -26,7 +26,7 @@ import {
     chatIncludesChronosWithID,
     getSourceIDFromReportAction,
     isArchivedNonExpenseReport,
-    isArchivedNonExpenseReportWithID,
+    isArchivedNonExpenseReport,
     isInvoiceReport as ReportUtilsIsInvoiceReport,
     isMoneyRequest as ReportUtilsIsMoneyRequest,
     isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
@@ -300,7 +300,7 @@ function BaseReportActionContextMenu({
             report: {
                 reportID,
                 originalReportID,
-                isArchivedRoom: isArchivedNonExpenseReportWithID(originalReport, isOriginalReportArchived),
+                isArchivedRoom: isArchivedNonExpenseReport(originalReport, isOriginalReportArchived),
                 isChronos: chatIncludesChronosWithID(originalReportID),
             },
             reportAction: {

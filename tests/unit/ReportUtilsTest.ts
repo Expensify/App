@@ -45,7 +45,7 @@ import {
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
     isAllowedToApproveExpenseReport,
-    isArchivedNonExpenseReportWithID,
+    isArchivedNonExpenseReport,
     isChatUsedForOnboarding,
     isPayer,
     isReportOutstanding,
@@ -3005,7 +3005,7 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('isArchivedNonExpenseReportWithID', () => {
+    describe('isArchivedNonExpenseReport', () => {
         // Given an expense report, a chat report, and an archived chat report
         const expenseReport: Report = {
             ...createRandomReport(1000),
@@ -3037,17 +3037,17 @@ describe('ReportUtils', () => {
         it('should return false if the report is an expense report', () => {
             // Simulate how components use the hook useReportIsArchived() to see if the report is archived
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
-            expect(isArchivedNonExpenseReportWithID(expenseReport, isReportArchived.current)).toBe(false);
+            expect(isArchivedNonExpenseReport(expenseReport, isReportArchived.current)).toBe(false);
         });
 
         it('should return false if the report is a non-expense report and not archived', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(chatReport?.reportID));
-            expect(isArchivedNonExpenseReportWithID(chatReport, isReportArchived.current)).toBe(false);
+            expect(isArchivedNonExpenseReport(chatReport, isReportArchived.current)).toBe(false);
         });
 
         it('should return true if the report is a non-expense report and archived', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedChatReport?.reportID));
-            expect(isArchivedNonExpenseReportWithID(archivedChatReport, isReportArchived.current)).toBe(true);
+            expect(isArchivedNonExpenseReport(archivedChatReport, isReportArchived.current)).toBe(true);
         });
     });
 

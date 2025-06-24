@@ -8321,7 +8321,7 @@ function getInvoiceChatByParticipants(receiverID: string | number, receiverType:
         // eslint-disable-next-line deprecation/deprecation
         const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
         const isReportArchived = isArchivedReport(reportNameValuePairs);
-        if (!report || !isInvoiceRoom(report) || isArchivedNonExpenseReportWithID(report, isReportArchived)) {
+        if (!report || !isInvoiceRoom(report) || isArchivedNonExpenseReport(report, isReportArchived)) {
             return false;
         }
 
@@ -8761,7 +8761,7 @@ function getWhisperDisplayNames(participantAccountIDs?: number[]): string | unde
  * Show subscript on expense chats / threads and expense requests
  */
 function shouldReportShowSubscript(report: OnyxEntry<Report>, isReportArchived = false): boolean {
-    if (isArchivedNonExpenseReportWithID(report, isReportArchived) && !isWorkspaceThread(report)) {
+    if (isArchivedNonExpenseReport(report, isReportArchived) && !isWorkspaceThread(report)) {
         return false;
     }
 
