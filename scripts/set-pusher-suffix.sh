@@ -6,7 +6,7 @@ CONFIG_FILE="../Web-Expensify/_config.local.php"
 
 if [ -f '.env' ]; then
     while read -r line; do
-        if [[ "$line" == \#* ]]; then
+        if [[ "$line" == \#* ]] || [[ "$line" == "" ]]; then
             continue
         fi
         export "${line?}"
