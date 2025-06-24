@@ -32,7 +32,7 @@ describe('Composer', () => {
 
         await waitForBatchedUpdates();
 
-        const props = (RNMarkdownTextInput as jest.Mock).mock.calls[0]?.[0];
+        const props = (RNMarkdownTextInput as jest.MockedFunction<typeof RNMarkdownTextInput>).mock.calls.at(0)?.at(0);
         expect(props).toEqual(
             expect.objectContaining({
                 markdownStyle: expect.objectContaining({
