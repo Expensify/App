@@ -773,7 +773,6 @@ type ContactMethodsRouteParams = {
     contactMethodsRoute: string;
 };
 
-
 type ContactMethodParams = {
     contactMethodRoute: string;
 };
