@@ -6697,10 +6697,7 @@ const translations = {
             part1: 'Aan de slag',
             part2: 'hier!',
         },
-        saveSearchTooltip: {
-            part1: 'Hernoem uw opgeslagen zoekopdrachten',
-            part2: 'hier!',
-        },
+        saveSearchTooltip: '<strong>Hernoem uw opgeslagen zoekopdrachten</strong> hier!',
         bottomNavInboxTooltip: {
             part1: 'Check wat',
             part2: 'heeft uw aandacht nodig',

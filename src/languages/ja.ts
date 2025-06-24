@@ -6650,10 +6650,7 @@ const translations = {
             part1: '始めましょう',
             part2: 'ここにいます！',
         },
-        saveSearchTooltip: {
-            part1: '保存した検索の名前を変更する',
-            part2: 'ここにいます！',
-        },
+        saveSearchTooltip: '<strong>保存した検索の名前を変更する</strong> ここにいます！',
         bottomNavInboxTooltip: {
             part1: '何を確認しますか？',
             part2: 'あなたの注意が必要です',

@@ -6682,10 +6682,7 @@ const translations = {
             part1: 'Zacznij teraz',
             part2: 'tutaj!',
         },
-        saveSearchTooltip: {
-            part1: 'Zmień nazwę zapisanych wyszukiwań',
-            part2: 'tutaj!',
-        },
+        saveSearchTooltip: '<strong>Zmień nazwę zapisanych wyszukiwań</strong> tutaj!',
         bottomNavInboxTooltip: {
             part1: 'Sprawdź co',
             part2: 'wymaga Twojej uwagi',

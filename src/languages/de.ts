@@ -6731,10 +6731,7 @@ const translations = {
             part1: 'Loslegen',
             part2: 'hier!',
         },
-        saveSearchTooltip: {
-            part1: 'Benennen Sie Ihre gespeicherten Suchen um',
-            part2: 'hier!',
-        },
+        saveSearchTooltip: '<strong>Benennen Sie Ihre gespeicherten Suchen um</strong> hier!',
         bottomNavInboxTooltip: {
             part1: 'Überprüfen Sie was',
             part2: 'benötigt Ihre Aufmerksamkeit',

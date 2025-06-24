@@ -6569,10 +6569,7 @@ const translations = {
             part1: '开始使用',
             part2: '这里！',
         },
-        saveSearchTooltip: {
-            part1: '重命名您保存的搜索',
-            part2: '这里！',
-        },
+        saveSearchTooltip: '<strong>重命名您保存的搜索</strong> 这里！',
         bottomNavInboxTooltip: {
             part1: '检查什么',
             part2: '需要您的注意',

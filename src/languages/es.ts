@@ -7179,10 +7179,7 @@ const translations = {
             part1: '¡Comienza',
             part2: ' aquí!',
         },
-        saveSearchTooltip: {
-            part1: 'Renombra tus búsquedas guardadas',
-            part2: ' aquí',
-        },
+        saveSearchTooltip: '<strong>Renombra tus búsquedas guardadas</strong> aquí',
         bottomNavInboxTooltip: {
             part1: 'Revisa lo que ',
             part2: 'necesita tu atención',
