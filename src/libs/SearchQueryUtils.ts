@@ -563,11 +563,15 @@ function buildFilterFormValuesFromQuery(
             const beforeKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
             const afterKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
             const onKey = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
-            filtersForm[beforeKey] = filterList.find((filter) => filter.operator === 'lt' && isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[beforeKey];
-            filtersForm[afterKey] = filterList.find((filter) => filter.operator === 'gt' && isValidDate(filter.value.toString()))?.value.toString() ?? filtersForm[afterKey];
-            filtersForm[onKey] =
-                filterList.find((filter) => filter.operator === 'eq' && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString())))?.value.toString() ??
-                filtersForm[onKey];
+
+            const beforeFilter = filterList.find((filter) => filter.operator === 'lt' && isValidDate(filter.value.toString()));
+            const afterFilter = filterList.find((filter) => filter.operator === 'gt' && isValidDate(filter.value.toString()));
+            // The `On` filter could be either a date or a date preset (e.g. Last month)
+            const onFilter = filterList.find((filter) => filter.operator === 'eq' && (isValidDate(filter.value.toString()) || isSearchDatePreset(filter.value.toString())));
+
+            filtersForm[beforeKey] = beforeFilter?.value.toString() ?? filtersForm[beforeKey];
+            filtersForm[afterKey] = afterFilter?.value.toString() ?? filtersForm[afterKey];
+            filtersForm[onKey] = onFilter?.value.toString() ?? filtersForm[onKey];
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
             // backend amount is an integer and is 2 digits longer than frontend amount
