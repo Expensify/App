@@ -60,6 +60,10 @@ android {
   }
 
   packagingOptions {
+    jniLibs {
+      useLegacyPackaging true
+    }
+
     excludes = [
             "META-INF",
             "META-INF/**",

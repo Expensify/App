@@ -127,6 +127,12 @@ android {
         }
     }
 
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
+
     flavorDimensions "default"
     productFlavors {
         // we need to define a production flavor but since it has default config, we can leave it empty
