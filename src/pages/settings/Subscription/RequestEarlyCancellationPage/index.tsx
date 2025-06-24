@@ -38,16 +38,7 @@ function RequestEarlyCancellationPage() {
         cancelBillingSubscription(cancellationReason, cancellationNote);
     };
 
-    const acknowledgementText = useMemo(
-        () => (
-            <Text>
-                {translate('subscription.requestEarlyCancellation.acknowledgement.part1')}
-                <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>{translate('subscription.requestEarlyCancellation.acknowledgement.link')}</TextLink>
-                {translate('subscription.requestEarlyCancellation.acknowledgement.part2')}
-            </Text>
-        ),
-        [translate],
-    );
+    const acknowledgementText = useMemo(() => <RenderHTML html={translate('subscription.requestEarlyCancellation.acknowledgement')} />, [translate]);
 
     const manualCancellationContent = useMemo(
         () => (

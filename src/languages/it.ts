@@ -44,6 +44,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -64,6 +65,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -100,7 +102,6 @@ import type {
     FlightParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
-    GoToRoomParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -193,6 +194,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -244,6 +246,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -328,6 +331,7 @@ const translations = {
         twoFactorCode: 'Codice a due fattori',
         workspaces: 'Spazi di lavoro',
         inbox: 'Posta in arrivo',
+        success: 'Successo',
         group: 'Gruppo',
         profile: 'Profilo',
         referral: 'Referenza',
@@ -610,6 +614,7 @@ const translations = {
         workspacesTabTitle: 'Spazi di lavoro',
         getTheApp: "Scarica l'app",
         scanReceiptsOnTheGo: 'Scansiona le ricevute dal tuo telefono',
+        headsUp: 'Attenzione!',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -967,6 +972,7 @@ const translations = {
         deleteReceipt: 'Elimina ricevuta',
         deleteConfirmation: 'Sei sicuro di voler eliminare questa ricevuta?',
         addReceipt: 'Aggiungi ricevuta',
+        scanFailed: 'La ricevuta non può essere scansionata perché mancano il commerciante, la data o l’importo.',
     },
     quickAction: {
         scanReceipt: 'Scansiona ricevuta',
@@ -1107,6 +1113,7 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Paga ${formattedAmount} altrove` : `Paga altrove`),
         nextStep: 'Prossimi passi',
         finished: 'Finito',
+        flip: 'Inverti',
         sendInvoice: ({amount}: RequestAmountParams) => `Invia fattura di ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Invia ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `per ${comment}` : ''}`,
@@ -1624,14 +1631,13 @@ const translations = {
         mergeFailureGenericHeading: 'Impossibile unire gli account',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: 'Segnala attività sospetta',
         lockAccount: 'Blocca account',
         unlockAccount: 'Sblocca account',
-        compromisedDescription:
-            "Se sospetti che il tuo account Expensify sia compromesso, puoi bloccarlo per prevenire nuove transazioni con la Expensify Card e impedire modifiche indesiderate all'account.",
-        domainAdminsDescriptionPartOne: 'Per gli amministratori di dominio,',
-        domainAdminsDescriptionPartTwo: 'questa azione interrompe tutte le attività della Expensify Card e le azioni amministrative',
-        domainAdminsDescriptionPartThree: 'nel tuo dominio/i tuoi domini.',
-        warning: `Una volta che il tuo account è bloccato, il nostro team indagherà e rimuoverà qualsiasi accesso non autorizzato. Per riottenere l'accesso, dovrai collaborare con Concierge per mettere in sicurezza il tuo account.`,
+        compromisedDescription: 'Notato qualcosa di strano nel tuo account? Segnalandolo lo bloccherai immediatamente, fermerai le transazioni con la carta Expensify e impedirai modifiche.',
+        domainAdminsDescription: 'Per gli amministratori di dominio: questo sospende anche tutta l’attività delle carte Expensify e le azioni amministrative.',
+        areYouSure: 'Sei sicuro di voler bloccare il tuo account Expensify?',
+        ourTeamWill: 'Il nostro team indagherà e rimuoverà eventuali accessi non autorizzati. Per riottenere l’accesso, dovrai collaborare con Concierge.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: "Impossibile bloccare l'account",
@@ -2363,6 +2369,13 @@ const translations = {
         time: 'Tempo',
         clearAfter: 'Cancella dopo',
         whenClearStatus: 'Quando dovremmo cancellare il tuo stato?',
+        vacationDelegate: 'Delegato per le vacanze',
+        setVacationDelegate: `Imposta un delegato per le vacanze per approvare i report al tuo posto mentre sei fuori ufficio.`,
+        vacationDelegateError: 'Si è verificato un errore durante l’aggiornamento del delegato per le vacanze.',
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `come delegato per le vacanze di ${managerName}`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `a ${submittedToName} come delegato per le vacanze di ${vacationDelegateName}`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `Stai assegnando ${nameOrEmail} come tuo delegato per le vacanze. Non è ancora presente in tutti i tuoi workspace. Se scegli di continuare, verrà inviata un'e-mail a tutti gli amministratori dei tuoi workspace per aggiungerlo.`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Passo ${step}`;
@@ -2685,14 +2698,40 @@ const translations = {
         whatsTheBusinessAddress: "Qual è l'indirizzo dell'azienda?",
         whatsTheBusinessContactInformation: 'Quali sono le informazioni di contatto aziendali?',
         whatsTheBusinessRegistrationNumber: "Qual è il numero di registrazione dell'azienda?",
-        whatsTheBusinessTaxIDEIN: "Qual è il numero di partita IVA/ID fiscale/EIN/registrazione IVA/GST dell'azienda?",
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'Qual è il numero di identificazione del datore di lavoro (EIN)?';
+                case CONST.COUNTRY.CA:
+                    return 'Qual è il numero aziendale (BN)?';
+                case CONST.COUNTRY.GB:
+                    return 'Qual è il numero di partita IVA (VRN)?';
+                case CONST.COUNTRY.AU:
+                    return 'Qual è il numero aziendale australiano (ABN)?';
+                default:
+                    return 'Qual è il numero di partita IVA UE?';
+            }
+        },
         whatsThisNumber: 'Qual è questo numero?',
         whereWasTheBusinessIncorporated: "Dove è stata costituita l'azienda?",
         whatTypeOfBusinessIsIt: 'Che tipo di attività è?',
         whatsTheBusinessAnnualPayment: "Qual è il volume di pagamento annuale dell'azienda?",
         whatsYourExpectedAverageReimbursements: "Qual è l'importo medio di rimborso previsto?",
         registrationNumber: 'Numero di registrazione',
-        taxIDEIN: 'Numero di identificazione fiscale/EIN',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'IVA UE';
+            }
+        },
         businessAddress: 'Indirizzo aziendale',
         businessType: 'Tipo di attività',
         incorporation: 'Incorporazione',
@@ -2716,6 +2755,20 @@ const translations = {
         findAverageReimbursement: "Trova l'importo medio del rimborso",
         error: {
             registrationNumber: 'Si prega di fornire un numero di registrazione valido',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return 'Si prega di fornire un numero di identificazione del datore di lavoro (EIN) valido';
+                    case CONST.COUNTRY.CA:
+                        return 'Si prega di fornire un numero aziendale (BN) valido';
+                    case CONST.COUNTRY.GB:
+                        return 'Si prega di fornire un numero di partita IVA (VRN) valido';
+                    case CONST.COUNTRY.AU:
+                        return 'Si prega di fornire un numero aziendale australiano (ABN) valido';
+                    default:
+                        return 'Si prega di fornire un numero di partita IVA UE valido';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
@@ -3123,7 +3176,6 @@ const translations = {
             unavailable: 'Spazio di lavoro non disponibile',
             memberNotFound: 'Membro non trovato. Per invitare un nuovo membro al workspace, utilizza il pulsante di invito sopra.',
             notAuthorized: `Non hai accesso a questa pagina. Se stai cercando di unirti a questo spazio di lavoro, chiedi semplicemente al proprietario dello spazio di lavoro di aggiungerti come membro. Qualcos'altro? Contatta ${CONST.EMAIL.CONCIERGE}.`,
-            goToRoom: ({roomName}: GoToRoomParams) => `Vai alla stanza ${roomName}`,
             goToWorkspace: 'Vai allo spazio di lavoro',
             goToWorkspaces: 'Vai agli spazi di lavoro',
             clearFilter: 'Cancella filtro',
@@ -4260,7 +4312,7 @@ const translations = {
                 pendingBankTitle: 'Controlla la finestra del tuo browser',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) =>
                     `Si prega di connettersi a ${bankName} tramite la finestra del browser che si è appena aperta. Se non si è aperta,`,
-                pendingBankLink: 'per favore clicca qui.',
+                pendingBankLink: 'per favore clicca qui',
                 giveItNameInstruction: 'Dai alla carta un nome che la distingua dalle altre.',
                 updating: 'Aggiornamento in corso...',
                 noAccountsFound: 'Nessun account trovato',
@@ -4515,7 +4567,7 @@ const translations = {
             newWorkspace: 'Nuovo spazio di lavoro',
             getTheExpensifyCardAndMore: 'Ottieni la Expensify Card e altro ancora',
             confirmWorkspace: 'Conferma Workspace',
-            myGroupWorkspace: 'Il mio spazio di lavoro di gruppo',
+            myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `Il mio spazio di lavoro di gruppo${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
             workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `Spazio di lavoro di ${userName}${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
         },
         people: {
@@ -5987,8 +6039,8 @@ const translations = {
         principalWorkEmail: 'Email di lavoro principale',
         updateYourEmail: 'Aggiorna il tuo indirizzo email',
         updateEmail: 'Aggiorna indirizzo email',
-        contactMethods: 'Metodi di contatto.',
-        schoolMailAsDefault: 'Prima di procedere, assicurati di impostare la tua email scolastica come metodo di contatto predefinito. Puoi farlo in Impostazioni > Profilo >',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `Prima di procedere, assicurati di impostare la tua email scolastica come metodo di contatto predefinito. Puoi farlo in Impostazioni > Profilo > <a href="${contactMethodsRoute}">Metodi di contatto</a>.`,
         error: {
             enterPhoneEmail: "Inserisci un'email o un numero di telefono valido",
             enterEmail: "Inserisci un'email",
@@ -6022,7 +6074,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Segnala la perdita / il danneggiamento della carta fisica',
         screenTitle: 'Pagella persa o danneggiata',
         nextButtonLabel: 'Successivo',
         reasonTitle: 'Perché hai bisogno di una nuova carta?',
@@ -6035,6 +6086,8 @@ const translations = {
         deactivateCardButton: 'Disattiva carta',
         shipNewCardButton: 'Spedisci nuova carta',
         addressError: 'Indirizzo richiesto',
+        successTitle: 'La tua nuova carta è in arrivo!',
+        successDescription: "Dovrai attivarla quando arriverà tra pochi giorni lavorativi. Nel frattempo, la tua carta virtuale è pronta all'uso.",
         reasonError: 'Il motivo è obbligatorio',
     },
     eReceipt: {
@@ -6495,11 +6548,7 @@ const translations = {
                     part2: '.',
                 },
             },
-            acknowledgement: {
-                part1: 'Richiedendo la cancellazione anticipata, riconosco e accetto che Expensify non ha alcun obbligo di concedere tale richiesta ai sensi di Expensify.',
-                link: 'Termini di Servizio',
-                part2: 'o un altro accordo sui servizi applicabile tra me e Expensify e che Expensify mantiene la sola discrezione riguardo alla concessione di qualsiasi richiesta del genere.',
-            },
+            acknowledgement: `Richiedendo la cancellazione anticipata, riconosco e accetto che Expensify non ha alcun obbligo di concedere tale richiesta ai sensi di Expensify.<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Termini di Servizio</a>o un altro accordo sui servizi applicabile tra me e Expensify e che Expensify mantiene la sola discrezione riguardo alla concessione di qualsiasi richiesta del genere.`,
         },
     },
     feedbackSurvey: {

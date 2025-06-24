@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
     adjustRemainingSplitShares,
+    computePerDiemExpenseAmount,
     resetSplitShares,
     setCustomUnitRateID,
     setIndividualShare,
@@ -272,6 +273,8 @@ function MoneyRequestConfirmationList({
     const transactionID = transaction?.transactionID;
     const customUnitRateID = getRateID(transaction);
 
+    const subRates = transaction?.comment?.customUnit?.subRates ?? [];
+
     useEffect(() => {
         if (customUnitRateID !== '-1' || !isDistanceRequest || !transactionID || !policy?.id) {
             return;
@@ -295,6 +298,7 @@ function MoneyRequestConfirmationList({
     const prevUnit = usePrevious(unit);
     const currency = mileageRate.currency ?? CONST.CURRENCY.USD;
     const prevCurrency = usePrevious(currency);
+    const prevSubRates = usePrevious(subRates);
 
     // A flag for showing the categories field
     const shouldShowCategories = (isPolicyExpenseChat || isTypeInvoice) && (!!iouCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
@@ -334,20 +338,27 @@ function MoneyRequestConfirmationList({
 
     const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance || prevCurrency !== currency || prevUnit !== unit);
 
+    const shouldCalculatePerDiemAmount = isPerDiemRequest && (iouAmount === 0 || JSON.stringify(prevSubRates) !== JSON.stringify(subRates) || prevCurrency !== currency);
+
     const hasRoute = hasRouteUtil(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
 
     const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
-    const formattedAmount = isDistanceRequestWithPendingRoute
-        ? ''
-        : convertToDisplayString(shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount, isDistanceRequest ? currency : iouCurrencyCode);
+
+    let amountToBeUsed = iouAmount;
+
+    if (shouldCalculateDistanceAmount) {
+        amountToBeUsed = distanceRequestAmount;
+    } else if (shouldCalculatePerDiemAmount) {
+        const perDiemRequestAmount = computePerDiemExpenseAmount({subRates});
+        amountToBeUsed = perDiemRequestAmount;
+    }
+
+    const formattedAmount = isDistanceRequestWithPendingRoute ? '' : convertToDisplayString(amountToBeUsed, isDistanceRequest ? currency : iouCurrencyCode);
     const formattedAmountPerAttendee =
-        isDistanceRequestWithPendingRoute || isScanRequest || isPerDiemRequest
+        isDistanceRequestWithPendingRoute || isScanRequest
             ? ''
-            : convertToDisplayString(
-                  (shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount) / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1),
-                  isDistanceRequest ? currency : iouCurrencyCode,
-              );
+            : convertToDisplayString(amountToBeUsed / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1), isDistanceRequest ? currency : iouCurrencyCode);
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
 
@@ -662,8 +673,8 @@ function MoneyRequestConfirmationList({
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
-                    maxLength={formattedTotalAmount.length}
-                    contentWidth={formattedTotalAmount.length * 8}
+                    maxLength={formattedTotalAmount.length + 1}
+                    contentWidth={(formattedTotalAmount.length + 1) * 8}
                 />
             ),
         }));
@@ -849,12 +860,6 @@ function MoneyRequestConfirmationList({
      */
     const confirm = useCallback(
         (paymentMethod: PaymentMethodType | undefined) => {
-            if (expensesNumber > 1) {
-                // TODO: remove early return when bulk expense creation is implemented
-                // https://github.com/Expensify/App/issues/61184
-                return;
-            }
-
             if (!!routeError || !transactionID) {
                 return;
             }
@@ -923,7 +928,6 @@ function MoneyRequestConfirmationList({
             isMerchantEmpty,
             shouldDisplayFieldError,
             transaction,
-            expensesNumber,
             iouCategory.length,
             formError,
             iouType,
