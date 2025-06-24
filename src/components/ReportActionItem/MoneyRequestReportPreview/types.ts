@@ -64,12 +64,6 @@ type MoneyRequestReportPreviewProps = {
     /** Whether to show a border to separate Reports Chat Item and Money Request Report Preview */
     shouldShowBorder?: boolean;
 
-    /** Invoice receiver policy for the chat report */
-    invoiceReceiverPolicy?: OnyxEntry<Policy>;
-
-    /** Invoice receiver personal details for the chat report */
-    invoiceReceiverPersonalDetail?: OnyxEntry<PersonalDetails>;
-
     /** Session account ID */
     sessionAccountID?: number;
 

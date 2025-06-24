@@ -59,12 +59,6 @@ type ReportActionItemParentActionProps = {
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
 
-    /** Invoice receiver policy for the chat report */
-    invoiceReceiverPolicy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Invoice receiver personal details for the chat report */
-    invoiceReceiverPersonalDetail: OnyxEntry<OnyxTypes.PersonalDetails>;
-
     /** Session account ID */
     sessionAccountID?: number;
 
@@ -86,8 +80,6 @@ function ReportActionItemParentAction({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
-    invoiceReceiverPolicy,
-    invoiceReceiverPersonalDetail,
     sessionAccountID,
     personalDetailsList,
     walletTermsErrors,
@@ -176,8 +168,6 @@ function ReportActionItemParentAction({
                             isFirstVisibleReportAction={isFirstVisibleReportAction}
                             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                             isThreadReportParentAction
-                            invoiceReceiverPolicy={invoiceReceiverPolicy}
-                            invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
                             sessionAccountID={sessionAccountID}
                             personalDetailsList={personalDetailsList}
                             walletTermsErrors={walletTermsErrors}

@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
@@ -57,12 +57,6 @@ type ReportActionsListItemRendererProps = {
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
 
-    /** Invoice receiver policy for the chat report */
-    invoiceReceiverPolicy: OnyxEntry<Policy>;
-
-    /** Invoice receiver personal details for the chat report */
-    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;
-
     /** Session account ID */
     sessionAccountID: number | undefined;
 
@@ -90,8 +84,6 @@ function ReportActionsListItemRenderer({
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
     parentReportActionForTransactionThread,
-    invoiceReceiverPolicy,
-    invoiceReceiverPersonalDetail,
     sessionAccountID,
     personalDetailsList,
     walletTermsErrors,
@@ -183,8 +175,6 @@ function ReportActionsListItemRenderer({
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                invoiceReceiverPolicy={invoiceReceiverPolicy}
-                invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
                 sessionAccountID={sessionAccountID}
                 personalDetailsList={personalDetailsList}
                 walletTermsErrors={walletTermsErrors}
@@ -219,8 +209,6 @@ function ReportActionsListItemRenderer({
             index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-            invoiceReceiverPolicy={invoiceReceiverPolicy}
-            invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             sessionAccountID={sessionAccountID}
             personalDetailsList={personalDetailsList}
             walletTermsErrors={walletTermsErrors}

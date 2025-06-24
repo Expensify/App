@@ -362,12 +362,6 @@ type PureReportActionItemProps = {
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
 
-    /** Invoice receiver policy for the chat report */
-    invoiceReceiverPolicy?: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Invoice receiver personal details for the chat report */
-    invoiceReceiverPersonalDetail?: OnyxEntry<OnyxTypes.PersonalDetails>;
-
     /** Session account ID */
     sessionAccountID?: number;
 
@@ -438,8 +432,6 @@ function PureReportActionItem({
     userBillingFundID,
     policies,
     shouldShowBorder,
-    invoiceReceiverPolicy,
-    invoiceReceiverPersonalDetail,
     sessionAccountID,
     walletTermsErrors,
 }: PureReportActionItemProps) {
@@ -951,8 +943,6 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
                     shouldShowBorder={shouldShowBorder}
-                    invoiceReceiverPolicy={invoiceReceiverPolicy}
-                    invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
                     sessionAccountID={sessionAccountID}
                     personalDetailsList={personalDetailsList}
                     walletTermsErrors={walletTermsErrors}
@@ -1628,8 +1618,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
         prevProps.userBillingFundID === nextProps.userBillingFundID &&
         prevProps.chatReport?.reportID === nextProps.chatReport?.reportID &&
-        deepEqual(prevProps.invoiceReceiverPolicy, nextProps.invoiceReceiverPolicy) &&
-        deepEqual(prevProps.invoiceReceiverPersonalDetail, nextProps.invoiceReceiverPersonalDetail) &&
         prevProps.sessionAccountID === nextProps.sessionAccountID &&
         deepEqual(prevProps.walletTermsErrors, nextProps.walletTermsErrors)
     );

@@ -151,16 +151,6 @@ function MoneyRequestReportActionsList({
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
-    const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
-        {canBeMissing: true},
-    );
-    const [invoiceReceiverPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetails) =>
-            personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
-        canBeMissing: true,
-    });
-
     const [walletTermsErrors] = useOnyx(ONYXKEYS.WALLET_TERMS, {
         selector: (walletTerms) => walletTerms?.errors,
         canBeMissing: true,
@@ -502,8 +492,6 @@ function MoneyRequestReportActionsList({
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
-                    invoiceReceiverPolicy={invoiceReceiverPolicy}
-                    invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
                     sessionAccountID={currentUserAccountID}
                     personalDetailsList={personalDetailsList}
                     walletTermsErrors={walletTermsErrors}
@@ -521,8 +509,6 @@ function MoneyRequestReportActionsList({
             firstVisibleReportActionID,
             linkedReportActionID,
             allReports,
-            invoiceReceiverPolicy,
-            invoiceReceiverPersonalDetail,
             currentUserAccountID,
             personalDetailsList,
             walletTermsErrors,

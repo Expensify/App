@@ -17,6 +17,8 @@ import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {useOnyx} from 'react-native-onyx';
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 import type {MoneyRequestReportPreviewProps} from './types';
 
@@ -35,8 +37,6 @@ function MoneyRequestReportPreview({
     shouldDisplayContextMenu = true,
     isInvoice = false,
     shouldShowBorder,
-    invoiceReceiverPolicy,
-    invoiceReceiverPersonalDetail,
     sessionAccountID,
     personalDetailsList,
     walletTermsErrors,
@@ -44,6 +44,15 @@ function MoneyRequestReportPreview({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
+        {canBeMissing: true},
+    );
+    const [invoiceReceiverPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetails) =>
+            personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
+        canBeMissing: true,
+    });
     const [transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
