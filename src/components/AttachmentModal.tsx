@@ -235,13 +235,6 @@ function AttachmentModal({
         setFile(originalFileName ? {name: originalFileName} : undefined);
     }, [originalFileName]);
 
-    useEffect(() => {
-        if (!fileError) {
-            return;
-        }
-        setIsFileErrorModalVisible(true);
-    }, [fileError]);
-
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
      */
@@ -309,7 +302,6 @@ function AttachmentModal({
         if (onConfirm) {
             if (validFilesToUpload.length) {
                 onConfirm(validFilesToUpload);
-                setValidFilesToUpload([]);
             } else {
                 onConfirm(Object.assign(file ?? {}, {source: sourceState} as FileObject));
             }
@@ -325,9 +317,6 @@ function AttachmentModal({
     const closeConfirmModal = useCallback(() => {
         setIsFileErrorModalVisible(false);
         setIsDeleteReceiptConfirmModalVisible(false);
-        InteractionManager.runAfterInteractions(() => {
-            setFileError(null);
-        });
     }, []);
 
     /**
@@ -346,12 +335,14 @@ function AttachmentModal({
                     const error = validateAttachment(fileObject, isCheckingMultipleFiles);
                     if (error) {
                         setFileError(error);
+                        setIsFileErrorModalVisible(true);
                         return false;
                     }
                     return true;
                 })
                 .catch(() => {
                     setFileError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED);
+                    setIsFileErrorModalVisible(true);
                     return false;
                 }),
         [],
@@ -360,6 +351,7 @@ function AttachmentModal({
     const isDirectoryCheck = useCallback((data: FileObject) => {
         if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
             setFileError(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
+            setIsFileErrorModalVisible(true);
             return false;
         }
         return true;
@@ -398,8 +390,7 @@ function AttachmentModal({
     const confirmAndContinue = () => {
         if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
             validateFiles(validFilesToUpload);
-        } else {
-            setValidFilesToUpload([]);
+            return;
         }
         setIsFileErrorModalVisible(false);
     };
@@ -413,6 +404,7 @@ function AttachmentModal({
                 const validFiles = data.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
                 setValidFilesToUpload(validFiles);
                 setFileError(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
+                setIsFileErrorModalVisible(true);
                 return;
             }
             validateFiles(data);
@@ -485,9 +477,6 @@ function AttachmentModal({
     const closeAndResetModal = useCallback(() => {
         closeConfirmModal();
         closeModal();
-        InteractionManager.runAfterInteractions(() => {
-            setValidFilesToUpload([]);
-        });
     }, [closeConfirmModal, closeModal]);
 
     /**
@@ -588,8 +577,10 @@ function AttachmentModal({
                     }
                     setShouldLoadAttachment(false);
                     clearAttachmentErrors();
+                    setValidFilesToUpload([]);
                     if (isPDFLoadError.current) {
                         setFileError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED);
+                        setIsFileErrorModalVisible(true);
                         return;
                     }
 
@@ -751,6 +742,7 @@ function AttachmentModal({
                         }
                         isPDFLoadError.current = false;
                         onModalHide?.();
+                        setFileError(null);
                     }}
                 />
             )}
