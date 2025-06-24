@@ -64,7 +64,7 @@ function tryReauthenticate() {
     if (isOffline || !active) {
         return;
     }
-    reauthenticate()?.catch((error) => {
+    reauthenticate().catch((error) => {
         Log.hmmm('Could not reauthenticate attachment image or receipt', {error});
     });
 }

@@ -31,7 +31,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportSettingsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>;
 
-function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) {
+function ReportSettingsPage({report, policy, route}: ReportSettingsPageProps) {
     const backTo = route.params.backTo;
     const reportID = report?.reportID;
     const styles = useThemeStyles();
