@@ -24,14 +24,22 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
     const [transactions] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {canBeMissing: false});
     const [transactionsViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true});
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${context.currentSearchHash}`, {canBeMissing: true});
-    
-    
-    
+
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
                 if (reportActions) {
-                    bulkHold(comment, reportID, reports, Object.values(reportActions), context.selectedTransactionIDs, transactions, transactionsViolations, context.currentSearchHash, snapshot);
+                    bulkHold(
+                        comment,
+                        reportID,
+                        reports,
+                        Object.values(reportActions),
+                        context.selectedTransactionIDs,
+                        transactions,
+                        transactionsViolations,
+                        context.currentSearchHash,
+                        snapshot,
+                    );
                 }
                 context.clearSelectedTransactions(true);
             } else {
