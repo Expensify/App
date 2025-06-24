@@ -10,6 +10,7 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
+import {useSearchContext} from '@components/Search/SearchContext';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
@@ -33,7 +34,6 @@ import {search} from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
-import {useSearchContext} from '@components/Search/SearchContext';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -68,7 +68,7 @@ const SearchPageNarrow = memo(function SearchPageNarrow({queryJSON, headerButton
     });
 
     const searchResults = useMemo(() => {
-        return (currentSearchResults?.data && Array.isArray(currentSearchResults.data)) ? currentSearchResults : lastNonEmptySearchResults;
+        return currentSearchResults?.data && Array.isArray(currentSearchResults.data) ? currentSearchResults : lastNonEmptySearchResults;
     }, [currentSearchResults?.data, lastNonEmptySearchResults]);
 
     const scrollEventEmitter = useScrollEventEmitter();
@@ -76,11 +76,11 @@ const SearchPageNarrow = memo(function SearchPageNarrow({queryJSON, headerButton
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(0);
-    
+
     const updateTopBarOffsetRef = useRef(() => {
         topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
     });
-    
+
     useEffect(() => {
         if (componentState.isAnimationSystemReady) {
             updateTopBarOffsetRef.current();
@@ -94,7 +94,7 @@ const SearchPageNarrow = memo(function SearchPageNarrow({queryJSON, headerButton
     const scrollHandler = useAnimatedScrollHandler({
         onScroll: (event) => {
             if (!componentState.isAnimationSystemReady) return;
-            
+
             runOnJS(triggerScrollEvent)();
             const {contentOffset, layoutMeasurement, contentSize} = event;
             if (windowHeight > contentSize.height) {
@@ -115,32 +115,32 @@ const SearchPageNarrow = memo(function SearchPageNarrow({queryJSON, headerButton
 
     useEffect(() => {
         let isMounted = true;
-        
+
         const staggeredUpdates = async () => {
-            await new Promise(resolve => requestAnimationFrame(resolve));
-            
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+
             if (!isMounted) return;
-            
-            setComponentState(prev => ({
+
+            setComponentState((prev) => ({
                 ...prev,
                 shouldRenderFiltersBar: true,
             }));
-            
+
             const searchUpdate = InteractionManager.runAfterInteractions(() => {
                 if (!isMounted) return;
-                
-                setComponentState(prev => ({
+
+                setComponentState((prev) => ({
                     ...prev,
                     shouldRenderSearch: true,
                     isAnimationSystemReady: true,
                 }));
             });
-            
+
             return () => searchUpdate.cancel();
         };
-        
+
         staggeredUpdates();
-        
+
         return () => {
             isMounted = false;
         };
@@ -175,7 +175,7 @@ const SearchPageNarrow = memo(function SearchPageNarrow({queryJSON, headerButton
 
     const cancelSearchCallback = useCallback(() => {
         if (componentState.searchRouterListVisible) {
-            setComponentState(prev => ({ ...prev, searchRouterListVisible: false }));
+            setComponentState((prev) => ({...prev, searchRouterListVisible: false}));
             return;
         }
         Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
@@ -231,19 +231,21 @@ const SearchPageNarrow = memo(function SearchPageNarrow({queryJSON, headerButton
                             />
                         </View>
                         <View style={[styles.flex1]}>
-                            <Animated.View style={[topBarAnimatedStyle, !componentState.searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.bgTransparent]}>
+                            <Animated.View
+                                style={[topBarAnimatedStyle, !componentState.searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.bgTransparent]}
+                            >
                                 <View style={[styles.flex1, styles.pt2, styles.appBG]}>
                                     <SearchPageHeader
                                         queryJSON={queryJSON}
                                         searchRouterListVisible={componentState.searchRouterListVisible}
                                         hideSearchRouterList={() => {
-                                            setComponentState(prev => ({ ...prev, searchRouterListVisible: false }));
+                                            setComponentState((prev) => ({...prev, searchRouterListVisible: false}));
                                         }}
                                         onSearchRouterFocus={() => {
                                             if (componentState.isAnimationSystemReady) {
                                                 topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
                                             }
-                                            setComponentState(prev => ({ ...prev, searchRouterListVisible: true }));
+                                            setComponentState((prev) => ({...prev, searchRouterListVisible: true}));
                                         }}
                                         headerButtonsOptions={headerButtonsOptions || []}
                                         handleSearch={handleSearchAction}

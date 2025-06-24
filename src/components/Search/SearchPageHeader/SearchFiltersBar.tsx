@@ -43,7 +43,6 @@ type SearchFiltersBarProps = {
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
 };
 
-
 function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarProps) {
     const {hash, type, groupBy, status} = queryJSON;
     const scrollRef = useRef<RNScrollView>(null);
@@ -109,23 +108,23 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     }, [filterFormValues]);
 
     const typeComponent = useCallback(
-        (props: PopoverComponentProps) => {
+        ({closeOverlay}: PopoverComponentProps) => {
             const value = typeOptions.find((option) => option.value === type) ?? null;
             return (
                 <SingleSelectPopup
                     label={translate('common.type')}
                     value={value}
                     items={typeOptions}
-                    closeOverlay={props.closeOverlay}
+                    closeOverlay={closeOverlay}
                     onChange={(item) => updateFilterForm({type: item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE})}
                 />
             );
         },
-        [type, typeOptions, translate, updateFilterForm],
+        [translate, type, typeOptions, updateFilterForm],
     );
 
     const statusComponent = useCallback(
-        (props: PopoverComponentProps) => {
+        ({closeOverlay}: PopoverComponentProps) => {
             const selected = Array.isArray(status) ? statusOptions.filter((option) => status.includes(option.value)) : (statusOptions.find((option) => option.value === status) ?? []);
             const value = [selected].flat();
 
@@ -139,7 +138,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                     label={translate('common.status')}
                     items={statusOptions}
                     value={value}
-                    closeOverlay={props.closeOverlay}
+                    closeOverlay={closeOverlay}
                     onChange={onChange}
                 />
             );
@@ -148,7 +147,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     );
 
     const datePickerComponent = useCallback(
-        (props: PopoverComponentProps) => {
+        ({closeOverlay}: PopoverComponentProps) => {
             const value: DateSelectPopupValue = {
                 [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterFormValues.dateAfter ?? null,
                 [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterFormValues.dateBefore ?? null,
@@ -167,28 +166,28 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
             return (
                 <DateSelectPopup
-                    closeOverlay={props.closeOverlay}
+                    closeOverlay={closeOverlay}
                     value={value}
                     onChange={onChange}
                 />
             );
         },
-        [filterFormValues, updateFilterForm],
+        [filterFormValues.dateAfter, filterFormValues.dateBefore, filterFormValues.dateOn, updateFilterForm],
     );
 
     const userPickerComponent = useCallback(
-        (props: PopoverComponentProps) => {
+        ({closeOverlay}: PopoverComponentProps) => {
             const value = filterFormValues.from ?? [];
 
             return (
                 <UserSelectPopup
                     value={value}
-                    closeOverlay={props.closeOverlay}
+                    closeOverlay={closeOverlay}
                     onChange={(selectedUsers) => updateFilterForm({from: selectedUsers})}
                 />
             );
         },
-        [filterFormValues, updateFilterForm],
+        [filterFormValues.from, updateFilterForm],
     );
 
     const filterComponents = useMemo(
