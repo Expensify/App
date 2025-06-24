@@ -153,7 +153,7 @@ function getUTF8ByteLength(str: string) {
  * Remove white spaces length from the string
  */
 function countWhiteSpaces(str: string): number {
-    return (str.match(/ /g) ?? []).length;
+    return (str.match(/\s/g) ?? []).length;
 }
 
 export default {
