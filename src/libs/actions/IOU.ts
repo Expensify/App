@@ -8482,7 +8482,6 @@ function getSendMoneyParams(
             paymentMethodType,
             transactionID: optimisticTransaction.transactionID,
             newIOUReportDetails,
-            description: comment,
             createdReportActionID: isNewChat ? optimisticCreatedActionForChat.reportActionID : undefined,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             createdIOUReportActionID: optimisticCreatedActionForIOUReport.reportActionID,
