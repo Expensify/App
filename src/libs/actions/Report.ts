@@ -148,6 +148,7 @@ import {
     isMoneyRequestReport,
     isOpenExpenseReport,
     isProcessingReport,
+    isReportManuallyReimbursed,
     isSelfDM,
     isUnread,
     isValidReportIDFromPath,
@@ -4962,8 +4963,10 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
     if (!policy || !iouReport || !isIOUReportUsingReport(iouReport)) {
         return;
     }
+    const isReimbursed = isReportManuallyReimbursed(iouReport);
+
     // We do not want to create negative amount expenses
-    if (ReportActionsUtils.hasRequestFromCurrentAccount(iouReport.reportID, iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID) && !isFromSettlementButton) {
+    if (!isReimbursed && ReportActionsUtils.hasRequestFromCurrentAccount(reportID, iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID) && !isFromSettlementButton) {
         return;
     }
 
@@ -5157,8 +5160,10 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
         return;
     }
 
+    const isReimbursed = isReportManuallyReimbursed(iouReport);
+
     // We only allow moving IOU report to a policy if it doesn't have requests from multiple users, as we do not want to create negative amount expenses
-    if (ReportActionsUtils.hasRequestFromCurrentAccount(reportID, iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID)) {
+    if (!isReimbursed && ReportActionsUtils.hasRequestFromCurrentAccount(reportID, iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID)) {
         return;
     }
 

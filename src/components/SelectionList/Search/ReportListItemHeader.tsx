@@ -82,7 +82,11 @@ function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProp
     let total = reportItem?.total ?? 0;
 
     if (total) {
-        total *= reportItem?.type === CONST.REPORT.TYPE.EXPENSE || reportItem?.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
+        if (reportItem?.type === CONST.REPORT.TYPE.IOU) {
+            total = Math.abs(total ?? 0);
+        } else {
+            total *= reportItem?.type === CONST.REPORT.TYPE.EXPENSE || reportItem?.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
+        }
     }
 
     return (
