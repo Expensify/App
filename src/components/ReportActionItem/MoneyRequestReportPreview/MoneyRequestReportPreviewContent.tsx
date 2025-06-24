@@ -539,6 +539,7 @@ function MoneyRequestReportPreviewContent({
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING]: connectedIntegration ? (
             <ExportWithDropdownMenu
                 report={iouReport}
+                reportActions={reportActions}
                 connectionName={connectedIntegration}
                 wrapperStyle={styles.flexReset}
                 dropdownAnchorAlignment={{
