@@ -120,6 +120,7 @@ function IOURequestStepScan({
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
+    const [cameraKey, setCameraKey] = useState(0);
 
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
@@ -234,6 +235,7 @@ function IOURequestStepScan({
                     return;
                 }
 
+                setCameraKey((prev) => prev + 1);
                 refreshCameraPermissionStatus();
             });
 
@@ -834,6 +836,7 @@ function IOURequestStepScan({
                             <GestureDetector gesture={tapGesture}>
                                 <View style={styles.flex1}>
                                     <NavigationAwareCamera
+                                        key={cameraKey}
                                         ref={camera}
                                         device={device}
                                         style={styles.flex1}
@@ -898,7 +901,6 @@ function IOURequestStepScan({
                                         // makes sure the loader is not visible anymore e.g. when there is an error while uploading a file
                                         onClosed: () => {
                                             setIsLoaderVisible(false);
-                                            setDidCapturePhoto(false);
                                         },
                                     });
                                 }}
