@@ -127,20 +127,23 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
     /**
      * Hide the emoji picker menu.
      */
-    const hideEmojiPicker = (isNavigating?: boolean) => {
-        const currOnModalHide = onModalHide.current;
-        onModalHide.current = () => {
-            if (currOnModalHide) {
-                currOnModalHide(!!isNavigating);
-            }
+    const hideEmojiPicker = useCallback(
+        (isNavigating?: boolean) => {
+            const currOnModalHide = onModalHide.current;
+            onModalHide.current = () => {
+                if (currOnModalHide) {
+                    currOnModalHide(!!isNavigating);
+                }
 
-            emojiPopoverAnchorRef.current = null;
-        };
-        setIsEmojiPickerVisible(false);
-        actionSheetAwareScrollViewContext.transitionActionSheetState({
-            type: Actions.CLOSE_POPOVER,
-        });
-    };
+                emojiPopoverAnchorRef.current = null;
+            };
+            setIsEmojiPickerVisible(false);
+            actionSheetAwareScrollViewContext.transitionActionSheetState({
+                type: Actions.CLOSE_POPOVER,
+            });
+        },
+        [onModalHide, actionSheetAwareScrollViewContext],
+    );
 
     const handleModalHide = () => {
         onModalHide.current();
