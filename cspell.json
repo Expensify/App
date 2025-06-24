@@ -63,6 +63,7 @@
         "basehead",
         "Batchinator",
         "behaviour",
+        "bigdecimal",
         "BILLCOM",
         "billpay",
         "Billpay",
@@ -680,8 +681,7 @@
         "zoneinfo",
         "zxcv",
         "zxldvw",
-        "مثال",
-        "pnrs"
+        "مثال"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
