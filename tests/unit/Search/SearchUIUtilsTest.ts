@@ -5,7 +5,7 @@ import TransactionListItem from '@components/SelectionList/Search/TransactionLis
 import type {ReportActionListItemType, TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -954,7 +954,7 @@ const reportsListItems = [
 
 describe('SearchUIUtils', () => {
     beforeAll(async () => {
-        await TranslationStore.load('en');
+        await IntlStore.load('en');
     });
     describe('Test getAction', () => {
         test('Should return `View` action for an invalid key', () => {
