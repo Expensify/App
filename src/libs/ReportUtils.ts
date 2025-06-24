@@ -2048,6 +2048,9 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transact
  * Whether the provided report is an archived room
  */
 function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report> | SearchReport, isReportArchived = false): boolean {
+    if (!report) {
+        return false;
+    }
     return !(isExpenseReport(report) || isExpenseRequest(report)) && isReportArchived;
 }
 
