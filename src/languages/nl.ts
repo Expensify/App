@@ -44,6 +44,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -2696,14 +2697,40 @@ const translations = {
         whatsTheBusinessAddress: 'Wat is het zakelijke adres?',
         whatsTheBusinessContactInformation: 'Wat zijn de zakelijke contactgegevens?',
         whatsTheBusinessRegistrationNumber: 'Wat is het bedrijfsregistratienummer?',
-        whatsTheBusinessTaxIDEIN: 'Wat is het zakelijke belastingnummer/EIN/btw-/GST-registratienummer?',
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'Wat is het Employer Identification Number (EIN)?';
+                case CONST.COUNTRY.CA:
+                    return 'Wat is het Business Number (BN)?';
+                case CONST.COUNTRY.GB:
+                    return 'Wat is het btw-registratienummer (VRN)?';
+                case CONST.COUNTRY.AU:
+                    return 'Wat is het Australisch bedrijfsnummer (ABN)?';
+                default:
+                    return 'Wat is het EU btw-nummer?';
+            }
+        },
         whatsThisNumber: 'Wat is dit nummer?',
         whereWasTheBusinessIncorporated: 'Waar is het bedrijf opgericht?',
         whatTypeOfBusinessIsIt: 'Wat voor soort bedrijf is het?',
         whatsTheBusinessAnnualPayment: 'Wat is het jaarlijkse betalingsvolume van het bedrijf?',
         whatsYourExpectedAverageReimbursements: 'Wat is je verwachte gemiddelde terugbetalingsbedrag?',
         registrationNumber: 'Registratienummer',
-        taxIDEIN: 'Belasting-ID/EIN-nummer',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'EU btw';
+            }
+        },
         businessAddress: 'Zakelijk adres',
         businessType: 'Zakelijk type',
         incorporation: 'Oprichting',
@@ -2727,6 +2754,20 @@ const translations = {
         findAverageReimbursement: 'Vind het gemiddelde terugbetalingsbedrag',
         error: {
             registrationNumber: 'Gelieve een geldig registratienummer op te geven',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return 'Voer een geldig Employer Identification Number (EIN) in';
+                    case CONST.COUNTRY.CA:
+                        return 'Voer een geldig Business Number (BN) in';
+                    case CONST.COUNTRY.GB:
+                        return 'Voer een geldig btw-registratienummer (VRN) in';
+                    case CONST.COUNTRY.AU:
+                        return 'Voer een geldig Australisch bedrijfsnummer (ABN) in';
+                    default:
+                        return 'Voer een geldig EU btw-nummer in';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {

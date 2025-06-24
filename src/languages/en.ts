@@ -32,6 +32,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -2672,14 +2673,40 @@ const translations = {
         whatsTheBusinessAddress: "What's the business address?",
         whatsTheBusinessContactInformation: "What's the business contact information?",
         whatsTheBusinessRegistrationNumber: "What's the business registration number?",
-        whatsTheBusinessTaxIDEIN: "What's the business tax ID/EIN/VAT/GST registration number?",
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'What’s the Employer Identification Number (EIN)?';
+                case CONST.COUNTRY.CA:
+                    return 'What’s the Business Number (BN)?';
+                case CONST.COUNTRY.GB:
+                    return 'What’s the VAT Registration Number (VRN)?';
+                case CONST.COUNTRY.AU:
+                    return 'What’s the Australian Business Number (ABN)?';
+                default:
+                    return 'What’s the EU VAT number?';
+            }
+        },
         whatsThisNumber: "What's this number?",
         whereWasTheBusinessIncorporated: 'Where was the business incorporated?',
         whatTypeOfBusinessIsIt: 'What type of business is it?',
         whatsTheBusinessAnnualPayment: "What's the business's annual payment volume?",
         whatsYourExpectedAverageReimbursements: "What's your expected average reimbursement amount?",
         registrationNumber: 'Registration number',
-        taxIDEIN: 'Tax ID/EIN number',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'EU VAT';
+            }
+        },
         businessAddress: 'Business address',
         businessType: 'Business type',
         incorporation: 'Incorporation',
@@ -2703,6 +2730,20 @@ const translations = {
         findAverageReimbursement: 'Find average reimbursement amount',
         error: {
             registrationNumber: 'Please provide a valid registration number',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return 'Please provide a valid Employer Identification Number (EIN)';
+                    case CONST.COUNTRY.CA:
+                        return 'Please provide a valid Business Number (BN)';
+                    case CONST.COUNTRY.GB:
+                        return 'Please provide a valid VAT Registration Number (VRN)';
+                    case CONST.COUNTRY.AU:
+                        return 'Please provide a valid Australian Business Number (ABN)';
+                    default:
+                        return 'Please provide a valid EU VAT number';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
