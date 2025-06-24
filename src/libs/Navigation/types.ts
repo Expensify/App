@@ -168,6 +168,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
+    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.ADDRESS]: {
         policyID: string;
@@ -1729,8 +1730,7 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.TRIP_DETAILS]: {
         reportID: string;
         transactionID: string;
-        sequenceIndex: number;
-        pnr: string;
+        reservationIndex: number;
         backTo?: string;
     };
     [SCREENS.TRAVEL.TCS]: {

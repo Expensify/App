@@ -824,7 +824,6 @@ const CONST = {
         CUSTOM_RULES: 'customRules',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
-        RETRACT_NEWDOT: 'retractNewDot',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         MULTI_LEVEL_TAGS: 'multiLevelTags',
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
@@ -833,6 +832,7 @@ const CONST = {
         TRACK_FLOWS: 'trackFlows',
         STATIC_AI_TRANSLATIONS: 'staticAITranslations',
         EUR_BILLING: 'eurBilling',
+        MANUAL_DISTANCE: 'manualDistance',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1761,6 +1761,7 @@ const CONST = {
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
         INCORRECT_MAGIC_CODE: 451,
+        POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles
@@ -3065,6 +3066,13 @@ const CONST = {
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
             MAX_EXPENSE_AGE: 'maxExpenseAge',
+        },
+        PROHIBITED_EXPENSES: {
+            ALCOHOL: 'alcohol',
+            HOTEL_INCIDENTALS: 'hotelIncidentals',
+            GAMBLING: 'gambling',
+            TOBACCO: 'tobacco',
+            ADULT_ENTERTAINMENT: 'adultEntertainment',
         },
         CONNECTIONS: {
             NAME: {
@@ -5521,7 +5529,7 @@ const CONST = {
         [onboardingChoices.EMPLOYER]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.SUBMIT]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.MANAGE_TEAM]: {
-            message: ({onboardingCompanySize: companySize}) => `Here is a task list I’d recommend for a company of your size with ${companySize} submitters:`,
+            message: ({onboardingCompanySize: companySize}) => `Here is a task list I’d recommend for a company of your size${companySize ? ` with ${companySize} submitters` : ':'}`,
             tasks: [
                 createWorkspaceTask,
                 testDriveAdminTask,
@@ -6966,12 +6974,6 @@ const CONST = {
         VISIBLE: 'visible',
         READY_TO_BE_HIDDEN: 'readyToBeHidden',
         HIDDEN: `hidden`,
-    },
-
-    HYBRID_APP_SIGN_IN_STATE: {
-        NOT_STARTED: 'notStarted',
-        STARTED: 'started',
-        FINISHED: 'finished',
     },
 
     CSV_IMPORT_COLUMNS: {
