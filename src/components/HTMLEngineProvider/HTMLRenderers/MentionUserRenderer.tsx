@@ -78,7 +78,14 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                             return;
                         }
                         return onShowContextMenu(() =>
-                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs)),
+                            showContextMenuForReport(
+                                event,
+                                anchor,
+                                report?.reportID,
+                                action,
+                                checkIfContextMenuActive,
+                                isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived),
+                            ),
                         );
                     }}
                     onPress={(event) => {

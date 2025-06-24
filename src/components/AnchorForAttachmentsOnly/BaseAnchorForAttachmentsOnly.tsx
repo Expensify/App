@@ -51,7 +51,14 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                         if (isDisabled || !shouldDisplayContextMenu) {
                             return;
                         }
-                        showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs));
+                        showContextMenuForReport(
+                            event,
+                            anchor,
+                            report?.reportID,
+                            action,
+                            checkIfContextMenuActive,
+                            ReportUtils.isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived),
+                        );
                     }}
                     shouldUseHapticsOnLongPress
                     accessibilityLabel={displayName}

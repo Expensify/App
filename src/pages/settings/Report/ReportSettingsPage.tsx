@@ -33,7 +33,7 @@ function ReportSettingsPage({report, policies, route}: ReportSettingsPageProps) 
     const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID), [policies, report?.policyID]);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
-    const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs) || ReportUtils.isSelfDM(report);
+    const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived) || ReportUtils.isSelfDM(report);
     const notificationPreferenceValue = ReportUtils.getReportNotificationPreference(report);
     const notificationPreference =
         notificationPreferenceValue && !ReportUtils.isHiddenForCurrentUser(notificationPreferenceValue)

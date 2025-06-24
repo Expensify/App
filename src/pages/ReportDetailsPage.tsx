@@ -179,7 +179,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const isUserCreatedPolicyRoom = useMemo(() => isUserCreatedPolicyRoomUtil(report), [report]);
     const isDefaultRoom = useMemo(() => isDefaultRoomUtil(report), [report]);
     const isChatThread = useMemo(() => isChatThreadUtil(report), [report]);
-    const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, reportNameValuePairs), [report, reportNameValuePairs]);
+    const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived), [report, reportNameValuePairs]);
     const isMoneyRequestReport = useMemo(() => isMoneyRequestReportUtil(report), [report]);
     const isMoneyRequest = useMemo(() => isMoneyRequestUtil(report), [report]);
     const isInvoiceReport = useMemo(() => isInvoiceReportUtil(report), [report]);
