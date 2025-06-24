@@ -23,6 +23,8 @@ const PERSONAL_DETAILS = {
 };
 
 const REPORT_ID = 1;
+const CHAT_REPORT_ID = 2;
+const POLICY_ID = 3;
 
 // This keeps the error "@rnmapbox/maps native code not available." from causing the tests to fail
 jest.mock('@components/ConfirmedRoute.tsx');
@@ -556,5 +558,39 @@ describe('getTransactionThreadPrimaryAction', () => {
                 policy: policy as Policy,
             }),
         ).toBe('');
+    });
+
+    it('should return PAY if paid as business and the payer is the policy admin', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.INVOICE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            parentReportID: CHAT_REPORT_ID,
+        } as unknown as Report;
+        const parentReport = {
+            reportID: CHAT_REPORT_ID,
+            invoiceReceiver: {
+                type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                policyID: POLICY_ID,
+            },
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, parentReport);
+        const invoiceReceiverPolicy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+        expect(
+            getReportPrimaryAction({
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                policy: {} as Policy,
+                invoiceReceiverPolicy: invoiceReceiverPolicy as Policy,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 });
