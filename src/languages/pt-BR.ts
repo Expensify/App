@@ -44,6 +44,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -329,6 +330,7 @@ const translations = {
         twoFactorCode: 'Código de dois fatores',
         workspaces: 'Workspaces',
         inbox: 'Caixa de entrada',
+        success: 'Sucesso',
         group: 'Grupo',
         profile: 'Perfil',
         referral: 'Indicação',
@@ -1626,14 +1628,14 @@ const translations = {
         mergeFailureGenericHeading: 'Não é possível mesclar contas',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: 'Reportar atividade suspeita',
         lockAccount: 'Bloquear conta',
         unlockAccount: 'Desbloquear conta',
         compromisedDescription:
-            'Se você suspeitar que sua conta Expensify foi comprometida, você pode bloqueá-la para evitar novas transações com o Expensify Card e impedir alterações indesejadas na conta.',
-        domainAdminsDescriptionPartOne: 'Para administradores de domínio,',
-        domainAdminsDescriptionPartTwo: 'esta ação interrompe toda a atividade do Expensify Card e ações de administrador',
-        domainAdminsDescriptionPartThree: 'em todo o seu domínio/domínios.',
-        warning: `Uma vez que sua conta estiver bloqueada, nossa equipe investigará e removerá qualquer acesso não autorizado. Para recuperar o acesso, você precisará trabalhar com o Concierge para proteger sua conta.`,
+            'Notou algo estranho em sua conta? Relatar isso bloqueará imediatamente sua conta, interromperá novas transações do Cartão Expensify e impedirá alterações na conta.',
+        domainAdminsDescription: 'Para administradores de domínio: Isso também pausa toda a atividade do Cartão Expensify e ações administrativas em seus domínios.',
+        areYouSure: 'Tem certeza de que deseja bloquear sua conta Expensify?',
+        ourTeamWill: 'Nossa equipe investigará e removerá qualquer acesso não autorizado. Para recuperar o acesso, será necessário trabalhar com o Concierge.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Falha ao bloquear a conta',
@@ -2694,14 +2696,40 @@ const translations = {
         whatsTheBusinessAddress: 'Qual é o endereço comercial?',
         whatsTheBusinessContactInformation: 'Qual é a informação de contato comercial?',
         whatsTheBusinessRegistrationNumber: 'Qual é o número de registro da empresa?',
-        whatsTheBusinessTaxIDEIN: 'Qual é o número de identificação fiscal/EIN/VAT/GST da empresa?',
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'Qual é o Número de Identificação do Empregador (EIN)?';
+                case CONST.COUNTRY.CA:
+                    return 'Qual é o Número Comercial (BN)?';
+                case CONST.COUNTRY.GB:
+                    return 'Qual é o Número de Registro de IVA (VRN)?';
+                case CONST.COUNTRY.AU:
+                    return 'Qual é o Número Comercial Australiano (ABN)?';
+                default:
+                    return 'Qual é o número de IVA da UE?';
+            }
+        },
         whatsThisNumber: 'Qual é esse número?',
         whereWasTheBusinessIncorporated: 'Onde a empresa foi incorporada?',
         whatTypeOfBusinessIsIt: 'Que tipo de negócio é?',
         whatsTheBusinessAnnualPayment: 'Qual é o volume anual de pagamentos da empresa?',
         whatsYourExpectedAverageReimbursements: 'Qual é o seu valor médio de reembolso esperado?',
         registrationNumber: 'Número de registro',
-        taxIDEIN: 'Número de CPF/CNPJ',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'IVA UE';
+            }
+        },
         businessAddress: 'Endereço comercial',
         businessType: 'Tipo de negócio',
         incorporation: 'Incorporação',
@@ -2725,6 +2753,20 @@ const translations = {
         findAverageReimbursement: 'Encontrar valor médio de reembolso',
         error: {
             registrationNumber: 'Por favor, forneça um número de registro válido.',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return 'Por favor, informe um Número de Identificação do Empregador (EIN) válido';
+                    case CONST.COUNTRY.CA:
+                        return 'Por favor, informe um Número Comercial (BN) válido';
+                    case CONST.COUNTRY.GB:
+                        return 'Por favor, informe um Número de Registro de IVA (VRN) válido';
+                    case CONST.COUNTRY.AU:
+                        return 'Por favor, informe um Número Comercial Australiano (ABN) válido';
+                    default:
+                        return 'Por favor, informe um número de IVA da UE válido';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
@@ -6015,7 +6057,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Relatar perda / dano do cartão físico',
         screenTitle: 'Boletim perdido ou danificado',
         nextButtonLabel: 'Próximo',
         reasonTitle: 'Por que você precisa de um novo cartão?',
@@ -6029,6 +6070,8 @@ const translations = {
         shipNewCardButton: 'Enviar novo cartão',
         addressError: 'Endereço é obrigatório',
         reasonError: 'Motivo é obrigatório',
+        successTitle: 'Seu novo cartão está a caminho!',
+        successDescription: 'Você precisará ativá-lo assim que ele chegar em alguns dias úteis. Enquanto isso, seu cartão virtual já está pronto para uso.',
     },
     eReceipt: {
         guaranteed: 'eReceipt garantido',
@@ -6488,11 +6531,7 @@ const translations = {
                     part2: '.',
                 },
             },
-            acknowledgement: {
-                part1: 'Ao solicitar o cancelamento antecipado, reconheço e concordo que a Expensify não tem obrigação de atender a tal solicitação sob a Expensify.',
-                link: 'Termos de Serviço',
-                part2: 'ou outro acordo de serviços aplicável entre mim e a Expensify e que a Expensify mantém a discrição exclusiva em relação à concessão de qualquer solicitação desse tipo.',
-            },
+            acknowledgement: `Ao solicitar o cancelamento antecipado, reconheço e concordo que a Expensify não tem obrigação de atender a tal solicitação sob a Expensify.<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Termos de Serviço</a>ou outro acordo de serviços aplicável entre mim e a Expensify e que a Expensify mantém a discrição exclusiva em relação à concessão de qualquer solicitação desse tipo.`,
         },
     },
     feedbackSurvey: {
