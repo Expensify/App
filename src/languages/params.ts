@@ -223,8 +223,6 @@ type StepCounterParams = {step: number; total?: number; text?: string};
 
 type UserIsAlreadyMemberParams = {login: string; name: string};
 
-type GoToRoomParams = {roomName: string};
-
 type NewWorkspaceNameParams = {userName: string; workspaceNumber?: number};
 
 type RoomNameReservedErrorParams = {reservedName: string};
@@ -561,6 +559,10 @@ type DelegateRoleParams = {role: DelegateRole};
 
 type DelegatorParams = {delegator: string};
 
+type VacationDelegateParams = {nameOrEmail: string};
+
+type SubmittedToVacationDelegateParams = {submittedToName: string; vacationDelegateName: string};
+
 type RoleNamesParams = {role: string};
 
 type AssignCardParams = {
@@ -775,6 +777,10 @@ type ContactMethodsRouteParams = {
     contactMethodsRoute: string;
 };
 
+type BusinessTaxIDParams = {
+    country: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     SplitExpenseEditTitleParams,
@@ -801,6 +807,7 @@ export type {
     SpreadCategoriesParams,
     DelegateRoleParams,
     DelegatorParams,
+    VacationDelegateParams,
     ReconciliationWorksParams,
     LastSyncAccountingParams,
     SyncStageNameConnectionsParams,
@@ -868,7 +875,7 @@ export type {
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
-    GoToRoomParams,
+    SubmittedToVacationDelegateParams,
     HeldRequestParams,
     InstantSummaryParams,
     IssueVirtualCardParams,
@@ -1047,4 +1054,5 @@ export type {
     RailTicketParams,
     TravelTypeParams,
     WorkspaceRouteParams,
+    BusinessTaxIDParams,
 };

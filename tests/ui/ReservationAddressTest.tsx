@@ -45,7 +45,6 @@ const mockReservationData = {
     transactionID: '2101152939974863962',
     reportID: '8884312680252586',
     reservationIndex: 0,
-    sequenceIndex: 0,
 };
 
 describe('ReservationAddressTest', () => {
@@ -55,7 +54,7 @@ describe('ReservationAddressTest', () => {
                 reservation={mockReservationData.reservation}
                 transactionID={mockReservationData.transactionID}
                 tripRoomReportID={mockReservationData.reportID}
-                sequenceIndex={mockReservationData.sequenceIndex}
+                reservationIndex={mockReservationData.reservationIndex}
             />,
         );
 

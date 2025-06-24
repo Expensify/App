@@ -44,6 +44,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -101,7 +102,6 @@ import type {
     FlightParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
-    GoToRoomParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -194,6 +194,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -245,6 +246,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -330,6 +332,7 @@ const translations = {
         workspaces: '工作区',
         inbox: '收件箱',
         group: '组',
+        success: '成功',
         profile: '个人资料',
         referral: '推荐',
         payments: '付款',
@@ -610,6 +613,7 @@ const translations = {
         workspacesTabTitle: '工作区',
         getTheApp: '获取应用程序',
         scanReceiptsOnTheGo: '用手机扫描收据',
+        headsUp: '\u6CE8\u610F\uFF01',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -1100,6 +1104,7 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `在其他地方支付${formattedAmount}` : `在其他地方支付`),
         nextStep: '下一步',
         finished: '完成',
+        flip: '翻转',
         sendInvoice: ({amount}: RequestAmountParams) => `发送 ${amount} 发票`,
         submitAmount: ({amount}: RequestAmountParams) => `提交 ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `对于${comment}` : ''}`,
@@ -1610,13 +1615,13 @@ const translations = {
         mergeFailureGenericHeading: '无法合并账户',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: '报告可疑活动',
         lockAccount: '锁定账户',
         unlockAccount: '解锁账户',
-        compromisedDescription: '如果您怀疑您的Expensify账户被泄露，您可以锁定它以防止新的Expensify卡交易并阻止不必要的账户更改。',
-        domainAdminsDescriptionPartOne: '对于域管理员，',
-        domainAdminsDescriptionPartTwo: '此操作将停止所有 Expensify Card 活动和管理员操作。',
-        domainAdminsDescriptionPartThree: '在您的域中。',
-        warning: `一旦您的账户被锁定，我们的团队将进行调查并移除任何未经授权的访问。要重新获得访问权限，您需要与Concierge合作以确保您的账户安全。`,
+        compromisedDescription: '发现您的账户有异常? 报告后将立即锁定账户, 阻止新的Expensify卡交易, 并防止任何账户更改。',
+        domainAdminsDescription: '对于域管理员: 这也会暂停您域中所有Expensify卡活动和管理员操作。',
+        areYouSure: '您确定要锁定您的Expensify账户吗?',
+        ourTeamWill: '我们的团队将调查并移除任何未经授权的访问。若要恢复访问权限, 您需与Concierge协作。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: '无法锁定账户',
@@ -2336,6 +2341,14 @@ const translations = {
         time: '时间',
         clearAfter: '清除后',
         whenClearStatus: '我们应该何时清除您的状态？',
+        vacationDelegate: '\u4F11\u5047\u4EE3\u7406\u4EBA',
+        setVacationDelegate: '\u8BBE\u7F6E\u4E00\u4F4D\u4F11\u5047\u4EE3\u7406\u4EBA\uFF0C\u5728\u60A8\u5916\u51FA\u65F6\u4EE3\u60A8\u6279\u51C6\u62A5\u544A\u3002',
+        vacationDelegateError: '\u66F4\u65B0\u4F11\u5047\u4EE3\u7406\u4EBA\u65F6\u51FA\u9519\u3002',
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `\u4F5C\u4E3A ${managerName} \u7684\u4F11\u5047\u4EE3\u7406\u4EBA`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) =>
+            `\u53D1\u9001\u7ED9 ${submittedToName}\uFF0C\u4F5C\u4E3A ${vacationDelegateName} \u7684\u4F11\u5047\u4EE3\u7406\u4EBA`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `\u60A8\u6B63\u5728\u6307\u5B9A ${nameOrEmail} \u4F5C\u4E3A\u60A8\u7684\u4F11\u5047\u4EE3\u7406\u4EBA\u3002\u4ED6/\u5979\u8FD8\u672A\u52A0\u5165\u60A8\u7684\u6240\u6709\u5DE5\u4F5C\u7A7A\u95F4\u3002\u5982\u679C\u60A8\u9009\u62E9\u7EE7\u7EED\uFF0C\u5C06\u5411\u6240\u6709\u5DE5\u4F5C\u7A7A\u95F4\u7BA1\u7406\u5458\u53D1\u9001\u90AE\u4EF6\uFF0C\u901A\u77E5\u4ED6\u4EEC\u6DFB\u52A0\u8BE5\u4EBA\u3002`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `步骤 ${step}`;
@@ -2652,14 +2665,40 @@ const translations = {
         whatsTheBusinessAddress: '公司的地址是什么？',
         whatsTheBusinessContactInformation: '商业联系信息是什么？',
         whatsTheBusinessRegistrationNumber: '营业登记号码是多少？',
-        whatsTheBusinessTaxIDEIN: '营业税号/EIN/VAT/GST注册号是多少？',
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return '什么是雇主识别号（EIN）？';
+                case CONST.COUNTRY.CA:
+                    return '什么是商业号码（BN）？';
+                case CONST.COUNTRY.GB:
+                    return '什么是增值税注册号（VRN）？';
+                case CONST.COUNTRY.AU:
+                    return '什么是澳大利亚商业号码（ABN）？';
+                default:
+                    return '什么是欧盟增值税号？';
+            }
+        },
         whatsThisNumber: '这个号码是什么？',
         whereWasTheBusinessIncorporated: '公司在哪里注册成立的？',
         whatTypeOfBusinessIsIt: '这是什么类型的业务？',
         whatsTheBusinessAnnualPayment: '企业的年度支付总额是多少？',
         whatsYourExpectedAverageReimbursements: '您的预期平均报销金额是多少？',
         registrationNumber: '注册号码',
-        taxIDEIN: '税号/EIN号码',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return '欧盟VAT';
+            }
+        },
         businessAddress: '公司地址',
         businessType: '业务类型',
         incorporation: '公司注册',
@@ -2683,6 +2722,20 @@ const translations = {
         findAverageReimbursement: '查找平均报销金额',
         error: {
             registrationNumber: '请提供有效的注册号码',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return '请输入有效的雇主识别号（EIN）';
+                    case CONST.COUNTRY.CA:
+                        return '请输入有效的商业号码（BN）';
+                    case CONST.COUNTRY.GB:
+                        return '请输入有效的增值税注册号（VRN）';
+                    case CONST.COUNTRY.AU:
+                        return '请输入有效的澳大利亚商业号码（ABN）';
+                    default:
+                        return '请输入有效的欧盟增值税号';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
@@ -3080,7 +3133,6 @@ const translations = {
             unavailable: '工作区不可用',
             memberNotFound: '未找到成员。要邀请新成员加入工作区，请使用上面的邀请按钮。',
             notAuthorized: `您无权访问此页面。如果您正在尝试加入此工作区，请请求工作区所有者将您添加为成员。还有其他问题？请联系${CONST.EMAIL.CONCIERGE}。`,
-            goToRoom: ({roomName}: GoToRoomParams) => `前往 ${roomName} 房间`,
             goToWorkspace: '前往工作区',
             goToWorkspaces: '前往工作区',
             clearFilter: '清除筛选器',
@@ -5892,7 +5944,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: '报告实体卡丢失/损坏',
         screenTitle: '成绩单丢失或损坏',
         nextButtonLabel: '下一个',
         reasonTitle: '你为什么需要一张新卡？',
@@ -5906,6 +5957,8 @@ const translations = {
         shipNewCardButton: '寄送新卡片',
         addressError: '地址是必需的',
         reasonError: '原因是必需的',
+        successTitle: '您的卡片正在路上！',
+        successDescription: '几天后到达时，您需要激活它。在此期间，您的虚拟卡已准备好使用。',
     },
     eReceipt: {
         guaranteed: '保证电子收据',
@@ -6352,11 +6405,7 @@ const translations = {
                     part2: '.',
                 },
             },
-            acknowledgement: {
-                part1: '通过请求提前取消，我承认并同意Expensify在Expensify条款下没有义务批准此类请求。',
-                link: '服务条款',
-                part2: '或我与Expensify之间的其他适用服务协议，并且Expensify保留对授予任何此类请求的唯一酌情权。',
-            },
+            acknowledgement: `通过请求提前取消，我承认并同意Expensify在Expensify条款下没有义务批准此类请求。<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>服务条款</a>或我与Expensify之间的其他适用服务协议，并且Expensify保留对授予任何此类请求的唯一酌情权。`,
         },
     },
     feedbackSurvey: {
