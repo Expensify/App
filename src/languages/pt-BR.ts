@@ -329,6 +329,7 @@ const translations = {
         twoFactorCode: 'Código de dois fatores',
         workspaces: 'Workspaces',
         inbox: 'Caixa de entrada',
+        success: 'Sucesso',
         group: 'Grupo',
         profile: 'Perfil',
         referral: 'Indicação',
@@ -1626,14 +1627,14 @@ const translations = {
         mergeFailureGenericHeading: 'Não é possível mesclar contas',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: 'Reportar atividade suspeita',
         lockAccount: 'Bloquear conta',
         unlockAccount: 'Desbloquear conta',
         compromisedDescription:
-            'Se você suspeitar que sua conta Expensify foi comprometida, você pode bloqueá-la para evitar novas transações com o Expensify Card e impedir alterações indesejadas na conta.',
-        domainAdminsDescriptionPartOne: 'Para administradores de domínio,',
-        domainAdminsDescriptionPartTwo: 'esta ação interrompe toda a atividade do Expensify Card e ações de administrador',
-        domainAdminsDescriptionPartThree: 'em todo o seu domínio/domínios.',
-        warning: `Uma vez que sua conta estiver bloqueada, nossa equipe investigará e removerá qualquer acesso não autorizado. Para recuperar o acesso, você precisará trabalhar com o Concierge para proteger sua conta.`,
+            'Notou algo estranho em sua conta? Relatar isso bloqueará imediatamente sua conta, interromperá novas transações do Cartão Expensify e impedirá alterações na conta.',
+        domainAdminsDescription: 'Para administradores de domínio: Isso também pausa toda a atividade do Cartão Expensify e ações administrativas em seus domínios.',
+        areYouSure: 'Tem certeza de que deseja bloquear sua conta Expensify?',
+        ourTeamWill: 'Nossa equipe investigará e removerá qualquer acesso não autorizado. Para recuperar o acesso, será necessário trabalhar com o Concierge.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Falha ao bloquear a conta',
@@ -6015,7 +6016,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Relatar perda / dano do cartão físico',
         screenTitle: 'Boletim perdido ou danificado',
         nextButtonLabel: 'Próximo',
         reasonTitle: 'Por que você precisa de um novo cartão?',
@@ -6029,6 +6029,8 @@ const translations = {
         shipNewCardButton: 'Enviar novo cartão',
         addressError: 'Endereço é obrigatório',
         reasonError: 'Motivo é obrigatório',
+        successTitle: 'Seu novo cartão está a caminho!',
+        successDescription: 'Você precisará ativá-lo assim que ele chegar em alguns dias úteis. Enquanto isso, seu cartão virtual já está pronto para uso.',
     },
     eReceipt: {
         guaranteed: 'eReceipt garantido',

@@ -329,6 +329,7 @@ const translations = {
         twoFactorCode: 'Twee-factor code',
         workspaces: 'Werkruimtes',
         inbox: 'Inbox',
+        success: 'Succes',
         group: 'Groep',
         profile: 'Profiel',
         referral: 'Verwijzing',
@@ -1629,14 +1630,13 @@ const translations = {
         mergeFailureGenericHeading: 'Kan accounts niet samenvoegen',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: 'Verdachte activiteit melden',
         lockAccount: 'Account vergrendelen',
         unlockAccount: 'Account ontgrendelen',
-        compromisedDescription:
-            'Als u vermoedt dat uw Expensify-account is gecompromitteerd, kunt u het vergrendelen om nieuwe Expensify Card-transacties te voorkomen en ongewenste wijzigingen in het account te blokkeren.',
-        domainAdminsDescriptionPartOne: 'Voor domeinbeheerders,',
-        domainAdminsDescriptionPartTwo: 'deze actie stopt alle Expensify Card-activiteiten en beheerdersacties',
-        domainAdminsDescriptionPartThree: 'in uw domein(en).',
-        warning: `Zodra uw account is vergrendeld, zal ons team het onderzoeken en ongeautoriseerde toegang verwijderen. Om weer toegang te krijgen, moet u samenwerken met Concierge om uw account te beveiligen.`,
+        compromisedDescription: 'Merk je iets vreemds op aan je account? Meld het en je account wordt meteen vergrendeld, kaarttransacties geblokkeerd en wijzigingen voorkomen.',
+        domainAdminsDescription: 'Voor domeinbeheerders: dit pauzeert ook alle Expensify Card-activiteiten en beheerdersacties in je domein(en).',
+        areYouSure: 'Weet je zeker dat je je Expensify-account wilt vergrendelen?',
+        ourTeamWill: 'Ons team onderzoekt het en verwijdert ongeautoriseerde toegang. Om weer toegang te krijgen, moet je met Concierge samenwerken.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Kan account niet vergrendelen',
@@ -6018,7 +6018,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Rapporteer verlies / schade van fysieke kaart',
         screenTitle: 'Rapportkaart verloren of beschadigd',
         nextButtonLabel: 'Volgende',
         reasonTitle: 'Waarom heb je een nieuwe kaart nodig?',
@@ -6032,6 +6031,8 @@ const translations = {
         shipNewCardButton: 'Verzend nieuwe kaart',
         addressError: 'Adres is vereist',
         reasonError: 'Reden is vereist',
+        successTitle: 'Uw nieuwe kaart is onderweg!',
+        successDescription: 'U moet deze activeren zodra deze over een paar werkdagen aankomt. In de tussentijd kunt u uw virtuele kaart gebruiken.',
     },
     eReceipt: {
         guaranteed: 'Gegarandeerd eReceipt',

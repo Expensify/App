@@ -328,6 +328,7 @@ const translations = {
         magicCode: 'Magic code',
         twoFactorCode: 'Code à deux facteurs',
         workspaces: 'Espaces de travail',
+        success: 'Succ\u00E8s',
         inbox: 'Boîte de réception',
         group: 'Groupe',
         profile: 'Profil',
@@ -1633,14 +1634,14 @@ const translations = {
         mergeFailureGenericHeading: 'Impossible de fusionner les comptes',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: 'Signaler une activité suspecte',
         lockAccount: 'Verrouiller le compte',
         unlockAccount: 'Déverrouiller le compte',
         compromisedDescription:
-            'Si vous soupçonnez que votre compte Expensify est compromis, vous pouvez le verrouiller pour empêcher les nouvelles transactions avec la carte Expensify et bloquer les modifications indésirables du compte.',
-        domainAdminsDescriptionPartOne: 'Pour les administrateurs de domaine,',
-        domainAdminsDescriptionPartTwo: 'cette action arrête toute activité de la carte Expensify et les actions administratives',
-        domainAdminsDescriptionPartThree: "sur l'ensemble de votre/vos domaine(s).",
-        warning: `Une fois que votre compte est verrouillé, notre équipe enquêtera et supprimera tout accès non autorisé. Pour retrouver l'accès, vous devrez travailler avec Concierge pour sécuriser votre compte.`,
+            "Vous remarquez quelque chose d'inhabituel ? Signalez-le pour verrouiller immédiatement votre compte, bloquer les transactions Expensify Card et empêcher toute modification.",
+        domainAdminsDescription: "Pour les administrateurs de domaine : cela suspend aussi l'activité de la carte Expensify et les actions d'administration sur vos domaines.",
+        areYouSure: 'Êtes-vous sûr de vouloir verrouiller votre compte Expensify ?',
+        ourTeamWill: "Notre équipe enquêtera et supprimera tout accès non autorisé. Pour retrouver l'accès, vous devrez collaborer avec Concierge.",
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Échec du verrouillage du compte',
@@ -6054,7 +6055,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: "Signaler la perte / l'endommagement de la carte physique",
         screenTitle: 'Bulletin perdu ou endommagé',
         nextButtonLabel: 'Suivant',
         reasonTitle: "Pourquoi avez-vous besoin d'une nouvelle carte ?",
@@ -6068,6 +6068,8 @@ const translations = {
         shipNewCardButton: 'Expédier une nouvelle carte',
         addressError: "L'adresse est requise",
         reasonError: 'La raison est requise',
+        successTitle: 'Ihre neue Karte ist auf dem Weg!',
+        successDescription: 'Sie müssen sie aktivieren, sobald sie in wenigen Werktagen ankommt. In der Zwischenzeit ist Ihre virtuelle Karte einsatzbereit.',
     },
     eReceipt: {
         guaranteed: 'eReçu garanti',

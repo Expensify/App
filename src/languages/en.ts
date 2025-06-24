@@ -320,6 +320,7 @@ const translations = {
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
         inbox: 'Inbox',
+        success: 'Success',
         group: 'Group',
         profile: 'Profile',
         referral: 'Referral',
@@ -1613,13 +1614,14 @@ const translations = {
         mergeFailureGenericHeading: 'Can’t merge accounts',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: 'Report suspicious activity',
         lockAccount: 'Lock account',
         unlockAccount: 'Unlock account',
-        compromisedDescription: 'If you suspect your Expensify account is compromised, you can lock it to prevent new Expensify Card transactions and block unwanted account changes.',
-        domainAdminsDescriptionPartOne: 'For domain admins, ',
-        domainAdminsDescriptionPartTwo: 'this action halts all Expensify Card activity and admin actions ',
-        domainAdminsDescriptionPartThree: 'across your domain(s).',
-        warning: `Once your account is locked, our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge to secure your account.`,
+        compromisedDescription:
+            'Notice something off with your account? Reporting it will immediately lock your account, block new Expensify Card transactions, and prevent any account changes.',
+        domainAdminsDescription: 'For domain admins: This also pauses all Expensify Card activity and admin actions across your domain(s).',
+        areYouSure: 'Are you sure you want to lock your Expensify account?',
+        ourTeamWill: "Our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge.",
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Failed to lock account',
@@ -5978,7 +5980,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Report physical card loss / damage',
         screenTitle: 'Report card lost or damaged',
         nextButtonLabel: 'Next',
         reasonTitle: 'Why do you need a new card?',
@@ -5992,6 +5993,8 @@ const translations = {
         shipNewCardButton: 'Ship new card',
         addressError: 'Address is required',
         reasonError: 'Reason is required',
+        successTitle: 'Your new card is on the way!',
+        successDescription: "You'll need to activate it once it arrives in a few business days. In the meantime, your virtual card is ready to use.",
     },
     eReceipt: {
         guaranteed: 'Guaranteed eReceipt',
