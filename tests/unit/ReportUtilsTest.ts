@@ -2874,7 +2874,7 @@ describe('ReportUtils', () => {
             expect(shouldReportShowSubscript(report, isReportArchived.current)).toBe(false);
         });
 
-        it('should return true for a non-archived non-expense report', () => {
+        it('should return false for a non-archived non-expense report', () => {
             const report = createRegularChat(1, [currentUserAccountID, 1]);
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
             expect(shouldReportShowSubscript(report, isReportArchived.current)).toBe(false);
