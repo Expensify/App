@@ -68,7 +68,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                                     report?.reportID,
                                     action,
                                     checkIfContextMenuActive,
-                                    isArchivedNonExpenseReport(report, reportNameValuePairs?.private_isArchived),
+                                    isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived),
                                 );
                             });
                         }}

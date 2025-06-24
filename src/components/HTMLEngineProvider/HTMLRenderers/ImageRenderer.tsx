@@ -126,7 +126,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                         report?.reportID,
                                         action,
                                         checkIfContextMenuActive,
-                                        isArchivedNonExpenseReport(report, reportNameValuePairs?.private_isArchived),
+                                        isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived),
                                     ),
                                 );
                             }}

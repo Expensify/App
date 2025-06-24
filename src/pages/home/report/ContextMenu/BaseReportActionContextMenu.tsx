@@ -205,7 +205,7 @@ function BaseReportActionContextMenu({
         isMoneyRequestOrReport &&
         !isArchivedNonExpenseReport(
             transactionThreadReportID ? childReport : parentReport,
-            transactionThreadReportID ? childReportNameValuePairs?.private_isArchived : parentReportNameValuePairs?.private_isArchived,
+            transactionThreadReportID ? !!childReportNameValuePairs?.private_isArchived : !!parentReportNameValuePairs?.private_isArchived,
         );
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);

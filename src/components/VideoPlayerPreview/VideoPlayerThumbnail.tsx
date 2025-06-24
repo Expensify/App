@@ -64,7 +64,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                                         report?.reportID,
                                         action,
                                         checkIfContextMenuActive,
-                                        isArchivedNonExpenseReport(report, reportNameValuePairs?.private_isArchived),
+                                        isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived),
                                     );
                                 });
                             }}

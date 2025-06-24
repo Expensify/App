@@ -1231,7 +1231,7 @@ function PureReportActionItem({
                                     ref={composerTextInputRef}
                                     shouldDisableEmojiPicker={
                                         (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) ||
-                                        isArchivedNonExpenseReport(report, reportNameValuePairs?.private_isArchived)
+                                        isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived)
                                     }
                                     isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
                                 />

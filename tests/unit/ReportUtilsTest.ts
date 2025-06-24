@@ -2477,16 +2477,36 @@ describe('ReportUtils', () => {
     });
 
     describe('canEditRoomVisibility', () => {
+        const policyRoomReport: Report = {
+            ...LHNTestUtils.getFakeReport(),
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            reportID: '1',
+        };
+
         it('should return true for policy rooms that are not archived and the user is an admin', () => {
-            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.ADMIN}, false)).toBe(true);
-            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.AUDITOR}, false)).toBe(false);
-            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.USER}, false)).toBe(false);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyRoomReport?.reportID));
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.ADMIN}, isReportArchived.current)).toBeTruthy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.AUDITOR}, isReportArchived.current)).toBeFalsy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.USER}, isReportArchived.current)).toBeFalsy();
         });
 
-        it('should return false for policy rooms that are archived regardless of the policy role', () => {
-            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.ADMIN}, true)).toBe(false);
-            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.AUDITOR}, true)).toBe(false);
-            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.USER}, true)).toBe(false);
+        it('should return false for policy rooms that are archived regardless of the policy role', async () => {
+            const reportNameValuePairs = {
+                type: 'chat',
+                private_isArchived: DateUtils.getDBTime(),
+            };
+
+            // Archiving the workspace
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${policyRoomReport.reportID}`, reportNameValuePairs);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyRoomReport?.reportID));
+
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.ADMIN}, isReportArchived.current)).toBeFalsy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.AUDITOR}, isReportArchived.current)).toBeFalsy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.USER}, isReportArchived.current)).toBeFalsy();
+        });
+
+        afterAll(async () => {
+            await Onyx.clear();
         });
     });
 

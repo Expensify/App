@@ -57,7 +57,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                             report?.reportID,
                             action,
                             checkIfContextMenuActive,
-                            isArchivedNonExpenseReport(report, reportNameValuePairs?.private_isArchived),
+                            isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived),
                         );
                     }}
                     shouldUseHapticsOnLongPress

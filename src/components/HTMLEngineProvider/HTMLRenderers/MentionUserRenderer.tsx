@@ -84,7 +84,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                                 report?.reportID,
                                 action,
                                 checkIfContextMenuActive,
-                                isArchivedNonExpenseReport(report, reportNameValuePairs?.private_isArchived),
+                                isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived),
                             ),
                         );
                     }}
