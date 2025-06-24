@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -23,6 +23,7 @@ const defaultSearchContext: SearchContext = {
     setLastSearchType: () => {},
     setCurrentSearchHash: () => {},
     setSelectedTransactions: () => {},
+    removeTransaction: () => {},
     clearSelectedTransactions: () => {},
     setShouldShowFiltersBarLoading: () => {},
     setShouldShowExportModeOption: () => {},
@@ -37,6 +38,7 @@ function SearchContextProvider({children}: ChildrenProps) {
     const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
     const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
     const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
+    const areTransactionsEmpty = useRef(true);
 
     const setCurrentSearchHash = useCallback((searchHash: number) => {
         setSearchContextData((prevState) => ({
@@ -45,42 +47,41 @@ function SearchContextProvider({children}: ChildrenProps) {
         }));
     }, []);
 
-    const setSelectedTransactions: SearchContext['setSelectedTransactions'] = useCallback(
-        (selectedTransactions, data = []) => {
-            if (selectedTransactions instanceof Array) {
-                if (!selectedTransactions.length && !searchContextData.selectedTransactionIDs.length) {
-                    return;
-                }
-                return setSearchContextData((prevState) => ({
-                    ...prevState,
-                    selectedTransactionIDs: selectedTransactions,
-                }));
+    const setSelectedTransactions: SearchContext['setSelectedTransactions'] = useCallback((selectedTransactions, data = []) => {
+        if (selectedTransactions instanceof Array) {
+            if (!selectedTransactions.length && areTransactionsEmpty.current) {
+                areTransactionsEmpty.current = true;
+                return;
             }
-
-            // When selecting transactions, we also need to manage the reports to which these transactions belong. This is done to ensure proper exporting to CSV.
-            let selectedReports: SearchContext['selectedReports'] = [];
-
-            if (data.length && data.every(isReportListItemType)) {
-                selectedReports = data
-                    .filter((item) => isMoneyRequestReport(item) && item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected))
-                    .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
-            }
-
-            if (data.length && data.every(isTransactionListItemType)) {
-                selectedReports = data
-                    .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
-                    .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
-            }
-
-            setSearchContextData((prevState) => ({
+            areTransactionsEmpty.current = false;
+            return setSearchContextData((prevState) => ({
                 ...prevState,
-                selectedTransactions,
-                shouldTurnOffSelectionMode: false,
-                selectedReports,
+                selectedTransactionIDs: selectedTransactions,
             }));
-        },
-        [searchContextData.selectedTransactionIDs.length],
-    );
+        }
+
+        // When selecting transactions, we also need to manage the reports to which these transactions belong. This is done to ensure proper exporting to CSV.
+        let selectedReports: SearchContext['selectedReports'] = [];
+
+        if (data.length && data.every(isReportListItemType)) {
+            selectedReports = data
+                .filter((item) => isMoneyRequestReport(item) && item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected))
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
+        }
+
+        if (data.length && data.every(isTransactionListItemType)) {
+            selectedReports = data
+                .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
+        }
+
+        setSearchContextData((prevState) => ({
+            ...prevState,
+            selectedTransactions,
+            shouldTurnOffSelectionMode: false,
+            selectedReports,
+        }));
+    }, []);
 
     const clearSelectedTransactions: SearchContext['clearSelectedTransactions'] = useCallback(
         (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
@@ -104,9 +105,24 @@ function SearchContextProvider({children}: ChildrenProps) {
         [searchContextData.currentSearchHash, setSelectedTransactions],
     );
 
+    const removeTransaction: SearchContext['removeTransaction'] = useCallback(
+        (transactionID) => {
+            const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
+            if (!transactionID || !selectedTransactionIDs.length) {
+                return;
+            }
+            setSearchContextData((prevState) => ({
+                ...prevState,
+                selectedTransactionIDs: selectedTransactionIDs.filter((ID) => transactionID !== ID),
+            }));
+        },
+        [searchContextData.selectedTransactionIDs],
+    );
+
     const searchContext = useMemo<SearchContext>(
         () => ({
             ...searchContextData,
+            removeTransaction,
             setCurrentSearchHash,
             setSelectedTransactions,
             clearSelectedTransactions,
@@ -130,6 +146,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             setShouldShowExportModeOption,
             isExportMode,
             setExportMode,
+            removeTransaction,
         ],
     );
 

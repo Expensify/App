@@ -19,11 +19,6 @@ function canUseLinkPreviews(): boolean {
 }
 
 function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>): boolean {
-    // This beta has been released to everyone, but in case user does not have the NVP loaded, we need to return true here.
-    // Will be removed in this issue https://github.com/Expensify/App/issues/63254
-    if (beta === CONST.BETAS.TABLE_REPORT_VIEW) {
-        return true;
-    }
     return !!betas?.includes(beta) || canUseAllBetas(betas);
 }
 
