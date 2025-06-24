@@ -11462,7 +11462,6 @@ export {
     hasReportBeenReopened,
     getMoneyReportPreviewName,
     getNextApproverAccountID,
-    isOneTransactionReport,
     isWorkspaceTaskReport,
     isWorkspaceThread,
 };

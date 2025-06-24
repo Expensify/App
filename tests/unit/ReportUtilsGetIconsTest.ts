@@ -1,4 +1,6 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {
     getIcons,
     isAdminRoom,
@@ -14,7 +16,6 @@ import {
     isInvoiceRoom,
     isIOUReport,
     isMoneyRequestReport,
-    isOneTransactionReport,
     isPolicyExpenseChat,
     isSelfDM,
     isTaskReport,
@@ -24,35 +25,30 @@ import {
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
+import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 
 const FAKE_PERSONAL_DETAILS = LHNTestUtils.fakePersonalDetails;
 /* eslint-disable @typescript-eslint/naming-convention */
-const FAKE_REPORT_ACTIONS = {
+const FAKE_REPORT_ACTIONS: OnyxCollection<Record<string, ReportAction>> = {
     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
-        '1': {actorAccountID: 2, actionName: CONST.REPORT.ACTIONS.TYPE.IOU},
+        '1': {...actionR14932, actorAccountID: 2},
     },
     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: {
-        '2': {actorAccountID: 1, actionName: CONST.REPORT.ACTIONS.TYPE.IOU},
+        '2': {...actionR98765, actorAccountID: 1},
     },
     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]: {
-        '2': {
-            actorAccountID: 1,
-            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            originalMessage: {
-                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            },
-        },
+        '2': {...actionR98765, actorAccountID: 1},
     },
     // For workspace thread test - parent report actions
     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}workspaceParent`]: {
-        '1': {actorAccountID: 2, actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT},
+        '1': {...actionR14932, actorAccountID: 2, actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT},
     },
     // For multi-transaction IOU test - multiple transactions
     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}multiTxn`]: {
-        '1': {actorAccountID: 1, actionName: CONST.REPORT.ACTIONS.TYPE.IOU},
-        '2': {actorAccountID: 1, actionName: CONST.REPORT.ACTIONS.TYPE.IOU},
+        '1': {...actionR14932, actorAccountID: 1},
+        '2': {...actionR98765, actorAccountID: 1},
     },
 };
 /* eslint-enable @typescript-eslint/naming-convention */
@@ -484,14 +480,16 @@ describe('getIcons', () => {
             },
         };
 
+        const reportActions = FAKE_REPORT_ACTIONS?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
+        const chatReport = FAKE_REPORTS?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+
         // Verify report type conditions
         expect(isIOUReport(report)).toBe(true);
         expect(isMoneyRequestReport(report)).toBe(true);
-        expect(isOneTransactionReport(report)).toBe(false);
+        expect(getOneTransactionThreadReportID(report, chatReport, reportActions)).toBeFalsy();
 
         const icons = getIcons(report, FAKE_PERSONAL_DETAILS);
 
-        // https://github.com/Expensify/App/issues/64333
         expect(icons).toHaveLength(2);
         expect(icons.at(0)?.name).toBe('Email\u0020One');
         expect(icons.at(1)?.name).toBe('Email\u0020Two');
