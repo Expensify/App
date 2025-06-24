@@ -7,12 +7,11 @@ import ConfirmModal from '@components/ConfirmModal';
 import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import {getFileValidationErrorText, resizeImageIfNeeded, splitExtensionFromFileName, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import {getFileValidationErrorText, resizeImageIfNeeded, needsHeicToJpegConversion, splitExtensionFromFileName, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
+import convertHeicImage from '@libs/fileDownload/heicConverter';
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
-
-// TODO: merge with useFilesValidation later to prevent code duplication
 
 type ErrorObject = {
     error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>;
@@ -85,6 +84,17 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
             });
     };
 
+    const convertHeicImageToJpegPromise = (file: FileObject): Promise<FileObject> => {
+        return new Promise((resolve, reject) => {
+            convertHeicImage(file, {
+                onSuccess: (convertedFile) => resolve(convertedFile),
+                onError: (nonConvertedFile) => {
+                    reject(nonConvertedFile);
+                },
+            });
+        });
+    };
+
     const checkIfAllValidatedAndProceed = useCallback(() => {
         if (!validatedPDFs.current || !validFiles.current) {
             return;
@@ -125,19 +135,26 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                 const validImages = filteredResults.filter((file) => !Str.isPDF(file.name ?? ''));
                 const pdfsToLoad = filteredResults.filter((file) => Str.isPDF(file.name ?? ''));
 
-                // Check if we need to resize images
-                if (validImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
-                    // Only set loading when we actually need to resize
+                // Check if we need to convert images
+                if (validImages.some((file) => needsHeicToJpegConversion(file))) {
                     setIsLoadingReceipt(true);
 
-                    // Resize images
-                    return Promise.all(validImages.map((file) => resizeImageIfNeeded(file))).then((processedImages) => {
+                    return Promise.all(validImages.map((file) => convertHeicImageToJpegPromise(file))).then((convertedImages) => {
+                        // Check if we need to resize images
+                        if (convertedImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
+                            return Promise.all(convertedImages.map((file) => resizeImageIfNeeded(file))).then((processedImages) => {
+                                setIsLoadingReceipt(false);
+                                return Promise.resolve({processedImages, pdfsToLoad});
+                            });
+                        }
+
+                        // No resizing needed, just return the converted images
                         setIsLoadingReceipt(false);
-                        return {processedImages, pdfsToLoad};
+                        return Promise.resolve({processedImages: convertedImages, pdfsToLoad});
                     });
                 }
 
-                // No resizing needed, just return the valid images
+                // No conversion or resizing needed, just return the valid images
                 return Promise.resolve({processedImages: validImages, pdfsToLoad});
             })
             .then(({processedImages, pdfsToLoad}) => {
