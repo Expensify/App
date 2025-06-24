@@ -1,3 +1,4 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {UNSTABLE_usePreventRemove, useNavigation} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {forwardRef, useContext, useEffect, useMemo, useState} from 'react';
@@ -6,6 +7,7 @@ import {Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
+import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import HeaderGap from '@components/HeaderGap';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import withNavigationFallback from '@components/withNavigationFallback';
@@ -14,7 +16,6 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {closeReactNativeApp} from '@libs/actions/Session';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -51,7 +52,7 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
         testID: string;
 
         /** Returns a function as a child to pass insets to or a node to render without insets */
-        children: ReactNode | React.FC<ScreenWrapperChildrenProps>;
+        children: ReactNode | ((props: ScreenWrapperChildrenProps) => ReactNode);
 
         /** Additional styles to add */
         style?: StyleProp<ViewStyle>;
@@ -162,12 +163,15 @@ function ScreenWrapper(
     const shouldOffsetMobileOfflineIndicator = displaySmallScreenOfflineIndicator && addSmallScreenOfflineIndicatorBottomSafeAreaPadding && isOffline;
 
     const {initialURL} = useContext(InitialURLContext);
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
-    UNSTABLE_usePreventRemove((hybridApp?.isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
+    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: true});
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+
+    UNSTABLE_usePreventRemove((isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
-        closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
+        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
+        setRootStatusBarEnabled(false);
     });
 
     useEffect(() => {
