@@ -275,7 +275,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 onPress={() => handleIntegrationSelect(item.keyForList)}
                 accessibilityLabel={item.text}
                 accessible={false}
-                style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100]}
+                hoverStyle={!item.isSelected ? styles.hoveredComponentBG : undefined}
+                style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100, item.isSelected && styles.activeComponentBG]}
             >
                 <RadioButtonWithLabel
                     isChecked={!!item.isSelected}
@@ -288,6 +289,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                             <Text style={styles.textStrong}>{item.text}</Text>
                         </View>
                     }
+                    shouldBlendOpacity
                 />
             </PressableWithoutFeedback>
         ),
@@ -301,6 +303,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             styles.ml0,
             styles.onboardingAccountingItem,
             styles.textStrong,
+            styles.hoveredComponentBG,
+            styles.activeComponentBG,
         ],
     );
 
