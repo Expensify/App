@@ -25,7 +25,7 @@ function setAreTranslationsLoading(areTranslationsLoading: boolean) {
     Onyx.set(ONYXKEYS.ARE_TRANSLATIONS_LOADING, areTranslationsLoading);
 }
 
-class TranslationStore {
+class IntlStore {
     private static currentLocale: Locale | undefined = undefined;
 
     /**
@@ -190,4 +190,4 @@ class TranslationStore {
     }
 }
 
-export default TranslationStore;
+export default IntlStore;

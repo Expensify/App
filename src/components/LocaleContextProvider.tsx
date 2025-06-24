@@ -6,7 +6,7 @@ import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toL
 import {formatPhoneNumber as formatPhoneNumberLocalePhoneNumber} from '@libs/LocalePhoneNumber';
 import {translate as translateLocalize} from '@libs/Localize';
 import {format} from '@libs/NumberFormatUtils';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Locale from '@src/types/onyx/Locale';
@@ -66,14 +66,14 @@ const LocaleContext = createContext<LocaleContextProps>({
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
-    const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => TranslationStore.getCurrentLocale());
+    const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => IntlStore.getCurrentLocale());
 
     useEffect(() => {
         if (areTranslationsLoading) {
             return;
         }
 
-        const locale = TranslationStore.getCurrentLocale();
+        const locale = IntlStore.getCurrentLocale();
         if (!locale) {
             return;
         }

@@ -36,7 +36,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
 import type Locale from '@src/types/onyx/Locale';
@@ -90,12 +90,12 @@ Onyx.connect({
     callback: (val) => {
         networkTimeSkew = val?.timeSkew ?? 0;
         if (!val?.lastOfflineAt) {
-            setNetworkLastOffline(getLocalDateFromDatetime(TranslationStore.getCurrentLocale()));
+            setNetworkLastOffline(getLocalDateFromDatetime(IntlStore.getCurrentLocale()));
         }
 
         const newIsOffline = val?.isOffline ?? val?.shouldForceOffline;
         if (newIsOffline && isOffline === false) {
-            setNetworkLastOffline(getLocalDateFromDatetime(TranslationStore.getCurrentLocale()));
+            setNetworkLastOffline(getLocalDateFromDatetime(IntlStore.getCurrentLocale()));
         }
         isOffline = newIsOffline;
     },

@@ -4,7 +4,7 @@ import {toZonedTime, format as tzFormat} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -36,7 +36,7 @@ describe('DateUtils', () => {
     });
 
     beforeEach(() => {
-        TranslationStore.load(LOCALE);
+        IntlStore.load(LOCALE);
         return waitForBatchedUpdates();
     });
 

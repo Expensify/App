@@ -2,11 +2,11 @@ import type {Section} from '@libs/OptionsListUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
 import {getTagListSections, sortTags} from '@libs/TagsOptionsListUtils';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 
 describe('TagsOptionsListUtils', () => {
     beforeAll(() => {
-        TranslationStore.load(CONST.LOCALES.EN);
+        IntlStore.load(CONST.LOCALES.EN);
     });
     it('getTagListSections()', () => {
         const search = 'ing';

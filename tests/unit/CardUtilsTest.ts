@@ -2,7 +2,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import {
     checkIfFeedConnectionIsBroken,
     filterInactiveCards,
@@ -442,7 +442,7 @@ describe('CardUtils', () => {
 
     describe('getCustomOrFormattedFeedName', () => {
         beforeAll(() => {
-            TranslationStore.load(CONST.LOCALES.EN);
+            IntlStore.load(CONST.LOCALES.EN);
         });
         it('Should return custom name if exists', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
