@@ -906,6 +906,7 @@ function subscribeToUserEvents() {
             updates: pushEventData.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
         };
+        Log.info('[subscribeToUserEvents] Applying Onyx updates');
         applyOnyxUpdatesReliably(updates);
     });
 

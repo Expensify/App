@@ -777,6 +777,10 @@ type ContactMethodsRouteParams = {
     contactMethodsRoute: string;
 };
 
+type BusinessTaxIDParams = {
+    country: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     SplitExpenseEditTitleParams,
@@ -1050,4 +1054,5 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    BusinessTaxIDParams,
 };

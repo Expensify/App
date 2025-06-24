@@ -44,6 +44,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -330,6 +331,7 @@ const translations = {
         twoFactorCode: 'Codice a due fattori',
         workspaces: 'Spazi di lavoro',
         inbox: 'Posta in arrivo',
+        success: 'Successo',
         group: 'Gruppo',
         profile: 'Profilo',
         referral: 'Referenza',
@@ -1635,14 +1637,13 @@ const translations = {
         mergeFailureGenericHeading: 'Impossibile unire gli account',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: 'Segnala attività sospetta',
         lockAccount: 'Blocca account',
         unlockAccount: 'Sblocca account',
-        compromisedDescription:
-            "Se sospetti che il tuo account Expensify sia compromesso, puoi bloccarlo per prevenire nuove transazioni con la Expensify Card e impedire modifiche indesiderate all'account.",
-        domainAdminsDescriptionPartOne: 'Per gli amministratori di dominio,',
-        domainAdminsDescriptionPartTwo: 'questa azione interrompe tutte le attività della Expensify Card e le azioni amministrative',
-        domainAdminsDescriptionPartThree: 'nel tuo dominio/i tuoi domini.',
-        warning: `Una volta che il tuo account è bloccato, il nostro team indagherà e rimuoverà qualsiasi accesso non autorizzato. Per riottenere l'accesso, dovrai collaborare con Concierge per mettere in sicurezza il tuo account.`,
+        compromisedDescription: 'Notato qualcosa di strano nel tuo account? Segnalandolo lo bloccherai immediatamente, fermerai le transazioni con la carta Expensify e impedirai modifiche.',
+        domainAdminsDescription: 'Per gli amministratori di dominio: questo sospende anche tutta l’attività delle carte Expensify e le azioni amministrative.',
+        areYouSure: 'Sei sicuro di voler bloccare il tuo account Expensify?',
+        ourTeamWill: 'Il nostro team indagherà e rimuoverà eventuali accessi non autorizzati. Per riottenere l’accesso, dovrai collaborare con Concierge.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: "Impossibile bloccare l'account",
@@ -2703,14 +2704,40 @@ const translations = {
         whatsTheBusinessAddress: "Qual è l'indirizzo dell'azienda?",
         whatsTheBusinessContactInformation: 'Quali sono le informazioni di contatto aziendali?',
         whatsTheBusinessRegistrationNumber: "Qual è il numero di registrazione dell'azienda?",
-        whatsTheBusinessTaxIDEIN: "Qual è il numero di partita IVA/ID fiscale/EIN/registrazione IVA/GST dell'azienda?",
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'Qual è il numero di identificazione del datore di lavoro (EIN)?';
+                case CONST.COUNTRY.CA:
+                    return 'Qual è il numero aziendale (BN)?';
+                case CONST.COUNTRY.GB:
+                    return 'Qual è il numero di partita IVA (VRN)?';
+                case CONST.COUNTRY.AU:
+                    return 'Qual è il numero aziendale australiano (ABN)?';
+                default:
+                    return 'Qual è il numero di partita IVA UE?';
+            }
+        },
         whatsThisNumber: 'Qual è questo numero?',
         whereWasTheBusinessIncorporated: "Dove è stata costituita l'azienda?",
         whatTypeOfBusinessIsIt: 'Che tipo di attività è?',
         whatsTheBusinessAnnualPayment: "Qual è il volume di pagamento annuale dell'azienda?",
         whatsYourExpectedAverageReimbursements: "Qual è l'importo medio di rimborso previsto?",
         registrationNumber: 'Numero di registrazione',
-        taxIDEIN: 'Numero di identificazione fiscale/EIN',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'IVA UE';
+            }
+        },
         businessAddress: 'Indirizzo aziendale',
         businessType: 'Tipo di attività',
         incorporation: 'Incorporazione',
@@ -2734,6 +2761,20 @@ const translations = {
         findAverageReimbursement: "Trova l'importo medio del rimborso",
         error: {
             registrationNumber: 'Si prega di fornire un numero di registrazione valido',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return 'Si prega di fornire un numero di identificazione del datore di lavoro (EIN) valido';
+                    case CONST.COUNTRY.CA:
+                        return 'Si prega di fornire un numero aziendale (BN) valido';
+                    case CONST.COUNTRY.GB:
+                        return 'Si prega di fornire un numero di partita IVA (VRN) valido';
+                    case CONST.COUNTRY.AU:
+                        return 'Si prega di fornire un numero aziendale australiano (ABN) valido';
+                    default:
+                        return 'Si prega di fornire un numero di partita IVA UE valido';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
@@ -6039,7 +6080,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Segnala la perdita / il danneggiamento della carta fisica',
         screenTitle: 'Pagella persa o danneggiata',
         nextButtonLabel: 'Successivo',
         reasonTitle: 'Perché hai bisogno di una nuova carta?',
@@ -6052,6 +6092,8 @@ const translations = {
         deactivateCardButton: 'Disattiva carta',
         shipNewCardButton: 'Spedisci nuova carta',
         addressError: 'Indirizzo richiesto',
+        successTitle: 'La tua nuova carta è in arrivo!',
+        successDescription: "Dovrai attivarla quando arriverà tra pochi giorni lavorativi. Nel frattempo, la tua carta virtuale è pronta all'uso.",
         reasonError: 'Il motivo è obbligatorio',
     },
     eReceipt: {

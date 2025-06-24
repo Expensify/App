@@ -44,6 +44,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -330,6 +331,7 @@ const translations = {
         twoFactorCode: 'Twee-factor code',
         workspaces: 'Werkruimtes',
         inbox: 'Inbox',
+        success: 'Succes',
         group: 'Groep',
         profile: 'Profiel',
         referral: 'Verwijzing',
@@ -1636,14 +1638,13 @@ const translations = {
         mergeFailureGenericHeading: 'Kan accounts niet samenvoegen',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: 'Verdachte activiteit melden',
         lockAccount: 'Account vergrendelen',
         unlockAccount: 'Account ontgrendelen',
-        compromisedDescription:
-            'Als u vermoedt dat uw Expensify-account is gecompromitteerd, kunt u het vergrendelen om nieuwe Expensify Card-transacties te voorkomen en ongewenste wijzigingen in het account te blokkeren.',
-        domainAdminsDescriptionPartOne: 'Voor domeinbeheerders,',
-        domainAdminsDescriptionPartTwo: 'deze actie stopt alle Expensify Card-activiteiten en beheerdersacties',
-        domainAdminsDescriptionPartThree: 'in uw domein(en).',
-        warning: `Zodra uw account is vergrendeld, zal ons team het onderzoeken en ongeautoriseerde toegang verwijderen. Om weer toegang te krijgen, moet u samenwerken met Concierge om uw account te beveiligen.`,
+        compromisedDescription: 'Merk je iets vreemds op aan je account? Meld het en je account wordt meteen vergrendeld, kaarttransacties geblokkeerd en wijzigingen voorkomen.',
+        domainAdminsDescription: 'Voor domeinbeheerders: dit pauzeert ook alle Expensify Card-activiteiten en beheerdersacties in je domein(en).',
+        areYouSure: 'Weet je zeker dat je je Expensify-account wilt vergrendelen?',
+        ourTeamWill: 'Ons team onderzoekt het en verwijdert ongeautoriseerde toegang. Om weer toegang te krijgen, moet je met Concierge samenwerken.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Kan account niet vergrendelen',
@@ -2703,14 +2704,40 @@ const translations = {
         whatsTheBusinessAddress: 'Wat is het zakelijke adres?',
         whatsTheBusinessContactInformation: 'Wat zijn de zakelijke contactgegevens?',
         whatsTheBusinessRegistrationNumber: 'Wat is het bedrijfsregistratienummer?',
-        whatsTheBusinessTaxIDEIN: 'Wat is het zakelijke belastingnummer/EIN/btw-/GST-registratienummer?',
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'Wat is het Employer Identification Number (EIN)?';
+                case CONST.COUNTRY.CA:
+                    return 'Wat is het Business Number (BN)?';
+                case CONST.COUNTRY.GB:
+                    return 'Wat is het btw-registratienummer (VRN)?';
+                case CONST.COUNTRY.AU:
+                    return 'Wat is het Australisch bedrijfsnummer (ABN)?';
+                default:
+                    return 'Wat is het EU btw-nummer?';
+            }
+        },
         whatsThisNumber: 'Wat is dit nummer?',
         whereWasTheBusinessIncorporated: 'Waar is het bedrijf opgericht?',
         whatTypeOfBusinessIsIt: 'Wat voor soort bedrijf is het?',
         whatsTheBusinessAnnualPayment: 'Wat is het jaarlijkse betalingsvolume van het bedrijf?',
         whatsYourExpectedAverageReimbursements: 'Wat is je verwachte gemiddelde terugbetalingsbedrag?',
         registrationNumber: 'Registratienummer',
-        taxIDEIN: 'Belasting-ID/EIN-nummer',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'EU btw';
+            }
+        },
         businessAddress: 'Zakelijk adres',
         businessType: 'Zakelijk type',
         incorporation: 'Oprichting',
@@ -2734,6 +2761,20 @@ const translations = {
         findAverageReimbursement: 'Vind het gemiddelde terugbetalingsbedrag',
         error: {
             registrationNumber: 'Gelieve een geldig registratienummer op te geven',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return 'Voer een geldig Employer Identification Number (EIN) in';
+                    case CONST.COUNTRY.CA:
+                        return 'Voer een geldig Business Number (BN) in';
+                    case CONST.COUNTRY.GB:
+                        return 'Voer een geldig btw-registratienummer (VRN) in';
+                    case CONST.COUNTRY.AU:
+                        return 'Voer een geldig Australisch bedrijfsnummer (ABN) in';
+                    default:
+                        return 'Voer een geldig EU btw-nummer in';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
@@ -6025,7 +6066,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Rapporteer verlies / schade van fysieke kaart',
         screenTitle: 'Rapportkaart verloren of beschadigd',
         nextButtonLabel: 'Volgende',
         reasonTitle: 'Waarom heb je een nieuwe kaart nodig?',
@@ -6039,6 +6079,8 @@ const translations = {
         shipNewCardButton: 'Verzend nieuwe kaart',
         addressError: 'Adres is vereist',
         reasonError: 'Reden is vereist',
+        successTitle: 'Uw nieuwe kaart is onderweg!',
+        successDescription: 'U moet deze activeren zodra deze over een paar werkdagen aankomt. In de tussentijd kunt u uw virtuele kaart gebruiken.',
     },
     eReceipt: {
         guaranteed: 'Gegarandeerd eReceipt',
