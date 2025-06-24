@@ -82,8 +82,8 @@ import {
 } from '@libs/PolicyUtils';
 import {
     getAllReportActions,
-    getIOUActionForTransactionID,
     getIOUActionForReportID,
+    getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
     getLastVisibleMessage,
@@ -669,7 +669,7 @@ type HoldDataEntry = {
     commentReportActionID: string;
 };
 
-type HoldData = Record<string, HoldDataEntry>
+type HoldData = Record<string, HoldDataEntry>;
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
@@ -10823,14 +10823,14 @@ function putTransactionsOnHold(transactionsID: string[], comment: string, report
  */
 function bulkHold(
     comment: string,
-    reportID: string, 
+    reportID: string,
     reports: OnyxCollection<OnyxTypes.Report>,
     reportActions: ReportAction[],
     selectedTransactionIDs: string[],
-    transactions: OnyxCollection<OnyxTypes.Transaction>, 
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>, 
+    transactions: OnyxCollection<OnyxTypes.Transaction>,
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     searchHash: number,
-    snapshot : OnyxTypes.SearchResults | undefined
+    snapshot: OnyxTypes.SearchResults | undefined,
 ) {
     const iouReport = reports?.[`${reportID}`];
     const iouReportOptimisticData: Partial<OnyxTypes.Report> = {};
@@ -10868,8 +10868,7 @@ function bulkHold(
                 holdReportActionID: createdReportAction.reportActionID,
                 commentReportActionID: createdReportActionComment.reportActionID,
             };
-        
-        }else{
+        } else {
             const optimisticTransactionThread = buildTransactionThread(iouAction, iouReport);
             const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction(currentUserEmail);
 
@@ -10938,7 +10937,7 @@ function bulkHold(
             transactionThreadReport.reportID,
             createdReportActionComment.created,
             CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        ).filter((parentActionData): parentActionData is OnyxUpdate => parentActionData !== null)
+        ).filter((parentActionData): parentActionData is OnyxUpdate => parentActionData !== null);
 
         const violations = transactionViolations?.[`${transactionID}`] ?? [];
         const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
@@ -11013,7 +11012,7 @@ function bulkHold(
                 value: violations,
             },
         );
-        
+
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -11022,18 +11021,17 @@ function bulkHold(
             },
         });
 
-        
         // Return when the value is search hash is the default value (-1)
-        if (searchHash !== -1){
+        if (searchHash !== -1) {
             return;
         }
-        
+
         const searchTransaction = snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
         if (!searchTransaction) {
             return;
         }
-        
+
         // If we are holding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -11062,7 +11060,7 @@ function bulkHold(
         });
     });
 
-    if (!isEmptyObject(iouReportOptimisticData)){
+    if (!isEmptyObject(iouReportOptimisticData)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -11447,7 +11445,6 @@ function mergeDuplicates(params: MergeDuplicatesParams) {
 
     API.write(WRITE_COMMANDS.MERGE_DUPLICATES, {...params, reportActionID: optimisticReportAction.reportActionID}, {optimisticData, failureData});
 }
-
 
 function updateLastLocationPermissionPrompt() {
     Onyx.set(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
