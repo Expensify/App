@@ -94,18 +94,14 @@
 
 // TODO
 
-### [react-native+0.79.2+022+disable-suggestion-pop-up.patch](react-native+0.79.2+022+disable-suggestion-pop-up.patch)
+### [react-native+0.79.2+022+fix-surface-stopped-before-started.patch](react-native+0.79.2+022+fix-surface-stopped-before-started.patch)
 
 // TODO
 
-### [react-native+0.79.2+023+dont-enable-height-centering.patch](react-native+0.79.2+023+dont-enable-height-centering.patch)
+### [react-native+0.79.2+023+publish-gradle.patch](react-native+0.79.2+023+publish-gradle.patch)
 
 // TODO
 
-### [react-native+0.79.2+024+fix-surface-stopped-before-started.patch](react-native+0.79.2+024+fix-surface-stopped-before-started.patch)
-
-// TODO
-
-### [react-native+0.79.2+025.patch](react-native+0.79.2+025.patch)
+### [react-native+0.79.2+024+restore-old-line-height-algorithm.patch](react-native+0.79.2+024+restore-old-line-height-algorithm.patch)
 
 // TODO
