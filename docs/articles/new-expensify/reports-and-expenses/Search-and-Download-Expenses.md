@@ -1,16 +1,16 @@
 ---
-title: search-and-download-expenses.md
+title: Search and Download Expenses
 description: Learn how to search for and download expenses in New Expensify using filters and export options.
-keywords: [search expenses, download expenses, export CSV, New Expensify, expense filters, expense reports]
+keywords: [New Expensify, search expenses, download expenses, export CSV, expense filters, expense reports]
 ---
 
 <div id="new-expensify" markdown="1">
 
-# Search and Download Expenses
-
 Easily search for specific expenses in New Expensify and export them as a CSV file for your records or analysis.
 
-## Search Expenses
+---
+
+# Search Expenses
 
 1. **Navigate to the Reports Page**:
    - Click the **Reports** icon in the left-hand menu.
@@ -31,7 +31,9 @@ Easily search for specific expenses in New Expensify and export them as a CSV fi
 4. **View Results**:
    - Click **View Results** to display matching expenses.
 
-## Download Expenses
+---
+
+# Download Expenses
 
 Once you've found the expenses you need:
 
@@ -58,21 +60,21 @@ A CSV file will automatically download to your device, prefixed with “Expensif
 - Type (e.g., cash, card, distance)
 - Receipt URL
 
-## FAQ
+# FAQ
 
-**Can I export in a different format, like PDF or XLS?**
+## Can I export in a different format, like PDF or XLS?
 
 No, expense exports are only available in CSV format.
 
-**Can I customize the columns in the CSV file?**
+## Can I customize the columns in the CSV file?
 
 No, the CSV download uses a fixed template and can’t be customized.
 
-**Can I select expenses or reports in bulk?**
+## Can I select expenses or reports in bulk?
 
 Yes! Use **Select multiple** or **Select all** to choose multiple items at once. On mobile, just long-press an item to display these options.
 
-**Why do I see a 404 error when clicking on the receipt image URL in the CSV export?**
+## Why do I see a 404 error when clicking on the receipt image URL in the CSV export?
 
 You must be logged into your Expensify account on the browser where the link is being opened. Receipt URLs are only accessible when logged into your Expensify account.
 
