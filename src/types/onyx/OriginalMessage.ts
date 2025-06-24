@@ -5,6 +5,7 @@ import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type {AllConnectionName} from './Policy';
 import type ReportActionName from './ReportActionName';
+import type {Reservation} from './Transaction';
 
 /** Types of join workspace resolutions */
 type JoinWorkspaceResolution = ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION>;
@@ -147,6 +148,12 @@ type OriginalMessageSubmitted = {
 
     /** Was the report submitted via harvesting (delayed submit) */
     harvesting?: boolean;
+
+    /** The login the approver who is acting on behalf of the vacationer */
+    to?: string;
+
+    /** The login of the approver who is on a vacation */
+    vacationer?: string;
 };
 
 /** Model of `closed` report action */
@@ -557,6 +564,15 @@ type OriginalMessageModifiedExpense = {
     newAttendees?: Attendee[];
 };
 
+/** Model of a `travel update` report action */
+type OriginalMessageTravelUpdate = Reservation & UpdateOperationType;
+
+/** Travel update operation type */
+type UpdateOperationType = {
+    /** Type of operation */
+    operation: ValueOf<typeof CONST.TRAVEL.UPDATE_OPERATION_TYPE>;
+};
+
 /** Model of the `deleted transaction` report action */
 type OriginalMessageDeletedTransaction = {
     /** The merchant of the transaction */
@@ -573,6 +589,18 @@ type OriginalMessageDeletedTransaction = {
 type OriginalMessageConciergeCategoryOptions = {
     /** The options we present to the user when confidence in the predicted category is low */
     options: string[];
+
+    /** The confidence levels for each option */
+    confidenceLevels?: number[];
+
+    /** The transaction ID associated with this action */
+    transactionID?: string;
+
+    /** The category selected by the user (set when the action is resolved) */
+    selectedCategory?: string;
+
+    /** Agent Zero metadata (optional) */
+    agentZero?: Record<string, unknown>;
 };
 
 /** Model of `reimbursement queued` report action */
@@ -678,6 +706,9 @@ type OriginalMessageApproved = {
 
     /** Report ID of the expense */
     expenseReportID: string;
+
+    /** The login of approver who is on vacation */
+    managerOnVacation?: string;
 };
 
 /** Model of `forwarded` report action */
@@ -872,6 +903,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.TASK_EDITED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL]: never;
+    [CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE]: OriginalMessageTravelUpdate;
     [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED]: OriginalMessageUnapproved;
     [CONST.REPORT.ACTIONS.TYPE.UNHOLD]: never;
     [CONST.REPORT.ACTIONS.TYPE.UNSHARE]: never;
@@ -894,6 +926,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessagePolicyChangeLog;
     } & {

@@ -10,11 +10,10 @@ import {
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
     getSubmitToAccountID,
-    hasAccountingConnections,
+    getValidConnectedIntegration,
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
     isPreferredExporter,
-    isSubmitAndClose as isSubmitAndCloseUtils,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
 import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
@@ -265,16 +264,16 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
         return false;
     }
 
-    const hasAccountingConnection = hasAccountingConnections(policy);
+    const hasAccountingConnection = !!getValidConnectedIntegration(policy);
     if (!hasAccountingConnection) {
         return false;
     }
 
     const isInvoiceReport = isInvoiceReportUtils(report);
-    const isReportSender = isCurrentUserSubmitter(report.reportID);
 
-    if (isInvoiceReport && isReportSender) {
-        return true;
+    // We don't allow export to accounting for invoice reports in OD so we want to align with that here.
+    if (isInvoiceReport) {
+        return false;
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
@@ -307,7 +306,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
         return false;
     }
 
-    const hasAccountingConnection = hasAccountingConnections(policy);
+    const hasAccountingConnection = !!getValidConnectedIntegration(policy);
     if (!hasAccountingConnection) {
         return false;
     }
@@ -351,8 +350,8 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
     return (isAdmin && syncEnabled) || (isExporter && !syncEnabled);
 }
 
-function isHoldAction(report: Report, reportTransactions: Transaction[], reportActions?: ReportAction[]): boolean {
-    const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions);
+function isHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[], reportActions?: ReportAction[]): boolean {
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
     const isOneExpenseReport = reportTransactions.length === 1;
     const transaction = reportTransactions.at(0);
 
@@ -443,12 +442,11 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
-    const isSubmitAndClose = isSubmitAndCloseUtils(policy);
 
     // This should be removed after we change how instant submit works
     const isInstantSubmit = isInstantSubmitEnabled(policy);
 
-    if (!isExpenseReport || isSubmitAndClose || isInstantSubmit) {
+    if (!isExpenseReport || isInstantSubmit) {
         return false;
     }
 
@@ -484,18 +482,28 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
     return true;
 }
 
-function getSecondaryReportActions(
-    report: Report,
-    reportTransactions: Transaction[],
-    violations: OnyxCollection<TransactionViolation[]>,
-    policy?: Policy,
-    reportNameValuePairs?: ReportNameValuePairs,
-    reportActions?: ReportAction[],
-    policies?: OnyxCollection<Policy>,
-    canUseRetractNewDot?: boolean,
-    canUseNewDotSplits?: boolean,
+function getSecondaryReportActions({
+    report,
+    chatReport,
+    reportTransactions,
+    violations,
+    policy,
+    reportNameValuePairs,
+    reportActions,
+    policies,
     isChatReportArchived = false,
-): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
+}: {
+    report: Report;
+    chatReport: OnyxEntry<Report>;
+    reportTransactions: Transaction[];
+    violations: OnyxCollection<TransactionViolation[]>;
+    policy?: Policy;
+    reportNameValuePairs?: ReportNameValuePairs;
+    reportActions?: ReportAction[];
+    policies?: OnyxCollection<Policy>;
+    canUseNewDotSplits?: boolean;
+    isChatReportArchived?: boolean;
+}): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
     if (isPrimaryPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID)) {
@@ -530,19 +538,19 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
     }
 
-    if (canUseRetractNewDot && isRetractAction(report, policy)) {
+    if (isRetractAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.RETRACT);
     }
 
-    if (canUseRetractNewDot && isReopenAction(report, policy)) {
+    if (isReopenAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REOPEN);
     }
 
-    if (isHoldAction(report, reportTransactions, reportActions)) {
+    if (isHoldAction(report, chatReport, reportTransactions, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
-    if (canUseNewDotSplits && isSplitAction(report, reportTransactions, policy)) {
+    if (isSplitAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
@@ -568,7 +576,6 @@ function getSecondaryTransactionThreadActions(
     reportTransaction: Transaction,
     reportActions: ReportAction[],
     policy: OnyxEntry<Policy>,
-    canUseNewDotSplits?: boolean,
 ): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -576,7 +583,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
     }
 
-    if (canUseNewDotSplits && isSplitAction(parentReport, [reportTransaction], policy)) {
+    if (isSplitAction(parentReport, [reportTransaction], policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
 

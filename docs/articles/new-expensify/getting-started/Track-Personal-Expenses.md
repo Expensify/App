@@ -24,18 +24,10 @@ To chat with Concierge, open your **chat inbox** anytime for help and guidance.
 
 # Create a Workspace
 
-Each workspace has its own rules and settings, even for personal tracking.
+Each workspace has its own rules and settings, even for personal expense tracking.
 
-1. Click your **profile photo or icon** in the lower-left of the screen.
-2. Use the **left-hand navigation bar (LHB)** to go to **Workspaces**.
-3. Click **New workspace**.
-4. Click the **camera icon** to upload a custom image.
-5. Click **Name** to rename the workspace.
-6. Click **Default currency** to set your currency. Other currencies are auto-converted.
-
-![Create a workspace - step visuals]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_1.png){:width="100%"}
-![Workspace menu navigation]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_2.png){:width="100%"}
-![Workspace customization options]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_3.png){:width="100%"}
+1. Use the **left-hand navigation bar (LHB)** to go to **Workspaces**.
+2. Click **New workspace > Name** to rename the workspace.
 
 ---
 
