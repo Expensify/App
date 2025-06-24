@@ -558,7 +558,6 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 startDate: 'string',
                 endDate: 'string',
                 tripID: 'string',
-                payload: 'object',
             });
         case 'calendlySchedule':
             return validateObject<ObjectElement<ReportNameValuePairs, 'calendlySchedule'>>(value, {
