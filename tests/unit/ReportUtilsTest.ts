@@ -46,9 +46,9 @@ import {
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
     isAllowedToApproveExpenseReport,
-    isArchivedReport,
     isArchivedNonExpenseReport as isArchivedNonExpenseReportUtils,
     isArchivedNonExpenseReportWithID,
+    isArchivedReport,
     isChatUsedForOnboarding,
     isPayer,
     isReportOutstanding,
@@ -2578,10 +2578,11 @@ describe('ReportUtils', () => {
 
         it('should return true for policy rooms that are not archived and the user is an admin', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyRoomReport?.reportID));
-            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.ADMIN}, isArchivedNonExpenseReportUtils(policyRoomReport, isReportArchived.current))).toBeTruthy();
-            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.ADMIN}, isArchivedNonExpenseReportUtils(policyRoomReport, isReportArchived.current))).toBeTruthy();
-            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.AUDITOR}, isArchivedNonExpenseReportUtils(policyRoomReport, isReportArchived.current))).toBeFalsy();
-            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.USER}, isArchivedNonExpenseReportUtils(policyRoomReport, isReportArchived.current))).toBeFalsy();
+            const isArchivedNonExpenseReport = isArchivedNonExpenseReportUtils(policyRoomReport, isReportArchived.current)
+
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.ADMIN}, isArchivedNonExpenseReport)).toBeTruthy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.AUDITOR}, isArchivedNonExpenseReport)).toBeFalsy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.USER}, isArchivedNonExpenseReport)).toBeFalsy();
         });
 
         it('should return false for policy rooms that are archived regardless of the policy role', async () => {
@@ -2592,10 +2593,11 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${policyRoomReport.reportID}`, reportNameValuePairs);
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyRoomReport?.reportID));
+            const isArchivedNonExpenseReport = isArchivedNonExpenseReportUtils(policyRoomReport, isReportArchived.current)
 
-            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.ADMIN}, isArchivedNonExpenseReportUtils(policyRoomReport, isReportArchived.current))).toBeFalsy();
-            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.AUDITOR}, isArchivedNonExpenseReportUtils(policyRoomReport, isReportArchived.current))).toBeFalsy();
-            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.USER}, isArchivedNonExpenseReportUtils(policyRoomReport, isReportArchived.current))).toBeFalsy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.ADMIN}, isArchivedNonExpenseReport)).toBeFalsy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.AUDITOR}, isArchivedNonExpenseReport)).toBeFalsy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.USER}, isArchivedNonExpenseReport)).toBeFalsy();
         });
 
         afterAll(async () => {

@@ -39,7 +39,7 @@ function ReportSettingsPage({report, policy, route}: ReportSettingsPageProps) {
     const isReportArchived = useReportIsArchived(reportID);
     const isArchivedNonExpenseReport = isArchivedNonExpenseReportUtils(report, isReportArchived);
     // The workspace the report is on, null if the user isn't a member of the workspace
-    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID), [policies, report?.policyID]);
+    const linkedWorkspace = useMemo(() => (report?.policyID && policy?.id === report?.policyID ? policy : undefined), [policy, report?.policyID]);
     const isMoneyRequestReport = isMoneyRequestReportUtils(report);
     const shouldDisableSettings = isArchivedNonExpenseReport || isEmptyObject(report) || isSelfDM(report);
     const notificationPreferenceValue = getReportNotificationPreference(report);
