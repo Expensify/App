@@ -58,6 +58,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import { usePersonalDetails } from '@components/OnyxProvider';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
@@ -149,6 +150,13 @@ function MoneyRequestReportActionsList({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+
+    const [walletTermsErrors] = useOnyx(ONYXKEYS.WALLET_TERMS, {
+        selector: (walletTerms) => walletTerms?.errors,
+        canBeMissing: true,
+    });
+    const personalDetailsList = usePersonalDetails();
+
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
@@ -484,6 +492,9 @@ function MoneyRequestReportActionsList({
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
+                    sessionAccountID={currentUserAccountID}
+                    personalDetailsList={personalDetailsList}
+                    walletTermsErrors={walletTermsErrors}
                 />
             );
         },
@@ -498,6 +509,9 @@ function MoneyRequestReportActionsList({
             firstVisibleReportActionID,
             linkedReportActionID,
             allReports,
+            currentUserAccountID,
+            personalDetailsList,
+            walletTermsErrors,
         ],
     );
 

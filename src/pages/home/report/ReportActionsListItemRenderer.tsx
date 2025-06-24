@@ -3,7 +3,8 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -58,6 +59,15 @@ type ReportActionsListItemRendererProps = {
 
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
+
+    /** Session account ID */
+    sessionAccountID: number | undefined;
+
+    /** Personal details list */
+    personalDetailsList: PersonalDetailsList | undefined;
+
+    /** Records any errors related to wallet terms. */
+    walletTermsErrors: Errors | undefined;
 };
 
 function ReportActionsListItemRenderer({
@@ -78,6 +88,9 @@ function ReportActionsListItemRenderer({
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
     parentReportActionForTransactionThread,
+    sessionAccountID,
+    personalDetailsList,
+    walletTermsErrors,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -166,6 +179,9 @@ function ReportActionsListItemRenderer({
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                sessionAccountID={sessionAccountID}
+                personalDetailsList={personalDetailsList}
+                walletTermsErrors={walletTermsErrors}
             />
         );
     }
@@ -198,6 +214,9 @@ function ReportActionsListItemRenderer({
             index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+            sessionAccountID={sessionAccountID}
+            personalDetailsList={personalDetailsList}
+            walletTermsErrors={walletTermsErrors}
         />
     );
 }

@@ -40,7 +40,7 @@ function TransactionPreviewContent({
     isWhisper,
     isHovered,
     chatReport,
-    personalDetails,
+    personalDetailsList,
     iouReport,
     transaction,
     violations,
@@ -119,7 +119,7 @@ function TransactionPreviewContent({
     const displayDeleteAmountText = getTranslatedText(previewText.displayDeleteAmountText);
 
     const iouData = shouldShowIOUData
-        ? getIOUData(managerID, ownerAccountID, isIOUReport(iouReport) || reportPreviewAction?.childType === CONST.REPORT.TYPE.IOU, personalDetails, requestAmount ?? 0)
+        ? getIOUData(managerID, ownerAccountID, isIOUReport(iouReport) || reportPreviewAction?.childType === CONST.REPORT.TYPE.IOU, personalDetailsList, requestAmount ?? 0)
         : undefined;
     const {from, to} = iouData ?? {from: null, to: null};
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -136,7 +136,7 @@ function TransactionPreviewContent({
     const receiptImages = [{...getThumbnailAndImageURIs(transaction), transaction}];
     const merchantOrDescription = shouldShowMerchant ? requestMerchant : description || '';
     const participantAccountIDs = isMoneyRequestAction(action) && isBillSplit ? (getOriginalMessage(action)?.participantAccountIDs ?? []) : [managerID, ownerAccountID];
-    const participantAvatars = getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
+    const participantAvatars = getAvatarsForAccountIDs(participantAccountIDs, personalDetailsList ?? {});
     const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
     if (isReportAPolicyExpenseChat && isBillSplit) {
         sortedParticipantAvatars.push(getWorkspaceIcon(chatReport));

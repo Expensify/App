@@ -169,7 +169,12 @@ function ReportActionsList({
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
+
     const participantsContext = useContext(PersonalDetailsContext);
+    const [walletTermsErrors] = useOnyx(ONYXKEYS.WALLET_TERMS, {
+        selector: (walletTerms) => walletTerms?.errors,
+        canBeMissing: true,
+    });
 
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
@@ -597,6 +602,9 @@ function ReportActionsList({
                     shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                    sessionAccountID={accountID}
+                    personalDetailsList={personalDetailsList}
+                    walletTermsErrors={walletTermsErrors}
                     transactions={Object.values(transactions ?? {})}
                 />
             );
@@ -616,6 +624,9 @@ function ReportActionsList({
             shouldUseThreadDividerLine,
             firstVisibleReportActionID,
             unreadMarkerReportActionID,
+            accountID,
+            personalDetailsList,
+            walletTermsErrors,
         ],
     );
 
