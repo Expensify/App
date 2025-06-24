@@ -1,5 +1,5 @@
 import type JSZip from 'jszip';
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Alert} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
@@ -46,7 +46,7 @@ type BaseRecordTroubleshootDataToolMenuProps = {
     /** Whether to show the share button */
     showShareButton?: boolean;
     /** Zip ref */
-    zipRef: MutableRefObject<InstanceType<typeof JSZip>>;
+    zipRef: RefObject<InstanceType<typeof JSZip>>;
     /** A method to download the zip archive */
     onDownloadZip?: () => void;
     /** It's a desktop-only prop, as it's impossible to download two files simultaneously */
@@ -152,7 +152,7 @@ function BaseRecordTroubleshootDataToolMenu({
 
         const infoFileName = `App_Info_${pkg.version}.json`;
         getAppInfo().then((appInfo) => {
-            zipRef.current.file(infoFileName, appInfo);
+            zipRef.current?.file(infoFileName, appInfo);
 
             onDisableLogging(logsWithParsedMessages).then(() => {
                 disableLoggingAndFlushLogs();
