@@ -1,8 +1,8 @@
 import {setDefaultOptions} from 'date-fns';
 import type {Locale as DateFnsLocale} from 'date-fns';
-import Log from '@libs/Log';
 import {LOCALES} from '@src/CONST/LOCALES';
 import type {Locale} from '@src/CONST/LOCALES';
+import Log from './Log';
 
 /**
  * Similar to TranslationStore but for date-fns locales
