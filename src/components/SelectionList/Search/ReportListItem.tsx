@@ -13,8 +13,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import variables from '@styles/variables';
 import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -45,9 +43,9 @@ function ReportListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
-        const isAmountColumnWide = reportItem.transactions.some((transaction) => isTransactionAmountTooLong(transaction));
-        const isTaxAmountColumnWide = reportItem.transactions.some((transaction) => isTransactionTaxAmountTooLong(transaction));
-        const shouldShowYearForSomeTransaction = reportItem.transactions.some((transaction) => shouldShowTransactionYear(transaction));
+        const isAmountColumnWide = reportItem.transactions.some((transaction) => transaction.isAmountColumnWide);
+        const isTaxAmountColumnWide = reportItem.transactions.some((transaction) => transaction.isTaxAmountColumnWide);
+        const shouldShowYearForSomeTransaction = reportItem.transactions.some((transaction) => transaction.shouldShowYear);
         return {
             amountColumnSize: isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             taxAmountColumnSize: isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
