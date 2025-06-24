@@ -19,9 +19,8 @@ type TripSummaryPageProps = StackScreenProps<TravelNavigatorParamList, typeof SC
 function TripSummaryPage({route}: TripSummaryPageProps) {
     const {translate} = useLocalize();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`, {canBeMissing: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${route.params.transactionID}`, {canBeMissing: true});
-    const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripReport(report, transaction ? [transaction] : []);
+    const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripTransactions(transaction ? [transaction] : []);
 
     return (
         <ScreenWrapper
@@ -40,14 +39,14 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
                     shouldShowBackButton
                 />
                 <ScrollView>
-                    {reservationsData.map(({reservation, transactionID, sequenceIndex}) => {
+                    {reservationsData.map(({reservation, transactionID, reservationIndex}) => {
                         return (
                             <OfflineWithFeedback>
                                 <ReservationView
                                     reservation={reservation}
                                     transactionID={transactionID}
                                     tripRoomReportID={route.params.reportID}
-                                    sequenceIndex={sequenceIndex}
+                                    reservationIndex={reservationIndex}
                                 />
                             </OfflineWithFeedback>
                         );
