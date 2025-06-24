@@ -315,7 +315,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                shouldShowBackButton
+                shouldShowBackButton={!onboarding?.isMergeAccountStepCompleted}
                 progressBarPercentage={80}
                 onBackButtonPress={Navigation.goBack}
             />
