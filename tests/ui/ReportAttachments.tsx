@@ -178,9 +178,9 @@ describe('ReportAttachments', () => {
             source: 'https://staging.expensify.com/chat-attachments/7006877151048865417/w_d060af4fb7ac4a815e6ed99df9ef8dd216fdd8c7.png',
             type: 'r',
             reportID: '7487537791562875',
-            isAuthTokenRequired: 'true',
-            fileName: 'Screenshot_2025-02-05_at_13.03.32.png',
-            accountID: TEST_USER_ACCOUNT_ID.toString(),
+            isAuthTokenRequired: true,
+            originalFileName: 'Screenshot_2025-02-05_at_13.03.32.png',
+            accountID: TEST_USER_ACCOUNT_ID,
         };
 
         // And ReportAttachments is opened
@@ -198,9 +198,9 @@ describe('ReportAttachments', () => {
             source: 'https://staging.expensify.com/chat-attachments/7006877151048865417/w_d060af4fb7ac4a815e6ed99df9ef8dd216fdd8c7.png',
             type: 'r',
             reportID: '7487537791562875',
-            isAuthTokenRequired: 'true',
-            fileName: 'Screenshot_2025-02-05_at_13.03.32.png',
-            accountID: TEST_USER_ACCOUNT_ID.toString(),
+            isAuthTokenRequired: true,
+            originalFileName: 'Screenshot_2025-02-05_at_13.03.32.png',
+            accountID: TEST_USER_ACCOUNT_ID,
         };
 
         // And ReportAttachments is opened

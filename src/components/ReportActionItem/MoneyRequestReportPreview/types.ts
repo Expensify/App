@@ -30,9 +30,6 @@ type MoneyRequestReportPreviewProps = {
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
 
-    /** Extra styles to pass to View wrapper */
-    containerStyles?: StyleProp<ViewStyle>;
-
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor?: ContextMenuAnchor;
 
@@ -70,7 +67,6 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     policy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;
     lastTransactionViolations: TransactionViolations;
-    isDelegateAccessRestricted: boolean;
 };
 
 type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps &
@@ -80,6 +76,9 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
 
         /** MoneyRequestReportPreview's current width */
         currentWidth: number;
+
+        /** Extra styles to pass to View wrapper */
+        containerStyles?: StyleProp<ViewStyle>;
 
         /** Callback passed to Carousel's onLayout  */
         onCarouselLayout: (e: LayoutChangeEvent) => void;

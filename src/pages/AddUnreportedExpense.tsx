@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
@@ -16,6 +16,7 @@ import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {createUnreportedExpenseSections} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {startMoneyRequest} from '@userActions/IOU';
@@ -35,6 +36,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [offset, setOffset] = useState(0);
     const {isOffline} = useNetwork();
+    const [selectedIds, setSelectedIds] = useState(new Set<string>());
 
     const {reportID, backToReport} = route.params;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
@@ -68,12 +70,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
     const styles = useThemeStyles();
     const selectionListRef = useRef<SelectionListHandle>(null);
-    const sections: Array<SectionListDataType<Transaction & ListItem>> = [
-        {
-            shouldShow: true,
-            data: transactions.filter((t): t is Transaction & ListItem => t !== undefined),
-        },
-    ];
+    const sections: Array<SectionListDataType<Transaction & ListItem>> = useMemo(() => createUnreportedExpenseSections(transactions), [transactions]);
 
     const thereIsNoUnreportedTransaction = !((sections.at(0)?.data.length ?? 0) > 0);
 
@@ -133,15 +130,12 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                                 });
                             },
                             success: true,
-                            style: styles.unreportedExpenseCreateExpenseButton,
                         },
                     ]}
                 />
             </ScreenWrapper>
         );
     }
-
-    const selectedIds = new Set<string>();
 
     return (
         <ScreenWrapper
@@ -159,11 +153,19 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             <SelectionList<Transaction & ListItem>
                 ref={selectionListRef}
                 onSelectRow={(item) => {
-                    if (selectedIds.has(item.transactionID)) {
-                        selectedIds.delete(item.transactionID);
-                    } else {
-                        selectedIds.add(item.transactionID);
-                    }
+                    setSelectedIds((prevIds) => {
+                        const newIds = new Set(prevIds);
+                        if (newIds.has(item.transactionID)) {
+                            newIds.delete(item.transactionID);
+                        } else {
+                            newIds.add(item.transactionID);
+                            if (errorMessage) {
+                                setErrorMessage('');
+                            }
+                        }
+
+                        return newIds;
+                    });
                 }}
                 shouldShowTextInput={false}
                 canSelectMultiple
