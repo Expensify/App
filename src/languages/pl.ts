@@ -44,6 +44,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -2690,14 +2691,40 @@ const translations = {
         whatsTheBusinessAddress: 'Jaki jest adres firmy?',
         whatsTheBusinessContactInformation: 'Jakie są dane kontaktowe firmy?',
         whatsTheBusinessRegistrationNumber: 'Jaki jest numer rejestracyjny firmy?',
-        whatsTheBusinessTaxIDEIN: 'Jaki jest numer identyfikacyjny podatku biznesowego/ID podatkowego/VAT/numer rejestracyjny GST?',
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'Jaki jest numer identyfikacyjny pracodawcy (EIN)?';
+                case CONST.COUNTRY.CA:
+                    return 'Jaki jest numer identyfikacyjny firmy (BN)?';
+                case CONST.COUNTRY.GB:
+                    return 'Jaki jest numer rejestracyjny VAT (VRN)?';
+                case CONST.COUNTRY.AU:
+                    return 'Jaki jest australijski numer identyfikacyjny firmy (ABN)?';
+                default:
+                    return 'Jaki jest unijny numer VAT?';
+            }
+        },
         whatsThisNumber: 'Co to za numer?',
         whereWasTheBusinessIncorporated: 'Gdzie została zarejestrowana firma?',
         whatTypeOfBusinessIsIt: 'Jaki to rodzaj działalności?',
         whatsTheBusinessAnnualPayment: 'Jaki jest roczny wolumen płatności firmy?',
         whatsYourExpectedAverageReimbursements: 'Jaka jest oczekiwana średnia kwota zwrotu?',
         registrationNumber: 'Numer rejestracyjny',
-        taxIDEIN: 'Numer identyfikacyjny podatnika/EIN',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'VAT UE';
+            }
+        },
         businessAddress: 'Adres firmowy',
         businessType: 'Typ działalności',
         incorporation: 'Inkorporacja',
@@ -2721,6 +2748,20 @@ const translations = {
         findAverageReimbursement: 'Znajdź średnią kwotę zwrotu',
         error: {
             registrationNumber: 'Proszę podać prawidłowy numer rejestracyjny',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return 'Proszę podać prawidłowy numer identyfikacyjny pracodawcy (EIN)';
+                    case CONST.COUNTRY.CA:
+                        return 'Proszę podać prawidłowy numer identyfikacyjny firmy (BN)';
+                    case CONST.COUNTRY.GB:
+                        return 'Proszę podać prawidłowy numer rejestracyjny VAT (VRN)';
+                    case CONST.COUNTRY.AU:
+                        return 'Proszę podać prawidłowy australijski numer identyfikacyjny firmy (ABN)';
+                    default:
+                        return 'Proszę podać prawidłowy unijny numer VAT';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
@@ -6478,11 +6519,7 @@ const translations = {
                     part2: '.',
                 },
             },
-            acknowledgement: {
-                part1: 'Poprzez złożenie prośby o wcześniejsze anulowanie, przyjmuję do wiadomości i zgadzam się, że Expensify nie ma obowiązku spełnienia takiej prośby zgodnie z Expensify.',
-                link: 'Warunki korzystania z usługi',
-                part2: 'lub inna odpowiednia umowa o świadczenie usług między mną a Expensify, a Expensify zachowuje wyłączną swobodę decyzji w odniesieniu do przyznania takiej prośby.',
-            },
+            acknowledgement: `Poprzez złożenie prośby o wcześniejsze anulowanie, przyjmuję do wiadomości i zgadzam się, że Expensify nie ma obowiązku spełnienia takiej prośby zgodnie z Expensify.<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Warunki korzystania z usługi</a>lub inna odpowiednia umowa o świadczenie usług między mną a Expensify, a Expensify zachowuje wyłączną swobodę decyzji w odniesieniu do przyznania takiej prośby.`,
         },
     },
     feedbackSurvey: {

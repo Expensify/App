@@ -44,6 +44,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -2712,14 +2713,40 @@ const translations = {
         whatsTheBusinessAddress: "Quelle est l'adresse de l'entreprise ?",
         whatsTheBusinessContactInformation: 'Quelles sont les coordonnées professionnelles ?',
         whatsTheBusinessRegistrationNumber: "Quel est le numéro d'enregistrement de l'entreprise ?",
-        whatsTheBusinessTaxIDEIN: "Quel est le numéro d'identification fiscale/de TVA/d'enregistrement GST de l'entreprise ?",
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'Quel est le numéro d’identification d’employeur (EIN) ?';
+                case CONST.COUNTRY.CA:
+                    return 'Quel est le numéro d’entreprise (BN) ?';
+                case CONST.COUNTRY.GB:
+                    return 'Quel est le numéro d’immatriculation à la TVA (VRN) ?';
+                case CONST.COUNTRY.AU:
+                    return 'Quel est le numéro d’entreprise australien (ABN) ?';
+                default:
+                    return 'Quel est le numéro de TVA intracommunautaire (UE) ?';
+            }
+        },
         whatsThisNumber: 'Quel est ce numéro ?',
         whereWasTheBusinessIncorporated: "Où l'entreprise a-t-elle été constituée ?",
         whatTypeOfBusinessIsIt: "Quel type d'entreprise est-ce ?",
         whatsTheBusinessAnnualPayment: "Quel est le volume annuel de paiements de l'entreprise ?",
         whatsYourExpectedAverageReimbursements: 'Quel est le montant moyen de remboursement que vous attendez ?',
         registrationNumber: "Numéro d'enregistrement",
-        taxIDEIN: "Numéro d'identification fiscale/EIN",
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'TVA UE';
+            }
+        },
         businessAddress: 'Adresse professionnelle',
         businessType: "Type d'entreprise",
         incorporation: 'Incorporation',
@@ -2743,6 +2770,20 @@ const translations = {
         findAverageReimbursement: 'Trouver le montant moyen de remboursement',
         error: {
             registrationNumber: "Veuillez fournir un numéro d'enregistrement valide",
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return 'Veuillez fournir un numéro d’identification d’employeur (EIN) valide';
+                    case CONST.COUNTRY.CA:
+                        return 'Veuillez fournir un numéro d’entreprise (BN) valide';
+                    case CONST.COUNTRY.GB:
+                        return 'Veuillez fournir un numéro de TVA (VRN) valide';
+                    case CONST.COUNTRY.AU:
+                        return 'Veuillez fournir un numéro d’entreprise australien (ABN) valide';
+                    default:
+                        return 'Veuillez fournir un numéro de TVA intracommunautaire valide';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
@@ -6533,11 +6574,7 @@ const translations = {
                     part2: '.',
                 },
             },
-            acknowledgement: {
-                part1: "En demandant une annulation anticipée, je reconnais et accepte qu'Expensify n'a aucune obligation d'accéder à cette demande en vertu d'Expensify.",
-                link: "Conditions d'utilisation",
-                part2: "ou tout autre accord de services applicable entre moi et Expensify et qu'Expensify conserve l'entière discrétion quant à l'octroi de toute demande de ce type.",
-            },
+            acknowledgement: `En demandant une annulation anticipée, je reconnais et accepte qu'Expensify n'a aucune obligation d'accéder à cette demande en vertu d'Expensify.<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Conditions d'utilisation</a>ou tout autre accord de services applicable entre moi et Expensify et qu'Expensify conserve l'entière discrétion quant à l'octroi de toute demande de ce type.`,
         },
     },
     feedbackSurvey: {

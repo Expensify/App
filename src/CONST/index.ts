@@ -3067,6 +3067,13 @@ const CONST = {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
             MAX_EXPENSE_AGE: 'maxExpenseAge',
         },
+        PROHIBITED_EXPENSES: {
+            ALCOHOL: 'alcohol',
+            HOTEL_INCIDENTALS: 'hotelIncidentals',
+            GAMBLING: 'gambling',
+            TOBACCO: 'tobacco',
+            ADULT_ENTERTAINMENT: 'adultEntertainment',
+        },
         CONNECTIONS: {
             NAME: {
                 // Here we will add other connections names when we add support for them
