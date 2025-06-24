@@ -48,7 +48,14 @@ import Performance from './Performance';
 import Permissions from './Permissions';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
-import {canSendInvoiceFromWorkspace, getCountOfEnabledTagsOfList, getCountOfRequiredTagLists, getSubmitToAccountID, isUserInvitedToWorkspace} from './PolicyUtils';
+import {
+    canSendInvoiceFromWorkspace,
+    canSubmitPerDiemExpenseFromWorkspace,
+    getCountOfEnabledTagsOfList,
+    getCountOfRequiredTagLists,
+    getSubmitToAccountID,
+    isUserInvitedToWorkspace,
+} from './PolicyUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
@@ -59,6 +66,7 @@ import {
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getReceiptScanFailedMessage,
     getReopenedMessage,
     getReportActionHtml,
     getReportActionMessageText,
@@ -76,6 +84,7 @@ import {
     isMarkAsClosedAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
+    isMovedTransactionAction,
     isOldDotReportAction,
     isPendingRemove,
     isReimbursementDeQueuedOrCanceledAction,
@@ -97,6 +106,7 @@ import {
     getDowngradeWorkspaceMessage,
     getIcons,
     getMoneyRequestSpendBreakdown,
+    getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
     getPolicyChangeMessage,
     getPolicyName,
@@ -214,6 +224,7 @@ type GetValidReportsConfig = {
     shouldSeparateWorkspaceChat?: boolean;
     shouldSeparateSelfDMChat?: boolean;
     excludeNonAdminWorkspaces?: boolean;
+    isPerDiemRequest?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type GetValidReportsReturnTypeCombined = {
@@ -392,10 +403,12 @@ Onyx.connect({
             const reportActionsArray = Object.values(reportActions[1] ?? {});
             let sortedReportActions = getSortedReportActions(reportActionsArray, true);
             allSortedReportActions[reportID] = sortedReportActions;
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
 
             // If the report is a one-transaction report and has , we need to return the combined reportActions so that the LHN can display modifications
             // to the transaction thread or the report itself
-            const transactionThreadReportID = getOneTransactionThreadReportID(reportID, actions[reportActions[0]]);
+            const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions[reportActions[0]]);
             if (transactionThreadReportID) {
                 const transactionThreadReportActionsArray = Object.values(actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
                 sortedReportActions = getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID);
@@ -408,7 +421,6 @@ Onyx.connect({
                 lastReportActions[reportID] = firstReportAction;
             }
 
-            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const isWriteActionAllowed = canUserPerformWriteAction(report);
 
             // The report is only visible if it is the last action not deleted that
@@ -775,6 +787,8 @@ function getLastMessageTextForReport(
     } else if (isModifiedExpenseAction(lastReportAction)) {
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction});
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
+    } else if (isMovedTransactionAction(lastReportAction)) {
+        lastMessageTextFromReport = getMovedTransactionMessage(lastReportAction);
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
@@ -816,6 +830,8 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
+        lastMessageTextFromReport = getReceiptScanFailedMessage();
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(lastReportAction, false);
     } else if (isActionableJoinRequest(lastReportAction)) {
@@ -927,7 +943,8 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         result.pendingAction = report.pendingFields ? (report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat) : undefined;
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
-        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
+        const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
         result.isUnread = isUnread(report, oneTransactionThreadReport);
         result.isPinned = report.isPinned;
@@ -1566,6 +1583,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         shouldSeparateSelfDMChat,
         shouldSeparateWorkspaceChat,
         excludeNonAdminWorkspaces,
+        isPerDiemRequest = false,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
@@ -1578,10 +1596,12 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         // eslint-disable-next-line rulesdir/prefer-at
         const option = reports[i];
         const report = option.item;
+        const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
         const doesReportHaveViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
 
         const shouldBeInOptionList = shouldReportBeInOptionList({
             report,
+            chatReport,
             currentReportId: topmostReportId,
             betas,
             policies,
@@ -1723,6 +1743,10 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
 
                 if (subtitle) {
                     newReportOption.alternateText = translateLocal('iou.submitsTo', {name: subtitle ?? ''});
+                }
+                const canSubmitPerDiemExpense = canSubmitPerDiemExpenseFromWorkspace(policy);
+                if (!canSubmitPerDiemExpense && isPerDiemRequest) {
+                    continue;
                 }
             }
             workspaceChats.push(newReportOption);

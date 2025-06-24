@@ -1,7 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -25,6 +24,9 @@ import ReportActionItem from './ReportActionItem';
 import ThreadDivider from './ThreadDivider';
 
 type ReportActionItemParentActionProps = {
+    /** All the data of the report collection */
+    allReports: OnyxCollection<OnyxTypes.Report>;
+
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
@@ -58,6 +60,7 @@ type ReportActionItemParentActionProps = {
 };
 
 function ReportActionItemParentAction({
+    allReports,
     report,
     transactionThreadReport,
     reportActions,
@@ -69,7 +72,6 @@ function ReportActionItemParentAction({
     shouldUseThreadDividerLine = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
     const ancestorReports = useRef<Record<string, OnyxEntry<OnyxTypes.Report>>>({});
     const [allAncestors, setAllAncestors] = useState<Ancestor[]>([]);
@@ -135,6 +137,7 @@ function ReportActionItemParentAction({
                             />
                         )}
                         <ReportActionItem
+                            allReports={allReports}
                             onPress={
                                 canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])
                                     ? () => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction, isOffline)

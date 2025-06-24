@@ -108,7 +108,7 @@ type ExtendedTargetedEvent = TargetedEvent & {
     };
 };
 
-type ListItem = {
+type ListItem<K extends string | number = string> = {
     /** Text to display */
     text?: string;
 
@@ -116,7 +116,7 @@ type ListItem = {
     alternateText?: string | null;
 
     /** Key used internally by React */
-    keyForList?: string | null;
+    keyForList?: K | null;
 
     /** Whether this option is selected */
     isSelected?: boolean;
@@ -253,6 +253,10 @@ type TransactionListItemType = ListItem &
          * This is true if at least one transaction in the dataset was created in past years
          */
         shouldShowYear: boolean;
+
+        isAmountColumnWide: boolean;
+
+        isTaxAmountColumnWide: boolean;
 
         /** Key used internally by React */
         keyForList: string;
@@ -453,6 +457,9 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** The policies which the user has access to */
     policies?: OnyxCollection<Policy>;
+
+    /** All the data of the report collection */
+    allReports?: OnyxCollection<Report>;
 };
 
 type ValidListItem =
@@ -822,6 +829,12 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
     someSelected: boolean;
 };
 
+type UnreportedExpenseListItemType = Transaction & {
+    isDisabled: boolean;
+    keyForList: string;
+    errors?: Errors;
+};
+
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
 type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWithIndexOffset<TItem>> = SectionListData<TItem, TSection> & {
@@ -867,4 +880,5 @@ export type {
     SplitListItemProps,
     SplitListItemType,
     SearchListItem,
+    UnreportedExpenseListItemType,
 };

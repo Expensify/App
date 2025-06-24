@@ -1,15 +1,17 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -26,10 +28,8 @@ import {startMoneyRequest} from '@userActions/IOU';
 import {close} from '@userActions/Modal';
 import {createNewReport, setIsComposerFullSize} from '@userActions/Report';
 import {clearOutTaskInfoAndNavigate} from '@userActions/Task';
-import DelegateNoAccessModal from '@src/components/DelegateNoAccessModal';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import useDelegateUserDetails from '@src/hooks/useDelegateUserDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -86,7 +86,7 @@ type AttachmentPickerWithMenuItemsProps = {
     onItemSelected: () => void;
 
     /** A ref for the add action button */
-    actionButtonRef: React.RefObject<HTMLDivElement | View>;
+    actionButtonRef: React.RefObject<HTMLDivElement | View | null>;
 
     /** A function that toggles isScrollLikelyLayoutTriggered flag for a certain period of time */
     raiseIsScrollLikelyLayoutTriggered: () => void;
@@ -128,9 +128,9 @@ function AttachmentPickerWithMenuItems({
     const {translate} = useLocalize();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isDelegateAccessRestricted} = useDelegateUserDetails();
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const {isProduction} = useEnvironment();
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -143,6 +143,10 @@ function AttachmentPickerWithMenuItems({
         },
         [policy],
     );
+
+    const teacherUnitePolicyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
+    const isTeachersUniteReport = report?.policyID === teacherUnitePolicyID;
+
     /**
      * Returns the list of IOU Options
      */
@@ -167,7 +171,7 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => {
                     if (isDelegateAccessRestricted) {
                         close(() => {
-                            setIsNoDelegateAccessMenuVisible(true);
+                            showDelegateNoAccessModal();
                         });
                         return;
                     }
@@ -193,7 +197,7 @@ function AttachmentPickerWithMenuItems({
         }));
 
         return moneyRequestOptionsList.filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
-    }, [translate, shouldUseNarrowLayout, report, policy, reportParticipantIDs, selectOption, isDelegateAccessRestricted]);
+    }, [translate, shouldUseNarrowLayout, report, policy, reportParticipantIDs, selectOption, isDelegateAccessRestricted, showDelegateNoAccessModal]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
         if (!isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
@@ -285,7 +289,7 @@ function AttachmentPickerWithMenuItems({
                 };
                 const menuItems = [
                     ...moneyRequestOptions,
-                    ...createReportOption,
+                    ...(!isTeachersUniteReport ? createReportOption : []),
                     ...taskOption,
                     {
                         icon: Expensicons.Paperclip,
@@ -407,10 +411,6 @@ function AttachmentPickerWithMenuItems({
                             menuItems={menuItems}
                             withoutOverlay
                             anchorRef={actionButtonRef}
-                        />
-                        <DelegateNoAccessModal
-                            isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                            onClose={() => setIsNoDelegateAccessMenuVisible(false)}
                         />
                     </>
                 );

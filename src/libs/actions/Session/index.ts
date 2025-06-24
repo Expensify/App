@@ -5,7 +5,6 @@ import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import {InteractionManager, Linking} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
 import type {
@@ -58,6 +57,7 @@ import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Credentials from '@src/types/onyx/Credentials';
+import type Locale from '@src/types/onyx/Locale';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
@@ -111,7 +111,7 @@ Onyx.connect({
     callback: (value) => (stashedCredentials = value ?? {}),
 });
 
-let preferredLocale: ValueOf<typeof CONST.LOCALES> | null = null;
+let preferredLocale: Locale | null = null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => (preferredLocale = val ?? null),
@@ -919,7 +919,12 @@ const reauthenticatePusher = throttle(
     () => {
         Log.info('[Pusher] Re-authenticating and then reconnecting');
         Authentication.reauthenticate(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER)
-            ?.then(Pusher.reconnect)
+            .then((wasSuccessful) => {
+                if (!wasSuccessful) {
+                    return;
+                }
+                Pusher.reconnect();
+            })
             .catch(() => {
                 console.debug('[PusherConnectionManager]', 'Unable to re-authenticate Pusher because we are offline.');
             });

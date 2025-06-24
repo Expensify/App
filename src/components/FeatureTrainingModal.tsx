@@ -75,7 +75,7 @@ type BaseFeatureTrainingModalProps = {
     confirmText: string;
 
     /** A callback to call when user confirms the tutorial */
-    onConfirm?: () => void;
+    onConfirm?: (willShowAgain: boolean) => void;
 
     /** A callback to call when modal closes */
     onClose?: () => void;
@@ -127,6 +127,9 @@ type BaseFeatureTrainingModalProps = {
 
     /** Whether to navigate back when closing the modal */
     shouldGoBack?: boolean;
+
+    /** Whether to call onHelp when modal is hidden completely */
+    shouldCallOnHelpWhenModalHidden?: boolean;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -192,6 +195,7 @@ function FeatureTrainingModal({
     shouldShowConfirmationLoader = false,
     canConfirmWhileOffline = true,
     shouldGoBack = true,
+    shouldCallOnHelpWhenModalHidden = false,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -339,8 +343,8 @@ function FeatureTrainingModal({
         if (shouldCloseOnConfirm) {
             closeModal();
         }
-        onConfirm?.();
-    }, [shouldCloseOnConfirm, onConfirm, closeModal]);
+        onConfirm?.(willShowAgain);
+    }, [shouldCloseOnConfirm, onConfirm, closeModal, willShowAgain]);
 
     /**
      * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
@@ -371,6 +375,12 @@ function FeatureTrainingModal({
                       }
                     : {}),
                 ...modalInnerContainerStyle,
+            }}
+            onModalHide={() => {
+                if (!shouldCallOnHelpWhenModalHidden) {
+                    return;
+                }
+                onHelp();
             }}
         >
             <Wrapper
@@ -405,7 +415,13 @@ function FeatureTrainingModal({
                         <Button
                             large
                             style={[styles.mb3]}
-                            onPress={onHelp}
+                            onPress={() => {
+                                if (shouldCallOnHelpWhenModalHidden) {
+                                    setIsModalVisible(false);
+                                    return;
+                                }
+                                onHelp();
+                            }}
                             text={helpText}
                         />
                     )}
