@@ -184,7 +184,7 @@ function getReportActionMessage(reportAction: PartialReportAction) {
 }
 
 function isDeletedParentAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return isMessageDeleted(reportAction) && (reportAction?.childVisibleActionCount ?? 0) > 0;
+    return (getReportActionMessage(reportAction)?.isDeletedParentAction ?? false) && (reportAction?.childVisibleActionCount ?? 0) > 0;
 }
 
 function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>) {
@@ -1111,15 +1111,7 @@ function getIOUReportIDFromReportActionPreview(reportAction: OnyxEntry<ReportAct
  * A helper method to identify if the message is deleted or not.
  */
 function isMessageDeleted(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    const message = getReportActionMessage(reportAction);
-    const originalMessage = getOriginalMessage(reportAction) as Message;
-
-    return (
-        (message?.isDeletedParentAction ?? false) ||
-        (message?.deleted !== undefined && message?.deleted !== '') ||
-        (originalMessage?.isDeletedParentAction ?? false) ||
-        (originalMessage?.deleted !== undefined && originalMessage?.deleted !== '')
-    );
+    return getReportActionMessage(reportAction)?.isDeletedParentAction ?? false;
 }
 
 /**
@@ -1759,6 +1751,10 @@ function getReopenedMessage(): string {
     return translateLocal('iou.reopened');
 }
 
+function getReceiptScanFailedMessage() {
+    return translateLocal('receipt.scanFailed');
+}
+
 function getUpdateRoomDescriptionFragment(reportAction: ReportAction): Message {
     const html = getUpdateRoomDescriptionMessage(reportAction);
     return {
@@ -1812,9 +1808,6 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
 
     const actionMessage = action.previousMessage ?? action.message;
     if (Array.isArray(actionMessage)) {
-        if (actionMessage?.length === 1) {
-            return [{...actionMessage.at(0), isDeletedParentAction: isMessageDeleted(action)} as Message];
-        }
         return actionMessage.filter((item): item is Message => !!item);
     }
     return actionMessage ? [actionMessage] : [];
@@ -1827,7 +1820,7 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
  * @param currentAccountID
  * @returns
  */
-function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number): boolean {
+function hasRequestFromCurrentAccount(reportID: string | undefined, currentAccountID: number): boolean {
     if (!reportID) {
         return false;
     }
@@ -2949,6 +2942,30 @@ function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>): strin
     return translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage});
 }
 
+function getManagerOnVacation(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isApprovedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.managerOnVacation;
+}
+
+function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isSubmittedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.vacationer;
+}
+
+function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isSubmittedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.to;
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -3115,6 +3132,10 @@ export {
     getReportActionFromExpensifyCard,
     isReopenedAction,
     getIntegrationSyncFailedMessage,
+    getManagerOnVacation,
+    getVacationer,
+    getSubmittedTo,
+    getReceiptScanFailedMessage,
 };
 
 export type {LastVisibleMessage};

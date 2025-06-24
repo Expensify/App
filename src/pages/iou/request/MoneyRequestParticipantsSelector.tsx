@@ -77,6 +77,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
 
+    /** Whether the IOU is workspaces only */
+    isWorkspacesOnly?: boolean;
+
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
 };
@@ -88,6 +91,7 @@ function MoneyRequestParticipantsSelector({
     onParticipantsAdded,
     iouType,
     action,
+    isWorkspacesOnly = false,
     isPerDiemRequest = false,
 }: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
@@ -111,13 +115,15 @@ function MoneyRequestParticipantsSelector({
         shouldInitialize: didScreenTransitionEnd,
     });
     const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
-    const [textInputAutoFocus, setTextInputAutoFocus] = useState(false);
+    const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyUtil(policy), [policy]);
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
 
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
@@ -179,7 +185,7 @@ function MoneyRequestParticipantsSelector({
                 shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
                 shouldSeparateWorkspaceChat: true,
                 includeSelfDM: !isMovingTransactionFromTrackExpense(action) && iouType !== CONST.IOU.TYPE.INVOICE,
-                canShowManagerMcTest: action !== CONST.IOU.ACTION.SUBMIT,
+                canShowManagerMcTest: !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT,
                 isPerDiemRequest,
             },
         );
@@ -202,6 +208,7 @@ function MoneyRequestParticipantsSelector({
         options.reports,
         participants,
         isPerDiemRequest,
+        hasBeenAddedToNudgeMigration,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -275,41 +282,70 @@ function MoneyRequestParticipantsSelector({
             shouldShow: (chatOptions.workspaceChats ?? []).length > 0,
         });
 
-        newSections.push({
-            title: translate('workspace.invoices.paymentMethods.personal'),
-            data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
-            shouldShow: !!chatOptions.selfDMChat,
-        });
-
-        newSections.push({
-            title: translate('common.recents'),
-            data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
-            shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
-        });
-
-        newSections.push({
-            title: translate('common.contacts'),
-            data: chatOptions.personalDetails,
-            shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
-        });
-
-        if (
-            chatOptions.userToInvite &&
-            !isCurrentUser({
-                ...chatOptions.userToInvite,
-                accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                status: chatOptions.userToInvite?.status ?? undefined,
-            }) &&
-            !isPerDiemRequest
-        ) {
+        if (!isWorkspacesOnly) {
             newSections.push({
-                title: undefined,
-                data: [chatOptions.userToInvite].map((participant) => {
-                    const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
-                }),
-                shouldShow: true,
+                title: translate('workspace.invoices.paymentMethods.personal'),
+                data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
+                shouldShow: !!chatOptions.selfDMChat,
             });
+
+            newSections.push({
+                title: translate('common.recents'),
+                data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
+                shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
+            });
+
+            newSections.push({
+                title: translate('common.contacts'),
+                data: chatOptions.personalDetails,
+                shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
+            });
+
+            if (
+                chatOptions.userToInvite &&
+                !isCurrentUser({
+                    ...chatOptions.userToInvite,
+                    accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    status: chatOptions.userToInvite?.status ?? undefined,
+                }) &&
+                !isPerDiemRequest
+            ) {
+                newSections.push({
+                    title: translate('workspace.invoices.paymentMethods.personal'),
+                    data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
+                    shouldShow: !!chatOptions.selfDMChat,
+                });
+
+                newSections.push({
+                    title: translate('common.recents'),
+                    data: chatOptions.recentReports,
+                    shouldShow: chatOptions.recentReports.length > 0,
+                });
+
+                newSections.push({
+                    title: translate('common.contacts'),
+                    data: chatOptions.personalDetails,
+                    shouldShow: chatOptions.personalDetails.length > 0,
+                });
+
+                if (
+                    chatOptions.userToInvite &&
+                    !isCurrentUser({
+                        ...chatOptions.userToInvite,
+                        accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        status: chatOptions.userToInvite?.status ?? undefined,
+                    })
+                ) {
+                    newSections.push({
+                        title: undefined,
+                        data: [chatOptions.userToInvite].map((participant) => {
+                            const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
+                            return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                        }),
+                        shouldShow: true,
+                    });
+                }
+            }
         }
 
         let headerMessage = '';
@@ -325,11 +361,12 @@ function MoneyRequestParticipantsSelector({
         participants,
         chatOptions.recentReports,
         chatOptions.personalDetails,
-        chatOptions.selfDMChat,
         chatOptions.workspaceChats,
+        chatOptions.selfDMChat,
         chatOptions.userToInvite,
         personalDetails,
         translate,
+        isWorkspacesOnly,
         showImportContacts,
         inputHelperText,
         isPerDiemRequest,
@@ -460,7 +497,6 @@ function MoneyRequestParticipantsSelector({
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
         InteractionManager.runAfterInteractions(importAndSaveContacts);
-        setTextInputAutoFocus(true);
     }, [importAndSaveContacts]);
 
     const footerContent = useMemo(() => {
@@ -577,6 +613,7 @@ function MoneyRequestParticipantsSelector({
             <ContactPermissionModal
                 onGrant={initiateContactImportAndSetState}
                 onDeny={setContactPermissionState}
+                onFocusTextInput={() => setTextInputAutoFocus(true)}
             />
             <SelectionList
                 onConfirm={handleConfirmSelection}
@@ -612,4 +649,8 @@ function MoneyRequestParticipantsSelector({
 
 MoneyRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
-export default memo(MoneyRequestParticipantsSelector, (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType);
+export default memo(
+    MoneyRequestParticipantsSelector,
+    (prevProps, nextProps) =>
+        deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType && prevProps.isWorkspacesOnly === nextProps.isWorkspacesOnly,
+);
