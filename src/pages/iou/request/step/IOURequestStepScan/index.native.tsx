@@ -898,6 +898,7 @@ function IOURequestStepScan({
                                         // makes sure the loader is not visible anymore e.g. when there is an error while uploading a file
                                         onClosed: () => {
                                             setIsLoaderVisible(false);
+                                            setDidCapturePhoto(false);
                                         },
                                     });
                                 }}
