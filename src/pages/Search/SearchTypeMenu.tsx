@@ -252,9 +252,11 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                             const isInitialItem = initialSearchKeys.current.includes(item.translationPath);
 
                             return (
-                                <Animated.View entering={!isInitialItem ? FadeIn : undefined}>
+                                <Animated.View
+                                    key={item.translationPath}
+                                    entering={!isInitialItem ? FadeIn : undefined}
+                                >
                                     <MenuItem
-                                        key={item.translationPath}
                                         disabled={false}
                                         interactive
                                         title={translate(item.translationPath)}

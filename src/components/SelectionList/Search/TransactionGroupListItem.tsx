@@ -176,7 +176,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         </View>
                     ) : (
                         groupItem.transactions.map((transaction) => (
-                            <View>
+                            <View key={transaction.transactionID}>
                                 <TransactionItemRow
                                     transactionItem={transaction}
                                     isSelected={!!transaction.isSelected}
