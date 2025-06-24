@@ -1211,9 +1211,8 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies: OnyxCollection<OnyxTypes.Policy> = {}, cards: OnyxTypes.CardList = {}): SearchTypeMenuSection[] {
+function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardFeed: boolean, policies: OnyxCollection<OnyxTypes.Policy> = {}): SearchTypeMenuSection[] {
     const email = session?.email;
-    const hasCardFeed = Object.keys(cards).length > 0;
 
     // Start building the sections by requiring the following sections to always be present
     const typeMenuSections: SearchTypeMenuSection[] = [

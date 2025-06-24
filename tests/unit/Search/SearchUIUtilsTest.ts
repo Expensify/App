@@ -1302,7 +1302,7 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, {}, {})
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, false, {})
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -1329,7 +1329,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should generate correct routes', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, {}, {})
+            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, false, {})
                 .map((section) => section.menuItems)
                 .flat();
 
