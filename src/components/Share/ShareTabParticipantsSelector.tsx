@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {forwardRef} from 'react';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
@@ -8,14 +8,16 @@ import type ROUTES from '@src/ROUTES';
 
 type ShareTabParticipantsSelectorProps = {
     detailsPageRouteObject: typeof ROUTES.SHARE_SUBMIT_DETAILS | typeof ROUTES.SHARE_DETAILS;
-
-    /** Whether text input should be focused */
-    textInputAutoFocus?: boolean;
 };
 
-export default function ShareTabParticipantsSelector({detailsPageRouteObject, textInputAutoFocus}: ShareTabParticipantsSelectorProps) {
+type InputFocusRef = {
+    focus?: () => void;
+};
+
+function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTabParticipantsSelectorProps, ref: React.Ref<InputFocusRef>) {
     return (
         <MoneyRequestParticipantsSelector
+            ref={ref}
             iouType={CONST.IOU.TYPE.SUBMIT}
             onParticipantsAdded={(value) => {
                 const participant = value.at(0);
@@ -34,7 +36,8 @@ export default function ShareTabParticipantsSelector({detailsPageRouteObject, te
                 }
             }}
             action="create"
-            textInputAutoFocus={textInputAutoFocus}
         />
     );
 }
+
+export default forwardRef<InputFocusRef, ShareTabParticipantsSelectorProps>(ShareTabParticipantsSelectorComponent);

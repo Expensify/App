@@ -1,17 +1,19 @@
-import React from 'react';
+import React, {forwardRef} from 'react';
 import ShareTabParticipantsSelector from '@components/Share/ShareTabParticipantsSelector';
-import useTabNavigatorFocus from '@hooks/useTabNavigatorFocus';
 import ROUTES from '@src/ROUTES';
 
-function SubmitTab() {
-    const isTabFocused = useTabNavigatorFocus({tabIndex: 1});
+type InputFocusRef = {
+    focus?: () => void;
+};
 
+function SubmitTabComponent(_props: unknown, ref: React.Ref<InputFocusRef>) {
     return (
         <ShareTabParticipantsSelector
+            ref={ref}
             detailsPageRouteObject={ROUTES.SHARE_SUBMIT_DETAILS}
-            textInputAutoFocus={isTabFocused}
         />
     );
 }
 
+const SubmitTab = forwardRef(SubmitTabComponent);
 export default SubmitTab;
