@@ -44,6 +44,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -102,7 +103,6 @@ import type {
     FlightParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
-    GoToRoomParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -195,6 +195,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -246,6 +247,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -330,6 +332,7 @@ const translations = {
         workspaces: 'ワークスペース',
         inbox: '受信トレイ',
         group: 'グループ',
+        success: '成功',
         profile: 'プロフィール',
         referral: '紹介',
         payments: '支払い',
@@ -611,6 +614,7 @@ const translations = {
         workspacesTabTitle: 'ワークスペース',
         getTheApp: 'アプリを入手',
         scanReceiptsOnTheGo: '携帯電話から領収書をスキャンする',
+        headsUp: 'ご注意ください！',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1112,6 +1116,7 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `他の場所で${formattedAmount}を支払う` : `他の場所で支払う`),
         nextStep: '次のステップ',
         finished: '完了',
+        flip: '反転',
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} 請求書を送信`,
         submitAmount: ({amount}: RequestAmountParams) => `${amount}を提出`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} のために` : ''}`,
@@ -1625,14 +1630,13 @@ const translations = {
         mergeFailureGenericHeading: 'アカウントを統合できません',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: '疑わしい活動を報告',
         lockAccount: 'アカウントをロックする',
-        unlockAccount: 'アカウントを解除する',
-        compromisedDescription:
-            'Expensifyアカウントが不正アクセスされた疑いがある場合、新しいExpensifyカードの取引を防ぎ、不要なアカウント変更をブロックするためにアカウントをロックすることができます。',
-        domainAdminsDescriptionPartOne: 'ドメイン管理者向け、',
-        domainAdminsDescriptionPartTwo: 'この操作は、すべてのExpensifyカードのアクティビティと管理者のアクションを停止します。',
-        domainAdminsDescriptionPartThree: 'あなたのドメイン全体で。',
-        warning: `アカウントがロックされると、当社のチームが調査を行い、不正アクセスを削除します。アクセスを回復するには、Conciergeと協力してアカウントを保護する必要があります。`,
+        unlockAccount: 'アカウントをアンロック',
+        compromisedDescription: 'アカウントに不安を感じましたか？報告すると、すぐにアカウントがロックされ、Expensifyカードの新しい取引が停止され、変更も防止されます。',
+        domainAdminsDescription: 'ドメイン管理者へ：これにより、ドメイン全体のExpensifyカード活動と管理操作も一時停止されます。',
+        areYouSure: '本当にExpensifyアカウントをロックしますか？',
+        ourTeamWill: 'チームが調査を行い、不正アクセスを削除します。アクセスを回復するには、Conciergeと連携する必要があります。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'アカウントのロックに失敗しました',
@@ -2351,6 +2355,13 @@ const translations = {
             afterWeek: '1週間',
             custom: 'カスタム',
         },
+        vacationDelegate: '休暇代理人',
+        setVacationDelegate: `不在中にレポートを承認してもらうため、休暇代理人を設定してください。`,
+        vacationDelegateError: '休暇代理人の更新中にエラーが発生しました。',
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `${managerName}の休暇代理人として`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `${submittedToName}へ、${vacationDelegateName}の休暇代理人として`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `${nameOrEmail} を休暇代理人として設定しています。まだすべてのワークスペースに参加していません。続行すると、すべてのワークスペース管理者に追加を依頼するメールが送信されます。`,
         untilTomorrow: '明日まで',
         untilTime: ({time}: UntilTimeParams) => `${time}まで`,
         date: '日付',
@@ -2674,14 +2685,40 @@ const translations = {
         whatsTheBusinessAddress: '会社の住所は何ですか？',
         whatsTheBusinessContactInformation: 'ビジネス連絡先情報は何ですか？',
         whatsTheBusinessRegistrationNumber: '事業登録番号は何ですか?',
-        whatsTheBusinessTaxIDEIN: '事業者の税務ID/EIN/VAT/GST登録番号は何ですか？',
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return '雇用者識別番号（EIN）とは何ですか？';
+                case CONST.COUNTRY.CA:
+                    return '法人番号（BN）とは何ですか？';
+                case CONST.COUNTRY.GB:
+                    return 'VAT登録番号（VRN）とは何ですか？';
+                case CONST.COUNTRY.AU:
+                    return 'オーストラリア事業番号（ABN）とは何ですか？';
+                default:
+                    return 'EUのVAT番号とは何ですか？';
+            }
+        },
         whatsThisNumber: 'この番号は何ですか？',
         whereWasTheBusinessIncorporated: '事業はどこで法人化されましたか?',
         whatTypeOfBusinessIsIt: 'それはどのような種類のビジネスですか？',
         whatsTheBusinessAnnualPayment: 'ビジネスの年間支払い額はどれくらいですか？',
         whatsYourExpectedAverageReimbursements: 'あなたの期待される平均払い戻し額はいくらですか？',
         registrationNumber: '登録番号',
-        taxIDEIN: '税務ID/EIN番号',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'EU VAT';
+            }
+        },
         businessAddress: 'ビジネス住所',
         businessType: '業種',
         incorporation: '法人化',
@@ -2705,6 +2742,20 @@ const translations = {
         findAverageReimbursement: '平均払い戻し額を見つける',
         error: {
             registrationNumber: '有効な登録番号を提供してください。',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return '有効な雇用者識別番号（EIN）を入力してください';
+                    case CONST.COUNTRY.CA:
+                        return '有効な法人番号（BN）を入力してください';
+                    case CONST.COUNTRY.GB:
+                        return '有効なVAT登録番号（VRN）を入力してください';
+                    case CONST.COUNTRY.AU:
+                        return '有効なオーストラリア事業番号（ABN）を入力してください';
+                    default:
+                        return '有効なEU VAT番号を入力してください';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
@@ -3108,7 +3159,6 @@ const translations = {
             unavailable: '利用できないワークスペース',
             memberNotFound: 'メンバーが見つかりません。新しいメンバーをワークスペースに招待するには、上の招待ボタンを使用してください。',
             notAuthorized: `このページにアクセスする権限がありません。このワークスペースに参加しようとしている場合は、ワークスペースのオーナーにメンバーとして追加してもらってください。他に何かお困りですか？${CONST.EMAIL.CONCIERGE}にお問い合わせください。`,
-            goToRoom: ({roomName}: GoToRoomParams) => `${roomName} ルームに行く`,
             goToWorkspace: 'ワークスペースに移動',
             goToWorkspaces: 'ワークスペースに移動',
             clearFilter: 'フィルターをクリア',
@@ -5964,7 +6014,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: '物理カードの紛失/破損を報告する',
         screenTitle: '成績表が紛失または損傷しました',
         nextButtonLabel: '次へ',
         reasonTitle: 'なぜ新しいカードが必要なのですか？',
@@ -5978,6 +6027,8 @@ const translations = {
         shipNewCardButton: '新しいカードを発送する',
         addressError: '住所が必要です',
         reasonError: '理由が必要です',
+        successTitle: '新しいカードが発送中です！',
+        successDescription: '数営業日で届きます。届いたら有効化する必要があります。それまでは仮想カードを使用できます。',
     },
     eReceipt: {
         guaranteed: '保証付きeレシート',
@@ -6435,11 +6486,7 @@ const translations = {
                     part2: '.',
                 },
             },
-            acknowledgement: {
-                part1: '早期キャンセルをリクエストすることにより、Expensify が Expensify の下でそのようなリクエストを承認する義務を負わないことを認め、同意します。',
-                link: '利用規約',
-                part2: 'または、私とExpensifyの間の他の適用されるサービス契約に基づき、Expensifyがそのような要求を許可するかどうかについての唯一の裁量権を保持していること。',
-            },
+            acknowledgement: `早期キャンセルをリクエストすることにより、Expensify が Expensify の下でそのようなリクエストを承認する義務を負わないことを認め、同意します。<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>利用規約</a>または、私とExpensifyの間の他の適用されるサービス契約に基づき、Expensifyがそのような要求を許可するかどうかについての唯一の裁量権を保持していること。`,
         },
     },
     feedbackSurvey: {

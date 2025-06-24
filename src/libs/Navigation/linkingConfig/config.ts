@@ -376,6 +376,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS,
                         },
+                        [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: {
+                            path: ROUTES.SETTINGS_VACATION_DELEGATE,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_SIZE.route,
                             parse: {
@@ -1485,7 +1489,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.TRAVEL]: {
                     screens: {
                         [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
-                        [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: ROUTES.TRAVEL_DOT_LINK_WEB_VIEW.route,
                         [SCREENS.TRAVEL.UPGRADE]: ROUTES.TRAVEL_UPGRADE.route,
                         [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS.route,
                         [SCREENS.TRAVEL.TRIP_SUMMARY]: ROUTES.TRAVEL_TRIP_SUMMARY.route,

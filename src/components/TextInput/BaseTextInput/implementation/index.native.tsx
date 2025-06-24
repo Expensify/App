@@ -87,7 +87,7 @@ function BaseTextInput(
     const inputProps = {shouldSaveDraft: false, shouldUseDefaultValue: false, ...props};
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle(undefined, excludedMarkdownStyles);
+    const markdownStyle = useMarkdownStyle(false, excludedMarkdownStyles);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
@@ -303,7 +303,14 @@ function BaseTextInput(
                                 />
                             </>
                         ) : null}
-                        <View style={[styles.textInputAndIconContainer(isMarkdownEnabled), isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
+                        <View
+                            style={[
+                                styles.textInputAndIconContainer(isMarkdownEnabled),
+                                {flex: 1},
+                                isMultiline && hasLabel && styles.textInputMultilineContainer,
+                                styles.pointerEventsBoxNone,
+                            ]}
+                        >
                             {!!iconLeft && (
                                 <View style={styles.textInputLeftIconContainer}>
                                     <Icon

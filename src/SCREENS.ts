@@ -35,7 +35,6 @@ const SCREENS = {
         DOMAIN_PERMISSION_INFO: 'Travel_DomainPermissionInfo',
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
         WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
-        TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
     },
     SEARCH: {
         ROOT: 'Search_Root',
@@ -101,6 +100,7 @@ const SCREENS = {
             STATUS_CLEAR_AFTER: 'Settings_Status_Clear_After',
             STATUS_CLEAR_AFTER_DATE: 'Settings_Status_Clear_After_Date',
             STATUS_CLEAR_AFTER_TIME: 'Settings_Status_Clear_After_Time',
+            VACATION_DELEGATE: 'Settings_Status_Vacation_Delegate',
             STATUS: 'Settings_Status',
             PRONOUNS: 'Settings_Pronouns',
             TIMEZONE: 'Settings_Timezone',
