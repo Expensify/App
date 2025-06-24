@@ -127,6 +127,9 @@ type BaseFeatureTrainingModalProps = {
 
     /** Whether to navigate back when closing the modal */
     shouldGoBack?: boolean;
+
+    /** Whether to call onHelp when modal is hidden completely */
+    shouldCallOnHelpWhenModalHidden?: boolean;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -192,6 +195,7 @@ function FeatureTrainingModal({
     shouldShowConfirmationLoader = false,
     canConfirmWhileOffline = true,
     shouldGoBack = true,
+    shouldCallOnHelpWhenModalHidden = false,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -372,6 +376,12 @@ function FeatureTrainingModal({
                     : {}),
                 ...modalInnerContainerStyle,
             }}
+            onModalHide={() => {
+                if (!shouldCallOnHelpWhenModalHidden) {
+                    return;
+                }
+                onHelp();
+            }}
         >
             <Wrapper
                 style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width)]}
@@ -405,7 +415,13 @@ function FeatureTrainingModal({
                         <Button
                             large
                             style={[styles.mb3]}
-                            onPress={onHelp}
+                            onPress={() => {
+                                if (shouldCallOnHelpWhenModalHidden) {
+                                    setIsModalVisible(false);
+                                    return;
+                                }
+                                onHelp();
+                            }}
                             text={helpText}
                         />
                     )}
