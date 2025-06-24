@@ -1465,7 +1465,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
         showShowUnapprovedCompanyCardsSuggestion ||= isAdmin && isApprovalEnabled && hasCardFeed;
         shouldShowReconciliationSuggestion ||= false; // s77rt TODO
 
-        // If all search variables are true return early to avoid redundant iterations
+        // We don't need to check the rest of the policies if we already determined that all suggestion items should be displayed
         return shouldShowStatementsSuggestion && showShowUnapprovedCashSuggestion && showShowUnapprovedCompanyCardsSuggestion && shouldShowReconciliationSuggestion;
     });
 
