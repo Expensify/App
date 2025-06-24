@@ -51,7 +51,7 @@ export default function () {
             },
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
-        mergeAllPropsSnapshotKeys: [
+        fullyMergedSnapshotKeys: [
             ONYXKEYS.COLLECTION.TRANSACTION,
             ONYXKEYS.COLLECTION.REPORT,
             ONYXKEYS.COLLECTION.POLICY,
