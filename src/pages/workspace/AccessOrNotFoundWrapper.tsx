@@ -1,4 +1,5 @@
 /* eslint-disable rulesdir/no-negated-variables */
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -136,6 +137,7 @@ function AccessOrNotFoundWrapper({
     const isMoneyRequest = !!iouType && isValidMoneyRequestType(iouType);
     const isFromGlobalCreate = !!reportID && isEmptyObject(report?.reportID);
     const pendingField = featureName ? policy?.pendingFields?.[featureName] : undefined;
+    const isFocused = useIsFocused();
 
     useEffect(() => {
         if (!isPolicyIDInRoute || !isEmptyObject(policy)) {
@@ -164,7 +166,7 @@ function AccessOrNotFoundWrapper({
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
     // Without this, we can be unexpectedly navigated to the More Features page.
     useEffect(() => {
-        if (isFeatureEnabled || (pendingField && !isOffline && !isFeatureEnabled)) {
+        if (!isFocused || isFeatureEnabled || (pendingField && !isOffline && !isFeatureEnabled)) {
             return;
         }
 
