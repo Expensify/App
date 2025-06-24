@@ -1544,7 +1544,8 @@ describe('actions/Report', () => {
             });
         });
         expect(getOriginalMessage(reportPreviewAction)?.linkedReportID).toBe(reportID);
-
+        expect(reportPreviewAction?.accountID).toBe(accountID);
+        
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
