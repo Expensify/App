@@ -72,12 +72,8 @@ function useSidePanel() {
     const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
     const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sideBarWidth : 0));
     const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
-    const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
-
     useEffect(() => {
-        if (!shouldHideSidePanel && prevShouldHideSidePanel) {
-            setIsSidePanelTransitionEnded(false);
-        }
+        setIsSidePanelTransitionEnded(false);
         Animated.parallel([
             Animated.timing(sidePanelOffset.current, {
                 toValue: shouldApplySidePanelOffset ? variables.sideBarWidth : 0,
@@ -90,7 +86,11 @@ function useSidePanel() {
                 useNativeDriver: true,
             }),
         ]).start(() => setIsSidePanelTransitionEnded(true));
-    }, [shouldHideSidePanel, shouldApplySidePanelOffset, sidePanelWidth, prevShouldHideSidePanel]);
+
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shouldHideSidePanel, shouldApplySidePanelOffset]);
+    // sidePanelWidth dependency caused the help panel content to slide in on window resize
 
     const openSidePanel = useCallback(() => {
         setIsSidePanelTransitionEnded(false);
