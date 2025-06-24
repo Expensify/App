@@ -26,7 +26,7 @@ describe('Composer', () => {
     it('should show large emoji size if only has header markdown + emoji', async () => {
         render(
             <OnyxProvider>
-                <Composer value={'# 😄'} />
+                <Composer value="# 😄" />
             </OnyxProvider>,
         );
 
