@@ -473,26 +473,55 @@ function getTransactionViolations(allViolations: OnyxCollection<OnyxTypes.Transa
  * Do not use directly, use only via `getSections()` facade.
  */
 function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionListItemType[] {
-    const shouldShowMerchant = getShouldShowMerchant(data);
-    const doesDataContainAPastYearTransaction = shouldShowYear(data);
-    const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
-
     const shouldShowCategory = metadata?.columnsToShow?.shouldShowCategoryColumn;
     const shouldShowTag = metadata?.columnsToShow?.shouldShowTagColumn;
     const shouldShowTax = metadata?.columnsToShow?.shouldShowTaxColumn;
 
     // Pre-filter transaction keys to avoid repeated checks
     const transactionKeys = Object.keys(data).filter(isTransactionEntry);
-    // Get violations - optimize by using a Map for faster lookups
-    const allViolations = getViolations(data);
+    if (transactionKeys.length === 0) {
+        return [];
+    }
+
+    // Single pass to calculate all derived values and cache lookups
+    let shouldShowMerchant = false;
+    let doesDataContainAPastYearTransaction = false;
+    let shouldShowAmountInWideColumn = false;
+    let shouldShowTaxAmountInWideColumn = false;
 
     // Use Map for faster lookups of personal details
     const personalDetailsMap = new Map(Object.entries(data.personalDetailsList || {}));
 
+    // Get violations - optimize by using a Map for faster lookups
+    const allViolations = getViolations(data);
+
     const transactionsSections: TransactionListItemType[] = [];
+    const currentYear = new Date().getFullYear();
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
+
+        // Calculate derived values incrementally during iteration
+        if (!shouldShowMerchant && transactionItem.merchant) {
+            shouldShowMerchant = true;
+        }
+
+        if (!doesDataContainAPastYearTransaction && transactionItem.created) {
+            const transactionYear = new Date(transactionItem.created).getFullYear();
+            if (transactionYear < currentYear) {
+                doesDataContainAPastYearTransaction = true;
+            }
+        }
+
+        // Check amount column width requirements
+        if (!shouldShowAmountInWideColumn && transactionItem.amount && Math.abs(transactionItem.amount) >= 1000000) {
+            shouldShowAmountInWideColumn = true;
+        }
+
+        if (!shouldShowTaxAmountInWideColumn && transactionItem.taxAmount && Math.abs(transactionItem.taxAmount) >= 1000000) {
+            shouldShowTaxAmountInWideColumn = true;
+        }
+
         const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
         const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const shouldShowBlankTo = !report || isOpenExpenseReport(report);
@@ -505,6 +534,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
         const transactionSection: TransactionListItemType = {
+            ...transactionItem,
             action: getAction(data, allViolations, key),
             from,
             to,
@@ -522,44 +552,6 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             isAmountColumnWide: shouldShowAmountInWideColumn,
             isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
             violations: transactionViolations,
-
-            // Manually copying all the properties from transactionItem
-            transactionID: transactionItem.transactionID,
-            created: transactionItem.created,
-            modifiedCreated: transactionItem.modifiedCreated,
-            amount: transactionItem.amount,
-            canDelete: transactionItem.canDelete,
-            canHold: transactionItem.canHold,
-            canUnhold: transactionItem.canUnhold,
-            modifiedAmount: transactionItem.modifiedAmount,
-            currency: transactionItem.currency,
-            modifiedCurrency: transactionItem.modifiedCurrency,
-            merchant: transactionItem.merchant,
-            modifiedMerchant: transactionItem.modifiedMerchant,
-            comment: transactionItem.comment,
-            category: transactionItem.category,
-            transactionType: transactionItem.transactionType,
-            reportType: transactionItem.reportType,
-            policyID: transactionItem.policyID,
-            parentTransactionID: transactionItem.parentTransactionID,
-            hasEReceipt: transactionItem.hasEReceipt,
-            accountID: transactionItem.accountID,
-            managerID: transactionItem.managerID,
-            reportID: transactionItem.reportID,
-            ...(transactionItem.pendingAction ? {pendingAction: transactionItem.pendingAction} : {}),
-            transactionThreadReportID: transactionItem.transactionThreadReportID,
-            isFromOneTransactionReport: transactionItem.isFromOneTransactionReport,
-            tag: transactionItem.tag,
-            receipt: transactionItem.receipt,
-            taxAmount: transactionItem.taxAmount,
-            description: transactionItem.description,
-            mccGroup: transactionItem.mccGroup,
-            modifiedMCCGroup: transactionItem.modifiedMCCGroup,
-            moneyRequestReportActionID: transactionItem.moneyRequestReportActionID,
-            pendingAction: transactionItem.pendingAction,
-            errors: transactionItem.errors,
-            isActionLoading: transactionItem.isActionLoading,
-            hasViolation: transactionItem.hasViolation,
         };
 
         transactionsSections.push(transactionSection);

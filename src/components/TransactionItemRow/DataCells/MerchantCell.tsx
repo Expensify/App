@@ -1,8 +1,8 @@
-import React from 'react';
+import React, {memo, useMemo} from 'react';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-function MerchantOrDescriptionCell({
+const MerchantOrDescriptionCell = memo(function MerchantOrDescriptionCell({
     merchantOrDescription,
     shouldShowTooltip,
     shouldUseNarrowLayout,
@@ -13,14 +13,20 @@ function MerchantOrDescriptionCell({
 }) {
     const styles = useThemeStyles();
 
+    // Memoize style array to prevent recreation on every render
+    const textStyles = useMemo(
+        () => [!shouldUseNarrowLayout ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1],
+        [shouldUseNarrowLayout, styles.lineHeightLarge, styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1],
+    );
+
     return (
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={merchantOrDescription}
-            style={[!shouldUseNarrowLayout ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1]}
+            style={textStyles}
         />
     );
-}
+});
 
 MerchantOrDescriptionCell.displayName = 'MerchantOrDescriptionCell';
 export default MerchantOrDescriptionCell;

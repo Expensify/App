@@ -1,5 +1,5 @@
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {clamp, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -10,11 +10,11 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
-import {useSearchContext} from '@components/Search/SearchContext';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
+import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -33,6 +33,7 @@ import {search} from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
+import {useSearchContext} from '@components/Search/SearchContext';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -40,45 +41,60 @@ const ANIMATION_DURATION_IN_MS = 300;
 
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
-    headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
+    headerButtonsOptions?: Array<DropdownOption<SearchHeaderOptionValue>>;
     currentSearchResults?: SearchResults;
     lastNonEmptySearchResults?: SearchResults;
 };
 
-function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults, lastNonEmptySearchResults}: SearchPageNarrowProps) {
+const SearchPageNarrow = memo(function SearchPageNarrow({queryJSON, headerButtonsOptions = [], currentSearchResults, lastNonEmptySearchResults}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
-    const {clearSelectedTransactions} = useSearchContext();
-    const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const {isOffline} = useNetwork();
+    const {clearSelectedTransactions} = useSearchContext();
 
-    // Controls the visibility of the educational tooltip based on user scrolling.
-    // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
-    const triggerScrollEvent = useScrollEventEmitter();
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {
+        canBeMissing: true,
+        selector: (data) => data?.isEnabled,
+    });
 
-    const handleBackButtonPress = useCallback(() => {
-        if (!selectionMode?.isEnabled) {
-            return false;
-        }
-        clearSelectedTransactions(undefined, true);
-        return true;
-    }, [selectionMode, clearSelectedTransactions]);
+    const [componentState, setComponentState] = useState({
+        searchRouterListVisible: false,
+        shouldRenderFiltersBar: false,
+        shouldRenderSearch: false,
+        isAnimationSystemReady: false,
+    });
 
-    useHandleBackButton(handleBackButtonPress);
+    const searchResults = useMemo(() => {
+        return (currentSearchResults?.data && Array.isArray(currentSearchResults.data)) ? currentSearchResults : lastNonEmptySearchResults;
+    }, [currentSearchResults?.data, lastNonEmptySearchResults]);
+
+    const scrollEventEmitter = useScrollEventEmitter();
+    const triggerScrollEvent = componentState.isAnimationSystemReady ? scrollEventEmitter : () => {};
 
     const scrollOffset = useSharedValue(0);
-    const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
+    const topBarOffset = useSharedValue<number>(0);
+    
+    const updateTopBarOffsetRef = useRef(() => {
+        topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
+    });
+    
+    useEffect(() => {
+        if (componentState.isAnimationSystemReady) {
+            updateTopBarOffsetRef.current();
+        }
+    }, [componentState.isAnimationSystemReady]);
+
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
         top: topBarOffset.get(),
     }));
 
     const scrollHandler = useAnimatedScrollHandler({
         onScroll: (event) => {
+            if (!componentState.isAnimationSystemReady) return;
+            
             runOnJS(triggerScrollEvent)();
             const {contentOffset, layoutMeasurement, contentSize} = event;
             if (windowHeight > contentSize.height) {
@@ -97,16 +113,73 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
         },
     });
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+    useEffect(() => {
+        let isMounted = true;
+        
+        const staggeredUpdates = async () => {
+            await new Promise(resolve => requestAnimationFrame(resolve));
+            
+            if (!isMounted) return;
+            
+            setComponentState(prev => ({
+                ...prev,
+                shouldRenderFiltersBar: true,
+            }));
+            
+            const searchUpdate = InteractionManager.runAfterInteractions(() => {
+                if (!isMounted) return;
+                
+                setComponentState(prev => ({
+                    ...prev,
+                    shouldRenderSearch: true,
+                    isAnimationSystemReady: true,
+                }));
+            });
+            
+            return () => searchUpdate.cancel();
+        };
+        
+        staggeredUpdates();
+        
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
-    const shouldDisplayCancelSearch = shouldUseNarrowLayout && ((!!queryJSON && !isCannedSearchQuery(queryJSON)) || searchRouterListVisible);
+    const handleBackButtonPress = useCallback(() => {
+        if (!selectionMode) {
+            return false;
+        }
+        clearSelectedTransactions(undefined, true);
+        return true;
+    }, [selectionMode, clearSelectedTransactions]);
+
+    useHandleBackButton(handleBackButtonPress);
+
+    const memoizedValues = useMemo(() => {
+        try {
+            return {
+                shouldDisplayCancelSearch: shouldUseNarrowLayout && ((!!queryJSON && !isCannedSearchQuery(queryJSON)) || componentState.searchRouterListVisible),
+                headerStyles: StyleUtils?.getSearchPageNarrowHeaderStyles?.() || {},
+                isDataLoaded: queryJSON ? isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON) : false,
+            };
+        } catch (error) {
+            console.error('SearchPageNarrow memoizedValues error:', error);
+            return {
+                shouldDisplayCancelSearch: false,
+                headerStyles: {},
+                isDataLoaded: false,
+            };
+        }
+    }, [shouldUseNarrowLayout, StyleUtils, queryJSON, componentState.searchRouterListVisible, currentSearchResults, lastNonEmptySearchResults]);
+
     const cancelSearchCallback = useCallback(() => {
-        if (searchRouterListVisible) {
-            setSearchRouterListVisible(false);
+        if (componentState.searchRouterListVisible) {
+            setComponentState(prev => ({ ...prev, searchRouterListVisible: false }));
             return;
         }
         Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
-    }, [searchRouterListVisible]);
+    }, [componentState.searchRouterListVisible]);
 
     const handleSearchAction = useCallback((value: SearchParams | string) => {
         if (typeof value === 'string') {
@@ -115,6 +188,8 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
             search(value);
         }
     }, []);
+
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
     if (!queryJSON) {
         return (
@@ -133,8 +208,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
         );
     }
 
-    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
-    const shouldShowLoadingState = !isOffline && !isDataLoaded;
+    const shouldShowLoadingState = !isOffline && !memoizedValues.isDataLoaded;
 
     return (
         <ScreenWrapper
@@ -146,38 +220,40 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
             shouldShowOfflineIndicator={!!searchResults}
         >
             <View style={[styles.flex1, styles.overflowHidden]}>
-                {!selectionMode?.isEnabled ? (
-                    <View style={[StyleUtils.getSearchPageNarrowHeaderStyles(), searchRouterListVisible && styles.flex1, styles.mh100]}>
+                {!selectionMode ? (
+                    <View style={[memoizedValues.headerStyles, componentState.searchRouterListVisible && styles.flex1, styles.mh100]}>
                         <View style={[styles.zIndex10, styles.appBG]}>
                             <TopBar
                                 shouldShowLoadingBar={shouldShowLoadingState}
                                 breadcrumbLabel={translate('common.reports')}
                                 shouldDisplaySearch={false}
-                                cancelSearch={shouldDisplayCancelSearch ? cancelSearchCallback : undefined}
+                                cancelSearch={memoizedValues.shouldDisplayCancelSearch ? cancelSearchCallback : undefined}
                             />
                         </View>
                         <View style={[styles.flex1]}>
-                            <Animated.View style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.bgTransparent]}>
+                            <Animated.View style={[topBarAnimatedStyle, !componentState.searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.bgTransparent]}>
                                 <View style={[styles.flex1, styles.pt2, styles.appBG]}>
                                     <SearchPageHeader
                                         queryJSON={queryJSON}
-                                        searchRouterListVisible={searchRouterListVisible}
+                                        searchRouterListVisible={componentState.searchRouterListVisible}
                                         hideSearchRouterList={() => {
-                                            setSearchRouterListVisible(false);
+                                            setComponentState(prev => ({ ...prev, searchRouterListVisible: false }));
                                         }}
                                         onSearchRouterFocus={() => {
-                                            topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
-                                            setSearchRouterListVisible(true);
+                                            if (componentState.isAnimationSystemReady) {
+                                                topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
+                                            }
+                                            setComponentState(prev => ({ ...prev, searchRouterListVisible: true }));
                                         }}
-                                        headerButtonsOptions={headerButtonsOptions}
+                                        headerButtonsOptions={headerButtonsOptions || []}
                                         handleSearch={handleSearchAction}
                                     />
                                 </View>
                                 <View style={[styles.appBG]}>
-                                    {!searchRouterListVisible && (
+                                    {!componentState.searchRouterListVisible && componentState.shouldRenderFiltersBar && (
                                         <SearchFiltersBar
                                             queryJSON={queryJSON}
-                                            headerButtonsOptions={headerButtonsOptions}
+                                            headerButtonsOptions={headerButtonsOptions || []}
                                         />
                                     )}
                                 </View>
@@ -189,35 +265,44 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
                         <HeaderWithBackButton
                             title={translate('common.selectMultiple')}
                             onBackButtonPress={() => {
-                                topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
+                                if (componentState.isAnimationSystemReady) {
+                                    topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
+                                }
                                 clearSelectedTransactions();
                                 turnOffMobileSelectionMode();
                             }}
                         />
                         <SearchPageHeader
                             queryJSON={queryJSON}
-                            headerButtonsOptions={headerButtonsOptions}
+                            headerButtonsOptions={headerButtonsOptions || []}
                             handleSearch={handleSearchAction}
                         />
                     </>
                 )}
-                {!searchRouterListVisible && (
+                {!componentState.searchRouterListVisible && (
                     <View style={[styles.flex1]}>
-                        <Search
-                            currentSearchResults={currentSearchResults}
-                            lastNonEmptySearchResults={lastNonEmptySearchResults}
-                            key={queryJSON.hash}
-                            queryJSON={queryJSON}
-                            onSearchListScroll={scrollHandler}
-                            contentContainerStyle={!selectionMode?.isEnabled ? styles.searchListContentContainerStyles : undefined}
-                            handleSearch={handleSearchAction}
-                        />
+                        {componentState.shouldRenderSearch ? (
+                            <Search
+                                currentSearchResults={currentSearchResults}
+                                lastNonEmptySearchResults={lastNonEmptySearchResults}
+                                key={queryJSON.hash}
+                                queryJSON={queryJSON}
+                                onSearchListScroll={scrollHandler}
+                                contentContainerStyle={!selectionMode ? styles.searchListContentContainerStyles : undefined}
+                                handleSearch={handleSearchAction}
+                            />
+                        ) : (
+                            <SearchRowSkeleton
+                                shouldAnimate
+                                containerStyle={styles.searchListContentContainerStyles}
+                            />
+                        )}
                     </View>
                 )}
             </View>
         </ScreenWrapper>
     );
-}
+});
 
 SearchPageNarrow.displayName = 'SearchPageNarrow';
 

@@ -74,6 +74,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isDeleteExpensesConfirmModalVisible, setIsDeleteExpensesConfirmModalVisible] = useState(false);
     const [isDownloadExportModalVisible, setIsDownloadExportModalVisible] = useState(false);
+    const [shouldRenderFiltersBar, setShouldRenderFiltersBar] = useState(false);
     const {
         validateAndResizeFile,
         setIsAttachmentInvalid,
@@ -111,16 +112,36 @@ function SearchPage({route}: SearchPageProps) {
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
+    useEffect(() => {
+        const interaction = InteractionManager.runAfterInteractions(() => {
+            setShouldRenderFiltersBar(true);
+        });
+
+        return () => interaction.cancel();
+    }, []);
+
     const {status, hash} = queryJSON ?? {};
-    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+
+    const stableSelectedTransactions = useMemo(() => {
+        const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+        const selectedTransactionsValues = Object.values(selectedTransactions ?? {});
+        const hasSelectedTransactions = selectedTransactionsKeys.length > 0;
+        const isAnyTransactionOnHold = selectedTransactionsValues.some((transaction) => transaction.isHeld);
+
+        return {
+            keys: selectedTransactionsKeys,
+            values: selectedTransactionsValues,
+            hasSelected: hasSelectedTransactions,
+            isAnyOnHold: isAnyTransactionOnHold,
+        };
+    }, [selectedTransactions]);
 
     const headerButtonsOptions = useMemo(() => {
-        if (selectedTransactionsKeys.length === 0 || !status || !hash) {
+        if (!stableSelectedTransactions.hasSelected || !status || !hash) {
             return [];
         }
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
-        const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
         const downloadButtonOption: DropdownOption<SearchHeaderOptionValue> = {
             icon: Expensicons.Download,
@@ -144,7 +165,7 @@ function SearchPage({route}: SearchPageProps) {
                         query: status,
                         jsonQuery: JSON.stringify(queryJSON),
                         reportIDList,
-                        transactionIDList: selectedTransactionsKeys,
+                        transactionIDList: stableSelectedTransactions.keys,
                     },
                     () => {
                         setIsDownloadErrorModalVisible(true);
@@ -160,10 +181,10 @@ function SearchPage({route}: SearchPageProps) {
 
         const shouldShowApproveOption =
             !isOffline &&
-            !isAnyTransactionOnHold &&
+            !stableSelectedTransactions.isAnyOnHold &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.APPROVE)
-                : selectedTransactionsKeys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
+                : stableSelectedTransactions.keys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
 
         if (shouldShowApproveOption) {
             options.push({
@@ -177,9 +198,9 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
+                    const transactionIDList = selectedReports.length ? undefined : stableSelectedTransactions.keys;
                     const reportIDList = !selectedReports.length
-                        ? Object.values(selectedTransactions).map((transaction) => transaction.reportID)
+                        ? stableSelectedTransactions.values.map((transaction) => transaction.reportID)
                         : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
                     approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
                     InteractionManager.runAfterInteractions(() => {
@@ -191,10 +212,10 @@ function SearchPage({route}: SearchPageProps) {
 
         const shouldShowPayOption =
             !isOffline &&
-            !isAnyTransactionOnHold &&
+            !stableSelectedTransactions.isAnyOnHold &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
-                : selectedTransactionsKeys.every(
+                : stableSelectedTransactions.keys.every(
                       (id) =>
                           selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
                           selectedTransactions[id].policyID &&
@@ -214,8 +235,8 @@ function SearchPage({route}: SearchPageProps) {
                     }
 
                     const activeRoute = Navigation.getActiveRoute();
-                    const transactionIDList = selectedReports.length ? undefined : Object.keys(selectedTransactions);
-                    const items = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+                    const transactionIDList = selectedReports.length ? undefined : stableSelectedTransactions.keys;
+                    const items = selectedReports.length ? selectedReports : stableSelectedTransactions.values;
 
                     for (const item of items) {
                         const itemPolicyID = item.policyID;
@@ -251,7 +272,7 @@ function SearchPage({route}: SearchPageProps) {
                                   amount: report.total,
                                   paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
                               }))
-                            : Object.values(selectedTransactions).map((transaction) => ({
+                            : stableSelectedTransactions.values.map((transaction) => ({
                                   reportID: transaction.reportID,
                                   amount: transaction.amount,
                                   paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods),
@@ -268,7 +289,7 @@ function SearchPage({route}: SearchPageProps) {
 
         options.push(downloadButtonOption);
 
-        const shouldShowHoldOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canHold);
+        const shouldShowHoldOption = !isOffline && stableSelectedTransactions.keys.every((id) => selectedTransactions[id].canHold);
 
         if (shouldShowHoldOption) {
             options.push({
@@ -287,7 +308,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const shouldShowUnholdOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canUnhold);
+        const shouldShowUnholdOption = !isOffline && stableSelectedTransactions.keys.every((id) => selectedTransactions[id].canUnhold);
 
         if (shouldShowUnholdOption) {
             options.push({
@@ -301,7 +322,7 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    unholdMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+                    unholdMoneyRequestOnSearch(hash, stableSelectedTransactions.keys);
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
                     });
@@ -309,11 +330,11 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
+        const canAllTransactionsBeMoved = stableSelectedTransactions.keys.every((id) => selectedTransactions[id].canChangeReport);
 
         if (canAllTransactionsBeMoved) {
             options.push({
-                text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
+                text: translate('iou.moveExpenses', {count: stableSelectedTransactions.keys.length}),
                 icon: Expensicons.DocumentMerge,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
                 shouldCloseModalOnSelect: true,
@@ -321,7 +342,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const shouldShowDeleteOption = !isOffline && selectedTransactionsKeys.every((id) => selectedTransactions[id].canDelete);
+        const shouldShowDeleteOption = !isOffline && stableSelectedTransactions.keys.every((id) => selectedTransactions[id].canDelete);
 
         if (shouldShowDeleteOption) {
             options.push({
@@ -359,10 +380,9 @@ function SearchPage({route}: SearchPageProps) {
 
         return options;
     }, [
-        selectedTransactionsKeys,
+        stableSelectedTransactions,
         status,
         hash,
-        selectedTransactions,
         translate,
         isExportMode,
         isOffline,
@@ -377,6 +397,7 @@ function SearchPage({route}: SearchPageProps) {
     ]);
 
     const handleDeleteExpenses = () => {
+        const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
         if (selectedTransactionsKeys.length === 0 || !hash) {
             return;
         }
@@ -421,6 +442,7 @@ function SearchPage({route}: SearchPageProps) {
     };
 
     const createExportAll = useCallback(() => {
+        const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
         if (selectedTransactionsKeys.length === 0 || !status || !hash) {
             return [];
         }
@@ -435,7 +457,7 @@ function SearchPage({route}: SearchPageProps) {
         });
         setExportMode(false);
         clearSelectedTransactions();
-    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, setExportMode, clearSelectedTransactions]);
+    }, [selectedTransactions, status, hash, selectedReports, queryJSON, setExportMode, clearSelectedTransactions]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
@@ -526,8 +548,8 @@ function SearchPage({route}: SearchPageProps) {
                             onCancel={() => {
                                 setIsDeleteExpensesConfirmModalVisible(false);
                             }}
-                            title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                            prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
+                            title={translate('iou.deleteExpense', {count: Object.keys(selectedTransactions ?? {}).length})}
+                            prompt={translate('iou.deleteConfirmation', {count: Object.keys(selectedTransactions ?? {}).length})}
                             confirmText={translate('common.delete')}
                             cancelText={translate('common.cancel')}
                             danger
@@ -583,10 +605,12 @@ function SearchPage({route}: SearchPageProps) {
                                     headerButtonsOptions={headerButtonsOptions}
                                     handleSearch={handleSearchAction}
                                 />
-                                <SearchFiltersBar
-                                    queryJSON={queryJSON}
-                                    headerButtonsOptions={headerButtonsOptions}
-                                />
+                                {shouldRenderFiltersBar && (
+                                    <SearchFiltersBar
+                                        queryJSON={queryJSON}
+                                        headerButtonsOptions={headerButtonsOptions}
+                                    />
+                                )}
                                 <Search
                                     key={queryJSON.hash}
                                     queryJSON={queryJSON}
@@ -622,8 +646,8 @@ function SearchPage({route}: SearchPageProps) {
                     onCancel={() => {
                         setIsDeleteExpensesConfirmModalVisible(false);
                     }}
-                    title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                    prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
+                    title={translate('iou.deleteExpense', {count: stableSelectedTransactions.keys.length})}
+                    prompt={translate('iou.deleteConfirmation', {count: stableSelectedTransactions.keys.length})}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
