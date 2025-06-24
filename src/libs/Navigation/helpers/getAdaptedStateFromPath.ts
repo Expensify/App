@@ -114,6 +114,19 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         );
     }
 
+    if (route.name === SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS && route.params && 'reportID' in route.params) {
+        const reportID = route.params.reportID;
+        return getInitialSplitNavigatorState(
+            {
+                name: SCREENS.HOME,
+            },
+            {
+                name: SCREENS.REPORT,
+                params: {reportID},
+            },
+        );
+    }
+
     return undefined;
 }
 
