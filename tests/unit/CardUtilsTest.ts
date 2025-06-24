@@ -28,6 +28,7 @@ import {
 } from '@src/libs/CardUtils';
 import type {CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const shortDate = '0924';
 const shortDateSlashed = '09/24';
@@ -443,6 +444,7 @@ describe('CardUtils', () => {
     describe('getCustomOrFormattedFeedName', () => {
         beforeAll(() => {
             IntlStore.load(CONST.LOCALES.EN);
+            return waitForBatchedUpdates();
         });
         it('Should return custom name if exists', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;

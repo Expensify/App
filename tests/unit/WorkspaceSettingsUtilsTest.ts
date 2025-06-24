@@ -23,6 +23,7 @@ describe('WorkspacesSettingsUtils', () => {
         global.fetch = TestHelper.getGlobalFetchMock();
         Onyx.clear([ONYXKEYS.NVP_PREFERRED_LOCALE]).then(waitForBatchedUpdates);
         IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
     });
     describe('getBrickRoadForPolicy', () => {
         it('Should return "error"', async () => {

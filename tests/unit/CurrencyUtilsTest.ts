@@ -32,6 +32,7 @@ describe('CurrencyUtils', () => {
 
     beforeEach(() => {
         IntlStore.load(CONST.LOCALES.DEFAULT);
+        return waitForBatchedUpdates();
     });
 
     afterEach(() => Onyx.clear());

@@ -11,6 +11,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 describe('ModifiedExpenseMessage', () => {
     beforeAll(() => {
         IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
     });
     describe('getForAction', () => {
         const report = createRandomReport(1);

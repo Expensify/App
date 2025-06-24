@@ -3,6 +3,7 @@ import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {WorkspaceCardsList} from '@src/types/onyx';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 const fakeWorkspace: Record<string, WorkspaceCardsList> = {
@@ -61,6 +62,7 @@ const fakeWorkspace: Record<string, WorkspaceCardsList> = {
 describe('Card Feed Utils', () => {
     beforeAll(() => {
         IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
     });
     it('returns display name of workspace & domain cards', () => {
         const cardFeedNamesWithType = getCardFeedNamesWithType({workspaceCardFeeds: fakeWorkspace, translate: translateLocal});

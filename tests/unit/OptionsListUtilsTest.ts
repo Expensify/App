@@ -46,6 +46,7 @@ type PersonalDetailsList = Record<string, PersonalDetails & OptionData>;
 describe('OptionsListUtils', () => {
     beforeAll(() => {
         IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
     });
     const policyID = 'ABC123';
 

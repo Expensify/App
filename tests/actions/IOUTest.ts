@@ -155,6 +155,7 @@ describe('actions/IOU', () => {
             },
         });
         IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
     });
 
     let mockFetch: MockFetch;

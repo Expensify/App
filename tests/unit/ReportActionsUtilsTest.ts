@@ -27,7 +27,8 @@ describe('ReportActionsUtils', () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         IntlStore.load(CONST.LOCALES.DEFAULT);
         // Initialize the network key for OfflineWithFeedback
-        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        return waitForBatchedUpdates();
     });
 
     // Clear out Onyx after each test so that each test starts with a clean slate

@@ -37,6 +37,7 @@ describe('Sidebar', () => {
         });
         initOnyxDerivedValues();
         IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
     });
 
     beforeEach(() => {

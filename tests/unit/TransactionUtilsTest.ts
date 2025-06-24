@@ -80,6 +80,7 @@ describe('TransactionUtils', () => {
             },
         });
         IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
     });
 
     describe('getCreated', () => {
