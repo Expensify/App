@@ -80,10 +80,9 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
     }, [reportActionID, reportActionPages, sortedAllReportActions, nonEmptyStringReportID, frontendPaginationState]);
 
     useEffect(() => {
-        const areStatesEqual = 
-            desiredPaginationState === frontendPaginationState ||
-            (desiredPaginationState !== null && 
-             frontendPaginationState !== null &&
+        const areStatesEqual =
+            (desiredPaginationState && 
+             frontendPaginationState &&
              desiredPaginationState.startIndex === frontendPaginationState.startIndex &&
              desiredPaginationState.endIndex === frontendPaginationState.endIndex &&
              desiredPaginationState.targetActionID === frontendPaginationState.targetActionID);
