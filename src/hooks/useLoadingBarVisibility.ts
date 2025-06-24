@@ -1,5 +1,6 @@
 import {WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
 // Commands that should trigger the LoadingBar to show
@@ -12,10 +13,10 @@ const RELEVANT_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMAN
 export default function useLoadingBarVisibility(): boolean {
     const [persistedRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {canBeMissing: false});
     const [ongoingRequests] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {canBeMissing: false});
-    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: false});
+    const {isOffline} = useNetwork();
 
     // Don't show loading bar if currently offline
-    if (network?.isOffline) {
+    if (isOffline) {
         return false;
     }
 
