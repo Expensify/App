@@ -1,9 +1,13 @@
+import Onyx from 'react-native-onyx';
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths, getUniqueActionErrors, getViolationTranslatePath} from '@libs/TransactionPreviewUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
     iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD'),
@@ -37,6 +41,15 @@ const basicProps = {
 };
 
 describe('TransactionPreviewUtils', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+    beforeEach(() => {
+        return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
     describe('getTransactionPreviewTextAndTranslationPaths', () => {
         it('should return an empty RBR message when shouldShowRBR is false and no transaction is given', () => {
             const result = getTransactionPreviewTextAndTranslationPaths({...basicProps, shouldShowRBR: false});
@@ -113,6 +126,33 @@ describe('TransactionPreviewUtils', () => {
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.displayAmountText.translationPath).toEqual('iou.receiptStatusTitle');
+        });
+
+        it('handles currency and amount display correctly for scan split bill manually completed', async () => {
+            const modifiedAmount = 300;
+            const currency = 'EUR';
+            const originalTransactionID = '2';
+            const functionArgs = {
+                ...basicProps,
+                transactionDetails: {amount: modifiedAmount / 2, currency},
+                transaction: {...basicProps.transaction, amount: modifiedAmount / 2, currency, comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT}},
+                isBillSplit: true,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                transactionID: originalTransactionID,
+                comment: {
+                    splits: [
+                        {accountID: 1, email: 'aa@gmail.com'},
+                        {accountID: 2, email: 'cc@gmail.com'},
+                    ],
+                },
+                modifiedAmount,
+                amount: 0,
+                currency,
+            });
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
         });
 
         it('shows approved message when the iouReport is canceled', () => {
