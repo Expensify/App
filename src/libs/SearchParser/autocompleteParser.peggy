@@ -77,7 +77,7 @@ autocompleteKey "key"
       / reimbursable
       / billable
       / policyID
-      / exportStatus
+      / action
     )
 
 filterKey

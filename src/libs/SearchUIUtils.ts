@@ -1243,20 +1243,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
     ];
 
     // Begin adding conditional sections, based on the policies the user has access to
-    const showSubmitSuggestion = Object.values(policies).some((p) => isPaidGroupPolicy(p));
-
-    const showApproveSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
-        if (!policy || !email || !isPaidGroupPolicy(policy)) {
-            return false;
-        }
-
-        const isPolicyApprover = policy.approver === email;
-        const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-            return employee.submitsTo === email || employee.forwardsTo === email;
-        });
-
-        return isPolicyApprover || isSubmittedTo;
-    });
+    const showSubmitSuggestion = Object.values(policies).filter((p) => isPaidGroupPolicy(p)).length > 0;
 
     const showPaySuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
         if (!policy || !isPaidGroupPolicy(policy)) {
@@ -1278,6 +1265,19 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
         return false;
     });
 
+    const showApproveSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
+        if (!policy || !email || !isPaidGroupPolicy(policy)) {
+            return false;
+        }
+
+        const isPolicyApprover = policy.approver === email;
+        const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
+            return employee.submitsTo === email || employee.forwardsTo === email;
+        });
+
+        return isPolicyApprover || isSubmittedTo;
+    });
+
     const showExportSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
         if (!policy || !email) {
             return false;
@@ -1285,7 +1285,6 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
 
         return policy.exporter === email;
     });
-
     // We suggest specific filters for users based on their access in specific policies. Show the todo section
     // only if any of these items are available
     const showTodoSection = showSubmitSuggestion || showApproveSuggestion || showPaySuggestion || showExportSuggestion;
@@ -1390,7 +1389,8 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.DONE],
+                        action: CONST.SEARCH.ACTION.PAY,
+                        reimbursable: CONST.SEARCH.BOOLEAN.YES,
                         payer: session.accountID?.toString(),
                     });
                     return queryString;
@@ -1413,9 +1413,9 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                        action: CONST.SEARCH.ACTION.EXPORT,
                         exporter: [`${session.accountID}`],
                         exportedOn: CONST.SEARCH.NEVER,
-                        exportStatus: CONST.SEARCH.EXPORT_STATUS.PENDING,
                     });
                     return queryString;
                 },
