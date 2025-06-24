@@ -11,32 +11,25 @@ import CONST from '@src/CONST';
 import type Middleware from './types';
 
 // We store a reference to the active authentication request so that we are only ever making one request to authenticate at a time.
-let isAuthenticating: Promise<void> | null = null;
+let isAuthenticating: Promise<boolean> | null = null;
 
 const reauthThrottle = new RequestThrottle('Re-authentication');
 
-function reauthenticate(commandName?: string): Promise<void> | null {
+function reauthenticate(commandName?: string): Promise<boolean> {
     if (isAuthenticating) {
         return isAuthenticating;
     }
 
-    isAuthenticating =
-        retryReauthenticate(commandName)
-            ?.then((response) => {
-                return response;
-            })
-            .catch((error) => {
-                throw error;
-            })
-            .finally(() => {
-                isAuthenticating = null;
-            }) ?? null;
+    isAuthenticating = retryReauthenticate(commandName).finally(() => {
+        // Reset the isAuthenticating state to allow new reauthentication flows to start fresh
+        isAuthenticating = null;
+    });
 
     return isAuthenticating;
 }
 
-function retryReauthenticate(commandName?: string): Promise<void> | undefined {
-    return reauthenticateLibs(commandName)?.catch((error: RequestError) => {
+function retryReauthenticate(commandName?: string): Promise<boolean> {
+    return reauthenticateLibs(commandName).catch((error: RequestError) => {
         return reauthThrottle
             .sleep(error, 'Authenticate')
             .then(() => retryReauthenticate(commandName))
@@ -44,6 +37,7 @@ function retryReauthenticate(commandName?: string): Promise<void> | undefined {
                 setIsAuthenticating(false);
                 Log.hmmm('Redirecting to Sign In because we failed to reauthenticate after multiple attempts', {error});
                 redirectToSignIn('passwordForm.error.fallback');
+                return false;
             });
     });
 }
@@ -100,7 +94,11 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                 }
 
                 return reauthenticate(request?.commandName)
-                    ?.then((authenticateResponse) => {
+                    .then((wasSuccessful) => {
+                        if (!wasSuccessful) {
+                            return;
+                        }
+
                         if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
                             return processWithMiddleware(request, isFromSequentialQueue);
                         }
@@ -111,7 +109,6 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                         }
 
                         replayMainQueue(request);
-                        return authenticateResponse;
                     })
                     .catch(() => {
                         if (isFromSequentialQueue || apiRequestType) {
