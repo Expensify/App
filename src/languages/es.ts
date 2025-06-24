@@ -5709,7 +5709,7 @@ const translations = {
                 members: 'Miembro',
             },
         },
-        groupBy: 'Grupo por',
+        groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este informe no tiene gastos.',
             emptyStateSubtitle: 'Puedes añadir gastos a este informe usando el botón de arriba.',
