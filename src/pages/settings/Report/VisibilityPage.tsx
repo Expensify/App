@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -8,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportSettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -15,7 +15,6 @@ import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNot
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {RoomVisibility} from '@src/types/onyx/Report';
 
@@ -24,10 +23,9 @@ type VisibilityProps = WithReportOrNotFoundProps & PlatformStackScreenProps<Repo
 function VisibilityPage({report}: VisibilityProps) {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.VISIBILITY>>();
     const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || undefined}`);
     const shouldGoBackToDetailsPage = useRef(false);
-
-    const shouldDisableVisibility = ReportUtils.isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const shouldDisableVisibility = ReportUtils.isArchivedNonExpenseReport(report, isReportArchived);
     const {translate} = useLocalize();
 
     const visibilityOptions = useMemo(
