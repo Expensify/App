@@ -13,7 +13,7 @@ import decodeUnicode from '@libs/StringUtils/decodeUnicode';
 import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
 import {isTranslationTargetLocale, LOCALES, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
-import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
+import type {Locale, TranslationTargetLocale} from '@src/CONST/LOCALES';
 import CLI from './utils/CLI';
 import Prettier from './utils/Prettier';
 import PromisePool from './utils/PromisePool';
@@ -21,6 +21,7 @@ import ChatGPTTranslator from './utils/Translator/ChatGPTTranslator';
 import DummyTranslator from './utils/Translator/DummyTranslator';
 import type Translator from './utils/Translator/Translator';
 import TSCompilerUtils from './utils/TSCompilerUtils';
+import type {LabeledNode} from './utils/TSCompilerUtils';
 
 /**
  * This represents a string to translate. In the context of translation, two strings are considered equal only if their contexts are also equal.
@@ -103,22 +104,89 @@ class TranslationGenerator {
 
     public async generateTranslations(): Promise<void> {
         const promisePool = new PromisePool();
+
+        // map of translations for each locale
+        const translations = new Map<TranslationTargetLocale, Map<number, string>>();
+
+        // If a compareRef is provided, fetch the old version of the files, and traverse the ASTs in parallel to extract existing translations
+        if (this.compareRef) {
+            // A map of locale => translations node, where "translations node" refers to the main object in en.ts and
+            // other locale files that contains all the translations.
+            const allLocales: Locale[] = [LOCALES.EN, ...this.targetLanguages];
+            const oldTranslationNodes: Array<LabeledNode<Locale>> = [];
+            const downloadPromises = [];
+            for (const targetLanguage of allLocales) {
+                const targetPath = `src/languages/${targetLanguage}.ts`;
+                downloadPromises.push(
+                    promisePool.add(() =>
+                        // Download the file from GitHub
+                        GitHubUtils.getFileContents(targetPath, this.compareRef).then((content) => {
+                            // Parse the file contents and find the translations node, save it in the oldTranslationsNodes map
+                            const parsed = ts.createSourceFile(targetPath, content, ts.ScriptTarget.Latest, true);
+                            const oldTranslationNode = this.findTranslationsNode(parsed);
+                            if (!oldTranslationNode) {
+                                throw new Error(`Could not find translation node in ${targetPath}`);
+                            }
+                            oldTranslationNodes.push({label: targetLanguage, node: oldTranslationNode});
+                        }),
+                    ),
+                );
+            }
+            await Promise.all(downloadPromises);
+
+            // Traverse ASTs of all downloaded files in parallel, building a map of {locale => {translationKey => translation}}
+            // Note: that traversing in parallel is not just a performance optimization. We need the translation key
+            // from en.ts to map to translations in other files, but we can't rely on dot-notation style paths alone
+            // because sometimes there are strings defined elsewhere, such as in functions or nested templates.
+            // So instead, we rely on the fact that the AST structure of en.ts will very nearly match the AST structure of other locales.
+            // We walk through the AST of en.ts in parallel with all the other ASTs, and take the translation key from
+            // en.ts and the translated value from the target locale.
+            TSCompilerUtils.traverseASTsInParallel(oldTranslationNodes, (nodes: Record<Locale, ts.Node>) => {
+                const enNode = nodes[LOCALES.EN];
+                if (!this.shouldNodeBeTranslated(enNode)) {
+                    return;
+                }
+
+                const translationKey = this.getTranslationKey(enNode);
+                for (const targetLanguage of this.targetLanguages) {
+                    const translatedNode = nodes[targetLanguage];
+                    if (!this.shouldNodeBeTranslated(translatedNode)) {
+                        if (this.verbose) {
+                            console.warn('😕 found translated node that should not be translated while English node should be translated', {enNode, translatedNode});
+                            console.trace();
+                        }
+                        continue;
+                    }
+                    const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
+                    const serializedNode =
+                        ts.isStringLiteral(translatedNode) || ts.isNoSubstitutionTemplateLiteral(translatedNode) ? translatedNode.getText() : this.templateExpressionToString(translatedNode);
+                    translationsForLocale.set(translationKey, serializedNode);
+                    translations.set(targetLanguage, translationsForLocale);
+                }
+            });
+        }
+
         for (const targetLanguage of this.targetLanguages) {
+            // Map of translations
+            const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
+
             // Extract strings to translate
             const stringsToTranslate = new Map<number, StringWithContext>();
             this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
 
             // Translate all the strings in parallel (up to 8 at a time)
-            const translations = new Map<number, string>();
             const translationPromises = [];
             for (const [key, {text, context}] of stringsToTranslate) {
-                const translationPromise = promisePool.add(() => this.translator.translate(targetLanguage, text, context).then((result) => translations.set(key, result)));
+                if (translationsForLocale.has(key)) {
+                    continue;
+                }
+                const translationPromise = promisePool.add(() => this.translator.translate(targetLanguage, text, context).then((result) => translationsForLocale.set(key, result)));
                 translationPromises.push(translationPromise);
             }
             await Promise.allSettled(translationPromises);
 
             // Replace translated strings in the AST
-            const transformer = this.createTransformer(translations);
+            const transformer = this.createTransformer(translationsForLocale);
             const result = ts.transform(this.sourceFile, [transformer]);
             let transformedSourceFile = result.transformed.at(0) ?? this.sourceFile; // Ensure we always have a valid SourceFile
             result.dispose();
@@ -154,9 +222,31 @@ class TranslationGenerator {
     }
 
     /**
+     * Each translation file should have an object called translations that's later default-exported. This function takes in a root node, and finds the translations node.
+     */
+    private findTranslationsNode(node: ts.Node): ts.Node | null {
+        if (!node) {
+            return null;
+        }
+
+        if (node && ts.isVariableDeclaration(node) && node.name.getText() === 'translations') {
+            return node.initializer as ts.Node;
+        }
+
+        let translationsNode = null;
+        node.forEachChild((child) => {
+            const foundNode = this.findTranslationsNode(child);
+            if (foundNode) {
+                translationsNode = foundNode;
+            }
+        });
+        return translationsNode;
+    }
+
+    /**
      * Should the given node be translated?
      */
-    private shouldNodeBeTranslated(node: ts.Node): boolean {
+    private shouldNodeBeTranslated(node: ts.Node): node is ts.StringLiteral | ts.TemplateExpression | ts.NoSubstitutionTemplateLiteral {
         // We only translate string literals and template expressions
         if (!ts.isStringLiteral(node) && !ts.isTemplateExpression(node) && !ts.isNoSubstitutionTemplateLiteral(node)) {
             return false;
