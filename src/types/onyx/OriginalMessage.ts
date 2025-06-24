@@ -148,6 +148,12 @@ type OriginalMessageSubmitted = {
 
     /** Was the report submitted via harvesting (delayed submit) */
     harvesting?: boolean;
+
+    /** The login the approver who is acting on behalf of the vacationer */
+    to?: string;
+
+    /** The login of the approver who is on a vacation */
+    vacationer?: string;
 };
 
 /** Model of `closed` report action */
@@ -700,6 +706,9 @@ type OriginalMessageApproved = {
 
     /** Report ID of the expense */
     expenseReportID: string;
+
+    /** The login of approver who is on vacation */
+    managerOnVacation?: string;
 };
 
 /** Model of `forwarded` report action */
@@ -917,6 +926,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessagePolicyChangeLog;
     } & {
