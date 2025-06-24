@@ -97,7 +97,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
 
     const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : (achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
-    const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN);
+    // const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN);
+    const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(null);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(null);
 
     function getBankAccountFields(fieldNames: InputID[]): Partial<ACHDataReimbursementAccount> {
@@ -248,6 +249,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     };
 
     const continueNonUSDVBBASetup = () => {
+        const isPastSignerStep = achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined;
+        const allAgreementsChecked =
+            reimbursementAccountDraft?.authorizedToBindClientToAgreement === true &&
+            reimbursementAccountDraft?.agreeToTermsAndConditions === true &&
+            reimbursementAccountDraft?.consentToPrivacyNotice === true &&
+            reimbursementAccountDraft?.provideTruthfulInformation === true;
+
         setShouldShowContinueSetupButton(false);
         if (nonUSDCountryDraftValue !== '' && achData?.created === undefined) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.BANK_INFO);
@@ -269,8 +277,14 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        if (achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined) {
+        if (isPastSignerStep && !allAgreementsChecked) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
+            return;
+        }
+
+        if (isPastSignerStep && allAgreementsChecked) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN);
+            return;
         }
 
         if (achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING) {

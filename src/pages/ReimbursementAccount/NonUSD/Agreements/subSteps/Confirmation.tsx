@@ -93,8 +93,6 @@ function Confirmation({onNext}: SubStepProps) {
             validate={validate}
             submitButtonText={translate('agreementsStep.accept')}
             style={[styles.mh5, styles.flexGrow1]}
-            enabledWhenOffline={false}
-            isLoading={reimbursementAccount?.isFinishingCorpayBankAccountOnboarding}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('agreementsStep.pleaseConfirm')}</Text>
             <Text style={[styles.pv3, styles.textSupporting]}>{translate('agreementsStep.regulationRequiresUs')}</Text>

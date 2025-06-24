@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
@@ -31,10 +31,6 @@ function UploadPowerform({onNext, isEditing}: UploadPowerformProps) {
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
-    const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
-
-    const currency = policy?.outputCurrency ?? '';
     const countryStepCountryValue = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
 
     const defaultValue: FileObject[] = Array.isArray(reimbursementAccountDraft?.[ACH_AUTHORIZATION_FORM]) ? (reimbursementAccountDraft?.[ACH_AUTHORIZATION_FORM] ?? []) : [];
@@ -79,6 +75,8 @@ function UploadPowerform({onNext, isEditing}: UploadPowerformProps) {
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
+            enabledWhenOffline={false}
+            isLoading={reimbursementAccount?.isFinishingCorpayBankAccountOnboarding}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb10]}>{translate('docusignStep.pleaseComplete')}</Text>
             <Button
