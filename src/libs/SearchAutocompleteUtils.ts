@@ -133,7 +133,7 @@ function filterOutRangesWithCorrectValue(
     }) as string[];
     const groupByList = Object.values(CONST.SEARCH.GROUP_BY) as string[];
     const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
-    const actionList = Object.values(CONST.SEARCH.ACTION) as string[];
+    const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:

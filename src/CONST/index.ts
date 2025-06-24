@@ -6556,6 +6556,10 @@ const CONST = {
             TRIP: 'trip',
             CHAT: 'chat',
         },
+        ACTION_FILTERS: {
+            PAY: 'pay',
+            EXPORT: 'export',
+        },
         ACTION_TYPES: {
             VIEW: 'view',
             REVIEW: 'review',
