@@ -36,9 +36,12 @@ function addImport(sourceFile: ts.SourceFile, identifierName: string, modulePath
     return ts.factory.updateSourceFile(sourceFile, updatedStatements);
 }
 
-type ASTWalker = {
+/**
+ * This type is just a simple wrapper around a ts node with a label.
+ */
+type LabeledNode<K extends string> = {
+    label: K;
     node: ts.Node;
-    visit: (node: ts.Node) => void;
 };
 
 /**
@@ -47,25 +50,24 @@ type ASTWalker = {
  *
  * disclaimer: I don't know how this should/will work for ASTs that don't share a common structure. For now, that's undefined behavior.
  */
-function traverseASTsInParallel(walkers: ASTWalker[] = []): void {
-    if (walkers.length === 0) {
+function traverseASTsInParallel<K extends string>(roots: Array<LabeledNode<K>>, visit: (nodes: Record<K, ts.Node>) => void): void {
+    if (roots.length === 0) {
         return;
     }
 
-    for (const {node, visit} of walkers) {
-        visit(node);
+    const nodeMap: Partial<Record<K, ts.Node>> = {};
+    for (const {label, node} of roots) {
+        nodeMap[label] = node;
     }
+    visit(nodeMap as Record<K, ts.Node>);
 
-    const childWalkerLists: ASTWalker[][] = [];
+    // Collect children per label
+    const childrenByLabel = new Map<K, ts.Node[]>();
     let minChildren = Infinity;
 
-    for (const {node, visit} of walkers) {
+    for (const {label, node} of roots) {
         const children = node.getChildren();
-        const childWalkers: ASTWalker[] = [];
-        for (const child of children) {
-            childWalkers.push({node: child, visit});
-        }
-        childWalkerLists.push(childWalkers);
+        childrenByLabel.set(label, children);
         if (children.length < minChildren) {
             minChildren = children.length;
         }
@@ -73,17 +75,17 @@ function traverseASTsInParallel(walkers: ASTWalker[] = []): void {
 
     // Traverse child nodes in parallel, stopping at the shortest list
     for (let i = 0; i < minChildren; i++) {
-        const nextLevelWalkers: ASTWalker[] = [];
-
-        for (const childWalkerList of childWalkerLists) {
-            const nextLevelWalker = childWalkerList.at(i);
-            if (nextLevelWalker) {
-                nextLevelWalkers.push(nextLevelWalker);
+        const nextLevel: Array<LabeledNode<K>> = [];
+        for (const {label} of roots) {
+            const children = childrenByLabel.get(label) ?? [];
+            const child = children.at(i);
+            if (child) {
+                nextLevel.push({label, node: child});
             }
         }
-
-        traverseASTsInParallel(nextLevelWalkers);
+        traverseASTsInParallel(nextLevel, visit);
     }
 }
 
 export default {findAncestor, addImport, traverseASTsInParallel};
+export type {LabeledNode};

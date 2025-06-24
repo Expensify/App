@@ -113,20 +113,18 @@ describe('TSCompilerUtils', () => {
             const enKinds: ts.SyntaxKind[] = [];
             const itKinds: ts.SyntaxKind[] = [];
 
-            TSCompilerUtils.traverseASTsInParallel([
-                {
-                    node: enAST,
-                    visit: (node) => {
-                        enKinds.push(node.kind);
-                    },
+            TSCompilerUtils.traverseASTsInParallel(
+                [
+                    {label: 'en', node: enAST},
+                    {label: 'it', node: itAST},
+                ],
+                (nodes) => {
+                    const enNode = nodes.en;
+                    enKinds.push(enNode.kind);
+                    const itNode = nodes.it;
+                    itKinds.push(itNode.kind);
                 },
-                {
-                    node: itAST,
-                    visit: (node) => {
-                        itKinds.push(node.kind);
-                    },
-                },
-            ]);
+            );
 
             expect(enKinds.length).toBe(itKinds.length);
             for (let i = 0; i < enKinds.length; i++) {
@@ -144,26 +142,22 @@ describe('TSCompilerUtils', () => {
             const enStrings: string[] = [];
             const itStrings: string[] = [];
 
-            TSCompilerUtils.traverseASTsInParallel([
-                {
-                    node: enAST,
-                    visit: (node) => {
-                        if (!ts.isStringLiteral(node) && !ts.isNoSubstitutionTemplateLiteral(node)) {
-                            return;
-                        }
-                        enStrings.push(node.text);
-                    },
+            TSCompilerUtils.traverseASTsInParallel(
+                [
+                    {label: 'en', node: enAST},
+                    {label: 'it', node: itAST},
+                ],
+                (nodes) => {
+                    const enNode = nodes.en;
+                    const itNode = nodes.it;
+                    if (ts.isStringLiteral(enNode) || ts.isNoSubstitutionTemplateLiteral(enNode)) {
+                        enStrings.push(enNode.text);
+                    }
+                    if (ts.isStringLiteral(itNode) || ts.isNoSubstitutionTemplateLiteral(itNode)) {
+                        itStrings.push(itNode.text);
+                    }
                 },
-                {
-                    node: itAST,
-                    visit: (node) => {
-                        if (!ts.isStringLiteral(node) && !ts.isNoSubstitutionTemplateLiteral(node)) {
-                            return;
-                        }
-                        itStrings.push(node.text);
-                    },
-                },
-            ]);
+            );
 
             expect(enStrings).toEqual(['Hello', 'World']);
             expect(itStrings).toEqual(['Ciao', 'Mondo']);
@@ -179,27 +173,31 @@ describe('TSCompilerUtils', () => {
             let count1 = 0;
             let count2 = 0;
 
-            TSCompilerUtils.traverseASTsInParallel([
-                {
-                    node: ast1,
-                    visit: () => {
+            TSCompilerUtils.traverseASTsInParallel(
+                [
+                    {label: 'one', node: ast1},
+                    {label: 'two', node: ast2},
+                ],
+                (nodes) => {
+                    if (nodes.one) {
                         count1++;
-                    },
-                },
-                {
-                    node: ast2,
-                    visit: () => {
+                    }
+                    if (nodes.two) {
                         count2++;
-                    },
+                    }
                 },
-            ]);
+            );
 
             // Expect both to visit the same number of shared nodes
             expect(count1).toBe(count2);
         });
 
         it('does nothing when given an empty array', () => {
-            TSCompilerUtils.traverseASTsInParallel([]); // Should not throw
+            expect(() =>
+                TSCompilerUtils.traverseASTsInParallel([], () => {
+                    throw new Error();
+                }),
+            ).not.toThrow();
         });
     });
 });
