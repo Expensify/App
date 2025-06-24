@@ -298,7 +298,6 @@ function SettlementButton({
 
         if (isInvoiceReport) {
             const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
-            console.log({currency})
             const getInvoicesOptions = (payAsBusiness: boolean) => {
                 return [
                     ...(isCurrencySupported ? getPaymentSubitems(payAsBusiness) : []),
