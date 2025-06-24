@@ -187,6 +187,7 @@ function MoneyRequestParticipantsSelector({
                 includeSelfDM: !isMovingTransactionFromTrackExpense(action) && iouType !== CONST.IOU.TYPE.INVOICE,
                 canShowManagerMcTest: !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT,
                 isPerDiemRequest,
+                showRBR: false,
             },
         );
 
