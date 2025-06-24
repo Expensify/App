@@ -1,8 +1,8 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Animated, {Easing, Keyframe, runOnJS} from 'react-native-reanimated';
-import type ModalProps from '@components/Modal/BottomDockedModal/types';
-import type {ContainerProps} from '@components/Modal/BottomDockedModal/types';
+import type ModalProps from '@components/Modal/ReanimatedModal/types';
+import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
@@ -49,7 +49,7 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
             {...props}
         >
             <Animated.View
-                style={styles.modalAnimatedContainer}
+                style={[style, styles.modalAnimatedContainer]}
                 entering={Entering}
                 exiting={Exiting}
             >

@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import Animated, {Easing, Keyframe} from 'react-native-reanimated';
-import type {BackdropProps} from '@components/Modal/BottomDockedModal/types';
+import type {BackdropProps} from '@components/Modal/ReanimatedModal/types';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';

@@ -23,20 +23,22 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 import CONST from '@src/CONST';
-import BottomDockedModal from './BottomDockedModal';
-import type ModalProps from './BottomDockedModal/types';
 import ModalContent from './ModalContent';
 import ModalContext from './ModalContext';
+import ReanimatedModal from './ReanimatedModal';
+import type ModalProps from './ReanimatedModal/types';
 import type BaseModalProps from './types';
+
+const ReanimatedModalTypes: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED, CONST.MODAL.MODAL_TYPE.FULLSCREEN];
 
 type ModalComponentProps = (ReactNativeModalProps | ModalProps) & {
     type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
 };
 
 function ModalComponent({type, ...props}: ModalComponentProps) {
-    if (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED) {
+    if (type && ReanimatedModalTypes.includes(type)) {
         // eslint-disable-next-line react/jsx-props-no-spreading
-        return <BottomDockedModal {...(props as ModalProps)} />;
+        return <ReanimatedModal {...(props as ModalProps)} />;
     }
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ReactNativeModal {...(props as ReactNativeModalProps)} />;

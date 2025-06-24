@@ -4,14 +4,14 @@ import type {NativeEventSubscription, ViewStyle} from 'react-native';
 import {BackHandler, Dimensions, InteractionManager, Modal, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import Backdrop from '@components/Modal/ReanimatedModal/Backdrop';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
-import Backdrop from './Backdrop';
 import Container from './Container';
 import type ModalProps from './types';
 
-function BottomDockedModal({
+function ReanimatedModal({
     testID,
     animationInDelay,
     animationInTiming = 300,
@@ -207,6 +207,6 @@ function BottomDockedModal({
     );
 }
 
-BottomDockedModal.displayName = 'BottomDockedModal';
+ReanimatedModal.displayName = 'ReanimatedModal';
 
-export default BottomDockedModal;
+export default ReanimatedModal;

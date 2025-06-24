@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
-import type {AnimationOut} from '@components/Modal/BottomDockedModal/types';
+import type {AnimationOut} from '@components/Modal/ReanimatedModal/types';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
