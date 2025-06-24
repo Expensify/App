@@ -298,6 +298,7 @@ function SettlementButton({
 
         if (isInvoiceReport) {
             const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
+            console.log({currency})
             const getInvoicesOptions = (payAsBusiness: boolean) => {
                 return [
                     ...(isCurrencySupported ? getPaymentSubitems(payAsBusiness) : []),
@@ -540,7 +541,7 @@ function SettlementButton({
         return false;
     });
 
-    const shouldUseSplitButton = hasPreferredPaymentMethod || !!lastPaymentPolicy || isInvoiceReport || (isExpenseReportUtil(iouReport) && hasIntentToPay);
+    const shouldUseSplitButton = hasPreferredPaymentMethod || !!lastPaymentPolicy || ((isInvoiceReport || isExpenseReportUtil(iouReport)) && hasIntentToPay);
 
     return (
         <KYCWall
