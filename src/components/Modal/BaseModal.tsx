@@ -373,7 +373,7 @@ function BaseModal(
                                         modalContainerStyle,
                                         modalPaddingStyles,
                                         !isVisible && styles.pointerEventsNone,
-                                        isMobileSafari() && {maxHeight: `${windowHeight}px`},
+                                        isMobileSafari() && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && {maxHeight: `${windowHeight}px`},
                                     ]}
                                     ref={ref}
                                 >

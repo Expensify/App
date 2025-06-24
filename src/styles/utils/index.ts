@@ -1209,6 +1209,7 @@ const staticStyleUtils = {
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
+    getCombinedSpacing,
     getPaddingLeft,
     getPaddingRight,
     getPaddingBottom,

@@ -9,6 +9,7 @@ import type {MergeExclusive} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileChrome} from '@libs/Browser';
@@ -213,6 +214,8 @@ function FeatureTrainingModal({
     const scrollViewRef = useRef<RNScrollView>(null);
     const [containerHeight, setContainerHeight] = useState(0);
     const [contentHeight, setContentHeight] = useState(0);
+    const insets = useSafeAreaInsets();
+    const {paddingBottom: safeAreaPaddingBottom} = StyleUtils.getPlatformSafeAreaPadding(insets);
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
@@ -397,8 +400,8 @@ function FeatureTrainingModal({
             }}
         >
             <Wrapper
-                style={[onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), shouldUseScrollView && isMobileChrome() && {maxHeight: '100dvh'}]}
-                contentContainerStyle={shouldUseScrollView ? styles.pb5 : undefined}
+                style={[onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), shouldUseScrollView && isMobileChrome() && styles.mh100dvh]}
+                contentContainerStyle={shouldUseScrollView ? {paddingBottom: StyleUtils.getCombinedSpacing(styles.pb5.paddingBottom, safeAreaPaddingBottom, true)} : undefined}
                 keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
                 ref={shouldUseScrollView ? scrollViewRef : undefined}
                 onLayout={shouldUseScrollView ? (e: LayoutChangeEvent) => setContainerHeight(e.nativeEvent.layout.height) : undefined}
