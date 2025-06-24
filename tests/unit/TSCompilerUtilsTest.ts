@@ -200,4 +200,124 @@ describe('TSCompilerUtils', () => {
             ).not.toThrow();
         });
     });
+
+    describe('findDefaultExport', () => {
+        it('returns the identifier in `export default` statement', () => {
+            const code = dedent(`
+                const strings = { greeting: 'Hello' };
+                export default strings;
+            `);
+            const ast = createSourceFile(code);
+            const result = TSCompilerUtils.findDefaultExport(ast);
+            expect(result?.getText()).toBe('strings');
+        });
+
+        it('returns the object literal if directly exported', () => {
+            const code = dedent(`
+                export default { farewell: 'Goodbye' };
+            `);
+            const ast = createSourceFile(code);
+            const result = TSCompilerUtils.findDefaultExport(ast);
+            expect(result).not.toBeNull();
+            if (!result) {
+                return;
+            }
+            expect(ts.isObjectLiteralExpression(result)).toBe(true);
+            expect(result?.getText()).toContain('farewell');
+        });
+
+        it('returns null if no default export is present', () => {
+            const code = dedent(`
+                const foo = 'bar';
+                export const greeting = 'Hello';
+            `);
+            const ast = createSourceFile(code);
+            const result = TSCompilerUtils.findDefaultExport(ast);
+            expect(result).toBeNull();
+        });
+
+        it('returns identifier for `export { foo as default }`', () => {
+            const code = dedent(`
+                const foo = { bar: 'baz' };
+                export { foo as default };
+            `);
+            const ast = createSourceFile(code);
+            const result = TSCompilerUtils.findDefaultExport(ast);
+            expect(result?.getText()).toBe('default');
+        });
+    });
+
+    describe('resolveDeclaration', () => {
+        it('resolves a variable declaration', () => {
+            const code = dedent(`
+                const foo = { message: 'hi' };
+            `);
+            const ast = createSourceFile(code);
+            const node = TSCompilerUtils.resolveDeclaration('foo', ast);
+
+            expect(node).not.toBeNull();
+            if (!node) {
+                return;
+            }
+            expect(ts.isVariableDeclaration(node)).toBe(true);
+            expect(node.getText()).toContain('message');
+        });
+
+        it('resolves a function declaration', () => {
+            const code = dedent(`
+                function greet() {
+                    return 'hello';
+                }
+            `);
+            const ast = createSourceFile(code);
+            const node = TSCompilerUtils.resolveDeclaration('greet', ast);
+
+            expect(node).not.toBeNull();
+            if (!node) {
+                return;
+            }
+            expect(ts.isFunctionDeclaration(node)).toBe(true);
+            expect(node.getText()).toContain('hello');
+        });
+
+        it('resolves a class declaration', () => {
+            const code = dedent(`
+                class MyClass {
+                    method() {}
+                }
+            `);
+            const ast = createSourceFile(code);
+            const node = TSCompilerUtils.resolveDeclaration('MyClass', ast);
+
+            expect(node).not.toBeNull();
+            if (!node) {
+                return;
+            }
+            expect(ts.isClassDeclaration(node)).toBe(true);
+            expect(node.getText()).toContain('method');
+        });
+
+        it('returns null for unknown identifier', () => {
+            const code = dedent(`
+                const foo = 123;
+            `);
+            const ast = createSourceFile(code);
+            const node = TSCompilerUtils.resolveDeclaration('bar', ast);
+            expect(node).toBeNull();
+        });
+
+        it('returns declaration even if variable has no initializer', () => {
+            const code = dedent(`
+                let foo;
+            `);
+            const ast = createSourceFile(code);
+            const node = TSCompilerUtils.resolveDeclaration('foo', ast);
+
+            expect(node).not.toBeNull();
+            if (!node) {
+                return;
+            }
+            expect(ts.isVariableDeclaration(node)).toBe(true);
+        });
+    });
 });

@@ -87,5 +87,52 @@ function traverseASTsInParallel<K extends string>(roots: Array<LabeledNode<K>>, 
     }
 }
 
-export default {findAncestor, addImport, traverseASTsInParallel};
+/**
+ * Finds the node that is exported as the default export.
+ * Returns null if not found.
+ */
+function findDefaultExport(sourceFile: ts.SourceFile): ts.Node | null {
+    for (const statement of sourceFile.statements) {
+        if (ts.isExportAssignment(statement) && !statement.isExportEquals) {
+            return statement.expression;
+        }
+
+        if (ts.isExportDeclaration(statement) && statement.exportClause && ts.isNamedExports(statement.exportClause)) {
+            for (const element of statement.exportClause.elements) {
+                if (element.name.text === 'default') {
+                    return element.name;
+                }
+            }
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Resolves the identifier name to its declaration node within the source file.
+ */
+function resolveDeclaration(name: string, sourceFile: ts.SourceFile): ts.Node | null {
+    for (const statement of sourceFile.statements) {
+        if (ts.isVariableStatement(statement)) {
+            for (const decl of statement.declarationList.declarations) {
+                if (ts.isIdentifier(decl.name) && decl.name.text === name) {
+                    return decl;
+                }
+            }
+        }
+
+        if (ts.isFunctionDeclaration(statement) && statement.name?.text === name) {
+            return statement;
+        }
+
+        if (ts.isClassDeclaration(statement) && statement.name?.text === name) {
+            return statement;
+        }
+    }
+
+    return null;
+}
+
+export default {findAncestor, addImport, traverseASTsInParallel, findDefaultExport, resolveDeclaration};
 export type {LabeledNode};
