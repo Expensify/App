@@ -10807,16 +10807,6 @@ function putOnHold(transactionID: string, comment: string, reportID: string, sea
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, userAccountID));
 }
 
-function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string) {
-    transactionsID.forEach((transactionID) => {
-        const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
-        if (!childReportID) {
-            return;
-        }
-        putOnHold(transactionID, comment, childReportID);
-    });
-}
-
 /**
  * Put Expenses on HOLD in Bulk
  *
@@ -11021,7 +11011,7 @@ function bulkHold(
             },
         });
 
-        // Return when the value is search hash is the default value (-1)
+        // Skip the snapshot update when the search hash is recently initialized
         if (searchHash !== -1) {
             return;
         }
@@ -11032,7 +11022,7 @@ function bulkHold(
             return;
         }
 
-        // If we are holding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
+        // If we are holding from the search page, we optimistically update the transaction's snapshot that search uses so that it is kept in sync
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
@@ -12121,7 +12111,6 @@ export {
     payInvoice,
     payMoneyRequest,
     putOnHold,
-    putTransactionsOnHold,
     bulkHold,
     replaceReceipt,
     requestMoney,
