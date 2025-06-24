@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
+import DateLocaleStore from '@libs/DateLocaleStore';
 import {getDevicePreferredLocale} from '@libs/Localize';
-import DateLocaleStore from '@src/languages/DateLocaleStore';
 import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 

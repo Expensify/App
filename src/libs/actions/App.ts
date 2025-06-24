@@ -10,6 +10,7 @@ import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, OpenOldDotLinkParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
+import DateLocaleStore from '@libs/DateLocaleStore';
 import DateUtils from '@libs/DateUtils';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
 import localeEventCallback from '@libs/Localize/localeEventCallback';
@@ -22,7 +23,6 @@ import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/Se
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
 import {isFullySupportedLocale, isSupportedLocale} from '@src/CONST/LOCALES';
-import DateLocaleStore from '@src/languages/DateLocaleStore';
 import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
