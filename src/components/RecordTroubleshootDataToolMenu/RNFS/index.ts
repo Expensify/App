@@ -1,3 +1,6 @@
 import RNFS from 'react-native-fs';
+import type RNFSModule from './types';
 
-export default RNFS;
+const Module: RNFSModule = RNFS;
+
+export default Module;

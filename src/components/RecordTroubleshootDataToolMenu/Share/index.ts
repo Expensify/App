@@ -1,3 +1,6 @@
 import Share from 'react-native-share';
+import type ShareModule from './types';
 
-export default Share;
+const Module: ShareModule = Share;
+
+export default Module;
