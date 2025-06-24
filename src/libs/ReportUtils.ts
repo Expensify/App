@@ -7846,7 +7846,7 @@ function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict?: Ony
  * Assuming the passed in report is a default room, lets us know whether we can see it or not, based on permissions and
  * the various subsets of users we've allowed to use default rooms.
  */
-function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>, betas: OnyxEntry<Beta[]>): boolean {
+function canSeeDefaultRoom(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>): boolean {
     // Include archived rooms
     // This will get removed as part of https://github.com/Expensify/App/issues/59961
     // eslint-disable-next-line deprecation/deprecation
@@ -7868,9 +7868,9 @@ function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<P
     return Permissions.isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS, betas ?? []);
 }
 
-function canAccessReport(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>, betas: OnyxEntry<Beta[]>): boolean {
+function canAccessReport(report: OnyxEntry<Report>, betas: OnyxEntry<Beta[]>): boolean {
     // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
-    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
+    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, betas)) {
         return false;
     }
 
@@ -8091,7 +8091,6 @@ type ShouldReportBeInOptionListParams = {
     currentReportId: string | undefined;
     isInFocusMode: boolean;
     betas: OnyxEntry<Beta[]>;
-    policies: OnyxCollection<Policy>;
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
     includeSelfDM?: boolean;
@@ -8106,7 +8105,6 @@ function reasonForReportToBeInOptionList({
     currentReportId,
     isInFocusMode,
     betas,
-    policies,
     excludeEmptyChats,
     doesReportHaveViolations,
     includeSelfDM = false,
@@ -8158,7 +8156,7 @@ function reasonForReportToBeInOptionList({
         return null;
     }
 
-    if (!canAccessReport(report, policies, betas)) {
+    if (!canAccessReport(report, betas)) {
         return null;
     }
 
@@ -8980,17 +8978,8 @@ function shouldDisableRename(report: OnyxEntry<Report>, isReportArchived = false
 /**
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
-function canEditWriteCapability(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    return (
-        isPolicyAdminPolicyUtils(policy) &&
-        !isAdminRoom(report) &&
-        // This will get removed as part of https://github.com/Expensify/App/issues/59961
-        // eslint-disable-next-line deprecation/deprecation
-        !isArchivedReport(getReportNameValuePairs(report?.reportID)) &&
-        !isThread(report) &&
-        !isInvoiceRoom(report) &&
-        !isPolicyExpenseChat(report)
-    );
+function canEditWriteCapability(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived = false): boolean {
+    return isPolicyAdminPolicyUtils(policy) && !isAdminRoom(report) && !isReportArchived && !isThread(report) && !isInvoiceRoom(report) && !isPolicyExpenseChat(report);
 }
 
 /**
@@ -9276,7 +9265,7 @@ function isReportParticipant(accountID: number | undefined, report: OnyxEntry<Re
  * Check to see if the current user has access to view the report.
  */
 function canCurrentUserOpenReport(report: OnyxEntry<Report>): boolean {
-    return (isReportParticipant(currentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, allPolicies, allBetas);
+    return (isReportParticipant(currentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, allBetas);
 }
 
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
