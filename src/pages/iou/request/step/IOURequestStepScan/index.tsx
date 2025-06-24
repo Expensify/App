@@ -30,6 +30,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -100,11 +101,6 @@ function IOURequestStepScan({
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
 
-    // Grouping related states
-    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
-    const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
-    const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
@@ -318,20 +314,6 @@ function IOURequestStepScan({
         }
         setReceiptFiles([]);
     }, [isMultiScanEnabled]);
-
-    const hideReceiptModal = () => {
-        setIsAttachmentInvalid(false);
-    };
-
-    /**
-     * Sets the upload receipt error modal content when an invalid receipt is uploaded
-     */
-    const setUploadReceiptError = (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => {
-        setIsAttachmentInvalid(isInvalid);
-        setAttachmentInvalidReasonTitle(title);
-        setAttachmentValidReason(reason);
-        setPdfFile(null);
-    };
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
@@ -584,14 +566,13 @@ function IOURequestStepScan({
      * Sets the Receipt objects and navigates the user to the next page
      */
     const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        validateReceipt(originalFile, setUploadReceiptError).then((isFileValid) => {
+        validateReceipt(originalFile, () => {}).then((isFileValid) => {
             if (!isFileValid) {
                 return;
             }
 
             // If we have a pdf file and if it is not validated then set the pdf file for validation and return
             if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
-                setPdfFile(originalFile);
                 return;
             }
 
@@ -650,6 +631,25 @@ function IOURequestStepScan({
             // Process the file directly if no conversion is needed
             processFile(originalFile);
         });
+    };
+
+    const setReceiptFromFile = (files: FileObject[]) => {
+        console.log({files});
+    };
+
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptFromFile);
+
+    const handleDropReceipt = (e: DragEvent) => {
+        const files = Array.from(e?.dataTransfer?.files ?? []);
+        if (files.length === 0) {
+            return;
+        }
+        files.forEach((file) => {
+            // eslint-disable-next-line no-param-reassign
+            file.uri = URL.createObjectURL(file);
+        });
+
+        validateFiles(files);
     };
 
     /**
@@ -790,33 +790,6 @@ function IOURequestStepScan({
         [],
     );
 
-    const PDFThumbnailView = pdfFile ? (
-        <PDFThumbnail
-            style={styles.invisiblePDF}
-            previewSourceURL={pdfFile.uri ?? ''}
-            onLoadSuccess={() => {
-                setPdfFile(null);
-                setReceiptAndNavigate(pdfFile, true);
-            }}
-            onPassword={() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
-            }}
-            onLoadError={() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-            }}
-        />
-    ) : null;
-
-    const getConfirmModalPrompt = () => {
-        if (!attachmentInvalidReason) {
-            return '';
-        }
-        if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
-            return translate(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
-        }
-        return translate(attachmentInvalidReason);
-    };
-
     const dismissMultiScanEducationalPopup = () => {
         InteractionManager.runAfterInteractions(() => {
             dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL);
@@ -827,7 +800,7 @@ function IOURequestStepScan({
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
-                {PDFThumbnailView}
+                {PDFValidationComponent}
                 {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && isEmptyObject(videoConstraints))) && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -906,7 +879,10 @@ function IOURequestStepScan({
             </View>
 
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
+                <AttachmentPicker
+                    acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}
+                    allowMultiple={isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}
+                >
                     {({openPicker}) => (
                         <PressableWithFeedback
                             accessibilityLabel={translate('common.chooseFile')}
@@ -914,7 +890,7 @@ function IOURequestStepScan({
                             style={isMultiScanEnabled && styles.opacity0}
                             onPress={() => {
                                 openPicker({
-                                    onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
+                                    onPicked: (data) => setReceiptFromFile(data),
                                 });
                             }}
                         >
@@ -999,7 +975,7 @@ function IOURequestStepScan({
 
     const desktopUploadView = () => (
         <>
-            {PDFThumbnailView}
+            {PDFValidationComponent}
             <View onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
                 <ReceiptUpload
                     width={CONST.RECEIPT.ICON_SIZE}
@@ -1023,7 +999,7 @@ function IOURequestStepScan({
                 </Text>
             </View>
 
-            <AttachmentPicker>
+            <AttachmentPicker allowMultiple={isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
                 {({openPicker}) => (
                     <Button
                         success
@@ -1032,7 +1008,7 @@ function IOURequestStepScan({
                         style={[styles.p9]}
                         onPress={() => {
                             openPicker({
-                                onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
+                                onPicked: (data) => setReceiptFromFile(data),
                             });
                         }}
                     />
@@ -1065,15 +1041,7 @@ function IOURequestStepScan({
                         </View>
                         {/* TODO: remove beta check after the feature is enabled */}
                         {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
-                            <DragAndDropConsumer
-                                onDrop={(e) => {
-                                    const file = e?.dataTransfer?.files[0];
-                                    if (file) {
-                                        file.uri = URL.createObjectURL(file);
-                                        setReceiptAndNavigate(file);
-                                    }
-                                }}
-                            >
+                            <DragAndDropConsumer onDrop={handleDropReceipt}>
                                 <DropZoneUI
                                     icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
                                     dropStyles={styles.receiptDropOverlay(true)}
@@ -1096,15 +1064,7 @@ function IOURequestStepScan({
                         )}
                         {/*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */}
                         {!isMobile() && <DownloadAppBanner />}
-                        <ConfirmModal
-                            title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                            onConfirm={hideReceiptModal}
-                            onCancel={hideReceiptModal}
-                            isVisible={isAttachmentInvalid}
-                            prompt={getConfirmModalPrompt()}
-                            confirmText={translate('common.close')}
-                            shouldShowCancelButton={false}
-                        />
+                        {ErrorModal}
                         {startLocationPermissionFlow && !!receiptFiles.length && (
                             <LocationPermissionModal
                                 startPermissionFlow={startLocationPermissionFlow}
