@@ -167,7 +167,7 @@ type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
 
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
 
-type SuggestedSearchKey = ValueOf<typeof CONST.SEARCH.SUGGESTED_KEYS>;
+type SuggestedSearchKey = ValueOf<typeof CONST.SEARCH.SUGGESTED_SEARCH_KEYS>;
 
 type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;
@@ -720,7 +720,7 @@ function getAction(
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
     const canBePaid = canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
 
-    if (canBePaid && !hasOnlyHeldExpenses(report.reportID, allReportTransactions) && currentSearch !== CONST.SEARCH.SUGGESTED_KEYS.EXPORT) {
+    if (canBePaid && !hasOnlyHeldExpenses(report.reportID, allReportTransactions) && currentSearch !== CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT) {
         return CONST.SEARCH.ACTION_TYPES.PAY;
     }
 
@@ -993,7 +993,7 @@ function getSections(
     metadata: OnyxTypes.SearchResults['search'],
     shouldGroupByReports = false,
     reportActions: Record<string, OnyxTypes.ReportActions | undefined> = {},
-    currentSearch: SuggestedSearchKey = CONST.SEARCH.SUGGESTED_KEYS.EXPENSES,
+    currentSearch: SuggestedSearchKey = CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES,
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -1209,7 +1209,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
             translationPath: 'common.explore',
             menuItems: [
                 {
-                    key: CONST.SEARCH.SUGGESTED_KEYS.EXPENSES,
+                    key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES,
                     translationPath: 'common.expenses',
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     icon: Expensicons.Receipt,
@@ -1219,7 +1219,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                     },
                 },
                 {
-                    key: CONST.SEARCH.SUGGESTED_KEYS.REPORTS,
+                    key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.REPORTS,
                     translationPath: 'common.reports',
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     icon: Expensicons.Document,
@@ -1229,7 +1229,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
                     },
                 },
                 {
-                    key: CONST.SEARCH.SUGGESTED_KEYS.CHATS,
+                    key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.CHATS,
                     translationPath: 'common.chats',
                     type: CONST.SEARCH.DATA_TYPES.CHAT,
                     icon: Expensicons.ChatBubbles,
@@ -1297,7 +1297,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
 
         if (showSubmitSuggestion) {
             section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_KEYS.SUBMIT,
+                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT,
                 translationPath: 'common.submit',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.Pencil,
@@ -1353,7 +1353,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
 
         if (showApproveSuggestion) {
             section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_KEYS.APPROVE,
+                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE,
                 translationPath: 'search.bulkActions.approve',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.ThumbsUp,
@@ -1376,7 +1376,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
 
         if (showPaySuggestion) {
             section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_KEYS.PAY,
+                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY,
                 translationPath: 'search.bulkActions.pay',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.MoneyBag,
@@ -1400,7 +1400,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
 
         if (showExportSuggestion) {
             section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_KEYS.EXPORT,
+                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT,
                 translationPath: 'common.export',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 icon: Expensicons.CheckCircle,
