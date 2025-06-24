@@ -46,6 +46,7 @@ import {
     hasReceiptError,
     isAllowedToApproveExpenseReport,
     isArchivedNonExpenseReportWithID,
+    isArchivedReport,
     isChatUsedForOnboarding,
     isPayer,
     isReportOutstanding,
@@ -64,7 +65,7 @@ import type {OnboardingTaskLinks} from '@src/CONST';
 import CONST from '@src/CONST';
 import TranslationStore from '@src/languages/TranslationStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
@@ -2444,6 +2445,70 @@ describe('ReportUtils', () => {
                 preventSelfApproval: true,
             };
             expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
+        });
+    });
+
+    describe('isArchivedReport', () => {
+        const archivedReport: Report = {
+            ...createRandomReport(1),
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        };
+        const nonArchivedReport: Report = {
+            ...createRandomReport(2),
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        };
+        beforeAll(async () => {
+            await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
+            });
+        });
+
+        it('should return true for archived report', async () => {
+            const reportNameValuePairs = await new Promise<OnyxEntry<ReportNameValuePairs>>((resolve) => {
+                Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`,
+                    callback: resolve,
+                });
+            });
+            expect(isArchivedReport(reportNameValuePairs)).toBe(true);
+        });
+
+        it('should return false for non-archived report', async () => {
+            const reportNameValuePairs = await new Promise<OnyxEntry<ReportNameValuePairs>>((resolve) => {
+                Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${nonArchivedReport.reportID}`,
+                    callback: resolve,
+                });
+                expect(isArchivedReport(reportNameValuePairs)).toBe(false);
+            });
+        });
+    });
+
+    describe('useReportIsArchived', () => {
+        const archivedReport: Report = {
+            ...createRandomReport(1),
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        };
+        const nonArchivedReport: Report = {
+            ...createRandomReport(2),
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        };
+        beforeAll(async () => {
+            await Onyx.setCollection<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`]: {private_isArchived: DateUtils.getDBTime()},
+            });
+        });
+
+        it('should return true for archived report', () => {
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedReport?.reportID));
+
+            expect(isReportArchived.current).toBe(true);
+        });
+
+        it('should return false for non-archived report', () => {
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(nonArchivedReport?.reportID));
+
+            expect(isReportArchived.current).toBe(false);
         });
     });
 
