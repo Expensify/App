@@ -101,12 +101,25 @@ function IOURequestStepMerchant({
             return;
         }
 
-        // Fallback to PARTIAL_TRANSACTION_MERCHANT only if merchant is null or undefined
-        const merchantValue = newMerchant ?? CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+        // Check if merchant was intentionally cleared by user
+        const existingMerchantValue = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : merchant;
+        const wasMerchantCleared = newMerchant === '' && existingMerchantValue !== '';
+
+        // Determine the merchant value to save
+        let merchantValue: string;
+        if (wasMerchantCleared) {
+            if (isMerchantRequired) {
+                return;
+            }
+            merchantValue = '';
+        } else {
+            // Fallback to PARTIAL_TRANSACTION_MERCHANT only if merchant is null or undefined
+            merchantValue = newMerchant ?? CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+        }
 
         setMoneyRequestMerchant(transactionID, merchantValue, !isEditing);
         if (isEditing) {
-            updateMoneyRequestMerchant(transactionID, reportID, merchantValue, policy, policyTags, policyCategories);
+            updateMoneyRequestMerchant(transactionID, reportID, merchantValue, policy, policyTags, policyCategories, wasMerchantCleared && !isMerchantRequired);
         }
         navigateBack();
     };
