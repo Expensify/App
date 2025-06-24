@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
-import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
+import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {createCorpayBankAccountForWalletFlow} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -46,7 +46,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     const styles = useThemeStyles();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
-    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
+    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS, {canBeMissing: false});
     const {isOffline} = useNetwork();
 
     const getTitle = (field: CorpayFormField, fieldName: string) => {

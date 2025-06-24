@@ -8,11 +8,9 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,26 +24,24 @@ type EarlyDiscountBannerProps = {
     /** Whether the banner is being displayed on the subscription page. */
     isSubscriptionPage: boolean;
 
-    /** The guide booking button to display */
-    GuideBookingButton?: React.JSX.Element;
-
-    /** The talk to sales button to display */
-    TalkToSalesButton?: React.JSX.Element;
+    /** The Onboarding help dropdown button to display */
+    onboardingHelpDropdownButton?: React.JSX.Element;
 
     /** Function to trigger when the discount banner is dismissed */
     onDismissedDiscountBanner?: () => void;
+
+    /** Has user active Schedule call with guide */
+    hasActiveScheduledCall?: boolean;
 };
 
-function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSalesButton, onDismissedDiscountBanner}: EarlyDiscountBannerProps) {
+function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, onDismissedDiscountBanner, hasActiveScheduledCall}: EarlyDiscountBannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
-    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
-    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
-    const hasTeam2025Pricing = useHasTeam2025Pricing();
-    const subscriptionPlan = useSubscriptionPlan();
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
 
     const initialDiscountInfo = getEarlyDiscountInfo();
     const [discountInfo, setDiscountInfo] = useState(initialDiscountInfo);
@@ -86,11 +82,10 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
         const smallScreenStyle = shouldUseNarrowLayout ? [styles.flex0, styles.flexBasis100, styles.justifyContentCenter] : [];
         return (
             <View style={[styles.flexRow, styles.gap2, smallScreenStyle, styles.alignItemsCenter]}>
-                {TalkToSalesButton}
-                {GuideBookingButton}
+                {onboardingHelpDropdownButton}
                 <Button
-                    success
-                    style={shouldUseNarrowLayout ? styles.flex1 : styles.mr2}
+                    success={!hasActiveScheduledCall}
+                    style={shouldUseNarrowLayout ? [styles.earlyDiscountButton, styles.flexGrow2] : styles.mr2}
                     text={translate('subscription.billingBanner.earlyDiscount.claimOffer')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()))}
                 />
@@ -99,23 +94,20 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
         );
     }, [
         shouldUseNarrowLayout,
+        hasActiveScheduledCall,
         styles.flex0,
         styles.flexBasis100,
         styles.justifyContentCenter,
         styles.flexRow,
         styles.gap2,
         styles.alignItemsCenter,
-        styles.flex1,
+        styles.earlyDiscountButton,
+        styles.flexGrow2,
         styles.mr2,
-        TalkToSalesButton,
-        GuideBookingButton,
+        onboardingHelpDropdownButton,
         translate,
         dismissButton,
     ]);
-
-    if (hasTeam2025Pricing && subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
-        return null;
-    }
 
     if (!firstDayFreeTrial || !lastDayFreeTrial || !discountInfo) {
         return null;

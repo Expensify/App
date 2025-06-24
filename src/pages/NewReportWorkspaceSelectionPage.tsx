@@ -19,6 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -37,9 +38,9 @@ function NewReportWorkspaceSelectionPage() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
 
     const navigateToNewReport = useCallback(
@@ -64,6 +65,10 @@ function NewReportWorkspaceSelectionPage() {
     const selectPolicy = useCallback(
         (policyID?: string) => {
             if (!policyID) {
+                return;
+            }
+            if (shouldRestrictUserBillableActions(policyID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
                 return;
             }
             const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);

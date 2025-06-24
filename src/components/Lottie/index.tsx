@@ -95,7 +95,12 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
     // 1. heavy rendering, see issues: https://github.com/Expensify/App/issues/34696 and https://github.com/Expensify/App/issues/47273
     // 2. lag on react navigation transitions, see issue: https://github.com/Expensify/App/issues/44812
     if (isError || appState.isBackground || !animationFile || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || (!isInteractionComplete && shouldLoadAfterInteractions)) {
-        return <View style={[aspectRatioStyle, props.style]} />;
+        return (
+            <View
+                style={[aspectRatioStyle, props.style]}
+                testID={CONST.LOTTIE_VIEW_TEST_ID}
+            />
+        );
     }
 
     return (
@@ -116,6 +121,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
             style={[aspectRatioStyle, props.style]}
             webStyle={{...aspectRatioStyle, ...webStyle}}
             onAnimationFailure={() => setIsError(true)}
+            testID={CONST.LOTTIE_VIEW_TEST_ID}
         />
     );
 }

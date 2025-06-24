@@ -5,7 +5,6 @@ import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import {InteractionManager, Linking} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
 import type {
@@ -15,7 +14,6 @@ import type {
     BeginSignInParams,
     DisableTwoFactorAuthParams,
     LogOutParams,
-    RequestAccountValidationLinkParams,
     RequestNewValidateCodeParams,
     RequestUnlinkValidationLinkParams,
     ResetSMSDeliveryFailureStatusParams,
@@ -31,12 +29,14 @@ import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Fullstory from '@libs/Fullstory';
 import HttpUtils from '@libs/HttpUtils';
+import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
 import {getReportIDFromLink, parseReportRouteParams as parseReportRouteParamsReportUtils} from '@libs/ReportUtils';
@@ -47,7 +47,6 @@ import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContex
 import {KEYS_TO_PRESERVE, openApp, reconnectApp} from '@userActions/App';
 import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
-import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
 import * as Welcome from '@userActions/Welcome';
@@ -58,6 +57,7 @@ import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type Credentials from '@src/types/onyx/Credentials';
+import type Locale from '@src/types/onyx/Locale';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import type {AutoAuthState} from '@src/types/onyx/Session';
@@ -68,6 +68,9 @@ const INVALID_TOKEN = 'pizza';
 
 let session: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
+
+let hasSwitchedAccountInHybridMode = false;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -108,7 +111,7 @@ Onyx.connect({
     callback: (value) => (stashedCredentials = value ?? {}),
 });
 
-let preferredLocale: ValueOf<typeof CONST.LOCALES> | null = null;
+let preferredLocale: Locale | null = null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => (preferredLocale = val ?? null),
@@ -137,7 +140,7 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
         accountID,
         creationDate: new Date().getTime(),
     }).then(() => {
-        Log.info('[Supportal] Authtoken set');
+        Log.info('[Supportal] Auth token set');
     });
     Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '');
 }
@@ -287,7 +290,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     }
 
     // If this is a supportal token, and we've received the parameters to stashSession as true, and
-    // we already have a stashedSession, that means we are supportaled, currently supportaling
+    // we already have a stashedSession, that means we are supportal-ed, currently supportal-ing
     // into another account and we want to keep the stashed data from the original account.
     if (isSupportal && shouldStashSession && hasStashedSession()) {
         onyxSetParams = {
@@ -307,6 +310,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
                 policyID: activePolicyID ?? '',
                 accountID: session.accountID ? String(session.accountID) : '',
             });
+            hasSwitchedAccountInHybridMode = true;
         }
 
         onyxSetParams = {
@@ -334,6 +338,10 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             } else {
                 redirectToSignIn().then(() => {
                     Onyx.multiSet(onyxSetParams);
+
+                    if (hasSwitchedAccountInHybridMode) {
+                        openApp();
+                    }
                 });
             }
         })
@@ -351,50 +359,6 @@ function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => an
         return () => signOutAndRedirectToSignIn();
     }
     return callback;
-}
-
-/**
- * Resend the validation link to the user that is validating their account
- */
-function resendValidationLink(login = credentials.login) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-                errors: null,
-                message: null,
-                loadingForm: CONST.FORMS.RESEND_VALIDATION_FORM,
-            },
-        },
-    ];
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                message: 'resendValidationForm.linkHasBeenResent',
-                loadingForm: null,
-            },
-        },
-    ];
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                message: null,
-                loadingForm: null,
-            },
-        },
-    ];
-
-    const params: RequestAccountValidationLinkParams = {email: login};
-
-    API.write(WRITE_COMMANDS.REQUEST_ACCOUNT_VALIDATION_LINK, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -605,7 +569,12 @@ function signInAfterTransitionFromOldDot(hybridAppSettings: string) {
             return Promise.resolve();
         }
 
-        return Onyx.clear(KEYS_TO_PRESERVE).then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: null}));
+        // We also need to reset:
+        //  - IS_LOADING_APP after sign in to ensure the condition to show ExplanationModal runs once
+        //    https://github.com/Expensify/App/issues/57575#issuecomment-2780189425
+        return Onyx.clear(KEYS_TO_PRESERVE)
+            .then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: null}))
+            .then(() => Onyx.merge(ONYXKEYS.IS_LOADING_APP, null));
     };
 
     return clearOnyxForNewAccount()
@@ -646,11 +615,11 @@ function signInAfterTransitionFromOldDot(hybridAppSettings: string) {
                 [ONYXKEYS.SESSION]: {email, authToken, encryptedAuthToken: decodeURIComponent(encryptedAuthToken), accountID: Number(accountID)},
                 [ONYXKEYS.CREDENTIALS]: {autoGeneratedLogin, autoGeneratedPassword},
                 [ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY]: isSingleNewDotEntry,
-                [ONYXKEYS.NVP_TRYNEWDOT]: {
+                [ONYXKEYS.NVP_TRY_NEW_DOT]: {
                     classicRedirect: {completedHybridAppOnboarding},
                     nudgeMigration: nudgeMigrationTimestamp ? {timestamp: new Date(nudgeMigrationTimestamp)} : undefined,
                 },
-                [ONYXKEYS.USER]: {shouldUseStagingServer: isStaging},
+                [ONYXKEYS.ACCOUNT]: {shouldUseStagingServer: isStaging},
             }).then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin, requiresTwoFactorAuth, needsTwoFactorAuthSetup})),
         )
         .then(() => {
@@ -917,7 +886,6 @@ function cleanupSession() {
     Pusher.disconnect();
     Timers.clearAll();
     Welcome.resetAllChecks();
-    PriorityMode.resetHasReadRequiredDataFromStorage();
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     PersistedRequests.clear();
@@ -951,7 +919,12 @@ const reauthenticatePusher = throttle(
     () => {
         Log.info('[Pusher] Re-authenticating and then reconnecting');
         Authentication.reauthenticate(SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER)
-            ?.then(Pusher.reconnect)
+            .then((wasSuccessful) => {
+                if (!wasSuccessful) {
+                    return;
+                }
+                Pusher.reconnect();
+            })
             .catch(() => {
                 console.debug('[PusherConnectionManager]', 'Unable to re-authenticate Pusher because we are offline.');
             });
@@ -1068,7 +1041,7 @@ function unlinkLogin(accountID: number, validateCode: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                message: 'unlinkLoginForm.succesfullyUnlinkedLogin',
+                message: 'unlinkLoginForm.successfullyUnlinkedLogin',
             },
         },
         {
@@ -1285,41 +1258,133 @@ const canAnonymousUserAccessRoute = (route: string) => {
     return false;
 };
 
-/**
- * Validates user account and returns a list of accessible policies.
- */
-function validateUserAndGetAccessiblePolicies(validateCode: string) {
+function AddWorkEmail(workEmail: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
-            value: true,
+            key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+            value: {
+                onboardingWorkEmail: workEmail,
+                isLoading: true,
+            },
         },
     ];
 
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
-            value: false,
+            key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+            value: {
+                onboardingWorkEmail: workEmail,
+                isLoading: false,
+            },
         },
     ];
 
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
-            value: false,
+            key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+            value: {
+                onboardingWorkEmail: null,
+                isLoading: false,
+            },
         },
     ];
 
-    API.write(WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {validateCode}, {optimisticData, successData, failureData});
+    API.write(
+        WRITE_COMMANDS.ADD_WORK_EMAIL,
+        {workEmail},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
 }
 
-function isUserOnPrivateDomain() {
-    // TODO: Implement this function later, and skip the check for now
-    // return !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
-    return false;
+function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
+            value: '',
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: true,
+                loadingForm: CONST.FORMS.VALIDATE_CODE_FORM,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
+            value: '',
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {
+                isMergeAccountStepCompleted: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                loadingForm: null,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                loadingForm: null,
+            },
+        },
+    ];
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.MERGE_INTO_ACCOUNT_AND_LOGIN,
+        {workEmail, validateCode, accountID},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    ).then((response) => {
+        if (response?.jsonCode === CONST.JSON_CODE.EXP_ERROR) {
+            // If the error other than invalid code, we show a blocking screen
+            if (response?.message === CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR || response?.title === CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR) {
+                Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, translateLocal('contacts.genericFailureMessages.validateSecondaryLogin'));
+            } else {
+                Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
+            }
+            return;
+        }
+
+        // When the action is successful, we need to update the new authToken and encryptedAuthToken
+        // This action needs to be synchronous as the user will be logged out due to middleware if old authToken is used
+        // For more information see the slack discussion: https://expensify.slack.com/archives/C08CZDJFJ77/p1742838796040369
+        return SequentialQueue.waitForIdle().then(() => {
+            if (!response?.authToken || !response?.encryptedAuthToken) {
+                return;
+            }
+
+            updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken);
+        });
+    });
 }
 
 /**
@@ -1382,7 +1447,6 @@ export {
     cleanupSession,
     signOut,
     signOutAndRedirectToSignIn,
-    resendValidationLink,
     resendValidateCode,
     requestUnlinkValidationLink,
     unlinkLogin,
@@ -1406,8 +1470,8 @@ export {
     hasStashedSession,
     signUpUser,
     signInAfterTransitionFromOldDot,
-    validateUserAndGetAccessiblePolicies,
-    isUserOnPrivateDomain,
+    AddWorkEmail,
+    MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
 };

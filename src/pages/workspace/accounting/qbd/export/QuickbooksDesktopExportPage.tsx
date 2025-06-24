@@ -1,4 +1,5 @@
-import React, {useMemo} from 'react';
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -6,31 +7,46 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 import Navigation from '@navigation/Navigation';
+import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Link from '@userActions/Link';
+import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const policyOwner = policy?.owner ?? '';
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const errorFields = qbdConfig?.errorFields;
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT>>();
+    const backTo = route?.params?.backTo;
 
     const shouldShowVendorMenuItems = useMemo(
         () => qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
         [qbdConfig?.export?.nonReimbursable],
     );
 
+    const shouldGoBackToSpecificRoute = useMemo(
+        () => qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK || shouldShowVendorMenuItems,
+        [qbdConfig?.export?.nonReimbursable, shouldShowVendorMenuItems],
+    );
+
+    const goBack = useCallback(() => {
+        return goBackFromExportConnection(shouldGoBackToSpecificRoute, backTo);
+    }, [backTo, shouldGoBackToSpecificRoute]);
+
     const menuItems = [
         {
             description: translate('workspace.accounting.preferredExporter'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.getRoute(policyID, Navigation.getActiveRoute())),
             // We use the logical OR (||) here instead of ?? because `exporter` could be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             title: qbdConfig?.export?.exporter || policyOwner,
@@ -38,13 +54,13 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.qbd.date'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
             title: qbdConfig?.export?.exportDate ? translate(`workspace.qbd.exportDate.values.${qbdConfig?.export.exportDate}.label`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORT_DATE],
         },
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID, Navigation.getActiveRoute())),
             title: qbdConfig?.export.reimbursable ? translate(`workspace.qbd.accounts.${qbdConfig?.export.reimbursable}`) : undefined,
             subscribedSettings: [
                 CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE,
@@ -54,7 +70,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.accounting.exportCompanyCard'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute())),
             brickRoadIndicator: qbdConfig?.errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: qbdConfig?.export?.nonReimbursable ? translate(`workspace.qbd.accounts.${qbdConfig?.export?.nonReimbursable}`) : undefined,
             subscribedSettings: [
@@ -83,12 +99,12 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            onBackButtonPress={() => Navigation.goBack()}
+            onBackButtonPress={goBack}
         >
             {menuItems.map((menuItem) => (
                 <OfflineWithFeedback
                     key={menuItem.description}
-                    pendingAction={PolicyUtils.settingsPendingAction(menuItem?.subscribedSettings, qbdConfig?.pendingFields)}
+                    pendingAction={settingsPendingAction(menuItem?.subscribedSettings, qbdConfig?.pendingFields)}
                 >
                     <MenuItemWithTopDescription
                         title={menuItem.title}
@@ -96,14 +112,14 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
                         description={menuItem.description}
                         shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
                         onPress={menuItem?.onPress}
-                        brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </OfflineWithFeedback>
             ))}
             <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, styles.mt2]}>
                 <Text style={[styles.mutedNormalTextLabel]}>{translate('workspace.qbd.deepDiveExpensifyCard')}</Text>
                 <TextLink
-                    onPress={() => Link.openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
+                    onPress={() => openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
                     style={[styles.mutedNormalTextLabel, styles.link]}
                 >
                     {` ${translate('workspace.qbd.deepDiveExpensifyCardIntegration')}`}

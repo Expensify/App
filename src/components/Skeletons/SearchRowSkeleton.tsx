@@ -1,6 +1,6 @@
 import React from 'react';
-import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,7 +18,7 @@ type SearchRowSkeletonProps = {
 
 const barHeight = 8;
 const longBarWidth = 120;
-const leftPaneWidth = variables.sideBarWidth;
+const leftPaneWidth = variables.sideBarWithLHBWidth + variables.navigationTabBarSize;
 
 // 12 is the gap between the element and the right button
 const gapWidth = 12;

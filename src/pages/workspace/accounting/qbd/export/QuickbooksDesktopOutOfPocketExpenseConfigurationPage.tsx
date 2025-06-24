@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -5,11 +6,12 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {updateQuickbooksDesktopMarkChecksToBePrinted} from '@libs/actions/connections/QuickbooksDesktop';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
+import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import {getQBDReimbursableAccounts} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -17,6 +19,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type QBDSectionType = {
@@ -36,9 +39,12 @@ const markChecksToBePrintedOrExportDestination = [CONST.QUICKBOOKS_DESKTOP_CONFI
 function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const reimbursable = qbdConfig?.export.reimbursable;
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES>>();
+    const backTo = route.params?.backTo;
+
     const [exportHintText, accountDescription, accountsList] = useMemo(() => {
         let hintText: string | undefined;
         let description: string | undefined;
@@ -67,21 +73,21 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
         {
             title: reimbursable ? translate(`workspace.qbd.accounts.${reimbursable}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
             hintText: exportHintText,
             subscribedSettings: accountOrExportDestination,
-            pendingAction: PolicyUtils.settingsPendingAction(accountOrExportDestination, qbdConfig?.pendingFields),
-            brickRoadIndicator: PolicyUtils.areSettingsInErrorFields(accountOrExportDestination, qbdConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            pendingAction: settingsPendingAction(accountOrExportDestination, qbdConfig?.pendingFields),
+            brickRoadIndicator: areSettingsInErrorFields(accountOrExportDestination, qbdConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             // We use the logical OR (||) here instead of ?? because `reimbursableAccount` can be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             title: accountsList.find(({id}) => qbdConfig?.export.reimbursableAccount === id)?.name || accountsList.at(0)?.name || translate('workspace.qbd.notConfigured'),
             description: accountDescription,
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
             subscribedSettings: account,
-            pendingAction: PolicyUtils.settingsPendingAction(account, qbdConfig?.pendingFields),
-            brickRoadIndicator: PolicyUtils.areSettingsInErrorFields(account, qbdConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            pendingAction: settingsPendingAction(account, qbdConfig?.pendingFields),
+            brickRoadIndicator: areSettingsInErrorFields(account, qbdConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
     ];
 
@@ -96,7 +102,7 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID))}
         >
             {sections.map((section, index) => (
                 <OfflineWithFeedback
@@ -116,16 +122,26 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
             ))}
             {reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK && (
                 <ToggleSettingOptionRow
-                    key={translate('workspace.qbd.exportOutOfPocketExpensesCheckToogle')}
-                    title={translate('workspace.qbd.exportOutOfPocketExpensesCheckToogle')}
-                    switchAccessibilityLabel={translate('workspace.qbd.exportOutOfPocketExpensesCheckToogle')}
+                    key={translate('workspace.qbd.exportOutOfPocketExpensesCheckToggle')}
+                    title={translate('workspace.qbd.exportOutOfPocketExpensesCheckToggle')}
+                    switchAccessibilityLabel={translate('workspace.qbd.exportOutOfPocketExpensesCheckToggle')}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={[styles.mv3, styles.ph5]}
                     isActive={!!qbdConfig?.markChecksToBePrinted}
-                    onToggle={() => QuickbooksDesktop.updateQuickbooksDesktopMarkChecksToBePrinted(policyID, !qbdConfig?.markChecksToBePrinted)}
-                    errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED)}
+                    onToggle={() => {
+                        if (!policyID) {
+                            return;
+                        }
+                        updateQuickbooksDesktopMarkChecksToBePrinted(policyID, !qbdConfig?.markChecksToBePrinted);
+                    }}
+                    errors={getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED)}
                     pendingAction={settingsPendingAction(markChecksToBePrintedOrExportDestination, qbdConfig?.pendingFields)}
-                    onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED)}
+                    onCloseError={() => {
+                        if (!policyID) {
+                            return;
+                        }
+                        clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED);
+                    }}
                 />
             )}
         </ConnectionLayout>

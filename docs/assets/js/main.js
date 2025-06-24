@@ -2,21 +2,21 @@
 function toggleHeaderMenu() {
     const lhn = document.getElementById('lhn');
     const lhnContent = document.getElementById('lhn-content');
-    const anguleUpIcon = document.getElementById('angle-up-icon');
+    const angleUpIcon = document.getElementById('angle-up-icon');
     const barsIcon = document.getElementById('bars-icon');
     if (lhnContent.className === 'expanded') {
         // Collapse the LHN in mobile
         lhn.className = '';
         lhnContent.className = '';
         barsIcon.classList.remove('hide');
-        anguleUpIcon.classList.add('hide');
+        angleUpIcon.classList.add('hide');
         document.body.classList.remove('disable-scrollbar');
     } else {
         // Expand the LHN in mobile
         lhn.className = 'expanded';
         lhnContent.className = 'expanded';
         barsIcon.classList.add('hide');
-        anguleUpIcon.classList.remove('hide');
+        angleUpIcon.classList.remove('hide');
         document.body.classList.add('disable-scrollbar');
     }
 }
@@ -70,8 +70,8 @@ function navigateBack() {
     setTimeout(toggleHeaderMenu, 250);
 }
 
-function injectFooterCopywrite() {
-    const footer = document.getElementById('footer-copywrite-date');
+function injectFooterCopyright() {
+    const footer = document.getElementById('footer-copyright-date');
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
 }
 
@@ -265,7 +265,7 @@ function selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyC
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    injectFooterCopywrite();
+    injectFooterCopyright();
 
     // Handle open & close the sidebar
     const buttonOpenSidebar = document.getElementById('toggle-search-open');
@@ -371,3 +371,42 @@ window.addEventListener('hashchange', () => {
         behavior: 'smooth',
     });
 });
+
+// We need to pass the results from readyCallback to renderedCallback so we make two part callback here to customize the results from GCSE API
+const makeTwoPartCallback = () => {
+    let customResults = [];
+    const readyCallback = (name, q, promos, results, resultsDiv) => {
+        customResults = [];
+        results.forEach((result) => {
+            const {ogUrl, ogSiteName} = result.richSnippet.metatags;
+
+            const newOgSiteName = ogUrl.includes('expensify-classic') ? 'Expensify Classic' : 'New Expensify';
+
+            result.title = result.title.replace(`- ${ogSiteName}`, `• ${newOgSiteName}`);
+            result.titleNoFormatting = result.titleNoFormatting.replace(`- ${ogSiteName}`, `• ${newOgSiteName}`);
+            if (!result.title.endsWith(` • ${newOgSiteName}`)) {
+                result.title = result.title + ` • ${newOgSiteName}`;
+            }
+            customResults.push(result);
+        });
+    };
+    const renderedCallback = (name, q, promos, results) => {
+        for (let i = 0; i < results.length; ++i) {
+            const div = results[i];
+            const result = customResults[i];
+            const titleElement = div.querySelector('a.gs-title');
+            titleElement.innerHTML = result.title;
+        }
+    };
+    return {readyCallback, renderedCallback};
+};
+
+const {readyCallback: webResultsReadyCallback, renderedCallback: webResultsRenderedCallback} = makeTwoPartCallback();
+
+window.__gcse || (window.__gcse = {});
+window.__gcse.searchCallbacks = {
+    web: {
+        ready: webResultsReadyCallback,
+        rendered: webResultsRenderedCallback,
+    },
+};

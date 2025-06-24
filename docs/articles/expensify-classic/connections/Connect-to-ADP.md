@@ -4,6 +4,18 @@ description: Learn how to set up and use Expensify’s ADP integration to export
 keywords: [Expensify, ADP integration, payroll export, custom export format, expense reports, bulk update]
 ---
 
+<div id="expensify-classic" markdown="1">
+
+Expensify’s API helps connect your account to third-party tools like NetSuite, Xero, and even internal systems like Workday. This guide includes tips, usage examples, and common troubleshooting questions — many sourced from customers who’ve done it before.
+
+---
+
+# Getting Started
+
+To start using the API, review our full [Integration Server Manual](https://integrations.expensify.com/Integration-Server/doc/#introduction).
+
+> **Note:** The API is a self-serve tool. Your internal team will need to manage setup and maintenance. While Concierge can assist with basic troubleshooting, hands-on support may vary by team or account manager.
+
 Expensify’s ADP integration enables you to process expense report payouts outside of Expensify by generating a **Custom Export Format** that can be uploaded to ADP.
 
 - The **Control Plan** is required to create a Custom Export Format.
@@ -22,7 +34,7 @@ Your ADP import file must include the following **five columns**:
 4. **Earnings 3 Code** – Located under **Edit Profit Center Group** in ADP.
 5. **Earnings 3 Amount** – Also found in **Edit Profit Center Group** in ADP.
 
-### In Expensify:
+## In Expensify:
 - The **File #** is stored in **Custom Field 1 or 2** under the **Members table**.
 - The **Earnings 3 Code** links to a payroll account tracked in Expensify.
 - The **Earnings 3 Amount** is the total expense amount sent to payroll.
@@ -68,7 +80,7 @@ Once exported, you can **upload the file directly to ADP** without modifications
 You can update **Custom Fields** and **Payroll Codes** in bulk using a CSV upload in Expensify’s settings.
 
 ## Customizing Your ADP Export
-If you need **additional columns, headings, or datasets**, contact your **Expensify Account Manager** via the Chat option in Expensify for assistance.
+If you need additional columns, headings, or datasets, contact your Expensify Account Manager via the Chat option in Expensify for assistance.
 
 ---
 
@@ -80,3 +92,4 @@ Yes. Convert your ADP employee data to match the column headings used in Expensi
 ## Can I add custom fields to my ADP Payroll Export?
 Yes! Your Expensify Account Manager can help customize your ADP Payroll export to fit your needs.
 
+</div>

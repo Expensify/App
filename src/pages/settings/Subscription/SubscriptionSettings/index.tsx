@@ -1,8 +1,8 @@
-import React, {useState} from 'react';
+import React, {useContext} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -17,6 +17,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useSubscriptionPossibleCostSavings from '@hooks/useSubscriptionPossibleCostSavings';
@@ -24,7 +25,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
-import {getRoom} from '@libs/ReportUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -45,7 +46,7 @@ const options: Array<OptionsPickerItem<SubscriptionType>> = [
         icon: Illustrations.SubscriptionAnnual,
     },
     {
-        key: CONST.SUBSCRIPTION.TYPE.PAYPERUSE,
+        key: CONST.SUBSCRIPTION.TYPE.PAY_PER_USE,
         title: 'subscription.details.payPerUse',
         icon: Illustrations.SubscriptionPPU,
     },
@@ -55,30 +56,32 @@ function SubscriptionSettings() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: false});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const activePolicy = usePolicy(activePolicyID);
+    const isActivePolicyAdmin = isPolicyAdmin(activePolicy);
     const subscriptionPlan = useSubscriptionPlan();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const preferredCurrency = usePreferredCurrency();
     const illustrations = useThemeIllustrations();
     const possibleCostSavings = useSubscriptionPossibleCostSavings();
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
+    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-    const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT);
+    const [privateTaxExempt] = useOnyx(ONYXKEYS.NVP_PRIVATE_TAX_EXEMPT, {canBeMissing: true});
     const subscriptionPrice = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscription?.type);
     const priceDetails = translate(`subscription.yourPlan.${subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? 'control' : 'collect'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
         lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
         upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
     });
+    const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins.toString() : undefined;
 
     const onOptionSelected = (option: SubscriptionType) => {
         if (privateSubscription?.type !== option && isActingAsDelegate) {
-            setIsNoDelegateAccessMenuVisible(true);
+            showDelegateNoAccessModal();
             return;
         }
-        if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && option === CONST.SUBSCRIPTION.TYPE.PAYPERUSE && !account?.canDowngrade) {
+        if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && option === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE && !account?.canDowngrade) {
             Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(0));
             return;
         }
@@ -88,7 +91,7 @@ function SubscriptionSettings() {
 
     const onSubscriptionSizePress = () => {
         if (isActingAsDelegate) {
-            setIsNoDelegateAccessMenuVisible(true);
+            showDelegateNoAccessModal();
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(1));
@@ -122,7 +125,7 @@ function SubscriptionSettings() {
 
     const handleAutoRenewToggle = () => {
         if (isActingAsDelegate) {
-            setIsNoDelegateAccessMenuVisible(true);
+            showDelegateNoAccessModal();
             return;
         }
         if (!privateSubscription?.autoRenew) {
@@ -138,7 +141,7 @@ function SubscriptionSettings() {
 
     const handleAutoIncreaseToggle = () => {
         if (isActingAsDelegate) {
-            setIsNoDelegateAccessMenuVisible(true);
+            showDelegateNoAccessModal();
             return;
         }
         updateSubscriptionAddNewUsersAutomatically(!privateSubscription?.addNewUsersAutomatically);
@@ -157,11 +160,7 @@ function SubscriptionSettings() {
     );
 
     const openAdminsRoom = () => {
-        if (!activePolicyID) {
-            return;
-        }
-        const roomReport = getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, activePolicyID);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(roomReport?.reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
     };
 
     if (!subscriptionPlan || (hasTeam2025Pricing && subscriptionPlan === CONST.POLICY.TYPE.TEAM)) {
@@ -183,7 +182,11 @@ function SubscriptionSettings() {
                     {translate('subscription.subscriptionSettings.learnMore.part1')}
                     <TextLink href={CONST.PRICING}>{translate('subscription.subscriptionSettings.learnMore.pricingPage')}</TextLink>
                     {translate('subscription.subscriptionSettings.learnMore.part2')}
-                    <TextLink onPress={openAdminsRoom}>{translate('subscription.subscriptionSettings.learnMore.adminsRoom')}</TextLink>
+                    {adminsChatReportID ? (
+                        <TextLink onPress={openAdminsRoom}>{translate('subscription.subscriptionSettings.learnMore.adminsRoom')}</TextLink>
+                    ) : (
+                        translate('subscription.subscriptionSettings.learnMore.adminsRoom')
+                    )}
                 </Text>
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>
                 <Text style={styles.mv1}>{priceDetails}</Text>
@@ -248,10 +251,6 @@ function SubscriptionSettings() {
                     style={styles.mv5}
                     titleStyle={privateTaxExempt ? undefined : styles.textBold}
                     title={privateTaxExempt ? translate('subscription.details.taxExemptEnabled') : translate('subscription.details.taxExempt')}
-                />
-                <DelegateNoAccessModal
-                    isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                    onClose={() => setIsNoDelegateAccessMenuVisible(false)}
                 />
             </ScrollView>
         </ScreenWrapper>

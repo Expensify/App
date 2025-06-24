@@ -8,7 +8,7 @@ import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAc
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftValues} from '@libs/actions/FormActions';
-import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
+import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

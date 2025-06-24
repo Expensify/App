@@ -64,15 +64,17 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
     ONYXKEYS.NVP_PREFERRED_LOCALE,
+    ONYXKEYS.ARE_TRANSLATIONS_LOADING,
     ONYXKEYS.SESSION,
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.IS_LOADING_APP,
     ONYXKEYS.HAS_LOADED_APP,
     ONYXKEYS.STASHED_CREDENTIALS,
 
-    // We need to preserve the sidebar loaded state since we never unrender the sidebar when connecting as a delegate
+    // We need to preserve the sidebar loaded state since we never unmount the sidebar when connecting as a delegate
     // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
     ONYXKEYS.IS_SIDEBAR_LOADED,
+    ONYXKEYS.NETWORK,
 ];
 
 /**
@@ -529,18 +531,6 @@ function isConnectedAsDelegate() {
     return !!delegatedAccess?.delegate;
 }
 
-function removePendingDelegate(email: string) {
-    if (!delegatedAccess?.delegates) {
-        return;
-    }
-
-    Onyx.merge(ONYXKEYS.ACCOUNT, {
-        delegatedAccess: {
-            delegates: delegatedAccess.delegates.filter((delegate) => delegate.email !== email),
-        },
-    });
-}
-
 function updateDelegateRole(email: string, role: DelegateRole, validateCode: string) {
     if (!delegatedAccess?.delegates) {
         return;
@@ -711,7 +701,6 @@ export {
     addDelegate,
     requestValidationCode,
     clearDelegateErrorsByField,
-    removePendingDelegate,
     restoreDelegateSession,
     isConnectedAsDelegate,
     updateDelegateRoleOptimistically,

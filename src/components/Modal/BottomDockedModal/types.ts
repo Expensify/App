@@ -135,6 +135,12 @@ type BackdropProps = {
 
     /** Timing of animation on exit */
     animationOutTiming?: number;
+
+    /** Opacity of the backdrop */
+    backdropOpacity?: number;
+
+    /** Shows backdrop content */
+    isBackdropVisible: boolean;
 };
 
 type ContainerProps = {
@@ -149,4 +155,4 @@ type ContainerProps = {
 };
 
 export default ModalProps;
-export type {BackdropProps, ContainerProps, GestureProps, AnimationOut};
+export type {BackdropProps, ContainerProps, AnimationOut};

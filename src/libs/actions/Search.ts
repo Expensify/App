@@ -40,14 +40,14 @@ Onyx.connect({
     waitForCollectionCallback: true,
 });
 
-function handleActionButtonPress(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
+function handleActionButtonPress(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void, isInMobileSelectionMode: boolean) {
     // The transactionIDList is needed to handle actions taken on `status:all` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
     const allReportTransactions = (isReportListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
-    if (hasHeldExpense) {
+    if (hasHeldExpense || isInMobileSelectionMode) {
         goToItem();
         return;
     }
@@ -77,7 +77,7 @@ function getLastPolicyPaymentMethod(policyID: string | undefined, lastPaymentMet
     if (typeof lastPaymentMethods?.[policyID] === 'string') {
         lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
     } else {
-        lastPolicyPaymentMethod = (lastPaymentMethods?.[policyID] as LastPaymentMethodType)?.lastUsed as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+        lastPolicyPaymentMethod = (lastPaymentMethods?.[policyID] as LastPaymentMethodType)?.lastUsed.name as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
     }
 
     return lastPolicyPaymentMethod;
@@ -150,6 +150,7 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
                 search: {
                     status: queryJSON?.status,
                     type: queryJSON?.type,
+                    isLoading: false,
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
@@ -244,6 +245,10 @@ function openSearchFiltersCardPage() {
 
     const failureData: OnyxUpdate[] = [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, value: null}];
     API.read(READ_COMMANDS.OPEN_SEARCH_FILTERS_CARD_PAGE, null, {optimisticData, successData, failureData});
+}
+
+function openSearchPage() {
+    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
 }
 
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
@@ -371,13 +376,12 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
-function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList, policyIDs}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
+function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
         jsonQuery,
         reportIDList,
         transactionIDList,
-        policyIDs,
     }) as Params;
 
     const formData = new FormData();
@@ -392,6 +396,16 @@ function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDLi
     fileDownload(getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
+function queueExportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
+        query,
+        jsonQuery,
+        reportIDList,
+        transactionIDList,
+    }) as ExportSearchItemsToCSVParams;
+
+    API.write(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, finalParameters);
+}
 /**
  * Updates the form values for the advanced filters search form.
  */
@@ -409,7 +423,7 @@ function clearAllFilters() {
 function clearAdvancedFilters() {
     const values: Partial<Record<ValueOf<typeof FILTER_KEYS>, null>> = {};
     Object.values(FILTER_KEYS)
-        .filter((key) => key !== FILTER_KEYS.TYPE && key !== FILTER_KEYS.STATUS)
+        .filter((key) => !([FILTER_KEYS.TYPE, FILTER_KEYS.STATUS, FILTER_KEYS.GROUP_BY] as string[]).includes(key))
         .forEach((key) => {
             values[key] = null;
         });
@@ -425,6 +439,7 @@ export {
     holdMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,
     exportSearchItemsToCSV,
+    queueExportSearchItemsToCSV,
     updateAdvancedFilters,
     clearAllFilters,
     clearAdvancedFilters,
@@ -434,5 +449,6 @@ export {
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
     openSearchFiltersCardPage,
+    openSearchPage as openSearch,
     getLastPolicyPaymentMethod,
 };

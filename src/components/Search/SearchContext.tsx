@@ -1,71 +1,44 @@
-import React, {useCallback, useContext, useMemo, useState} from 'react';
-import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import type {SearchContext, SelectedTransactions} from './types';
+import type {SearchContext, SearchContextData} from './types';
 
-const defaultSearchContext = {
+const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
-    shouldTurnOffSelectionMode: false,
     selectedTransactions: {},
+    selectedTransactionIDs: [],
     selectedReports: [],
+    isOnSearch: false,
+    shouldTurnOffSelectionMode: false,
+};
+
+const defaultSearchContext: SearchContext = {
+    ...defaultSearchContextData,
+    lastSearchType: undefined,
+    isExportMode: false,
+    shouldShowExportModeOption: false,
+    shouldShowFiltersBarLoading: false,
+    setLastSearchType: () => {},
     setCurrentSearchHash: () => {},
     setSelectedTransactions: () => {},
+    removeTransaction: () => {},
     clearSelectedTransactions: () => {},
-    shouldShowStatusBarLoading: false,
-    setShouldShowStatusBarLoading: () => {},
-    lastSearchType: undefined,
-    setLastSearchType: () => {},
-    isOnSearch: false,
+    setShouldShowFiltersBarLoading: () => {},
+    setShouldShowExportModeOption: () => {},
+    setExportMode: () => {},
 };
 
 const Context = React.createContext<SearchContext>(defaultSearchContext);
 
-function getReportsFromSelectedTransactions(data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[], selectedTransactions: SelectedTransactions) {
-    if (data.length === 0) {
-        return [];
-    }
-
-    if (isReportListItemType(data[0]) || isMoneyRequestReport(data[0])) {
-        return data
-            .filter(
-                (item): item is ReportListItemType =>
-                    isReportListItemType(item) && isMoneyRequestReport(item) && item.transactions?.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected),
-            )
-            .map((item) => ({
-                reportID: item.reportID,
-                action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
-                total: item.total ?? CONST.DEFAULT_NUMBER_ID,
-                policyID: item.policyID,
-            }));
-    }
-
-    if (isTransactionListItemType(data[0])) {
-        return data
-            .filter((transaction) => transaction.keyForList != null && selectedTransactions[transaction.keyForList]?.isSelected)
-            .map((transaction) => ({
-                reportID: transaction.reportID,
-                action: 'action' in transaction ? transaction.action ?? CONST.SEARCH.ACTION_TYPES.VIEW : CONST.SEARCH.ACTION_TYPES.VIEW,
-                total: 'amount' in transaction ? transaction.amount ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID,
-                policyID: transaction.policyID,
-            }));
-    }
-
-    return [];
-}
-
 function SearchContextProvider({children}: ChildrenProps) {
-    const [searchContextData, setSearchContextData] = useState<
-        Pick<SearchContext, 'currentSearchHash' | 'selectedTransactions' | 'shouldTurnOffSelectionMode' | 'selectedReports' | 'isOnSearch'>
-    >({
-        currentSearchHash: defaultSearchContext.currentSearchHash,
-        selectedTransactions: defaultSearchContext.selectedTransactions,
-        shouldTurnOffSelectionMode: false,
-        selectedReports: defaultSearchContext.selectedReports,
-        isOnSearch: false,
-    });
+    const [shouldShowExportModeOption, setShouldShowExportModeOption] = useState(false);
+    const [isExportMode, setExportMode] = useState(false);
+    const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
+    const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
+    const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
+    const areTransactionsEmpty = useRef(true);
 
     const setCurrentSearchHash = useCallback((searchHash: number) => {
         setSearchContextData((prevState) => ({
@@ -74,9 +47,33 @@ function SearchContextProvider({children}: ChildrenProps) {
         }));
     }, []);
 
-    const setSelectedTransactions = useCallback((selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[]) => {
+    const setSelectedTransactions: SearchContext['setSelectedTransactions'] = useCallback((selectedTransactions, data = []) => {
+        if (selectedTransactions instanceof Array) {
+            if (!selectedTransactions.length && areTransactionsEmpty.current) {
+                areTransactionsEmpty.current = true;
+                return;
+            }
+            areTransactionsEmpty.current = false;
+            return setSearchContextData((prevState) => ({
+                ...prevState,
+                selectedTransactionIDs: selectedTransactions,
+            }));
+        }
+
         // When selecting transactions, we also need to manage the reports to which these transactions belong. This is done to ensure proper exporting to CSV.
-        const selectedReports = getReportsFromSelectedTransactions(data, selectedTransactions);
+        let selectedReports: SearchContext['selectedReports'] = [];
+
+        if (data.length && data.every(isReportListItemType)) {
+            selectedReports = data
+                .filter((item) => isMoneyRequestReport(item) && item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected))
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
+        }
+
+        if (data.length && data.every(isTransactionListItemType)) {
+            selectedReports = data
+                .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
+        }
 
         setSearchContextData((prevState) => ({
             ...prevState,
@@ -86,9 +83,14 @@ function SearchContextProvider({children}: ChildrenProps) {
         }));
     }, []);
 
-    const clearSelectedTransactions = useCallback(
-        (searchHash?: number, shouldTurnOffSelectionMode = false) => {
-            if (searchHash === searchContextData.currentSearchHash) {
+    const clearSelectedTransactions: SearchContext['clearSelectedTransactions'] = useCallback(
+        (searchHashOrClearIDsFlag, shouldTurnOffSelectionMode = false) => {
+            if (typeof searchHashOrClearIDsFlag === 'boolean') {
+                setSelectedTransactions([]);
+                return;
+            }
+
+            if (searchHashOrClearIDsFlag === searchContextData.currentSearchHash) {
                 return;
             }
             setSearchContextData((prevState) => ({
@@ -97,30 +99,65 @@ function SearchContextProvider({children}: ChildrenProps) {
                 selectedTransactions: {},
                 selectedReports: [],
             }));
+            setShouldShowExportModeOption(false);
+            setExportMode(false);
         },
-        [searchContextData.currentSearchHash],
+        [searchContextData.currentSearchHash, setSelectedTransactions],
     );
 
-    const [shouldShowStatusBarLoading, setShouldShowStatusBarLoading] = useState(false);
-    const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
+    const removeTransaction: SearchContext['removeTransaction'] = useCallback(
+        (transactionID) => {
+            const selectedTransactionIDs = searchContextData.selectedTransactionIDs;
+            if (!transactionID || !selectedTransactionIDs.length) {
+                return;
+            }
+            setSearchContextData((prevState) => ({
+                ...prevState,
+                selectedTransactionIDs: selectedTransactionIDs.filter((ID) => transactionID !== ID),
+            }));
+        },
+        [searchContextData.selectedTransactionIDs],
+    );
 
     const searchContext = useMemo<SearchContext>(
         () => ({
             ...searchContextData,
+            removeTransaction,
             setCurrentSearchHash,
             setSelectedTransactions,
             clearSelectedTransactions,
-            shouldShowStatusBarLoading,
-            setShouldShowStatusBarLoading,
+            shouldShowFiltersBarLoading,
+            setShouldShowFiltersBarLoading,
             lastSearchType,
             setLastSearchType,
+            shouldShowExportModeOption,
+            setShouldShowExportModeOption,
+            isExportMode,
+            setExportMode,
         }),
-        [searchContextData, setCurrentSearchHash, setSelectedTransactions, clearSelectedTransactions, shouldShowStatusBarLoading, lastSearchType, setLastSearchType],
+        [
+            searchContextData,
+            setCurrentSearchHash,
+            setSelectedTransactions,
+            clearSelectedTransactions,
+            shouldShowFiltersBarLoading,
+            lastSearchType,
+            shouldShowExportModeOption,
+            setShouldShowExportModeOption,
+            isExportMode,
+            setExportMode,
+            removeTransaction,
+        ],
     );
 
     return <Context.Provider value={searchContext}>{children}</Context.Provider>;
 }
 
+/**
+ * Note: `selectedTransactionIDs` and `selectedTransactions` are two separate properties.
+ * Setting or clearing one of them does not influence the other.
+ * IDs should be used if transaction details are not required.
+ */
 function useSearchContext() {
     return useContext(Context);
 }

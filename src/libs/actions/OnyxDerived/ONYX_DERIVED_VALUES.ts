@@ -1,6 +1,5 @@
 import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
-import conciergeChatReportIDConfig from './configs/conciergeChatReportID';
 import reportAttributesConfig from './configs/reportAttributes';
 import type {OnyxDerivedValueConfig} from './types';
 
@@ -9,7 +8,6 @@ import type {OnyxDerivedValueConfig} from './types';
  * This object holds our derived value configurations.
  */
 const ONYX_DERIVED_VALUES = {
-    [ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID]: conciergeChatReportIDConfig,
     [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: reportAttributesConfig,
 } as const satisfies {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

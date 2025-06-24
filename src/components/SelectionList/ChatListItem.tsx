@@ -23,9 +23,13 @@ function ChatListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
     policies,
+    allReports,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const reportID = Number(reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        canBeMissing: true,
+    });
     const styles = useThemeStyles();
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -67,6 +71,7 @@ function ChatListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
             <ReportActionItem
+                allReports={allReports}
                 action={reportActionItem}
                 report={report}
                 reportActions={[]}
@@ -78,6 +83,7 @@ function ChatListItem<TItem extends ListItem>({
                 index={item.index ?? 0}
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
+                shouldShowDraftMessage={false}
                 shouldShowSubscriptAvatar={
                     (isPolicyExpenseChat(report) || isInvoiceRoom(report)) &&
                     [
@@ -89,6 +95,7 @@ function ChatListItem<TItem extends ListItem>({
                     ].some((type) => type === reportActionItem.actionName)
                 }
                 policies={policies}
+                shouldShowBorder
             />
         </BaseListItem>
     );

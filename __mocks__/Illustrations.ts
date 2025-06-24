@@ -46,7 +46,7 @@ const PinkBill = 'PinkBill';
 const CreditCardsNew = 'CreditCardsNew';
 const CreditCardsNewGreen = 'CreditCardsNewGreen';
 const InvoiceBlue = 'InvoiceBlue';
-const LaptopwithSecondScreenandHourglass = 'LaptopwithSecondScreenandHourglass';
+const LaptopWithSecondScreenAndHourglass = 'LaptopWithSecondScreenAndHourglass';
 const LockOpen = 'LockOpen';
 const Luggage = 'Luggage';
 const MoneyIntoWallet = 'MoneyIntoWallet';
@@ -200,7 +200,7 @@ export {
     CreditCardsNew,
     CreditCardsNewGreen,
     InvoiceBlue,
-    LaptopwithSecondScreenandHourglass,
+    LaptopWithSecondScreenAndHourglass,
     LockOpen,
     Luggage,
     MoneyIntoWallet,

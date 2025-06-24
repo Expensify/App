@@ -4,25 +4,26 @@ on:
   workflow_dispatch:
   push:
     branches-ignore: [staging, production]
+    paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**']
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   build:
-    runs-on: macos-15-xlarge
+    runs-on: ${{ github.repository_owner == 'Expensify' && 'macos-15-xlarge' || 'macos-15' }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - project_root: ./
-            scheme: 'New Expensify Dev'
+          - scheme: 'New Expensify Dev'
             configuration: 'DebugDevelopment'
+            is_hybrid_build: false
 
-          - project_root: Mobile-Expensify/
-            is_hybrid_build: true
-            scheme: 'Expensify Dev'
+          - scheme: 'Expensify Dev'
             configuration: 'Debug'
+            is_hybrid_build: true
     steps:
       - name: Checkout
         # v4
@@ -37,9 +38,9 @@ jobs:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
       - name: RNEF Remote Build - iOS
-        uses: callstackincubator/ios@4c2dcc0d6b9c35407cf294e17386b65258a3b6af
+        uses: callstackincubator/ios@78ed46313dac4ed09cb5cc73b9b1b9193d59d863
         env:
-          PROJECT_ROOT_PATH: ${{ matrix.project_root }}
+          IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
         with:
           destination: simulator
           scheme: ${{ matrix.scheme }}

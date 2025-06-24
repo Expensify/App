@@ -32,6 +32,7 @@ function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = fal
             fixedNumItems={fixedNumItems}
             speed={speed}
             shouldAnimate={shouldAnimate}
+            style={[styles.overflowHidden]}
             itemViewStyle={shouldStyleAsTable && [styles.highlightBG, styles.mb2, styles.ml5, styles.br2]}
             gradientOpacityEnabled={gradientOpacityEnabled}
             renderSkeletonItem={({itemIndex}) => {

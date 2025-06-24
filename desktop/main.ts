@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {exec} from 'child_process';
 import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
 import type {BaseWindow, BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
@@ -12,6 +11,7 @@ import {translate} from '@libs/Localize';
 import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import type {TranslationPaths} from '@src/languages/types';
 import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
 import type {Locale} from '@src/types/onyx';
@@ -22,7 +22,7 @@ import ELECTRON_EVENTS from './ELECTRON_EVENTS';
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 
 const port = process.env.PORT ?? 8082;
-const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
+const {DESKTOP_SHORTCUT_ACCELERATOR} = CONST;
 
 // Setup google api key in process environment, we are setting it this way intentionally. It is required by the
 // geolocation api (window.navigator.geolocation.getCurrentPosition) to work on desktop.
@@ -71,7 +71,7 @@ function pasteAsPlainText(browserWindow: BrowserWindow | BrowserView | WebviewTa
  * @param preferredLocale - The current user language to be used for translating menu labels.
  * @returns A dispose function to clean up the created context menu.
  */
-function createContextMenu(preferredLocale: Locale = LOCALES.DEFAULT): () => void {
+function createContextMenu(preferredLocale: Locale): () => void {
     return contextMenu({
         labels: {
             cut: translate(preferredLocale, 'desktopApplicationMenu.cut'),
@@ -96,7 +96,7 @@ function createContextMenu(preferredLocale: Locale = LOCALES.DEFAULT): () => voi
     });
 }
 
-let disposeContextMenu = createContextMenu();
+let disposeContextMenu: (() => void) | undefined;
 
 // Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify.desktop/main.log
 // See https://www.npmjs.com/package/electron-log
@@ -129,112 +129,83 @@ let hasUpdate = false;
 let downloadedVersion: string;
 let isSilentUpdating = false;
 let isUpdateInProgress = false;
-
-// Note that we have to subscribe to this separately and cannot use translateLocal,
-// because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
-// So we track preferredLocale separately via ELECTRON_EVENTS.LOCALE_UPDATED
-const preferredLocale: Locale = CONST.LOCALES.DEFAULT;
+let preferredLocale: Locale | undefined;
 
 const appProtocol = CONST.DEEPLINK_BASE_URL.replace('://', '');
 
 const quitAndInstallWithUpdate = () => {
-    console.debug('[dev] Attempting to quit and install update');
     if (!downloadedVersion) {
-        console.debug('[dev] No downloaded version available, skipping quit and install');
         return;
     }
-    console.debug(`[dev] Setting hasUpdate flag and installing version: ${downloadedVersion}`);
     hasUpdate = true;
     autoUpdater.quitAndInstall();
 };
 
 const verifyAndInstallLatestVersion = (browserWindow: BrowserWindow): void => {
-    console.debug('[dev] Starting verifyAndInstallLatestVersion process');
-
     if (!browserWindow || browserWindow.isDestroyed()) {
-        console.debug('[dev] Browser window is invalid or destroyed, skipping update check');
         return;
     }
 
     // Prevent multiple simultaneous updates
     if (isUpdateInProgress) {
-        console.debug('[dev] Update already in progress, skipping new update check');
         return;
     }
 
-    console.debug('[dev] Setting isUpdateInProgress flag and starting update check');
     isUpdateInProgress = true;
 
     autoUpdater
         .checkForUpdates()
         .then((result) => {
-            console.debug('[dev] Update check completed', result?.updateInfo);
-
             if (!browserWindow || browserWindow.isDestroyed()) {
-                console.debug('[dev] Browser window became invalid during update check, aborting');
                 isUpdateInProgress = false;
                 return;
             }
 
             if (result?.updateInfo.version === downloadedVersion) {
-                console.debug(`[dev] Found matching version ${downloadedVersion}, proceeding with installation`);
                 return quitAndInstallWithUpdate();
             }
 
-            console.debug('[dev] New version found, starting download');
             return autoUpdater.downloadUpdate().then(() => {
-                console.debug('[dev] Download completed, proceeding with installation');
                 return quitAndInstallWithUpdate();
             });
         })
         .catch((error) => {
-            console.debug('[dev] Error during update check or download:', error);
             log.error('Error during update check or download:', error);
         })
         .finally(() => {
-            console.debug('[dev] Update process completed, resetting isUpdateInProgress flag');
             isUpdateInProgress = false;
         });
 };
 
 /** Menu Item callback to trigger an update check */
 const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow) => {
-    console.debug('[dev] Starting manual update check process');
-
     // Prevent multiple simultaneous updates
     if (isUpdateInProgress) {
-        console.debug('[dev] Update already in progress, skipping manual update check');
         return;
     }
 
     if (menuItem) {
-        console.debug('[dev] Disabling menu item during update check');
         // Disable item until the check (and download) is complete
         // eslint-disable-next-line no-param-reassign -- menu item flags like enabled or visible can be dynamically toggled by mutating the object
         menuItem.enabled = false;
     }
 
-    console.debug('[dev] Setting isUpdateInProgress flag and starting manual update check');
     isUpdateInProgress = true;
 
     autoUpdater
         .checkForUpdates()
         .catch((error: unknown) => {
-            console.debug('[dev] Error during manual update check:', error);
             isSilentUpdating = false;
             return {error};
         })
         .then((result) => {
-            console.debug('[dev] Manual update check completed', result);
             const downloadPromise = result && 'downloadPromise' in result ? result.downloadPromise : undefined;
 
-            if (!browserWindow) {
-                console.debug('[dev] No browser window available, skipping update dialogs');
+            if (!browserWindow || !preferredLocale) {
                 return;
             }
 
             if (downloadPromise) {
-                console.debug('[dev] Update available, showing info dialog');
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
                     message: translate(preferredLocale, 'checkForUpdatesModal.available.title'),
@@ -242,7 +213,6 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow
                     buttons: [translate(preferredLocale, 'checkForUpdatesModal.available.soundsGood')],
                 });
             } else if (result && 'error' in result && result.error) {
-                console.debug('[dev] Update check failed, showing error dialog');
                 dialog.showMessageBox(browserWindow, {
                     type: 'error',
                     message: translate(preferredLocale, 'checkForUpdatesModal.error.title'),
@@ -250,7 +220,6 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow
                     buttons: [translate(preferredLocale, 'checkForUpdatesModal.notAvailable.okay')],
                 });
             } else {
-                console.debug('[dev] No update available, showing info dialog');
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
                     message: translate(preferredLocale, 'checkForUpdatesModal.notAvailable.title'),
@@ -264,13 +233,11 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow
             return downloadPromise;
         })
         .finally(() => {
-            console.debug('[dev] Manual update check completed, resetting flags');
             isSilentUpdating = false;
             isUpdateInProgress = false;
             if (!menuItem) {
                 return;
             }
-            console.debug('[dev] Re-enabling menu item');
             // eslint-disable-next-line no-param-reassign
             menuItem.enabled = true;
         });
@@ -340,7 +307,6 @@ const mainWindow = (): Promise<void> => {
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (__DEV__) {
-        console.debug('CONFIG: ', CONFIG);
         app.dock.setIcon(`${__dirname}/../icon-dev.png`);
         app.setName('New Expensify Dev');
     }
@@ -450,19 +416,16 @@ const mainWindow = (): Promise<void> => {
                 const initialMenuTemplate: MenuItemConstructorOptions[] = [
                     {
                         id: 'mainMenu',
-                        label: translate(preferredLocale, `desktopApplicationMenu.mainMenu`),
                         submenu: [
                             {id: 'about', role: 'about'},
                             {
                                 id: 'update',
-                                label: translate(preferredLocale, `desktopApplicationMenu.update`),
                                 click: () => verifyAndInstallLatestVersion(browserWindow),
                                 visible: false,
                             },
-                            {id: 'checkForUpdates', label: translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`), click: manuallyCheckForUpdates},
+                            {id: 'checkForUpdates', click: manuallyCheckForUpdates},
                             {
                                 id: 'viewShortcuts',
-                                label: translate(preferredLocale, `desktopApplicationMenu.viewShortcuts`),
                                 accelerator: 'CmdOrCtrl+J',
                                 click: () => {
                                     showKeyboardShortcutsPage(browserWindow);
@@ -480,12 +443,10 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'fileMenu',
-                        label: translate(preferredLocale, `desktopApplicationMenu.fileMenu`),
                         submenu: [{id: 'closeWindow', role: 'close', accelerator: 'Cmd+w'}],
                     },
                     {
                         id: 'editMenu',
-                        label: translate(preferredLocale, `desktopApplicationMenu.editMenu`),
                         submenu: [
                             {id: 'undo', role: 'undo'},
                             {id: 'redo', role: 'redo'},
@@ -508,7 +469,6 @@ const mainWindow = (): Promise<void> => {
                             {type: 'separator'},
                             {
                                 id: 'speechSubmenu',
-                                label: translate(preferredLocale, `desktopApplicationMenu.speechSubmenu`),
                                 submenu: [
                                     {id: 'startSpeaking', role: 'startSpeaking'},
                                     {id: 'stopSpeaking', role: 'stopSpeaking'},
@@ -518,7 +478,6 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'viewMenu',
-                        label: translate(preferredLocale, `desktopApplicationMenu.viewMenu`),
                         submenu: [
                             {id: 'reload', role: 'reload'},
                             {id: 'forceReload', role: 'forceReload'},
@@ -533,7 +492,6 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'historyMenu',
-                        label: translate(preferredLocale, `desktopApplicationMenu.historyMenu`),
                         submenu: [
                             {
                                 id: 'back',
@@ -574,33 +532,28 @@ const mainWindow = (): Promise<void> => {
                     },
                     {
                         id: 'helpMenu',
-                        label: translate(preferredLocale, `desktopApplicationMenu.helpMenu`),
                         role: 'help',
                         submenu: [
                             {
                                 id: 'learnMore',
-                                label: translate(preferredLocale, `desktopApplicationMenu.learnMore`),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.LEARN_MORE);
                                 },
                             },
                             {
                                 id: 'documentation',
-                                label: translate(preferredLocale, `desktopApplicationMenu.documentation`),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.DOCUMENTATION);
                                 },
                             },
                             {
                                 id: 'communityDiscussions',
-                                label: translate(preferredLocale, `desktopApplicationMenu.communityDiscussions`),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.COMMUNITY_DISCUSSIONS);
                                 },
                             },
                             {
                                 id: 'searchIssues',
-                                label: translate(preferredLocale, `desktopApplicationMenu.searchIssues`),
                                 click: () => {
                                     shell.openExternal(CONST.MENU_HELP_URLS.SEARCH_ISSUES);
                                 },
@@ -608,10 +561,6 @@ const mainWindow = (): Promise<void> => {
                         ],
                     },
                 ];
-
-                // Build and set the initial menu
-                const initialMenu = Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, preferredLocale));
-                Menu.setApplicationMenu(initialMenu);
 
                 // When the user clicks a link that has target="_blank" (which is all external links)
                 // open the default browser instead of a new electron window
@@ -686,21 +635,17 @@ const mainWindow = (): Promise<void> => {
                 });
 
                 app.on('before-quit', () => {
-                    console.debug('[dev] Application is preparing to quit');
                     // Adding __DEV__ check because we want links to be handled by dev app only while it's running
                     // https://github.com/Expensify/App/issues/15965#issuecomment-1483182952
                     if (__DEV__) {
-                        console.debug('[dev] Removing protocol client in dev mode');
                         app.removeAsDefaultProtocolClient(appProtocol);
                     }
 
                     // Clean up update listeners and reset flags
-                    console.debug('[dev] Cleaning up update listeners and resetting flags');
                     autoUpdater.removeAllListeners();
                     isUpdateInProgress = false;
                     isSilentUpdating = false;
 
-                    console.debug('[dev] Setting quitting flag to true');
                     quitting = true;
                 });
                 app.on('activate', () => {
@@ -717,10 +662,16 @@ const mainWindow = (): Promise<void> => {
                     app.hide();
                 }
 
+                // Note that we have to subscribe to this separately since we cannot listen to Onyx.connect here,
+                // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
+                // So we track preferredLocale separately via ELECTRON_EVENTS.LOCALE_UPDATED
                 ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale: Locale) => {
-                    Menu.setApplicationMenu(Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, updatedLocale)));
-                    disposeContextMenu();
-                    disposeContextMenu = createContextMenu(updatedLocale);
+                    TranslationStore.load(updatedLocale).then(() => {
+                        preferredLocale = updatedLocale;
+                        Menu.setApplicationMenu(Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, updatedLocale)));
+                        disposeContextMenu?.();
+                        disposeContextMenu = createContextMenu(updatedLocale);
+                    });
                 });
 
                 ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {

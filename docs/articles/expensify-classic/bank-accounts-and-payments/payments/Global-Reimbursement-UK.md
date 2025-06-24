@@ -25,13 +25,14 @@ If your business operates out of the U.K., you can enable global reimbursements 
 ---
 
 # Step 1: Connect Your UK Bank Account
-1. Go to **Settings > Workspaces > [Workspace Name] > Reports**.
-2. Confirm the workspace currency is set to **GBP**.
-3. Click the **Reimbursements** tab.
-4. Set the reimbursement method to **Direct**.
-5. Click **Add business bank account**.
-6. Select **United Kingdom** as the country and confirm the **currency** is GBP.
-7. Enter your bank account details and click **Save & Continue**.
+1. Go to **Settings > Workspaces [Workspace Name] > Overview**.
+2. In the **Report Currency** dropdown, select **GBP**.
+3. Navigate to **Settings > Workspaces [Workspace Name] > Workflows**.
+4. Scroll to **Make or track payments**.
+5. Set the reimbursement method to **Direct**.
+6. Click **Add business bank account**.
+7. Select **United Kingdom** as the country and confirm the **currency** is GBP.
+8. Enter your bank account details and click **Save & Continue**.
 
 ---
 
@@ -53,15 +54,15 @@ If your business operates out of the U.K., you can enable global reimbursements 
 This is a signed document authorizing a client’s bank to pull payments via direct debit.
 
 1. Expensify will send you a **Direct Debit Authorization** form to sign.
-3. Send the signed authorization form to your bank.
-4. Return the signed authorization form to Expensify.
-5. Once the account is set up for direct debits (typically takes 10 to 12 business days to complete), communicate to Expensify support that is complete.
+2. Send the signed authorization form to your bank.
+3. Return the signed authorization form to Expensify.
+4. Once the account is set up for direct debits (typically takes 10 to 12 business days to complete), communicate to Expensify support that is complete.
 
 ---
 
 # Step 4: Confirm Test Payment
 1. **Expensify will send a test payment to the bank account:** Once sent, our support team will ask you to verify the payment amount.
-2. Once the test payment is confirmed, the bank account is verified to use for global reimbursement.
+2. Once the test payment is confirmed, the bank account is verified for global reimbursement.
 
 ---
 
@@ -70,9 +71,10 @@ This is a signed document authorizing a client’s bank to pull payments via dir
 ⏳**Timeline:** After the executed mandate (authorization form) is signed and sent to your bank, it takes 10–12 business days for the bank account to be set up for direct debits.
 
 Once the bank account is approved for global reimbursement:
-1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
-2. Choose your verified EU account as the default reimbursement method.
-3. Instruct employees to connect their deposit account:
+1. Go to **Settings > Workspaces > [Workspace Name] > Workflows**.
+2. Scroll to **Make or track payments**.
+3. Choose your verified EU account as the default reimbursement method.
+4. Instruct employees to connect their deposit account:
    - Go to **Settings > Account > Wallet**.
    - Click **Add deposit-only bank account** and input their account details.
 ---

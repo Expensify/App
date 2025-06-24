@@ -64,6 +64,10 @@ autocompleteKey "key"
       / to
       / taxRate
       / from
+      / payer
+      / exporter
+      / createdBy
+      / assignee
       / expenseType
       / type
       / status
@@ -72,6 +76,7 @@ autocompleteKey "key"
       / groupBy
       / reimbursable
       / billable
+      / policyID
     )
 
 filterKey

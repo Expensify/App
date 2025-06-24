@@ -92,7 +92,6 @@ function WorkspaceNamePage({policy}: Props) {
                             defaultValue={policy?.name}
                             spellCheck={false}
                             autoFocus
-                            shouldDelayFocus
                         />
                     </View>
                 </FormProvider>

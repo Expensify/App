@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import type {EmojiPickerList, EmojiPickerListItem, HeaderIndice} from '@libs/EmojiUtils';
+import type {EmojiPickerList, EmojiPickerListItem, HeaderIndices} from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
 
 type BaseEmojiPickerMenuProps = {
@@ -20,7 +20,7 @@ type BaseEmojiPickerMenuProps = {
     isFiltered: boolean;
 
     /** Array of header emojis */
-    headerEmojis: HeaderIndice[];
+    headerEmojis: HeaderIndices[];
 
     /** Function to scroll to a specific header in the emoji list */
     scrollToHeader: (headerIndex: number) => void;
@@ -126,6 +126,7 @@ function BaseEmojiPickerMenu(
                             scrollPaddingTop: isFiltered ? 0 : CONST.EMOJI_PICKER_ITEM_HEIGHT,
                         },
                     }}
+                    scrollEnabled={data.length > 0}
                 />
             </View>
             <EmojiSkinToneList />

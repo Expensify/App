@@ -1,13 +1,9 @@
 import React from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,30 +41,14 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
     const {translate} = useLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
-    const handleCopyToClipboard = () => {
-        Clipboard.setString(pan);
-    };
-
     return (
         <>
             {pan?.length > 0 && (
                 <MenuItemWithTopDescription
                     description={translate('cardPage.cardDetails.cardNumber')}
                     title={pan}
-                    shouldShowRightComponent
-                    rightComponent={
-                        <View style={styles.justifyContentCenter}>
-                            <PressableWithDelayToggle
-                                tooltipText={translate('reportActionContextMenu.copyToClipboard')}
-                                tooltipTextChecked={translate('reportActionContextMenu.copied')}
-                                icon={Expensicons.Copy}
-                                onPress={handleCopyToClipboard}
-                                accessible={false}
-                                text=""
-                            />
-                        </View>
-                    }
                     interactive={false}
+                    copyValue={pan}
                 />
             )}
             {expiration?.length > 0 && (

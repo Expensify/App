@@ -59,7 +59,7 @@ type PusherWithAuthParams = InstanceType<typeof PusherClass> & {
 
 type PusherEventName = LiteralUnion<DeepValueOf<typeof TYPE>, string>;
 
-type PusherSubscribtionErrorData = {type?: string; error?: string; status?: string};
+type PusherSubscriptionErrorData = {type?: string; error?: string; status?: string};
 
 type PusherModule = {
     init: (args: Args) => Promise<void>;
@@ -91,12 +91,11 @@ export type {
     UserIsTypingEvent,
     UserIsLeavingRoomEvent,
     PingPongEvent,
-    PusherEventMap,
     EventData,
     EventCallbackError,
     ChunkedDataEvents,
     SocketEventCallback,
     PusherWithAuthParams,
     PusherEventName,
-    PusherSubscribtionErrorData,
+    PusherSubscriptionErrorData,
 };

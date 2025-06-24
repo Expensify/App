@@ -4,15 +4,26 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {checkIfFeedConnectionIsBroken, filterInactiveCards, getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, getSelectedFeed} from '@libs/CardUtils';
+import {
+    checkIfFeedConnectionIsBroken,
+    filterInactiveCards,
+    getCardFeedIcon,
+    getCompanyFeeds,
+    getCustomOrFormattedFeedName,
+    getDomainOrWorkspaceAccountID,
+    getPlaidInstitutionIconUrl,
+    getSelectedFeed,
+} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isCollectPolicy} from '@libs/PolicyUtils';
@@ -42,16 +53,21 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const isCollect = isCollectPolicy(policy);
 
-    const feeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).map((feed) => {
-        const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`]);
+    const feeds: CardFeedListItem[] = Object.entries(companyFeeds).map(([key, feedSettings]) => {
+        const feed = key as CompanyCardFeed;
+        const filteredFeedCards = filterInactiveCards(
+            allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getDomainOrWorkspaceAccountID(workspaceAccountID, feedSettings)}_${feed}`],
+        );
         const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards);
+        const plaidUrl = getPlaidInstitutionIconUrl(feed);
+
         return {
             value: feed,
             text: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames),
@@ -61,7 +77,12 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
             pendingAction: companyFeeds[feed]?.pendingAction,
             brickRoadIndicator: isFeedConnectionBroken ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             canShowSeveralIndicators: isFeedConnectionBroken,
-            leftElement: (
+            leftElement: plaidUrl ? (
+                <PlaidCardFeedIcon
+                    plaidUrl={plaidUrl}
+                    style={styles.mr3}
+                />
+            ) : (
                 <Icon
                     src={getCardFeedIcon(feed, illustrations)}
                     height={variables.cardIconHeight}

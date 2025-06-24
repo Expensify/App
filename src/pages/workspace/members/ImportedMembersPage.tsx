@@ -5,26 +5,31 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
-import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {importPolicyMembers} from '@libs/actions/Policy/Member';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED>;
 
 function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
+    const {setIsClosing} = useCloseImportPage();
+
     const policyID = route.params.policyID;
+
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
 
@@ -41,14 +46,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const validate = useCallback(() => {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Record<string, string | null> = {};
-
-        if (!requiredColumns.every((requiredColumn) => columns.includes(requiredColumn.value))) {
-            // eslint-disable-next-line rulesdir/prefer-early-return
-            requiredColumns.forEach((requiredColumn) => {
-                if (!columns.includes(requiredColumn.value)) {
-                    errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: requiredColumn.text});
-                }
-            });
+        const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
+        if (missingRequiredColumns) {
+            errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: missingRequiredColumns.text});
         } else {
             const duplicate = findDuplicate(columns);
             if (duplicate) {
@@ -92,14 +92,18 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         }
     }, [validate, spreadsheet, containsHeader, policyID]);
 
-    const spreadsheetColumns = spreadsheet?.data;
-    if (!spreadsheetColumns) {
+    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
     }
 
+    const spreadsheetColumns = spreadsheet?.data;
+    if (!spreadsheetColumns) {
+        return <NotFoundPage />;
+    }
+
     const closeImportPageAndModal = () => {
+        setIsClosing(true);
         setIsImporting(false);
-        closeImportPage();
         Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
 
@@ -130,6 +134,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 onCancel={closeImportPageAndModal}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
+                shouldHandleNavigationBack
             />
         </ScreenWrapper>
     );

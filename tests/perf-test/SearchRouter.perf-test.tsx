@@ -93,7 +93,7 @@ const mockedOptions = createOptionList(mockedPersonalDetails, mockedReports);
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
-        safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT],
+        evictableKeys: [ONYXKEYS.COLLECTION.REPORT],
     }),
 );
 

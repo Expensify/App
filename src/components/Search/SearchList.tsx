@@ -13,14 +13,16 @@ import Modal from '@components/Modal';
 import {PressableWithFeedback} from '@components/Pressable';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
+import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ExtendedTargetedEvent, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ExtendedTargetedEvent, ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useOnyxCustomHook from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,8 +33,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType;
-type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem;
+type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
+type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem | typeof TaskListItem;
 
 type SearchListHandle = {
     scrollAndHighlightItem?: (items: string[]) => void;
@@ -48,7 +50,7 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
     SearchTableHeader?: React.JSX.Element;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: (item: SearchListItem, isOpenedAsReport?: boolean) => void;
+    onSelectRow: (item: SearchListItem) => void;
 
     /** Whether this is a multi-select list */
     canSelectMultiple: boolean;
@@ -62,7 +64,7 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
+    /** Whether to prevent default focusing of options and focus the text input when selecting an option */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Whether to prevent long press of options */
@@ -76,7 +78,12 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
 
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
+
+    /** Invoked on mount and layout changes */
+    onLayout?: () => void;
 };
+
+const onScrollToIndexFailed = () => {};
 
 function SearchList(
     {
@@ -98,13 +105,15 @@ function SearchList(
         queryJSONHash,
         shouldGroupByReports,
         onViewableItemsChanged,
+        onLayout,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
     const styles = useThemeStyles();
     const flattenedTransactions = shouldGroupByReports ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
+    const flattenedTransactionWithoutPendingDelete = flattenedTransactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const selectedItemsLength = flattenedTransactions.reduce((acc, item) => {
-        return item.isSelected ? acc + 1 : acc;
+        return item?.isSelected ? acc + 1 : acc;
     }, 0);
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
@@ -127,7 +136,11 @@ function SearchList(
     // Keep track of the number of selected items to determine if we should turn off selection mode
     const selectionRef = useRef(0);
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+    });
+
+    const [allReports] = useOnyxCustomHook(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
 
     useEffect(() => {
         selectionRef.current = selectedItemsLength;
@@ -167,10 +180,18 @@ function SearchList(
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
                 return;
             }
+            // disable long press for empty expense reports
+            if ('transactions' in item && item.transactions.length === 0) {
+                return;
+            }
+            if (selectionMode?.isEnabled) {
+                onCheckboxPress(item);
+                return;
+            }
             setLongPressedItem(item);
             setIsModalVisible(true);
         },
-        [isFocused, isSmallScreenWidth, shouldPreventLongPressRow],
+        [isFocused, isSmallScreenWidth, onCheckboxPress, selectionMode?.isEnabled, shouldPreventLongPressRow],
     );
 
     const turnOnSelectionMode = useCallback(() => {
@@ -286,6 +307,7 @@ function SearchList(
         ({item, index}: ListRenderItemInfo<SearchListItem>) => {
             const isItemFocused = focusedIndex === index;
             const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
+            const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             return (
                 <ListItem
@@ -316,6 +338,8 @@ function SearchList(
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     queryJSONHash={queryJSONHash}
                     policies={policies}
+                    isDisabled={isDisabled}
+                    allReports={allReports}
                 />
             );
         },
@@ -331,28 +355,38 @@ function SearchList(
             queryJSONHash,
             setFocusedIndex,
             shouldPreventDefaultFocusOnSelectRow,
+            allReports,
         ],
     );
 
+    const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
+    const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
+
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
-            {canSelectMultiple && (
+            {tableHeaderVisible && (
                 <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
-                    <Checkbox
-                        accessibilityLabel={translate('workspace.people.selectAll')}
-                        isChecked={selectedItemsLength === flattenedTransactions.length}
-                        isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactions.length}
-                        onPress={() => {
-                            onAllCheckboxPress();
-                        }}
-                    />
-                    {SearchTableHeader ?? (
+                    {canSelectMultiple && (
+                        <Checkbox
+                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            isChecked={flattenedTransactionWithoutPendingDelete.length > 0 && selectedItemsLength === flattenedTransactionWithoutPendingDelete.length}
+                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactionWithoutPendingDelete.length}
+                            onPress={() => {
+                                onAllCheckboxPress();
+                            }}
+                            disabled={flattenedTransactions.length === 0}
+                        />
+                    )}
+
+                    {SearchTableHeader}
+
+                    {selectAllButtonVisible && (
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={onAllCheckboxPress}
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             role="button"
-                            accessibilityState={{checked: selectedItemsLength === flattenedTransactions.length}}
+                            accessibilityState={{checked: selectedItemsLength === flattenedTransactionWithoutPendingDelete.length}}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
@@ -360,6 +394,7 @@ function SearchList(
                     )}
                 </View>
             )}
+
             <Animated.FlatList
                 data={data}
                 renderItem={renderItem}
@@ -374,6 +409,8 @@ function SearchList(
                 ListFooterComponent={ListFooterComponent}
                 removeClippedSubviews
                 onViewableItemsChanged={onViewableItemsChanged}
+                onScrollToIndexFailed={onScrollToIndexFailed}
+                onLayout={onLayout}
             />
             <Modal
                 isVisible={isModalVisible}
@@ -383,7 +420,7 @@ function SearchList(
             >
                 <MenuItem
                     title={translate('common.select')}
-                    icon={Expensicons.Checkmark}
+                    icon={Expensicons.CheckSquare}
                     onPress={turnOnSelectionMode}
                 />
             </Modal>

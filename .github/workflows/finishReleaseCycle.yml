@@ -1,4 +1,4 @@
-name: Prepare production deploy
+name: Finish release cycle
 
 on:
   issues:
@@ -76,6 +76,7 @@ jobs:
   # Update the production branch to trigger the production deploy.
   updateProduction:
     needs: validate
+    if: ${{ fromJSON(needs.validate.outputs.isValid) }}
     uses: ./.github/workflows/updateProtectedBranch.yml
     secrets: inherit
     with:

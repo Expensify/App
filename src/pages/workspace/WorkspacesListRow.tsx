@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -68,8 +68,14 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** ID of the policy */
     policyID?: string;
 
-    /** is policy defualt */
+    /** Is default policy */
     isDefault?: boolean;
+
+    /** Whether the bill is loading */
+    isLoadingBill?: boolean;
+
+    /** Function to reset loading spinner icon index */
+    resetLoadingSpinnerIconIndex?: () => void;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -114,6 +120,8 @@ function WorkspacesListRow({
     isJoinRequestPending,
     policyID,
     isDefault,
+    isLoadingBill,
+    resetLoadingSpinnerIconIndex,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -121,6 +129,19 @@ function WorkspacesListRow({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
+    const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
+
+    useEffect(() => {
+        if (isLoadingBill) {
+            return;
+        }
+        resetLoadingSpinnerIconIndex?.();
+
+        if (!threeDotsMenuRef.current?.isPopupMenuVisible) {
+            return;
+        }
+        threeDotsMenuRef?.current?.hidePopoverMenu();
+    }, [isLoadingBill, resetLoadingSpinnerIconIndex]);
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
         if (shouldUseNarrowLayout) {
@@ -187,6 +208,7 @@ function WorkspacesListRow({
                             shouldOverlay
                             disabled={shouldDisableThreeDotsMenu}
                             isNested
+                            threeDotsMenuRef={threeDotsMenuRef}
                         />
                     </View>
                 </View>
@@ -197,7 +219,7 @@ function WorkspacesListRow({
     return (
         <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.p5]}>
             <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex1, isNarrow && styles.mb3, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex2, isNarrow && styles.mb3, styles.alignItemsCenter]}>
                     <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
                         <Avatar
                             imageStyles={[styles.alignSelfCenter]}
@@ -208,16 +230,18 @@ function WorkspacesListRow({
                             name={title}
                             type={CONST.ICON_TYPE_WORKSPACE}
                         />
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
-                        >
-                            {title}
-                        </Text>
+                        <Tooltip text={title}>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                            >
+                                {title}
+                            </Text>
+                        </Tooltip>
                     </View>
                     {shouldUseNarrowLayout && ThreeDotMenuOrPendingIcon}
                 </View>
-                <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, isWide && styles.flex1, isWide && styles.workspaceOwnerSectionMinWidth, styles.gap2, styles.alignItemsCenter]}>
                     {!!ownerDetails && (
                         <>
                             <Avatar

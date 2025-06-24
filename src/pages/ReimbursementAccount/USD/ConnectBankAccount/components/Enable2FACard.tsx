@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {Shield} from '@components/Icon/Expensicons';
+import {ShieldYellow} from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -11,7 +11,7 @@ import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 type Enable2FACardProps = {
-    policyID: string | undefined;
+    policyID?: string | undefined;
 };
 
 function Enable2FACard({policyID}: Enable2FACardProps) {
@@ -22,7 +22,7 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
     return (
         <Section
             title={translate('validationStep.enable2FATitle')}
-            icon={Illustrations.ShieldYellow}
+            icon={ShieldYellow}
             titleStyles={[styles.mb4]}
             containerStyles={[styles.mh5]}
             menuItems={[
@@ -31,7 +31,7 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
                     onPress: () => {
                         Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID)));
                     },
-                    icon: Expensicons.Shield,
+                    icon: Shield,
                     shouldShowRightIcon: true,
                     outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
                 },

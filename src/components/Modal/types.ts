@@ -30,7 +30,7 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
         shouldSetModalVisibility?: boolean;
 
         /** Callback method fired when the user requests to close the modal */
-        onClose: () => void;
+        onClose?: () => void;
 
         /** Function to call when the user presses on the modal backdrop */
         onBackdropPress?: () => void;
@@ -102,14 +102,14 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
         /** In which direction modal will swipe */
         swipeDirection?: Direction;
 
-        /** Whether modals with type CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED should use new modal component */
-        shouldUseNewModal?: boolean;
-
         /** Used to set the element that should receive the initial focus */
         initialFocus?: FocusTrapOptions['initialFocus'];
 
         /** Whether to prevent the focus trap from scrolling the element into view. */
         shouldPreventScrollOnFocus?: boolean;
+
+        /** Whether to disable the animation in */
+        disableAnimationIn?: boolean;
 
         /**
          * Temporary flag to disable safe area bottom spacing in modals and to allow edge-to-edge content.

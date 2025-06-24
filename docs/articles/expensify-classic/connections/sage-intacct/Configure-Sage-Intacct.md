@@ -1,29 +1,33 @@
 ---
 title: Configure Sage Intacct
 description: Learn how to configure Sage Intacct's export, coding, and advanced settings in Expensify for seamless integration.
-keywords: [Sage Intacct, export settings, coding settings, advanced settings, Expensify integration]
+keywords: [Sage Intacct, export settings, coding settings, advanced settings, Expensify Classic]
 ---
 <div id="expensify-classic" markdown="1">
 
 By properly configuring your Sage Intacct settings in Expensify, you can automate many tasks, streamlining your expense management workflow.
 
-# How to Configure Export Settings
+---
+
+# Configure Export Settings
 
 Expensify offers several options for exporting reports to Sage Intacct. Follow these steps to customize the export settings based on your business needs.
 
 To access these settings:
-1. Navigate to **Settings > Workspaces > Group > Connections**.
+1. Navigate to **Settings > Workspaces > Group > Accounting**.
 2. Select **Configure** under the Sage Intacct integration.
 
 ![Sage Intacct Configure Button]({{site.url}}/assets/images/SageConfigureIntegrationConfigureButton.png){:width="100%"}
 
-## Export Options
+---
 
-### Preferred Exporter
+# Export Options
 
-Any **Workspace Admin** can export reports to Sage Intacct, but only the **Preferred Exporter** will receive notifications regarding export status.
+## Preferred Exporter
 
-### Export Date Options
+Any Workspace Admin can export reports to Sage Intacct, but only the Preferred Exporter will receive notifications regarding the export status.
+
+## Export Date Options
 
 Choose from the following export date options:
 - **Date of last expense:** Uses the date of the most recent expense in the report.
@@ -32,13 +36,13 @@ Choose from the following export date options:
 
 **Note:** All export options (except for credit cards) use the selected date format. Credit card transactions always use the transaction date.
 
-### Reimbursable Expenses
+## Reimbursable Expenses
 
 Reimbursable expenses can be exported as either:
 - **Expense Reports**, or
 - **Vendor Bills** (depending on your initial setup).
 
-### Non-Reimbursable Expenses
+## Non-Reimbursable Expenses
 
 Non-reimbursable expenses will be exported separately from reimbursable expenses and can be categorized as either:
 - **Vendor Bills**, or
@@ -46,7 +50,7 @@ Non-reimbursable expenses will be exported separately from reimbursable expenses
 
 Expensify does **not** support exporting non-reimbursable expenses as **Journal Entries**.
 
-#### Configuring Company Card Export Settings
+## Configuring Company Card Export Settings
 If your company centrally manages cards through **Domain Settings**, you can configure exports per cardholder:
 1. Go to **Settings > Domains > [Domain Name] > Company Cards**.
 2. Select the company card connection (if multiple exist).
@@ -55,13 +59,13 @@ If your company centrally manages cards through **Domain Settings**, you can con
 
 **Note:** If you have **Multi-Currency** enabled, credit card transactions must be exported to a specific entity rather than the top level.
 
-### Exporting Negative Expenses
+## Exporting Negative Expenses
 
 Negative expenses can be exported to Sage Intacct, but if using **Expense Reports**, the total report amount cannot be negative.
 
 ---
 
-# How to Configure Coding Settings
+# Configure Coding Settings
 
 The way your expense data appears in Sage Intacct depends on your coding settings in Expensify.
 
@@ -87,7 +91,7 @@ If an expense is marked **Billable**, the correct category (item) must be select
 
 ## Dimensions: Departments, Classes, and Locations
 
-Expensify supports three dimension settings:
+Expensify supports three-dimensional settings:
 1. **Employee Default** – Applies when using **Expense Reports**.
 2. **Tags** – Enables selection at the report/expense level.
 3. **Report Fields** – Assigns at the report level (useful for varying locations per report).
@@ -119,8 +123,8 @@ To find it in Sage Intacct:
 
 ![Sage Intacct User Defined Dimensions]({{site.url}}/assets/images/SageConfigureUserDefinedDimensionsFilter.png){:width="100%"}
 
-To enable in Expensify:
-1. Go to **Settings > Workspaces > Group > [Workspace Name] > Connections**.
+To set this up:
+1. Go to **Settings > Workspaces > Group > [Workspace Name] > Accounting**.
 2. Click **Configure** under Sage Intacct.
 3. On the **Coding** tab, enable **User Defined Dimensions**.
 4. Enter the **Integration Name** and choose whether to import it as a **Tag** or **Report Field**.
@@ -128,7 +132,7 @@ To enable in Expensify:
 
 ---
 
-# How to Configure Advanced Settings
+# Configure Advanced Settings
 
 ## Multi-Entity Sync
 
@@ -157,7 +161,7 @@ When enabled, Expensify will set each employee’s **Sage Intacct Manager** as t
 Approval options:
 - **Basic Approval**: All users submit to one approver.
 - **Manager Approval**: Employees submit to their Sage Intacct manager, who may forward to a final approver.
-- **Configure Manually**: Employees are imported, but approval workflow is set up manually.
+- **Configure Manually**: Employees are imported, but the approval workflow is set up manually.
 
 ## Sync Reimbursed Reports
 

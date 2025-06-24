@@ -12,7 +12,7 @@ import * as MultiGestureCanvasUtils from './utils';
 // This value determines how fast the pan animation should phase out
 // We're using a "withDecay" animation to smoothly phase out the pan animation
 // https://docs.swmansion.com/react-native-reanimated/docs/animations/withDecay/
-const PAN_DECAY_DECELARATION = 0.9915;
+const PAN_DECAY_DECLARATION = 0.9915;
 const SCREEN_HEIGHT = Dimensions.get('screen').height;
 const SNAP_POINT = SCREEN_HEIGHT / 4;
 const SNAP_POINT_HIDDEN = SCREEN_HEIGHT / 1.2;
@@ -126,7 +126,7 @@ const usePanGesture = ({
                     withDecay({
                         velocity: panVelocityX.get(),
                         clamp: [horizontalBoundaries.min, horizontalBoundaries.max],
-                        deceleration: PAN_DECAY_DECELARATION,
+                        deceleration: PAN_DECAY_DECLARATION,
                         rubberBandEffect: false,
                     }),
                 );
@@ -144,7 +144,7 @@ const usePanGesture = ({
                     withDecay({
                         velocity: panVelocityY.get(),
                         clamp: [verticalBoundaries.min, verticalBoundaries.max],
-                        deceleration: PAN_DECAY_DECELARATION,
+                        deceleration: PAN_DECAY_DECLARATION,
                     }),
                 );
             }

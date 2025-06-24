@@ -3,13 +3,14 @@ import {fromZonedTime} from 'date-fns-tz';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
+import type {ValueOf} from 'type-fest';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {PreferredCurrency} from '@hooks/usePreferredCurrency';
-import type {PersonalPolicyTypeExludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
+import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
 import type {SubscriptionType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, Policy, StripeCustomerID} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToShortDisplayString} from './CurrencyUtils';
 import {translateLocal} from './Localize';
@@ -93,11 +94,11 @@ Onyx.connect({
     },
 });
 
-let hasManualTeamPricing2025: OnyxEntry<string>;
+let hasManualTeam2025Pricing: OnyxEntry<string>;
 Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_PRICING_2025,
+    key: ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING,
     callback: (value) => {
-        hasManualTeamPricing2025 = value;
+        hasManualTeam2025Pricing = value;
     },
 });
 
@@ -177,6 +178,21 @@ Onyx.connect({
     waitForCollectionCallback: true,
 });
 
+// Indicates if downgrading the current subscription plan is allowed for the user.
+let canDowngrade = false;
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (val) => {
+        canDowngrade = val?.canDowngrade ?? false;
+    },
+});
+
+let introSelected: OnyxEntry<IntroSelected>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => (introSelected = value),
+});
+
 /**
  * @returns The date when the grace period ends.
  */
@@ -188,7 +204,7 @@ function getOverdueGracePeriodDate(): OnyxEntry<number> {
  * @returns Whether the workspace owner has an overdue grace period.
  */
 function hasOverdueGracePeriod(): boolean {
-    return !!ownerBillingGraceEndPeriod ?? false;
+    return !!ownerBillingGraceEndPeriod;
 }
 
 /**
@@ -223,7 +239,7 @@ function hasCardAuthenticatedError() {
  * @returns Whether there is a billing dispute pending.
  */
 function hasBillingDisputePending() {
-    return !!billingDisputePending ?? false;
+    return !!billingDisputePending;
 }
 
 /**
@@ -241,7 +257,11 @@ function hasInsufficientFundsError() {
 }
 
 function shouldShowPreTrialBillingBanner(): boolean {
-    return !isUserOnFreeTrial() && !hasUserFreeTrialEnded();
+    // We don't want to show the Pre Trial banner if the user was a Test Drive Receiver that created their workspace
+    // with the promo code.
+    const wasUserTestDriveReceiver = introSelected?.previousChoices?.some((choice) => choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER);
+
+    return !isUserOnFreeTrial() && !hasUserFreeTrialEnded() && !wasUserTestDriveReceiver;
 }
 /**
  * @returns The card to be used for subscription billing.
@@ -275,7 +295,7 @@ function hasCardExpiringSoon(): boolean {
     return isExpiringThisMonth || isExpiringNextMonth;
 }
 
-function shouldShowDiscountBanner(): boolean {
+function shouldShowDiscountBanner(hasTeam2025Pricing: boolean, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null): boolean {
     if (!getOwnedPaidPolicies(allPolicies, currentUserAccountID)?.length) {
         return false;
     }
@@ -285,6 +305,10 @@ function shouldShowDiscountBanner(): boolean {
     }
 
     if (doesUserHavePaymentCardAdded()) {
+        return false;
+    }
+
+    if (hasTeam2025Pricing && subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
         return false;
     }
 
@@ -330,14 +354,14 @@ function getEarlyDiscountInfo(): DiscountInfo | null {
  * @returns Whether there is a retry billing error.
  */
 function hasRetryBillingError(): boolean {
-    return !!retryBillingFailed ?? false;
+    return !!retryBillingFailed;
 }
 
 /**
  * @returns Whether the retry billing was successful.
  */
 function isRetryBillingSuccessful(): boolean {
-    return !!retryBillingSuccessful ?? false;
+    return !!retryBillingSuccessful;
 }
 
 type SubscriptionStatus = {
@@ -569,8 +593,12 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
     return false;
 }
 
+function shouldCalculateBillNewDot(): boolean {
+    return canDowngrade && getOwnedPaidPolicies(allPolicies, currentUserAccountID).length === 1;
+}
+
 function checkIfHasTeam2025Pricing() {
-    if (hasManualTeamPricing2025) {
+    if (hasManualTeam2025Pricing) {
         return true;
     }
 
@@ -581,7 +609,7 @@ function checkIfHasTeam2025Pricing() {
     return differenceInDays(firstPolicyDate, CONST.SUBSCRIPTION.TEAM_2025_PRICING_START_DATE) >= 0;
 }
 
-function getSubscriptionPrice(plan: PersonalPolicyTypeExludedProps | null, preferredCurrency: PreferredCurrency, privateSubscriptionType: SubscriptionType | undefined): number {
+function getSubscriptionPrice(plan: PersonalPolicyTypeExcludedProps | null, preferredCurrency: PreferredCurrency, privateSubscriptionType: SubscriptionType | undefined): number {
     if (!privateSubscriptionType || !plan) {
         return 0;
     }
@@ -596,7 +624,7 @@ function getSubscriptionPrice(plan: PersonalPolicyTypeExludedProps | null, prefe
 }
 
 function getSubscriptionPlanInfo(
-    subscriptionPlan: PersonalPolicyTypeExludedProps | null,
+    subscriptionPlan: PersonalPolicyTypeExcludedProps | null,
     privateSubscriptionType: SubscriptionType | undefined,
     preferredCurrency: PreferredCurrency,
     isFromComparisonModal: boolean,
@@ -676,6 +704,7 @@ export {
     shouldShowPreTrialBillingBanner,
     shouldShowDiscountBanner,
     getEarlyDiscountInfo,
+    shouldCalculateBillNewDot,
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
 };

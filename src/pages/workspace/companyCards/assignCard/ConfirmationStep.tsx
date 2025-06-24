@@ -7,14 +7,14 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
-import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,11 +34,13 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
 
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const feed = assignCard?.data?.bankName as CompanyCardFeed | undefined;
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [cardFeeds] = useCardFeeds(policyID);
 
     const data = assignCard?.data;
     const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
@@ -47,7 +49,12 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
         if (!assignCard?.isAssigned) {
             return;
         }
-        Navigation.goBack(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+
+        if (backTo) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+        }
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
     }, [assignCard, backTo, policyID]);
 
@@ -57,9 +64,18 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
         }
 
         const isFeedExpired = isSelectedFeedExpired(feed ? cardFeeds?.settings?.oAuthAccountDetails?.[feed] : undefined);
+        const institutionId = !!getPlaidInstitutionId(feed);
 
         if (isFeedExpired) {
-            setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
+            if (institutionId) {
+                const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
+                setAddNewCompanyCardStepAndData({
+                    data: {
+                        selectedCountry: country,
+                    },
+                });
+            }
+            setAssignCardStepAndData({currentStep: institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
             return;
         }
         assignWorkspaceCompanyCard(policyID, data);
@@ -129,6 +145,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                             isLoading={assignCard?.isAssigning}
                             style={styles.w100}
                             onPress={submit}
+                            testID={CONST.ASSIGN_CARD_BUTTON_TEST_ID}
                             text={translate('workspace.companyCards.assignCard')}
                         />
                     </OfflineWithFeedback>

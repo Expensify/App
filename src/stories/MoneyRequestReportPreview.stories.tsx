@@ -34,8 +34,6 @@ const mockTransactionsBig = Array.from({length: 12}).map((item, index) => {
     return {...transactionR14932, transactionID: `${transactionR14932.transactionID}${index}`};
 });
 
-const style = getMoneyRequestReportPreviewStyle(false);
-
 const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
     <TransactionPreviewContent
         action={actionR14932}
@@ -46,9 +44,7 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         iouReport={iouReportR14932}
         transaction={item}
         violations={item.errors ? violationsR14932 : []}
-        showContextMenu={() => undefined}
         offlineWithFeedbackOnClose={() => undefined}
-        onPreviewPressed={() => {}}
         navigateToReviewFields={() => undefined}
         isBillSplit={false}
         areThereDuplicates={false}
@@ -56,7 +52,7 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         walletTermsErrors={undefined}
         routeName={SCREENS.TRANSACTION_DUPLICATE.REVIEW}
         shouldHideOnDelete={false}
-        wrapperStyle={style.transactionPreviewStyle}
+        transactionPreviewWidth={303}
         containerStyles={[sizing.h100]}
     />
 );
@@ -93,7 +89,7 @@ export default {
             control: {type: 'radio'},
         },
         /** Callback for updating context menu active state, used for showing context menu */
-        chceckIfContextMenuActive: {
+        checkIfContextMenuActive: {
             options: [undefined, () => {}],
             control: {type: 'radio'},
         },
@@ -126,7 +122,7 @@ export default {
         violations: violationsR14932,
         invoiceReceiverPersonalDetail: undefined,
         invoiceReceiverPolicy: undefined,
-        renderItem: mockRenderItem,
+        renderTransactionItem: mockRenderItem,
     },
     parameters: {
         useLightTheme: true,
@@ -136,6 +132,7 @@ export default {
 function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {parameters: {useLightTheme?: boolean; transactionsBig?: boolean}}) {
     const theme = parameters.useLightTheme ? CONST.THEME.LIGHT : CONST.THEME.DARK;
     const transactions = parameters.transactionsBig ? mockTransactionsBig : props.transactions;
+    const reportPreviewStyle = getMoneyRequestReportPreviewStyle(false, transactions.length, 400, 400);
 
     return (
         <ThemeProvider theme={theme}>
@@ -144,7 +141,8 @@ function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {p
                     <MoneyRequestReportPreviewContent
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
-                        containerStyles={[style.componentStyle, props.containerStyles]}
+                        reportPreviewStyles={reportPreviewStyle}
+                        containerStyles={[reportPreviewStyle.componentStyle, props.containerStyles]}
                         transactions={transactions}
                     />
                 </View>

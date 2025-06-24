@@ -1,15 +1,14 @@
 ---
 title: Google Apps SSO
 description: Learn how to integrate Expensify with Google Apps SSO for seamless user management and one-click Workspace invites.
-keywords: [Google Apps SSO, Expensify integration, Workspace invites, Google Admin, Sync Users]
+keywords: [Google Apps SSO, Expensify Classic, Workspace invites, Google Admin]
 ---
 
-# Google Apps SSO Integration
-
-## Overview
+<div id="expensify-classic" markdown="1">
+  
 Expensify offers **Single Sign-On (SSO)** integration with [Google Apps](https://cloud.google.com/architecture/identity/single-sign-on), allowing **one-click Workspace invites** for easier user management.
 
-### Requirements:
+## Requirements:
 - You must be an **admin** of a **Group Workspace** with a **Collect or Control** subscription.
 - You must have **Administrator access** to the Google Apps Admin console.
 
@@ -17,7 +16,7 @@ Expensify offers **Single Sign-On (SSO)** integration with [Google Apps](https:/
 
 ---
 
-## How to Enable Expensify on Google Apps
+# How to Enable Expensify on Google Apps
 
 To integrate Expensify with your Google Apps domain and add an **Expenses** shortcut to your Google navigation bar:
 
@@ -33,7 +32,7 @@ Now, follow the steps below to **sync users from Google Apps to Expensify**.
 
 ---
 
-## How to Sync Google Apps Users to Expensify
+# How to Sync Google Apps Users to Expensify
 
 To automatically add your Google Apps users to an Expensify Workspace:
 
@@ -44,4 +43,6 @@ To automatically add your Google Apps users to an Expensify Workspace:
 5. Navigate to **People** in the admin menu.
 6. Click **Sync G Suite Now**. Expensify will detect users in your domain who are not yet in the Workspace and add them.
 
-> **Important:** The connection does **not** auto-refresh. You must manually click **Sync G Suite Now** whenever you want to update users.
+**Important:** The connection does **not** auto-refresh. You must manually click **Sync G Suite Now** whenever you want to update users.
+
+</div>

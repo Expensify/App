@@ -41,7 +41,7 @@ type ConnectionLayoutProps = {
     /** The current feature name that the user tries to get access to */
     featureName?: PolicyFeatureName;
 
-    /** The content container style of Scrollview */
+    /** The content container style of ScrollView */
     contentContainerStyle?: StyleProp<ViewStyle> | undefined;
 
     /** Style of the title text */

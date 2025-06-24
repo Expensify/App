@@ -20,12 +20,12 @@ const STEP_FIELDS = [COMPANY_WEBSITE_KEY];
 
 function WebsiteBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
-    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, user), [session, user]);
+    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account), [session, account]);
     const defaultCompanyWebsite = reimbursementAccount?.achData?.website ?? defaultWebsiteExample;
 
     const validate = useCallback(
@@ -60,7 +60,7 @@ function WebsiteBusiness({onNext, onMove, isEditing}: SubStepProps) {
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('businessInfoStep.enterYourCompanysWebsite')}
+            formTitle={translate('businessInfoStep.enterYourCompanyWebsite')}
             formDisclaimer={translate('common.websiteExample')}
             validate={validate}
             onSubmit={handleSubmit}

@@ -56,4 +56,4 @@ type AccordionItem = {
     shouldAnimateSection: SharedValue<boolean>;
 };
 
-export type {MenuItem, ToggleItem, MenuItemWithSubscribedSettings, AccordionItem, ExtendedMenuItemWithSubscribedSettings, MenuItemToRender};
+export type {ExtendedMenuItemWithSubscribedSettings, MenuItemToRender};

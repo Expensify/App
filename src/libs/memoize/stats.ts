@@ -123,5 +123,4 @@ class MemoizeStats {
     }
 }
 
-export type {MemoizeStatsEntry};
-export {MemoizeStats};
+export default MemoizeStats;

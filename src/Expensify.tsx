@@ -7,11 +7,9 @@ import Onyx, {useOnyx} from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
-import FocusModeNotification from './components/FocusModeNotification';
 import GrowlNotification from './components/GrowlNotification';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
-import TestToolsModal from './components/TestToolsModal';
 import UpdateAppModal from './components/UpdateAppModal';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
@@ -24,8 +22,10 @@ import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
+import {isSafari} from './libs/Browser';
+import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
-import * as Growl from './libs/Growl';
+import Growl, {growlRef} from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
 import Navigation from './libs/Navigation/Navigation';
@@ -45,14 +45,21 @@ import type {Route} from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
 
-Onyx.registerLogger(({level, message}) => {
+Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
-        Log.alert(message);
+        Log.alert(message, parameters);
         console.error(message);
+
+        // useOnyx() calls with "canBeMissing" config set to false will display a visual alert in dev environment
+        // when they don't return data.
+        const shouldShowAlert = typeof parameters === 'object' && !Array.isArray(parameters) && 'showAlert' in parameters && 'key' in parameters;
+        if (Environment.isDevelopment() && shouldShowAlert) {
+            Growl.error(`${message} Key: ${parameters.key as string}`, 10000);
+        }
     } else if (level === 'hmmm') {
-        Log.hmmm(message);
+        Log.hmmm(message, parameters);
     } else {
-        Log.info(message);
+        Log.info(message, undefined, parameters);
     }
 });
 
@@ -72,9 +79,6 @@ type ExpensifyProps = {
     /** True when the user must update to the latest minimum version of the app */
     updateRequired: OnyxEntry<boolean>;
 
-    /** Whether we should display the notification alerting the user that focus mode has been auto-enabled */
-    focusModeNotification: OnyxEntry<boolean>;
-
     /** Last visited path in the app */
     lastVisitedPath: OnyxEntry<string | undefined>;
 };
@@ -84,18 +88,17 @@ function Expensify() {
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
-    const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
-    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
-    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
-    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED);
-    const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
-    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false});
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const {translate, preferredLocale} = useLocalize();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, {canBeMissing: true});
+    const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA, {canBeMissing: true});
+    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: true});
+    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false, canBeMissing: true});
+    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false, canBeMissing: true});
+    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
+    const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST, {canBeMissing: true});
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
     useDebugShortcut();
 
@@ -111,7 +114,7 @@ function Expensify() {
     const isAuthenticated = useIsAuthenticated();
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
-    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
+    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
     const isHybridAppReady = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isHybridAppReady : isSplashVisible);
@@ -121,7 +124,14 @@ function Expensify() {
             return;
         }
 
-        ActiveClientManager.init();
+        // Delay client init to avoid issues with delayed Onyx events on iOS. All iOS browsers use WebKit, which suspends events in background tabs.
+        // Events are flushed only when the tab becomes active again causing issues with client initialization.
+        // See: https://stackoverflow.com/questions/54095584/page-becomes-inactive-when-switching-tabs-on-ios
+        if (isSafari()) {
+            setTimeout(ActiveClientManager.init, 400);
+        } else {
+            ActiveClientManager.init();
+        }
     };
 
     const setNavigationReady = useCallback(() => {
@@ -167,7 +177,6 @@ function Expensify() {
                     updateAvailable,
                     isSidebarLoaded,
                     screenShareRequest,
-                    focusModeNotification,
                     isAuthenticated,
                     lastVisitedPath,
                 };
@@ -199,6 +208,10 @@ function Expensify() {
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
+            // We use custom deeplink handler in setup/hybridApp
+            if (CONFIG.IS_HYBRID_APP) {
+                return;
+            }
             Report.openReportFromDeepLink(state.url);
         });
 
@@ -260,7 +273,7 @@ function Expensify() {
         >
             {shouldInit && (
                 <>
-                    <GrowlNotification ref={Growl.growlRef} />
+                    <GrowlNotification ref={growlRef} />
                     <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
@@ -276,7 +289,6 @@ function Expensify() {
                             isVisible
                         />
                     ) : null}
-                    {focusModeNotification ? <FocusModeNotification /> : null}
                 </>
             )}
 
@@ -290,7 +302,6 @@ function Expensify() {
                 />
             )}
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
-            <TestToolsModal />
         </DeeplinkWrapper>
     );
 }

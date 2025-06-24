@@ -3,7 +3,7 @@ Every React Native mobile application needs native codebase with an entry point,
 
 It means that whenever we create a React Native application from scratch we instantiate it on a (very basic, bare) native codebase. However, we can always use a different, already existing codebase to run React Native. This is how we've built HybridApp - we've created a new `ReactRootView`, and taken all JavaScript code to run it within the existing mobile application (OldDot).
 
-It means that HybridApp is a **regular native application**, which has an additional screen that runs React Native. HybridApp let us combine New Expensify and our classic app into a single mobile app for a seemless migration
+It means that HybridApp is a **regular native application**, which has an additional screen that runs React Native. HybridApp let us combine New Expensify and our classic app into a single mobile app for a seamless migration
 # How is HybridApp built?
 If you have access to the closed-source `Mobile-Expensify` repository, you are eligible to build HybridApp. The main difference between NewDot and HybridApp is that the native code is located in a different place. The native code is located under `./Mobile-Expensify/Android` and `./Mobile-Expensify/iOS`.
 
@@ -116,14 +116,14 @@ In this case you can do the following:
 1. `rm -rf node_modules`
 2. `npm i-standalone`
 3. `npm run pod-install-standalone` (required only if you build iOS)
-4. `npm run ios-standalone` or `npm run android-stanalone`
+4. `npm run ios-standalone` or `npm run android-standalone`
 
 Alternatively, you may notice in `package.json` that all these scripts are based on `STANDALONE_NEW_DOT` environment variable. If you feel confident you can do `export STANDALONE_NEW_DOT=true` to change the default behaviour in the current process of the terminal, and use regular commands (`npm i`, `npm run android`, `npm run ios` etc.) to build NewDot. 
 
 ### Do I need to clean cache and rebuild the app?
 It's a valid question, especially because clean builds may take some time. On the way I've noticed that many developers tend to rebuild the app from scratch, even though in some cases it is unnecessary. In this case, when should you rebuild the app?
 1. Whenever any code located in `./Mobile-Expensify` has changed - this means that we need to recompile OldDot/native code
-2. Whenever you've pulled the newest main - not always necessary, but usually we don't analise what code has just been merged by `git pull`
+2. Whenever you've pulled the newest main - not always necessary, but usually we don't analyze what code has just been merged by `git pull`
 3. Whenever `package-lock.json` has changed - this may indicate that some packages with native code were bumped (however it's not always necessary, see [[#Should I rebuild HybridApp after bumping a `node_module`?]])
 4. Whenever you've updated `.env` files
 This means that if you changed only React Native code, and didn't pull any changes, the rebuilt is probably not necessary. If something doesn't work, you can always restart the Metro bundler using the following command `npm run start --reset-cache`
@@ -139,6 +139,10 @@ Executing `npm run clean` clears cache for React Native, Android, and iOS. It me
 	- `Pods`, `DerivedData`, `build`, `cocoapods`
 - **YAPL**: `npm run clean -- --npm`
 	- `npm`, `Mobile-Expensify/node_modules` (OldDot-specific)
+### I use VSCode and the patches are constantly failing during `npm install`
+In case you use VSCode and are having problems during `npm install` caused by patch errors, e.g. `@onfido/react-native-sdk` and/or `react-native-vision-camera`, **please check if you have any Java-related extensions enabled in your editor**. In case you have it, try **disabling** them and running the steps specified above to have a clean install.
+
+The reason is that some Java extensions are constantly creating files inside `node_modules` libraries and thus messing up with `patch-package` logic, so it’s advisable to keep them disabled in order to avoid such problems.
 ## Android
 ### Error: `Could not find method autolinkLibrariesFromCommandForPath()`
 
@@ -199,7 +203,7 @@ This one is pretty enigmatic, and usually appears after subsequent android, and 
 2. rerun the iOS build
 
 ### Error: `CDN: trunk URL couldn't be downloaded`
-This error may appear after execution of `npm run pod-install`. In this case you shaould do the following:
+This error may appear after execution of `npm run pod-install`. In this case you should do the following:
 1. cd to `Mobile-Expensify/ios`
 2. run `pod repo remove trunk`
 

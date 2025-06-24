@@ -1,10 +1,8 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {findFocusedRoute, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
-import {updateLastAccessedWorkspaceSwitcher} from '@libs/actions/Policy/Policy';
 import * as Localize from '@libs/Localize';
-import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import {isFullScreenName, isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -13,28 +11,14 @@ import {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
     handleOpenWorkspaceSplitAction,
-    handlePushReportSplitAction,
-    handlePushSearchPageAction,
+    handlePushFullscreenAction,
     handleReplaceReportsSplitNavigatorAction,
-    handleSwitchPolicyIDAction,
 } from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
-import type {
-    DismissModalActionType,
-    OpenWorkspaceSplitActionType,
-    PushActionType,
-    ReplaceActionType,
-    RootStackNavigatorAction,
-    RootStackNavigatorRouterOptions,
-    SwitchPolicyIdActionType,
-} from './types';
+import type {DismissModalActionType, OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, RootStackNavigatorAction, RootStackNavigatorRouterOptions} from './types';
 
 function isOpenWorkspaceSplitAction(action: RootStackNavigatorAction): action is OpenWorkspaceSplitActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
-}
-
-function isSwitchPolicyIdAction(action: RootStackNavigatorAction): action is SwitchPolicyIdActionType {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.SWITCH_POLICY_ID;
 }
 
 function isPushAction(action: RootStackNavigatorAction): action is PushActionType {
@@ -79,21 +63,12 @@ function isNavigatingToModalFromModal(state: StackNavigationState<ParamListBase>
 
 function RootStackRouter(options: RootStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
-    const {setActiveWorkspaceID: setActiveWorkspaceIDUtils} = useActiveWorkspace();
-    const setActiveWorkspaceID = (workspaceID: string | undefined) => {
-        setActiveWorkspaceIDUtils?.(workspaceID);
-        updateLastAccessedWorkspaceSwitcher(workspaceID);
-    };
 
     return {
         ...stackRouter,
         getStateForAction(state: StackNavigationState<ParamListBase>, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) {
             if (isOpenWorkspaceSplitAction(action)) {
                 return handleOpenWorkspaceSplitAction(state, action, configOptions, stackRouter);
-            }
-
-            if (isSwitchPolicyIdAction(action)) {
-                return handleSwitchPolicyIDAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
             }
 
             if (isDismissModalAction(action)) {
@@ -104,14 +79,11 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
                 return handleReplaceReportsSplitNavigatorAction(state, action, configOptions, stackRouter);
             }
 
-            if (isPushAction(action)) {
-                if (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-                    return handlePushReportSplitAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
-                }
-
-                if (action.payload.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
-                    return handlePushSearchPageAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
-                }
+            // When navigating to a specific workspace from WorkspaceListPage there should be entering animation for its sidebar (only case where we want animation for sidebar)
+            // That's why we have a separate handler for opening it called handleOpenWorkspaceSplitAction
+            // options for WorkspaceSplitNavigator can be found in AuthScreens.tsx > getWorkspaceSplitNavigatorOptions
+            if (isPushAction(action) && isFullScreenName(action.payload.name) && action.payload.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+                return handlePushFullscreenAction(state, action, configOptions, stackRouter);
             }
 
             // Don't let the user navigate back to a non-onboarding screen if they are currently on an onboarding screen and it's not finished.

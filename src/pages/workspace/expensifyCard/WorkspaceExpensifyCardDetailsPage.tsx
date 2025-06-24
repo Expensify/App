@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Badge from '@components/Badge';
@@ -19,7 +19,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {filterInactiveCards, getTranslationKeyForLimitType, maskCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -44,7 +43,6 @@ type WorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<
 
 function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetailsPageProps) {
     const {policyID, cardID, backTo} = route.params;
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const defaultFundID = useDefaultFundID(policyID);
 
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
@@ -54,9 +52,13 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const [isDeleted, setIsDeleted] = useState(false);
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {
+        selector: filterInactiveCards,
+        canBeMissing: true,
+    });
 
     const isWorkspaceCardRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS;
     const card = cardsList?.[cardID];
@@ -71,15 +73,24 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         openCardDetailsPage(Number(cardID));
     }, [cardID]);
 
+    useEffect(() => {
+        if (!isDeleted) {
+            return;
+        }
+        return () => {
+            deactivateCardAction(defaultFundID, card);
+        };
+    }, [isDeleted, defaultFundID, card]);
+
     const {isOffline} = useNetwork({onReconnect: fetchCardDetails});
 
     useEffect(() => fetchCardDetails(), [fetchCardDetails]);
 
     const deactivateCard = () => {
+        setIsDeleted(true);
         setIsDeactivateModalVisible(false);
-        Navigation.goBack();
-        InteractionManager.runAfterInteractions(() => {
-            deactivateCardAction(workspaceAccountID, card);
+        requestAnimationFrame(() => {
+            Navigation.goBack();
         });
     };
 

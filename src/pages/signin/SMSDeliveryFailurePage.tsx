@@ -18,8 +18,8 @@ function SMSDeliveryFailurePage() {
     const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     const login = useMemo(() => {
         if (!credentials?.login) {
@@ -29,6 +29,7 @@ function SMSDeliveryFailurePage() {
     }, [credentials?.login]);
 
     const SMSDeliveryFailureMessage = account?.smsDeliveryFailureStatus?.message;
+    const isResettingSMSDeliveryFailureStatus = account?.smsDeliveryFailureStatus?.isLoading;
 
     type TimeData = {
         days?: number;
@@ -40,7 +41,14 @@ function SMSDeliveryFailurePage() {
         if (!SMSDeliveryFailureMessage) {
             return null;
         }
-        return JSON.parse(SMSDeliveryFailureMessage) as TimeData;
+
+        const parsedData = JSON.parse(SMSDeliveryFailureMessage) as TimeData | [];
+
+        if (Array.isArray(parsedData) && !parsedData.length) {
+            return null;
+        }
+
+        return parsedData as TimeData;
     }, [SMSDeliveryFailureMessage]);
 
     const hasSMSDeliveryFailure = account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
@@ -58,12 +66,12 @@ function SMSDeliveryFailurePage() {
         Keyboard.dismiss();
     }, [isKeyboardShown]);
 
-    if (hasSMSDeliveryFailure && hasClickedValidate) {
+    if (hasSMSDeliveryFailure && hasClickedValidate && !isResettingSMSDeliveryFailureStatus) {
         return (
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
                     <View style={[styles.flex1]}>
-                        <Text>{timeData && translate('smsDeliveryFailurePage.validationFailed', {timeData})}</Text>
+                        <Text>{translate('smsDeliveryFailurePage.validationFailed', {timeData})}</Text>
                     </View>
                 </View>
                 <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>
@@ -124,7 +132,7 @@ function SMSDeliveryFailurePage() {
             <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>
                 <FormAlertWithSubmitButton
                     buttonText={translate('common.validate')}
-                    isLoading={account?.smsDeliveryFailureStatus?.isLoading}
+                    isLoading={isResettingSMSDeliveryFailureStatus}
                     onSubmit={() => {
                         resetSMSDeliveryFailureStatus(login);
                         setHasClickedValidate(true);

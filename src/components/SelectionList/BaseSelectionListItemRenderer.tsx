@@ -43,6 +43,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     titleStyles,
     singleExecution,
     titleContainerStyles,
+    shouldUseDefaultRightHandSideCheckmark,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isReportListItemType(item)) {
@@ -92,6 +93,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
                 wrapperStyle={wrapperStyle}
                 titleStyles={titleStyles}
                 titleContainerStyles={titleContainerStyles}
+                shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
             />
             {item.footerContent && item.footerContent}
         </>

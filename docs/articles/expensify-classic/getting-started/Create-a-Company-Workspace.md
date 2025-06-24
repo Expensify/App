@@ -5,131 +5,109 @@ keywords: [Expensify Classic, getting started, new workspace, set up Expensify a
 ---
 <div id="expensify-classic" markdown="1">
 
-A workspace is the set of rules, settings, and spending limits for expense reports in your organization. This includes the unique expense categories and tags, budgets, currency and tax settings, etc. that all workspace members will use. A workspace also defines the approval workflow for your employees and the accounting connection if using an accounting software integration.
+A workspace is the set of rules, settings, and spending limits used for expense reports in your organization. This includes custom expense categories and tags, budgets, currency, tax settings, approval workflows, and accounting connections.
 
-Here are a couple of examples of when you’d want to create different workspaces:
-- You have employees with expense reports in different currencies. For example, you may have a workspace for employees who live in the US and submit their reports in USD and a workspace for employees who live in Canada and submit in CAD.
-- You want to limit specific groups of people to their own set of expense coding options (categories/tags) then they can separate their employees by Sales, Marketing, Support, etc.
-
-To create a group workspace:
-1. Hover over **Settings**, then click **Workspaces**.
-2. Click the Group tab on the left.
-3. Click New Workspace.
-4. Enter the workspace name and select a workspace type.
-     - **Collect:** Ideal for small groups who only need basic features like expense approvals, reimbursement, corporate card management, and integration options.
-     - **Control:** This is the most popular option for groups that need a deeper level of control and configurations, such as multi-stage approval workflows, corporate card management, integrations, and more.
-5. Set up your workspace details including the workspace name, expense rules, categories, and more.
-
-Setting up a company workspace in Expensify helps streamline expense management, reimbursements, and accounting integrations. Follow this step-by-step guide to create a workspace and configure essential settings for your business.
-
-**Need help?** Schedule a free onboarding session with a Setup Specialist! Check your email and Expensify notifications for your unique signup link.
+Here are a few examples of when you’d create different workspaces:
+- Employees submit reports in different currencies (e.g., USD vs. CAD).
+- Different departments need custom coding options, like Sales vs. Support.
 
 ---
 
-# 1. Meet Concierge
+# Create a Workspace
 
-Concierge is your personal assistant on the Expensify Home page (desktop and mobile). Concierge helps you:
-- Set up your account
-- Remind you to submit expenses
-- Alert you when more information is needed
-- Notify you about new features
-
-For support, click the **green chat bubble** in the right corner to chat with Concierge.
-
----
-
-# 2. Create a Workspace
-
+To create a company workspace:
 1. Hover over **Settings**, then click **Workspaces**.
 2. Click the **Group** tab on the left.
-3. Enter a name for the workspace (e.g., business or department name).
-4. Click **Select** next to the workspace type that fits your needs.
+3. Click **New workspace**.
+4. Enter the workspace name and select a workspace type:
+   - **Collect** – Best for small groups needing basic features like approvals and reimbursements.
+   - **Control** – Most popular for companies with advanced workflows, integrations, and corporate cards.
+5. Set up workspace details like expense rules, categories, and workflows.
 
 ---
 
-# 3. Add a Business Bank Account
+# Meet Concierge
+
+Concierge is your personal assistant on the Expensify Home page. Concierge helps you:
+- Set up your account
+- Submit expenses on time
+- Notify you when info is needed
+- Share tips and feature updates
+
+Need support? Click the **green chat bubble** in the bottom right to message Concierge.
+
+---
+
+# Add a Business Bank Account
 
 Adding a business bank account allows you to:
-- Reimburse expenses via direct transfer
+- Reimburse expenses via direct deposit
 - Pay bills
 - Collect invoice payments
 - Issue Expensify Cards
 
-_**Note:** The person adding the bank account does not need to be a signer but must enter their personal information. If another person’s details are used, the process may be delayed._
+**Note:** The person adding the account doesn't need to be a signer but must enter their personal information.
 
-## Steps to Add a Bank Account
-
-1. Go to **Settings > Workspaces**.
-2. Click the **Group** tab.
-3. Select the workspace.
-4. Click the **Reimbursement** tab.
-5. Click **Direct**, then **Add Business Bank Account**.
-6. Click **Connect to your bank** and proceed via Plaid.
-   - If your bank is not listed, close Plaid and click **Connect Manually** to enter account details.
-7. Select the correct bank account if multiple options appear.
-8. Provide business details:
+## Steps to add a bank account:
+1. Go to **Settings > Workspace > [Workspace Name] > Workflows > Make or track payments**.
+2. Click **Direct**, then **Add business bank account**.
+3. Click **Connect to your bank** and follow the prompts.
+   - If your bank isn't listed, click **Connect manually**.
+4. Select the correct account (if more than one appears).
+5. Enter your business details:
    - Legal business name
-   - Physical company address (No P.O. Boxes/UPS addresses)
+   - Physical company address (no P.O. Boxes)
    - Tax Identification Number (TIN)
-   - Company website (formatted as https://www.expensify.com)
-   - Industry Classification Code ([Find yours here](https://www.sec.gov/corpfin/division-of-corporation-finance-standard-industrial-classification-sic-code-list))
-9. Enter your personal information (U.S. address and SSN required).
-10. Upload a valid U.S. ID and take a short verification video.
-11. Accept the agreement terms.
-12. Identify any **Beneficial Owners** (owning 25%+ of the company). If applicable, their information must be provided.
-13. Within 1-2 business days, Expensify will send **three test transactions** to verify your account. Enter these by clicking **Validate Task** from Concierge or going to **Settings > Account > Payments > Enter Test Transactions**.
+   - Company website (e.g., `https://yourcompany.com`)
+   - Industry classification ([Find yours here](https://www.sec.gov/corpfin/division-of-corporation-finance-standard-industrial-classification-sic-code-list))
+6. Enter your personal information (U.S. address and SSN).
+7. Upload a valid U.S. ID and record a short verification video.
+8. Accept the agreement terms.
+9. Identify any **Beneficial owners** (individuals owning 25%+ of the business).
 
-_**Note:** If you don’t see test transactions after two business days, contact Concierge via the green chat bubble._
+Within 1–2 business days, Expensify will send three test transactions. Enter them via **Validate task** in Concierge or go to **Settings > Account > Wallet > Bank accounts > Enter test transactions**.
+
+**Note:** If you don’t see test transactions after two business days, message Concierge.
 
 ---
 
-# 4. Connect an Accounting System
+# Connect an Accounting System
 
-Expensify integrates with systems like QuickBooks to import accounting data and code expenses.
+Connect to systems like QuickBooks to sync your accounting data and map expenses.
 
-1. Go to **Settings > Workspaces**.
-2. Click the **Group** tab.
-3. Select the workspace.
-4. Click the **Connections** tab.
-5. Under **Accounting Integrations**, choose your accounting system and click **Connect**.
-6. Follow the prompts to complete the integration.
+1. Go to **Settings > Workspace > [Workspace Name] > Accounting**.
+2. Under **Accounting integrations**, click **Connect** next to your system.
+3. Follow the prompts to finish the setup.
 
 For setup guides on specific accounting systems, review our [Connections](https://help.expensify.com/expensify-classic/hubs/integrations/) articles.
 
 ---
 
-# 5. Set Approval Rules
+# Set Approval Rules
 
-Define expense rules to flag violations. You can set rules for:
+You can flag rule violations for:
 - Expenses
 - Travel
 - Reports
-- Per Diem
+- Per diems
 
-## Steps to Set Approval Rules
-
-1. Go to **Settings > Workspaces**.
-2. Click the **Group** tab.
-3. Select the workspace.
-4. Click the **Expenses** tab and adjust settings:
-   - **Expense Violations:** Flag expenses exceeding set limits.
-   - **Cash Expenses:** Define handling policies.
-   - **Re-billing:** Allow or prevent re-billing expenses.
-   - **eReceipts:** Enable for automatic tracking of credit card expenses under $75 USD.
-   - **Receipt Visibility:** Control access to receipts.
-   - **Mileage Rates:** Set reimbursement rates for distance expenses.
-   - **Time Expenses:** Enable time tracking if needed.
-
-_**Note:** eReceipts are IRS-compliant except for lodging expenses, which require a paper receipt._
-
-5. Click the **Reports** tab to set:
-   - **Currency**
-   - **Schedule Submit**: Auto-submit expenses for approval based on a set frequency.
-   - **Default Report Title**: Format all reports consistently.
-   - **Additional Fields**: Customize reports or invoices.
-6. Click the **Travel** tab to set:
-   - Preferred flight class and hotel ratings for Concierge travel bookings.
-7. Click the **Per Diem** tab to import location-based per diem expense rules.
+## Steps to Configure:
+1. Go to **Settings > Workspace > [Workspace Name] > Rules**.
+2. Under **Expenses**, adjust settings:
+   - **Expense violations** – Set limits and thresholds.
+   - **Cash expenses** – Define policies.
+   - **Rebilling** – Enable/disable rebilling.
+   - **eReceipts** – Turn on automatic receipts for non-loading expenses under $75 (_**Note:** eReceipts are IRS-compliant for expenses under $75. Additionally, all lodging expenses require a paper receipt_.
+   - **Receipt visibility** – Set access controls.
+   - **Time expenses** – Enable time tracking if needed.
+3. Go to **Settings > Workspace > [Workspace Name] > Distance rates** to set mileage reimbursement rates.
+4. Set custom report names for consistency.
+5. Set the workspace **default currency** under **Settings > Workspace > [Workspace Name] > Overview > Default currency**.
+6. Go to **Settings > Workspace > [Workspace Name] > Workflows** to configure:
+   - **Delayed submission** – Auto-submit based on a set schedule.
+7. Go to **Settings > Workspace > [Workspace Name] > Report fields** to customize reports or invoices.
+8. Click the **Travel** tab to define flight class or hotel preferences.
+9. Use the **Per diem** tab to import location-specific expense rules.
 
 ---
 
@@ -157,8 +135,7 @@ If you have multiple workspaces (whether an individual workspace and a group wor
 
 ## To Set Default Workspace:
 1. Hover over **Settings**, then click **Workspaces**.
-2. Click the Group tab on the left.
-3. To the right of the desired workspace, click **Make Default**.
+2. To the right of the desired workspace, click **Make Default**.
 
 ## Ensure Employees Select the Correct Workspace
 
@@ -168,6 +145,10 @@ As an admin, it’s important to ensure employees are submitting expenses and re
 - From the dropdown menu, they must select the correct workspace from the list at the bottom.
 - If an employee frequently switches between workspaces, remind them to always verify the workspace selection before submitting an expense or report.
 
-By reinforcing this process, you help prevent expense reports from being miscategorized and ensure accurate financial tracking.
+By reinforcing this process, you help prevent expense reports from being mis-categorized and ensure accurate financial tracking.
+
+---
+
+**Need help?** Schedule a free onboarding session with a Setup Specialist! Check your email and Expensify notifications for your unique signup link.
 
 </div>

@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import CONST from '@src/CONST';
+import TranslationStore from '@src/languages/TranslationStore';
 import {translate} from '@src/libs/Localize';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -8,6 +9,9 @@ import createRandomReport from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('ModifiedExpenseMessage', () => {
+    beforeAll(() => {
+        TranslationStore.load(CONST.LOCALES.EN);
+    });
     describe('getForAction', () => {
         const report = createRandomReport(1);
         describe('when the amount is changed', () => {
@@ -223,12 +227,12 @@ describe('ModifiedExpenseMessage', () => {
                     merchant: '',
                     oldMerchant: 'Big Belly',
                     newComment: '',
-                    oldComment: 'minishore',
+                    oldComment: 'mini shore',
                 },
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `removed the description (previously "minishore") and the merchant (previously "Big Belly")`;
+                const expectedResult = `removed the description (previously "mini shore") and the merchant (previously "Big Belly")`;
 
                 const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
@@ -244,14 +248,14 @@ describe('ModifiedExpenseMessage', () => {
                     merchant: '',
                     oldMerchant: 'Big Belly',
                     newComment: '',
-                    oldComment: 'minishore',
+                    oldComment: 'mini shore',
                     category: '',
                     oldCategory: 'Benefits',
                 },
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `removed the description (previously "minishore"), the merchant (previously "Big Belly"), and the category (previously "Benefits")`;
+                const expectedResult = `removed the description (previously "mini shore"), the merchant (previously "Big Belly"), and the category (previously "Benefits")`;
 
                 const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
@@ -286,12 +290,12 @@ describe('ModifiedExpenseMessage', () => {
                     oldMerchant: '',
                     merchant: 'Big Belly',
                     oldComment: '',
-                    newComment: 'minishore',
+                    newComment: 'mini shore',
                 },
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the description to "minishore" and the merchant to "Big Belly"`;
+                const expectedResult = `set the description to "mini shore" and the merchant to "Big Belly"`;
 
                 const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 
@@ -307,14 +311,14 @@ describe('ModifiedExpenseMessage', () => {
                     oldMerchant: '',
                     merchant: 'Big Belly',
                     oldComment: '',
-                    newComment: 'minishore',
+                    newComment: 'mini shore',
                     oldCategory: '',
                     category: 'Benefits',
                 },
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the description to "minishore", the merchant to "Big Belly", and the category to "Benefits"`;
+                const expectedResult = `set the description to "mini shore", the merchant to "Big Belly", and the category to "Benefits"`;
 
                 const result = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
 

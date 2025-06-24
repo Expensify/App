@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -47,6 +48,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const {translate} = useLocalize();
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const reportIsArchived = useReportIsArchived(report?.reportID);
 
     const handleReportDescriptionChange = useCallback((value: string) => {
         setDescription(value);
@@ -94,7 +96,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
         }, []),
     );
 
-    const canEdit = canEditReportDescription(report, policy);
+    const canEdit = canEditReportDescription(report, policy, reportIsArchived);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight

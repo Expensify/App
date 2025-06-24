@@ -22,7 +22,7 @@ function WorkspaceConfirmationPage() {
     const currentUrl = getCurrentUrl();
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
     // and those are passed as a search parameter when using transition links
-    const policyOwnerEmail = currentUrl ? new URL(currentUrl).searchParams.get('ownerEmail') ?? '' : '';
+    const policyOwnerEmail = currentUrl ? (new URL(currentUrl).searchParams.get('ownerEmail') ?? '') : '';
 
     return (
         <ScreenWrapper

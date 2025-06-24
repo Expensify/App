@@ -11,7 +11,7 @@ import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 
 type UserInfoCellProps = {
-    accountID: number;
+    accountID: number | undefined;
     avatar: AvatarSource | undefined;
     displayName: string;
     avatarSize?: AvatarSizeName;
@@ -23,7 +23,7 @@ function UserInfoCell({avatar, accountID, displayName, avatarSize, textStyle, av
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
-    if (!isCorrectSearchUserName(displayName)) {
+    if (!isCorrectSearchUserName(displayName) || !accountID) {
         return null;
     }
 

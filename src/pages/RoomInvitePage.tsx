@@ -50,15 +50,15 @@ function RoomInvitePage({
     report,
     policies,
     route: {
-        params: {role, backTo},
+        params: {backTo},
     },
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
+    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 
     const {options, areOptionsInitialized} = useOptionsList();
 
@@ -185,11 +185,8 @@ function RoomInvitePage({
     const reportID = report?.reportID;
     const isPolicyEmployee = useMemo(() => (report?.policyID ? isPolicyEmployeeUtil(report.policyID, policies as Record<string, Policy>) : false), [report?.policyID, policies]);
     const backRoute = useMemo(() => {
-        if (role === CONST.IOU.SHARE.ROLE.ACCOUNTANT) {
-            return ROUTES.REPORT_WITH_ID.getRoute(reportID);
-        }
         return reportID && (isPolicyEmployee ? ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo));
-    }, [isPolicyEmployee, reportID, role, backTo]);
+    }, [isPolicyEmployee, reportID, backTo]);
     const reportName = useMemo(() => getReportName(report), [report]);
     const inviteUsers = useCallback(() => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
@@ -214,12 +211,8 @@ function RoomInvitePage({
     }, [selectedOptions, backRoute, reportID, validate]);
 
     const goBack = useCallback(() => {
-        if (role === CONST.IOU.SHARE.ROLE.ACCOUNTANT) {
-            Navigation.dismissModalWithReport({reportID});
-            return;
-        }
         Navigation.goBack(backRoute);
-    }, [role, reportID, backRoute]);
+    }, [backRoute]);
 
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();

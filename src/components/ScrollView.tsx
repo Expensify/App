@@ -14,14 +14,7 @@ type ScrollViewProps = RNScrollViewProps & {
 };
 
 function ScrollView(
-    {
-        children,
-        scrollIndicatorInsets,
-        contentContainerStyle: contentContainerStyleProp,
-        addBottomSafeAreaPadding = false,
-        addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
-        ...props
-    }: ScrollViewProps,
+    {children, scrollIndicatorInsets, contentContainerStyle: contentContainerStyleProp, addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, ...props}: ScrollViewProps,
     ref: ForwardedRef<RNScrollView>,
 ) {
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
@@ -34,7 +27,7 @@ function ScrollView(
         <RNScrollView
             ref={ref}
             // on iOS, navigation animation sometimes cause the scrollbar to appear
-            // on middle/left side of scrollview. scrollIndicatorInsets with right
+            // on middle/left side of ScrollView. scrollIndicatorInsets with right
             // to closest value to 0 fixes this issue, 0 (default) doesn't work
             // See: https://github.com/Expensify/App/issues/31441
             contentContainerStyle={contentContainerStyle}

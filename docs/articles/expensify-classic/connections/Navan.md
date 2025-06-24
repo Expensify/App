@@ -1,13 +1,13 @@
 ---
-title: navan-integration.md
+title: Navan
 description: Learn how to connect Navan with Expensify to automatically sync travel receipts for easy expense reporting.
-keywords: [Navan, Expensify, travel integration, expense automation, flight receipts]
+keywords: [Navan, Expensify Classic, travel integration, expense automation, flight receipts]
 ---
 <div id="expensify-classic" markdown="1">
 
 Navan users can link their Expensify accounts to automatically sync flight receipts, making expense reporting seamless and efficient.
 
-# Connecting Navan to Expensify
+# Connect Navan to Expensify
 
 Follow these steps to enable the Navan integration with Expensify:
 
@@ -17,7 +17,7 @@ Follow these steps to enable the Navan integration with Expensify:
 4. In the **Expensify** section, click **Enable**.
 5. Uncheck **Disallow company card expensing**.
 6. Check **Automatically push expenses when booking a flight**.
-7. If using a central booking account, and all expenses should be sent to one Expensify account:
+7. If using a central booking account, all expenses should be sent to one Expensify account:
    - Click **Edit** next to **Expensify** in Navan.
    - Enter the email address that should receive all receipts.
 
