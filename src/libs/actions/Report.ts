@@ -5635,7 +5635,7 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, repor
         },
     });
 
-    // 5. Make sure the expense report is unarchived
+    // 5. Make sure the expense report is not archived
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
