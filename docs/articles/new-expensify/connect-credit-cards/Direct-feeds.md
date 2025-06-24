@@ -84,7 +84,23 @@ Plaid feeds are available in many countries outside the U.S. If your country isn
 - United States
 - Canada
 - United Kingdom
-- Austria, Belgium, Denmark, Estonia, Finland, France, Germany, Ireland, Italy, Latvia, Lithuania, Netherlands, Norway, Poland, Portugal, Spain, Sweden
+- Austria
+- Belgium
+- Denmark
+- Estonia
+- Finland
+- France
+- Germany
+- Ireland
+- Italy
+- Latvia
+- Lithuania
+- Netherlands
+- Norway
+- Poland
+- Portugal
+- Spain
+- Sweden
 
 ## How do I reconnect a broken feed?
 
@@ -116,6 +132,6 @@ Some examples of supported direct feed banks include:
 - Citibank  
 - Stripe  
 - Wells Fargo  
-- Plaid enables a connection with hundreds of banks
+- Plaid enables a connection with hundreds of banks ([Plaid - European Bank Coverage](https://plaid.com/docs/resources/#european-bank-coverage))
 
 </div>
