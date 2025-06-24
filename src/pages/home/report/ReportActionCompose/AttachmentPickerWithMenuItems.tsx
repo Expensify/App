@@ -209,7 +209,7 @@ function AttachmentPickerWithMenuItems({
                     ? [
                           {
                               icon: Expensicons.Location,
-                              text: translate('quickAction.recordDistance'),
+                              text: translate('iou.trackDistance'),
                               shouldCallAfterModalHide: shouldUseNarrowLayout,
                               onSelected: () => selectOption(() => null, true),
                           },

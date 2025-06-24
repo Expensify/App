@@ -999,6 +999,7 @@ const translations = {
         share: 'Compartir',
         participants: 'Participantes',
         createExpense: 'Crear gasto',
+        trackDistance: 'Gasto de distancia',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Crear ${expensesNumber} gastos`,
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pagar a ${name ?? 'alguien'}`,
         chooseRecipient: 'Elige destinatario',

@@ -445,7 +445,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             ? [
                   {
                       icon: Expensicons.Location,
-                      text: translate('quickAction.recordDistance'),
+                      text: translate('iou.trackDistance'),
                       shouldCallAfterModalHide: shouldUseNarrowLayout,
                       onSelected: () => {
                           interceptAnonymousUser(() => {
