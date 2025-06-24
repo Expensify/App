@@ -4,9 +4,10 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import GitHubUtils from '@github/libs/GithubUtils';
 import dedent from '@libs/StringUtils/dedent';
-import generateTranslations, {GENERATED_FILE_PREFIX} from '../../scripts/generateTranslations';
-import Translator from '../../scripts/utils/Translator/Translator';
+import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
+import Translator from '@scripts/utils/Translator/Translator';
 
 jest.mock('openai');
 
@@ -446,5 +447,76 @@ describe('generateTranslations', () => {
                 export default strings;
             `)}`,
         );
+    });
+
+    it('reuses existing translations from --compare-ref', async () => {
+        // Step 1: simulate an old version with initial translations
+        const oldDir = fs.mkdtempSync(path.join(os.tmpdir(), 'translations-old-'));
+        const oldItPath = path.join(oldDir, 'src/languages/it.ts');
+        const oldEnPath = path.join(oldDir, 'src/languages/en.ts');
+        fs.mkdirSync(path.dirname(oldItPath), {recursive: true});
+
+        fs.writeFileSync(
+            oldEnPath,
+            dedent(`
+            const strings = {
+                greeting: 'Hello',
+                unchanged: 'Unchanged',
+            };
+            export default strings;
+        `),
+            'utf8',
+        );
+        fs.writeFileSync(
+            oldItPath,
+            dedent(`
+            import type en from './en';
+            const strings = {
+                greeting: '[it] Hello',
+                unchanged: '[it] Unchanged',
+            };
+            export default strings;
+        `),
+            'utf8',
+        );
+
+        // Step 2: patch GitHubUtils.getFileContents to load from disk
+        jest.spyOn(GitHubUtils, 'getFileContents').mockImplementation((filePath: string) => {
+            if (filePath.endsWith('en.ts')) {
+                return Promise.resolve(fs.readFileSync(oldEnPath, 'utf8'));
+            }
+            if (filePath.endsWith('it.ts')) {
+                return Promise.resolve(fs.readFileSync(oldItPath, 'utf8'));
+            }
+            throw new Error(`Unexpected filePath: ${filePath}`);
+        });
+
+        // Step 3: create new source with one changed and one unchanged string
+        fs.writeFileSync(
+            EN_PATH,
+            dedent(`
+            const strings = {
+                greeting: 'Hello',
+                unchanged: 'Unchanged',
+                newKey: 'New value!',
+            };
+            export default strings;
+        `),
+            'utf8',
+        );
+
+        process.argv.push('--compare-ref=ref-does-not-matter-due-to-mock');
+        const translateSpy = jest.spyOn(Translator.prototype, 'translate');
+
+        await generateTranslations();
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+
+        expect(itContent).toContain('[it] Hello');
+        expect(itContent).toContain('[it] Unchanged');
+        expect(itContent).toContain('[it] New value!');
+        expect(translateSpy).toHaveBeenCalledTimes(1);
+        expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined);
+
+        fs.rmSync(oldDir, {recursive: true});
     });
 });

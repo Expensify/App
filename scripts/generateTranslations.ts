@@ -224,22 +224,9 @@ class TranslationGenerator {
     /**
      * Each translation file should have an object called translations that's later default-exported. This function takes in a root node, and finds the translations node.
      */
-    private findTranslationsNode(node: ts.Node): ts.Node | null {
-        if (!node) {
-            return null;
-        }
-
-        if (node && ts.isVariableDeclaration(node) && node.name.getText() === 'translations') {
-            return node.initializer as ts.Node;
-        }
-
-        let translationsNode = null;
-        node.forEachChild((child) => {
-            const foundNode = this.findTranslationsNode(child);
-            if (foundNode) {
-                translationsNode = foundNode;
-            }
-        });
+    private findTranslationsNode(sourceFile: ts.SourceFile): ts.Node | null {
+        const defaultExport = TSCompilerUtils.findDefaultExport(sourceFile);
+        const translationsNode = TSCompilerUtils.resolveDeclaration(defaultExport?.getText() ?? '', sourceFile);
         return translationsNode;
     }
 
