@@ -1018,6 +1018,7 @@ const translations = {
         share: '共有',
         participants: '参加者',
         createExpense: '経費を作成',
+        trackDistance: '距離を追跡する',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `${expensesNumber}件の経費を作成`,
         addExpense: '経費を追加',
         chooseRecipient: '受取人を選択',
