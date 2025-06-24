@@ -21,7 +21,7 @@ import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getManagerOnVacation, getReportActionMessage, getSubmittedTo, getVacationer} from '@libs/ReportActionsUtils';
+import {getManagerOnVacation, getReportActionMessage, getSendMoneyFlowOneTransactionThreadID, getSubmittedTo, getVacationer, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
@@ -29,6 +29,7 @@ import {
     getPolicyName,
     getReportActionActorAccountID,
     getWorkspaceIcon,
+    isActionCreator,
     isIndividualInvoiceRoom,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom,
@@ -111,17 +112,31 @@ function ReportActionItemSingle({
     const [innerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
     });
+    const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`, {
+        canBeMissing: true,
+        selector: (actions) => Object.values(actions ?? {}).filter(isMoneyRequestAction),
+    });
+
     const activePolicies = policies ?? innerPolicies;
     const policy = usePolicy(report?.policyID);
     const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
+
+    // We want to display only the sender's avatar next to the report preview if it only contains one person's expenses.
+    const areIOUActionsOnlyFromOnePerson = isReportPreviewAction && iouActions?.length && (iouActions.every(isActionCreator) || !iouActions.some(isActionCreator));
+
+    const isSendMoneyFlow = !!getSendMoneyFlowOneTransactionThreadID(iouActions, report);
+
+    // We need to change the account ID to get the avatar & name of the report owner. The only exception is the 'Send Money' flow, where the avatar is retrieved correctly. We just need to hide the second one.
+    const accountID = areIOUActionsOnlyFromOnePerson && !isSendMoneyFlow ? ownerAccountID : actorAccountID;
+
     const invoiceReceiverPolicy =
         report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? activePolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
 
-    let displayName = getDisplayNameForParticipant({accountID: actorAccountID, personalDetailsData: personalDetails});
-    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
+    let displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails});
+    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[accountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
 
     // Vacation delegate details for submitted action
@@ -137,7 +152,7 @@ function ReportActionItemSingle({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = isTripRoomReportUtils(report);
-    const displayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report);
+    const displayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report) && !areIOUActionsOnlyFromOnePerson;
     const isInvoiceReport = isInvoiceReportUtils(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
 
