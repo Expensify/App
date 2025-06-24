@@ -6558,6 +6558,7 @@ const CONST = {
             DONE: 'done',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
+            EXPORT_TO_ACCOUNTING: 'export',
         },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
@@ -6591,10 +6592,6 @@ const CONST = {
         TABLE_COLUMN_SIZES: {
             NORMAL: 'normal',
             WIDE: 'wide',
-        },
-        ACTION: {
-            PAY: 'pay',
-            EXPORT: 'export',
         },
         STATUS: {
             EXPENSE: {
