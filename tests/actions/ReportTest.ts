@@ -1,3 +1,9 @@
+describe('actions/Report', () => {
+    // If I don't add one running test, Jest will throw an error and still fail, saying this test suite doesn't have any tests
+    it('should be fixed with https://github.com/Expensify/App/issues/64812', () => {
+        expect(true).toBe(true);
+    });
+});
 // /* eslint-disable @typescript-eslint/naming-convention */
 // import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 // import {addSeconds, format, subMinutes} from 'date-fns';
