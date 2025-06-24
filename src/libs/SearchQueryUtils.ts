@@ -1,7 +1,18 @@
 import cloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {ASTNode, QueryFilter, QueryFilters, SearchDateFilterKeys, SearchFilterKey, SearchQueryJSON, SearchQueryString, SearchStatus, UserFriendlyKey} from '@components/Search/types';
+import type {
+    ASTNode,
+    QueryFilter,
+    QueryFilters,
+    SearchDateFilterKeys,
+    SearchDatePreset,
+    SearchFilterKey,
+    SearchQueryJSON,
+    SearchQueryString,
+    SearchStatus,
+    UserFriendlyKey,
+} from '@components/Search/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +34,6 @@ import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
-import {isFilterSupported, isSearchDatePreset} from './SearchUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
 
@@ -275,6 +285,20 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     const primaryHash = hashText(orderedQuery, 2 ** 32);
 
     return {primaryHash, recentSearchHash};
+}
+
+/**
+ * Returns whether a given string is a date preset (e.g. Last month)
+ */
+function isSearchDatePreset(date: string | undefined): date is SearchDatePreset {
+    return Object.values(CONST.SEARCH.DATE_PRESETS).some((datePreset) => datePreset === date);
+}
+
+/**
+ * Returns whether a given search filter is supported in a given search data type
+ */
+function isFilterSupported(filter: SearchFilterKey, type: SearchDataTypes) {
+    return CONST.SEARCH_TYPE_FILTERS_KEYS[type].flat().some((supportedFilter) => supportedFilter === filter);
 }
 
 /**
@@ -922,6 +946,8 @@ function shouldHighlight(referenceText: string, searchText: string) {
 }
 
 export {
+    isSearchDatePreset,
+    isFilterSupported,
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
