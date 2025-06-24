@@ -481,9 +481,7 @@ Appended content
         setupGitAsHuman();
         exec('git switch main');
         exec('git switch -c pr-10');
-        console.log('RORY_DEBUG BEFORE:', fs.readFileSync('myFile.txt', {encoding: 'utf8'}));
         fs.writeFileSync('myFile.txt', initialFileContent);
-        console.log('RORY_DEBUG AFTER:', fs.readFileSync('myFile.txt', {encoding: 'utf8'}));
         exec('git add myFile.txt');
         exec('git commit -m "Revert append and prepend"');
         mergePR(10);
