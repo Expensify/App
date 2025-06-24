@@ -45,6 +45,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     BusinessBankAccountParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -1645,14 +1646,14 @@ const translations = {
         mergeFailureGenericHeading: 'Impossible de fusionner les comptes',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: 'Signaler une activité suspecte',
         lockAccount: 'Verrouiller le compte',
         unlockAccount: 'Déverrouiller le compte',
         compromisedDescription:
-            'Si vous soupçonnez que votre compte Expensify est compromis, vous pouvez le verrouiller pour empêcher les nouvelles transactions avec la carte Expensify et bloquer les modifications indésirables du compte.',
-        domainAdminsDescriptionPartOne: 'Pour les administrateurs de domaine,',
-        domainAdminsDescriptionPartTwo: 'cette action arrête toute activité de la carte Expensify et les actions administratives',
-        domainAdminsDescriptionPartThree: "sur l'ensemble de votre/vos domaine(s).",
-        warning: `Une fois que votre compte est verrouillé, notre équipe enquêtera et supprimera tout accès non autorisé. Pour retrouver l'accès, vous devrez travailler avec Concierge pour sécuriser votre compte.`,
+            "Vous remarquez quelque chose d'inhabituel ? Signalez-le pour verrouiller immédiatement votre compte, bloquer les transactions Expensify Card et empêcher toute modification.",
+        domainAdminsDescription: "Pour les administrateurs de domaine : cela suspend aussi l'activité de la carte Expensify et les actions d'administration sur vos domaines.",
+        areYouSure: 'Êtes-vous sûr de vouloir verrouiller votre compte Expensify ?',
+        ourTeamWill: "Notre équipe enquêtera et supprimera tout accès non autorisé. Pour retrouver l'accès, vous devrez collaborer avec Concierge.",
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Échec du verrouillage du compte',
@@ -2725,14 +2726,40 @@ const translations = {
         whatsTheBusinessAddress: "Quelle est l'adresse de l'entreprise ?",
         whatsTheBusinessContactInformation: 'Quelles sont les coordonnées professionnelles ?',
         whatsTheBusinessRegistrationNumber: "Quel est le numéro d'enregistrement de l'entreprise ?",
-        whatsTheBusinessTaxIDEIN: "Quel est le numéro d'identification fiscale/de TVA/d'enregistrement GST de l'entreprise ?",
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'Quel est le numéro d’identification d’employeur (EIN) ?';
+                case CONST.COUNTRY.CA:
+                    return 'Quel est le numéro d’entreprise (BN) ?';
+                case CONST.COUNTRY.GB:
+                    return 'Quel est le numéro d’immatriculation à la TVA (VRN) ?';
+                case CONST.COUNTRY.AU:
+                    return 'Quel est le numéro d’entreprise australien (ABN) ?';
+                default:
+                    return 'Quel est le numéro de TVA intracommunautaire (UE) ?';
+            }
+        },
         whatsThisNumber: 'Quel est ce numéro ?',
         whereWasTheBusinessIncorporated: "Où l'entreprise a-t-elle été constituée ?",
         whatTypeOfBusinessIsIt: "Quel type d'entreprise est-ce ?",
         whatsTheBusinessAnnualPayment: "Quel est le volume annuel de paiements de l'entreprise ?",
         whatsYourExpectedAverageReimbursements: 'Quel est le montant moyen de remboursement que vous attendez ?',
         registrationNumber: "Numéro d'enregistrement",
-        taxIDEIN: "Numéro d'identification fiscale/EIN",
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'TVA UE';
+            }
+        },
         businessAddress: 'Adresse professionnelle',
         businessType: "Type d'entreprise",
         incorporation: 'Incorporation',
@@ -2756,6 +2783,20 @@ const translations = {
         findAverageReimbursement: 'Trouver le montant moyen de remboursement',
         error: {
             registrationNumber: "Veuillez fournir un numéro d'enregistrement valide",
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return 'Veuillez fournir un numéro d’identification d’employeur (EIN) valide';
+                    case CONST.COUNTRY.CA:
+                        return 'Veuillez fournir un numéro d’entreprise (BN) valide';
+                    case CONST.COUNTRY.GB:
+                        return 'Veuillez fournir un numéro de TVA (VRN) valide';
+                    case CONST.COUNTRY.AU:
+                        return 'Veuillez fournir un numéro d’entreprise australien (ABN) valide';
+                    default:
+                        return 'Veuillez fournir un numéro de TVA intracommunautaire valide';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {

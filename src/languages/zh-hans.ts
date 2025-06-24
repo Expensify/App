@@ -45,6 +45,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     BusinessBankAccountParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -1623,13 +1624,13 @@ const translations = {
         mergeFailureGenericHeading: '无法合并账户',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: '报告可疑活动',
         lockAccount: '锁定账户',
         unlockAccount: '解锁账户',
-        compromisedDescription: '如果您怀疑您的Expensify账户被泄露，您可以锁定它以防止新的Expensify卡交易并阻止不必要的账户更改。',
-        domainAdminsDescriptionPartOne: '对于域管理员，',
-        domainAdminsDescriptionPartTwo: '此操作将停止所有 Expensify Card 活动和管理员操作。',
-        domainAdminsDescriptionPartThree: '在您的域中。',
-        warning: `一旦您的账户被锁定，我们的团队将进行调查并移除任何未经授权的访问。要重新获得访问权限，您需要与Concierge合作以确保您的账户安全。`,
+        compromisedDescription: '发现您的账户有异常? 报告后将立即锁定账户, 阻止新的Expensify卡交易, 并防止任何账户更改。',
+        domainAdminsDescription: '对于域管理员: 这也会暂停您域中所有Expensify卡活动和管理员操作。',
+        areYouSure: '您确定要锁定您的Expensify账户吗?',
+        ourTeamWill: '我们的团队将调查并移除任何未经授权的访问。若要恢复访问权限, 您需与Concierge协作。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: '无法锁定账户',
@@ -2678,14 +2679,40 @@ const translations = {
         whatsTheBusinessAddress: '公司的地址是什么？',
         whatsTheBusinessContactInformation: '商业联系信息是什么？',
         whatsTheBusinessRegistrationNumber: '营业登记号码是多少？',
-        whatsTheBusinessTaxIDEIN: '营业税号/EIN/VAT/GST注册号是多少？',
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return '什么是雇主识别号（EIN）？';
+                case CONST.COUNTRY.CA:
+                    return '什么是商业号码（BN）？';
+                case CONST.COUNTRY.GB:
+                    return '什么是增值税注册号（VRN）？';
+                case CONST.COUNTRY.AU:
+                    return '什么是澳大利亚商业号码（ABN）？';
+                default:
+                    return '什么是欧盟增值税号？';
+            }
+        },
         whatsThisNumber: '这个号码是什么？',
         whereWasTheBusinessIncorporated: '公司在哪里注册成立的？',
         whatTypeOfBusinessIsIt: '这是什么类型的业务？',
         whatsTheBusinessAnnualPayment: '企业的年度支付总额是多少？',
         whatsYourExpectedAverageReimbursements: '您的预期平均报销金额是多少？',
         registrationNumber: '注册号码',
-        taxIDEIN: '税号/EIN号码',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return '欧盟VAT';
+            }
+        },
         businessAddress: '公司地址',
         businessType: '业务类型',
         incorporation: '公司注册',
@@ -2709,6 +2736,20 @@ const translations = {
         findAverageReimbursement: '查找平均报销金额',
         error: {
             registrationNumber: '请提供有效的注册号码',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return '请输入有效的雇主识别号（EIN）';
+                    case CONST.COUNTRY.CA:
+                        return '请输入有效的商业号码（BN）';
+                    case CONST.COUNTRY.GB:
+                        return '请输入有效的增值税注册号（VRN）';
+                    case CONST.COUNTRY.AU:
+                        return '请输入有效的澳大利亚商业号码（ABN）';
+                    default:
+                        return '请输入有效的欧盟增值税号';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {

@@ -45,6 +45,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     BusinessBankAccountParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -1647,14 +1648,13 @@ const translations = {
         mergeFailureGenericHeading: 'Konten können nicht zusammengeführt werden',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: 'Verdächtige Aktivität melden',
         lockAccount: 'Konto sperren',
         unlockAccount: 'Konto entsperren',
-        compromisedDescription:
-            'Wenn Sie vermuten, dass Ihr Expensify-Konto kompromittiert wurde, können Sie es sperren, um neue Transaktionen mit der Expensify-Karte zu verhindern und unerwünschte Kontenänderungen zu blockieren.',
-        domainAdminsDescriptionPartOne: 'Für Domain-Administratoren,',
-        domainAdminsDescriptionPartTwo: 'Diese Aktion stoppt alle Expensify Card-Aktivitäten und Administratoraktionen.',
-        domainAdminsDescriptionPartThree: 'über Ihre Domain(s).',
-        warning: `Sobald Ihr Konto gesperrt ist, wird unser Team den Vorfall untersuchen und jeglichen unbefugten Zugriff entfernen. Um den Zugriff wiederzuerlangen, müssen Sie mit Concierge zusammenarbeiten, um Ihr Konto zu sichern.`,
+        compromisedDescription: 'Etwas stimmt nicht mit deinem Konto? Eine Meldung sperrt dein Konto sofort, stoppt neue Expensify Card-Transaktionen und verhindert Änderungen.',
+        domainAdminsDescription: 'Für Domain-Admins: Dies pausiert auch alle Aktivitäten und Admin-Aktionen der Expensify Card in deiner Domain.',
+        areYouSure: 'Bist du sicher, dass du dein Expensify-Konto sperren willst?',
+        ourTeamWill: 'Unser Team wird den Zugriff prüfen und unbefugte Aktivitäten entfernen. Um wieder Zugriff zu erhalten, arbeite bitte mit Concierge zusammen.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Konto konnte nicht gesperrt werden',
@@ -2724,14 +2724,40 @@ const translations = {
         whatsTheBusinessAddress: 'Wie lautet die Geschäftsadresse?',
         whatsTheBusinessContactInformation: 'Wie lauten die Geschäftskontaktdaten?',
         whatsTheBusinessRegistrationNumber: 'Wie lautet die Handelsregisternummer?',
-        whatsTheBusinessTaxIDEIN: 'Wie lautet die Geschäftssteuer-ID/EIN/USt-IdNr./GST-Registrierungsnummer?',
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'Was ist die Arbeitgeber-Identifikationsnummer (EIN)?';
+                case CONST.COUNTRY.CA:
+                    return 'Was ist die Unternehmensnummer (BN)?';
+                case CONST.COUNTRY.GB:
+                    return 'Was ist die Umsatzsteuer-Identifikationsnummer (VRN)?';
+                case CONST.COUNTRY.AU:
+                    return 'Was ist die australische Unternehmensnummer (ABN)?';
+                default:
+                    return 'Was ist die EU-Umsatzsteuer-Identifikationsnummer?';
+            }
+        },
         whatsThisNumber: 'Was ist diese Nummer?',
         whereWasTheBusinessIncorporated: 'Wo wurde das Unternehmen gegründet?',
         whatTypeOfBusinessIsIt: 'Welche Art von Geschäft ist es?',
         whatsTheBusinessAnnualPayment: 'Wie hoch ist das jährliche Zahlungsvolumen des Unternehmens?',
         whatsYourExpectedAverageReimbursements: 'Wie hoch ist Ihr erwarteter durchschnittlicher Erstattungsbetrag?',
         registrationNumber: 'Registrierungsnummer',
-        taxIDEIN: 'Steuer-ID/EIN-Nummer',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'EU-USt';
+            }
+        },
         businessAddress: 'Geschäftsadresse',
         businessType: 'Geschäftsart',
         incorporation: 'Inkorporation',
@@ -2755,6 +2781,20 @@ const translations = {
         findAverageReimbursement: 'Durchschnittlichen Erstattungsbetrag finden',
         error: {
             registrationNumber: 'Bitte geben Sie eine gültige Registrierungsnummer an.',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return 'Bitte geben Sie eine gültige Arbeitgeber-Identifikationsnummer (EIN) an';
+                    case CONST.COUNTRY.CA:
+                        return 'Bitte geben Sie eine gültige Unternehmensnummer (BN) an';
+                    case CONST.COUNTRY.GB:
+                        return 'Bitte geben Sie eine gültige Umsatzsteuer-Identifikationsnummer (VRN) an';
+                    case CONST.COUNTRY.AU:
+                        return 'Bitte geben Sie eine gültige australische Unternehmensnummer (ABN) an';
+                    default:
+                        return 'Bitte geben Sie eine gültige EU-Umsatzsteuer-Identifikationsnummer an';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
