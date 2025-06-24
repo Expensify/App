@@ -1,14 +1,13 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
-import SelectableListItem from '@components/SelectionList/SelectableListItem';
+import MultiSelectListItem from '@components/SelectionList/MultiSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
 import {sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import ROUTES from '@src/ROUTES';
+import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 
 type SearchMultipleSelectionPickerItem = {
     name: string;
@@ -25,7 +24,6 @@ type SearchMultipleSelectionPickerProps = {
 
 function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTitle, onSaveSelection, shouldShowTextInput = true}: SearchMultipleSelectionPickerProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedItems, setSelectedItems] = useState<SearchMultipleSelectionPickerItem[]>(initiallySelectedItems ?? []);
@@ -87,23 +85,23 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         [selectedItems],
     );
 
-    const handleConfirmSelection = useCallback(() => {
+    const resetChanges = useCallback(() => {
+        setSelectedItems([]);
+    }, []);
+
+    const applyChanges = useCallback(() => {
         onSaveSelection(selectedItems.map((item) => item.value).flat());
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [onSaveSelection, selectedItems]);
 
     const footerContent = useMemo(
         () => (
-            <Button
-                success
-                style={[styles.mt4]}
-                text={translate('common.save')}
-                pressOnEnter
-                onPress={handleConfirmSelection}
-                large
+            <SearchFilterPageFooterButtons
+                applyChanges={applyChanges}
+                resetChanges={resetChanges}
             />
         ),
-        [translate, handleConfirmSelection, styles.mt4],
+        [resetChanges, applyChanges],
     );
     return (
         <SelectionList
@@ -118,7 +116,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
             showLoadingPlaceholder={!noResultsFound}
             shouldShowTooltips
             canSelectMultiple
-            ListItem={SelectableListItem}
+            ListItem={MultiSelectListItem}
         />
     );
 }

@@ -9,6 +9,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isValidSecurityCode} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
@@ -28,6 +29,7 @@ const REQUIRED_FIELDS = [INPUT_IDS.SECURITY_CODE];
 function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeRequired, initialCurrency}: PaymentCardFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
 
     const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
     const [currency, setCurrency] = useState<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>(initialCurrency ?? CONST.PAYMENT_CARD_CURRENCY.USD);
@@ -42,11 +44,23 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         return errors;
     };
 
+    const availableCurrencies = useMemo(() => {
+        const canUseEurBilling = isBetaEnabled(CONST.BETAS.EUR_BILLING);
+        const allCurrencies = Object.keys(CONST.PAYMENT_CARD_CURRENCY) as Array<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>;
+        // Filter out EUR if user doesn't have EUR billing beta
+        return allCurrencies.filter((currencyItem) => {
+            if (currencyItem === CONST.PAYMENT_CARD_CURRENCY.EUR && !canUseEurBilling) {
+                return false;
+            }
+            return true;
+        });
+    }, [isBetaEnabled]);
+
     const {sections} = useMemo(
         () => ({
             sections: [
                 {
-                    data: (Object.keys(CONST.PAYMENT_CARD_CURRENCY) as Array<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>).map((currencyItem) => ({
+                    data: availableCurrencies.map((currencyItem) => ({
                         text: currencyItem,
                         value: currencyItem,
                         keyForList: currencyItem,
@@ -55,7 +69,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                 },
             ],
         }),
-        [currency],
+        [availableCurrencies, currency],
     );
 
     const showCurrenciesModal = useCallback(() => {
@@ -109,7 +123,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                 </>
                 <PaymentCardCurrencyModal
                     isVisible={isCurrencyModalVisible}
-                    currencies={Object.keys(CONST.PAYMENT_CARD_CURRENCY) as Array<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>}
+                    currencies={availableCurrencies}
                     currentCurrency={currency}
                     onCurrencyChange={changeCurrency}
                     onClose={() => setIsCurrencyModalVisible(false)}

@@ -7,6 +7,7 @@ import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createS
 import {config} from '@libs/Navigation/linkingConfig/config';
 import {RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -210,8 +211,25 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
     return state;
 }
 
+/**
+ * Generate a navigation state from a given path, adapting it to handle cases like onboarding flow,
+ * displaying RHP screens and navigating in the Workspaces tab.
+ * For detailed information about generating state from a path,
+ * see the NAVIGATION.md documentation.
+ *
+ * @param path - The path to generate state from
+ * @param options - Extra options to fine-tune how to parse the path
+ * @param shouldReplacePathInNestedState - Whether to replace the path in nested state
+ * @returns The adapted navigation state
+ * @throws Error if unable to get state from path
+ */
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
-    const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
+    let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
+
+    // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
+    if (normalizedPath === CONST.SIGNIN_ROUTE) {
+        normalizedPath = '/';
+    }
 
     const state = getStateFromPath(normalizedPath, options) as PartialState<NavigationState<RootNavigatorParamList>>;
     if (shouldReplacePathInNestedState) {

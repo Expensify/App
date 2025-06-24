@@ -4,14 +4,14 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as EmojiUtils from '@libs/EmojiUtils';
+import {findEmojiByCode, getLocalizedEmojiName} from '@libs/EmojiUtils';
 import type EmojiWithTooltipProps from './types';
 
 function EmojiWithTooltip({emojiCode, style = {}}: EmojiWithTooltipProps) {
     const {preferredLocale} = useLocalize();
     const styles = useThemeStyles();
-    const emoji = EmojiUtils.findEmojiByCode(emojiCode);
-    const emojiName = EmojiUtils.getEmojiName(emoji, preferredLocale);
+    const emoji = findEmojiByCode(emojiCode);
+    const emojiName = getLocalizedEmojiName(emoji?.name, preferredLocale);
 
     const emojiTooltipContent = useCallback(
         () => (

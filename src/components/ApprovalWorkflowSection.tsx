@@ -70,7 +70,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                     title={translate('workflowsExpensesFromPage.title')}
                     style={styles.p0}
                     titleStyle={styles.textLabelSupportingNormal}
-                    descriptionTextStyle={styles.textNormalThemeText}
+                    descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
                     description={members}
                     numberOfLinesDescription={4}
                     icon={Expensicons.Users}
@@ -89,7 +89,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                             title={approverTitle(index)}
                             style={styles.p0}
                             titleStyle={styles.textLabelSupportingNormal}
-                            descriptionTextStyle={styles.textNormalThemeText}
+                            descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
                             description={approver.displayName}
                             icon={Expensicons.UserCheck}
                             iconHeight={20}

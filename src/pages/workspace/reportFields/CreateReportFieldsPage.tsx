@@ -43,7 +43,7 @@ function WorkspaceCreateReportFieldsPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const formRef = useRef<FormRef>(null);
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
 
     const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
 
@@ -103,7 +103,7 @@ function WorkspaceCreateReportFieldsPage({
         setInitialCreateReportFieldsForm();
     }, []);
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
 
     const listValues = [...(formDraft?.[INPUT_IDS.LIST_VALUES] ?? [])].sort(localeCompare).join(', ');
 
@@ -186,8 +186,8 @@ function WorkspaceCreateReportFieldsPage({
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.DATE && (
                                 <MenuItemWithTopDescription
-                                    title={translate('common.initialValue')}
-                                    description={translate('common.date')}
+                                    title={translate('common.currentDate')}
+                                    description={translate('common.initialValue')}
                                     rightLabel={translate('common.required')}
                                     interactive={false}
                                 />

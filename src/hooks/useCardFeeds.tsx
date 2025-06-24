@@ -37,7 +37,7 @@ const useCardFeeds = (policyID: string | undefined): [CardFeeds | undefined, Res
                 companyCardNicknames: {...companyCardNicknames},
                 oAuthAccountDetails: {...oAuthAccountDetails},
             },
-            isLoading: !defaultFeed || defaultFeed?.isLoading,
+            isLoading: defaultFeed?.isLoading,
         };
 
         return Object.entries(allFeeds).reduce<CardFeeds & {settings: Required<CardFeeds['settings']>}>((acc, [onyxKey, feed]) => {

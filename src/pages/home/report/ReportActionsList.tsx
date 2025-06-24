@@ -164,6 +164,8 @@ function ReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
 
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
     const participantsContext = useContext(PersonalDetailsContext);
@@ -575,6 +577,7 @@ function ReportActionsList({
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
             return (
                 <ReportActionsListItemRenderer
+                    allReports={allReports}
                     reportAction={reportAction}
                     reportActions={sortedReportActions}
                     parentReportAction={parentReportAction}
@@ -593,11 +596,14 @@ function ReportActionsList({
                     shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                    transactions={Object.values(transactions ?? {})}
                 />
             );
         },
         [
             report,
+            allReports,
+            transactions,
             linkedReportActionID,
             sortedVisibleReportActions,
             mostRecentIOUReportActionID,

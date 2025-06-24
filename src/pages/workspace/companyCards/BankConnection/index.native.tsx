@@ -56,9 +56,12 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
     const plaidFeed = addNewCard?.data?.plaidConnectedFeed ?? assignCard?.data?.institutionId;
     const plaidFeedName = addNewCard?.data?.plaidConnectedFeedName ?? assignCard?.data?.plaidConnectedFeedName;
+    const plaidAccounts = addNewCard?.data?.plaidAccounts ?? assignCard?.data?.plaidAccounts;
+    const country = addNewCard?.data?.selectedCountry;
+
     const url =
         isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && plaidToken
-            ? getCompanyCardPlaidConnection(policyID, plaidToken, plaidFeed, plaidFeedName)
+            ? getCompanyCardPlaidConnection(policyID, plaidToken, plaidFeed, plaidFeedName, country, plaidAccounts)
             : getCompanyCardBankConnection(policyID, bankName);
     const [cardFeeds] = useCardFeeds(policyID);
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
@@ -115,9 +118,9 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             if (newFeed) {
                 updateSelectedFeed(newFeed, policyID);
             }
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
         }
-    }, [isNewFeedConnected, newFeed, policyID, url, feed, isFeedExpired, assignCard]);
+    }, [isNewFeedConnected, newFeed, policyID, url, feed, isFeedExpired, assignCard?.data?.dateOption]);
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {
         if (!navState.url.includes(ROUTES.BANK_CONNECTION_COMPLETE)) {

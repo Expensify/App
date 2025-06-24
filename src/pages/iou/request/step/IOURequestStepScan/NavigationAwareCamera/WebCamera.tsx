@@ -19,7 +19,7 @@ function WebCamera(props: NavigationAwareCameraProps, ref: ForwardedRef<Webcam |
 
     return (
         // Hide the camera during initialization to prevent random failures on some iOS versions.
-        <View style={isInitialized ? styles.dFlex : styles.dNone}>
+        <View style={isInitialized ? [styles.dFlex, styles.flex1] : styles.dNone}>
             <Webcam
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}

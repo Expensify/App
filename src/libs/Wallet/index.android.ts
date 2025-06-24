@@ -10,7 +10,7 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
 
 function handleAddCardToWallet(card: Card, cardHolderName: string): Promise<TokenizationStatus> {
     return getSecureWalletInfo().then((walletData: AndroidWalletData) =>
-        createDigitalGoogleWallet({cardHolderName, ...walletData}).then((cardData: AndroidCardData) => addCardToGoogleWallet(cardData)),
+        createDigitalGoogleWallet({cardID: card.cardID, cardHolderName, ...walletData}).then((cardData: AndroidCardData) => addCardToGoogleWallet(cardData)),
     );
 }
 

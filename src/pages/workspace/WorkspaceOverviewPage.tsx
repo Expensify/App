@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useContext, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -9,6 +9,7 @@ import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import {FallbackWorkspaceAvatar, ImageCropSquareMask, QrCode, Trashcan, UserPlus} from '@components/Icon/Expensicons';
 import {Building} from '@components/Icon/Illustrations';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
@@ -132,6 +133,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const isOwner = isPolicyOwner(policy, currentUserAccountID);
     const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
     const shouldShowAddress = !readOnly || !!formattedAddress;
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
@@ -380,6 +382,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                         accessibilityLabel={translate('common.invite')}
                                         text={translate('common.invite')}
                                         onPress={() => {
+                                            if (isAccountLocked) {
+                                                showLockedAccountModal();
+                                                return;
+                                            }
                                             clearInviteDraft(route.params.policyID);
                                             Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
                                         }}
@@ -390,7 +396,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 <Button
                                     accessibilityLabel={translate('common.share')}
                                     text={translate('common.share')}
-                                    onPress={onPressShare}
+                                    onPress={isAccountLocked ? showLockedAccountModal : onPressShare}
                                     icon={QrCode}
                                 />
                                 {isOwner && (

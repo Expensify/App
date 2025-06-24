@@ -1,7 +1,7 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
-import React, {useCallback, useContext, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -33,6 +33,9 @@ type BookTravelButtonProps = {
 
     /** Whether to render the error message below the button */
     shouldRenderErrorMessageBelowButton?: boolean;
+
+    /** Function to set the shouldScrollToBottom state */
+    setShouldScrollToBottom?: (shouldScrollToBottom: boolean) => void;
 };
 
 const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
@@ -45,7 +48,7 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
     Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.TRAVEL_TCS.getRoute(domain)));
 };
 
-function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: BookTravelButtonProps) {
+function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, setShouldScrollToBottom}: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -73,6 +76,13 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
 
     const hidePreventionModal = () => setPreventionModalVisibility(false);
     const hideVerificationModal = () => setVerificationModalVisibility(false);
+
+    useEffect(() => {
+        if (!errorMessage) {
+            return;
+        }
+        setShouldScrollToBottom?.(true);
+    }, [errorMessage, setShouldScrollToBottom]);
 
     const bookATrip = useCallback(() => {
         setErrorMessage('');

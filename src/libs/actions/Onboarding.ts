@@ -17,6 +17,20 @@ function setPersonalDetails(firstName: string, lastName: string) {
     Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {firstName, lastName});
 }
 
+/**
+ * Clear Workspace Details draft
+ */
+function clearWorkspaceDetailsDraft() {
+    Onyx.set(ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM_DRAFT, null);
+}
+
+/**
+ * Set the workspace currency Onyx data
+ */
+function setWorkspaceCurrency(currency: string) {
+    Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM_DRAFT, {currency});
+}
+
 function verifyTestDriveRecipient(email: string) {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.VERIFY_TEST_DRIVE_RECIPIENT, {email}).then((response) => {
@@ -29,4 +43,4 @@ function verifyTestDriveRecipient(email: string) {
     });
 }
 
-export {clearPersonalDetailsDraft, setPersonalDetails, verifyTestDriveRecipient};
+export {clearPersonalDetailsDraft, setPersonalDetails, clearWorkspaceDetailsDraft, setWorkspaceCurrency, verifyTestDriveRecipient};

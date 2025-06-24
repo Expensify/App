@@ -285,6 +285,10 @@ function IOURequestStepParticipants({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused, action]);
 
+    const isWorkspacesOnly = useMemo(() => {
+        return !!(initialTransaction?.amount && initialTransaction?.amount < 0);
+    }, [initialTransaction]);
+
     return (
         <StepScreenWrapper
             headerTitle={headerTitle}
@@ -308,6 +312,7 @@ function IOURequestStepParticipants({
                     iouType={iouType}
                     action={action}
                     isPerDiemRequest={isPerDiemRequest(initialTransaction)}
+                    isWorkspacesOnly={isWorkspacesOnly}
                 />
             )}
         </StepScreenWrapper>

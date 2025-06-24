@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -139,64 +140,67 @@ function AccountDetailsPage() {
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
             testID={AccountDetailsPage.displayName}
+            shouldShowOfflineIndicator={false}
         >
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
                 onBackButtonPress={() => Navigation.dismissModal()}
                 shouldDisplayHelpButton={false}
             />
-            <FormProvider
-                formID={ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM}
-                onSubmit={(values) => {
-                    requestValidationCodeForAccountMerge(values[INPUT_IDS.PHONE_OR_EMAIL]);
-                }}
-                style={[styles.flexGrow1, styles.mh5]}
-                shouldTrimValues
-                validate={validate}
-                submitButtonText={translate('common.next')}
-                isSubmitButtonVisible={false}
-                ref={formRef}
-            >
-                <View style={[styles.flexGrow1, styles.mt3]}>
-                    <View>
-                        <Text>
-                            {translate('mergeAccountsPage.accountDetails.accountToMergeInto')}
-                            <Text style={styles.textStrong}>{userEmailOrPhone}</Text>
-                        </Text>
-                    </View>
-                    <InputWrapper
-                        ref={inputCallbackRef}
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.PHONE_OR_EMAIL}
-                        autoCapitalize="none"
-                        label={translate('loginForm.phoneOrEmail')}
-                        aria-label={translate('loginForm.phoneOrEmail')}
-                        role={CONST.ROLE.PRESENTATION}
-                        containerStyles={[styles.mt8]}
-                        autoCorrect={false}
-                        onChangeText={setEmail}
-                        value={email}
-                    />
-                    <InputWrapper
-                        style={[styles.mt8]}
-                        InputComponent={CheckboxWithLabel}
-                        inputID={INPUT_IDS.CONSENT}
-                        label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
-                        aria-label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
-                    />
-                </View>
-                <FormAlertWithSubmitButton
-                    isAlertVisible={!!genericError}
-                    onSubmit={() => {
-                        formRef.current?.submit();
+            <FullPageOfflineBlockingView>
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM}
+                    onSubmit={(values) => {
+                        requestValidationCodeForAccountMerge(values[INPUT_IDS.PHONE_OR_EMAIL]);
                     }}
-                    message={genericError}
-                    buttonText={translate('common.next')}
-                    enabledWhenOffline={false}
-                    containerStyles={styles.mt3}
-                    isLoading={getValidateCodeForAccountMerge?.isLoading}
-                />
-            </FormProvider>
+                    style={[styles.flexGrow1, styles.mh5]}
+                    shouldTrimValues
+                    validate={validate}
+                    submitButtonText={translate('common.next')}
+                    isSubmitButtonVisible={false}
+                    ref={formRef}
+                >
+                    <View style={[styles.flexGrow1, styles.mt3]}>
+                        <View>
+                            <Text>
+                                {translate('mergeAccountsPage.accountDetails.accountToMergeInto')}
+                                <Text style={styles.textStrong}>{userEmailOrPhone}</Text>
+                            </Text>
+                        </View>
+                        <InputWrapper
+                            ref={inputCallbackRef}
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.PHONE_OR_EMAIL}
+                            autoCapitalize="none"
+                            label={translate('loginForm.phoneOrEmail')}
+                            aria-label={translate('loginForm.phoneOrEmail')}
+                            role={CONST.ROLE.PRESENTATION}
+                            containerStyles={[styles.mt8]}
+                            autoCorrect={false}
+                            onChangeText={setEmail}
+                            value={email}
+                        />
+                        <InputWrapper
+                            style={[styles.mt8]}
+                            InputComponent={CheckboxWithLabel}
+                            inputID={INPUT_IDS.CONSENT}
+                            label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
+                            aria-label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
+                        />
+                    </View>
+                    <FormAlertWithSubmitButton
+                        isAlertVisible={!!genericError}
+                        onSubmit={() => {
+                            formRef.current?.submit();
+                        }}
+                        message={genericError}
+                        buttonText={translate('common.next')}
+                        enabledWhenOffline={false}
+                        containerStyles={styles.mt3}
+                        isLoading={getValidateCodeForAccountMerge?.isLoading}
+                    />
+                </FormProvider>
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }

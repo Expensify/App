@@ -1,8 +1,11 @@
 ---
-title: Configure-QuickBooks-Desktop.md
+title: Configure QuickBooks Desktop
 description: Learn how to connect and configure your QuickBooks Desktop integration with Expensify to manage imports, exports, and advanced accounting settings.
-keywords: [QuickBooks Desktop, Expensify integration, accounting settings, import settings, export settings, QBD, configure QuickBooks Desktop]
+keywords: [New Expensify, QuickBooks Desktop, Expensify integration, accounting settings, import settings, export settings, QBD, configure QuickBooks Desktop]
+order: 2
 ---
+
+<div id="new-expensify" markdown="1">
 
 Connecting QuickBooks Desktop to Expensify helps streamline expense reporting, reimbursements, and accounting workflows. This guide walks you through connecting and configuring your import, export, and advanced settings for QuickBooks Desktop.
 
@@ -10,15 +13,11 @@ Connecting QuickBooks Desktop to Expensify helps streamline expense reporting, r
 
 # Step 1: Initial Connection
 
-**Web/Desktop:**
-1. Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
+1. From the left-hand menu, click **Workspaces > [Workspace Name] > Accounting > QuickBooks Desktop**.
 2. Find QuickBooks Desktop in the list of integrations and click **Set up**.
 3. You'll receive a Codat link URL that must be opened on the computer where QuickBooks Desktop is installed.
 4. Open the provided link on your QuickBooks Desktop computer and follow the connection flow.
 5. Once connected, you'll see a syncing screen while information imports from QuickBooks Desktop to Expensify.
-
-**Mobile:**
-Since QuickBooks Desktop is a desktop application, the connection process must be completed on the device that hosts QuickBooks Desktop. If you attempt to connect from a mobile device, you'll see a blocking screen directing you to complete the setup on your desktop.
 
 ---
 
@@ -26,25 +25,29 @@ Since QuickBooks Desktop is a desktop application, the connection process must b
 
 These steps define how your QuickBooks Desktop data is pulled into Expensify.
 
-1. Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
+1. From the left-hand menu, click **Workspaces > [Workspace Name] > Accounting > QuickBooks Desktop**.
 2. Click the **Import** tab under the QuickBooks Desktop connection.
 3. Choose which coding configurations to import from QuickBooks Desktop. For each configuration, you can manage its import status:
-   - **Chart of accounts**: Always imported and used as categories in Expensify.
-   - **Classes**: Can be imported as tags or report fields for class-level tracking.
-   - **Customers/projects**: Can be imported as tags or report fields for expense-level tracking.
-   - **Items**: Can be imported and used as tags for itemized coding.
+
+   * **Chart of accounts**: Always imported and used as categories in Expensify.
+   * **Classes**: Can be imported as tags or report fields for class-level tracking.
+   * **Customers/projects**: Can be imported as tags or report fields for expense-level tracking.
+   * **Items**: Can be imported and used as tags for itemized coding.
 
 **Default Settings:**
-- Classes are enabled as tags by default
-- Customers/projects and Items are disabled by default
+
+* Classes are enabled as tags by default
+* Customers/projects and Items are disabled by default
 
 4. **For Classes and Customers/Projects**: Choose whether to import them as:
-   - **Tags**: Applied at the expense level
-   - **Report fields**: Applied at the report level
+
+   * **Tags**: Applied at the expense level
+   * **Report fields**: Applied at the report level
 
 5. **Control your imports**:
-   - The interface will show the current import status for each item (e.g., "Imported as categories" or "Not imported").
-   - Use the options provided to change these settings.
+
+   * The interface will show the current import status for each item (e.g., "Imported as categories" or "Not imported").
+   * Use the options provided to change these settings.
 
 ---
 
@@ -52,35 +55,44 @@ These steps define how your QuickBooks Desktop data is pulled into Expensify.
 
 These settings control how Expensify exports reports and transactions to QuickBooks Desktop.
 
-1. Under the **Accounting** tab, go to the **Export** section.
-2. Configure the following settings:
+1. From the left-hand menu, click **Workspaces > [Workspace Name] > Accounting > QuickBooks Desktop**.
+2. Under the **Accounting** tab, go to the **Export** section.
+3. Configure the following settings:
 
 **Basic Export Settings:**
-   - **Preferred Exporter**: Choose a Workspace Admin to automate report exports (defaults to workspace owner).
-     - **Note**: If exporting company card transactions, the preferred exporter must also be a Domain Admin.
-   - **Export Date**: Choose **date of last expense** (default), **export date**, or **submitted date**.
+
+* **Preferred Exporter**: Choose a Workspace Admin to automate report exports (defaults to workspace owner).
+
+  * **Note**: If exporting company card transactions, the preferred exporter must also be a Domain Admin.
+* **Export Date**: Choose **date of last expense** (default), **export date**, or **submitted date**.
 
 **Out-of-Pocket Expenses:**
-   - **Export out-of-pocket expenses as**: Choose from:
-     - **Vendor bill** (default)
-     - **Check** (includes option to mark as "print later" in QuickBooks Desktop)
-     - **Journal entry** (not supported if taxes are enabled)
-   - Select the appropriate bank account for each export type.
+
+* **Export out-of-pocket expenses as**: Choose from:
+
+  * **Vendor bill** (default)
+  * **Check** (includes option to mark as "print later" in QuickBooks Desktop)
+  * **Journal entry** (not supported if taxes are enabled)
+* Select the appropriate bank account for each export type.
 
 **Company Card Expenses:**
-   - **Export company card expenses as**: Choose from:
-     - **Credit card** (default)
-     - **Debit card** 
-     - **Vendor bill**
-   - Configure accounts based on your selection:
-     - **Credit card account**: First credit card account in imported list (default)
-     - **Debit card account**: First bank account in imported list (default)
-     - **Accounts payable account**: First Accounts Payable account (for vendor bills)
-     - **Default vendor**: First vendor in imported list (for vendor bills)
+
+* **Export company card expenses as**: Choose from:
+
+  * **Credit card** (default)
+  * **Debit card**
+  * **Vendor bill**
+* Configure accounts based on your selection:
+
+  * **Credit card account**: First credit card account in the imported list (default)
+  * **Debit card account**: First bank account in the imported list (default)
+  * **Accounts payable account**: First Accounts Payable account (for vendor bills)
+  * **Default vendor**: First vendor in the imported list (for vendor bills)
 
 **Expensify Card Transactions:**
-   - **Export Expensify Card transactions as**: Typically set to **Credit card**.
-   - Expensify Card transactions automatically export to an "Expensify Card Liability Account" created with the integration.
+
+* **Export Expensify Card transactions as**: Typically set to **Credit card**.
+* Expensify Card transactions automatically export to an "Expensify Card Liability Account" created with the integration.
 
 ---
 
@@ -88,16 +100,19 @@ These settings control how Expensify exports reports and transactions to QuickBo
 
 These options manage syncing behavior, automation preferences, and additional account settings.
 
-1. Still in the **Accounting** section, select the **Advanced** tab.
-2. Review and configure each setting (all default to enabled):
-   - **Auto-sync**: Enable this for Expensify to automatically sync with QuickBooks Desktop every day.
-   - **Invite employees**: Automatically invite employees to the workspace.
-   - **Auto-create entities**: Expensify will automatically create vendors in QuickBooks Desktop if they don't exist already.
-   - **Sync reimbursed reports**: Automatically sync reimbursed reports.
+1. From the left-hand menu, click **Workspaces > [Workspace Name] > Accounting > QuickBooks Desktop**.
+2. Still in the **Accounting** section, select the **Advanced** tab.
+3. Review and configure each setting (all default to enabled):
 
-3. **Account Selections:**
-   - **Bill payment account**: Select the account for bill payments (defaults to first option)
-   - **Invoice collections account**: Select the account for invoice collections (defaults to first option)
+   * **Auto-sync**: Enable this for Expensify to automatically sync with QuickBooks Desktop every day.
+   * **Invite employees**: Automatically invite employees to the workspace.
+   * **Auto-create entities**: Expensify will automatically create vendors in QuickBooks Desktop if they don't exist already.
+   * **Sync reimbursed reports**: Automatically sync reimbursed reports.
+
+4. **Account Selections:**
+
+   * **Bill payment account**: Select the account for bill payments (defaults to the first option)
+   * **Invoice collections account**: Select the account for invoice collections (defaults to the first option)
 
 ---
 
@@ -116,7 +131,7 @@ Due to QuickBooks Desktop being an offline platform, exports are asynchronous:
 
 ## Can I set up the QuickBooks Desktop integration from my mobile device?
 
-No, the initial connection and most configuration must be done from a desktop/web browser. Since QuickBooks Desktop runs on a desktop computer, the integration setup requires access to that same computer. Mobile users will see a blocking screen directing them to complete setup on desktop.
+No, the initial connection and most configuration must be done from a desktop or web browser. Since QuickBooks Desktop runs on a desktop computer, the integration setup requires access to that same computer. Mobile users will see a blocking screen directing them to complete the setup on a desktop.
 
 ## What happens if I try to export a report that's already been exported?
 
@@ -128,7 +143,7 @@ No, **Locations** are a QuickBooks Online-only feature. For similar tracking in 
 
 ## Why can't I export as a journal entry?
 
-If **taxes** are enabled, exporting as a journal entry is not supported. You'll need to switch to exporting as a **check** or **vendor bill**.
+If taxes are enabled, exporting as a journal entry is not supported. You'll need to switch to exporting as a check or vendor bill.
 
 ## How do I reconnect if my QuickBooks Desktop integration stops working?
 
@@ -144,5 +159,8 @@ Yes. The QuickBooks Desktop integration is available on the **Control** plan.
 
 ## What's the difference between tags and report fields for Classes and Customers/Projects?
 
-- **Tags**: Applied at the individual expense level, allowing different expenses on the same report to have different values
-- **Report fields**: Applied at the report level, meaning all expenses on a report share the same value
+* **Tags**: Applied at the individual expense level, allowing different expenses on the same report to have different values
+* **Report fields**: Applied at the report level, meaning all expenses on a report share the same value
+
+</div>
+

@@ -1693,6 +1693,67 @@ describe('actions/Report', () => {
                 callback: (val) => (updateReport = val),
             });
             expect(updateReport?.description).toBe('<h1>test</h1>');
+            mockFetch.mockReset();
+        });
+    });
+
+    describe('deleteAppReport', () => {
+        it('should only moves CREATE or TRACK type of IOU action to self DM', async () => {
+            // Given an expense report with CREATE, TRACK, and PAY of IOU actions
+            const reportID = '1';
+            const firstIOUAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const secondIOUAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                },
+            };
+            const payAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '3',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [firstIOUAction.reportActionID]: firstIOUAction,
+                [secondIOUAction.reportActionID]: secondIOUAction,
+                [payAction.reportActionID]: payAction,
+            });
+
+            // When deleting the expense report
+            Report.deleteAppReport(reportID);
+            await waitForBatchedUpdates();
+
+            // Then only the IOU action with type of CREATE and TRACK is moved to the self DM
+            const selfDMReportID = ReportUtils.findSelfDMReportID();
+            const selfDMReportActions = await new Promise<OnyxEntry<OnyxTypes.ReportActions>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+            // The length is 3 to include the CREATED action
+            expect(Object.keys(selfDMReportActions ?? {}).length).toBe(3);
         });
     });
 });

@@ -1,8 +1,8 @@
 import React, {useRef} from 'react';
 import type {ValueOf} from 'type-fest';
-import type {FileObject} from '@components/AttachmentModal';
 import {isMobileChrome} from '@libs/Browser';
 import Visibility from '@libs/Visibility';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type AttachmentPickerProps from './types';
 

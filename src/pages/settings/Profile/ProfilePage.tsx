@@ -1,11 +1,11 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useContext} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import AvatarSkeleton from '@components/AvatarSkeleton';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -64,9 +64,8 @@ function ProfilePage() {
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
 
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
+    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const publicOptions = [
         {
             description: translate('displayNamePage.headerTitle'),
@@ -83,6 +82,7 @@ function ProfilePage() {
             description: translate('statusPage.status'),
             title: emojiCode ? `${emojiCode} ${currentUserPersonalDetails?.status?.text ?? ''}` : '',
             pageRoute: ROUTES.SETTINGS_STATUS,
+            brickRoadIndicator: isEmptyObject(vacationDelegate?.errors) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
         },
         {
             description: translate('pronounsPage.pronouns'),
@@ -102,7 +102,7 @@ function ProfilePage() {
             title: legalName,
             action: () => {
                 if (isActingAsDelegate) {
-                    setIsNoDelegateAccessMenuVisible(true);
+                    showDelegateNoAccessModal();
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_LEGAL_NAME);
@@ -113,7 +113,7 @@ function ProfilePage() {
             title: privateDetails.dob ?? '',
             action: () => {
                 if (isActingAsDelegate) {
-                    setIsNoDelegateAccessMenuVisible(true);
+                    showDelegateNoAccessModal();
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_DATE_OF_BIRTH);
@@ -124,7 +124,7 @@ function ProfilePage() {
             title: privateDetails.phoneNumber ?? '',
             action: () => {
                 if (isActingAsDelegate) {
-                    setIsNoDelegateAccessMenuVisible(true);
+                    showDelegateNoAccessModal();
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_PHONE_NUMBER);
@@ -136,7 +136,7 @@ function ProfilePage() {
             title: getFormattedAddress(privateDetails),
             action: () => {
                 if (isActingAsDelegate) {
-                    setIsNoDelegateAccessMenuVisible(true);
+                    showDelegateNoAccessModal();
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_ADDRESS);
@@ -256,10 +256,6 @@ function ProfilePage() {
                     </View>
                 </MenuItemGroup>
             </ScrollView>
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
         </ScreenWrapper>
     );
 }

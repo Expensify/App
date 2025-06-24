@@ -1,11 +1,12 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,6 +16,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SearchFilterPageFooterButtons from './SearchFilterPageFooterButtons';
 import type {SearchBooleanFilterKeys} from './types';
 
 type BooleanFilterItem = ListItem & {
@@ -34,11 +36,11 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
     const {translate} = useLocalize();
 
     const booleanValues = Object.values(CONST.SEARCH.BOOLEAN);
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
-    const selectedItem = useMemo(() => {
+    const [selectedItem, setSelectedItem] = useState(() => {
         return booleanValues.find((value) => searchAdvancedFiltersForm?.[booleanKey] === value) ?? null;
-    }, [booleanKey, searchAdvancedFiltersForm, booleanValues]);
+    });
 
     const items = useMemo(() => {
         return booleanValues.map((value) => ({
@@ -49,22 +51,26 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
         }));
     }, [selectedItem, translate, booleanValues]);
 
-    const updateFilter = useCallback(
-        (selectedFilter: BooleanFilterItem) => {
-            const newValue = selectedFilter.isSelected ? null : selectedFilter.value;
+    const updateFilter = useCallback((selectedFilter: BooleanFilterItem) => {
+        const newValue = selectedFilter.isSelected ? null : selectedFilter.value;
+        setSelectedItem(newValue);
+    }, []);
 
-            updateAdvancedFilters({[booleanKey]: newValue});
-            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-        },
-        [booleanKey],
-    );
+    const resetChanges = useCallback(() => {
+        setSelectedItem(null);
+    }, []);
+
+    const applyChanges = useCallback(() => {
+        updateAdvancedFilters({[booleanKey]: selectedItem});
+        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+    }, [booleanKey, selectedItem]);
 
     return (
         <ScreenWrapper
             testID={SearchBooleanFilterBase.displayName}
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
@@ -77,11 +83,16 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
                 <SelectionList
                     shouldSingleExecuteRowSelect
                     sections={[{data: items}]}
-                    ListItem={RadioListItem}
-                    initiallyFocusedOptionKey={selectedItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={updateFilter}
                 />
             </View>
+            <FixedFooter style={styles.mtAuto}>
+                <SearchFilterPageFooterButtons
+                    applyChanges={applyChanges}
+                    resetChanges={resetChanges}
+                />
+            </FixedFooter>
         </ScreenWrapper>
     );
 }

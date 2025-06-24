@@ -58,12 +58,15 @@ function IOURequestStepCategory({
             reportID = reportReal.parentReportID;
         }
     }
+
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canEvict: false, canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
     const report = reportReal ?? reportDraft;
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
     const {currentSearchHash} = useSearchContext();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -71,7 +74,10 @@ function IOURequestStepCategory({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
-    const transactionCategory = getTransactionDetails(currentTransaction)?.category;
+    const transactionCategory = getTransactionDetails(currentTransaction)?.category ?? '';
+
+    const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
+    const categoryForDisplay = emptyCategories.includes(transactionCategory) ? '' : transactionCategory;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportAction = reportActions?.[report?.parentReportActionID || reportActionID] ?? null;
@@ -80,7 +86,7 @@ function IOURequestStepCategory({
         (isReportInGroupPolicy(report) || isGroupPolicy(policy?.type ?? '')) &&
         // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (!!transactionCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
+        (!!categoryForDisplay || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
@@ -123,7 +129,7 @@ function IOURequestStepCategory({
 
     const updateCategory = (category: ListItem) => {
         const categorySearchText = category.searchText ?? '';
-        const isSelectedCategory = categorySearchText === transactionCategory;
+        const isSelectedCategory = categorySearchText === categoryForDisplay;
         const updatedCategory = isSelectedCategory ? '' : categorySearchText;
 
         if (transaction) {
@@ -192,7 +198,7 @@ function IOURequestStepCategory({
                                     }
 
                                     if (!policy.areCategoriesEnabled) {
-                                        enablePolicyCategories(policy.id, true, false);
+                                        enablePolicyCategories(policy.id, true, policyTagLists, allTransactionViolations, false);
                                     }
                                     InteractionManager.runAfterInteractions(() => {
                                         Navigation.navigate(
@@ -214,7 +220,7 @@ function IOURequestStepCategory({
                 <>
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
                     <CategoryPicker
-                        selectedCategory={transactionCategory}
+                        selectedCategory={categoryForDisplay}
                         policyID={report?.policyID ?? policy?.id}
                         onSubmit={updateCategory}
                     />

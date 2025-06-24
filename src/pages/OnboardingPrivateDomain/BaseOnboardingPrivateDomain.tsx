@@ -73,6 +73,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             <ScrollView
                 style={[styles.w100, styles.h100, styles.flex1]}
                 contentContainerStyle={styles.flexGrow1}
+                keyboardShouldPersistTaps="handled"
             >
                 <View style={[styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, styles.flex1]}>
                     <Text style={styles.textHeadlineH1}>{translate('onboarding.peopleYouMayKnow')}</Text>

@@ -21,6 +21,7 @@ function EmojiRenderer({tnode, style: styleProp}: CustomRendererProps<TText | TP
         <EmojiWithTooltip
             style={[style, styles.cursorDefault, styles.emojiDefaultStyles]}
             emojiCode={'data' in tnode ? tnode.data : ''}
+            isMedium={'ismedium' in tnode.attributes}
         />
     );
 }

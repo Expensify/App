@@ -216,13 +216,16 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             shouldSwitchPositionIfOverflow
             shouldEnableNewFocusManagement
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
+            shouldSkipRemeasurement
         >
             <FocusTrapForModal active={isEmojiPickerVisible}>
                 <View>
                     <EmojiPickerMenu
                         onEmojiSelected={selectEmoji}
                         activeEmoji={activeEmoji.current}
-                        ref={(el) => (emojiSearchInput.current = el)}
+                        ref={(el) => {
+                            emojiSearchInput.current = el;
+                        }}
                     />
                 </View>
             </FocusTrapForModal>

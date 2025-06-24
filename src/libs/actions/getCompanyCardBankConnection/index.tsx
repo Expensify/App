@@ -1,3 +1,5 @@
+import type {LinkAccount} from 'react-native-plaid-link-sdk';
+import type {PlaidAccount} from 'react-plaid-link';
 import {getApiRoot} from '@libs/ApiUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -17,6 +19,8 @@ type CompanyCardPlaidConnection = {
     domainName: string;
     feedName: string;
     feed: string;
+    country: string;
+    plaidAccounts: string;
 };
 
 function getCompanyCardBankConnection(policyID?: string, bankName?: string) {
@@ -47,8 +51,8 @@ function getCompanyCardBankConnection(policyID?: string, bankName?: string) {
     return `${commandURL}partners/banks/${bank}/oauth_callback.php?${new URLSearchParams(params).toString()}`;
 }
 
-function getCompanyCardPlaidConnection(policyID?: string, publicToken?: string, feed?: string, feedName?: string) {
-    if (!policyID || !publicToken || !feed || !feedName) {
+function getCompanyCardPlaidConnection(policyID?: string, publicToken?: string, feed?: string, feedName?: string, country?: string, plaidAccounts?: LinkAccount[] | PlaidAccount[]) {
+    if (!policyID || !publicToken || !feed || !feedName || !country || !plaidAccounts?.length) {
         return null;
     }
     const authToken = NetworkStore.getAuthToken();
@@ -57,7 +61,9 @@ function getCompanyCardPlaidConnection(policyID?: string, publicToken?: string, 
         feed,
         feedName,
         publicToken,
+        country,
         domainName: PolicyUtils.getDomainNameForPolicy(policyID),
+        plaidAccounts: JSON.stringify(plaidAccounts),
     };
 
     const commandURL = getApiRoot({

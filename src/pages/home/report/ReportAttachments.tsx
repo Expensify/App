@@ -36,7 +36,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
     });
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const {isOffline} = useNetwork();
-    const fileName = route.params?.fileName;
+    const fileName = route.params?.originalFileName;
 
     // Extract the reportActionID from the attachmentID (format: reportActionID_index)
     const reportActionID = useMemo(() => attachmentID?.split('_')?.[0], [attachmentID]);
@@ -54,7 +54,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
     }, [isOffline, reportID, isLoadingApp, report, reportMetadata, shouldFetchReport]);
 
     // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
-    const source = Number(route.params.source) || tryResolveUrlFromApiRoot(decodeURIComponent(route.params.source));
+    const source = Number(route.params.source) || (typeof route.params.source === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(route.params.source)) : undefined);
 
     const fetchReport = useCallback(() => {
         openReport(reportID, reportActionID);
