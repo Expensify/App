@@ -2047,9 +2047,8 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transact
 /**
  * Whether the provided report is an archived room
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report> | SearchReport, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
-    return !(isExpenseReport(report) || isExpenseRequest(report)) && !!reportNameValuePairs?.private_isArchived;
+function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report> | SearchReport, isReportArchived = false): boolean {
+    return !(isExpenseReport(report) || isExpenseRequest(report)) && isReportArchived;
 }
 
 /**
