@@ -219,8 +219,6 @@ type StepCounterParams = {step: number; total?: number; text?: string};
 
 type UserIsAlreadyMemberParams = {login: string; name: string};
 
-type GoToRoomParams = {roomName: string};
-
 type NewWorkspaceNameParams = {userName: string; workspaceNumber?: number};
 
 type RoomNameReservedErrorParams = {reservedName: string};
@@ -775,6 +773,10 @@ type ContactMethodsRouteParams = {
     contactMethodsRoute: string;
 };
 
+type BusinessTaxIDParams = {
+    country: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     SplitExpenseEditTitleParams,
@@ -869,7 +871,6 @@ export type {
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
-    GoToRoomParams,
     SubmittedToVacationDelegateParams,
     HeldRequestParams,
     InstantSummaryParams,
@@ -1048,4 +1049,5 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    BusinessTaxIDParams,
 };
