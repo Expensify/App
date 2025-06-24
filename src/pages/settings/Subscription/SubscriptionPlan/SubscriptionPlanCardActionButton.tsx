@@ -40,8 +40,8 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const {translate} = useLocalize();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const currentUserAccountID = getCurrentUserAccountID();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: false});
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
 
