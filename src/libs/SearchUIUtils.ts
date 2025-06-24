@@ -1205,25 +1205,44 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
     // Begin adding conditional sections, based on the policies the user has access to
     const showSubmitSuggestion = Object.values(policies).filter((p) => isPaidGroupPolicy(p)).length > 0;
 
-    const showApproveSuggestion =
-        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
-            if (!policy || !email || !isPaidGroupPolicy(policy)) {
-                return false;
-            }
+    const showPaySuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
+        if (!policy || !isPaidGroupPolicy(policy)) {
+            return false;
+        }
 
-            const isPolicyApprover = policy.approver === email;
-            const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-                return employee.submitsTo === email || employee.forwardsTo === email;
-            });
+        const reimburser = policy.reimburser;
+        const isReimburser = reimburser === email;
+        const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
 
-            return isPolicyApprover || isSubmittedTo;
-        }).length > 0;
+        if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+            return reimburser ? isReimburser : isAdmin;
+        }
+
+        if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+            return isAdmin;
+        }
+
+        return false;
+    });
+
+    const showApproveSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
+        if (!policy || !email || !isPaidGroupPolicy(policy)) {
+            return false;
+        }
+
+        const isPolicyApprover = policy.approver === email;
+        const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
+            return employee.submitsTo === email || employee.forwardsTo === email;
+        });
+
+        return isPolicyApprover || isSubmittedTo;
+    });
 
     // TODO: This option will be enabled soon (removing the && false). We are waiting on changes to support this
     // feature fully, but lets keep the code here for simplicity
     // https://github.com/Expensify/Expensify/issues/505933
     const showExportSuggestion =
-        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
+        Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
             if (!policy || !email) {
                 return false;
             }
@@ -1235,9 +1254,13 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
             const isXeroExporter = policy.connections?.xero?.config?.export?.exporter === email;
 
             return isIntacctExporter || isNetSuiteExporter || isQuickbooksDesktopExporter || isQuickbooksOnlineExporter || isXeroExporter;
-        }).length > 0 && false;
+        }) && false;
 
-    if (session) {
+    // We suggest specific filters for users based on their access in specific policies. Show the todo section
+    // only if any of these items are available
+    const showTodoSection = showSubmitSuggestion || showApproveSuggestion || showPaySuggestion || showExportSuggestion;
+
+    if (showTodoSection && session) {
         const section: SearchTypeMenuSection = {
             translationPath: 'common.todo',
             menuItems: [],
@@ -1320,26 +1343,28 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, policies
             });
         }
 
-        // Always show pay, since any user can pay p2p requests
-        section.menuItems.push({
-            translationPath: 'search.bulkActions.pay',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.MoneyBag,
-            emptyState: {
-                headerMedia: DotLottieAnimations.Fireworks,
-                title: 'search.searchResults.emptyPayResults.title',
-                subtitle: 'search.searchResults.emptyPayResults.subtitle',
-            },
-            getSearchQuery: () => {
-                const queryString = buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                    action: CONST.SEARCH.ACTION.PAY,
-                    payer: session.accountID?.toString(),
-                });
-                return queryString;
-            },
-        });
+        if (showPaySuggestion) {
+            section.menuItems.push({
+                translationPath: 'search.bulkActions.pay',
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                icon: Expensicons.MoneyBag,
+                emptyState: {
+                    headerMedia: DotLottieAnimations.Fireworks,
+                    title: 'search.searchResults.emptyPayResults.title',
+                    subtitle: 'search.searchResults.emptyPayResults.subtitle',
+                },
+                getSearchQuery: () => {
+                    const queryString = buildQueryStringFromFilterFormValues({
+                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                        action: CONST.SEARCH.ACTION.PAY,
+                        reimbursable: CONST.SEARCH.BOOLEAN.YES,
+                        payer: session.accountID?.toString(),
+                    });
+                    return queryString;
+                },
+            });
+        }
 
         if (showExportSuggestion) {
             section.menuItems.push({
