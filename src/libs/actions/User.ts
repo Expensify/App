@@ -116,11 +116,6 @@ function closeAccount(reason: string) {
         optimisticData,
         failureData,
     });
-
-    // On HybridApp, we need to sign out from the oldDot app as well to keep state of both apps in sync
-    if (CONFIG.IS_HYBRID_APP) {
-        HybridAppModule.signOutFromOldDot();
-    }
 }
 
 /**
@@ -911,6 +906,7 @@ function subscribeToUserEvents() {
             updates: pushEventData.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
         };
+        Log.info('[subscribeToUserEvents] Applying Onyx updates');
         applyOnyxUpdatesReliably(updates);
     });
 
