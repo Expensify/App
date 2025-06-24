@@ -1734,8 +1734,7 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.TRIP_DETAILS]: {
         reportID: string;
         transactionID: string;
-        sequenceIndex: number;
-        pnr: string;
+        reservationIndex: number;
         backTo?: string;
     };
     [SCREENS.TRAVEL.TCS]: {
