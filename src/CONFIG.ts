@@ -114,4 +114,14 @@ export default {
     IS_TEST_ENV: process.env.NODE_ENV === 'test',
     // eslint-disable-next-line no-restricted-properties
     IS_HYBRID_APP: HybridAppModule.isHybridApp(),
+    GROUP_IB_FP: {
+        BACK_URL: `${expensifyURL}/api/fl`,
+        GID_URL: 'https://eu.id.group-ib.com/id.html',
+        CID: {
+            ios: ENVIRONMENT === CONST.ENVIRONMENT.DEV ? 'gib-i-expensify-uat' : ENVIRONMENT === CONST.ENVIRONMENT.STAGING ? 'gib-i-expensify-stg' : 'gib-i-expensify',
+            android: ENVIRONMENT === CONST.ENVIRONMENT.DEV ? 'gib-a-expensify-uat' : ENVIRONMENT === CONST.ENVIRONMENT.STAGING ? 'gib-a-expensify-stg' : 'gib-a-expensify',
+            web: ENVIRONMENT === CONST.ENVIRONMENT.DEV ? 'gib-w-expensify-uat' : ENVIRONMENT === CONST.ENVIRONMENT.STAGING ? 'gib-w-expensify-stg' : 'gib-w-expensify',
+            macos: ENVIRONMENT === CONST.ENVIRONMENT.DEV ? 'gib-w-expensify-desk-uat' : ENVIRONMENT === CONST.ENVIRONMENT.STAGING ? 'gib-w-expensify-desk-stg' : 'gib-w-expensify-desk',
+        },
+    },
 } as const;

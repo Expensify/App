@@ -10,18 +10,22 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.READ_CALL_LOG"/>
 
     <!-- android:hardwareAccelerated is essential for Android performance: https://developer.android.com/topic/performance/hardware-accel -->
     <application
         android:name=".MainApplication"
-        android:allowBackup="false"
+        android:allowBackup="true"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:resizeableActivity="false"
         android:supportsRtl="false"
         android:theme="@style/AppTheme"
-        tools:replace="android:supportsRtl">
+        tools:replace="android:supportsRtl"
+        android:backupAgent="com.group_ib.react.BackupAgentHelper"
+        tools:ignore="AllowBackup,GoogleAppIndexingWarning">
 
         <service
             android:name="com.expensify.reactnativebackgroundtask.BackgroundJobService"
@@ -166,6 +170,13 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/bootsplash_background" />
+
+        <provider
+            android:name="com.group_ib.react.GibProvider"
+            android:exported="true"
+            android:authorities="com.expensify.chat.gib"
+            android:process=":gib"
+            android:writePermission="com.expensify.chat.permission.WRITE" />
 
     </application>
 </manifest>

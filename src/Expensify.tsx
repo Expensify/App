@@ -44,6 +44,7 @@ import * as ReportActionContextMenu from './pages/home/report/ContextMenu/Report
 import type {Route} from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
+import GroupIBFP from './libs/GroupIBFP';
 
 Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
@@ -161,6 +162,11 @@ function Expensify() {
     useEffect(() => {
         // Initialize Fullstory lib
         FS.init(userMetadata);
+    }, [userMetadata]);
+
+    GroupIBFP.initialize();
+    useEffect(() => {
+        GroupIBFP.setLogin(userMetadata);
     }, [userMetadata]);
 
     // Log the platform and config to debug .env issues

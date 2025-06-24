@@ -14,6 +14,8 @@
 		<string>applinks:staging.new.expensify.com</string>
 		<string>webcredentials:new.expensify.com</string>
 	</array>
+	<key>com.apple.developer.networking.wifi-info</key>
+	<true/>
 	<key>com.apple.developer.usernotifications.communication</key>
 	<true/>
 	<key>com.apple.security.application-groups</key>

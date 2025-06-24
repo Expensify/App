@@ -23,7 +23,8 @@
             "@scripts/*": ["./scripts/*", "./.github/scripts/*"],
             "@styles/*": ["./src/styles/*"],
             "@src/*": ["./src/*"],
-            "@userActions/*": ["./src/libs/actions/*"]
+            "@userActions/*": ["./src/libs/actions/*"],
+            "group-ib-fp": ["./modules/react-native-module-fhp/src/index"]
         }
     },
     "include": [

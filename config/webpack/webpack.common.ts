@@ -128,6 +128,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 // These files are copied over as per instructions here
                 // https://github.com/wojtekmaj/react-pdf#copying-cmaps
                 {from: 'node_modules/pdfjs-dist/cmaps/', to: 'cmaps/'},
+                {from: 'web/gib.js', to: 'js/gib.js'},
             ],
         }),
         new EnvironmentPlugin({JEST_WORKER_ID: ''}),

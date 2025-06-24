@@ -12,6 +12,10 @@ include ':react-native-config'
 project(':react-native-config').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-config/android')
 include ':react-native-plaid-link-sdk'
 project(':react-native-plaid-link-sdk').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-plaid-link-sdk/android')
+include ':gibsdk'
+project(':gibsdk').projectDir = new File(rootProject.projectDir, '../node_modules/group-ib-fp/android/gibsdk')
+include ':package'
+project(':package').projectDir = new File(rootProject.projectDir, '../node_modules/group-ib-fp/android/package')
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
 
