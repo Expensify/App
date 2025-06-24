@@ -302,11 +302,7 @@ index 4804624..90b7081 100644
  @property (nonatomic, assign) NSInteger mostRecentEventCount;
  @property (nonatomic, assign, readonly) NSInteger nativeEventCount;
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
-<<<<<<<< HEAD:patches/react-native/react-native+0.77.1+011+Add-onPaste-to-TextInput.patch
-index 6deea73..4d82c72 100644
-========
 index 6a2d4f8..b6e6060 100644
->>>>>>>> cad7e67ed9e5276f32ec9c1651bce8b635aa7e35:patches/react-native+0.79.2+011+Add-onPaste-to-TextInput.patch
 --- a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
 @@ -599,6 +599,26 @@ RCT_NOT_IMPLEMENTED(-(instancetype)initWithFrame : (CGRect)frame)
@@ -449,11 +445,7 @@ index 0000000..bfb5819
 +  public void onPaste(String type, String data);
 +}
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-<<<<<<<< HEAD:patches/react-native/react-native+0.77.1+011+Add-onPaste-to-TextInput.patch
-index 56a1069..1f40bfd 100644
-========
 index 42f2383..35bfa4d 100644
->>>>>>>> cad7e67ed9e5276f32ec9c1651bce8b635aa7e35:patches/react-native+0.79.2+011+Add-onPaste-to-TextInput.patch
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 @@ -9,6 +9,10 @@ package com.facebook.react.views.textinput;
@@ -491,11 +483,7 @@ index 42f2383..35bfa4d 100644
      mTextAttributes = new TextAttributes();
  
      applyTextAttributes();
-<<<<<<<< HEAD:patches/react-native/react-native+0.77.1+011+Add-onPaste-to-TextInput.patch
-@@ -332,8 +339,40 @@ public class ReactEditText extends AppCompatEditText {
-========
 @@ -335,8 +342,38 @@ public class ReactEditText extends AppCompatEditText {
->>>>>>>> cad7e67ed9e5276f32ec9c1651bce8b635aa7e35:patches/react-native+0.79.2+011+Add-onPaste-to-TextInput.patch
     */
    @Override
    public boolean onTextContextMenuItem(int id) {
@@ -515,14 +503,12 @@ index 42f2383..35bfa4d 100644
 +        if (itemUri != null) {
 +          ContentResolver cr = getReactContext(this).getContentResolver();
 +          type = cr.getType(itemUri);
-+          if (type != null && !type.equals(ClipDescription.MIMETYPE_TEXT_PLAIN)) {
-+            data = itemUri.toString();
-+            if (mPasteWatcher != null) {
-+              mPasteWatcher.onPaste(type, data);
-+            }
-+            // Prevents default behavior to avoid inserting raw binary data into the text field
-+            return true;
++          data = itemUri.toString();
++          if (mPasteWatcher != null) {
++            mPasteWatcher.onPaste(type, data);
 +          }
++          // Prevents default behavior to avoid inserting raw binary data into the text field
++          return true;
 +        }
 +
 +        if (clipData.getDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)) {
@@ -537,11 +523,7 @@ index 42f2383..35bfa4d 100644
      }
      return super.onTextContextMenuItem(id);
    }
-<<<<<<<< HEAD:patches/react-native/react-native+0.77.1+011+Add-onPaste-to-TextInput.patch
-@@ -395,6 +434,10 @@ public class ReactEditText extends AppCompatEditText {
-========
 @@ -417,6 +454,10 @@ public class ReactEditText extends AppCompatEditText {
->>>>>>>> cad7e67ed9e5276f32ec9c1651bce8b635aa7e35:patches/react-native+0.79.2+011+Add-onPaste-to-TextInput.patch
      mScrollWatcher = scrollWatcher;
    }
  
