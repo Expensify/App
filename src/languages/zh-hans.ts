@@ -6595,11 +6595,7 @@ const translations = {
             part3: '，和🔴在',
             part4: '待审核项目。',
         },
-        accountSwitcher: {
-            part1: '访问您的',
-            part2: 'Copilot 账户',
-            part3: '这里',
-        },
+        accountSwitcher: '访问您的 <strong>Copilot 账户</strong> 这里',
         expenseReportsFilter: {
             part1: '欢迎！查找您的所有',
             part2: '公司的报告',

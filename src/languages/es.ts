@@ -7205,11 +7205,7 @@ const translations = {
             part3: ',\ny 🔴 en ',
             part4: 'elementos para revisar.',
         },
-        accountSwitcher: {
-            part1: 'Accede a tus ',
-            part2: 'cuentas copiloto',
-            part3: ' aquí',
-        },
+        accountSwitcher: 'Accede a tus <strong>cuentas copiloto</strong> aquí',
         expenseReportsFilter: {
             part1: '¡Bienvenido! Aquí encontrarás todos los',
             part2: '\ninformes de tu empresa',

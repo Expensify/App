@@ -6681,11 +6681,7 @@ const translations = {
             part3: ',\nand 🔴 on ',
             part4: 'items to review.',
         },
-        accountSwitcher: {
-            part1: 'Access your ',
-            part2: 'Copilot accounts',
-            part3: ' here',
-        },
+        accountSwitcher: 'Access your <strong>Copilot accounts</strong> here',
         expenseReportsFilter: {
             part1: 'Welcome! Find all of your',
             part2: "\ncompany's reports",

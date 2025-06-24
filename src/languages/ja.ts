@@ -6676,11 +6676,7 @@ const translations = {
             part3: '、\nおよび 🔴 に',
             part4: 'レビューする項目。',
         },
-        accountSwitcher: {
-            part1: 'アクセスする',
-            part2: 'Copilotアカウント',
-            part3: 'ここ',
-        },
+        accountSwitcher: 'アクセスする <strong>Copilotアカウント</strong> ここ',
         expenseReportsFilter: {
             part1: 'ようこそ！すべてのあなたの',
             part2: '会社のレポート',
