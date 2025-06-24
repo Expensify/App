@@ -673,8 +673,8 @@ function MoneyRequestConfirmationList({
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
-                    maxLength={formattedTotalAmount.length}
-                    contentWidth={formattedTotalAmount.length * 8}
+                    maxLength={formattedTotalAmount.length + 1}
+                    contentWidth={(formattedTotalAmount.length + 1) * 8}
                 />
             ),
         }));
@@ -860,12 +860,6 @@ function MoneyRequestConfirmationList({
      */
     const confirm = useCallback(
         (paymentMethod: PaymentMethodType | undefined) => {
-            if (expensesNumber > 1) {
-                // TODO: remove early return when bulk expense creation is implemented
-                // https://github.com/Expensify/App/issues/61184
-                return;
-            }
-
             if (!!routeError || !transactionID) {
                 return;
             }
@@ -934,7 +928,6 @@ function MoneyRequestConfirmationList({
             isMerchantEmpty,
             shouldDisplayFieldError,
             transaction,
-            expensesNumber,
             iouCategory.length,
             formError,
             iouType,
