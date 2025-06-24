@@ -26,13 +26,12 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {getOriginalMessage} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import {isCanceledTaskReport, isOpenTaskReport, isReportManager} from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
-import type {OriginalMessageAddComment} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
@@ -84,7 +83,9 @@ function TaskPreview({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const taskReportID = taskReport?.reportID ?? (getOriginalMessage(action) as OriginalMessageAddComment | undefined)?.taskReportID;
+    const taskReportID =
+        taskReport?.reportID ??
+        (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && !!getOriginalMessage(action)?.taskReportID ? getOriginalMessage(action)?.taskReportID : undefined);
     const taskTitle = action?.childReportName ?? taskReport?.reportName ?? '';
 
     const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
