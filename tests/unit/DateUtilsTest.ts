@@ -2,7 +2,6 @@
 import {addDays, addMinutes, format, setHours, setMinutes, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
 import {toZonedTime, format as tzFormat} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
-import DateLocaleStore from '@libs/DateLocaleStore';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import TranslationStore from '@src/languages/TranslationStore';
@@ -38,7 +37,6 @@ describe('DateUtils', () => {
 
     beforeEach(() => {
         TranslationStore.load(LOCALE);
-        DateLocaleStore.load(LOCALE);
         return waitForBatchedUpdates();
     });
 

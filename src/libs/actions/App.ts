@@ -10,7 +10,6 @@ import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, OpenOldDotLinkParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
-import DateLocaleStore from '@libs/DateLocaleStore';
 import DateUtils from '@libs/DateUtils';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
 import localeEventCallback from '@libs/Localize/localeEventCallback';
@@ -69,7 +68,6 @@ Onyx.connect({
 
         preferredLocale = val;
         TranslationStore.load(val);
-        DateLocaleStore.load(val);
         localeEventCallback(val);
 
         // For locales without emoji support, fallback on English

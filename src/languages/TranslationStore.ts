@@ -1,3 +1,5 @@
+import {setDefaultOptions} from 'date-fns';
+import type {Locale as DateUtilsLocale} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import extractModuleDefaultExport from '@libs/extractModuleDefaultExport';
 import {LOCALES} from '@src/CONST/LOCALES';
@@ -26,73 +28,132 @@ function setAreTranslationsLoading(areTranslationsLoading: boolean) {
 class TranslationStore {
     private static currentLocale: Locale | undefined = undefined;
 
+    /**
+     * Cache for translations
+     */
     private static cache = new Map<Locale, FlatTranslationsObject>();
+
+    /**
+     * Cache for localized date-fns
+     * @private
+     */
+    private static dateUtilsCache = new Map<Locale, DateUtilsLocale>();
 
     /**
      * Set of loaders for each locale.
      * Note that this can't be trivially DRYed up because dynamic imports must use string literals in metro: https://github.com/facebook/metro/issues/52
      */
-    private static loaders: Record<Locale, () => Promise<void>> = {
+    private static loaders: Record<Locale, () => Promise<[void, void]>> = {
         [LOCALES.DE]: () =>
             this.cache.has(LOCALES.DE)
-                ? Promise.resolve()
-                : import('./de').then((module: DynamicModule<typeof de>) => {
-                      this.cache.set(LOCALES.DE, flattenObject(extractModuleDefaultExport(module)));
-                  }),
+                ? Promise.all([Promise.resolve(), Promise.resolve()])
+                : Promise.all([
+                      import('./de').then((module: DynamicModule<typeof de>) => {
+                          this.cache.set(LOCALES.DE, flattenObject(extractModuleDefaultExport(module)));
+                      }),
+                      import('date-fns/locale/de').then((module) => {
+                          this.dateUtilsCache.set(LOCALES.DE, module.de);
+                      }),
+                  ]),
         [LOCALES.EN]: () =>
             this.cache.has(LOCALES.EN)
-                ? Promise.resolve()
-                : import('./en').then((module: DynamicModule<typeof en>) => {
-                      this.cache.set(LOCALES.EN, flattenObject(extractModuleDefaultExport(module)));
-                  }),
+                ? Promise.all([Promise.resolve(), Promise.resolve()])
+                : Promise.all([
+                      import('./en').then((module: DynamicModule<typeof en>) => {
+                          this.cache.set(LOCALES.EN, flattenObject(extractModuleDefaultExport(module)));
+                      }),
+                      import('date-fns/locale/en-GB').then((module) => {
+                          this.dateUtilsCache.set(LOCALES.EN, module.enGB);
+                      }),
+                  ]),
         [LOCALES.ES]: () =>
             this.cache.has(LOCALES.ES)
-                ? Promise.resolve()
-                : import('./es').then((module: DynamicModule<typeof es>) => {
-                      this.cache.set(LOCALES.ES, flattenObject(extractModuleDefaultExport(module)));
-                  }),
+                ? Promise.all([Promise.resolve(), Promise.resolve()])
+                : Promise.all([
+                      import('./es').then((module: DynamicModule<typeof es>) => {
+                          this.cache.set(LOCALES.ES, flattenObject(extractModuleDefaultExport(module)));
+                      }),
+                      import('date-fns/locale/es').then((module) => {
+                          this.dateUtilsCache.set(LOCALES.ES, module.es);
+                      }),
+                  ]),
         [LOCALES.FR]: () =>
             this.cache.has(LOCALES.FR)
-                ? Promise.resolve()
-                : import('./fr').then((module: DynamicModule<typeof fr>) => {
-                      this.cache.set(LOCALES.FR, flattenObject(extractModuleDefaultExport(module)));
-                  }),
+                ? Promise.all([Promise.resolve(), Promise.resolve()])
+                : Promise.all([
+                      import('./fr').then((module: DynamicModule<typeof fr>) => {
+                          this.cache.set(LOCALES.FR, flattenObject(extractModuleDefaultExport(module)));
+                      }),
+                      import('date-fns/locale/fr').then((module) => {
+                          this.dateUtilsCache.set(LOCALES.FR, module.fr);
+                      }),
+                  ]),
         [LOCALES.IT]: () =>
             this.cache.has(LOCALES.IT)
-                ? Promise.resolve()
-                : import('./it').then((module: DynamicModule<typeof it>) => {
-                      this.cache.set(LOCALES.IT, flattenObject(extractModuleDefaultExport(module)));
-                  }),
+                ? Promise.all([Promise.resolve(), Promise.resolve()])
+                : Promise.all([
+                      import('./it').then((module: DynamicModule<typeof it>) => {
+                          this.cache.set(LOCALES.IT, flattenObject(extractModuleDefaultExport(module)));
+                      }),
+                      import('date-fns/locale/it').then((module) => {
+                          this.dateUtilsCache.set(LOCALES.IT, module.it);
+                      }),
+                  ]),
         [LOCALES.JA]: () =>
             this.cache.has(LOCALES.JA)
-                ? Promise.resolve()
-                : import('./ja').then((module: DynamicModule<typeof ja>) => {
-                      this.cache.set(LOCALES.JA, flattenObject(extractModuleDefaultExport(module)));
-                  }),
+                ? Promise.all([Promise.resolve(), Promise.resolve()])
+                : Promise.all([
+                      import('./ja').then((module: DynamicModule<typeof ja>) => {
+                          this.cache.set(LOCALES.JA, flattenObject(extractModuleDefaultExport(module)));
+                      }),
+                      import('date-fns/locale/ja').then((module) => {
+                          this.dateUtilsCache.set(LOCALES.JA, module.ja);
+                      }),
+                  ]),
         [LOCALES.NL]: () =>
             this.cache.has(LOCALES.NL)
-                ? Promise.resolve()
-                : import('./nl').then((module: DynamicModule<typeof nl>) => {
-                      this.cache.set(LOCALES.NL, flattenObject(extractModuleDefaultExport(module)));
-                  }),
+                ? Promise.all([Promise.resolve(), Promise.resolve()])
+                : Promise.all([
+                      import('./nl').then((module: DynamicModule<typeof nl>) => {
+                          this.cache.set(LOCALES.NL, flattenObject(extractModuleDefaultExport(module)));
+                      }),
+                      import('date-fns/locale/nl').then((module) => {
+                          this.dateUtilsCache.set(LOCALES.NL, module.nl);
+                      }),
+                  ]),
         [LOCALES.PL]: () =>
             this.cache.has(LOCALES.PL)
-                ? Promise.resolve()
-                : import('./pl').then((module: DynamicModule<typeof pl>) => {
-                      this.cache.set(LOCALES.PL, flattenObject(extractModuleDefaultExport(module)));
-                  }),
+                ? Promise.all([Promise.resolve(), Promise.resolve()])
+                : Promise.all([
+                      import('./pl').then((module: DynamicModule<typeof pl>) => {
+                          this.cache.set(LOCALES.PL, flattenObject(extractModuleDefaultExport(module)));
+                      }),
+                      import('date-fns/locale/pl').then((module) => {
+                          this.dateUtilsCache.set(LOCALES.PL, module.pl);
+                      }),
+                  ]),
         [LOCALES.PT_BR]: () =>
             this.cache.has(LOCALES.PT_BR)
-                ? Promise.resolve()
-                : import('./pt-BR').then((module: DynamicModule<typeof ptBR>) => {
-                      this.cache.set(LOCALES.PT_BR, flattenObject(extractModuleDefaultExport(module)));
-                  }),
+                ? Promise.all([Promise.resolve(), Promise.resolve()])
+                : Promise.all([
+                      import('./pt-BR').then((module: DynamicModule<typeof ptBR>) => {
+                          this.cache.set(LOCALES.PT_BR, flattenObject(extractModuleDefaultExport(module)));
+                      }),
+                      import('date-fns/locale/pt-BR').then((module) => {
+                          this.dateUtilsCache.set(LOCALES.PT_BR, module.ptBR);
+                      }),
+                  ]),
         [LOCALES.ZH_HANS]: () =>
             this.cache.has(LOCALES.ZH_HANS)
-                ? Promise.resolve()
-                : import('./zh-hans').then((module: DynamicModule<typeof zhHans>) => {
-                      this.cache.set(LOCALES.ZH_HANS, flattenObject(extractModuleDefaultExport(module)));
-                  }),
+                ? Promise.all([Promise.resolve(), Promise.resolve()])
+                : Promise.all([
+                      import('./zh-hans').then((module: DynamicModule<typeof zhHans>) => {
+                          this.cache.set(LOCALES.ZH_HANS, flattenObject(extractModuleDefaultExport(module)));
+                      }),
+                      import('date-fns/locale/zh-CN').then((module) => {
+                          this.dateUtilsCache.set(LOCALES.ZH_HANS, module.zhCN);
+                      }),
+                  ]),
     };
 
     public static getCurrentLocale() {
@@ -108,6 +169,11 @@ class TranslationStore {
         return loaderPromise()
             .then(() => {
                 this.currentLocale = locale;
+                // Set the default date-fns locale
+                const dateUtilsLocale = this.dateUtilsCache.get(locale);
+                if (dateUtilsLocale) {
+                    setDefaultOptions({locale: dateUtilsLocale});
+                }
             })
             .then(() => {
                 setAreTranslationsLoading(false);
