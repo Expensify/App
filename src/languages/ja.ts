@@ -44,6 +44,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -2686,14 +2687,40 @@ const translations = {
         whatsTheBusinessAddress: '会社の住所は何ですか？',
         whatsTheBusinessContactInformation: 'ビジネス連絡先情報は何ですか？',
         whatsTheBusinessRegistrationNumber: '事業登録番号は何ですか?',
-        whatsTheBusinessTaxIDEIN: '事業者の税務ID/EIN/VAT/GST登録番号は何ですか？',
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return '雇用者識別番号（EIN）とは何ですか？';
+                case CONST.COUNTRY.CA:
+                    return '法人番号（BN）とは何ですか？';
+                case CONST.COUNTRY.GB:
+                    return 'VAT登録番号（VRN）とは何ですか？';
+                case CONST.COUNTRY.AU:
+                    return 'オーストラリア事業番号（ABN）とは何ですか？';
+                default:
+                    return 'EUのVAT番号とは何ですか？';
+            }
+        },
         whatsThisNumber: 'この番号は何ですか？',
         whereWasTheBusinessIncorporated: '事業はどこで法人化されましたか?',
         whatTypeOfBusinessIsIt: 'それはどのような種類のビジネスですか？',
         whatsTheBusinessAnnualPayment: 'ビジネスの年間支払い額はどれくらいですか？',
         whatsYourExpectedAverageReimbursements: 'あなたの期待される平均払い戻し額はいくらですか？',
         registrationNumber: '登録番号',
-        taxIDEIN: '税務ID/EIN番号',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'EU VAT';
+            }
+        },
         businessAddress: 'ビジネス住所',
         businessType: '業種',
         incorporation: '法人化',
@@ -2717,6 +2744,20 @@ const translations = {
         findAverageReimbursement: '平均払い戻し額を見つける',
         error: {
             registrationNumber: '有効な登録番号を提供してください。',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return '有効な雇用者識別番号（EIN）を入力してください';
+                    case CONST.COUNTRY.CA:
+                        return '有効な法人番号（BN）を入力してください';
+                    case CONST.COUNTRY.GB:
+                        return '有効なVAT登録番号（VRN）を入力してください';
+                    case CONST.COUNTRY.AU:
+                        return '有効なオーストラリア事業番号（ABN）を入力してください';
+                    default:
+                        return '有効なEU VAT番号を入力してください';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
@@ -6447,11 +6488,7 @@ const translations = {
                     part2: '.',
                 },
             },
-            acknowledgement: {
-                part1: '早期キャンセルをリクエストすることにより、Expensify が Expensify の下でそのようなリクエストを承認する義務を負わないことを認め、同意します。',
-                link: '利用規約',
-                part2: 'または、私とExpensifyの間の他の適用されるサービス契約に基づき、Expensifyがそのような要求を許可するかどうかについての唯一の裁量権を保持していること。',
-            },
+            acknowledgement: `早期キャンセルをリクエストすることにより、Expensify が Expensify の下でそのようなリクエストを承認する義務を負わないことを認め、同意します。<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>利用規約</a>または、私とExpensifyの間の他の適用されるサービス契約に基づき、Expensifyがそのような要求を許可するかどうかについての唯一の裁量権を保持していること。`,
         },
     },
     feedbackSurvey: {

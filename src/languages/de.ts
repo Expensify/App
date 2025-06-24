@@ -44,6 +44,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -2711,14 +2712,40 @@ const translations = {
         whatsTheBusinessAddress: 'Wie lautet die Geschäftsadresse?',
         whatsTheBusinessContactInformation: 'Wie lauten die Geschäftskontaktdaten?',
         whatsTheBusinessRegistrationNumber: 'Wie lautet die Handelsregisternummer?',
-        whatsTheBusinessTaxIDEIN: 'Wie lautet die Geschäftssteuer-ID/EIN/USt-IdNr./GST-Registrierungsnummer?',
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'Was ist die Arbeitgeber-Identifikationsnummer (EIN)?';
+                case CONST.COUNTRY.CA:
+                    return 'Was ist die Unternehmensnummer (BN)?';
+                case CONST.COUNTRY.GB:
+                    return 'Was ist die Umsatzsteuer-Identifikationsnummer (VRN)?';
+                case CONST.COUNTRY.AU:
+                    return 'Was ist die australische Unternehmensnummer (ABN)?';
+                default:
+                    return 'Was ist die EU-Umsatzsteuer-Identifikationsnummer?';
+            }
+        },
         whatsThisNumber: 'Was ist diese Nummer?',
         whereWasTheBusinessIncorporated: 'Wo wurde das Unternehmen gegründet?',
         whatTypeOfBusinessIsIt: 'Welche Art von Geschäft ist es?',
         whatsTheBusinessAnnualPayment: 'Wie hoch ist das jährliche Zahlungsvolumen des Unternehmens?',
         whatsYourExpectedAverageReimbursements: 'Wie hoch ist Ihr erwarteter durchschnittlicher Erstattungsbetrag?',
         registrationNumber: 'Registrierungsnummer',
-        taxIDEIN: 'Steuer-ID/EIN-Nummer',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'EU-USt';
+            }
+        },
         businessAddress: 'Geschäftsadresse',
         businessType: 'Geschäftsart',
         incorporation: 'Inkorporation',
@@ -2742,6 +2769,20 @@ const translations = {
         findAverageReimbursement: 'Durchschnittlichen Erstattungsbetrag finden',
         error: {
             registrationNumber: 'Bitte geben Sie eine gültige Registrierungsnummer an.',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return 'Bitte geben Sie eine gültige Arbeitgeber-Identifikationsnummer (EIN) an';
+                    case CONST.COUNTRY.CA:
+                        return 'Bitte geben Sie eine gültige Unternehmensnummer (BN) an';
+                    case CONST.COUNTRY.GB:
+                        return 'Bitte geben Sie eine gültige Umsatzsteuer-Identifikationsnummer (VRN) an';
+                    case CONST.COUNTRY.AU:
+                        return 'Bitte geben Sie eine gültige australische Unternehmensnummer (ABN) an';
+                    default:
+                        return 'Bitte geben Sie eine gültige EU-Umsatzsteuer-Identifikationsnummer an';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
@@ -6526,11 +6567,7 @@ const translations = {
                     part2: '.',
                 },
             },
-            acknowledgement: {
-                part1: 'Indem ich die vorzeitige Kündigung beantrage, erkenne ich an und stimme zu, dass Expensify keine Verpflichtung hat, einem solchen Antrag im Rahmen von Expensify stattzugeben.',
-                link: 'Nutzungsbedingungen',
-                part2: 'oder andere anwendbare Dienstleistungsvereinbarungen zwischen mir und Expensify und dass Expensify das alleinige Ermessen hinsichtlich der Gewährung eines solchen Antrags behält.',
-            },
+            acknowledgement: `Indem ich die vorzeitige Kündigung beantrage, erkenne ich an und stimme zu, dass Expensify keine Verpflichtung hat, einem solchen Antrag im Rahmen von Expensify stattzugeben.<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Nutzungsbedingungen</a>oder andere anwendbare Dienstleistungsvereinbarungen zwischen mir und Expensify und dass Expensify das alleinige Ermessen hinsichtlich der Gewährung eines solchen Antrags behält.`,
         },
     },
     feedbackSurvey: {
