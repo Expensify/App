@@ -25,14 +25,12 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -56,8 +54,10 @@ import {
     isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
     isCurrentUserSubmitter,
     isDeprecatedGroupDM,
+    isExpenseReport,
     isExpenseRequest,
     isGroupChat as isGroupChatReportUtils,
+    isIOUReport,
     isOpenTaskReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isSelfDM as isSelfDMReportUtils,
@@ -126,9 +126,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const {isBetaEnabled} = usePermissions();
-    const isNativePlatform = getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID;
-    const shouldShowTalkToSales = !!isBetaEnabled(CONST.BETAS.NEW_DOT_TALK_TO_AI_SALES) && isAdminRoom(report) && !isNativePlatform;
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
     const participants = allParticipants.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
@@ -141,7 +138,11 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isChatRoom = isChatRoomReportUtils(report);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     const isTaskReport = isTaskReportReportUtils(report);
-    const reportHeaderData = !isTaskReport && !isChatThread && report?.parentReportID ? parentReport : report;
+    const [parentOfParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {canBeMissing: true});
+    const reportHeaderData =
+        ((!isTaskReport && !isChatThread) || (parentOfParentReport && (isIOUReport(parentOfParentReport) || isExpenseReport(parentOfParentReport)))) && report?.parentReportID
+            ? parentReport
+            : report;
     // Use sorted display names for the title for group chats on native small screen widths
     const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy);
     const subtitle = getChatRoomSubtitle(reportHeaderData);
@@ -222,7 +223,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
     const shouldShowRegisterForWebinar = introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && (isChatUsedForOnboarding || isAdminRoom(report));
-    const shouldShowOnBoardingHelpDropdownButton = (shouldShowTalkToSales || shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isArchivedReport(reportNameValuePairs);
+    const isArchived = isArchivedReport(reportNameValuePairs);
+    const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isArchived;
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
     const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
     const hasActiveScheduledCall = latestScheduledCall && !isPast(latestScheduledCall.eventTime) && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
@@ -231,7 +233,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         <OnboardingHelpDropdownButton
             reportID={report?.reportID}
             shouldUseNarrowLayout={shouldUseNarrowLayout}
-            shouldShowTalkToSales={shouldShowTalkToSales}
             shouldShowRegisterForWebinar={shouldShowRegisterForWebinar}
             shouldShowGuideBooking={shouldShowGuideBooking}
             hasActiveScheduledCall={hasActiveScheduledCall}
@@ -300,7 +301,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                                 tooltipEnabled
                                                 numberOfLines={1}
                                                 textStyles={[styles.headerText, styles.pre]}
-                                                shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle}
+                                                shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle || isArchived}
                                                 renderAdditionalText={renderAdditionalText}
                                                 shouldAddEllipsis={shouldAddEllipsis}
                                             />
@@ -308,8 +309,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                         {!isEmptyObject(parentNavigationSubtitleData) && (
                                             <ParentNavigationSubtitle
                                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
-                                                parentReportID={report?.parentReportID}
-                                                parentReportActionID={report?.parentReportActionID}
+                                                parentReportID={reportHeaderData?.parentReportID}
+                                                parentReportActionID={reportHeaderData?.parentReportActionID}
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                             />
                                         )}

@@ -1,10 +1,9 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import type Locale from '@src/types/onyx/Locale';
 
 type SignInUserParams = {
     twoFactorAuthCode?: string;
     email?: string;
-    preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
+    preferredLocale: Locale | null;
     validateCode?: string;
     deviceInfo: string;
 };

@@ -85,6 +85,7 @@ import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EmptySquare from '@assets/images/empty-square.svg';
 import EmptyStateAttachReceipt from '@assets/images/empty-state__attach-receipt.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
+import EmptyStateSpyPigeon from '@assets/images/emptystate__spy-pigeon.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
@@ -168,6 +169,7 @@ import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
 import Plane from '@assets/images/plane.svg';
 import Play from '@assets/images/play.svg';
+import PlusMinus from '@assets/images/plus-minus.svg';
 import Plus from '@assets/images/plus.svg';
 import Printer from '@assets/images/printer.svg';
 import Profile from '@assets/images/profile.svg';
@@ -218,6 +220,7 @@ import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
 import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
+import UserLock from '@assets/images/user-lock.svg';
 import UserPlus from '@assets/images/user-plus.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
@@ -460,8 +463,11 @@ export {
     GalleryNotFound,
     Train,
     boltSlash,
+    PlusMinus,
     MagnifyingGlassSpyMouthClosed,
     EmptySquare,
     CheckSquare,
     Minus,
+    UserLock,
+    EmptyStateSpyPigeon,
 };
