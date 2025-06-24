@@ -15,7 +15,6 @@ import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/Dro
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
-import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -34,7 +33,6 @@ import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -45,106 +43,6 @@ type SearchFiltersBarProps = {
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
 };
 
-// Extracted popup components to avoid defining components during render
-type TypePopupProps = {
-    closeOverlay: () => void;
-    type: string;
-    typeOptions: Array<SingleSelectItem<SearchDataTypes>>;
-    translate: ReturnType<typeof useLocalize>['translate'];
-    updateFilterForm: (updates: Partial<SearchAdvancedFiltersForm>) => void;
-};
-
-function TypePopup({closeOverlay, type, typeOptions, translate, updateFilterForm}: TypePopupProps) {
-    const value = typeOptions.find((option) => option.value === type) ?? null;
-
-    return (
-        <SingleSelectPopup
-            label={translate('common.type')}
-            value={value}
-            items={typeOptions}
-            closeOverlay={closeOverlay}
-            onChange={(item) => updateFilterForm({type: item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE})}
-        />
-    );
-}
-
-type StatusPopupProps = {
-    closeOverlay: () => void;
-    status: string | string[];
-    statusOptions: Array<MultiSelectItem<SingularSearchStatus>>;
-    translate: ReturnType<typeof useLocalize>['translate'];
-    updateFilterForm: (updates: Partial<SearchAdvancedFiltersForm>) => void;
-};
-
-function StatusPopup({closeOverlay, status, statusOptions, translate, updateFilterForm}: StatusPopupProps) {
-    const selected = Array.isArray(status) ? statusOptions.filter((option) => status.includes(option.value)) : (statusOptions.find((option) => option.value === status) ?? []);
-    const value = [selected].flat();
-
-    const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
-        const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : CONST.SEARCH.STATUS.EXPENSE.ALL;
-        updateFilterForm({status: newStatus});
-    };
-
-    return (
-        <MultiSelectPopup
-            label={translate('common.status')}
-            items={statusOptions}
-            value={value}
-            closeOverlay={closeOverlay}
-            onChange={onChange}
-        />
-    );
-}
-
-type DatePickerPopupProps = {
-    closeOverlay: () => void;
-    filterFormValues: Partial<SearchAdvancedFiltersForm>;
-    updateFilterForm: (updates: Partial<SearchAdvancedFiltersForm>) => void;
-};
-
-function DatePickerPopup({closeOverlay, filterFormValues, updateFilterForm}: DatePickerPopupProps) {
-    const value: DateSelectPopupValue = {
-        [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterFormValues.dateAfter ?? null,
-        [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterFormValues.dateBefore ?? null,
-        [CONST.SEARCH.DATE_MODIFIERS.ON]: filterFormValues.dateOn ?? null,
-    };
-
-    const onChange = (selectedDates: DateSelectPopupValue) => {
-        const dateFormValues = {
-            dateAfter: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? undefined,
-            dateBefore: selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? undefined,
-            dateOn: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON] ?? undefined,
-        };
-
-        updateFilterForm(dateFormValues);
-    };
-
-    return (
-        <DateSelectPopup
-            closeOverlay={closeOverlay}
-            value={value}
-            onChange={onChange}
-        />
-    );
-}
-
-type UserPickerPopupProps = {
-    closeOverlay: () => void;
-    filterFormValues: Partial<SearchAdvancedFiltersForm>;
-    updateFilterForm: (updates: Partial<SearchAdvancedFiltersForm>) => void;
-};
-
-function UserPickerPopup({closeOverlay, filterFormValues, updateFilterForm}: UserPickerPopupProps) {
-    const value = filterFormValues.from ?? [];
-
-    return (
-        <UserSelectPopup
-            value={value}
-            closeOverlay={closeOverlay}
-            onChange={(selectedUsers) => updateFilterForm({from: selectedUsers})}
-        />
-    );
-}
 
 function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarProps) {
     const {hash, type, groupBy, status} = queryJSON;
@@ -210,51 +108,86 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [filterFormValues]);
 
-    const createTypeComponent = useCallback(
-        (props: PopoverComponentProps) => (
-            <TypePopup
-                closeOverlay={props.closeOverlay}
-                type={type}
-                typeOptions={typeOptions}
-                translate={translate}
-                updateFilterForm={updateFilterForm}
-            />
-        ),
+    const typeComponent = useCallback(
+        (props: PopoverComponentProps) => {
+            const value = typeOptions.find((option) => option.value === type) ?? null;
+            return (
+                <SingleSelectPopup
+                    label={translate('common.type')}
+                    value={value}
+                    items={typeOptions}
+                    closeOverlay={props.closeOverlay}
+                    onChange={(item) => updateFilterForm({type: item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE})}
+                />
+            );
+        },
         [type, typeOptions, translate, updateFilterForm],
     );
 
-    const createStatusComponent = useCallback(
-        (props: PopoverComponentProps) => (
-            <StatusPopup
-                closeOverlay={props.closeOverlay}
-                status={status}
-                statusOptions={statusOptions}
-                translate={translate}
-                updateFilterForm={updateFilterForm}
-            />
-        ),
+    const statusComponent = useCallback(
+        (props: PopoverComponentProps) => {
+            const selected = Array.isArray(status) ? statusOptions.filter((option) => status.includes(option.value)) : (statusOptions.find((option) => option.value === status) ?? []);
+            const value = [selected].flat();
+
+            const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
+                const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : CONST.SEARCH.STATUS.EXPENSE.ALL;
+                updateFilterForm({status: newStatus});
+            };
+
+            return (
+                <MultiSelectPopup
+                    label={translate('common.status')}
+                    items={statusOptions}
+                    value={value}
+                    closeOverlay={props.closeOverlay}
+                    onChange={onChange}
+                />
+            );
+        },
         [status, statusOptions, translate, updateFilterForm],
     );
 
-    const createDatePickerComponent = useCallback(
-        (props: PopoverComponentProps) => (
-            <DatePickerPopup
-                closeOverlay={props.closeOverlay}
-                filterFormValues={filterFormValues}
-                updateFilterForm={updateFilterForm}
-            />
-        ),
+    const datePickerComponent = useCallback(
+        (props: PopoverComponentProps) => {
+            const value: DateSelectPopupValue = {
+                [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterFormValues.dateAfter ?? null,
+                [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterFormValues.dateBefore ?? null,
+                [CONST.SEARCH.DATE_MODIFIERS.ON]: filterFormValues.dateOn ?? null,
+            };
+
+            const onChange = (selectedDates: DateSelectPopupValue) => {
+                const dateFormValues = {
+                    dateAfter: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? undefined,
+                    dateBefore: selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? undefined,
+                    dateOn: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON] ?? undefined,
+                };
+
+                updateFilterForm(dateFormValues);
+            };
+
+            return (
+                <DateSelectPopup
+                    closeOverlay={props.closeOverlay}
+                    value={value}
+                    onChange={onChange}
+                />
+            );
+        },
         [filterFormValues, updateFilterForm],
     );
 
-    const createUserPickerComponent = useCallback(
-        (props: PopoverComponentProps) => (
-            <UserPickerPopup
-                closeOverlay={props.closeOverlay}
-                filterFormValues={filterFormValues}
-                updateFilterForm={updateFilterForm}
-            />
-        ),
+    const userPickerComponent = useCallback(
+        (props: PopoverComponentProps) => {
+            const value = filterFormValues.from ?? [];
+
+            return (
+                <UserSelectPopup
+                    value={value}
+                    closeOverlay={props.closeOverlay}
+                    onChange={(selectedUsers) => updateFilterForm({from: selectedUsers})}
+                />
+            );
+        },
         [filterFormValues, updateFilterForm],
     );
 
@@ -262,26 +195,26 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         () => [
             {
                 label: translate('common.type'),
-                PopoverComponent: createTypeComponent,
+                PopoverComponent: typeComponent,
                 key: 'type',
             },
             {
                 label: translate('common.status'),
-                PopoverComponent: createStatusComponent,
+                PopoverComponent: statusComponent,
                 key: 'status',
             },
             {
                 label: translate('common.date'),
-                PopoverComponent: createDatePickerComponent,
+                PopoverComponent: datePickerComponent,
                 key: 'date',
             },
             {
                 label: translate('common.from'),
-                PopoverComponent: createUserPickerComponent,
+                PopoverComponent: userPickerComponent,
                 key: 'from',
             },
         ],
-        [translate, createTypeComponent, createStatusComponent, createDatePickerComponent, createUserPickerComponent],
+        [translate, typeComponent, statusComponent, datePickerComponent, userPickerComponent],
     );
 
     const filterValues = useMemo(() => {
