@@ -115,7 +115,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         const headers: Record<SearchGroupBy, React.JSX.Element> = {
             [CONST.SEARCH.GROUP_BY.REPORTS]: (
                 <ReportListItemHeader
-                    report={groupItem as unknown as TransactionReportGroupListItemType}
+                    report={groupItem as TransactionReportGroupListItemType}
                     policy={policy}
                     onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
@@ -127,7 +127,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ),
             [CONST.SEARCH.GROUP_BY.MEMBERS]: (
                 <MemberListItemHeader
-                    member={groupItem as unknown as TransactionMemberGroupListItemType}
+                    member={groupItem as TransactionMemberGroupListItemType}
                     onCheckboxPress={onCheckboxPress}
                     isDisabled={isDisabledOrEmpty}
                     canSelectMultiple={canSelectMultiple}
