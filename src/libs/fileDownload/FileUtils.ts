@@ -473,6 +473,14 @@ const getFileValidationErrorText = (
     }
 };
 
+const needsHeicToJpegConversion = (file: FileObject) => {
+    return (
+        file?.type?.startsWith('image') &&
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif'))
+    );
+};
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -498,4 +506,5 @@ export {
     validateAttachment,
     isValidReceiptExtension,
     getFileValidationErrorText,
+    needsHeicToJpegConversion
 };

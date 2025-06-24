@@ -33,7 +33,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {isValidReceiptExtension, readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import {isValidReceiptExtension, needsHeicToJpegConversion, readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -576,11 +576,7 @@ function IOURequestStepScan({
         };
 
         // Check if the file is HEIC/HEIF and needs conversion
-        if (
-            originalFile?.type?.startsWith('image') &&
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (originalFile.name?.toLowerCase().endsWith('.heic') || originalFile.name?.toLowerCase().endsWith('.heif'))
-        ) {
+        if (needsHeicToJpegConversion(originalFile)) {
             convertHeicImageToJpegPromise(originalFile)
                 .then((convertedFile) => {
                     processFile(convertedFile);
