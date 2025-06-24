@@ -88,7 +88,7 @@ For a full breakdown, visit the [Expensify pricing page](https://www.expensify.c
 
 ## 🌍 Localized Pricing
 
-- Available in **GBP**, **AUD**, and **NZD**
+- Available in **EURO**,**GBP**, **AUD**, and **NZD**
 
 ## 🧾 Receipts
 
