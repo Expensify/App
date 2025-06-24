@@ -32,7 +32,8 @@ describe('Composer', () => {
 
         await waitForBatchedUpdates();
 
-        expect(RNMarkdownTextInput).toHaveBeenCalledWith(
+        const props = (RNMarkdownTextInput as jest.Mock).mock.calls[0]?.[0];
+        expect(props).toEqual(
             expect.objectContaining({
                 markdownStyle: expect.objectContaining({
                     emoji: expect.objectContaining({
@@ -40,7 +41,6 @@ describe('Composer', () => {
                     }),
                 }),
             }),
-            expect.anything(),
         );
     });
 });
