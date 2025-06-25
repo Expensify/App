@@ -28,7 +28,7 @@ import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction, ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 
 type TripRoomPreviewProps = {
@@ -55,6 +55,9 @@ type TripRoomPreviewProps = {
 
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
+
+    /** The transactions for the report */
+    transactionsAndViolationsByReport: ReportTransactionsAndViolationsDerivedValue;
 };
 
 type ReservationViewProps = {
@@ -148,11 +151,12 @@ function TripRoomPreview({
     isHovered = false,
     checkIfContextMenuActive = () => {},
     shouldDisplayContextMenu = true,
+    transactionsAndViolationsByReport,
 }: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const chatReportID = chatReport?.reportID;
-    const tripTransactions = useTripTransactions(chatReportID);
+    const tripTransactions = useTripTransactions(chatReportID, transactionsAndViolationsByReport);
 
     const reservationsData: ReservationData[] = getReservationsFromTripTransactions(tripTransactions);
     const dateInfo =

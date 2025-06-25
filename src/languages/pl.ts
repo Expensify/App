@@ -67,6 +67,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodParams,
     ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
@@ -550,8 +551,9 @@ const translations = {
         userID: 'ID użytkownika',
         disable: 'Wyłącz',
         export: 'Eksportuj',
+        basicExport: 'Eksport podstawowy',
         initialValue: 'Wartość początkowa',
-        currentDate: 'Current date',
+        currentDate: 'Aktualna data',
         value: 'Wartość',
         downloadFailedTitle: 'Pobieranie nie powiodło się',
         downloadFailedDescription: 'Nie udało się zakończyć pobierania. Spróbuj ponownie później.',
@@ -1121,7 +1123,6 @@ const translations = {
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Konto firmowe • ${lastFour}`,
         nextStep: 'Następne kroki',
         finished: 'Zakończono',
-        flip: 'Odwróć',
         sendInvoice: ({amount}: RequestAmountParams) => `Wyślij fakturę na kwotę ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Zatwierdź ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `dla ${comment}` : ''}`,
@@ -1489,6 +1490,7 @@ const translations = {
             noLogsToShare: 'Brak dzienników do udostępnienia',
             useProfiling: 'Użyj profilowania',
             profileTrace: 'Ślad profilu',
+            results: 'Wyniki',
             releaseOptions: 'Opcje wydania',
             testingPreferences: 'Testowanie preferencji',
             useStagingServer: 'Użyj serwera Staging',
@@ -1509,6 +1511,7 @@ const translations = {
             invalidFile: 'Nieprawidłowy plik',
             invalidFileDescription: 'Plik, który próbujesz zaimportować, jest nieprawidłowy. Spróbuj ponownie.',
             invalidateWithDelay: 'Unieważnij z opóźnieniem',
+            recordTroubleshootData: 'Rejestrowanie danych rozwiązywania problemów',
         },
         debugConsole: {
             saveLog: 'Zapisz log',
@@ -2413,11 +2416,8 @@ const translations = {
         toGetStarted: 'Dodaj konto bankowe, aby zwracać wydatki, wydawać karty Expensify, pobierać płatności za faktury i opłacać rachunki wszystko z jednego miejsca.',
         plaidBodyCopy: 'Daj swoim pracownikom łatwiejszy sposób na płacenie - i otrzymywanie zwrotu - za wydatki firmowe.',
         checkHelpLine: 'Twój numer rozliczeniowy i numer konta można znaleźć na czeku dla tego konta.',
-        hasPhoneLoginError: {
-            phrase1: 'Aby połączyć konto bankowe, proszę',
-            link: 'dodaj e-mail jako swoje główne dane logowania',
-            phrase2: 'i spróbuj ponownie. Możesz dodać swój numer telefonu jako dodatkowy login.',
-        },
+        hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
+            `Aby połączyć konto bankowe, proszę <a href="${contactMethodRoute}">dodaj e-mail jako swoje główne dane logowania</a> i spróbuj ponownie. Możesz dodać swój numer telefonu jako dodatkowy login.`,
         hasBeenThrottledError: 'Wystąpił błąd podczas dodawania Twojego konta bankowego. Proszę poczekać kilka minut i spróbować ponownie.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Ups! Wygląda na to, że waluta Twojego miejsca pracy jest ustawiona na inną niż USD. Aby kontynuować, przejdź do <a href="${workspaceRoute}">ustawienia Twojego miejsca pracy</a> ustawić na USD i spróbować ponownie.`,
@@ -3194,7 +3194,7 @@ const translations = {
             welcomeNote: 'Proszę użyć Expensify do przesyłania paragonów do zwrotu kosztów, dziękuję!',
             subscription: 'Subskrypcja',
             markAsEntered: 'Oznacz jako wprowadzone ręcznie',
-            markAsExported: 'Oznacz jako wyeksportowane ręcznie',
+            markAsExported: 'Oznacz jako wyeksportowane',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Eksportuj do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Sprawdźmy podwójnie, czy wszystko wygląda dobrze.',
             lineItemLevel: 'Poziom pozycji linii',
@@ -6378,14 +6378,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'Zgłoś ofertę',
                 noThanks: 'Nie, dziękuję',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% zniżki na pierwszy rok!`,
-                    phrase2: `Wystarczy dodać kartę płatniczą i rozpocząć roczną subskrypcję.`,
-                },
-                onboardingChatTitle: {
-                    phrase1: 'Oferta ograniczona czasowo:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% zniżki na pierwszy rok!`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>${discountType}% zniżki na pierwszy rok!</strong> Wystarczy dodać kartę płatniczą i rozpocząć roczną subskrypcję.`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Oferta ograniczona czasowo: ${discountType}% zniżki na pierwszy rok!`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Zgłoś w ciągu ${days > 0 ? `${days}d :` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
         },
