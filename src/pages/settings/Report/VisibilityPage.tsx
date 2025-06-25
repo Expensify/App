@@ -10,10 +10,10 @@ import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportSettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {goBackToDetailsPage, isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
-import * as ReportActions from '@userActions/Report';
+import {updateRoomVisibility} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {RoomVisibility} from '@src/types/onyx/Report';
@@ -25,7 +25,7 @@ function VisibilityPage({report}: VisibilityProps) {
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const shouldGoBackToDetailsPage = useRef(false);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const shouldDisableVisibility = ReportUtils.isArchivedNonExpenseReport(report, isReportArchived);
+    const shouldDisableVisibility = isArchivedNonExpenseReport(report, isReportArchived);
     const {translate} = useLocalize();
 
     const visibilityOptions = useMemo(
@@ -43,7 +43,7 @@ function VisibilityPage({report}: VisibilityProps) {
     );
 
     const goBack = useCallback(() => {
-        ReportUtils.goBackToDetailsPage(report, route.params.backTo);
+        goBackToDetailsPage(report, route.params.backTo);
     }, [report, route.params.backTo]);
 
     const changeVisibility = useCallback(
@@ -51,7 +51,7 @@ function VisibilityPage({report}: VisibilityProps) {
             if (!report) {
                 return;
             }
-            ReportActions.updateRoomVisibility(report.reportID, report.visibility, newVisibility);
+            updateRoomVisibility(report.reportID, report.visibility, newVisibility);
             if (showConfirmModal) {
                 shouldGoBackToDetailsPage.current = true;
             } else {
