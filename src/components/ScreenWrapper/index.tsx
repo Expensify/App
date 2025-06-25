@@ -83,7 +83,7 @@ function ScreenWrapper(
         disableOfflineIndicatorSafeAreaPadding,
         shouldShowOfflineIndicator: shouldShowSmallScreenOfflineIndicator,
         shouldShowOfflineIndicatorInWideScreen: shouldShowWideScreenOfflineIndicator,
-        shouldSmallScreenOfflineIndicatorStickToBottom: shouldSmallScreenOfflineIndicatorStickToBottomProp,
+        shouldMobileOfflineIndicatorStickToBottom: shouldSmallScreenOfflineIndicatorStickToBottomProp,
         shouldDismissKeyboardBeforeClose,
         onEntryTransitionEnd,
         includePaddingTop = true,
@@ -158,7 +158,7 @@ function ScreenWrapper(
     }, [addSafeAreaPadding, disableOfflineIndicatorSafeAreaPadding, isInNarrowPane, isSmallScreenWidth, originalValues, showOnSmallScreens, showOnWideScreens]);
 
     /** If there is no bottom content, the mobile offline indicator will stick to the bottom of the screen by default. */
-    const displayStickyMobileOfflineIndicator = shouldSmallScreenOfflineIndicatorStickToBottom && !bottomContent;
+    const displayStickySmallScreenOfflineIndicator = shouldSmallScreenOfflineIndicatorStickToBottom && !bottomContent;
     const displaySmallScreenOfflineIndicator = isSmallScreenWidth && (shouldShowSmallScreenOfflineIndicator ?? showOnSmallScreens ?? true);
     const displayWideScreenOfflineIndicator = !shouldUseNarrowLayout && (shouldShowWideScreenOfflineIndicator ?? showOnWideScreens ?? false);
 
@@ -224,6 +224,13 @@ function ScreenWrapper(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
+    const ChildrenContent = useMemo(() => {
+        return (
+            // If props.children is a function, call it to provide the insets to the children.
+            typeof children === 'function' ? children({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) : children
+        );
+    }, [children, insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd]);
+
     return (
         <FocusTrapForScreen focusTrapSettings={focusTrapSettings}>
             <ScreenWrapperContainer
@@ -243,22 +250,13 @@ function ScreenWrapper(
                 {isDevelopment && <CustomDevMenu />}
                 <ScreenWrapperStatusContext.Provider value={statusContextValue}>
                     <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
-                        {
-                            // If props.children is a function, call it to provide the insets to the children.
-                            typeof children === 'function'
-                                ? children({
-                                      insets,
-                                      safeAreaPaddingBottomStyle,
-                                      didScreenTransitionEnd,
-                                  })
-                                : children
-                        }
+                        {ChildrenContent}
 
                         <ScreenWrapperOfflineIndicators
                             offlineIndicatorStyle={offlineIndicatorStyle}
                             shouldShowOfflineIndicator={displaySmallScreenOfflineIndicator}
                             shouldShowOfflineIndicatorInWideScreen={displayWideScreenOfflineIndicator}
-                            shouldSmallScreenOfflineIndicatorStickToBottom={displayStickyMobileOfflineIndicator}
+                            shouldMobileOfflineIndicatorStickToBottom={displayStickySmallScreenOfflineIndicator}
                             isOfflineIndicatorTranslucent={isOfflineIndicatorTranslucent}
                             extraContent={bottomContent}
                             addBottomSafeAreaPadding={addSmallScreenOfflineIndicatorBottomSafeAreaPadding}

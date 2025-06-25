@@ -30,7 +30,7 @@ type ScreenWrapperContainerProps = React.PropsWithChildren<{
     /** Content to display under the offline indicator */
     bottomContent?: ReactNode;
 
-    /** Additional styles for extra content */
+    /** Additional styles for bottom content */
     bottomContentStyle?: StyleProp<ViewStyle>;
 
     /** Whether the screen wrapper has finished the transition */
@@ -120,9 +120,6 @@ function ScreenWrapperContainer({
     const shouldKeyboardOffsetBottomSafeAreaPadding = shouldKeyboardOffsetBottomSafeAreaPaddingProp ?? isUsingEdgeToEdgeMode;
     const {paddingTop, paddingBottom, unmodifiedPaddings} = useSafeAreaPaddings(isUsingEdgeToEdgeMode);
 
-    const showBottomContent = isUsingEdgeToEdgeMode ? !!bottomContent : true;
-    const edgeToEdgeExtraContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
-
     // since Modals are drawn in separate native view hierarchy we should always add paddings
     const ignoreInsetsConsumption = !useContext(ModalContext).default;
 
@@ -139,7 +136,9 @@ function ScreenWrapperContainer({
         return {paddingTop};
     }, [isUsingEdgeToEdgeMode, ignoreInsetsConsumption, includePaddingTop, paddingTop, unmodifiedPaddings.top]);
 
-    const legacyExtraContentStyle: StyleProp<ViewStyle> = useMemo(() => {
+    const showBottomContent = isUsingEdgeToEdgeMode ? !!bottomContent : true;
+    const edgeToEdgeBottomContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
+    const legacyBottomContentStyle: StyleProp<ViewStyle> = useMemo(() => {
         const shouldUseUnmodifiedPaddings = includeSafeAreaPaddingBottom && ignoreInsetsConsumption;
         if (shouldUseUnmodifiedPaddings) {
             return {
@@ -154,8 +153,8 @@ function ScreenWrapperContainer({
     }, [ignoreInsetsConsumption, includeSafeAreaPaddingBottom, paddingBottom, unmodifiedPaddings.bottom]);
 
     const bottomContentStyle = useMemo(
-        () => [isUsingEdgeToEdgeMode ? edgeToEdgeExtraContentStyle : legacyExtraContentStyle, bottomContentStyleProp],
-        [isUsingEdgeToEdgeMode, edgeToEdgeExtraContentStyle, legacyExtraContentStyle, bottomContentStyleProp],
+        () => [isUsingEdgeToEdgeMode ? edgeToEdgeBottomContentStyle : legacyBottomContentStyle, bottomContentStyleProp],
+        [isUsingEdgeToEdgeMode, edgeToEdgeBottomContentStyle, legacyBottomContentStyle, bottomContentStyleProp],
     );
 
     const panResponder = useRef(

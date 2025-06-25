@@ -22,7 +22,7 @@ type ScreenWrapperOfflineIndicatorsProps = {
     shouldShowOfflineIndicatorInWideScreen?: boolean;
 
     /** Whether to use a sticky small screen offline indicator. */
-    shouldSmallScreenOfflineIndicatorStickToBottom?: boolean;
+    shouldMobileOfflineIndicatorStickToBottom?: boolean;
 
     /** Whether the offline indicator should be translucent. */
     isOfflineIndicatorTranslucent?: boolean;
@@ -41,7 +41,7 @@ function ScreenWrapperOfflineIndicators({
     offlineIndicatorStyle,
     shouldShowOfflineIndicator: shouldShowSmallScreenOfflineIndicator = true,
     shouldShowOfflineIndicatorInWideScreen: shouldShowWideScreenOfflineIndicator = false,
-    shouldSmallScreenOfflineIndicatorStickToBottom = true,
+    shouldMobileOfflineIndicatorStickToBottom: shouldSmallScreenOfflineIndicatorStickToBottom = true,
     isOfflineIndicatorTranslucent = false,
     extraContent,
     addBottomSafeAreaPadding = true,
