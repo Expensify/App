@@ -122,7 +122,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const {status, hash} = queryJSON ?? {};
 
-    const stableSelectedTransactions = useMemo(() => {
+    const selectedTransactionsAggregate = useMemo(() => {
         const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
         const selectedTransactionsValues = Object.values(selectedTransactions ?? {});
         const hasSelectedTransactions = selectedTransactionsKeys.length > 0;
@@ -137,7 +137,7 @@ function SearchPage({route}: SearchPageProps) {
     }, [selectedTransactions]);
 
     const headerButtonsOptions = useMemo(() => {
-        if (!stableSelectedTransactions.hasSelected || !status || !hash) {
+        if (!selectedTransactionsAggregate.hasSelected || !status || !hash) {
             return [];
         }
 
@@ -165,7 +165,7 @@ function SearchPage({route}: SearchPageProps) {
                         query: status,
                         jsonQuery: JSON.stringify(queryJSON),
                         reportIDList,
-                        transactionIDList: stableSelectedTransactions.keys,
+                        transactionIDList: selectedTransactionsAggregate.keys,
                     },
                     () => {
                         setIsDownloadErrorModalVisible(true);
@@ -181,10 +181,10 @@ function SearchPage({route}: SearchPageProps) {
 
         const shouldShowApproveOption =
             !isOffline &&
-            !stableSelectedTransactions.isAnyOnHold &&
+            !selectedTransactionsAggregate.isAnyOnHold &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.APPROVE)
-                : stableSelectedTransactions.keys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
+                : selectedTransactionsAggregate.keys.every((id) => selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.APPROVE));
 
         if (shouldShowApproveOption) {
             options.push({
@@ -198,9 +198,9 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    const transactionIDList = selectedReports.length ? undefined : stableSelectedTransactions.keys;
+                    const transactionIDList = selectedReports.length ? undefined : selectedTransactionsAggregate.keys;
                     const reportIDList = !selectedReports.length
-                        ? stableSelectedTransactions.values.map((transaction) => transaction.reportID)
+                        ? selectedTransactionsAggregate.values.map((transaction) => transaction.reportID)
                         : (selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? []);
                     approveMoneyRequestOnSearch(hash, reportIDList, transactionIDList);
                     InteractionManager.runAfterInteractions(() => {
@@ -212,10 +212,10 @@ function SearchPage({route}: SearchPageProps) {
 
         const shouldShowPayOption =
             !isOffline &&
-            !stableSelectedTransactions.isAnyOnHold &&
+            !selectedTransactionsAggregate.isAnyOnHold &&
             (selectedReports.length
                 ? selectedReports.every((report) => report.action === CONST.SEARCH.ACTION_TYPES.PAY && report.policyID && getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
-                : stableSelectedTransactions.keys.every(
+                : selectedTransactionsAggregate.keys.every(
                       (id) =>
                           selectedTransactions[id].action === CONST.SEARCH.ACTION_TYPES.PAY &&
                           selectedTransactions[id].policyID &&
@@ -235,8 +235,8 @@ function SearchPage({route}: SearchPageProps) {
                     }
 
                     const activeRoute = Navigation.getActiveRoute();
-                    const transactionIDList = selectedReports.length ? undefined : stableSelectedTransactions.keys;
-                    const items = selectedReports.length ? selectedReports : stableSelectedTransactions.values;
+                    const transactionIDList = selectedReports.length ? undefined : selectedTransactionsAggregate.keys;
+                    const items = selectedReports.length ? selectedReports : selectedTransactionsAggregate.values;
 
                     for (const item of items) {
                         const itemPolicyID = item.policyID;
@@ -272,7 +272,7 @@ function SearchPage({route}: SearchPageProps) {
                                   amount: report.total,
                                   paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods),
                               }))
-                            : stableSelectedTransactions.values.map((transaction) => ({
+                            : selectedTransactionsAggregate.values.map((transaction) => ({
                                   reportID: transaction.reportID,
                                   amount: transaction.amount,
                                   paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods),
@@ -289,7 +289,7 @@ function SearchPage({route}: SearchPageProps) {
 
         options.push(downloadButtonOption);
 
-        const shouldShowHoldOption = !isOffline && stableSelectedTransactions.keys.every((id) => selectedTransactions[id].canHold);
+        const shouldShowHoldOption = !isOffline && selectedTransactionsAggregate.keys.every((id) => selectedTransactions[id].canHold);
 
         if (shouldShowHoldOption) {
             options.push({
@@ -308,7 +308,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const shouldShowUnholdOption = !isOffline && stableSelectedTransactions.keys.every((id) => selectedTransactions[id].canUnhold);
+        const shouldShowUnholdOption = !isOffline && selectedTransactionsAggregate.keys.every((id) => selectedTransactions[id].canUnhold);
 
         if (shouldShowUnholdOption) {
             options.push({
@@ -322,7 +322,7 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    unholdMoneyRequestOnSearch(hash, stableSelectedTransactions.keys);
+                    unholdMoneyRequestOnSearch(hash, selectedTransactionsAggregate.keys);
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
                     });
@@ -330,11 +330,11 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const canAllTransactionsBeMoved = stableSelectedTransactions.keys.every((id) => selectedTransactions[id].canChangeReport);
+        const canAllTransactionsBeMoved = selectedTransactionsAggregate.keys.every((id) => selectedTransactions[id].canChangeReport);
 
         if (canAllTransactionsBeMoved) {
             options.push({
-                text: translate('iou.moveExpenses', {count: stableSelectedTransactions.keys.length}),
+                text: translate('iou.moveExpenses', {count: selectedTransactionsAggregate.keys.length}),
                 icon: Expensicons.DocumentMerge,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
                 shouldCloseModalOnSelect: true,
@@ -342,7 +342,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
-        const shouldShowDeleteOption = !isOffline && stableSelectedTransactions.keys.every((id) => selectedTransactions[id].canDelete);
+        const shouldShowDeleteOption = !isOffline && selectedTransactionsAggregate.keys.every((id) => selectedTransactions[id].canDelete);
 
         if (shouldShowDeleteOption) {
             options.push({
@@ -380,7 +380,7 @@ function SearchPage({route}: SearchPageProps) {
 
         return options;
     }, [
-        stableSelectedTransactions,
+        selectedTransactionsAggregate,
         status,
         hash,
         translate,
@@ -646,8 +646,8 @@ function SearchPage({route}: SearchPageProps) {
                     onCancel={() => {
                         setIsDeleteExpensesConfirmModalVisible(false);
                     }}
-                    title={translate('iou.deleteExpense', {count: stableSelectedTransactions.keys.length})}
-                    prompt={translate('iou.deleteConfirmation', {count: stableSelectedTransactions.keys.length})}
+                    title={translate('iou.deleteExpense', {count: selectedTransactionsAggregate.keys.length})}
+                    prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsAggregate.keys.length})}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
