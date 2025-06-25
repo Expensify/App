@@ -3,7 +3,7 @@ import type {Locale} from '@src/CONST/LOCALES';
 import flattenObject from '@src/languages/flattenObject';
 import type {FlatTranslationsObject, TranslationPaths} from '@src/languages/types';
 
-class TranslationStore {
+class IntlStore {
     private static currentLocale: Locale | undefined = 'en';
 
     private static localeCache = new Map<Locale, FlatTranslationsObject>([
@@ -39,12 +39,12 @@ class TranslationStore {
         ],
     ]);
 
-    private static loaders: Partial<Record<Locale, () => Promise<void>>> = {
+    private static loaders: Partial<Record<Locale, () => Promise<[void, void]>>> = {
         [LOCALES.EN]: () => {
-            return Promise.resolve();
+            return Promise.all([Promise.resolve(), Promise.resolve()]);
         },
         [LOCALES.ES]: () => {
-            return Promise.resolve();
+            return Promise.all([Promise.resolve(), Promise.resolve()]);
         },
     };
 
@@ -66,4 +66,4 @@ class TranslationStore {
     }
 }
 
-export default TranslationStore;
+export default IntlStore;
