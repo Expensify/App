@@ -21,12 +21,14 @@ import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import {isFullySupportedLocale, isSupportedLocale} from '@src/CONST/LOCALES';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
@@ -38,8 +40,6 @@ import Timing from './Timing';
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
 };
-
-type Locale = ValueOf<typeof CONST.LOCALES>;
 
 let currentUserAccountID: number | undefined;
 let currentUserEmail: string;
@@ -58,18 +58,23 @@ Onyx.connect({
     initWithStoredValues: false,
 });
 
-let preferredLocale: string | undefined;
+let preferredLocale: Locale | undefined;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => {
-        preferredLocale = val;
-        if (preferredLocale) {
-            TranslationStore.load(preferredLocale as Locale);
-            importEmojiLocale(preferredLocale as Locale).then(() => {
-                buildEmojisTrie(preferredLocale as Locale);
-            });
-            localeEventCallback(val);
+        if (!val || !isSupportedLocale(val)) {
+            return;
         }
+
+        preferredLocale = val;
+        IntlStore.load(val);
+        localeEventCallback(val);
+
+        // For locales without emoji support, fallback on English
+        const normalizedLocale = isFullySupportedLocale(val) ? val : CONST.LOCALES.DEFAULT;
+        importEmojiLocale(normalizedLocale).then(() => {
+            buildEmojisTrie(normalizedLocale);
+        });
     },
 });
 
@@ -183,7 +188,7 @@ function getNonOptimisticPolicyIDs(policies: OnyxCollection<OnyxTypes.Policy>): 
         .filter((id): id is string => !!id);
 }
 
-function setLocale(locale: Locale) {
+function setLocale(locale: OnyxTypes.Locale) {
     if (locale === preferredLocale) {
         return;
     }
@@ -210,7 +215,7 @@ function setLocale(locale: Locale) {
     API.write(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, parameters, {optimisticData});
 }
 
-function setLocaleAndNavigate(locale: Locale) {
+function setLocaleAndNavigate(locale: OnyxTypes.Locale) {
     setLocale(locale);
     Navigation.goBack();
 }
