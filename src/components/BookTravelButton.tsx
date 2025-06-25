@@ -99,7 +99,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
             setErrorMessage(
                 <Text style={[styles.flexRow, StyleUtils.getDotIndicatorTextStyles(true)]}>
-                    <RenderHTML html={`<alert-text>${translate('travel.phoneError', {phoneErrorMethodsRoute})}</alert-text>`} />
+                    <RenderHTML html={translate('travel.phoneError', {phoneErrorMethodsRoute})} />
                 </Text>,
             );
             return;
