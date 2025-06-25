@@ -106,6 +106,10 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, onPr
         return {width: CONST.POPOVER_DROPDOWN_WIDTH};
     }, [isSmallScreenWidth, styles]);
 
+    const renderPopover = useMemo(() => {
+        return isOverlayVisible ? PopoverComponent({closeOverlay: toggleOverlay}) : null;
+    }, [isOverlayVisible, PopoverComponent, toggleOverlay]);
+
     return (
         <>
             {/* Dropdown Trigger */}
@@ -147,7 +151,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, onPr
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
             >
-                {React.useMemo(() => isOverlayVisible && PopoverComponent({closeOverlay: toggleOverlay}), [isOverlayVisible, PopoverComponent, toggleOverlay])}
+                {renderPopover}
             </PopoverWithMeasuredContent>
         </>
     );
