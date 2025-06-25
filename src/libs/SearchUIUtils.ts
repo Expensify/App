@@ -1285,6 +1285,10 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
             return false;
         }
 
+        if (policy.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
+            return false;
+        }
+
         const isPolicyApprover = policy.approver === email;
         const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
             return employee.submitsTo === email || employee.forwardsTo === email;
