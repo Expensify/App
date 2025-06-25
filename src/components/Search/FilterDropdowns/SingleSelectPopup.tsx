@@ -61,9 +61,9 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
     }, [closeOverlay, onChange, selectedItem]);
 
     const resetChanges = useCallback(() => {
-        onChange(items.at(0) ?? null);
+        onChange(null);
         closeOverlay();
-    }, [closeOverlay, items, onChange]);
+    }, [closeOverlay, onChange]);
 
     return (
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
