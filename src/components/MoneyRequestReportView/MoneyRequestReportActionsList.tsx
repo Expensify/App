@@ -82,8 +82,8 @@ type MoneyRequestReportListProps = {
     /** Array of report actions for this report */
     reportActions?: OnyxTypes.ReportAction[];
 
-    /** List of transactions belonging to this report */
-    transactions?: OnyxTypes.Transaction[];
+    /** All transactions grouped by reportID */
+    transactionsAndViolationsByReport: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
 
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
@@ -109,7 +109,7 @@ function MoneyRequestReportActionsList({
     report,
     policy,
     reportActions = [],
-    transactions = [],
+    transactionsAndViolationsByReport,
     newTransactions,
     hasNewerActions,
     hasOlderActions,
@@ -124,11 +124,15 @@ function MoneyRequestReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const reportTransactionIDs = transactions.map((transaction) => transaction.transactionID);
+    const {transactions: reportTransactions} = transactionsAndViolationsByReport[report.reportID] ?? {};
+    const transactions = useMemo(() => Object.values(reportTransactions ?? {}) ?? [], [reportTransactions]);
+    const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {canBeMissing: true});
 
     const reportID = report?.reportID;
     const linkedReportActionID = route?.params?.reportActionID;
 
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
         canBeMissing: true,
@@ -137,7 +141,7 @@ function MoneyRequestReportActionsList({
 
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
-    const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], false, reportTransactionIDs);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
@@ -467,6 +471,7 @@ function MoneyRequestReportActionsList({
 
             return (
                 <ReportActionsListItemRenderer
+                    allReports={allReports}
                     reportAction={reportAction}
                     reportActions={reportActions}
                     parentReportAction={parentReportAction}
@@ -481,6 +486,7 @@ function MoneyRequestReportActionsList({
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
+                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                 />
             );
         },
@@ -494,6 +500,8 @@ function MoneyRequestReportActionsList({
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
+            transactionsAndViolationsByReport,
+            allReports,
         ],
     );
 

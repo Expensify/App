@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {FileObject} from '@components/AttachmentModal';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -47,6 +46,7 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {hasVBBA} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import variables from '@styles/variables';
 import {initMoneyRequest, setMoneyRequestReceipt} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -123,35 +123,42 @@ function SearchPage({route}: SearchPageProps) {
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
         const downloadButtonOption: DropdownOption<SearchHeaderOptionValue> = {
-            icon: Expensicons.Download,
-            text: translate('common.download'),
+            icon: Expensicons.Export,
+            text: translate('common.export'),
+            backButtonText: translate('common.export'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.EXPORT,
             shouldCloseModalOnSelect: true,
-            onSelected: () => {
-                if (isOffline) {
-                    setIsOfflineModalVisible(true);
-                    return;
-                }
+            subMenuItems: [
+                {
+                    text: translate('common.basicExport'),
+                    icon: Expensicons.Table,
+                    onSelected: () => {
+                        if (isOffline) {
+                            setIsOfflineModalVisible(true);
+                            return;
+                        }
 
-                if (isExportMode) {
-                    setIsDownloadExportModalVisible(true);
-                    return;
-                }
+                        if (isExportMode) {
+                            setIsDownloadExportModalVisible(true);
+                            return;
+                        }
 
-                const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-                exportSearchItemsToCSV(
-                    {
-                        query: status,
-                        jsonQuery: JSON.stringify(queryJSON),
-                        reportIDList,
-                        transactionIDList: selectedTransactionsKeys,
+                        const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+                        exportSearchItemsToCSV(
+                            {
+                                query: status,
+                                jsonQuery: JSON.stringify(queryJSON),
+                                reportIDList,
+                                transactionIDList: selectedTransactionsKeys,
+                            },
+                            () => {
+                                setIsDownloadErrorModalVisible(true);
+                            },
+                        );
+                        clearSelectedTransactions();
                     },
-                    () => {
-                        setIsDownloadErrorModalVisible(true);
-                    },
-                );
-                clearSelectedTransactions();
-            },
+                },
+            ],
         };
 
         if (isExportMode) {
@@ -489,12 +496,35 @@ function SearchPage({route}: SearchPageProps) {
     if (shouldUseNarrowLayout) {
         return (
             <>
-                <SearchPageNarrow
-                    queryJSON={queryJSON}
-                    headerButtonsOptions={headerButtonsOptions}
-                    lastNonEmptySearchResults={lastNonEmptySearchResults}
-                    currentSearchResults={currentSearchResults}
-                />
+                {isLoadingReceipt && <FullScreenLoadingIndicator />}
+                <DragAndDropProvider isDisabled={!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
+                    {PDFThumbnailView}
+                    <SearchPageNarrow
+                        queryJSON={queryJSON}
+                        headerButtonsOptions={headerButtonsOptions}
+                        lastNonEmptySearchResults={lastNonEmptySearchResults}
+                        currentSearchResults={currentSearchResults}
+                    />
+                    <DragAndDropConsumer onDrop={initScanRequest}>
+                        <DropZoneUI
+                            icon={Expensicons.SmartScan}
+                            dropTitle={translate('dropzone.scanReceipts')}
+                            dropStyles={styles.receiptDropOverlay(true)}
+                            dropTextStyles={styles.receiptDropText}
+                            dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                            dropWrapperStyles={{marginBottom: variables.bottomTabHeight}}
+                        />
+                    </DragAndDropConsumer>
+                    <ConfirmModal
+                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                        onConfirm={hideReceiptModal}
+                        onCancel={hideReceiptModal}
+                        isVisible={isAttachmentInvalid}
+                        prompt={getConfirmModalPrompt(attachmentInvalidReason)}
+                        confirmText={translate('common.close')}
+                        shouldShowCancelButton={false}
+                    />
+                </DragAndDropProvider>
                 {!!selectionMode && selectionMode?.isEnabled && (
                     <View>
                         <ConfirmModal
