@@ -17,7 +17,7 @@ type CalendarViewProps = {
 };
 
 function SearchDateFilterBaseCalendarView({view, value, navigateBack, setValue}: CalendarViewProps) {
-    const initialValue = value === CONST.SEARCH.NEVER ? null : value;
+    const initialValue = value === CONST.SEARCH.DATE_PRESETS.NEVER ? null : value;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
