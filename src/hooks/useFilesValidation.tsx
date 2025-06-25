@@ -1,15 +1,17 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useRef, useState} from 'react';
-import {Alert} from 'react-native';
+import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
-import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
+import ConfirmModal from '@components/ConfirmModal';
 import PDFThumbnail from '@components/PDFThumbnail';
-import {getFileValidationErrorText, isHeicOrHeifImage, resizeImageIfNeeded, splitExtensionFromFileName, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
-import convertHeicImage from '@libs/fileDownload/heicConverter';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
+import {getFileValidationErrorText, resizeImageIfNeeded, isHeicOrHeifImage, splitExtensionFromFileName, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
-import useLocalize from '../useLocalize';
-import useThemeStyles from '../useThemeStyles';
+import convertHeicImage from '@libs/fileDownload/heicConverter';
+import useLocalize from './useLocalize';
+import useThemeStyles from './useThemeStyles';
 
 type ErrorObject = {
     error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>;
@@ -19,10 +21,14 @@ type ErrorObject = {
 function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => void) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
+    const [fileError, setFileError] = useState<ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null>(null);
     const [pdfFilesToRender, setPdfFilesToRender] = useState<FileObject[]>([]);
+    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
     const [validFilesToUpload, setValidFilesToUpload] = useState([] as FileObject[]);
+    const [isValidatingMultipleFiles, setIsValidatingMultipleFiles] = useState(false);
+    const [invalidFileExtension, setInvalidFileExtension] = useState('');
     const [errorQueue, setErrorQueue] = useState<ErrorObject[]>([]);
-    const {setIsLoaderVisible} = useFullScreenLoader();
     const [currentErrorIndex, setCurrentErrorIndex] = useState(0);
 
     const validatedPDFs = useRef<FileObject[]>([]);
@@ -31,56 +37,31 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
     const collectedErrors = useRef<ErrorObject[]>([]);
 
     const resetValidationState = useCallback(() => {
+        setIsErrorModalVisible(false);
         setPdfFilesToRender([]);
-        setIsLoaderVisible(false);
+        setIsLoadingReceipt(false);
+        setIsValidatingMultipleFiles(false);
+        setFileError(null);
         setValidFilesToUpload([]);
+        setInvalidFileExtension('');
         setErrorQueue([]);
         setCurrentErrorIndex(0);
         validatedPDFs.current = [];
         validFiles.current = [];
         filesToValidate.current = [];
         collectedErrors.current = [];
-    }, [setIsLoaderVisible]);
+    }, []);
 
-    const showErrorAlert = (error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>, fileExtension?: string, isCheckingMultipleFiles = false) => {
-        const errorText = getFileValidationErrorText(error, {fileType: fileExtension});
+    const hideModalAndReset = useCallback(() => {
+        setIsErrorModalVisible(false);
+        InteractionManager.runAfterInteractions(() => {
+            resetValidationState();
+        });
+    }, [resetValidationState]);
 
-        const buttons: Array<{text: string; style?: 'cancel'; onPress: () => void}> = [
-            {
-                text: translate('common.cancel'),
-                style: 'cancel',
-                onPress: () => resetValidationState(),
-            },
-        ];
-
-        if (isCheckingMultipleFiles) {
-            buttons.push({
-                text: translate('common.continue'),
-                onPress: () => {
-                    if (error === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
-                        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-                        validateAndResizeFiles(filesToValidate.current);
-                        return;
-                    }
-
-                    if (currentErrorIndex < errorQueue.length - 1) {
-                        const nextIndex = currentErrorIndex + 1;
-                        const nextError = errorQueue.at(nextIndex);
-                        if (nextError) {
-                            setCurrentErrorIndex(nextIndex);
-                            showErrorAlert(nextError.error, nextError.fileExtension, isCheckingMultipleFiles);
-                            return;
-                        }
-                    }
-
-                    if (validFilesToUpload.length > 0) {
-                        proceedWithFilesAction(validFilesToUpload);
-                    }
-                },
-            });
-        }
-
-        Alert.alert(errorText.title, errorText.reason, buttons);
+    const setErrorAndOpenModal = (error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>) => {
+        setFileError(error);
+        setIsErrorModalVisible(true);
     };
 
     const isValidFile = (originalFile: FileObject, isCheckingMultipleFiles?: boolean) => {
@@ -128,25 +109,30 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         }
 
         if (collectedErrors.current.length > 0) {
-            const uniqueErrors = Array.from(new Set(collectedErrors.current.map((error) => JSON.stringify(error)))).map((errorStr) => JSON.parse(errorStr) as ErrorObject);
+            const uniqueErrors = Array.from(
+                new Set(collectedErrors.current.map(error => JSON.stringify(error)))
+            ).map(errorStr => JSON.parse(errorStr) as ErrorObject);
             setErrorQueue(uniqueErrors);
             setCurrentErrorIndex(0);
             const firstError = uniqueErrors.at(0);
             if (firstError) {
-                showErrorAlert(firstError.error, firstError.fileExtension, validFiles.current.length > 1);
+                setFileError(firstError.error);
+                if (firstError.fileExtension) {
+                    setInvalidFileExtension(firstError.fileExtension);
+                }
+                setIsErrorModalVisible(true);
             }
         } else if (validFiles.current.length > 0) {
             proceedWithFilesAction(validFiles.current);
             resetValidationState();
         }
-    }, [pdfFilesToRender.length, showErrorAlert, proceedWithFilesAction, resetValidationState]);
+    }, [pdfFilesToRender.length, proceedWithFilesAction, resetValidationState]);
 
     const validateAndResizeFiles = (files: FileObject[]) => {
         // Reset collected errors for new validation
         collectedErrors.current = [];
-        const isCheckingMultipleFiles = files.length > 1;
 
-        Promise.all(files.map((file) => isValidFile(file, isCheckingMultipleFiles).then((isValid) => (isValid ? file : null))))
+        Promise.all(files.map((file) => isValidFile(file, files.length > 1).then((isValid) => (isValid ? file : null))))
             .then((validationResults) => {
                 const filteredResults = validationResults.filter((result): result is FileObject => result !== null);
                 const validImages = filteredResults.filter((file) => !Str.isPDF(file.name ?? ''));
@@ -154,28 +140,28 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
 
                 // Check if we need to convert images
                 if (validImages.some((file) => isHeicOrHeifImage(file))) {
-                    setIsLoaderVisible(true);
+                    setIsLoadingReceipt(true);
 
                     return Promise.all(validImages.map((file) => convertHeicImageToJpegPromise(file))).then((convertedImages) => {
                         // Check if we need to resize images
                         if (convertedImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
                             return Promise.all(convertedImages.map((file) => resizeImageIfNeeded(file))).then((processedImages) => {
-                                setIsLoaderVisible(false);
+                                setIsLoadingReceipt(false);
                                 return Promise.resolve({processedImages, pdfsToLoad});
                             });
                         }
 
                         // No resizing needed, just return the converted images
-                        setIsLoaderVisible(false);
+                        setIsLoadingReceipt(false);
                         return Promise.resolve({processedImages: convertedImages, pdfsToLoad});
                     });
                 }
 
                 // No conversion needed, but check if we need to resize images
                 if (validImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
-                    setIsLoaderVisible(true);
+                    setIsLoadingReceipt(true);
                     return Promise.all(validImages.map((file) => resizeImageIfNeeded(file))).then((processedImages) => {
-                        setIsLoaderVisible(false);
+                        setIsLoadingReceipt(false);
                         return Promise.resolve({processedImages, pdfsToLoad});
                     });
                 }
@@ -193,12 +179,18 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                     }
 
                     if (collectedErrors.current.length > 0) {
-                        const uniqueErrors = Array.from(new Set(collectedErrors.current.map((error) => JSON.stringify(error)))).map((errorStr) => JSON.parse(errorStr) as ErrorObject);
+                        const uniqueErrors = Array.from(
+                            new Set(collectedErrors.current.map(error => JSON.stringify(error)))
+                        ).map(errorStr => JSON.parse(errorStr) as ErrorObject);
                         setErrorQueue(uniqueErrors);
                         setCurrentErrorIndex(0);
                         const firstError = uniqueErrors.at(0);
                         if (firstError) {
-                            showErrorAlert(firstError.error, firstError.fileExtension, isCheckingMultipleFiles);
+                            setFileError(firstError.error);
+                            if (firstError.fileExtension) {
+                                setInvalidFileExtension(firstError.fileExtension);
+                            }
+                            setIsErrorModalVisible(true);
                         }
                     } else if (processedImages.length > 0) {
                         proceedWithFilesAction(processedImages);
@@ -209,12 +201,37 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
     };
 
     const validateFiles = (files: FileObject[]) => {
+        if (files.length > 1) {
+            setIsValidatingMultipleFiles(true);
+        }
         if (files.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
             filesToValidate.current = files.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
-            showErrorAlert(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED, undefined, files.length > 1);
+            setErrorAndOpenModal(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
         } else {
             validateAndResizeFiles(files);
         }
+    };
+
+    const onConfirm = () => {
+        if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
+            setIsErrorModalVisible(false);
+            validateAndResizeFiles(filesToValidate.current);
+            return;
+        }
+
+        if (currentErrorIndex < errorQueue.length - 1) {
+            const nextIndex = currentErrorIndex + 1;
+            const nextError = errorQueue.at(nextIndex);
+            if (nextError) {
+                setCurrentErrorIndex(nextIndex);
+                setFileError(nextError.error);
+                setInvalidFileExtension(nextError.fileExtension ?? '');
+                return;
+            }
+        }
+
+        proceedWithFilesAction(validFilesToUpload);
+        hideModalAndReset();
     };
 
     const PDFValidationComponent = pdfFilesToRender.length
@@ -242,9 +259,40 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
           ))
         : undefined;
 
+    const getModalPrompt = useCallback(() => {
+        if (!fileError) {
+            return '';
+        }
+        const prompt = getFileValidationErrorText(fileError, {fileType: invalidFileExtension}).reason;
+        if (fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE) {
+            return (
+                <Text>
+                    {prompt}
+                    <TextLink href=""> {translate('attachmentPicker.learnMoreAboutSupportedFiles')}</TextLink>
+                </Text>
+            );
+        }
+        return prompt;
+    }, [fileError, invalidFileExtension, translate]);
+
+    const ErrorModal = (
+        <ConfirmModal
+            title={getFileValidationErrorText(fileError, {fileType: invalidFileExtension}).title}
+            onConfirm={onConfirm}
+            onCancel={hideModalAndReset}
+            isVisible={isErrorModalVisible}
+            prompt={getModalPrompt()}
+            confirmText={translate(isValidatingMultipleFiles ? 'common.continue' : 'common.close')}
+            cancelText={translate('common.cancel')}
+            shouldShowCancelButton={isValidatingMultipleFiles}
+        />
+    );
+
     return {
+        isLoadingReceipt,
         PDFValidationComponent,
         validateFiles,
+        ErrorModal,
     };
 }
 
