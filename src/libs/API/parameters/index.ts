@@ -393,6 +393,7 @@ export type {default as SaveCorpayOnboardingDirectorInformationParams} from './S
 export type {default as MoveIOUReportToPolicyAndInviteSubmitterParams} from './MoveIOUReportToPolicyAndInviteSubmitterParams';
 export type {default as MoveIOUReportToExistingPolicyParams} from './MoveIOUReportToExistingPolicyParams';
 export type {default as ChangeReportPolicyParams} from './ChangeReportPolicyParams';
+export type {default as ChangeReportPolicyAndInviteSubmitterParams} from './ChangeReportPolicyAndInviteSubmitterParams';
 export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './ChangeTransactionsReportParams';
 export type {default as ResetBankAccountSetupParams} from './ResetBankAccountSetupParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
@@ -401,6 +402,7 @@ export type {default as GetGuideCallAvailabilityScheduleParams} from './GetGuide
 export type {default as RetractReportParams} from './RetractReportParams';
 export type {default as CompleteConciergeCallParams} from './CompleteConciergeCallParams';
 export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishCorpayBankAccountOnboardingParams';
+export type {default as SetVacationDelegateParams} from './SetVacationDelegateParams';
 export type {default as LockAccountParams} from './LockAccountParams';
 export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
 export type {default as ReopenReportParams} from './ReopenReportParams';

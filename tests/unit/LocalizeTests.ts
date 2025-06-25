@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import IntlStore from '@src/languages/IntlStore';
 import CONST from '../../src/CONST';
 import * as Localize from '../../src/libs/Localize';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -7,8 +8,10 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 describe('localize', () => {
     beforeAll(() => {
         Onyx.init({
-            keys: {NVP_PREFERRED_LOCALE: ONYXKEYS.NVP_PREFERRED_LOCALE},
-            initialKeyStates: {[ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.DEFAULT},
+            keys: {
+                NVP_PREFERRED_LOCALE: ONYXKEYS.NVP_PREFERRED_LOCALE,
+                ARE_TRANSLATIONS_LOADING: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+            },
         });
         return waitForBatchedUpdates();
     });
@@ -52,9 +55,11 @@ describe('localize', () => {
                     [CONST.LOCALES.ES]: 'rory, vit e ionatan',
                 },
             ],
-        ])('formatList(%s)', (input, {[CONST.LOCALES.DEFAULT]: expectedOutput, [CONST.LOCALES.ES]: expectedOutputES}) => {
+        ])('formatList(%s)', async (input, {[CONST.LOCALES.DEFAULT]: expectedOutput, [CONST.LOCALES.ES]: expectedOutputES}) => {
+            await IntlStore.load(CONST.LOCALES.EN);
             expect(Localize.formatList(input)).toBe(expectedOutput);
-            return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(Localize.formatList(input)).toBe(expectedOutputES));
+            await IntlStore.load(CONST.LOCALES.ES);
+            expect(Localize.formatList(input)).toBe(expectedOutputES);
         });
     });
 });
