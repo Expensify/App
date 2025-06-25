@@ -29,6 +29,8 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
 
     // s77rt add total cell, action cell and collapse/expand button
 
+    // s77rt remove sms domain
+
     return (
         <View>
             <View style={[styles.pv1Half, styles.ph3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
