@@ -208,7 +208,7 @@ function FeatureTrainingModal({
     const [illustrationAspectRatio, setIllustrationAspectRatio] = useState(illustrationAspectRatioProp ?? VIDEO_ASPECT_RATIO);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
-    const isHelpButtonPressed = useRef(false);
+    const hasHelpButtonBeenPressed = useRef(false);
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
@@ -378,7 +378,7 @@ function FeatureTrainingModal({
                 ...modalInnerContainerStyle,
             }}
             onModalHide={() => {
-                if (!shouldCallOnHelpWhenModalHidden || !isHelpButtonPressed.current) {
+                if (!shouldCallOnHelpWhenModalHidden || !hasHelpButtonBeenPressed.current) {
                     return;
                 }
                 onHelp();
@@ -419,7 +419,7 @@ function FeatureTrainingModal({
                             onPress={() => {
                                 if (shouldCallOnHelpWhenModalHidden) {
                                     setIsModalVisible(false);
-                                    isHelpButtonPressed.current = true;
+                                    hasHelpButtonBeenPressed.current = true;
                                     return;
                                 }
                                 onHelp();
