@@ -15,7 +15,7 @@ import type {Policy} from '@src/types/onyx';
 
 const minModalHeight = 380;
 
-function SearchMoneyRequestReportEmptyState({reportId, policy}: {reportId?: string; policy: Policy}) {
+function SearchMoneyRequestReportEmptyState({reportId, policy}: {reportId?: string; policy?: Policy}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
