@@ -1,5 +1,5 @@
-import type { ReactNode} from 'react';
-import React, {useMemo, useRef, useState, useCallback} from 'react';
+import type {ReactNode} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -105,8 +105,6 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, onPr
         }
         return {width: CONST.POPOVER_DROPDOWN_WIDTH};
     }, [isSmallScreenWidth, styles]);
-
-    // Removed useMemo that was creating React elements - render directly in JSX
 
     return (
         <>

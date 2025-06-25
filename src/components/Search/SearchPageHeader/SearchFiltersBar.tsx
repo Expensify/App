@@ -58,20 +58,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption, shouldShowFiltersBarLoading} = useSearchContext();
 
-    // Track if filter data has been loaded
     const [isFilterDataLoaded, setIsFilterDataLoaded] = useState(false);
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (data) => ({email: data?.email})});
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: (data) => ({errors: data?.errors})});
 
-    // Always load policies for type options
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
-        selector: (data) => data ?? {},
-    });
-
-    // Load filter data collections
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
@@ -88,11 +81,10 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
     // Memoized heavy computations
     const taxRates = useMemo(() => getAllTaxRates(), []);
-    const allCards = useMemo(() =>
-        userCardList && workspaceCardFeeds
-            ? mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList)
-            : {}
-    , [userCardList, workspaceCardFeeds]);
+    const allCards = useMemo(
+        () => (userCardList && workspaceCardFeeds ? mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList) : {}),
+        [userCardList, workspaceCardFeeds],
+    );
 
     const [filterFormValues, setFilterFormValues] = useState<Partial<SearchAdvancedFiltersForm> | null>(null);
 
@@ -274,46 +266,47 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     );
 
     const filterComponents = useMemo(
-        () => [
-            {
-                label: translate('common.type'),
-                PopoverComponent: typeComponent,
-                value: translate(`common.${type}`),
-                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                key: 'type',
-            },
-            // s77rt remove DEV lock
-            ...(isDevelopment
-                ? [
-                      {
-                          label: translate('search.groupBy'),
-                          PopoverComponent: groupByComponent,
-                          key: 'groupBy',
-                          value: groupBy ? translate(`search.filters.groupBy.${groupBy}`) : null,
-                          keyForList: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
-                      },
-                  ]
-                : []),
-            {
-                label: translate('common.status'),
-                PopoverComponent: statusComponent,
-                value: statusOptions.filter((option) => status.includes(option.value)).map((option) => translate(option.translation)),
-                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                key: 'status',
-            },
-            {
-                label: translate('common.date'),
-                PopoverComponent: datePickerComponent,
-                key: 'date',
-                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-            },
-            {
-                label: translate('common.from'),
-                PopoverComponent: userPickerComponent,
-                key: 'from',
-                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-            },
-        ].filter((filterItem) => isFilterSupported(filterItem.keyForList, type)),
+        () =>
+            [
+                {
+                    label: translate('common.type'),
+                    PopoverComponent: typeComponent,
+                    value: translate(`common.${type}`),
+                    keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    key: 'type',
+                },
+                // s77rt remove DEV lock
+                ...(isDevelopment
+                    ? [
+                          {
+                              label: translate('search.groupBy'),
+                              PopoverComponent: groupByComponent,
+                              key: 'groupBy',
+                              value: groupBy ? translate(`search.filters.groupBy.${groupBy}`) : null,
+                              keyForList: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+                          },
+                      ]
+                    : []),
+                {
+                    label: translate('common.status'),
+                    PopoverComponent: statusComponent,
+                    value: statusOptions.filter((option) => status.includes(option.value)).map((option) => translate(option.translation)),
+                    keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    key: 'status',
+                },
+                {
+                    label: translate('common.date'),
+                    PopoverComponent: datePickerComponent,
+                    key: 'date',
+                    keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                },
+                {
+                    label: translate('common.from'),
+                    PopoverComponent: userPickerComponent,
+                    key: 'from',
+                    keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                },
+            ].filter((filterItem) => isFilterSupported(filterItem.keyForList, type)),
         [translate, typeComponent, type, isDevelopment, groupByComponent, groupBy, statusComponent, statusOptions, datePickerComponent, userPickerComponent, status],
     );
 
