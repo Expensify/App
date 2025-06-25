@@ -46,7 +46,7 @@ function SubscriptionSettings() {
     });
     const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins.toString() : undefined;
     const adminsChatReportRoute = `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID)}`;
-    const pricingURL = `${CONST.PRICING}`;
+    const pricingURL = CONST.PRICING;
 
     const subscriptionSizeSection =
         privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && privateSubscription?.userCount ? (
