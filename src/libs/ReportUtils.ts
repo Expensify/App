@@ -3908,7 +3908,7 @@ function getMoneyRequestReportName({
     policy?: OnyxEntry<Policy> | SearchPolicy;
     invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy;
 }): string {
-    if (report?.reportName && isExpenseReport(report)) {
+    if (report?.reportName && isExpenseReport(report) && report.reportName.toUpperCase() !== CONST.REPORT.TYPE.IOU.toUpperCase()) {
         return report.reportName;
     }
 
@@ -11508,6 +11508,7 @@ export {
     navigateOnDeleteExpense,
     hasReportBeenReopened,
     getMoneyReportPreviewName,
+    getMoneyRequestReportName,
     getNextApproverAccountID,
     isOneTransactionReport,
     isWorkspaceTaskReport,
