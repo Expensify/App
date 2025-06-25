@@ -43,6 +43,7 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         personalDetails={personalDetails}
         report={iouReportR14932}
         transaction={item}
+        transactionRawAmount={item.amount}
         violations={item.errors ? violationsR14932 : []}
         offlineWithFeedbackOnClose={() => undefined}
         navigateToReviewFields={() => undefined}
