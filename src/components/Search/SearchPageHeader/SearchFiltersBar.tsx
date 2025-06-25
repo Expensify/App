@@ -58,8 +58,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption, shouldShowFiltersBarLoading} = useSearchContext();
 
-    // State to control when to load filter data
-    const [shouldLoadFilterData, setShouldLoadFilterData] = useState(false);
+    // Track if filter data has been loaded
     const [isFilterDataLoaded, setIsFilterDataLoaded] = useState(false);
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (data) => ({email: data?.email})});
@@ -72,36 +71,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         selector: (data) => data ?? {},
     });
 
-    // Conditionally load heavy data collections only when needed
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {
-        canBeMissing: true,
-        selector: shouldLoadFilterData ? (data) => data : () => null,
-    });
-
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        canBeMissing: true,
-        selector: shouldLoadFilterData ? (data) => data ?? {} : () => null,
-    });
-
-    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {
-        canBeMissing: true,
-        selector: shouldLoadFilterData ? (data) => data ?? {} : () => null,
-    });
-
-    const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {
-        canBeMissing: true,
-        selector: shouldLoadFilterData ? (data) => data ?? {} : () => null,
-    });
-
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
-        canBeMissing: true,
-        selector: shouldLoadFilterData ? (data) => data ?? {} : () => null,
-    });
-
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {
-        canBeMissing: true,
-        selector: shouldLoadFilterData ? (data) => data ?? {} : () => null,
-    });
+    // Load filter data collections
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
+    const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
 
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || (!!selectionMode && selectionMode.isEnabled));
@@ -110,41 +86,36 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const typeOptions = useMemo(() => getTypeOptions(allPolicies, session?.email), [allPolicies, session?.email]);
     const statusOptions = useMemo(() => getStatusOptions(type, groupBy), [type, groupBy]);
 
-    // Memoized heavy computations - only run when data is loaded
-    const taxRates = useMemo(() => (shouldLoadFilterData ? getAllTaxRates() : {}), [shouldLoadFilterData]);
-    const allCards = useMemo(() => (
-        shouldLoadFilterData && userCardList && workspaceCardFeeds 
-            ? mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList) 
+    // Memoized heavy computations
+    const taxRates = useMemo(() => getAllTaxRates(), []);
+    const allCards = useMemo(() =>
+        userCardList && workspaceCardFeeds
+            ? mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList)
             : {}
-    ), [shouldLoadFilterData, userCardList, workspaceCardFeeds]);
+    , [userCardList, workspaceCardFeeds]);
 
     const [filterFormValues, setFilterFormValues] = useState<Partial<SearchAdvancedFiltersForm> | null>(null);
 
-    // Background pre-loading: Start loading filter data after component mount
+    // Initialize filter form values when data is available
     useEffect(() => {
-        const preloadTimer = setTimeout(() => {
-            if (!shouldLoadFilterData) {
-                setShouldLoadFilterData(true);
-            }
-        }, 500); // Start loading 500ms after mount
-
-        return () => clearTimeout(preloadTimer);
-    }, [shouldLoadFilterData]);
-
-    const loadFilterFormValues = useCallback(() => {
-        if (!shouldLoadFilterData) {
-            setShouldLoadFilterData(true);
+        const isDataAvailable = !isFilterDataLoaded && userCardList && reports && policyCategories && policyTagsLists && currencyList && workspaceCardFeeds;
+        if (!isDataAvailable) {
             return;
         }
+        const values = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
+        setFilterFormValues(values);
+        setIsFilterDataLoaded(true);
+    }, [queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates, isFilterDataLoaded, userCardList, workspaceCardFeeds]);
 
-        if (!isFilterDataLoaded && shouldLoadFilterData && userCardList && reports && policyCategories && policyTagsLists && currencyList && workspaceCardFeeds) {
+    const loadFilterFormValues = useCallback(() => {
+        if (!isFilterDataLoaded && userCardList && reports && policyCategories && policyTagsLists && currencyList && workspaceCardFeeds) {
             const values = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
             setFilterFormValues(values);
             setIsFilterDataLoaded(true);
             return values;
         }
         return filterFormValues;
-    }, [queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates, isFilterDataLoaded, shouldLoadFilterData, filterFormValues, userCardList, workspaceCardFeeds]);
+    }, [queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates, isFilterDataLoaded, filterFormValues, userCardList, workspaceCardFeeds]);
 
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
@@ -419,24 +390,14 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                     ref={scrollRef}
                     showsHorizontalScrollIndicator={false}
                 >
-                    {filterComponents.map((filter) => {
-                        const onDropdownPress = () => {
-                            if (isFilterDataLoaded) {
-                                return;
-                            }
-                            loadFilterFormValues();
-                        };
-
-                        return (
-                            <DropdownButton
-                                key={`${filter.key}-${type}`}
-                                label={filter.label}
-                                value={filterValues[filter.key as keyof typeof filterValues]}
-                                PopoverComponent={filter.PopoverComponent}
-                                onPress={onDropdownPress}
-                            />
-                        );
-                    })}
+                    {filterComponents.map((filter) => (
+                        <DropdownButton
+                            key={`${filter.key}-${type}`}
+                            label={filter.label}
+                            value={filterValues[filter.key as keyof typeof filterValues]}
+                            PopoverComponent={filter.PopoverComponent}
+                        />
+                    ))}
 
                     <Button
                         link
