@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
@@ -14,7 +14,7 @@ Onyx.connect({
         if (areTranslationsLoading ?? true) {
             return;
         }
-        const locale = TranslationStore.getCurrentLocale();
+        const locale = IntlStore.getCurrentLocale();
         if (!locale) {
             return;
         }

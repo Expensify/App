@@ -6,7 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
-import type {ReportActionListItemType, ReportListItemType, SearchListItem, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -30,10 +30,10 @@ import {
     getSortedSections,
     getWideAmountIndicators,
     isReportActionListItemType,
-    isReportListItemType,
     isSearchDataLoaded,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTaskListItemType,
+    isTransactionGroupListItemType,
     isTransactionListItemType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
@@ -79,15 +79,22 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, report
     ];
 }
 
-function mapToTransactionItemWithAdditionalInfo(item: TransactionListItemType, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
-    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
+function mapToTransactionItemWithAdditionalInfo(
+    item: TransactionListItemType,
+    selectedTransactions: SelectedTransactions,
+    canSelectMultiple: boolean,
+    shouldAnimateInHighlight: boolean,
+    hash?: number,
+) {
+    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple, hash};
 }
 
-function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
+function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean, hash?: number) {
     if (isTaskListItemType(item)) {
         return {
             ...item,
             shouldAnimateInHighlight,
+            hash,
         };
     }
 
@@ -95,18 +102,22 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
         return {
             ...item,
             shouldAnimateInHighlight,
+            hash,
         };
     }
 
     return isTransactionListItemType(item)
-        ? mapToTransactionItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)
+        ? mapToTransactionItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash)
         : {
               ...item,
               shouldAnimateInHighlight,
-              transactions: item.transactions?.map((transaction) => mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)),
+              transactions: item.transactions?.map((transaction) =>
+                  mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash),
+              ),
               isSelected:
                   item?.transactions?.length > 0 &&
                   item.transactions?.filter((t) => !isTransactionPendingDelete(t)).every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
+              hash,
           };
 }
 
@@ -173,8 +184,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     );
     const {translate} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
-
-    const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
     useEffect(() => {
         if (!isFocused) {
@@ -252,8 +261,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         if (searchResults === undefined || !isDataLoaded) {
             return [];
         }
-        return getSections(type, status, searchResults.data, searchResults.search, shouldGroupByReports);
-    }, [searchResults, isDataLoaded, type, status, shouldGroupByReports]);
+        return getSections(type, status, searchResults.data, searchResults.search, groupBy);
+    }, [searchResults, isDataLoaded, type, status, groupBy]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -268,7 +277,31 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             return;
         }
         const newTransactionList: SelectedTransactions = {};
-        if (!shouldGroupByReports) {
+        if (groupBy) {
+            data.forEach((transactionGroup) => {
+                if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
+                    return;
+                }
+                transactionGroup.transactions.forEach((transaction) => {
+                    if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !isExportMode) {
+                        return;
+                    }
+                    newTransactionList[transaction.transactionID] = {
+                        action: transaction.action,
+                        canHold: transaction.canHold,
+                        isHeld: isOnHold(transaction),
+                        canUnhold: transaction.canUnhold,
+                        canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        isSelected: isExportMode || selectedTransactions[transaction.transactionID].isSelected,
+                        canDelete: transaction.canDelete,
+                        reportID: transaction.reportID,
+                        policyID: transaction.policyID,
+                        amount: transaction.modifiedAmount ?? transaction.amount,
+                    };
+                });
+            });
+        } else {
             data.forEach((transaction) => {
                 if (!Object.hasOwn(transaction, 'transactionID') || !('transactionID' in transaction)) {
                     return;
@@ -289,30 +322,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     policyID: transaction.policyID,
                     amount: transaction.modifiedAmount ?? transaction.amount,
                 };
-            });
-        } else {
-            data.forEach((report) => {
-                if (!Object.hasOwn(report, 'transactions') || !('transactions' in report)) {
-                    return;
-                }
-                report.transactions.forEach((transaction) => {
-                    if (!Object.keys(selectedTransactions).includes(transaction.transactionID) && !isExportMode) {
-                        return;
-                    }
-                    newTransactionList[transaction.transactionID] = {
-                        action: transaction.action,
-                        canHold: transaction.canHold,
-                        isHeld: isOnHold(transaction),
-                        canUnhold: transaction.canUnhold,
-                        canChangeReport: canEditFieldOfMoneyRequest(getIOUActionForTransactionID(reportActionsArray, transaction.transactionID), CONST.EDIT_REQUEST_FIELD.REPORT),
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        isSelected: isExportMode || selectedTransactions[transaction.transactionID].isSelected,
-                        canDelete: transaction.canDelete,
-                        reportID: transaction.reportID,
-                        policyID: transaction.policyID,
-                        amount: transaction.modifiedAmount ?? transaction.amount,
-                    };
-                });
             });
         }
         setSelectedTransactions(newTransactionList, data);
@@ -348,15 +357,15 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         if (!data.length || isRefreshingSelection.current || !isFocused) {
             return;
         }
-        const areItemsOfReportType = shouldGroupByReports;
-        const flattenedItems = areItemsOfReportType ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
+        const areItemsGrouped = !!groupBy;
+        const flattenedItems = areItemsGrouped ? (data as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : data;
         const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 
         setShouldShowExportModeOption(!!(isAllSelected && searchResults?.search?.hasMoreResults));
         if (!isAllSelected) {
             setExportMode(false);
         }
-    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, setExportMode, setShouldShowExportModeOption, shouldGroupByReports]);
+    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, setExportMode, setShouldShowExportModeOption, groupBy]);
 
     const toggleTransaction = useCallback(
         (item: SearchListItem) => {
@@ -422,7 +431,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
             const backTo = Navigation.getActiveRoute();
 
-            if (isReportListItemType(item)) {
+            if (isTransactionGroupListItemType(item)) {
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
                 return;
             }
@@ -484,8 +493,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
     }
 
-    const ListItem = getListItem(type, status, shouldGroupByReports);
-    const sortedData = getSortedSections(type, status, data, sortBy, sortOrder, shouldGroupByReports);
+    const ListItem = getListItem(type, status, groupBy);
+    const sortedData = getSortedSections(type, status, data, sortBy, sortOrder, groupBy);
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
@@ -497,17 +506,17 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
         // Check if the base key matches the newSearchResultKey (TransactionListItemType)
         const isBaseKeyMatch = baseKey === newSearchResultKey;
-        // Check if any transaction within the transactions array (ReportListItemType) matches the newSearchResultKey
+        // Check if any transaction within the transactions array (TransactionGroupListItemType) matches the newSearchResultKey
         const isAnyTransactionMatch =
             !isChat &&
-            (item as ReportListItemType)?.transactions?.some((transaction) => {
+            (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
                 const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
                 return transactionKey === newSearchResultKey;
             });
         // Determine if either the base key or any transaction key matches
         const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
-        return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
+        return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash);
     });
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
@@ -547,7 +556,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     };
 
     const toggleAllTransactions = () => {
-        const areItemsOfReportType = shouldGroupByReports;
+        const areItemsGrouped = !!groupBy;
         const totalSelected = Object.keys(selectedTransactions).length;
 
         if (totalSelected > 0) {
@@ -555,10 +564,10 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             return;
         }
 
-        if (areItemsOfReportType) {
+        if (areItemsGrouped) {
             setSelectedTransactions(
                 Object.fromEntries(
-                    (data as ReportListItemType[]).flatMap((item) =>
+                    (data as TransactionGroupListItemType[]).flatMap((item) =>
                         item.transactions.filter((t) => !isTransactionPendingDelete(t)).map((transactionItem) => mapTransactionItemToSelectedEntry(transactionItem, reportActionsArray)),
                     ),
                 ),
@@ -585,7 +594,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
-    const shouldShowSorting = !Array.isArray(status) && !shouldGroupByReports;
+    const shouldShowSorting = !Array.isArray(status) && !groupBy;
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
 
     return (
@@ -618,7 +627,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 contentContainerStyle={[contentContainerStyle, styles.pb3]}
                 containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                shouldGroupByReports={shouldGroupByReports}
                 onScroll={onSearchListScroll}
                 onEndReachedThreshold={0.75}
                 onEndReached={fetchMoreResults}
@@ -630,7 +638,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         />
                     ) : undefined
                 }
-                queryJSONHash={hash}
+                queryJSON={queryJSON}
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={() => handleSelectionListScroll(sortedSelectedData, searchListRef.current)}
             />

@@ -21,7 +21,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {startMoneyRequest} from '@libs/actions/IOU';
-import {openOldDotLink} from '@libs/actions/Link';
+import {openOldDotLink, openTravelDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
 import {closeReactNativeApp, isAnonymousUser} from '@libs/actions/Session';
@@ -31,7 +31,6 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import openTravelDotLink from '@libs/openTravelDotLink';
 import {
     areAllGroupPoliciesExpenseChatDisabled,
     canSendInvoice as canSendInvoicePolicyUtils,
@@ -386,10 +385,14 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const openTravel = useCallback(() => {
         if (isTravelEnabled) {
-            openTravelDotLink(activePolicy?.id);
-            return;
+            openTravelDotLink(activePolicy?.id)
+                ?.then(() => {})
+                ?.catch(() => {
+                    Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
+                });
+        } else {
+            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
         }
-        Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
     }, [activePolicy, isTravelEnabled]);
 
     const menuItems = [
