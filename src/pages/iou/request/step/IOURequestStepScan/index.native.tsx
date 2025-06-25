@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/core';
-import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, StyleSheet, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
@@ -22,10 +21,10 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import LocationPermissionModal from '@components/LocationPermissionModal';
-import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useFilesValidation from '@hooks/useFilesValidation/index.native';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -33,9 +32,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {isValidReceiptExtension, isHeicOrHeifImage, readFileAsync, resizeImageIfNeeded, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import {readFileAsync, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
-import convertHeicImage from '@libs/fileDownload/heicConverter';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
@@ -117,8 +115,6 @@ function IOURequestStepScan({
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
-
-    const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
@@ -250,27 +246,6 @@ function IOURequestStepScan({
         }
         setReceiptFiles([]);
     }, [isMultiScanEnabled]);
-
-    const validateReceipt = (file: FileObject) => {
-        if (!isValidReceiptExtension(file)) {
-            Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
-            return false;
-        }
-
-        if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-            Alert.alert(
-                translate('attachmentPicker.attachmentTooLarge'),
-                translate('attachmentPicker.sizeExceededWithLimit', {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)}),
-            );
-            return false;
-        }
-
-        if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-            Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
-            return false;
-        }
-        return true;
-    };
 
     const navigateBack = () => {
         Navigation.goBack();
@@ -507,22 +482,6 @@ function IOURequestStepScan({
         });
     }, [initialTransactionID, isEditing, navigateToConfirmationStep]);
 
-    /**
-     * Converts HEIC image to JPEG using promises
-     */
-    const convertHeicImageToJpegPromise = (file: FileObject): Promise<FileObject> => {
-        return new Promise((resolve, reject) => {
-            convertHeicImage(file, {
-                onStart: () => setIsLoaderVisible(true),
-                onSuccess: (convertedFile) => resolve(convertedFile),
-                onError: (nonConvertedFile) => {
-                    reject(nonConvertedFile);
-                },
-                onFinish: () => setIsLoaderVisible(false),
-            });
-        });
-    };
-
     const dismissMultiScanEducationalPopup = () => {
         InteractionManager.runAfterInteractions(() => {
             dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL);
@@ -530,67 +489,55 @@ function IOURequestStepScan({
         });
     };
 
-    /**
-     * Sets the Receipt objects and navigates the user to the next page
-     */
-    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        if (!validateReceipt(originalFile)) {
+    const setReceiptAndNavigate = (files: FileObject[]) => {
+        if (files.length === 0) {
+            return;
+        }
+        // Store the receipt on the transaction object in Onyx
+        const newReceiptFiles: ReceiptFile[] = [];
+
+        if (isEditing) {
+            const file = files.at(0);
+            if (!file) {
+                return;
+            }
+            const source = URL.createObjectURL(file as Blob);
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            setMoneyRequestReceipt(initialTransactionID, source, file.name || '', !isEditing);
+            updateScanAndNavigate(file, source);
             return;
         }
 
-        // If we have a pdf file and if it is not validated then set the pdf file for validation and return
-        if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
-            setPdfFile(originalFile);
-            return;
-        }
+        files.forEach((file, index) => {
+            const transaction =
+                index === 0
+                    ? (initialTransaction as Partial<Transaction>)
+                    : buildOptimisticTransactionAndCreateDraft({
+                          initialTransaction: initialTransaction as Partial<Transaction>,
+                          currentUserPersonalDetails,
+                          reportID,
+                      });
+            newReceiptFiles.push({file, source: file.uri ?? '', transactionID: transaction.transactionID ?? ''});
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            setMoneyRequestReceipt(transaction.transactionID ?? '', file.uri ?? '', file.name || '', true);
+        });
 
-        // Helper function to process the file after any conversion
-        const processFile = (file: FileObject) => {
-            resizeImageIfNeeded(file).then((resizedFile) => {
-                // Store the receipt on the transaction object in Onyx
-                // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
-                // So, let us also save the file type in receipt for later use during blob fetch
-                setMoneyRequestReceipt(initialTransactionID, resizedFile?.uri ?? '', resizedFile.name ?? '', !isEditing, resizedFile.type);
+        if (shouldSkipConfirmation) {
+            setReceiptFiles(newReceiptFiles);
+            const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && files.length;
+            if (gpsRequired) {
+                const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
 
-                if (isEditing) {
-                    updateScanAndNavigate(resizedFile, resizedFile?.uri ?? '');
+                if (beginLocationPermissionFlow) {
+                    setStartLocationPermissionFlow(true);
                     return;
                 }
-
-                const newReceiptFiles = [{file: resizedFile, source: resizedFile?.uri ?? '', transactionID: initialTransactionID}];
-
-                if (shouldSkipConfirmation) {
-                    setReceiptFiles(newReceiptFiles);
-                    const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && resizedFile;
-
-                    if (gpsRequired) {
-                        const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
-                        if (beginLocationPermissionFlow) {
-                            setStartLocationPermissionFlow(true);
-                            return;
-                        }
-                    }
-                }
-                navigateToConfirmationStep(newReceiptFiles, false);
-            });
-        };
-
-        // Check if the file is HEIC/HEIF and needs conversion
-        if (isHeicOrHeifImage(originalFile)) {
-            convertHeicImageToJpegPromise(originalFile)
-                .then((convertedFile) => {
-                    processFile(convertedFile);
-                })
-                .catch((fallbackFile: FileObject) => {
-                    // Use the original file if conversion fails
-                    processFile(fallbackFile);
-                });
-            return;
+            }
         }
-
-        // Process the file directly if no conversion is needed
-        processFile(originalFile);
+        navigateToConfirmationStep(newReceiptFiles, false);
     };
+
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(setReceiptAndNavigate);
 
     const submitReceipts = useCallback(
         (files: ReceiptFile[]) => {
@@ -753,26 +700,7 @@ function IOURequestStepScan({
                     onLayout(setTestReceiptAndNavigate);
                 }}
             >
-                {!!pdfFile && (
-                    <PDFThumbnail
-                        style={styles.invisiblePDF}
-                        previewSourceURL={pdfFile?.uri ?? ''}
-                        onLoadSuccess={() => {
-                            setPdfFile(null);
-                            if (pdfFile) {
-                                setReceiptAndNavigate(pdfFile, true);
-                            }
-                        }}
-                        onPassword={() => {
-                            setPdfFile(null);
-                            Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
-                        }}
-                        onLoadError={() => {
-                            setPdfFile(null);
-                            Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                        }}
-                    />
-                )}
+                {PDFValidationComponent}
                 <View style={[styles.flex1]}>
                     {cameraPermissionStatus !== RESULTS.GRANTED && (
                         <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
@@ -860,7 +788,10 @@ function IOURequestStepScan({
                     />
                 )}
                 <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
-                    <AttachmentPicker onOpenPicker={() => setIsLoaderVisible(true)}>
+                    <AttachmentPicker
+                        onOpenPicker={() => setIsLoaderVisible(true)}
+                        fileLimit={isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
+                    >
                         {({openPicker}) => (
                             <PressableWithFeedback
                                 role={CONST.ROLE.BUTTON}
@@ -868,7 +799,7 @@ function IOURequestStepScan({
                                 style={[styles.alignItemsStart, isMultiScanEnabled && styles.opacity0]}
                                 onPress={() => {
                                     openPicker({
-                                        onPicked: (data) => setReceiptAndNavigate(data.at(0) ?? {}),
+                                        onPicked: (data) => validateFiles(data),
                                         onCanceled: () => setIsLoaderVisible(false),
                                         // makes sure the loader is not visible anymore e.g. when there is an error while uploading a file
                                         onClosed: () => {
