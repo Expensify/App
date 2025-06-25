@@ -1,6 +1,5 @@
 import React, {useCallback, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -106,12 +105,10 @@ function SearchFiltersWorkspacePage() {
                             initiallyFocusedOptionKey={selectedOptions?.at(0)}
                             showLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !didScreenTransitionEnd}
                             footerContent={
-                                <FixedFooter style={[styles.ph0, styles.pb0]}>
-                                    <SearchFilterPageFooterButtons
-                                        applyChanges={applyChanges}
-                                        resetChanges={resetChanges}
-                                    />
-                                </FixedFooter>
+                                <SearchFilterPageFooterButtons
+                                    applyChanges={applyChanges}
+                                    resetChanges={resetChanges}
+                                />
                             }
                         />
                     )}
