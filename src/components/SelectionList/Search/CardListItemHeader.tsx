@@ -87,6 +87,7 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
                             mainAvatar={memberAvatar}
                             subscriptIcon={cardIcon}
                             backgroundColor={backgroundColor}
+                            noMargin
                         />
                         <View style={[styles.gapHalf]}>
                             <TextWithTooltip

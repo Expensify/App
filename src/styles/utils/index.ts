@@ -283,6 +283,11 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
 function getAvatarSubscriptIconContainerStyle(iconWidth = 16, iconHeight = 16): ViewStyle {
     const borderWidth = 2;
 
+    // The width of the container is the width of the icon + 2x border width (left and right)
+    const containerWidth = iconWidth + 2 * borderWidth;
+    // The height of the container is the height of the icon + 2x border width (top and bottom)
+    const containerHeight = iconHeight + 2 * borderWidth;
+
     return {
         overflow: 'hidden',
         position: 'absolute',
@@ -290,8 +295,8 @@ function getAvatarSubscriptIconContainerStyle(iconWidth = 16, iconHeight = 16): 
         right: -4,
         borderWidth,
         borderRadius: borderWidth,
-        width: iconWidth + 2 * borderWidth,
-        height: iconHeight + 2 * borderWidth,
+        width: containerWidth,
+        height: containerHeight,
     };
 }
 
