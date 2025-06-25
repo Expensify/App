@@ -5,7 +5,6 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import type {FlatList, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -77,6 +76,7 @@ import {
     navigateToConciergeChat,
     openReport,
     readNewestAction,
+    resetOldestUnreadReportActionID,
     subscribeToReportLeavingEvents,
     unsubscribeFromLeavingRoomReportChannel,
     updateLastVisitTime,
@@ -286,7 +286,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         setOldestUnreadReportActionID(oldestUnreadReportActionIDValueFromOnyx);
-        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${reportID}`, null);
+        resetOldestUnreadReportActionID(reportID);
     }, [oldestUnreadReportActionID, oldestUnreadReportActionIDValueFromOnyx, reportID]);
 
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
