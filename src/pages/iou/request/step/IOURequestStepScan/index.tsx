@@ -121,7 +121,6 @@ function IOURequestStepScan({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const canUseMultiScan = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_SCAN) && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT && !backTo && !backToReport;
 
@@ -591,7 +590,7 @@ function IOURequestStepScan({
         navigateToConfirmationStep(newReceiptFiles, false);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptFilesAndNavigate);
+    const {validateFiles, PDFValidationComponent, ErrorModal, isLoadingReceipt} = useFilesValidation(setReceiptFilesAndNavigate);
 
     const handleDropReceipt = (e: DragEvent) => {
         const files = Array.from(e?.dataTransfer?.files ?? []);

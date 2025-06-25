@@ -109,9 +109,12 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         }
 
         if (collectedErrors.current.length > 0) {
-            setErrorQueue(collectedErrors.current);
+            const uniqueErrors = Array.from(
+                new Set(collectedErrors.current.map(error => JSON.stringify(error)))
+            ).map(errorStr => JSON.parse(errorStr) as ErrorObject);
+            setErrorQueue(uniqueErrors);
             setCurrentErrorIndex(0);
-            const firstError = collectedErrors.current.at(0);
+            const firstError = uniqueErrors.at(0);
             if (firstError) {
                 setFileError(firstError.error);
                 if (firstError.fileExtension) {
@@ -176,9 +179,12 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                     }
 
                     if (collectedErrors.current.length > 0) {
-                        setErrorQueue(collectedErrors.current);
+                        const uniqueErrors = Array.from(
+                            new Set(collectedErrors.current.map(error => JSON.stringify(error)))
+                        ).map(errorStr => JSON.parse(errorStr) as ErrorObject);
+                        setErrorQueue(uniqueErrors);
                         setCurrentErrorIndex(0);
-                        const firstError = collectedErrors.current.at(0);
+                        const firstError = uniqueErrors.at(0);
                         if (firstError) {
                             setFileError(firstError.error);
                             if (firstError.fileExtension) {

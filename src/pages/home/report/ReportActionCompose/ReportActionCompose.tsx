@@ -476,6 +476,9 @@ function ReportActionCompose({
     );
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
+        if (files.length === 0) {
+            return;
+        }
         if (isEditingReceipt) {
             const source = URL.createObjectURL(files.at(0) as Blob);
             replaceReceipt({transactionID, file: files.at(0) as File, source});
