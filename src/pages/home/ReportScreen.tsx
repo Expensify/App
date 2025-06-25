@@ -268,7 +268,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID, canBeMissing: false});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+
+    const [oldestUnreadReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${reportID}`, {canBeMissing: true});
+    const {
+        reportActions: unfilteredReportActions,
+        linkedAction,
+        sortedAllReportActions,
+        hasNewerActions,
+        hasOlderActions,
+    } = usePaginatedReportActions(reportID, reportActionIDFromRoute ?? oldestUnreadReportActionID);
+
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`, {canBeMissing: true});
 

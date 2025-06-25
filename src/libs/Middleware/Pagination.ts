@@ -6,6 +6,7 @@ import Log from '@libs/Log';
 import PaginationUtils from '@libs/PaginationUtils';
 import CONST from '@src/CONST';
 import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
 import type Middleware from './types';
@@ -132,6 +133,16 @@ const Pagination: Middleware = (requestResponse, request) => {
             onyxMethod: Onyx.METHOD.SET,
             value: mergedPages,
         });
+
+        const oldestUnreadReportActionID = 'oldestUnreadReportActionID' in response && (response.oldestUnreadReportActionID as string);
+
+        if (oldestUnreadReportActionID) {
+            response.onyxData.push({
+                key: `${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${resourceID}`,
+                onyxMethod: Onyx.METHOD.SET,
+                value: oldestUnreadReportActionID,
+            });
+        }
 
         return Promise.resolve(response);
     });
