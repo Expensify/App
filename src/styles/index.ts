@@ -5943,6 +5943,10 @@ const styles = (theme: ThemeColors) =>
             aspectRatio: 1.7,
         },
 
+        topBarWrapper: {
+            zIndex: 15,
+        },
+
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             flex: 1,
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
