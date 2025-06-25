@@ -39,8 +39,7 @@ import setTestReceipt from '@libs/actions/setTestReceipt';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
-import {base64ToFile, isLocalFile as isLocalFileFileUtils, needsHeicToJpegConversion, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
-import convertHeicImage from '@libs/fileDownload/heicConverter';
+import {base64ToFile, isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -543,94 +542,56 @@ function IOURequestStepScan({
         [initialTransactionID, navigateBack],
     );
 
-    /**
-     * Converts HEIC image to JPEG using promises
-     */
-    const convertHeicImageToJpegPromise = (file: FileObject): Promise<FileObject> => {
-        return new Promise((resolve, reject) => {
-            convertHeicImage(file, {
-                onStart: () => setIsLoadingReceipt(true),
-                onSuccess: (convertedFile) => resolve(convertedFile),
-                onError: (nonConvertedFile) => {
-                    reject(nonConvertedFile);
-                },
-                onFinish: () => setIsLoadingReceipt(false),
-            });
+    const setReceiptFilesAndNavigate = (files: FileObject[]) => {
+        if (files.length === 0) {
+            return;
+        }
+        // Store the receipt on the transaction object in Onyx
+        const newReceiptFiles: ReceiptFile[] = [];
+
+        if (isEditing) {
+            const file = files.at(0);
+            if (!file) {
+                return;
+            }
+            const source = URL.createObjectURL(file as Blob);
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            setMoneyRequestReceipt(initialTransactionID, source, file.name || '', !isEditing);
+            updateScanAndNavigate(file, source);
+            return;
+        }
+
+        files.forEach((file, index) => {
+            const source = URL.createObjectURL(file as Blob);
+            const transaction =
+                index === 0
+                    ? (initialTransaction as Partial<Transaction>)
+                    : buildOptimisticTransactionAndCreateDraft({
+                          initialTransaction: initialTransaction as Partial<Transaction>,
+                          currentUserPersonalDetails,
+                          reportID,
+                      });
+            newReceiptFiles.push({file, source, transactionID: transaction.transactionID ?? ''});
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            setMoneyRequestReceipt(transaction.transactionID ?? '', source, file.name || '', true);
         });
-    };
 
-    /**
-     * Sets the Receipt objects and navigates the user to the next page
-     */
-    const setReceiptAndNavigate = (originalFile: FileObject, isPdfValidated?: boolean) => {
-        validateReceipt(originalFile, () => {}).then((isFileValid) => {
-            if (!isFileValid) {
-                return;
-            }
+        if (shouldSkipConfirmation) {
+            setReceiptFiles(newReceiptFiles);
+            const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && files.length;
+            if (gpsRequired) {
+                const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
 
-            // If we have a pdf file and if it is not validated then set the pdf file for validation and return
-            if (Str.isPDF(originalFile.name ?? '') && !isPdfValidated) {
-                return;
-            }
-
-            // Helper function to process the file after any conversion
-            const processFile = (file: FileObject) => {
-                // With the image size > 24MB, we use manipulateAsync to resize the image.
-                // It takes a long time so we should display a loading indicator while the resize image progresses.
-                if (Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                    setIsLoadingReceipt(true);
+                if (beginLocationPermissionFlow) {
+                    setStartLocationPermissionFlow(true);
+                    return;
                 }
-                resizeImageIfNeeded(file).then((resizedFile) => {
-                    setIsLoadingReceipt(false);
-                    // Store the receipt on the transaction object in Onyx
-                    const source = URL.createObjectURL(resizedFile as Blob);
-                    const newReceiptFiles = [{file: resizedFile, source, transactionID: initialTransactionID}];
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    setMoneyRequestReceipt(initialTransactionID, source, resizedFile.name || '', !isEditing);
-
-                    if (isEditing) {
-                        updateScanAndNavigate(resizedFile, source);
-                        return;
-                    }
-                    if (shouldSkipConfirmation) {
-                        setReceiptFiles(newReceiptFiles);
-                        const gpsRequired = initialTransaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && resizedFile;
-                        if (gpsRequired) {
-                            const beginLocationPermissionFlow = shouldStartLocationPermissionFlow();
-
-                            if (beginLocationPermissionFlow) {
-                                setStartLocationPermissionFlow(true);
-                                return;
-                            }
-                        }
-                    }
-                    navigateToConfirmationStep(newReceiptFiles, false);
-                });
-            };
-
-            // Check if the file is HEIC/HEIF and needs conversion
-            if (needsHeicToJpegConversion(originalFile)) {
-                convertHeicImageToJpegPromise(originalFile)
-                    .then((convertedFile) => {
-                        processFile(convertedFile);
-                    })
-                    .catch((fallbackFile: FileObject) => {
-                        // Use the original file if conversion fails
-                        processFile(fallbackFile);
-                    });
-                return;
             }
-
-            // Process the file directly if no conversion is needed
-            processFile(originalFile);
-        });
+        }
+        navigateToConfirmationStep(newReceiptFiles, false);
     };
 
-    const setReceiptFromFile = (files: FileObject[]) => {
-        console.log({files});
-    };
-
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptFromFile);
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptFilesAndNavigate);
 
     const handleDropReceipt = (e: DragEvent) => {
         const files = Array.from(e?.dataTransfer?.files ?? []);
@@ -883,7 +844,7 @@ function IOURequestStepScan({
                             style={isMultiScanEnabled && styles.opacity0}
                             onPress={() => {
                                 openPicker({
-                                    onPicked: (data) => setReceiptFromFile(data),
+                                    onPicked: (data) => validateFiles(data),
                                 });
                             }}
                         >
@@ -1001,7 +962,7 @@ function IOURequestStepScan({
                         style={[styles.p9]}
                         onPress={() => {
                             openPicker({
-                                onPicked: (data) => setReceiptFromFile(data),
+                                onPicked: (data) => validateFiles(data),
                             });
                         }}
                     />
@@ -1049,7 +1010,7 @@ function IOURequestStepScan({
                                     const file = e?.dataTransfer?.files[0];
                                     if (file) {
                                         file.uri = URL.createObjectURL(file);
-                                        setReceiptAndNavigate(file);
+                                        validateFiles([file]);
                                     }
                                 }}
                                 receiptImageTopPosition={receiptImageTopPosition}

@@ -385,8 +385,16 @@ const isValidReceiptExtension = (file: FileObject) => {
     );
 };
 
+const isHeicOrHeifImage = (file: FileObject) => {
+    return (
+        file?.type?.startsWith('image') &&
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif'))
+    );
+};
+
 const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
-    if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
+    if (!Str.isImage(file.name ?? '') && !isHeicOrHeifImage(file) && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
         return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
 
@@ -473,14 +481,6 @@ const getFileValidationErrorText = (
     }
 };
 
-const needsHeicToJpegConversion = (file: FileObject) => {
-    return (
-        file?.type?.startsWith('image') &&
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif'))
-    );
-};
-
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -506,5 +506,5 @@ export {
     validateAttachment,
     isValidReceiptExtension,
     getFileValidationErrorText,
-    needsHeicToJpegConversion
+    isHeicOrHeifImage
 };

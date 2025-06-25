@@ -7,7 +7,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import {getFileValidationErrorText, resizeImageIfNeeded, needsHeicToJpegConversion, splitExtensionFromFileName, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import {getFileValidationErrorText, resizeImageIfNeeded, isHeicOrHeifImage, splitExtensionFromFileName, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import useLocalize from './useLocalize';
@@ -136,7 +136,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                 const pdfsToLoad = filteredResults.filter((file) => Str.isPDF(file.name ?? ''));
 
                 // Check if we need to convert images
-                if (validImages.some((file) => needsHeicToJpegConversion(file))) {
+                if (validImages.some((file) => isHeicOrHeifImage(file))) {
                     setIsLoadingReceipt(true);
 
                     return Promise.all(validImages.map((file) => convertHeicImageToJpegPromise(file))).then((convertedImages) => {
@@ -151,6 +151,15 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                         // No resizing needed, just return the converted images
                         setIsLoadingReceipt(false);
                         return Promise.resolve({processedImages: convertedImages, pdfsToLoad});
+                    });
+                }
+
+                // No conversion needed, but check if we need to resize images
+                if (validImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
+                    setIsLoadingReceipt(true);
+                    return Promise.all(validImages.map((file) => resizeImageIfNeeded(file))).then((processedImages) => {
+                        setIsLoadingReceipt(false);
+                        return Promise.resolve({processedImages, pdfsToLoad});
                     });
                 }
 
