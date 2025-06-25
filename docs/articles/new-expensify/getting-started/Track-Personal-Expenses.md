@@ -82,12 +82,11 @@ Let Expensify automatically import and match card transactions to SmartScanned r
 4. Enable **Make or track payments**.
 5. Click **Connect bank account**.
 
-## Connect a Company Card
+🏦 For more details on connecting a bank account, check out this guide: [Connect a Business Bank Account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account).
 
-1. Go to **Workspaces** in the left-hand navigation menu
-2. Click **[Workspace Name] > More features > Enable Company Cards**.
-3. From the left-hand menu, click **Company cards**.
-4. Click **Add cards** and follow the prompts.
+## Connect a Credit Card
+
+💳 For more information on connecting credit cards, check out this article: [Personal Cards](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Personal-Cards). 
 
 ---
 
