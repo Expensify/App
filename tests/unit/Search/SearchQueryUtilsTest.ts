@@ -185,7 +185,7 @@ describe('SearchQueryUtils', () => {
     describe('buildFilterFormValuesFromQuery', () => {
         test('category filter includes empty values', () => {
             const policyID = generatePolicyID();
-            const queryString = 'sortBy:date sortOrder:desc type:expense status:all category:none,Uncategorized,Maintenance';
+            const queryString = 'sortBy:date sortOrder:desc type:expense category:none,Uncategorized,Maintenance';
             const queryJSON = buildSearchQueryJSON(queryString);
 
             const policyCategories = {
@@ -219,6 +219,7 @@ describe('SearchQueryUtils', () => {
 
             expect(result).toEqual({
                 type: 'expense',
+                status: '',
                 category: ['Maintenance', 'none,Uncategorized'],
             });
         });
