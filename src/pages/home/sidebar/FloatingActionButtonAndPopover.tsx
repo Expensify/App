@@ -402,6 +402,25 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const menuItems = [
         ...expenseMenuItems,
+        ...(isManualDistanceTrackingEnabled
+            ? [
+                  {
+                      icon: Expensicons.Location,
+                      text: translate('iou.trackDistance'),
+                      shouldCallAfterModalHide: shouldUseNarrowLayout,
+                      onSelected: () => {
+                          interceptAnonymousUser(() => {
+                              if (shouldRedirectToExpensifyClassic) {
+                                  setModalVisible(true);
+                                  return;
+                              }
+                              // Start the flow to start tracking a distance request
+                              return null;
+                          });
+                      },
+                  },
+              ]
+            : []),
         ...(shouldShowCreateReportOption
             ? [
                   {
@@ -439,25 +458,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                               } else {
                                   Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
                               }
-                          });
-                      },
-                  },
-              ]
-            : []),
-        ...(isManualDistanceTrackingEnabled
-            ? [
-                  {
-                      icon: Expensicons.Location,
-                      text: translate('iou.trackDistance'),
-                      shouldCallAfterModalHide: shouldUseNarrowLayout,
-                      onSelected: () => {
-                          interceptAnonymousUser(() => {
-                              if (shouldRedirectToExpensifyClassic) {
-                                  setModalVisible(true);
-                                  return;
-                              }
-                              // Start the flow to start tracking a distance request
-                              return null;
                           });
                       },
                   },
