@@ -175,3 +175,7 @@ jest.mock('@src/hooks/useWorkletStateMachine/executeOnUIRuntimeSync', () => ({
     __esModule: true,
     default: jest.fn(() => jest.fn()), // Return a function that returns a function
 }));
+
+jest.mock('react-native-nitro-sqlite', () => ({
+    open: jest.fn(),
+}));
