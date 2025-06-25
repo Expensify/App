@@ -136,12 +136,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 />
             ),
             [CONST.SEARCH.GROUP_BY.CARDS]: (
-                <CardListItemHeader
-                    card={groupItem as TransactionCardGroupListItemType}
-                    onCheckboxPress={onCheckboxPress}
-                    isDisabled={isDisabledOrEmpty}
-                    canSelectMultiple={canSelectMultiple}
-                />
+                // s77rt CardListItemHeader
+                <></>
             ),
         };
 
