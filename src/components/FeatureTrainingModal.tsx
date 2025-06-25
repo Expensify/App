@@ -1,6 +1,6 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import type {ImageContentFit} from 'expo-image';
-import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {Image, InteractionManager, View} from 'react-native';
 import type {ImageResizeMode, ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -208,6 +208,7 @@ function FeatureTrainingModal({
     const [illustrationAspectRatio, setIllustrationAspectRatio] = useState(illustrationAspectRatioProp ?? VIDEO_ASPECT_RATIO);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
+    const hasHelpButtonBeenPressed = useRef(false);
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
@@ -377,7 +378,7 @@ function FeatureTrainingModal({
                 ...modalInnerContainerStyle,
             }}
             onModalHide={() => {
-                if (!shouldCallOnHelpWhenModalHidden) {
+                if (!shouldCallOnHelpWhenModalHidden || !hasHelpButtonBeenPressed.current) {
                     return;
                 }
                 onHelp();
@@ -418,6 +419,7 @@ function FeatureTrainingModal({
                             onPress={() => {
                                 if (shouldCallOnHelpWhenModalHidden) {
                                     setIsModalVisible(false);
+                                    hasHelpButtonBeenPressed.current = true;
                                     return;
                                 }
                                 onHelp();
