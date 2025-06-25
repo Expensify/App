@@ -80,6 +80,7 @@ function ScreenWrapperOfflineIndicators({
      */
     const smallScreenOfflineIndicatorBottomSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding: false,
         styleProperty: isSoftKeyNavigation ? 'bottom' : 'paddingBottom',
     });
 
