@@ -341,7 +341,7 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType &
 
 type TransactionMemberGroupListItemType = TransactionGroupListItemType & SearchPersonalDetails;
 
-type TransactionCardGroupListItemType = TransactionGroupListItemType & SearchCard;
+type TransactionCardGroupListItemType = TransactionGroupListItemType & SearchPersonalDetails & SearchCard;
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
