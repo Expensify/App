@@ -22,6 +22,7 @@ import type {
     AddedPolicyApprovalRuleParams,
     AddEmployeeParams,
     AddOrDeletePolicyCustomUnitRateParams,
+    AddPaymentCardReadAndAcceptRouteParams,
     AddressLineParams,
     AdminCanceledRequestParams,
     AirlineParams,
@@ -5042,7 +5043,8 @@ const translations = {
             changeOwnerPageTitle: 'Besitzer übertragen',
             addPaymentCardTitle: 'Geben Sie Ihre Zahlungskarte ein, um die Eigentümerschaft zu übertragen.',
             addPaymentCardButtonText: 'Bedingungen akzeptieren & Zahlungskarte hinzufügen',
-            addPaymentCardReadAndAcceptText: `Lesen und akzeptieren <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Bedingungen</a> & <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>Datenschutz</a> Richtlinie zum Hinzufügen Ihrer Karte`,
+            addPaymentCardReadAndAcceptText: ({termsURL, privacyURL}: AddPaymentCardReadAndAcceptRouteParams) =>
+                `<muted-text-label>Lesen und akzeptieren <a href="${termsURL}">Bedingungen</a> & <a href=${privacyURL}>Datenschutz</a> Richtlinie zum Hinzufügen Ihrer Karte</muted-text-label>`,
             addPaymentCardPciCompliant: 'PCI-DSS-konform',
             addPaymentCardBankLevelEncrypt: 'Verschlüsselung auf Bankniveau',
             addPaymentCardRedundant: 'Redundante Infrastruktur',

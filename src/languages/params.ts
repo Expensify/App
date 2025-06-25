@@ -96,6 +96,11 @@ type ReportArchiveReasonsMergedParams = {
     oldDisplayName: string;
 };
 
+type AddPaymentCardReadAndAcceptRouteParams = {
+    termsURL: string;
+    privacyURL: string;
+};
+
 type ReportArchiveReasonsRemovedFromPolicyParams = {
     displayName: string;
     policyName: string;
@@ -904,6 +909,7 @@ export type {
     PayerOwesParams,
     RoleNamesParams,
     PayerPaidAmountParams,
+    AddPaymentCardReadAndAcceptRouteParams,
     PayerPaidParams,
     PayerSettledParams,
     RemovedTheRequestParams,

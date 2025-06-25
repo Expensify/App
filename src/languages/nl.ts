@@ -22,6 +22,7 @@ import type {
     AddedPolicyApprovalRuleParams,
     AddEmployeeParams,
     AddOrDeletePolicyCustomUnitRateParams,
+    AddPaymentCardReadAndAcceptRouteParams,
     AddressLineParams,
     AdminCanceledRequestParams,
     AirlineParams,
@@ -5020,7 +5021,8 @@ const translations = {
             changeOwnerPageTitle: 'Eigenaar overdragen',
             addPaymentCardTitle: 'Voer uw betaalkaart in om het eigendom over te dragen',
             addPaymentCardButtonText: 'Accepteer voorwaarden & voeg betaalkaart toe',
-            addPaymentCardReadAndAcceptText: `Lezen en accepteren <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>voorwaarden</a> & <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>privacy</a> beleid om uw kaart toe te voegen`,
+            addPaymentCardReadAndAcceptText: ({termsURL, privacyURL}: AddPaymentCardReadAndAcceptRouteParams) =>
+                `<muted-text-label>Lezen en accepteren <a href="${termsURL}">voorwaarden</a> & <a href="${privacyURL}">privacy</a> beleid om uw kaart toe te voegen</muted-text-label>`,
             addPaymentCardPciCompliant: 'PCI-DSS-conform',
             addPaymentCardBankLevelEncrypt: 'Versleuteling op bankniveau',
             addPaymentCardRedundant: 'Redundante infrastructuur',

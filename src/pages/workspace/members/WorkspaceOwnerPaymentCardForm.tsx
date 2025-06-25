@@ -30,6 +30,8 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
     const theme = useTheme();
     const styles = useThemeStyles();
     const [shouldShowPaymentCardForm, setShouldShowPaymentCardForm] = useState(false);
+    const termsURL = CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL;
+    const privacyURL = CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL;
 
     const policyID = policy?.id;
 
@@ -84,7 +86,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
             headerContent={<Text style={[styles.textHeadline, styles.mt3, styles.mb2, styles.ph5]}>{translate('workspace.changeOwner.addPaymentCardTitle')}</Text>}
             footerContent={
                 <>
-                    <RenderHTML html={`<muted-text-label>${translate('workspace.changeOwner.addPaymentCardReadAndAcceptText')} </muted-text-label>`} />
+                    <RenderHTML html={translate('workspace.changeOwner.addPaymentCardReadAndAcceptText', {termsURL, privacyURL})} />
 
                     <Section
                         icon={Illustrations.ShieldYellow}

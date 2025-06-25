@@ -22,6 +22,7 @@ import type {
     AddedPolicyApprovalRuleParams,
     AddEmployeeParams,
     AddOrDeletePolicyCustomUnitRateParams,
+    AddPaymentCardReadAndAcceptRouteParams,
     AddressLineParams,
     AdminCanceledRequestParams,
     AirlineParams,
@@ -4933,7 +4934,8 @@ const translations = {
             changeOwnerPageTitle: '转移所有者',
             addPaymentCardTitle: '输入您的支付卡以转移所有权',
             addPaymentCardButtonText: '接受条款并添加支付卡',
-            addPaymentCardReadAndAcceptText: `阅读并接受 <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>条款</a> & <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>'隐私</a> 将卡添加的政策`,
+            addPaymentCardReadAndAcceptText: ({termsURL, privacyURL}: AddPaymentCardReadAndAcceptRouteParams) =>
+                `<muted-text-label>阅读并接受 <a href="${termsURL}">条款</a> & <a href="${privacyURL}">'隐私</a> 将卡添加的政策</muted-text-label>`,
             addPaymentCardPciCompliant: '符合PCI-DSS标准',
             addPaymentCardBankLevelEncrypt: '银行级加密',
             addPaymentCardRedundant: '冗余基础设施',

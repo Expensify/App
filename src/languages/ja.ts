@@ -22,6 +22,7 @@ import type {
     AddedPolicyApprovalRuleParams,
     AddEmployeeParams,
     AddOrDeletePolicyCustomUnitRateParams,
+    AddPaymentCardReadAndAcceptRouteParams,
     AddressLineParams,
     AdminCanceledRequestParams,
     AirlineParams,
@@ -4983,7 +4984,8 @@ const translations = {
             changeOwnerPageTitle: 'オーナーを移行',
             addPaymentCardTitle: '所有権を移転するために支払いカードを入力してください。',
             addPaymentCardButtonText: '利用規約に同意して支払いカードを追加',
-            addPaymentCardReadAndAcceptText: `読み取りと承認 <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>利用規約</a> & <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>プライバシー</a> カードを追加するためのポリシー`,
+            addPaymentCardReadAndAcceptText: ({termsURL, privacyURL}: AddPaymentCardReadAndAcceptRouteParams) =>
+                `<muted-text-label>読み取りと承認 <a href="${termsURL}">利用規約</a> & <a href="${privacyURL}">プライバシー</a> カードを追加するためのポリシー</muted-text-label>`,
             addPaymentCardPciCompliant: 'PCI-DSS 準拠',
             addPaymentCardBankLevelEncrypt: '銀行レベルの暗号化',
             addPaymentCardRedundant: '冗長インフラストラクチャー',
