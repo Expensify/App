@@ -24,10 +24,14 @@ import {clearPolicyErrorField, setWorkspaceDefaultSpendCategory} from '@userActi
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
 
-type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_SETTINGS>;
+type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps &
+    (
+        | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_SETTINGS>
+        | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS>
+    );
 
 function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSettingsPageProps) {
     const styles = useThemeStyles();
@@ -35,19 +39,20 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [currentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [currentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const currentConnectionName = getCurrentConnectionName(policy);
     const [isSelectorModalVisible, setIsSelectorModalVisible] = useState(false);
     const [categoryID, setCategoryID] = useState<string>();
     const [groupID, setGroupID] = useState<string>();
-    const isQuickSettingsFlow = backTo;
-
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS;
     const toggleSubtitle =
         isConnectedToAccounting && currentConnectionName ? translate('workspace.categories.needCategoryForExportToIntegration', {connectionName: currentConnectionName}) : undefined;
 
     const updateWorkspaceRequiresCategory = (value: boolean) => {
-        setWorkspaceRequiresCategory(policyID, value);
+        setWorkspaceRequiresCategory(policyID, value, policyTagLists, allTransactionViolations);
     };
 
     const {sections} = useMemo(() => {
