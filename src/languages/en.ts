@@ -6502,18 +6502,18 @@ const translations = {
         },
         requestEarlyCancellation: {
             title: 'Request early cancellation',
-            subtitle: 'What’s the main reason you’re requesting early cancellation?',
+            subtitle: "What's the main reason you're requesting early cancellation?",
             subscriptionCanceled: {
                 title: 'Subscription canceled',
                 subtitle: 'Your annual subscription has been canceled.',
-                info: 'If you want to keep using your workspace(s) on a pay-per-use basis, you’re all set.',
+                info: "If you want to keep using your workspace(s) on a pay-per-use basis, you're all set.",
                 preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
-                    `If you’d like to prevent future activity and charges, you must <a href="${workspacesListRoute}">delete your workspace(s)</a> . Note that when you delete your workspace(s), you’ll be charged for any outstanding activity that was incurred during the current calendar month.`,
+                    `If you'd like to prevent future activity and charges, you must <a href="${workspacesListRoute}">delete your workspace(s)</a>. Note that when you delete your workspace(s), you'll be charged for any outstanding activity that was incurred during the current calendar month.`,
             },
             requestSubmitted: {
                 title: 'Request submitted',
                 subtitle: {
-                    part1: 'Thanks for letting us know you’re interested in canceling your subscription. We’re reviewing your request and will be in touch soon via your chat with ',
+                    part1: "Thanks for letting us know you're interested in canceling your subscription. We're reviewing your request and will be in touch soon via your chat with ",
                     link: 'Concierge',
                     part2: '.',
                 },
