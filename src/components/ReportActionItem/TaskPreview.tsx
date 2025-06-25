@@ -83,9 +83,7 @@ function TaskPreview({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const taskReportID =
-        taskReport?.reportID ??
-        (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && !!getOriginalMessage(action)?.taskReportID ? getOriginalMessage(action)?.taskReportID : undefined);
+    const taskReportID = taskReport?.reportID ?? action?.childReportID;
     const taskTitle = action?.childReportName ?? taskReport?.reportName ?? '';
 
     const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
