@@ -182,6 +182,10 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
     const groupByComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
+            if (!filterFormValues) {
+                loadFilterFormValues();
+                return null;
+            }
             const items = getGroupByOptions();
             const value = items.find((option) => option.value === groupBy) ?? null;
 
@@ -195,7 +199,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [translate, groupBy, updateFilterForm],
+        [translate, groupBy, updateFilterForm, filterFormValues, loadFilterFormValues],
     );
 
     const statusComponent = useCallback(
@@ -291,6 +295,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                       {
                           label: translate('search.groupBy'),
                           PopoverComponent: groupByComponent,
+                          key: 'groupBy',
                           value: groupBy ? translate(`search.filters.groupBy.${groupBy}`) : null,
                           keyForList: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
                       },
