@@ -265,7 +265,7 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [internalOptions, setInternalOptions] = useState<OptionList>(optionsList);
-    const prevOptions = useRef<OptionList>();
+    const prevOptions = useRef<OptionList>(null);
 
     useEffect(() => {
         if (!prevOptions.current) {
