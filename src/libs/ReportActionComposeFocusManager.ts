@@ -1,6 +1,6 @@
 import {findFocusedRoute} from '@react-navigation/native';
+import type {RefObject} from 'react';
 import React from 'react';
-import type {MutableRefObject} from 'react';
 import type {TextInput} from 'react-native';
 import SCREENS from '@src/SCREENS';
 import isReportOpenInRHP from './Navigation/helpers/isReportOpenInRHP';
@@ -11,11 +11,11 @@ type ComposerType = 'main' | 'edit';
 
 type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;
 
-const composerRef: MutableRefObject<TextInput | null> = React.createRef<TextInput>();
+const composerRef: RefObject<TextInput | null> = React.createRef<TextInput>();
 
 // There are two types of composer: general composer (edit composer) and main composer.
 // The general composer callback will take priority if it exists.
-const editComposerRef: MutableRefObject<TextInput | null> = React.createRef<TextInput>();
+const editComposerRef: RefObject<TextInput | null> = React.createRef<TextInput>();
 // There are two types of focus callbacks: priority and general
 // Priority callback would take priority if it existed
 let priorityFocusCallback: FocusCallback | null = null;
