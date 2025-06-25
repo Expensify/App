@@ -330,8 +330,7 @@ type TransactionGroupListItemType = ListItem & {
     transactions: TransactionListItemType[];
 };
 
-type TransactionReportGroupListItemType = TransactionGroupListItemType &
-    SearchReport & {
+type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.REPORTS} & SearchReport & {
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
 
@@ -339,9 +338,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType &
         to: SearchPersonalDetails;
     };
 
-type TransactionMemberGroupListItemType = TransactionGroupListItemType & SearchPersonalDetails;
+type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MEMBERS} & SearchPersonalDetails;
 
-type TransactionCardGroupListItemType = TransactionGroupListItemType & SearchPersonalDetails & SearchCard;
+type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARDS} & SearchPersonalDetails & SearchCard;
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
