@@ -145,7 +145,6 @@ function MoneyRequestAction({
         return <RenderHTML html={`<deleted-action ${CONST.REVERSED_TRANSACTION_ATTRIBUTE}="${isReversedTransaction}">${translate(message)}</deleted-action>`} />;
     }
 
-    // Condition extracted from MoneyRequestPreview
     if (lodashIsEmpty(iouReport) && !(isSplitBillAction || isTrackExpenseAction)) {
         return null;
     }
