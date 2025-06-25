@@ -8,8 +8,10 @@ import type TooltipProps from '@components/Tooltip/types';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 
 type MouseEvents = {
-    onMouseEnter: (e: MouseEvent) => void | undefined;
+    onMouseEnter: (e: React.MouseEvent) => void | undefined;
 };
+
+const deviceHasHoverSupport = hasHoverSupport();
 
 /**
  * A component used to wrap an element intended for displaying a tooltip. The term "tooltip's target" refers to the
@@ -52,7 +54,7 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ...pro
     const target = useRef<HTMLElement | null>(null);
     const initialMousePosition = useRef({x: 0, y: 0});
 
-    const updateTargetAndMousePosition = useCallback((e: MouseEvent) => {
+    const updateTargetAndMousePosition = useCallback((e: React.MouseEvent) => {
         if (!(e.currentTarget instanceof HTMLElement)) {
             return;
         }
@@ -75,7 +77,7 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ...pro
     };
 
     const updateTargetPositionOnMouseEnter = useCallback(
-        (e: MouseEvent) => {
+        (e: React.MouseEvent) => {
             updateTargetAndMousePosition(e);
             if (React.isValidElement(children)) {
                 const onMouseEnter = (children.props as MouseEvents).onMouseEnter;
@@ -86,7 +88,7 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ...pro
     );
 
     // Skip the tooltip and return the children if the device does not support hovering
-    if (!hasHoverSupport) {
+    if (!deviceHasHoverSupport) {
         return children;
     }
 
@@ -114,9 +116,9 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ...pro
                             onHoverOut={hideTooltip}
                             shouldHandleScroll={shouldHandleScroll}
                         >
-                            {React.cloneElement(children as React.ReactElement, {
+                            {React.cloneElement(children, {
                                 onMouseEnter: updateTargetPositionOnMouseEnter,
-                            })}
+                            } as React.HTMLAttributes<HTMLElement>)}
                         </Hoverable>
                     </BoundsObserver>
                 ) : (

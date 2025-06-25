@@ -8,7 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -1819,7 +1819,7 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
  * @param currentAccountID
  * @returns
  */
-function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number): boolean {
+function hasRequestFromCurrentAccount(reportID: string | undefined, currentAccountID: number): boolean {
     if (!reportID) {
         return false;
     }
@@ -1938,7 +1938,7 @@ function getDismissedViolationMessageText(originalMessage: ReportAction<typeof C
 /**
  * Check if the linked transaction is on hold
  */
-function isLinkedTransactionHeld(reportActionID: string, reportID: string): boolean {
+function isLinkedTransactionHeld(reportActionID: string | undefined, reportID: string | undefined): boolean {
     const linkedTransactionID = getLinkedTransactionID(reportActionID, reportID);
     return linkedTransactionID ? isOnHoldByTransactionID(linkedTransactionID) : false;
 }
@@ -2601,7 +2601,7 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
                 return translateLocal('workflowsPage.frequencies.lastBusinessDayOfMonth');
             }
             if (typeof autoReportingOffset === 'number') {
-                return toLocaleOrdinal(TranslationStore.getCurrentLocale(), autoReportingOffset, false);
+                return toLocaleOrdinal(IntlStore.getCurrentLocale(), autoReportingOffset, false);
             }
             return '';
         };
@@ -2927,6 +2927,30 @@ function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>): strin
     return translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage});
 }
 
+function getManagerOnVacation(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isApprovedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.managerOnVacation;
+}
+
+function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isSubmittedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.vacationer;
+}
+
+function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
+    if (!isSubmittedAction(action)) {
+        return;
+    }
+
+    return getOriginalMessage(action)?.to;
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -3091,6 +3115,9 @@ export {
     getReportActionFromExpensifyCard,
     isReopenedAction,
     getIntegrationSyncFailedMessage,
+    getManagerOnVacation,
+    getVacationer,
+    getSubmittedTo,
     getReceiptScanFailedMessage,
 };
 
