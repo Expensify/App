@@ -67,6 +67,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodParams,
     ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
@@ -550,6 +551,7 @@ const translations = {
         userID: 'ユーザーID',
         disable: '無効にする',
         export: 'エクスポート',
+        basicExport: '基本エクスポート',
         initialValue: '初期値',
         currentDate: '現在の日付',
         value: '値段',
@@ -1496,6 +1498,7 @@ const translations = {
             noLogsToShare: '共有するログはありません',
             useProfiling: 'プロファイリングを使用する',
             profileTrace: 'プロファイルトレース',
+            results: '結果',
             releaseOptions: 'リリースオプション',
             testingPreferences: '設定のテスト',
             useStagingServer: 'Stagingサーバーを使用',
@@ -1516,6 +1519,7 @@ const translations = {
             invalidFile: '無効なファイル',
             invalidFileDescription: 'インポートしようとしているファイルは無効です。もう一度お試しください。',
             invalidateWithDelay: '遅延で無効にする',
+            recordTroubleshootData: 'トラブルシューティングデータの記録',
         },
         debugConsole: {
             saveLog: 'ログを保存',
@@ -2414,11 +2418,8 @@ const translations = {
         toGetStarted: '銀行口座を追加して、経費を払い戻し、Expensifyカードを発行し、請求書の支払いを受け取り、すべてを一箇所で支払います。',
         plaidBodyCopy: '従業員に会社の経費を支払う、そして払い戻しを受ける、より簡単な方法を提供しましょう。',
         checkHelpLine: '口座の小切手にルーティング番号と口座番号が記載されています。',
-        hasPhoneLoginError: {
-            phrase1: '銀行口座を接続するには、お願いします',
-            link: 'メールをプライマリーログインとして追加する',
-            phrase2: 'もう一度試してください。電話番号をセカンダリログインとして追加できます。',
-        },
+        hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
+            `銀行口座を接続するには、お願いします <a href="${contactMethodRoute}">メールをプライマリーログインとして追加する</a> もう一度試してください。電話番号をセカンダリログインとして追加できます。`,
         hasBeenThrottledError: '銀行口座の追加中にエラーが発生しました。数分待ってから再試行してください。',
         hasCurrencyError: {
             phrase1: 'おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、こちらにアクセスしてください。',

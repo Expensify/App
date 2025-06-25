@@ -75,7 +75,7 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
     sap: 'SAP',
     oracle: 'Oracle',
     microsoftDynamics: 'Microsoft Dynamics',
-    other: 'Other',
+    other: 'accounting software',
 };
 
 const connectionsVideoPaths = {
@@ -1230,10 +1230,7 @@ const CONST = {
             APPROVE: 'approve',
             UNAPPROVE: 'unapprove',
             CANCEL_PAYMENT: 'cancelPayment',
-            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
-            MARK_AS_EXPORTED: 'markAsExported',
             HOLD: 'hold',
-            DOWNLOAD_CSV: 'downloadCSV',
             DOWNLOAD_PDF: 'downloadPDF',
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
@@ -1242,6 +1239,7 @@ const CONST = {
             ADD_EXPENSE: 'addExpense',
             SPLIT: 'split',
             REOPEN: 'reopen',
+            EXPORT: 'export',
             PAY: 'pay',
         },
         PRIMARY_ACTIONS: {
@@ -1584,6 +1582,7 @@ const CONST = {
         EXPORT_OPTIONS: {
             EXPORT_TO_INTEGRATION: 'exportToIntegration',
             MARK_AS_EXPORTED: 'markAsExported',
+            DOWNLOAD_CSV: 'downloadCSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -5556,9 +5555,10 @@ const CONST = {
                         [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
                         [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
-                    title: ({integrationName, workspaceAccountingLink}) => `Connect to [${integrationName}](${workspaceAccountingLink})`,
+                    title: ({integrationName, workspaceAccountingLink}) =>
+                        `Connect${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' to'} [${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other ? 'your' : ''} ${integrationName}](${workspaceAccountingLink})`,
                     description: ({integrationName, workspaceAccountingLink}) =>
-                        `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
+                        `Connect ${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other ? 'your' : 'to'} ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
                         '\n' +
                         '1. Click *Settings*.\n' +
                         '2. Go to *Workspaces*.\n' +
