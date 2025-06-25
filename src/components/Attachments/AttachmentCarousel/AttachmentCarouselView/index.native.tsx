@@ -9,9 +9,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
-import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import type AttachmentCarouselViewProps from './types';
 
 function AttachmentCarouselView({
@@ -33,7 +31,6 @@ function AttachmentCarouselView({
     const canUseTouchScreen = canUseTouchScreenUtil();
     const styles = useThemeStyles();
     const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource>(attachmentID ?? source);
-    const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
 
@@ -77,7 +74,7 @@ function AttachmentCarouselView({
 
     return (
         <View
-            style={[styles.flex1, styles.attachmentCarouselContainer, isIOSNative && styles.mhn2]}
+            style={[styles.flex1, styles.attachmentCarouselContainer]}
             onMouseEnter={() => !canUseTouchScreen && setShouldShowArrows(true)}
             onMouseLeave={() => !canUseTouchScreen && setShouldShowArrows(false)}
         >
