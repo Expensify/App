@@ -136,12 +136,9 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             style={[
                 style,
                 parentStyle,
-                textDecorationLineStyle,
-                styles.textUnderlinePositionUnder,
-                styles.textDecorationSkipInkNone,
+                styles.textDecorationLineNone,
                 isChildOfTaskTitle && styles.taskTitleMenuItem,
                 styles.dInlineFlex,
-                action?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isInConciergeTaskView ? styles.textDecorationLineNone : {},
             ]}
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
