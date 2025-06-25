@@ -1,14 +1,14 @@
-import type {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
+import {LOCALES} from '@src/CONST/LOCALES';
+import type {Locale} from '@src/CONST/LOCALES';
 import flattenObject from '@src/languages/flattenObject';
 import type {FlatTranslationsObject, TranslationPaths} from '@src/languages/types';
 
 class TranslationStore {
-    private static currentLocale: ValueOf<typeof CONST.LOCALES> | undefined = 'en';
+    private static currentLocale: Locale | undefined = 'en';
 
-    private static localeCache = new Map<ValueOf<typeof CONST.LOCALES>, FlatTranslationsObject>([
+    private static localeCache = new Map<Locale, FlatTranslationsObject>([
         [
-            CONST.LOCALES.EN,
+            LOCALES.EN,
             flattenObject({
                 testKey1: 'English',
                 testKey2: 'Test Word 2',
@@ -25,7 +25,7 @@ class TranslationStore {
             }),
         ],
         [
-            CONST.LOCALES.ES,
+            LOCALES.ES,
             flattenObject({
                 testKey1: 'Spanish',
                 testKey2: 'Spanish Word 2',
@@ -39,11 +39,11 @@ class TranslationStore {
         ],
     ]);
 
-    private static loaders: Partial<Record<ValueOf<typeof CONST.LOCALES>, () => Promise<void>>> = {
-        [CONST.LOCALES.EN]: () => {
+    private static loaders: Partial<Record<Locale, () => Promise<void>>> = {
+        [LOCALES.EN]: () => {
             return Promise.resolve();
         },
-        [CONST.LOCALES.ES]: () => {
+        [LOCALES.ES]: () => {
             return Promise.resolve();
         },
     };
@@ -56,7 +56,7 @@ class TranslationStore {
         return Promise.resolve();
     }
 
-    static get<TPath extends TranslationPaths>(key: TPath, locale?: ValueOf<typeof CONST.LOCALES>) {
+    static get<TPath extends TranslationPaths>(key: TPath, locale?: Locale) {
         const localeToUse = locale && this.localeCache.has(locale) ? locale : this.currentLocale;
         if (!localeToUse) {
             return null;
