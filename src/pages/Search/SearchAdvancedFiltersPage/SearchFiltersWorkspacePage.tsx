@@ -1,9 +1,10 @@
 import React, {useCallback, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -105,21 +106,12 @@ function SearchFiltersWorkspacePage() {
                             initiallyFocusedOptionKey={selectedOptions?.at(0)}
                             showLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !didScreenTransitionEnd}
                             footerContent={
-                                <>
-                                    <Button
-                                        large
-                                        style={[styles.flex1, styles.mb3]}
-                                        text={translate('common.reset')}
-                                        onPress={resetChanges}
+                                <FixedFooter style={[styles.ph0, styles.pb0]}>
+                                    <SearchFilterPageFooterButtons
+                                        applyChanges={applyChanges}
+                                        resetChanges={resetChanges}
                                     />
-                                    <Button
-                                        success
-                                        large
-                                        style={[styles.flex1]}
-                                        text={translate('common.apply')}
-                                        onPress={applyChanges}
-                                    />
-                                </>
+                                </FixedFooter>
                             }
                         />
                     )}
