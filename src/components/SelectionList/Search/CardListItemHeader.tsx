@@ -1,13 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
-import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import type {ListItem, TransactionCardGroupListItemType} from '@components/SelectionList/types';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import type {SubIcon} from '@components/SubscriptAvatar';
 import TextWithTooltip from '@components/TextWithTooltip';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedIcon} from '@libs/CardUtils';
@@ -28,12 +28,20 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
 
+    /** Whether the item is hovered */
+    isHovered?: boolean;
+
+    /** Whether the item is focused */
+    isFocused?: boolean;
+
     /** Whether selecting multiple transactions at once is allowed */
     canSelectMultiple: boolean | undefined;
 };
 
-function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxPress, isDisabled, canSelectMultiple}: CardListItemHeaderProps<TItem>) {
+function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxPress, isDisabled, isHovered, isFocused, canSelectMultiple}: CardListItemHeaderProps<TItem>) {
+    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const illustrations = useThemeIllustrations();
 
@@ -51,6 +59,10 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
         width: variables.cardAvatarWidth,
         height: variables.cardAvatarHeight,
     };
+
+    const backgroundColor =
+        StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
+        theme.highlightBG;
 
     // s77rt add total cell, action cell and collapse/expand button
 
@@ -70,6 +82,7 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
                         <SubscriptAvatar
                             mainAvatar={memberAvatar}
                             subscriptIcon={cardIcon}
+                            backgroundColor={backgroundColor}
                         />
                         <View style={[styles.gapHalf]}>
                             <TextWithTooltip
