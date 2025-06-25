@@ -13,7 +13,7 @@ type ReactionListRef = {
     isActiveReportAction: (actionID: number | string) => boolean;
 };
 
-type FlatListRefType = RefObject<FlatList<unknown>> | null;
+type FlatListRefType = RefObject<FlatList<unknown> | null> | null;
 
 type ScrollPosition = {offset?: number};
 

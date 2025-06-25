@@ -142,7 +142,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const firstRenderRef = useRef(true);
     const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
-    const flatListRef = useRef<FlatList>(null);
+    const flatListRef = useRef<FlatList<unknown> | null>(null);
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
