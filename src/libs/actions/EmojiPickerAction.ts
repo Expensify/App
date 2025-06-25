@@ -1,5 +1,5 @@
 import React from 'react';
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import type {TextInput, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
@@ -12,7 +12,7 @@ type AnchorOrigin = {
     shiftVertical?: number;
 };
 
-type EmojiPopoverAnchor = MutableRefObject<View | HTMLDivElement | TextInput | null>;
+type EmojiPopoverAnchor = RefObject<View | HTMLDivElement | TextInput | null>;
 
 type OnWillShowPicker = (callback?: CloseContextMenuCallback) => void;
 
