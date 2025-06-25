@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
@@ -29,8 +29,7 @@ function MemberListItemHeader<TItem extends ListItem>({member: memberItem, onChe
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const formattedDisplayName = formatPhoneNumber(getDisplayNameOrDefault(memberItem));
-    const formattedLogin = formatPhoneNumber(memberItem.login ?? '');
+    const [formattedDisplayName, formattedLogin] = useMemo(() => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')], [memberItem]);
 
     // s77rt add total cell, action cell and collapse/expand button
 

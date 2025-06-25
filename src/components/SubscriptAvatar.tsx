@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
+import type {ColorValue} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';

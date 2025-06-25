@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import type {ListItem, TransactionCardGroupListItemType} from '@components/SelectionList/types';
@@ -15,8 +15,8 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
-import {Icon} from '@src/types/onyx/OnyxCommon';
+import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
     /** The card currently being looked at */
@@ -45,20 +45,24 @@ function CardListItemHeader<TItem extends ListItem>({card: cardItem, onCheckboxP
     const {translate} = useLocalize();
     const illustrations = useThemeIllustrations();
 
-    const formattedDisplayName = formatPhoneNumber(getDisplayNameOrDefault(cardItem));
+    const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(cardItem)), [cardItem]);
 
-    const memberAvatar: Icon = {
-        source: cardItem.avatar,
-        type: CONST.ICON_TYPE_AVATAR,
-        name: formattedDisplayName,
-        id: cardItem.accountID,
-    };
+    const [memberAvatar, cardIcon] = useMemo(() => {
+        const avatar: Icon = {
+            source: cardItem.avatar,
+            type: CONST.ICON_TYPE_AVATAR,
+            name: formattedDisplayName,
+            id: cardItem.accountID,
+        };
 
-    const cardIcon: SubIcon = {
-        source: getCardFeedIcon(cardItem.bank as CompanyCardFeed, illustrations),
-        width: variables.cardAvatarWidth,
-        height: variables.cardAvatarHeight,
-    };
+        const icon: SubIcon = {
+            source: getCardFeedIcon(cardItem.bank as CompanyCardFeed, illustrations),
+            width: variables.cardAvatarWidth,
+            height: variables.cardAvatarHeight,
+        };
+
+        return [avatar, icon];
+    }, [formattedDisplayName, illustrations, cardItem]);
 
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
