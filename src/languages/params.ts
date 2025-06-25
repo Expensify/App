@@ -682,10 +682,6 @@ type FileLimitParams = {
 
 type FileTypeParams = {
     fileType: string;
-}
-
-type FileTypeParams = {
-    fileType: string;
 };
 
 type CompanyCardBankName = {
