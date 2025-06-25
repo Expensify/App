@@ -5770,6 +5770,7 @@ const translations = {
             groupBy: {
                 reports: 'Bericht',
                 members: 'Mitglied',
+                cards: 'Karte',
             },
         },
         groupBy: 'Gruppe nach',

@@ -5700,6 +5700,7 @@ const translations = {
             groupBy: {
                 reports: '報告',
                 members: 'メンバー',
+                cards: 'カード',
             },
         },
         groupBy: 'グループ',

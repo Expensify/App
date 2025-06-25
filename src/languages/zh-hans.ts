@@ -5638,6 +5638,7 @@ const translations = {
             groupBy: {
                 reports: '报告',
                 members: '成员',
+                cards: '卡片',
             },
         },
         groupBy: '组别',
