@@ -340,7 +340,15 @@ function IOURequestStepScan({
     );
 
     const createTransaction = useCallback(
-        (files: ReceiptFile[], participant: Participant, gpsPoints?: GpsPoint, policyParams?: {policy: OnyxEntry<Policy>}, billable?: boolean) => {
+        (
+            files: ReceiptFile[],
+            participant: Participant,
+            gpsPoints?: GpsPoint,
+            policyParams?: {
+                policy: OnyxEntry<Policy>;
+            },
+            billable?: boolean,
+        ) => {
             files.forEach((receiptFile: ReceiptFile, index) => {
                 const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
                 const receipt: Receipt = receiptFile.file ?? {};
@@ -563,7 +571,7 @@ function IOURequestStepScan({
         files.forEach((file, index) => {
             const source = URL.createObjectURL(file as Blob);
             const transaction =
-                index === 0
+                index === 0 && transactions.length === 1
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
@@ -687,7 +695,19 @@ function IOURequestStepScan({
         }
 
         submitReceipts(newReceiptFiles);
-    }, [isMultiScanEnabled, initialTransaction, currentUserPersonalDetails, reportID, initialTransactionID, receiptFiles, isEditing, submitReceipts, requestCameraPermission, showBlink, updateScanAndNavigate]);
+    }, [
+        isMultiScanEnabled,
+        initialTransaction,
+        currentUserPersonalDetails,
+        reportID,
+        initialTransactionID,
+        receiptFiles,
+        isEditing,
+        submitReceipts,
+        requestCameraPermission,
+        showBlink,
+        updateScanAndNavigate,
+    ]);
 
     const toggleMultiScan = () => {
         if (!dismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]) {
