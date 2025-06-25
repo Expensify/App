@@ -12,7 +12,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import OnboardingMergingAccountBlocked from '@components/OnboardingMergingAccountBlocked';
+import OnboardingMergingAccountBlockedView from '@components/OnboardingMergingAccountBlockedView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -129,7 +129,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         },
     ];
 
-    const isMergingAccountBlocked = onboardingErrorMessage === CONST.ONBOARDING_2FA_REQUIRED_ERROR_MESSAGE;
+    const isMergingAccountBlocked = onboardingErrorMessage === CONST.ERROR.ONBOARDING_2FA_REQUIRED_ERROR_MESSAGE;
 
     return (
         <ScreenWrapper
@@ -144,7 +144,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             />
             {isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                    <OnboardingMergingAccountBlocked
+                    <OnboardingMergingAccountBlockedView
                         workEmail={workEmail}
                         isVsb={isVsb}
                     />

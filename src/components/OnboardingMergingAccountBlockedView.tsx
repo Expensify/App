@@ -9,12 +9,13 @@ import BlockingView from './BlockingViews/BlockingView';
 import Button from './Button';
 import {ToddBehindCloud} from './Icon/Illustrations';
 
-type OnboardingMergingAccountBlockedProps = {
+type OnboardingMergingAccountBlockedViewProps = {
     // Work email to display in the subtitle
     workEmail: string | undefined;
     isVsb: boolean | undefined;
 };
-function OnboardingMergingAccountBlocked({workEmail, isVsb}: OnboardingMergingAccountBlockedProps) {
+
+function OnboardingMergingAccountBlockedView({workEmail, isVsb}: OnboardingMergingAccountBlockedViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
@@ -45,4 +46,6 @@ function OnboardingMergingAccountBlocked({workEmail, isVsb}: OnboardingMergingAc
     );
 }
 
-export default OnboardingMergingAccountBlocked;
+OnboardingMergingAccountBlockedView.displayName = 'OnboardingMergingAccountBlockedView';
+
+export default OnboardingMergingAccountBlockedView;
