@@ -34,7 +34,7 @@ function SearchDateFilterBase({dateKey, titleKey}: SearchDateFilterBaseProps) {
     const setDateValue = (key: SearchDateModifier, dateValue: string | null) => {
         setLocalDateValues((currentValue) => {
             // If we are setting the 'on' to 'never', reset the other dates
-            if (key === CONST.SEARCH.DATE_MODIFIERS.ON && dateValue === CONST.SEARCH.NEVER) {
+            if (key === CONST.SEARCH.DATE_MODIFIERS.ON && dateValue === CONST.SEARCH.DATE_PRESETS.NEVER) {
                 return {
                     [CONST.SEARCH.DATE_MODIFIERS.ON]: dateValue,
                     [CONST.SEARCH.DATE_MODIFIERS.AFTER]: null,
@@ -43,7 +43,7 @@ function SearchDateFilterBase({dateKey, titleKey}: SearchDateFilterBaseProps) {
             }
 
             // If we are setting any other value while 'on' is set to 'never', reset 'on' to null
-            if (key !== CONST.SEARCH.DATE_MODIFIERS.ON && currentValue?.[CONST.SEARCH.DATE_MODIFIERS.ON] === CONST.SEARCH.NEVER) {
+            if (key !== CONST.SEARCH.DATE_MODIFIERS.ON && currentValue?.[CONST.SEARCH.DATE_MODIFIERS.ON] === CONST.SEARCH.DATE_PRESETS.NEVER) {
                 return {
                     ...currentValue,
                     [key]: dateValue,
