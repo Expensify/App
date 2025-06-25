@@ -109,9 +109,9 @@ function VacationDelegatePage() {
                 data: [
                     {
                         ...delegatePersonalDetails,
-                        text: delegatePersonalDetails?.displayName ?? '',
-                        alternateText: delegatePersonalDetails?.login ?? undefined,
-                        login: delegatePersonalDetails.login ?? undefined,
+                        text: delegatePersonalDetails?.displayName ?? vacationDelegate.delegate,
+                        alternateText: delegatePersonalDetails?.login ?? vacationDelegate.delegate,
+                        login: delegatePersonalDetails.login ?? vacationDelegate.delegate,
                         keyForList: `vacationDelegate-${delegatePersonalDetails.login}`,
                         isDisabled: false,
                         isSelected: true,

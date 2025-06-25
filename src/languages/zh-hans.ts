@@ -34,6 +34,7 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
+    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -44,6 +45,8 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessBankAccountParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -64,6 +67,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodParams,
     ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
@@ -102,7 +106,6 @@ import type {
     FlightParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
-    GoToRoomParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -332,6 +335,7 @@ const translations = {
         workspaces: '工作区',
         inbox: '收件箱',
         group: '组',
+        success: '成功',
         profile: '个人资料',
         referral: '推荐',
         payments: '付款',
@@ -547,6 +551,7 @@ const translations = {
         userID: '用户 ID',
         disable: '禁用',
         export: '导出',
+        basicExport: '基本导出',
         initialValue: '初始值',
         currentDate: '当前日期',
         value: '值',
@@ -608,7 +613,6 @@ const translations = {
         after: '后',
         reschedule: '重新安排',
         general: '常规',
-        never: '从不',
         workspacesTabTitle: '工作区',
         getTheApp: '获取应用程序',
         scanReceiptsOnTheGo: '用手机扫描收据',
@@ -1103,13 +1107,20 @@ const translations = {
         individual: '个人',
         business: '商务',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `使用 Expensify 支付 ${formattedAmount}` : `使用Expensify支付`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `以个人身份支付${formattedAmount}` : `以个人身份支付`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `以个人身份支付${formattedAmount}` : `用个人账户支付`),
+        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `用钱包支付${formattedAmount}` : `用钱包支付`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `支付 ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `以企业身份支付${formattedAmount}` : `以企业身份支付`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `在其他地方支付${formattedAmount}` : `在其他地方支付`),
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `以企业身份支付${formattedAmount}` : `用企业账户支付`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `标记${formattedAmount}为已支付` : `标记为已支付`),
+        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `已用个人账户${last4Digits}支付${amount}` : `已用个人账户支付`),
+        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `已用企业账户${last4Digits}支付${amount}` : `已用企业账户支付`),
+        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
+            formattedAmount ? `通过${policyName}支付${formattedAmount}` : `通过${policyName}支付`,
+        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => `已用银行账户${last4Digits}支付${amount}。`,
+        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `个人账户 • ${lastFour}`,
+        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `企业账户 • ${lastFour}`,
         nextStep: '下一步',
         finished: '完成',
-        flip: '翻转',
         sendInvoice: ({amount}: RequestAmountParams) => `发送 ${amount} 发票`,
         submitAmount: ({amount}: RequestAmountParams) => `提交 ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `对于${comment}` : ''}`,
@@ -1140,8 +1151,8 @@ const translations = {
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}取消了付款`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) => `取消了${amount}付款，因为${submitterDisplayName}在30天内未启用他们的Expensify Wallet。`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) => `${submitterDisplayName} 添加了一个银行账户。${amount} 付款已完成。`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}在其他地方支付`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}通过Expensify支付`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}已标记为已支付`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}已用钱包支付`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''}通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>使用Expensify支付`,
         noReimbursableExpenses: '此报告的金额无效',
@@ -1472,6 +1483,7 @@ const translations = {
             noLogsToShare: '没有日志可分享',
             useProfiling: '使用分析工具',
             profileTrace: '个人资料追踪',
+            results: '成果',
             releaseOptions: '发布选项',
             testingPreferences: '测试偏好设置',
             useStagingServer: '使用测试服务器',
@@ -1492,6 +1504,7 @@ const translations = {
             invalidFile: '文件无效',
             invalidFileDescription: '您尝试导入的文件无效。请再试一次。',
             invalidateWithDelay: '延迟失效',
+            recordTroubleshootData: '记录故障排除数据',
         },
         debugConsole: {
             saveLog: '保存日志',
@@ -1620,13 +1633,13 @@ const translations = {
         mergeFailureGenericHeading: '无法合并账户',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: '报告可疑活动',
         lockAccount: '锁定账户',
         unlockAccount: '解锁账户',
-        compromisedDescription: '如果您怀疑您的Expensify账户被泄露，您可以锁定它以防止新的Expensify卡交易并阻止不必要的账户更改。',
-        domainAdminsDescriptionPartOne: '对于域管理员，',
-        domainAdminsDescriptionPartTwo: '此操作将停止所有 Expensify Card 活动和管理员操作。',
-        domainAdminsDescriptionPartThree: '在您的域中。',
-        warning: `一旦您的账户被锁定，我们的团队将进行调查并移除任何未经授权的访问。要重新获得访问权限，您需要与Concierge合作以确保您的账户安全。`,
+        compromisedDescription: '发现您的账户有异常? 报告后将立即锁定账户, 阻止新的Expensify卡交易, 并防止任何账户更改。',
+        domainAdminsDescription: '对于域管理员: 这也会暂停您域中所有Expensify卡活动和管理员操作。',
+        areYouSure: '您确定要锁定您的Expensify账户吗?',
+        ourTeamWill: '我们的团队将调查并移除任何未经授权的访问。若要恢复访问权限, 您需与Concierge协作。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: '无法锁定账户',
@@ -1789,6 +1802,7 @@ const translations = {
         enableWallet: '启用钱包',
         addBankAccountToSendAndReceive: '获得报销您提交到工作区的费用。',
         addBankAccount: '添加银行账户',
+        addDebitOrCreditCard: '添加借记卡或信用卡',
         assignedCards: '已分配的卡片',
         assignedCardsDescription: '这些是由工作区管理员分配的卡片，用于管理公司支出。',
         expensifyCard: 'Expensify Card',
@@ -1996,6 +2010,7 @@ const translations = {
         cardLastFour: '卡号末尾为',
         addFirstPaymentMethod: '添加支付方式以便直接在应用中发送和接收付款。',
         defaultPaymentMethod: '默认',
+        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `银行账户 • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -2384,11 +2399,8 @@ const translations = {
         toGetStarted: '添加一个银行账户以报销费用、发行Expensify卡、收取发票付款并从一个地方支付账单。',
         plaidBodyCopy: '为您的员工提供一种更简单的方式来支付公司费用并获得报销。',
         checkHelpLine: '您的银行路由号码和账户号码可以在该账户的支票上找到。',
-        hasPhoneLoginError: {
-            phrase1: '要连接银行账户，请',
-            link: '添加一个电子邮件作为您的主要登录方式',
-            phrase2: '并重试。您可以添加电话号码作为辅助登录。',
-        },
+        hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
+            `要连接银行账户，请 <a href="${contactMethodRoute}">添加一个电子邮件作为您的主要登录方式</a> 并重试。您可以添加电话号码作为辅助登录。`,
         hasBeenThrottledError: '添加您的银行账户时发生错误。请稍等几分钟后重试。',
         hasCurrencyError: {
             phrase1: '哎呀！您的工作区货币似乎设置为不同于 USD 的货币。要继续，请前往',
@@ -2673,14 +2685,40 @@ const translations = {
         whatsTheBusinessAddress: '公司的地址是什么？',
         whatsTheBusinessContactInformation: '商业联系信息是什么？',
         whatsTheBusinessRegistrationNumber: '营业登记号码是多少？',
-        whatsTheBusinessTaxIDEIN: '营业税号/EIN/VAT/GST注册号是多少？',
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return '什么是雇主识别号（EIN）？';
+                case CONST.COUNTRY.CA:
+                    return '什么是商业号码（BN）？';
+                case CONST.COUNTRY.GB:
+                    return '什么是增值税注册号（VRN）？';
+                case CONST.COUNTRY.AU:
+                    return '什么是澳大利亚商业号码（ABN）？';
+                default:
+                    return '什么是欧盟增值税号？';
+            }
+        },
         whatsThisNumber: '这个号码是什么？',
         whereWasTheBusinessIncorporated: '公司在哪里注册成立的？',
         whatTypeOfBusinessIsIt: '这是什么类型的业务？',
         whatsTheBusinessAnnualPayment: '企业的年度支付总额是多少？',
         whatsYourExpectedAverageReimbursements: '您的预期平均报销金额是多少？',
         registrationNumber: '注册号码',
-        taxIDEIN: '税号/EIN号码',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return '欧盟VAT';
+            }
+        },
         businessAddress: '公司地址',
         businessType: '业务类型',
         incorporation: '公司注册',
@@ -2704,6 +2742,20 @@ const translations = {
         findAverageReimbursement: '查找平均报销金额',
         error: {
             registrationNumber: '请提供有效的注册号码',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return '请输入有效的雇主识别号（EIN）';
+                    case CONST.COUNTRY.CA:
+                        return '请输入有效的商业号码（BN）';
+                    case CONST.COUNTRY.GB:
+                        return '请输入有效的增值税注册号（VRN）';
+                    case CONST.COUNTRY.AU:
+                        return '请输入有效的澳大利亚商业号码（ABN）';
+                    default:
+                        return '请输入有效的欧盟增值税号';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
@@ -3101,7 +3153,6 @@ const translations = {
             unavailable: '工作区不可用',
             memberNotFound: '未找到成员。要邀请新成员加入工作区，请使用上面的邀请按钮。',
             notAuthorized: `您无权访问此页面。如果您正在尝试加入此工作区，请请求工作区所有者将您添加为成员。还有其他问题？请联系${CONST.EMAIL.CONCIERGE}。`,
-            goToRoom: ({roomName}: GoToRoomParams) => `前往 ${roomName} 房间`,
             goToWorkspace: '前往工作区',
             goToWorkspaces: '前往工作区',
             clearFilter: '清除筛选器',
@@ -5527,7 +5578,14 @@ const translations = {
                 title: '没有费用可导出',
                 subtitle: '是时候放松一下了，干得好。',
             },
+            emptyUnapprovedResults: {
+                title: '没有费用需要批准',
+                subtitle: '零报销。最大限度地放松。干得好！',
+            },
         },
+        unapproved: '未经批准',
+        unapprovedCash: '未经批准的现金',
+        unapprovedCompanyCards: '未经批准的公司卡',
         saveSearch: '保存搜索',
         deleteSavedSearch: '删除已保存的搜索',
         deleteSavedSearchConfirm: '您确定要删除此搜索吗？',
@@ -5548,6 +5606,10 @@ const translations = {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Before ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `After ${date ?? ''}`,
                 on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
+                presets: {
+                    [CONST.SEARCH.DATE_PRESETS.NEVER]: '从未',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '上个月',
+                },
             },
             status: '状态',
             keyword: '关键词',
@@ -5580,7 +5642,12 @@ const translations = {
             posted: '发布日期',
             billable: '可计费的',
             reimbursable: '可报销的',
+            groupBy: {
+                reports: '报告',
+                members: '成员',
+            },
         },
+        groupBy: '组别',
         moneyRequestReport: {
             emptyStateTitle: '此报告没有费用。',
             emptyStateSubtitle: '您可以使用上面的按钮将费用添加到此报告中。',
@@ -5913,7 +5980,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: '报告实体卡丢失/损坏',
         screenTitle: '成绩单丢失或损坏',
         nextButtonLabel: '下一个',
         reasonTitle: '你为什么需要一张新卡？',
@@ -5927,6 +5993,8 @@ const translations = {
         shipNewCardButton: '寄送新卡片',
         addressError: '地址是必需的',
         reasonError: '原因是必需的',
+        successTitle: '您的卡片正在路上！',
+        successDescription: '几天后到达时，您需要激活它。在此期间，您的虚拟卡已准备好使用。',
     },
     eReceipt: {
         guaranteed: '保证电子收据',
@@ -6373,11 +6441,7 @@ const translations = {
                     part2: '.',
                 },
             },
-            acknowledgement: {
-                part1: '通过请求提前取消，我承认并同意Expensify在Expensify条款下没有义务批准此类请求。',
-                link: '服务条款',
-                part2: '或我与Expensify之间的其他适用服务协议，并且Expensify保留对授予任何此类请求的唯一酌情权。',
-            },
+            acknowledgement: `通过请求提前取消，我承认并同意Expensify在Expensify条款下没有义务批准此类请求。<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>服务条款</a>或我与Expensify之间的其他适用服务协议，并且Expensify保留对授予任何此类请求的唯一酌情权。`,
         },
     },
     feedbackSurvey: {
