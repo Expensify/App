@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {Keyboard, PixelRatio, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -216,7 +216,7 @@ function AttachmentCarouselView({
                     scrollTo(scrollRef, newIndex * cellWidth, 0, true);
                 })
                 // eslint-disable-next-line react-compiler/react-compiler
-                .withRef(pagerRef as MutableRefObject<GestureType | undefined>),
+                .withRef(pagerRef as RefObject<GestureType | undefined>),
         [attachments.length, canUseTouchScreen, cellWidth, page, isScrollEnabled, scrollRef, isPagerScrolling],
     );
 
