@@ -44,6 +44,7 @@ function TransactionPreviewContent({
     report,
     transaction,
     violations,
+    transactionRawAmount,
     offlineWithFeedbackOnClose,
     containerStyles,
     transactionPreviewWidth,
@@ -148,16 +149,14 @@ function TransactionPreviewContent({
             };
         }
 
-        // For IOU, we want the unprocessed amount because it is important whether the amount was positive or negative
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const transactionRawAmount = (transaction?.modifiedAmount || transaction?.amount) ?? 0;
+        // For IOU or Split, we want the unprocessed amount because it is important whether the amount was positive or negative
         const payerAndReceiver = getIOUPayerAndReceiver(managerID, ownerAccountID, personalDetails, transactionRawAmount);
 
         return {
             from: payerAndReceiver.from,
             to: payerAndReceiver.to,
         };
-    }, [managerID, ownerAccountID, personalDetails, shouldShowPayerAndReceiver, transaction?.amount, transaction?.modifiedAmount]);
+    }, [managerID, ownerAccountID, personalDetails, shouldShowPayerAndReceiver, transactionRawAmount]);
 
     const shouldShowIOUHeader = !!from && !!to;
 

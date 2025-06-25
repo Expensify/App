@@ -86,6 +86,10 @@ function TransactionPreview(props: TransactionPreviewProps) {
         transactionPreview = originalTransaction;
     }
 
+    // See description of `transactionRawAmount` prop for more context
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const transactionRawAmount = (transaction?.modifiedAmount || transaction?.amount) ?? 0;
+
     const iouAction = isBillSplit && originalTransaction ? (getIOUActionForReportID(chatReportID, originalTransaction.transactionID) ?? action) : action;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
@@ -112,6 +116,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     chatReport={chatReport}
                     personalDetails={personalDetails}
                     transaction={transactionPreview}
+                    transactionRawAmount={transactionRawAmount}
                     report={report}
                     violations={violations}
                     offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
@@ -135,6 +140,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             chatReport={chatReport}
             personalDetails={personalDetails}
             transaction={originalTransaction}
+            transactionRawAmount={transactionRawAmount}
             report={report}
             violations={violations}
             offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
