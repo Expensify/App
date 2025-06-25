@@ -11,6 +11,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isRequiredFulfilled} from '@libs/ValidationUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -53,7 +54,11 @@ const INPUT_KEYS = {
     AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT,
 };
 
-function Confirmation({onNext}: SubStepProps) {
+type ConfirmationProps = SubStepProps & {
+    policyCurrency: string | undefined;
+};
+
+function Confirmation({onNext, policyCurrency}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -95,7 +100,7 @@ function Confirmation({onNext}: SubStepProps) {
             style={[styles.mh5, styles.flexGrow1]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('agreementsStep.pleaseConfirm')}</Text>
-            <Text style={[styles.pv3, styles.textSupporting]}>{translate('agreementsStep.regulationRequiresUs')}</Text>
+            {policyCurrency !== CONST.CURRENCY.CAD && <Text style={[styles.pv3, styles.textSupporting]}>{translate('agreementsStep.regulationRequiresUs')}</Text>}
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
                 accessibilityLabel={translate('agreementsStep.iAmAuthorized')}

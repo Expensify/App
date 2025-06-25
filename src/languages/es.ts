@@ -2959,6 +2959,14 @@ const translations = {
             consent: 'Por favor, acepte el aviso de privacidad',
         },
     },
+    docusignStep: {
+        subheader: 'Subencabezado de Docusign',
+        pleaseComplete:
+            'Por favor, complete el formulario de autorización ACH con el enlace de Docusign a continuación y luego cargue una copia firmada aquí para que podamos retirar fondos directamente de su cuenta bancaria.',
+        takeMeTo: 'Llévame a Docusign',
+        uploadAdditional: 'Subir documentación adicional',
+        pleaseUpload: 'Por favor, cargue el formulario DEFT y la página de firma de Docusign',
+    },
     finishStep: {
         connect: 'Conectar cuenta bancaria',
         letsFinish: '¡Terminemos en el chat!',

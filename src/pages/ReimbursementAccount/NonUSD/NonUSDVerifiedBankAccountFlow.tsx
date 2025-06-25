@@ -28,7 +28,7 @@ function NonUSDVerifiedBankAccountFlow({
     shouldShowContinueSetupButtonValue,
     policyCurrency,
 }: NonUSDVerifiedBankAccountFlowProps) {
-    const stepNames = policyCurrency === CONST.CURRENCY.CAD ? CONST.NON_USD_BANK_ACCOUNT.CA_STEP_NAMES : CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES;
+    const stepNames = policyCurrency === CONST.CURRENCY.CAD || policyCurrency === CONST.CURRENCY.USD ? CONST.NON_USD_BANK_ACCOUNT.CA_STEP_NAMES : CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES;
 
     const handleNextNonUSDBankAccountStep = () => {
         switch (nonUSDBankAccountStep) {
@@ -48,7 +48,9 @@ function NonUSDVerifiedBankAccountFlow({
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
                 break;
             case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
-                setNonUSDBankAccountStep(policyCurrency === CONST.CURRENCY.CAD ? CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN : CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
+                setNonUSDBankAccountStep(
+                    policyCurrency === CONST.CURRENCY.CAD || policyCurrency === CONST.CURRENCY.USD ? CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN : CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH,
+                );
                 break;
             case CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN:
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
@@ -141,6 +143,7 @@ function NonUSDVerifiedBankAccountFlow({
                     onBackButtonPress={nonUSDBankAccountsGoBack}
                     onSubmit={handleNextNonUSDBankAccountStep}
                     stepNames={stepNames}
+                    policyCurrency={policyCurrency}
                 />
             );
         case CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN:

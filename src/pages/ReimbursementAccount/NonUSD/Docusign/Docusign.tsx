@@ -58,7 +58,7 @@ function Docusign({onBackButtonPress, onSubmit, policyID, stepNames}: DocusignPr
                 consentToPrivacyNotice: finalStepValues.consentToPrivacyNotice,
                 authorizedToBindClientToAgreement: finalStepValues.authorizedToBindClientToAgreement,
             }),
-            achAuthorizationForm: finalStepValues.achAuthorizationForm,
+            achAuthorizationForm: finalStepValues.achAuthorizationForm.at(0),
             bankAccountID,
         });
     };

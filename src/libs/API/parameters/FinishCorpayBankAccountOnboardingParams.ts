@@ -2,7 +2,7 @@ import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 
 type FinishCorpayBankAccountOnboardingParams = {
     inputs: string;
-    achAuthorizationForm: FileObject[];
+    achAuthorizationForm?: FileObject;
     bankAccountID: number;
 };
 
