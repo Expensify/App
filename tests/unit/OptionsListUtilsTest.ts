@@ -23,7 +23,7 @@ import {
 import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
@@ -45,7 +45,8 @@ type PersonalDetailsList = Record<string, PersonalDetails & OptionData>;
 
 describe('OptionsListUtils', () => {
     beforeAll(() => {
-        TranslationStore.load(CONST.LOCALES.EN);
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
     });
     const policyID = 'ABC123';
 

@@ -535,6 +535,8 @@ function IOURequestStepConfirmation({
                         waypoints: Object.keys(item.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
                         customUnitRateID,
                         isTestDrive: item.receipt?.isTestDriveReceipt,
+                        originalTransactionID: item.comment?.originalTransactionID,
+                        source: item.comment?.source,
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
                     backToReport,
@@ -1142,7 +1144,7 @@ function IOURequestStepConfirmation({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
-                        iouAmount={transaction?.amount ?? 0}
+                        iouAmount={Math.abs(transaction?.amount ?? 0)}
                         iouAttendees={transaction?.comment?.attendees ?? []}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
