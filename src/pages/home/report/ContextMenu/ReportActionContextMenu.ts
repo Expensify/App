@@ -58,7 +58,7 @@ type ReportActionContextMenu = {
     instanceIDRef: RefObject<string>;
     runAndResetOnPopoverHide: () => void;
     clearActiveReportAction: () => void;
-    contentRef: RefObject<View>;
+    contentRef: RefObject<View | null>;
     isContextMenuOpening: boolean;
 };
 

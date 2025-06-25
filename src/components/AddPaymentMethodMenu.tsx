@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {completePaymentOnboarding} from '@libs/actions/IOU';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
-import {isExpenseReport, isIOUReport as isIOUReportUtils} from '@libs/ReportUtils';
+import {isExpenseReport, isIOUReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
@@ -37,7 +37,7 @@ type AddPaymentMethodMenuProps = {
     anchorAlignment?: AnchorAlignment;
 
     /** Popover anchor ref */
-    anchorRef: RefObject<View | HTMLDivElement>;
+    anchorRef: RefObject<View | HTMLDivElement | null>;
 
     /** Whether the personal bank account option should be shown */
     shouldShowPersonalBankAccountOption?: boolean;
@@ -62,11 +62,10 @@ function AddPaymentMethodMenu({
 
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
     // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
-    const isIOUReport = isIOUReportUtils(iouReport);
-    const canUseBusinessBankAccount =
-        isExpenseReport(iouReport) || (isIOUReport && !hasRequestFromCurrentAccount(iouReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), session?.accountID ?? CONST.DEFAULT_NUMBER_ID));
+    const isIOU = isIOUReport(iouReport);
+    const canUseBusinessBankAccount = isExpenseReport(iouReport) || (isIOU && !hasRequestFromCurrentAccount(iouReport?.reportID, session?.accountID ?? CONST.DEFAULT_NUMBER_ID));
 
-    const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport;
+    const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOU;
 
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
 
