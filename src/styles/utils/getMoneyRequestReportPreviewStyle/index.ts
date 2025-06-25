@@ -28,7 +28,6 @@ const mobileStyle = (currentWidth: number, transactionsCount: number) => {
         transactionPreviewStandaloneStyle: {...sizing.w100, ...sizing.mw100},
         componentStyle: [sizing.mw100, sizing.w100],
         expenseCountVisible: false,
-        transactionWidth: transactionPreviewWidth,
     };
 };
 
@@ -42,7 +41,6 @@ const desktopStyle = (currentWrapperWidth: number, transactionsCount: number) =>
         transactionPreviewStandaloneStyle: {width: `min(100%, ${TRANSACTION_WIDTH_WIDE}px)`, maxWidth: `min(100%, ${TRANSACTION_WIDTH_WIDE}px)`},
         componentStyle: [{maxWidth: `min(${carouselExactMaxWidth}px, 100%)`}, {width: currentWrapperWidth > minimalWrapperWidth ? 'min-content' : '100%'}],
         expenseCountVisible: transactionPreviewWidth >= TRANSACTION_WIDTH_WIDE,
-        transactionWidth: currentWrapperWidth > minimalWrapperWidth ? TRANSACTION_WIDTH_WIDE : transactionPreviewWidth,
     };
 };
 
