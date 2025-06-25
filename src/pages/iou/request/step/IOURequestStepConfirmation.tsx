@@ -1142,7 +1142,7 @@ function IOURequestStepConfirmation({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
-                        iouAmount={transaction?.amount ?? 0}
+                        iouAmount={Math.abs(transaction?.amount ?? 0)}
                         iouAttendees={transaction?.comment?.attendees ?? []}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
