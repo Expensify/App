@@ -395,7 +395,9 @@ function MagicCodeInput(
                             onLayout={(e) => {
                                 inputWidth.current = e.nativeEvent.layout.width;
                             }}
-                            ref={(newRef) => (inputRef.current = newRef)}
+                            ref={(newRef) => {
+                                inputRef.current = newRef;
+                            }}
                             autoFocus={autoFocus}
                             inputMode="numeric"
                             textContentType="oneTimeCode"
@@ -433,6 +435,7 @@ function MagicCodeInput(
                                 StyleUtils.getHeightOfMagicCodeInput(),
                                 hasError || errorText ? styles.borderColorDanger : {},
                                 focusedIndex === index ? styles.borderColorFocus : {},
+                                styles.pt0,
                             ]}
                         >
                             <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(value, maxLength).at(index) ?? ''}</Text>
