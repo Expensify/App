@@ -13,6 +13,7 @@ import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getPersonalPolicy, getSubmitToAccountID} from '@libs/PolicyUtils';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {hasHeldExpenses} from '@libs/ReportUtils';
 import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -39,31 +40,6 @@ Onyx.connect({
         allSnapshots = val;
     },
     waitForCollectionCallback: true,
-});
-
-let allReportActions: OnyxCollection<ReportActions>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
-    callback: (actions) => {
-        if (!actions) {
-            return;
-        }
-        allReportActions = actions;
-    },
-});
-
-let allTransactions: OnyxCollection<Transaction> = {};
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => !!transaction));
-    },
 });
 
 function handleActionButtonPress(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void, isInMobileSelectionMode: boolean) {
@@ -316,7 +292,7 @@ function updateSearchResultsWithTransactionThreadReportID(hash: number, transact
     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, onyxUpdate);
 }
 
-function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string) {
+function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string, allTransactions: OnyxCollection<Transaction>, allReportActions: OnyxCollection<ReportActions>) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
     transactionIDList.forEach((transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
