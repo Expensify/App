@@ -339,7 +339,7 @@ describe('getIcons', () => {
     it('should return all participant icons as a fallback', () => {
         const report: Report = {
             ...LHNTestUtils.getFakeReport([1, 2, 3, 4], 0, true),
-            type: 'some_random_type',
+            type: undefined,
         };
         const icons = getIcons(report, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(4);
