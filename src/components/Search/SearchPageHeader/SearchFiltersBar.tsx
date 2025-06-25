@@ -58,72 +58,78 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption, shouldShowFiltersBarLoading} = useSearchContext();
 
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (data) => ({email: data?.email})});
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    // State to control when to load filter data
+    const [shouldLoadFilterData, setShouldLoadFilterData] = useState(false);
     const [isFilterDataLoaded, setIsFilterDataLoaded] = useState(false);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        canBeMissing: true,
-        selector: (data) => {
-            if (!isFilterDataLoaded) {return {};}
-            return data ?? {};
-        },
-    });
+
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (data) => ({email: data?.email})});
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: (data) => ({errors: data?.errors})});
+
+    // Always load policies for type options
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
         selector: (data) => data ?? {},
     });
+
+    // Conditionally load heavy data collections only when needed
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {
+        canBeMissing: true,
+        selector: shouldLoadFilterData ? (data) => data : () => ({}),
+    });
+
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        canBeMissing: true,
+        selector: shouldLoadFilterData ? (data) => data ?? {} : () => ({}),
+    });
+
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {
         canBeMissing: true,
-        selector: (data) => {
-            if (!isFilterDataLoaded) {return {};}
-            return data ?? {};
-        },
+        selector: shouldLoadFilterData ? (data) => data ?? {} : () => ({}),
     });
+
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {
         canBeMissing: true,
-        selector: (data) => {
-            if (!isFilterDataLoaded) {return {};}
-            return data ?? {};
-        },
+        selector: shouldLoadFilterData ? (data) => data ?? {} : () => ({}),
     });
+
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         canBeMissing: true,
-        selector: (data) => {
-            if (!isFilterDataLoaded) {return {};}
-            return data ?? {};
-        },
+        selector: shouldLoadFilterData ? (data) => data ?? {} : () => ({}),
     });
+
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {
         canBeMissing: true,
-        selector: (data) => {
-            if (!isFilterDataLoaded) {return {};}
-            return data ?? {};
-        },
+        selector: shouldLoadFilterData ? (data) => data ?? {} : () => ({}),
     });
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: (data) => ({errors: data?.errors})});
 
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || (!!selectionMode && selectionMode.isEnabled));
 
-    const taxRates = useMemo(() => getAllTaxRates(), []);
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
-
     const typeOptions = useMemo(() => getTypeOptions(allPolicies, session?.email), [allPolicies, session?.email]);
     const statusOptions = useMemo(() => getStatusOptions(type, groupBy), [type, groupBy]);
+
+    // Memoized heavy computations - only run when data is loaded
+    const taxRates = useMemo(() => (shouldLoadFilterData ? getAllTaxRates() : {}), [shouldLoadFilterData]);
+    const allCards = useMemo(() => (shouldLoadFilterData ? mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList) : {}), [shouldLoadFilterData, userCardList, workspaceCardFeeds]);
 
     const [filterFormValues, setFilterFormValues] = useState<Partial<SearchAdvancedFiltersForm> | null>(null);
 
     const loadFilterFormValues = useCallback(() => {
-        if (!isFilterDataLoaded) {
+        if (!shouldLoadFilterData) {
+            setShouldLoadFilterData(true);
+            return;
+        }
+
+        if (!isFilterDataLoaded && shouldLoadFilterData) {
             const values = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
             setFilterFormValues(values);
             setIsFilterDataLoaded(true);
             return values;
         }
         return filterFormValues;
-    }, [queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates, isFilterDataLoaded, filterFormValues]);
+    }, [queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates, isFilterDataLoaded, shouldLoadFilterData, filterFormValues]);
 
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
@@ -152,11 +158,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     );
 
     const openAdvancedFilters = useCallback(() => {
-        if (!filterFormValues) {
-            loadFilterFormValues();
+        const currentFilterFormValues = filterFormValues ?? loadFilterFormValues();
+        if (!currentFilterFormValues) {
             return;
         }
-        updateAdvancedFilters(filterFormValues);
+        updateAdvancedFilters(currentFilterFormValues);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
     }, [filterFormValues, loadFilterFormValues]);
 
@@ -177,7 +183,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [translate, type, typeOptions, updateFilterForm, filterFormValues, loadFilterFormValues],
+        [filterFormValues, translate, type, typeOptions, updateFilterForm, loadFilterFormValues],
     );
 
     const groupByComponent = useCallback(
@@ -199,7 +205,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [translate, groupBy, updateFilterForm, filterFormValues, loadFilterFormValues],
+        [filterFormValues, translate, groupBy, updateFilterForm, loadFilterFormValues],
     );
 
     const statusComponent = useCallback(
@@ -226,7 +232,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [status, statusOptions, translate, updateFilterForm, filterFormValues, loadFilterFormValues],
+        [filterFormValues, status, statusOptions, translate, updateFilterForm, loadFilterFormValues],
     );
 
     const datePickerComponent = useCallback(
@@ -288,6 +294,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 PopoverComponent: typeComponent,
                 value: translate(`common.${type}`),
                 keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                key: 'type',
             },
             // s77rt remove DEV lock
             ...(isDevelopment
@@ -306,6 +313,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 PopoverComponent: statusComponent,
                 value: statusOptions.filter((option) => status.includes(option.value)).map((option) => translate(option.translation)),
                 keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                key: 'status',
             },
             {
                 label: translate('common.date'),
