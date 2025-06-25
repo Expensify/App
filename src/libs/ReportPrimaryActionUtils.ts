@@ -191,7 +191,9 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
     }
 
     const connectedIntegration = getValidConnectedIntegration(policy);
-    if (!connectedIntegration) {
+    const isInvoiceReport = isInvoiceReportUtils(report);
+
+    if (!connectedIntegration || isInvoiceReport) {
         return false;
     }
 
