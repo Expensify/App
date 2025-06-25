@@ -1166,7 +1166,7 @@ function getSortedReportData(data: TransactionReportGroupListItemType[]) {
  * Sorts report sections based on a specified column and sort order.
  */
 function getSortedMemberData(data: TransactionMemberGroupListItemType[]) {
-    return data; // s77rt TODO
+    return data ? [] : []; // s77rt TODO
 }
 
 /**
@@ -1174,7 +1174,7 @@ function getSortedMemberData(data: TransactionMemberGroupListItemType[]) {
  * Sorts report sections based on a specified column and sort order.
  */
 function getSortedCardData(data: TransactionCardGroupListItemType[]) {
-    return data; // s77rt TODO
+    return data ? [] : []; // s77rt TODO
 }
 
 /**
