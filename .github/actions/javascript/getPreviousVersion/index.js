@@ -11844,7 +11844,7 @@ async function getPullRequestsDeployedBetween(fromTag, toTag) {
     core.startGroup('[api] Parsed PRs:');
     core.info(JSON.stringify(apiPullRequestNumbers));
     core.endGroup();
-    return apiPullRequestNumbers;
+    return gitLogPullRequestNumbers;
 }
 exports["default"] = {
     getPreviousExistingTag,
