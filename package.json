@@ -25,7 +25,7 @@
     "ipad-standalone": "concurrently \"STANDALONE_NEW_DOT=true ./scripts/run-build.sh --ipad\"",
     "ipad-sm": "concurrently \"./scripts/run-build.sh --ipad-sm\"",
     "ipad-sm-standalone": "concurrently \"STANDALONE_NEW_DOT=true ./scripts/run-build.sh --ipad-sm\"",
-    "start": "npx rnef start --client-logs",
+    "start": "npx rnef start",
     "web": "./scripts/set-pusher-suffix.sh && concurrently npm:web-proxy npm:web-server",
     "web-proxy": "ts-node web/proxy.ts",
     "web-server": "webpack-dev-server --open --config config/webpack/webpack.dev.ts",
