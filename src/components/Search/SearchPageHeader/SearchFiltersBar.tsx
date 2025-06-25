@@ -282,7 +282,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             {
                 label: translate('common.type'),
                 PopoverComponent: typeComponent,
-                key: 'type',
                 value: translate(`common.${type}`),
                 keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
             },
@@ -300,7 +299,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             {
                 label: translate('common.status'),
                 PopoverComponent: statusComponent,
-                key: 'status',
+                value: statusOptions.filter((option) => status.includes(option.value)).map((option) => translate(option.translation)),
                 keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             },
             {
@@ -316,7 +315,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             },
         ].filter((filterItem) => isFilterSupported(filterItem.keyForList, type)),
-        [translate, typeComponent, type, isDevelopment, groupByComponent, groupBy, statusComponent, datePickerComponent, userPickerComponent],
+        [translate, typeComponent, type, isDevelopment, groupByComponent, groupBy, statusComponent, statusOptions, datePickerComponent, userPickerComponent, status],
     );
 
     const filterValues = useMemo(() => {
