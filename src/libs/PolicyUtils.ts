@@ -287,12 +287,8 @@ const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: strin
 const isPolicyAuditor = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
     (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.AUDITOR;
 
-const isPolicyEmployee = (policyID: string | undefined, policies: OnyxCollection<Policy>): boolean => {
-    if (!policyID) {
-        return false;
-    }
-
-    return Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
+const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy>): boolean => {
+    return !!policyID && policyID === policy?.id;
 };
 
 /**
