@@ -23,6 +23,7 @@ import {
 import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
@@ -43,6 +44,10 @@ jest.mock('@react-native-community/geolocation', () => ({
 type PersonalDetailsList = Record<string, PersonalDetails & OptionData>;
 
 describe('OptionsListUtils', () => {
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
+    });
     const policyID = 'ABC123';
 
     const POLICY: Policy = {

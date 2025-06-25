@@ -13,7 +13,7 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
-import {LANGUAGES, LOCALES} from './LOCALES';
+import {LOCALES} from './LOCALES';
 
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
@@ -527,7 +527,7 @@ const CONST = {
     // Prevents consecutive special characters or spaces like '--', '..', '((', '))', or '  '.
     REPEATED_SPECIAL_CHAR_PATTERN: /([-\s().])\1+/,
 
-    MERCHANT_NAME_MAX_LENGTH: 255,
+    MERCHANT_NAME_MAX_BYTES: 255,
 
     MASKED_PAN_PREFIX: 'XXXXXXXXXXXX',
 
@@ -824,14 +824,15 @@ const CONST = {
         CUSTOM_RULES: 'customRules',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
-        RETRACT_NEWDOT: 'retractNewDot',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         MULTI_LEVEL_TAGS: 'multiLevelTags',
         NEWDOT_MULTI_FILES_DRAG_AND_DROP: 'newDotMultiFilesDragAndDrop',
         NEWDOT_MULTI_SCAN: 'newDotMultiScan',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
-        NATIVE_CONTACT_IMPORT: 'nativeContactImport',
         TRACK_FLOWS: 'trackFlows',
+        STATIC_AI_TRANSLATIONS: 'staticAITranslations',
+        EUR_BILLING: 'eurBilling',
+        MANUAL_DISTANCE: 'manualDistance',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1053,6 +1054,7 @@ const CONST = {
         NZD: 'NZD',
         EUR: 'EUR',
     },
+    SCA_CURRENCIES: new Set(['GBP', 'EUR']),
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
         return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
     },
@@ -1147,7 +1149,7 @@ const CONST = {
         COMPLETED: 'completed',
     },
     STORYLANE: {
-        ADMIN_TOUR: 'https://app.storylane.io/demo/0bhwdna0isb3?embed=inline',
+        ADMIN_TOUR: 'https://app.storylane.io/demo/bbcreg8vccag?embed=inline',
         ADMIN_TOUR_MOBILE: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
         TRACK_WORKSPACE_TOUR: 'https://app.storylane.io/share/agmsfwgasaed?embed=inline',
         TRACK_WORKSPACE_TOUR_MOBILE: 'https://app.storylane.io/share/wq4hiwsqvoho?embed=inline',
@@ -1427,6 +1429,7 @@ const CONST = {
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
                 },
+                RECEIPT_SCAN_FAILED: 'RECEIPTSCANFAILED',
                 RESOLVED_DUPLICATES: 'RESOLVEDDUPLICATES',
                 ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
@@ -1758,6 +1761,7 @@ const CONST = {
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
         INCORRECT_MAGIC_CODE: 451,
+        POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles
@@ -2883,7 +2887,6 @@ const CONST = {
     },
 
     LOCALES,
-    LANGUAGES,
 
     PRONOUNS_LIST: [
         'coCos',
@@ -3063,6 +3066,13 @@ const CONST = {
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
             MAX_EXPENSE_AGE: 'maxExpenseAge',
+        },
+        PROHIBITED_EXPENSES: {
+            ALCOHOL: 'alcohol',
+            HOTEL_INCIDENTALS: 'hotelIncidentals',
+            GAMBLING: 'gambling',
+            TOBACCO: 'tobacco',
+            ADULT_ENTERTAINMENT: 'adultEntertainment',
         },
         CONNECTIONS: {
             NAME: {
@@ -3537,6 +3547,17 @@ const CONST = {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
                     [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1600,
                     [this.SUBSCRIPTION.PRICING_TYPE_2025]: 900,
+                },
+            },
+            [this.PAYMENT_CARD_CURRENCY.EUR]: {
+                [this.POLICY.TYPE.CORPORATE]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
+                    [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1600,
+                },
+                [this.POLICY.TYPE.TEAM]: {
+                    [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
+                    [this.SUBSCRIPTION.TYPE.PAY_PER_USE]: 1000,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
                 },
             },
         };
@@ -5176,7 +5197,7 @@ const CONST = {
         },
     },
     DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK: 'https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/',
-    STRIPE_GBP_AUTH_STATUSES: {
+    STRIPE_SCA_AUTH_STATUSES: {
         SUCCEEDED: 'succeeded',
         CARD_AUTHENTICATION_REQUIRED: 'authentication_required',
     },
@@ -5508,7 +5529,7 @@ const CONST = {
         [onboardingChoices.EMPLOYER]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.SUBMIT]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.MANAGE_TEAM]: {
-            message: ({onboardingCompanySize: companySize}) => `Here is a task list I’d recommend for a company of your size with ${companySize} submitters:`,
+            message: ({onboardingCompanySize: companySize}) => `Here is a task list I’d recommend for a company of your size${companySize ? ` with ${companySize} submitters` : ':'}`,
             tasks: [
                 createWorkspaceTask,
                 testDriveAdminTask,
@@ -6526,7 +6547,6 @@ const CONST = {
     },
 
     SEARCH: {
-        NEVER: 'never',
         RESULTS_PAGE_SIZE: 50,
         DATA_TYPES: {
             EXPENSE: 'expense',
@@ -6565,6 +6585,7 @@ const CONST = {
         },
         GROUP_BY: {
             REPORTS: 'reports',
+            MEMBERS: 'members',
         },
         BOOLEAN: {
             YES: 'yes',
@@ -6643,6 +6664,8 @@ const CONST = {
             GROUP_BY: 'groupBy',
         },
         SYNTAX_FILTER_KEYS: {
+            TYPE: 'type',
+            STATUS: 'status',
             DATE: 'date',
             AMOUNT: 'amount',
             EXPENSE_TYPE: 'expenseType',
@@ -6719,6 +6742,10 @@ const CONST = {
             AFTER: 'After',
             ON: 'On',
         },
+        DATE_PRESETS: {
+            NEVER: 'never',
+            LAST_MONTH: 'last-month',
+        },
         SNAPSHOT_ONYX_KEYS: [
             ONYXKEYS.COLLECTION.REPORT,
             ONYXKEYS.COLLECTION.POLICY,
@@ -6728,6 +6755,131 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
+    },
+
+    /**
+     * SEARCH_TYPE_FILTERS_KEYS is an object keyed by the different search types.
+     * Each value is then an array of arrays where each inner array is a separate section in the UI.
+     */
+    get SEARCH_TYPE_FILTERS_KEYS() {
+        return {
+            [this.SEARCH.DATA_TYPES.EXPENSE]: [
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                    this.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+                ],
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
+                ],
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.PAID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
+                ],
+            ],
+            [this.SEARCH.DATA_TYPES.INVOICE]: [
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                ],
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+                ],
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.PAID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
+                ],
+            ],
+            [this.SEARCH.DATA_TYPES.TRIP]: [
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                    this.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+                ],
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+                ],
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.PAID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
+                ],
+            ],
+            [this.SEARCH.DATA_TYPES.CHAT]: [
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.IN,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                ],
+            ],
+            [this.SEARCH.DATA_TYPES.TASK]: [
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.IN,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                ],
+            ],
+        } as const;
     },
 
     EXPENSE: {
@@ -6750,8 +6902,9 @@ const CONST = {
         AUD: 'AUD',
         GBP: 'GBP',
         NZD: 'NZD',
+        EUR: 'EUR',
     },
-    GBP_AUTHENTICATION_COMPLETE: '3DS-authentication-complete',
+    SCA_AUTHENTICATION_COMPLETE: '3DS-authentication-complete',
 
     SUBSCRIPTION_PRICE_FACTOR: 2,
     FEEDBACK_SURVEY_OPTIONS: {
@@ -7167,9 +7320,9 @@ const CONST = {
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
-        IOU: 'Iou',
-        EXPENSE: 'Expense',
-        INVOICE: 'Invoice',
+        IOU: 'iou',
+        EXPENSE: 'expense',
+        INVOICE: 'invoice',
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',

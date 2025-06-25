@@ -185,6 +185,14 @@ function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRate
     return distanceUnit?.rates[customUnitRateID];
 }
 
+/**
+ * Retrieves custom unit rate object from the given customUnitRateID
+ */
+function getPerDiemRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
+    const perDiemUnit = getPerDiemCustomUnit(policy);
+    return perDiemUnit?.rates[customUnitRateID];
+}
+
 function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => string, withDecimals?: boolean): string {
     const numValue = getNumericValue(value, toLocaleDigit);
     if (Number.isNaN(numValue)) {
@@ -279,12 +287,8 @@ const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: strin
 const isPolicyAuditor = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
     (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.AUDITOR;
 
-const isPolicyEmployee = (policyID: string | undefined, policies: OnyxCollection<Policy>): boolean => {
-    if (!policyID) {
-        return false;
-    }
-
-    return Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
+const isPolicyEmployee = (policyID: string | undefined, policy: OnyxEntry<Policy>): boolean => {
+    return !!policyID && policyID === policy?.id;
 };
 
 /**
@@ -1513,6 +1517,7 @@ export {
     getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getDistanceRateCustomUnitRate,
+    getPerDiemRateCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
     goBackWhenEnableFeature,
