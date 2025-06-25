@@ -73,7 +73,6 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
-
     const topBarAnimatedStyle = useAnimatedStyle(() => ({
         top: topBarOffset.get(),
     }));

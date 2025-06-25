@@ -30,6 +30,9 @@ type DropdownButtonProps = {
 
     /** The component to render in the popover */
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
+
+    /** Optional callback when dropdown is pressed */
+    onPress?: () => void;
 };
 
 const PADDING_MODAL = 8;
@@ -39,7 +42,7 @@ const ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: DropdownButtonProps) {
+function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, onPress}: DropdownButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -70,6 +73,10 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
      * position of the trigger
      */
     const toggleOverlay = () => {
+        if (onPress && !isOverlayVisible) {
+            onPress();
+        }
+        
         setIsOverlayVisible((previousValue) => {
             if (!previousValue && willAlertModalBecomeVisible) {
                 return false;
@@ -140,7 +147,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
             >
-                {isOverlayVisible && PopoverComponent({closeOverlay: toggleOverlay})}
+                {isOverlayVisible && React.useMemo(() => PopoverComponent({closeOverlay: toggleOverlay}), [PopoverComponent, toggleOverlay])}
             </PopoverWithMeasuredContent>
         </>
     );

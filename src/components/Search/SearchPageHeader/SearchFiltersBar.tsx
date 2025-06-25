@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
@@ -58,31 +58,85 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (data) => ({email: data?.email})});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: true});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        canBeMissing: true,
+        selector: (data) => data ? Object.keys(data).reduce((acc, key) => {
+            const report = data[key];
+            if (report) {
+                acc[key] = {reportID: report.reportID, reportName: report.reportName};
+            }
+            return acc;
+        }, {} as Record<string, {reportID: string; reportName?: string}>) : {},
+    });
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+        selector: (data) => data ? Object.keys(data).reduce((acc, key) => {
+            const policy = data[key];
+            if (policy) {
+                acc[key] = {id: policy.id, name: policy.name, type: policy.type, role: policy.role};
+            }
+            return acc;
+        }, {} as Record<string, {id: string; name: string; type?: string; role?: string}>) : {},
+    });
+    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {
+        canBeMissing: true,
+        selector: (data) => {
+            if (!isFilterDataLoaded) return {};
+            return data || {};
+        },
+    });
+    const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {
+        canBeMissing: true,
+        selector: (data) => {
+            if (!isFilterDataLoaded) return {};
+            return data || {};
+        },
+    });
+    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
+        canBeMissing: true,
+        selector: (data) => {
+            if (!isFilterDataLoaded) return {};
+            return data || {};
+        },
+    });
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {
+        canBeMissing: true,
+        selector: (data) => {
+            if (!isFilterDataLoaded) return {};
+            return data || {};
+        },
+    });
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: (data) => ({errors: data?.errors})});
 
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || (!!selectionMode && selectionMode.isEnabled));
 
-    const taxRates = getAllTaxRates();
+    const taxRates = useMemo(() => getAllTaxRates(), [allPolicies]);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
 
     const typeOptions = useMemo(() => getTypeOptions(allPolicies, session?.email), [allPolicies, session?.email]);
     const statusOptions = useMemo(() => getStatusOptions(type, groupBy), [type, groupBy]);
 
-    const filterFormValues = useMemo(() => {
-        return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
-    }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
+    const [filterFormValues, setFilterFormValues] = useState<SearchAdvancedFiltersForm | null>(null);
+    const [isFilterDataLoaded, setIsFilterDataLoaded] = useState(false);
+
+    const loadFilterFormValues = useCallback(() => {
+        if (!isFilterDataLoaded) {
+            const values = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
+            setFilterFormValues(values);
+            setIsFilterDataLoaded(true);
+        }
+    }, [queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates, isFilterDataLoaded]);
 
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
+            if (!filterFormValues) {
+                loadFilterFormValues();
+                return;
+            }
+
             const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
                 ...filterFormValues,
                 ...values,
@@ -99,16 +153,24 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
             Navigation.setParams({q: queryString});
         },
-        [filterFormValues],
+        [filterFormValues, loadFilterFormValues],
     );
 
     const openAdvancedFilters = useCallback(() => {
+        if (!filterFormValues) {
+            loadFilterFormValues();
+            return;
+        }
         updateAdvancedFilters(filterFormValues);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
-    }, [filterFormValues]);
+    }, [filterFormValues, loadFilterFormValues]);
 
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
+            if (!filterFormValues) {
+                loadFilterFormValues();
+                return null;
+            }
             const value = typeOptions.find((option) => option.value === type) ?? null;
             return (
                 <SingleSelectPopup
@@ -120,11 +182,15 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [translate, type, typeOptions, updateFilterForm],
+        [translate, type, typeOptions, updateFilterForm, filterFormValues, loadFilterFormValues],
     );
 
     const statusComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
+            if (!filterFormValues) {
+                loadFilterFormValues();
+                return null;
+            }
             const selected = Array.isArray(status) ? statusOptions.filter((option) => status.includes(option.value)) : (statusOptions.find((option) => option.value === status) ?? []);
             const value = [selected].flat();
 
@@ -143,11 +209,15 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [status, statusOptions, translate, updateFilterForm],
+        [status, statusOptions, translate, updateFilterForm, filterFormValues, loadFilterFormValues],
     );
 
     const datePickerComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
+            if (!filterFormValues) {
+                loadFilterFormValues();
+                return null;
+            }
             const value: DateSelectPopupValue = {
                 [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterFormValues.dateAfter ?? null,
                 [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterFormValues.dateBefore ?? null,
@@ -172,11 +242,15 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [filterFormValues.dateAfter, filterFormValues.dateBefore, filterFormValues.dateOn, updateFilterForm],
+        [filterFormValues, updateFilterForm, loadFilterFormValues],
     );
 
     const userPickerComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
+            if (!filterFormValues) {
+                loadFilterFormValues();
+                return null;
+            }
             const value = filterFormValues.from ?? [];
 
             return (
@@ -187,7 +261,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [filterFormValues.from, updateFilterForm],
+        [filterFormValues, updateFilterForm, loadFilterFormValues],
     );
 
     const filterComponents = useMemo(
@@ -217,6 +291,15 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     );
 
     const filterValues = useMemo(() => {
+        if (!filterFormValues) {
+            return {
+                type: translate(`common.${type}`),
+                status: [],
+                date: [],
+                from: [],
+            };
+        }
+
         const statusValue = statusOptions.filter((option) => status.includes(option.value));
         const dateValue = [
             filterFormValues.dateAfter ? `${translate('common.after')} ${DateUtils.formatToReadableString(filterFormValues.dateAfter)}` : null,
@@ -231,7 +314,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             date: dateValue,
             from: fromValue,
         };
-    }, [statusOptions, status, filterFormValues.dateAfter, filterFormValues.dateBefore, filterFormValues.dateOn, filterFormValues.from, translate, type, personalDetails]);
+    }, [statusOptions, status, filterFormValues, translate, type, personalDetails]);
 
     if (hasErrors) {
         return null;
@@ -280,14 +363,23 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                     ref={scrollRef}
                     showsHorizontalScrollIndicator={false}
                 >
-                    {filterComponents.map((filter) => (
-                        <DropdownButton
-                            key={`${filter.key}-${type}`}
-                            label={filter.label}
-                            value={filterValues[filter.key as keyof typeof filterValues]}
-                            PopoverComponent={filter.PopoverComponent}
-                        />
-                    ))}
+                    {filterComponents.map((filter) => {
+                        const onDropdownPress = () => {
+                            if (!isFilterDataLoaded) {
+                                loadFilterFormValues();
+                            }
+                        };
+                        
+                        return (
+                            <DropdownButton
+                                key={`${filter.key}-${type}`}
+                                label={filter.label}
+                                value={filterValues[filter.key as keyof typeof filterValues]}
+                                PopoverComponent={filter.PopoverComponent}
+                                onPress={onDropdownPress}
+                            />
+                        );
+                    })}
 
                     <Button
                         link
