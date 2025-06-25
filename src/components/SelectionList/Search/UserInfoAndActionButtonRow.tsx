@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
@@ -14,7 +14,7 @@ function UserInfoAndActionButtonRow({
     handleActionButtonPress,
     shouldShowUserInfo,
 }: {
-    item: ReportListItemType | TransactionListItemType;
+    item: TransactionReportGroupListItemType | TransactionListItemType;
     handleActionButtonPress: () => void;
     shouldShowUserInfo: boolean;
 }) {
@@ -49,6 +49,8 @@ function UserInfoAndActionButtonRow({
                     goToItem={handleActionButtonPress}
                     isSelected={item.isSelected}
                     isLoading={item.isActionLoading}
+                    policyID={item.policyID}
+                    reportID={item.reportID}
                 />
             </View>
         </View>
