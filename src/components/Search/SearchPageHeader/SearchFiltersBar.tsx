@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
@@ -75,32 +75,32 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     // Conditionally load heavy data collections only when needed
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {
         canBeMissing: true,
-        selector: shouldLoadFilterData ? (data) => data : () => ({}),
+        selector: shouldLoadFilterData ? (data) => data : () => null,
     });
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         canBeMissing: true,
-        selector: shouldLoadFilterData ? (data) => data ?? {} : () => ({}),
+        selector: shouldLoadFilterData ? (data) => data ?? {} : () => null,
     });
 
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {
         canBeMissing: true,
-        selector: shouldLoadFilterData ? (data) => data ?? {} : () => ({}),
+        selector: shouldLoadFilterData ? (data) => data ?? {} : () => null,
     });
 
     const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {
         canBeMissing: true,
-        selector: shouldLoadFilterData ? (data) => data ?? {} : () => ({}),
+        selector: shouldLoadFilterData ? (data) => data ?? {} : () => null,
     });
 
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         canBeMissing: true,
-        selector: shouldLoadFilterData ? (data) => data ?? {} : () => ({}),
+        selector: shouldLoadFilterData ? (data) => data ?? {} : () => null,
     });
 
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {
         canBeMissing: true,
-        selector: shouldLoadFilterData ? (data) => data ?? {} : () => ({}),
+        selector: shouldLoadFilterData ? (data) => data ?? {} : () => null,
     });
 
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
@@ -112,9 +112,24 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
     // Memoized heavy computations - only run when data is loaded
     const taxRates = useMemo(() => (shouldLoadFilterData ? getAllTaxRates() : {}), [shouldLoadFilterData]);
-    const allCards = useMemo(() => (shouldLoadFilterData ? mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList) : {}), [shouldLoadFilterData, userCardList, workspaceCardFeeds]);
+    const allCards = useMemo(() => (
+        shouldLoadFilterData && userCardList && workspaceCardFeeds 
+            ? mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList) 
+            : {}
+    ), [shouldLoadFilterData, userCardList, workspaceCardFeeds]);
 
     const [filterFormValues, setFilterFormValues] = useState<Partial<SearchAdvancedFiltersForm> | null>(null);
+
+    // Background pre-loading: Start loading filter data after component mount
+    useEffect(() => {
+        const preloadTimer = setTimeout(() => {
+            if (!shouldLoadFilterData) {
+                setShouldLoadFilterData(true);
+            }
+        }, 500); // Start loading 500ms after mount
+
+        return () => clearTimeout(preloadTimer);
+    }, [shouldLoadFilterData]);
 
     const loadFilterFormValues = useCallback(() => {
         if (!shouldLoadFilterData) {
@@ -122,14 +137,14 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             return;
         }
 
-        if (!isFilterDataLoaded && shouldLoadFilterData) {
+        if (!isFilterDataLoaded && shouldLoadFilterData && userCardList && reports && policyCategories && policyTagsLists && currencyList && workspaceCardFeeds) {
             const values = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
             setFilterFormValues(values);
             setIsFilterDataLoaded(true);
             return values;
         }
         return filterFormValues;
-    }, [queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates, isFilterDataLoaded, shouldLoadFilterData, filterFormValues]);
+    }, [queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates, isFilterDataLoaded, shouldLoadFilterData, filterFormValues, userCardList, workspaceCardFeeds]);
 
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
