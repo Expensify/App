@@ -984,6 +984,9 @@ function openReport(
         return;
     }
 
+    // Reset the oldestUnreadReportActionID which will be replaced by the new value from the OpenReport API call.
+    resetOldestUnreadReportActionID(reportID);
+
     const optimisticReport = reportActionsExist(reportID)
         ? {}
         : {

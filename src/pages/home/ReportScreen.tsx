@@ -272,14 +272,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const [oldestUnreadReportActionID, setOldestUnreadReportActionID] = useState<string>();
     const [oldestUnreadReportActionIDValueFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${reportID}`, {canBeMissing: true});
-    const {
-        reportActions: unfilteredReportActions,
-        linkedAction,
-        sortedAllReportActions,
-        hasNewerActions,
-        hasOlderActions,
-    } = usePaginatedReportActions(reportID, reportActionIDFromRoute ?? (oldestUnreadReportActionID === '-1' ? undefined : oldestUnreadReportActionID));
 
+    // Set the oldestUnreadReportActionID in state once loaded from Onyx, and clear Onyx state to prevent stale data.
     useEffect(() => {
         if (!!oldestUnreadReportActionID || !oldestUnreadReportActionIDValueFromOnyx) {
             return;
@@ -288,6 +282,14 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         setOldestUnreadReportActionID(oldestUnreadReportActionIDValueFromOnyx);
         resetOldestUnreadReportActionID(reportID);
     }, [oldestUnreadReportActionID, oldestUnreadReportActionIDValueFromOnyx, reportID]);
+
+    const {
+        reportActions: unfilteredReportActions,
+        linkedAction,
+        sortedAllReportActions,
+        hasNewerActions,
+        hasOlderActions,
+    } = usePaginatedReportActions(reportID, reportActionIDFromRoute ?? (oldestUnreadReportActionID === '-1' ? undefined : oldestUnreadReportActionID));
 
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`, {canBeMissing: true});
@@ -492,6 +494,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         [firstRender, shouldShowNotFoundLinkedAction, reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, currentReportIDFormRoute],
     );
 
+    const handleOpenReport = useCallback<typeof openReport>((...args) => {
+        // Reset the oldestUnreadReportActionID everytime the report is (newly) fetched
+        setOldestUnreadReportActionID(undefined);
+        openReport(...args);
+    }, []);
+
     const fetchReport = useCallback(() => {
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT) {
             return;
@@ -507,10 +515,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
         // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
         if (transactionID && currentUserEmail) {
-            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, undefined, transactionID);
+            handleOpenReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, undefined, transactionID);
             return;
         }
-        openReport(reportIDFromRoute, reportActionIDFromRoute);
+        handleOpenReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [
         reportMetadata.isOptimisticReport,
         report?.type,
@@ -519,6 +527,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         route.params?.moneyRequestReportActionID,
         route.params?.transactionID,
         currentUserEmail,
+        handleOpenReport,
         reportIDFromRoute,
         reportActionIDFromRoute,
     ]);
@@ -605,7 +614,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport(reportID);
+        handleOpenReport(reportID);
 
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.

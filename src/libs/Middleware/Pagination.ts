@@ -134,6 +134,8 @@ const Pagination: Middleware = (requestResponse, request) => {
             value: mergedPages,
         });
 
+        // Stores the oldestUnreadReportActionID in Onyx to to allow fetching the correct page initially when a report is loaded.
+        // This value is reset once the report has finished loading.
         const oldestUnreadReportActionID = 'oldestUnreadReportActionID' in response && ((response.oldestUnreadReportActionID as string) ?? '-1');
         response.onyxData.push({
             key: `${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${resourceID}`,
