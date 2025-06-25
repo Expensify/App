@@ -278,6 +278,24 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
 }
 
 /**
+ * Returns the avatar subscript icon container styles
+ */
+function getAvatarSubscriptIconContainerStyle(iconWidth = 16, iconHeight = 16): ViewStyle {
+    const borderWidth = 2;
+
+    return {
+        overflow: 'hidden',
+        position: 'absolute',
+        bottom: -4,
+        right: -4,
+        borderWidth,
+        borderRadius: borderWidth,
+        width: iconWidth + 2 * borderWidth,
+        height: iconHeight + 2 * borderWidth,
+    };
+}
+
+/**
  * Helper method to return workspace avatar color styles
  */
 function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
@@ -1219,6 +1237,7 @@ const staticStyleUtils = {
     getAvatarExtraFontSizeStyle,
     getAvatarSize,
     getAvatarWidthStyle,
+    getAvatarSubscriptIconContainerStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
