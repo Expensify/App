@@ -506,5 +506,5 @@ export {
     validateAttachment,
     isValidReceiptExtension,
     getFileValidationErrorText,
-    isHeicOrHeifImage
+    isHeicOrHeifImage,
 };
