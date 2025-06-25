@@ -159,7 +159,9 @@ class TranslationGenerator {
                     }
                     const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
                     const serializedNode =
-                        ts.isStringLiteral(translatedNode) || ts.isNoSubstitutionTemplateLiteral(translatedNode) ? translatedNode.getText() : this.templateExpressionToString(translatedNode);
+                        ts.isStringLiteral(translatedNode) || ts.isNoSubstitutionTemplateLiteral(translatedNode)
+                            ? translatedNode.getText().slice(1, -1)
+                            : this.templateExpressionToString(translatedNode);
                     translationsForLocale.set(translationKey, serializedNode);
                     translations.set(targetLanguage, translationsForLocale);
                 }
