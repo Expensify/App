@@ -1496,6 +1496,7 @@ const translations = {
             noLogsToShare: 'Aucun journal à partager',
             useProfiling: 'Utiliser le profilage',
             profileTrace: 'Profil de trace',
+            results: 'Résultats',
             releaseOptions: 'Options de publication',
             testingPreferences: 'Préférences de test',
             useStagingServer: 'Utiliser le serveur de staging',
@@ -1516,6 +1517,7 @@ const translations = {
             invalidFile: 'Fichier invalide',
             invalidFileDescription: "Le fichier que vous essayez d'importer n'est pas valide. Veuillez réessayer.",
             invalidateWithDelay: 'Invalider avec délai',
+            recordTroubleshootData: 'Enregistrement des données de dépannage',
         },
         debugConsole: {
             saveLog: 'Enregistrer le journal',

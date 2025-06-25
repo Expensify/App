@@ -1493,6 +1493,7 @@ const translations = {
             noLogsToShare: 'Geen logs om te delen',
             useProfiling: 'Gebruik profilering',
             profileTrace: 'Profieltracering',
+            results: 'Resultaten',
             releaseOptions: 'Release-opties',
             testingPreferences: 'Voorkeuren testen',
             useStagingServer: 'Gebruik Staging Server',
@@ -1513,6 +1514,7 @@ const translations = {
             invalidFile: 'Ongeldig bestand',
             invalidFileDescription: 'Het bestand dat je probeert te importeren is niet geldig. Probeer het opnieuw.',
             invalidateWithDelay: 'Ongeldig maken met vertraging',
+            recordTroubleshootData: 'Probleemoplossingsgegevens opnemen',
         },
         debugConsole: {
             saveLog: 'Log opslaan',

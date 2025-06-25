@@ -1490,6 +1490,7 @@ const translations = {
             noLogsToShare: '共有するログはありません',
             useProfiling: 'プロファイリングを使用する',
             profileTrace: 'プロファイルトレース',
+            results: '結果',
             releaseOptions: 'リリースオプション',
             testingPreferences: '設定のテスト',
             useStagingServer: 'Stagingサーバーを使用',
@@ -1510,6 +1511,7 @@ const translations = {
             invalidFile: '無効なファイル',
             invalidFileDescription: 'インポートしようとしているファイルは無効です。もう一度お試しください。',
             invalidateWithDelay: '遅延で無効にする',
+            recordTroubleshootData: 'トラブルシューティングデータの記録',
         },
         debugConsole: {
             saveLog: 'ログを保存',
