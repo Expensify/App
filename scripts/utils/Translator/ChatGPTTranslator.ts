@@ -35,7 +35,7 @@ class ChatGPTTranslator extends Translator {
                     userPrompt: text,
                 });
 
-                if (this.validateTemplatePlaceholders(text, result)) {
+                if (this.validateTemplatePlaceholders(text, result) && this.validateTemplateHTML(text, result)) {
                     if (attempt > 0) {
                         console.log(`🙃 Translation succeeded after ${attempt + 1} attempts`);
                     }
@@ -43,7 +43,7 @@ class ChatGPTTranslator extends Translator {
                     return result;
                 }
 
-                console.warn(`⚠️ Translation for "${text}" failed placeholder validation (attempt ${attempt + 1}/${ChatGPTTranslator.MAX_RETRIES + 1})`);
+                console.warn(`⚠️ Translation for "${text}" failed validation (attempt ${attempt + 1}/${ChatGPTTranslator.MAX_RETRIES + 1})`);
 
                 if (attempt === ChatGPTTranslator.MAX_RETRIES) {
                     console.error(`❌ Final attempt failed placeholder validation. Falling back to original.`);
@@ -75,6 +75,47 @@ class ChatGPTTranslator extends Translator {
         const originalSpans = extractPlaceholders(original);
         const translatedSpans = extractPlaceholders(translated);
         return JSON.stringify(originalSpans) === JSON.stringify(translatedSpans);
+    }
+
+    /**
+     * Validate that the HTML structure is the same before and after translation.
+     */
+    private validateTemplateHTML(original: string, translated: string): boolean {
+        // Attributes that are allowed to be translated
+        const TRANSLATABLE_ATTRIBUTES = ['alt', 'title', 'placeholder', 'aria-label', 'aria-describedby', 'aria-labelledby', 'value'];
+
+        const parseHTMLStructure = (s: string) => {
+            const tags = Array.from(s.matchAll(/<([^>]+)>/g));
+            return tags.map((match) => {
+                const tagContent = match[1];
+                const tagName = tagContent.split(/\s/).at(0)?.toLowerCase();
+
+                // Extract attributes, excluding translatable ones
+                const attributes: string[] = [];
+                const attrMatches = Array.from(tagContent.matchAll(/(\w+)(?:=["']([^"']*)["'])?/g));
+
+                for (const attrMatch of attrMatches) {
+                    const attrName = attrMatch[1].toLowerCase();
+                    const attrValue = attrMatch[2] || '';
+
+                    // Only include non-translatable attributes in comparison
+                    if (!TRANSLATABLE_ATTRIBUTES.includes(attrName)) {
+                        attributes.push(`${attrName}="${attrValue}"`);
+                    }
+                }
+
+                return {
+                    tagName,
+                    attributes: attributes.sort(),
+                };
+            });
+        };
+
+        const originalStructure = parseHTMLStructure(original);
+        const translatedStructure = parseHTMLStructure(translated);
+
+        // Compare structures (tag names and non-translatable attributes)
+        return JSON.stringify(originalStructure) === JSON.stringify(translatedStructure);
     }
 }
 
