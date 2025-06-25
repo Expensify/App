@@ -13,7 +13,7 @@ import {getReportNotificationPreference, goBackToDetailsPage, isArchivedNonExpen
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
-import * as ReportActions from '@userActions/Report';
+import {updateNotificationPreference} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
@@ -40,9 +40,9 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
         goBackToDetailsPage(report, route.params.backTo);
     }, [report, route.params.backTo]);
 
-    const updateNotificationPreference = useCallback(
+    const updateNotificationPreferenceForReportAction = useCallback(
         (value: ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>) => {
-            ReportActions.updateNotificationPreference(report.reportID, currentNotificationPreference, value, undefined, undefined);
+            updateNotificationPreference(report.reportID, currentNotificationPreference, value, undefined, undefined);
             goBack();
         },
         [report.reportID, currentNotificationPreference, goBack],
@@ -61,7 +61,7 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
                 <SelectionList
                     sections={[{data: notificationPreferenceOptions}]}
                     ListItem={RadioListItem}
-                    onSelectRow={(option) => updateNotificationPreference(option.value)}
+                    onSelectRow={(option) => updateNotificationPreferenceForReportAction(option.value)}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={notificationPreferenceOptions.find((locale) => locale.isSelected)?.keyForList}
                 />
