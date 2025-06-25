@@ -370,7 +370,7 @@ function FeatureTrainingModal({
 
     const Wrapper = shouldUseScrollView ? ScrollView : View;
 
-    const wrapperStyles = useMemo(() => (shouldUseScrollView ? StyleUtils.getScrollableFeatureTrainingModalStyles(insets) : {}), [shouldUseScrollView, insets]);
+    const wrapperStyles = useMemo(() => (shouldUseScrollView ? StyleUtils.getScrollableFeatureTrainingModalStyles(insets) : {}), [shouldUseScrollView, StyleUtils, insets]);
 
     return (
         <Modal
