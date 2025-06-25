@@ -598,7 +598,7 @@ function IOURequestStepScan({
         navigateToConfirmationStep(newReceiptFiles, false);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal, isLoadingReceipt} = useFilesValidation(setReceiptFilesAndNavigate);
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptFilesAndNavigate);
 
     const handleDropReceipt = (e: DragEvent) => {
         const files = Array.from(e?.dataTransfer?.files ?? []);
@@ -999,7 +999,6 @@ function IOURequestStepScan({
         >
             {(isDraggingOverWrapper) => (
                 <>
-                    {isLoadingReceipt && <FullScreenLoadingIndicator />}
                     <View
                         onLayout={() => {
                             if (!onLayout) {
