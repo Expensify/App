@@ -7,7 +7,7 @@ import {isOffline} from '@libs/Network/NetworkStore';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
 import Pusher from '@libs/Pusher';
 import {processWithMiddleware, use} from '@libs/Request';
-import {getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
+import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {PaginatedRequest, PaginationConfig, RequestConflictResolver} from '@src/types/onyx/Request';
@@ -62,8 +62,15 @@ function prepareRequest<TCommand extends ApiCommand>(
 ): OnyxRequest {
     Log.info('[API] Preparing request', false, {command, type});
 
+    let shouldApplyOptimisticData = true;
+    if (conflictResolver?.checkAndFixConflictingRequest) {
+        const requests = getAll();
+        const {conflictAction} = conflictResolver.checkAndFixConflictingRequest(requests);
+        shouldApplyOptimisticData = conflictAction.type !== 'noAction';
+    }
+
     const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
-    if (optimisticData) {
+    if (optimisticData && shouldApplyOptimisticData) {
         Log.info('[API] Applying optimistic data', false, {command, type});
         Onyx.update(optimisticData);
     }

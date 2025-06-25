@@ -122,6 +122,7 @@ function ReportActionsListWrapper() {
                         loadNewerChats={mockLoadChats}
                         hasNewerActions={false}
                         transactionThreadReport={report}
+                        transactionsAndViolationsByReport={{}}
                     />
                 </ActionListContext.Provider>
             </ReactionListContext.Provider>

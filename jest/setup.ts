@@ -12,8 +12,8 @@ import setupMockImages from './setupMockImages';
 
 // Needed for tests to have the necessary environment variables set
 if (!('GITHUB_REPOSITORY' in process.env)) {
-    process.env.GITHUB_REPOSITORY_OWNER = 'Expensify';
-    process.env.GITHUB_REPOSITORY = 'Expensify/App';
+    (process.env as NodeJS.ProcessEnv).GITHUB_REPOSITORY_OWNER = 'Expensify';
+    (process.env as NodeJS.ProcessEnv).GITHUB_REPOSITORY = 'Expensify/App';
 }
 
 setupMockImages();
@@ -111,25 +111,6 @@ jest.mock('../modules/hybrid-app/src/NativeReactNativeHybridApp', () => ({
     switchAccount: jest.fn(),
 }));
 
-// This makes FlatList render synchronously for easier testing.
-jest.mock(
-    '@react-native/virtualized-lists/Interaction/Batchinator',
-    () =>
-        class SyncBatchinator {
-            #callback: () => void;
-
-            constructor(callback: () => void) {
-                this.#callback = callback;
-            }
-
-            schedule() {
-                this.#callback();
-            }
-
-            dispose() {}
-        },
-);
-
 jest.mock(
     '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
     () =>
@@ -179,4 +160,8 @@ jest.mock('@src/hooks/useWorkletStateMachine/executeOnUIRuntimeSync', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => jest.fn()), // Return a function that returns a function
+}));
+
+jest.mock('react-native-nitro-sqlite', () => ({
+    open: jest.fn(),
 }));

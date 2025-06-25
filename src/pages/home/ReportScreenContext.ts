@@ -22,7 +22,7 @@ type ActionListContextType = {
     scrollPosition: ScrollPosition | null;
     setScrollPosition: (position: {offset: number}) => void;
 };
-type ReactionListContextType = RefObject<ReactionListRef> | null;
+type ReactionListContextType = RefObject<ReactionListRef | null> | null;
 
 const ActionListContext = createContext<ActionListContextType>({flatListRef: null, scrollPosition: null, setScrollPosition: () => {}});
 const ReactionListContext = createContext<ReactionListContextType>(null);
