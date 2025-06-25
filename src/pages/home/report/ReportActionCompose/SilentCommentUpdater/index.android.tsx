@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SilentCommentUpdaterProps} from './types';
+import type SilentCommentUpdaterProps from './types';
 
 /**
  * Adding .android component to disable updating comment when prev comment is different

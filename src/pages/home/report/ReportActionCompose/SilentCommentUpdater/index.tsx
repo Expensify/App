@@ -3,7 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SilentCommentUpdaterProps} from './types';
+import type SilentCommentUpdaterProps from './types';
 
 /**
  * This component doesn't render anything. It runs a side effect to update the comment of a report under certain conditions.
