@@ -215,7 +215,7 @@ async function getPullRequestsDeployedBetween(fromTag: string, toTag: string) {
     core.info(JSON.stringify(apiPullRequestNumbers));
     core.endGroup();
 
-    return apiPullRequestNumbers;
+    return gitLogPullRequestNumbers;
 }
 
 export default {
