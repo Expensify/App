@@ -77,7 +77,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             >
                 <View style={[styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, styles.flex1]}>
                     <Text style={styles.textHeadlineH1}>{translate('onboarding.peopleYouMayKnow')}</Text>
-                    <Text style={[styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workspaceYouMayJoin', {domain, email})}</Text>
+                    <Text style={[styles.textAlignLeft, styles.mv5]}>{translate('onboarding.workspaceYouMayJoin', {domain, email})}</Text>
                     <ValidateCodeForm
                         validateCodeActionErrorField="getAccessiblePolicies"
                         handleSubmitForm={(code) => {
