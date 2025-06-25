@@ -11,13 +11,13 @@ import {close} from './Modal';
  */
 const throttledToggle = throttle(
     () => {
-        const currentRoute = Navigation.getActiveRoute().replace(/^\//, '');
-        if (currentRoute === ROUTES.TEST_TOOLS_MODAL) {
+        const currentRoute = Navigation.getActiveRoute();
+        if (currentRoute.includes(ROUTES.TEST_TOOLS_MODAL.route)) {
             Navigation.goBack();
             return;
         }
         const openTestToolsModal = () => {
-            setTimeout(() => Navigation.navigate(ROUTES.TEST_TOOLS_MODAL), CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
+            setTimeout(() => Navigation.navigate(ROUTES.TEST_TOOLS_MODAL.getRoute(Navigation.getActiveRoute())), CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
         };
         // Dismiss any current modal before showing test tools modal
         // We need to handle test drive modal differently using Navigation.goBack() to properly clean up its navigation state

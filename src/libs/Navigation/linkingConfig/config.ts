@@ -1807,7 +1807,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
-                    path: ROUTES.TEST_TOOLS_MODAL,
+                    path: ROUTES.TEST_TOOLS_MODAL.route,
                     exact: true,
                 },
             },
