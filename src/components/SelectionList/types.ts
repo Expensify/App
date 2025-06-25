@@ -25,7 +25,7 @@ import type CONST from '@src/CONST';
 import type {Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchCard, SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -340,6 +340,8 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType &
     };
 
 type TransactionMemberGroupListItemType = TransactionGroupListItemType & SearchPersonalDetails;
+
+type TransactionCardGroupListItemType = TransactionGroupListItemType & SearchCard;
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
@@ -880,6 +882,7 @@ export type {
     TransactionGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionMemberGroupListItemType,
+    TransactionCardGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,
