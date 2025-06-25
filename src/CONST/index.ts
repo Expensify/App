@@ -6568,7 +6568,6 @@ const CONST = {
             PAY: 'pay',
             DONE: 'done',
             PAID: 'paid',
-            EXPORT_TO_ACCOUNTING: 'export',
         },
         BULK_ACTION_TYPES: {
             EXPORT: 'export',
