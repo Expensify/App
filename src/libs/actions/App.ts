@@ -22,7 +22,7 @@ import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/Se
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
 import {isFullySupportedLocale, isSupportedLocale} from '@src/CONST/LOCALES';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -67,7 +67,7 @@ Onyx.connect({
         }
 
         preferredLocale = val;
-        TranslationStore.load(val);
+        IntlStore.load(val);
         localeEventCallback(val);
 
         // For locales without emoji support, fallback on English
