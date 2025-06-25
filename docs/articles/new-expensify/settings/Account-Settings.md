@@ -1,7 +1,7 @@
 ---
 title: Account Settings
 description: Learn how to update your profile settings, preferences, and notifications in Expensify.
-keywords: [Expensify profile, account preferences, notifications, language, theme, timezone, personal information]
+keywords: [New Expensify, profile, account preferences, notifications, language, theme, timezone, personal information]
 ---
 <div id="new-expensify" markdown="1">
 
@@ -16,7 +16,7 @@ You can update the following profile settings:
 - **Profile Photo** – Upload or change your photo.
 - **Status** – Add a custom message and emoji to show your current status.
 - **Pronouns** – Display your preferred pronouns on your profile.
-- **Language** – Change the app language to Spanish or other supported languages.
+- **Language** – Update your account to your preferred language. 
 - **Timezone** – Set the correct timezone for expense and report timestamps.
 - **Theme** – Toggle between light mode, dark mode, or follow device settings.
 - **Notifications** – Customize how and when you receive email and app notifications.
@@ -41,9 +41,30 @@ To update your timezone:
 
 ## Language
 
-To change your language:
-1. Go to **Account > Preferences**.
-2. Click **Language** and choose your preferred option.
+Expensify supports multiple languages, making it easier for members across the globe to use the app in their preferred language.
+
+**You can update your Expensify account to display in any of the following languages:**
+
+- English
+- Español (Spanish)
+- Deutsch (German)
+- Français (French)
+- Italiano (Italian)
+- 日本語 (Japanese)
+- Nederlands (Dutch)
+- Polski (Polish)
+- Português (BR) (Brazilian Portuguese)
+- 中文 (简体) (Simplified Chinese)
+
+**How to change your language setting:**
+
+1. In the left-hand menu, select **Account > Preferences**.
+2. Tap or click on **Language**.
+3. Choose your preferred language from the list.
+4. The checkmark will confirm the selected language.
+5. Your account will update automatically to reflect the new language setting.
+
+**Note:** Language changes affect your personal account view only. Workspace members must update their own preferences individually.
 
 ## Notifications
 
@@ -99,18 +120,15 @@ To edit your display or legal name:
 Your photo helps teammates identify you easily in chats, reports, and notifications.
 
 ## Will changing my language affect reports?
-No. It only changes the language of your user interface—not the content of your reports.
+No. It only changes the language of your user interface, not the content of your reports.
 
 ## Can I disable all Expensify notifications?
-Yes. Go to **Account > Preferences** and toggle off both update and sound notifications.
+Yes. From the left-hand menu, go to **Account > Preferences** and toggle off both update and sound notifications.
 
 ## Will theme preferences sync across devices?
-Yes. Your chosen theme applies across web, mobile, and desktop versions of Expensify.
+Yes! Your chosen theme applies across web, mobile, and desktop versions of Expensify.
 
 ## Can I set a permanent status message?
 Yes. After entering your status, choose **Never** under “Clear After” to keep it active indefinitely.
-
-## Why should I add my legal name and address?
-These details are used for things like booking travel or receiving payments and help verify your identity when needed.
 
 </div>
