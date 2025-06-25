@@ -6,6 +6,7 @@ import type {SearchGroupBy} from '@components/Search/types';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {
     ListItem,
+    TransactionCardGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListItemType,
     TransactionListItemType,
@@ -26,6 +27,7 @@ import {setActiveTransactionThreadIDs} from '@userActions/TransactionThreadNavig
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 
@@ -134,8 +136,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 />
             ),
             [CONST.SEARCH.GROUP_BY.CARDS]: (
-                // s77rt CardListItemHeader
-                <View />
+                <CardListItemHeader
+                    card={groupItem as TransactionCardGroupListItemType}
+                    onCheckboxPress={onCheckboxPress}
+                    isDisabled={isDisabledOrEmpty}
+                    isHovered={isHovered}
+                    isFocused={isFocused}
+                    canSelectMultiple={canSelectMultiple}
+                />
             ),
         };
 
