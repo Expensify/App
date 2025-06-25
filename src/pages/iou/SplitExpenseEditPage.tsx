@@ -16,12 +16,11 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
-import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getPolicy, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from '@libs/PolicyUtils';
+import {getPolicy, getTagLists} from '@libs/PolicyUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
-import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTag, getTagForDisplay} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,14 +29,6 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
-
-type TagVisibility = {
-    /** Flag indicating if the tag is required */
-    isTagRequired: boolean;
-
-    /** Flag indicating if the tag should be shown */
-    shouldShow: boolean;
-};
 
 function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
@@ -70,31 +61,16 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
     const shouldShowTags = !!policy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
-    const isMultilevelTags = useMemo(() => isMultiLevelTagsPolicyUtils(policyTags), [policyTags]);
-
-    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
-    const tagVisibility: TagVisibility[] = policyTagLists.map(({tags, required}, index) => {
-        const isTagRequired = required ?? false;
-        let shouldShow = false;
-
-        if (shouldShowTags) {
-            if (hasDependentTags) {
-                if (index === 0) {
-                    shouldShow = true;
-                } else {
-                    const prevTagValue = getTagForDisplay(transaction, index - 1);
-                    shouldShow = !!prevTagValue;
-                }
-            } else {
-                shouldShow = !isMultilevelTags || hasEnabledOptions(tags);
-            }
-        }
-
-        return {
-            isTagRequired,
-            shouldShow,
-        };
-    });
+    const tagVisibility = useMemo(
+        () =>
+            getTagVisibility({
+                shouldShowTags,
+                policy,
+                policyTags,
+                transaction: splitExpenseDraftTransaction,
+            }),
+        [shouldShowTags, policy, policyTags, splitExpenseDraftTransaction],
+    );
     const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
     return (
@@ -152,38 +128,39 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 titleStyle={styles.flex1}
                             />
                         )}
-                        {shouldShowTags && policyTagLists.map(({name}, index) => {
-                            const tagVisibilityItem = tagVisibility.at(index);
-                            const shouldShow = tagVisibilityItem?.shouldShow ?? false;
-                            const prevShouldShow = previousTagsVisibility.at(index) ?? false;
+                        {shouldShowTags &&
+                            policyTagLists.map(({name}, index) => {
+                                const tagVisibilityItem = tagVisibility.at(index);
+                                const shouldShow = tagVisibilityItem?.shouldShow ?? false;
+                                const prevShouldShow = previousTagsVisibility.at(index) ?? false;
 
-                            return (
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    highlighted={shouldShow && !getTagForDisplay(transaction, index) && !prevShouldShow}
-                                    key={name}
-                                    title={getTagForDisplay(transaction, index)}
-                                    description={name}
-                                    shouldShowBasicTitle
-                                    shouldShowDescriptionOnTop
-                                    numberOfLinesTitle={2}
-                                    onPress={() => {
-                                        Navigation.navigate(
-                                            ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                                CONST.IOU.ACTION.EDIT,
-                                                CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                                0,
-                                                CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                                reportID,
-                                                Navigation.getActiveRoute(),
-                                            ),
-                                        );
-                                    }}
-                                    style={[styles.moneyRequestMenuItem]}
-                                    titleStyle={styles.flex1}
-                                />
-                            );
-                        })}
+                                return (
+                                    <MenuItemWithTopDescription
+                                        shouldShowRightIcon
+                                        highlighted={shouldShow && !getTagForDisplay(splitExpenseDraftTransaction, index) && !prevShouldShow}
+                                        key={name}
+                                        title={getTagForDisplay(splitExpenseDraftTransaction, index)}
+                                        description={name}
+                                        shouldShowBasicTitle
+                                        shouldShowDescriptionOnTop
+                                        numberOfLinesTitle={2}
+                                        onPress={() => {
+                                            Navigation.navigate(
+                                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                                    CONST.IOU.ACTION.EDIT,
+                                                    CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                                    index,
+                                                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                                    reportID,
+                                                    Navigation.getActiveRoute(),
+                                                ),
+                                            );
+                                        }}
+                                        style={[styles.moneyRequestMenuItem]}
+                                        titleStyle={styles.flex1}
+                                    />
+                                );
+                            })}
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
                             key={translate('common.date')}
