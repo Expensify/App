@@ -365,7 +365,7 @@ function MoneyRequestReportTransactionList({
                     </Modal>
                 </>
             ) : (
-                <SearchMoneyRequestReportEmptyState />
+                <SearchMoneyRequestReportEmptyState reportId={report.reportID} />
             )}
             <View style={[styles.dFlex, styles.flexRow, listHorizontalPadding, styles.justifyContentBetween, styles.mb2]}>
                 <Animated.Text

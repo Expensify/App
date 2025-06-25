@@ -601,7 +601,7 @@ function MoneyRequestReportActionsList({
                             report={report}
                             policy={policy}
                         />
-                        <SearchMoneyRequestReportEmptyState />
+                        <SearchMoneyRequestReportEmptyState reportId={report.reportID} />
                     </>
                 ) : (
                     <FlatList
