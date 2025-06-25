@@ -3141,24 +3141,14 @@ describe('ReportUtils', () => {
     });
 
     describe('getMoneyReportPreviewName', () => {
-        it('should return the report name if present', async () => {
+        it('should return the report name if present', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
             const report: Report = {
                 ...createRandomReport(1),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-                participants: buildParticipantsFromAccountIDs([1, 2, 3, 4, 5, 6]),
-                reportName: '', // Clear the random report name so it uses participant names
             };
-
-            // Set up the fake personal details and the report in Onyx so derived values work
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await waitForBatchedUpdates();
-
             const result = getMoneyReportPreviewName(action, report);
             expect(result).toBe('Five, Four, One, Three, Two...');
         });
