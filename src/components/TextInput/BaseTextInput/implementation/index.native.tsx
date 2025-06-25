@@ -444,7 +444,7 @@ function BaseTextInput(
                                     style={[
                                         StyleUtils.getTextInputIconContainerStyles(hasLabel, false),
                                         styles.ml1,
-                                        styles.justifyContentStart,
+                                        styles.justifyContentCenter,
                                         loadingSpinnerStyle,
                                         StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0),
                                     ]}
