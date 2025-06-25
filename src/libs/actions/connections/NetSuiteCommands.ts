@@ -73,11 +73,15 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
     settingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
     oldSettingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
 ) {
+    const exporterOptimisticData = settingName === CONST.NETSUITE_CONFIG.EXPORTER ? {exporter: settingValue} : {};
+    const exporterErrorData = settingName === CONST.NETSUITE_CONFIG.EXPORTER ? {exporter: oldSettingValue} : {};
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...exporterOptimisticData,
                 connections: {
                     netsuite: {
                         options: {
@@ -98,6 +102,7 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...exporterErrorData,
                 connections: {
                     netsuite: {
                         options: {
