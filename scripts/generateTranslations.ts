@@ -226,7 +226,11 @@ class TranslationGenerator {
      */
     private findTranslationsNode(sourceFile: ts.SourceFile): ts.Node | null {
         const defaultExport = TSCompilerUtils.findDefaultExport(sourceFile);
-        const translationsNode = TSCompilerUtils.resolveDeclaration(defaultExport?.getText() ?? '', sourceFile);
+        if (!defaultExport) {
+            throw new Error('Could not find default export in source file');
+        }
+        const defaultExportIdentifier = TSCompilerUtils.extractIdentifierFromExpression(defaultExport);
+        const translationsNode = TSCompilerUtils.resolveDeclaration(defaultExportIdentifier ?? '', sourceFile);
         return translationsNode;
     }
 

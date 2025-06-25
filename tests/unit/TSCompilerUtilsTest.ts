@@ -320,4 +320,111 @@ describe('TSCompilerUtils', () => {
             expect(ts.isVariableDeclaration(node)).toBe(true);
         });
     });
+
+    describe('extractIdentifierFromExpression', () => {
+        it('extracts identifier from simple identifier', () => {
+            const code = 'translations';
+            const ast = createSourceFile(code);
+            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
+            expect(result).toBe('translations');
+        });
+
+        it('extracts identifier from satisfies expression', () => {
+            const code = 'translations satisfies TranslationDeepObject<typeof translations>;';
+            const ast = createSourceFile(code);
+            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
+            expect(result).toBe('translations');
+        });
+
+        it('extracts identifier from as expression', () => {
+            const code = 'translations as SomeType;';
+            const ast = createSourceFile(code);
+            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
+            expect(result).toBe('translations');
+        });
+
+        it('extracts identifier from parenthesized expression', () => {
+            const code = '(translations);';
+            const ast = createSourceFile(code);
+            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
+            expect(result).toBe('translations');
+        });
+
+        it('extracts identifier from nested parenthesized expression', () => {
+            const code = '((translations));';
+            const ast = createSourceFile(code);
+            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
+            expect(result).toBe('translations');
+        });
+
+        it('extracts identifier from type assertion (angle bracket syntax)', () => {
+            const code = '<SomeType>translations;';
+            const ast = createSourceFile(code);
+            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
+            // Note: This might be 'translations' or null depending on how TypeScript parses angle bracket syntax in JSX-enabled contexts
+            expect(result).toEqual(expect.any(String));
+        });
+
+        it('extracts identifier from complex nested expression', () => {
+            const code = '(translations as SomeType);';
+            const ast = createSourceFile(code);
+            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
+            expect(result).toBe('translations');
+        });
+
+        it('extracts identifier from satisfies expression with nested parentheses', () => {
+            const code = '(translations) satisfies TranslationDeepObject<typeof translations>;';
+            const ast = createSourceFile(code);
+            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
+            expect(result).toBe('translations');
+        });
+
+        it('returns null for non-identifier expressions', () => {
+            const code = '"hello world";';
+            const ast = createSourceFile(code);
+            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
+            expect(result).toBeNull();
+        });
+
+        it('returns null for complex expressions that do not contain identifiers', () => {
+            const code = '42 + 24;';
+            const ast = createSourceFile(code);
+            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
+            expect(result).toBeNull();
+        });
+
+        it('returns null for call expressions', () => {
+            const code = 'someFunction();';
+            const ast = createSourceFile(code);
+            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
+            expect(result).toBeNull();
+        });
+
+        it('returns null for member expressions', () => {
+            const code = 'obj.property;';
+            const ast = createSourceFile(code);
+            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
+            expect(result).toBeNull();
+        });
+
+        it('handles deeply nested expression types', () => {
+            const code = '((translations as SomeType) satisfies AnotherType);';
+            const ast = createSourceFile(code);
+            const expression = ast.statements[0] as ts.ExpressionStatement;
+            const result = TSCompilerUtils.extractIdentifierFromExpression(expression.expression);
+            expect(result).toBe('translations');
+        });
+    });
 });

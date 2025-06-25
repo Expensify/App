@@ -29,7 +29,13 @@ function addImport(sourceFile: ts.SourceFile, identifierName: string, modulePath
     );
 
     // Find the index of the last import declaration
-    const lastImportIndex = sourceFile.statements.findLastIndex((statement) => ts.isImportDeclaration(statement));
+    let lastImportIndex = -1;
+    for (let i = sourceFile.statements.length - 1; i >= 0; i--) {
+        if (ts.isImportDeclaration(sourceFile.statements[i])) {
+            lastImportIndex = i;
+            break;
+        }
+    }
 
     const updatedStatements = ts.factory.createNodeArray([...sourceFile.statements.slice(0, lastImportIndex + 1), newImport, ...sourceFile.statements.slice(lastImportIndex + 1)]);
 
@@ -42,6 +48,15 @@ function addImport(sourceFile: ts.SourceFile, identifierName: string, modulePath
 type LabeledNode<K extends string> = {
     label: K;
     node: ts.Node;
+};
+
+/**
+ * Custom type for expressions that have both 'expression' and 'type' properties.
+ * This is useful for satisfies expressions and type assertions.
+ */
+type ExpressionWithType = ts.Node & {
+    expression: ts.Expression;
+    type: ts.TypeNode;
 };
 
 /**
@@ -134,5 +149,68 @@ function resolveDeclaration(name: string, sourceFile: ts.SourceFile): ts.Node | 
     return null;
 }
 
-export default {findAncestor, addImport, traverseASTsInParallel, findDefaultExport, resolveDeclaration};
-export type {LabeledNode};
+/**
+ * Check if a node is an expression that has both 'expression' and 'type' properties.
+ * This is useful for satisfies expressions and type assertions.
+ */
+function isExpressionWithType(node: ts.Node): node is ExpressionWithType {
+    return 'expression' in node && 'type' in node && node.expression !== undefined && node.type !== undefined;
+}
+
+/**
+ * Check if a node is a satisfies expression by examining its structure.
+ * This is more robust than checking SyntaxKind numbers which might vary between TS versions.
+ */
+function isSatisfiesExpression(node: ts.Node): node is ExpressionWithType {
+    // Check if the node text contains 'satisfies' and has the expected structure
+    const nodeText = node.getText();
+    if (!nodeText.includes(' satisfies ')) {
+        return false;
+    }
+
+    return isExpressionWithType(node);
+}
+
+/**
+ * Extracts the identifier name from various expression types.
+ * Handles cases like:
+ * - Simple identifier: `translations`
+ * - Satisfies expression: `translations satisfies SomeType`
+ * - As expression: `translations as SomeType`
+ * - Parenthesized expression: `(translations)`
+ * - Type assertion: `<SomeType>translations`
+ */
+function extractIdentifierFromExpression(node: ts.Node): string | null {
+    // Direct identifier
+    if (ts.isIdentifier(node)) {
+        return node.text;
+    }
+
+    // Check for satisfies expression by looking at the node structure
+    // A satisfies expression has the form: expression satisfies type
+    if (isSatisfiesExpression(node)) {
+        return extractIdentifierFromExpression(node.expression);
+    }
+
+    // As expression: `translations as SomeType`
+    if (ts.isAsExpression(node)) {
+        return extractIdentifierFromExpression(node.expression);
+    }
+
+    // Parenthesized expression: `(translations)`
+    if (ts.isParenthesizedExpression(node)) {
+        return extractIdentifierFromExpression(node.expression);
+    }
+
+    // Type assertion: `<SomeType>translations`
+    // Check for type assertion by looking for angle bracket syntax and structure
+    const nodeText = node.getText();
+    if (nodeText.includes('<') && nodeText.includes('>') && 'expression' in node && 'type' in node && node.expression !== undefined && node.type !== undefined) {
+        return extractIdentifierFromExpression(node.expression as ts.Node);
+    }
+
+    return null;
+}
+
+export default {findAncestor, addImport, traverseASTsInParallel, findDefaultExport, resolveDeclaration, extractIdentifierFromExpression};
+export type {LabeledNode, ExpressionWithType};
