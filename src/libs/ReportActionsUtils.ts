@@ -8,7 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -1938,7 +1938,7 @@ function getDismissedViolationMessageText(originalMessage: ReportAction<typeof C
 /**
  * Check if the linked transaction is on hold
  */
-function isLinkedTransactionHeld(reportActionID: string, reportID: string): boolean {
+function isLinkedTransactionHeld(reportActionID: string | undefined, reportID: string | undefined): boolean {
     const linkedTransactionID = getLinkedTransactionID(reportActionID, reportID);
     return linkedTransactionID ? isOnHoldByTransactionID(linkedTransactionID) : false;
 }
@@ -2601,7 +2601,7 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
                 return translateLocal('workflowsPage.frequencies.lastBusinessDayOfMonth');
             }
             if (typeof autoReportingOffset === 'number') {
-                return toLocaleOrdinal(TranslationStore.getCurrentLocale(), autoReportingOffset, false);
+                return toLocaleOrdinal(IntlStore.getCurrentLocale(), autoReportingOffset, false);
             }
             return '';
         };

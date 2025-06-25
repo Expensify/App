@@ -137,6 +137,11 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
+type BusinessBankAccountParams = {
+    amount: string;
+    last4Digits: string;
+};
+
 type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
@@ -196,6 +201,8 @@ type EnterMagicCodeParams = {contactMethod: string};
 type TransferParams = {amount: string};
 
 type InstantSummaryParams = {rate: string; minAmount: string};
+
+type BankAccountLastFourParams = {lastFour: string};
 
 type NotYouParams = {user: string};
 
@@ -1033,6 +1040,7 @@ export type {
     SettlementDateParams,
     PolicyExpenseChatNameParams,
     YourPlanPriceValueParams,
+    BusinessBankAccountParams,
     NeedCategoryForExportToIntegrationParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
@@ -1046,6 +1054,7 @@ export type {
     UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     SubscriptionSettingsSummaryParams,
+    BankAccountLastFourParams,
     ReviewParams,
     CreateExpensesParams,
     CurrencyInputDisabledTextParams,
