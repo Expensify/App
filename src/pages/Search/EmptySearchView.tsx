@@ -28,6 +28,7 @@ import {startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
 import {completeTestDriveTask} from '@libs/actions/Task';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
@@ -85,6 +86,9 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const hasCardFeed = useMemo(() => Object.keys(mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList)).length > 0, [userCardList, workspaceCardFeeds]);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
@@ -99,10 +103,10 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     }, [allPolicies]);
 
     const typeMenuItems = useMemo(() => {
-        return createTypeMenuSections(session, allPolicies)
+        return createTypeMenuSections(session, hasCardFeed, allPolicies)
             .map((section) => section.menuItems)
             .flat();
-    }, [session, allPolicies]);
+    }, [session, hasCardFeed, allPolicies]);
 
     const tripViewChildren = useMemo(() => {
         const onLongPress = (event: GestureResponderEvent | MouseEvent) => {
