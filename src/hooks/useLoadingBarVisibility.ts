@@ -8,7 +8,7 @@ const RELEVANT_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMAN
 
 /**
  * Hook that determines whether LoadingBar should be visible based on active queue requests
- * Shows LoadingBar when OpenReport/OpenApp/ReconnectApp/ReadNewestAction requests are being processed
+ * Shows LoadingBar when any of the RELEVANT_COMMANDS are being processed
  */
 export default function useLoadingBarVisibility(): boolean {
     const [persistedRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {canBeMissing: false});
