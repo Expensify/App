@@ -534,6 +534,7 @@ const translations = {
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
         export: 'Exportar',
+        basicExport: 'Exportar básico',
         initialValue: 'Valor inicial',
         currentDate: 'Fecha actual',
         value: 'Valor',
@@ -1473,6 +1474,7 @@ const translations = {
             noLogsToShare: 'No hay logs que compartir',
             useProfiling: 'Usar el trazado',
             profileTrace: 'Traza de ejecución',
+            results: 'Resultados',
             releaseOptions: 'Opciones de publicación',
             testingPreferences: 'Preferencias para Tests',
             useStagingServer: 'Usar servidor "staging"',
@@ -1493,6 +1495,7 @@ const translations = {
             invalidFile: 'Archivo inválido',
             invalidFileDescription: 'El archivo que ests intentando importar no es válido. Por favor, inténtalo de nuevo.',
             invalidateWithDelay: 'Invalidar con retraso',
+            recordTroubleshootData: 'Registrar datos de resolución de problemas',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -3195,7 +3198,7 @@ const translations = {
             welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
             subscription: 'Suscripción',
             markAsEntered: 'Marcar como introducido manualmente',
-            markAsExported: 'Marcar como exportado manualmente',
+            markAsExported: 'Marcar como exportado',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
@@ -6873,14 +6876,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'Solicitar oferta',
                 noThanks: 'No, gracias',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `¡${discountType}% de descuento en tu primer año!`,
-                    phrase2: `¡Solo añade una tarjeta de pago y comienza una suscripción anual!`,
-                },
-                onboardingChatTitle: {
-                    phrase1: 'Oferta por tiempo limitado:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `¡${discountType}% de descuento en tu primer año!`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>¡${discountType}% de descuento en tu primer año!</strong> ¡Solo añade una tarjeta de pago y comienza una suscripción anual!`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Oferta por tiempo limitado: ¡${discountType}% de descuento en tu primer año!`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Solicítala en ${days > 0 ? `${days}d : ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
         },

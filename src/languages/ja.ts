@@ -550,6 +550,7 @@ const translations = {
         userID: 'ユーザーID',
         disable: '無効にする',
         export: 'エクスポート',
+        basicExport: '基本エクスポート',
         initialValue: '初期値',
         currentDate: '現在の日付',
         value: '値段',
@@ -1490,6 +1491,7 @@ const translations = {
             noLogsToShare: '共有するログはありません',
             useProfiling: 'プロファイリングを使用する',
             profileTrace: 'プロファイルトレース',
+            results: '結果',
             releaseOptions: 'リリースオプション',
             testingPreferences: '設定のテスト',
             useStagingServer: 'Stagingサーバーを使用',
@@ -1510,6 +1512,7 @@ const translations = {
             invalidFile: '無効なファイル',
             invalidFileDescription: 'インポートしようとしているファイルは無効です。もう一度お試しください。',
             invalidateWithDelay: '遅延で無効にする',
+            recordTroubleshootData: 'トラブルシューティングデータの記録',
         },
         debugConsole: {
             saveLog: 'ログを保存',
@@ -6347,14 +6350,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'オファーを請求する',
                 noThanks: '結構です',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `最初の1年間は${discountType}%オフ！`,
-                    phrase2: `支払いカードを追加して、年間サブスクリプションを開始するだけです。`,
-                },
-                onboardingChatTitle: {
-                    phrase1: '期間限定オファー:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `最初の1年間は${discountType}%オフ！`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>最初の1年間は${discountType}%オフ！</strong> 支払いカードを追加して、年間サブスクリプションを開始するだけです。`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `期間限定オファー: 最初の1年間は${discountType}%オフ！`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `${hours}時間 ${minutes}分 ${seconds}秒以内に${days > 0 ? `${days}日 :` : ''}を請求してください`,
             },
         },

@@ -550,8 +550,9 @@ const translations = {
         userID: 'ID użytkownika',
         disable: 'Wyłącz',
         export: 'Eksportuj',
+        basicExport: 'Eksport podstawowy',
         initialValue: 'Wartość początkowa',
-        currentDate: 'Current date',
+        currentDate: 'Aktualna data',
         value: 'Wartość',
         downloadFailedTitle: 'Pobieranie nie powiodło się',
         downloadFailedDescription: 'Nie udało się zakończyć pobierania. Spróbuj ponownie później.',
@@ -1488,6 +1489,7 @@ const translations = {
             noLogsToShare: 'Brak dzienników do udostępnienia',
             useProfiling: 'Użyj profilowania',
             profileTrace: 'Ślad profilu',
+            results: 'Wyniki',
             releaseOptions: 'Opcje wydania',
             testingPreferences: 'Testowanie preferencji',
             useStagingServer: 'Użyj serwera Staging',
@@ -1508,6 +1510,7 @@ const translations = {
             invalidFile: 'Nieprawidłowy plik',
             invalidFileDescription: 'Plik, który próbujesz zaimportować, jest nieprawidłowy. Spróbuj ponownie.',
             invalidateWithDelay: 'Unieważnij z opóźnieniem',
+            recordTroubleshootData: 'Rejestrowanie danych rozwiązywania problemów',
         },
         debugConsole: {
             saveLog: 'Zapisz log',
@@ -3193,7 +3196,7 @@ const translations = {
             welcomeNote: 'Proszę użyć Expensify do przesyłania paragonów do zwrotu kosztów, dziękuję!',
             subscription: 'Subskrypcja',
             markAsEntered: 'Oznacz jako wprowadzone ręcznie',
-            markAsExported: 'Oznacz jako wyeksportowane ręcznie',
+            markAsExported: 'Oznacz jako wyeksportowane',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Eksportuj do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Sprawdźmy podwójnie, czy wszystko wygląda dobrze.',
             lineItemLevel: 'Poziom pozycji linii',
@@ -6377,14 +6380,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'Zgłoś ofertę',
                 noThanks: 'Nie, dziękuję',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% zniżki na pierwszy rok!`,
-                    phrase2: `Wystarczy dodać kartę płatniczą i rozpocząć roczną subskrypcję.`,
-                },
-                onboardingChatTitle: {
-                    phrase1: 'Oferta ograniczona czasowo:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% zniżki na pierwszy rok!`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>${discountType}% zniżki na pierwszy rok!</strong> Wystarczy dodać kartę płatniczą i rozpocząć roczną subskrypcję.`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Oferta ograniczona czasowo: ${discountType}% zniżki na pierwszy rok!`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Zgłoś w ciągu ${days > 0 ? `${days}d :` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
         },

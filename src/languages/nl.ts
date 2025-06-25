@@ -550,6 +550,7 @@ const translations = {
         userID: 'Gebruikers-ID',
         disable: 'Uitschakelen',
         export: 'Exporteren',
+        basicExport: 'Basis export',
         initialValue: 'Initiële waarde',
         currentDate: "I'm unable to provide real-time information, including the current date. Please check your device or calendar for the current date.",
         value: 'Waarde',
@@ -1493,6 +1494,7 @@ const translations = {
             noLogsToShare: 'Geen logs om te delen',
             useProfiling: 'Gebruik profilering',
             profileTrace: 'Profieltracering',
+            results: 'Resultaten',
             releaseOptions: 'Release-opties',
             testingPreferences: 'Voorkeuren testen',
             useStagingServer: 'Gebruik Staging Server',
@@ -1513,6 +1515,7 @@ const translations = {
             invalidFile: 'Ongeldig bestand',
             invalidFileDescription: 'Het bestand dat je probeert te importeren is niet geldig. Probeer het opnieuw.',
             invalidateWithDelay: 'Ongeldig maken met vertraging',
+            recordTroubleshootData: 'Probleemoplossingsgegevens opnemen',
         },
         debugConsole: {
             saveLog: 'Log opslaan',
@@ -3201,7 +3204,7 @@ const translations = {
             welcomeNote: 'Gebruik alstublieft Expensify om uw bonnetjes in te dienen voor terugbetaling, bedankt!',
             subscription: 'Abonnement',
             markAsEntered: 'Markeren als handmatig ingevoerd',
-            markAsExported: 'Markeren als handmatig geëxporteerd',
+            markAsExported: 'Markeren als geëxporteerd',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exporteer naar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Laten we dubbel controleren of alles er goed uitziet.',
             lineItemLevel: 'Regelniveau',
@@ -6393,14 +6396,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'Aanbieding claimen',
                 noThanks: 'Nee, bedankt',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% korting op uw eerste jaar!`,
-                    phrase2: `Voeg gewoon een betaalkaart toe en start een jaarlijks abonnement.`,
-                },
-                onboardingChatTitle: {
-                    phrase1: 'Aanbieding voor beperkte tijd:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% korting op uw eerste jaar!`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>${discountType}% korting op uw eerste jaar!</strong> Voeg gewoon een betaalkaart toe en start een jaarlijks abonnement.`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Aanbieding voor beperkte tijd: ${discountType}% korting op uw eerste jaar!`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Claim binnen ${days > 0 ? `${days}d :` : ''}${hours}u : ${minutes}m : ${seconds}s`,
             },
         },
