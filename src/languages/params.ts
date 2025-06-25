@@ -1062,6 +1062,6 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
-    BusinessTaxIDParams,
     PhoneErrorRouteParams,
+    BusinessTaxIDParams,
 };
