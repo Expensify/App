@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
@@ -55,11 +55,23 @@ function MoneyRequestReportPreview({
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
-    const [currentWidth, setCurrentWidth] = useState<number>(0);
-    const [currentWrapperWidth, setCurrentWrapperWidth] = useState<number>(0);
+
+    const currentWidth = useRef<number>(0);
+    const currentWrapperWidth = useRef<number>(0);
+    const [isMoneyPreviewContentReady, setIsMoneyPreviewContentReady] = useState(false);
+
+    const onLayout = () => {
+        if (!currentWidth.current || !currentWrapperWidth.current || isMoneyPreviewContentReady) {
+            return;
+        }
+        setIsMoneyPreviewContentReady(true);
+    };
+
     const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, currentWidth, currentWrapperWidth),
-        [StyleUtils, currentWidth, currentWrapperWidth, shouldUseNarrowLayout, transactions.length],
+        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, currentWidth?.current, currentWrapperWidth?.current),
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [StyleUtils, shouldUseNarrowLayout, transactions.length, isMoneyPreviewContentReady],
     );
 
     const shouldShowIOUData = useMemo(() => {
@@ -125,12 +137,14 @@ function MoneyRequestReportPreview({
             lastTransactionViolations={lastTransactionViolations}
             renderTransactionItem={renderItem}
             onCarouselLayout={(e: LayoutChangeEvent) => {
-                setCurrentWidth(e.nativeEvent.layout.width);
+                currentWidth.current = e.nativeEvent.layout.width;
+                onLayout();
             }}
             onWrapperLayout={(e: LayoutChangeEvent) => {
-                setCurrentWrapperWidth(e.nativeEvent.layout.width);
+                currentWrapperWidth.current = e.nativeEvent.layout.width;
+                onLayout();
             }}
-            currentWidth={currentWidth}
+            currentWidth={currentWidth?.current}
             reportPreviewStyles={reportPreviewStyles}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             isInvoice={isInvoice}
