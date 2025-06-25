@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getPerDiemCustomUnit, getPerDiemCustomUnits, isUserInvitedToWorkspace} from '@libs/PolicyUtils';
+import {getPerDiemCustomUnit, getPerDiemCustomUnits} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
@@ -153,7 +153,7 @@ function IOURequestStartPage({
     const setTestReceiptAndNavigateRef = useRef<() => void>(() => {});
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        !getIsUserSubmittedExpenseOrScannedReceipt() && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedTab === CONST.TAB_REQUEST.SCAN && !isUserInvitedToWorkspace(),
+        !getIsUserSubmittedExpenseOrScannedReceipt() && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedTab === CONST.TAB_REQUEST.SCAN,
         {
             onConfirm: () => {
                 setTestReceiptAndNavigateRef?.current?.();
