@@ -1113,7 +1113,6 @@ const translations = {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Betaal ${formattedAmount} ergens anders` : `Elders betalen`),
         nextStep: 'Volgende stappen',
         finished: 'Voltooid',
-        flip: 'Omdraaien',
         sendInvoice: ({amount}: RequestAmountParams) => `Verstuur ${amount} factuur`,
         submitAmount: ({amount}: RequestAmountParams) => `Verstuur ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `voor ${comment}` : ''}`,
