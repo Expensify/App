@@ -252,7 +252,7 @@ import {
 } from './TransactionUtils';
 import {addTrailingForwardSlash} from './Url';
 import type {AvatarSource} from './UserUtils';
-import {generateAccountID, getDefaultAvatarURL} from './UserUtils';
+import {generateAccountID, getDefaultAvatarURL, getOptimisticAvatarURL} from './UserUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
 
 // Dynamic Import to avoid circular dependency
@@ -2675,7 +2675,8 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxIn
     const participantsList = participants || [];
 
     for (const accountID of participantsList) {
-        const avatarSource = personalDetails?.[accountID]?.avatar ?? FallbackAvatar;
+        const participantPersonalDetails = personalDetails?.[accountID];
+        const avatarSource = getOptimisticAvatarURL(participantPersonalDetails?.login, accountID, participantPersonalDetails?.avatar) ?? FallbackAvatar;
         const displayNameLogin = personalDetails?.[accountID]?.displayName ? personalDetails?.[accountID]?.displayName : personalDetails?.[accountID]?.login;
         participantDetails.push([accountID, displayNameLogin ?? '', avatarSource, personalDetails?.[accountID]?.fallbackIcon ?? '']);
     }
@@ -2998,7 +2999,7 @@ function getParticipantIcon(accountID: number | undefined, personalDetails: Onyx
 
     return {
         id: accountID,
-        source: details?.avatar ?? FallbackAvatar,
+        source: getOptimisticAvatarURL(details?.login, accountID, details?.avatar) ?? FallbackAvatar,
         type: CONST.ICON_TYPE_AVATAR,
         name: displayName,
         fallbackIcon: details?.fallbackIcon,
@@ -3042,7 +3043,7 @@ function getIconsForExpenseRequest(report: OnyxInputOrEntry<Report>, personalDet
     const workspaceIcon = getWorkspaceIcon(report, policy);
     const actorDetails = parentReportAction?.actorAccountID ? personalDetails?.[parentReportAction.actorAccountID] : undefined;
     const memberIcon = {
-        source: actorDetails?.avatar ?? FallbackAvatar,
+        source: getOptimisticAvatarURL(actorDetails?.login, actorDetails?.accountID, actorDetails?.avatar) ?? FallbackAvatar,
         id: parentReportAction?.actorAccountID,
         type: CONST.ICON_TYPE_AVATAR,
         name: actorDetails?.displayName ?? '',
@@ -3064,7 +3065,7 @@ function getIconsForChatThread(report: OnyxInputOrEntry<Report>, personalDetails
     const actorDisplayName = getDisplayNameOrDefault(actorDetails, '', false);
     const actorIcon = {
         id: actorAccountID,
-        source: actorDetails?.avatar ?? FallbackAvatar,
+        source: getOptimisticAvatarURL(actorDetails?.login, actorAccountID, actorDetails?.avatar) ?? FallbackAvatar,
         name: formatPhoneNumber(actorDisplayName),
         type: CONST.ICON_TYPE_AVATAR,
         fallbackIcon: actorDetails?.fallbackIcon,
@@ -3158,7 +3159,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
     const managerDetails = report?.managerID ? personalDetails?.[report.managerID] : undefined;
     const ownerDetails = report?.ownerAccountID ? personalDetails?.[report.ownerAccountID] : undefined;
     const managerIcon = {
-        source: managerDetails?.avatar ?? FallbackAvatar,
+        source: getOptimisticAvatarURL(managerDetails?.login, managerDetails?.accountID, managerDetails?.avatar) ?? FallbackAvatar,
         id: report?.managerID,
         type: CONST.ICON_TYPE_AVATAR,
         name: managerDetails?.displayName ?? '',
@@ -3166,7 +3167,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
     };
     const ownerIcon = {
         id: report?.ownerAccountID,
-        source: ownerDetails?.avatar ?? FallbackAvatar,
+        source: getOptimisticAvatarURL(ownerDetails?.login, ownerDetails?.accountID, ownerDetails?.avatar) ?? FallbackAvatar,
         type: CONST.ICON_TYPE_AVATAR,
         name: ownerDetails?.displayName ?? '',
         fallbackIcon: ownerDetails?.fallbackIcon,
@@ -3251,7 +3252,7 @@ function getIcons(
     if (isEmptyObject(report)) {
         return [
             {
-                source: defaultIcon ?? FallbackAvatar,
+                source: getOptimisticAvatarURL(defaultName, defaultAccountID, defaultIcon) ?? FallbackAvatar,
                 type: CONST.ICON_TYPE_AVATAR,
                 name: defaultName,
                 id: defaultAccountID,
@@ -3320,7 +3321,7 @@ function getDisplayNamesWithTooltips(
             const accountID = Number(user?.accountID);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const displayName = getDisplayNameForParticipant({accountID, shouldUseShortForm, shouldFallbackToHidden, shouldAddCurrentUserPostfix}) || user?.login || '';
-            const avatar = user && 'avatar' in user ? user.avatar : undefined;
+            const avatar = user && 'avatar' in user ? (getOptimisticAvatarURL(user.login, user.accountID, user.avatar) ?? undefined) : undefined;
 
             let pronouns = user?.pronouns ?? undefined;
             if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {

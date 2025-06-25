@@ -14,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getOptimisticAvatarURL} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -49,7 +50,7 @@ function CardListItem<TItem extends ListItem>({
     }, [item, onCheckboxPress, onSelectRow]);
 
     const ownersAvatar = {
-        source: item.cardOwnerPersonalDetails?.avatar ?? FallbackAvatar,
+        source: getOptimisticAvatarURL(item.cardOwnerPersonalDetails?.login, item.cardOwnerPersonalDetails?.accountID, item.cardOwnerPersonalDetails?.avatar) ?? FallbackAvatar,
         id: item.cardOwnerPersonalDetails?.accountID ?? -1,
         type: CONST.ICON_TYPE_AVATAR,
         name: item.cardOwnerPersonalDetails?.displayName ?? '',

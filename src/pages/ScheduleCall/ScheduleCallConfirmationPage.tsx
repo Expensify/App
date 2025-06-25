@@ -21,7 +21,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ScheduleCallParamList} from '@libs/Navigation/types';
-import {getDefaultAvatarURL} from '@libs/UserUtils';
+import {getDefaultAvatarURL, getOptimisticAvatarURL} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -109,7 +109,12 @@ function ScheduleCallConfirmationPage() {
                         icon={[
                             {
                                 id: guideDetails?.accountID,
-                                source: guideDetails?.avatarThumbnail ?? guideDetails?.avatar ?? guideDetails?.fallbackIcon ?? FallbackAvatar,
+                                source:
+                                    getOptimisticAvatarURL(
+                                        guideDetails?.login,
+                                        guideDetails?.accountID,
+                                        guideDetails?.avatarThumbnail ?? guideDetails?.avatar ?? guideDetails?.fallbackIcon,
+                                    ) ?? FallbackAvatar,
                                 name: guideDetails?.login,
                                 type: CONST.ICON_TYPE_AVATAR,
                             },

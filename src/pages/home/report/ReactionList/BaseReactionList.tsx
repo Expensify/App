@@ -7,6 +7,7 @@ import OptionRow from '@components/OptionRow';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {getOptimisticAvatarURL} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -72,7 +73,7 @@ function BaseReactionList({hasUserReacted = false, users, isVisible = false, emo
                 icons: [
                     {
                         id: item.accountID,
-                        source: item.avatar ?? FallbackAvatar,
+                        source: getOptimisticAvatarURL(item.login, item.accountID, item.avatar) ?? FallbackAvatar,
                         name: item.login ?? '',
                         type: CONST.ICON_TYPE_AVATAR,
                     },

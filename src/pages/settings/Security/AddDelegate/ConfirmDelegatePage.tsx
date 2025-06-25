@@ -18,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getOptimisticAvatarURL} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -38,7 +39,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const [shouldShowLoading, setShouldShowLoading] = useState(isValidateCodeActionModalVisible ?? false);
 
     const personalDetails = getPersonalDetailByEmail(login);
-    const avatarIcon = personalDetails?.avatar ?? FallbackAvatar;
+    const avatarIcon = getOptimisticAvatarURL(login, personalDetails?.accountID, personalDetails?.avatar) ?? FallbackAvatar;
     const formattedLogin = formatPhoneNumber(login ?? '');
     const displayName = personalDetails?.displayName ?? formattedLogin;
 

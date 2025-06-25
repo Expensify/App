@@ -36,6 +36,7 @@ import {
     isPolicyExpenseChat,
     isTripRoom as isTripRoomReportUtils,
 } from '@libs/ReportUtils';
+import {getOptimisticAvatarURL} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -121,7 +122,7 @@ function ReportActionItemSingle({
         report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? activePolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
 
     let displayName = getDisplayNameForParticipant({accountID: actorAccountID, personalDetailsData: personalDetails});
-    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
+    const {avatar, login, accountID, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
 
     // Vacation delegate details for submitted action
@@ -141,7 +142,7 @@ function ReportActionItemSingle({
     const isInvoiceReport = isInvoiceReportUtils(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
 
-    let avatarSource = avatar;
+    let avatarSource = getOptimisticAvatarURL(login, accountID, avatar);
     let avatarId: number | string | undefined = actorAccountID;
     if (isWorkspaceActor) {
         displayName = getPolicyName({report, policy});
@@ -150,11 +151,12 @@ function ReportActionItemSingle({
         avatarId = report?.policyID;
     } else if (delegatePersonalDetails) {
         displayName = delegatePersonalDetails?.displayName ?? '';
-        avatarSource = delegatePersonalDetails?.avatar;
+        avatarSource = getOptimisticAvatarURL(delegatePersonalDetails.login, delegatePersonalDetails.accountID, delegatePersonalDetails?.avatar) ?? undefined;
         avatarId = delegatePersonalDetails?.accountID;
     } else if (isReportPreviewAction && isTripRoom) {
         displayName = report?.reportName ?? '';
-        avatarSource = personalDetails?.[ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.avatar;
+        const ownerPersonalDetails = personalDetails?.[ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
+        avatarSource = getOptimisticAvatarURL(ownerPersonalDetails?.login, ownerAccountID, ownerPersonalDetails?.avatar) ?? undefined;
         avatarId = ownerAccountID;
     }
 
@@ -174,7 +176,8 @@ function ReportActionItemSingle({
         } else {
             // The ownerAccountID and actorAccountID can be the same if a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
             const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? actorAccountID : ownerAccountID;
-            const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
+            const secondaryAccountPersonalDetails = personalDetails?.[secondaryAccountId ?? -1];
+            const secondaryUserAvatar = getOptimisticAvatarURL(secondaryAccountPersonalDetails?.login, secondaryAccountId, secondaryAccountPersonalDetails?.avatar) ?? FallbackAvatar;
             const secondaryDisplayName = getDisplayNameForParticipant({accountID: secondaryAccountId});
 
             secondaryAvatar = {
@@ -192,7 +195,8 @@ function ReportActionItemSingle({
         secondaryAvatar = reportIcons.at(avatarIconIndex) ?? {name: '', source: '', type: CONST.ICON_TYPE_AVATAR};
     } else if (isInvoiceReportUtils(iouReport)) {
         const secondaryAccountId = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-        const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
+        const secondaryUserPersonalDetails = personalDetails?.[secondaryAccountId ?? -1];
+        const secondaryUserAvatar = getOptimisticAvatarURL(secondaryUserPersonalDetails?.login, secondaryAccountId, secondaryUserPersonalDetails?.avatar) ?? FallbackAvatar;
         const secondaryDisplayName = getDisplayNameForParticipant({accountID: secondaryAccountId});
 
         secondaryAvatar = {

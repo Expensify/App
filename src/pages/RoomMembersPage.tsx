@@ -35,6 +35,7 @@ import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDe
 import {isPolicyEmployee as isPolicyEmployeeUtils, isUserPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportName, getReportPersonalDetailsParticipants, isChatThread, isDefaultRoom, isPolicyExpenseChat as isPolicyExpenseChatUtils, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import {getOptimisticAvatarURL} from '@libs/UserUtils';
 import {clearAddRoomMemberError, openRoomMembersPage, removeFromRoom} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -267,7 +268,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                 alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [
                     {
-                        source: details.avatar ?? FallbackAvatar,
+                        source: getOptimisticAvatarURL(details.login, accountID, details.avatar) ?? FallbackAvatar,
                         name: details.login ?? '',
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,

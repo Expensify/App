@@ -153,7 +153,7 @@ import type {OptionData} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
 import type {AvatarSource} from './UserUtils';
-import {generateAccountID} from './UserUtils';
+import {generateAccountID, getOptimisticAvatarURL, setOptimisticLoginToAccountID} from './UserUtils';
 
 type SearchOption<T> = OptionData & {
     item: T;
@@ -477,7 +477,7 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntr
 
         return {
             id: accountID,
-            source: userPersonalDetail.avatar ?? FallbackAvatar,
+            source: getOptimisticAvatarURL(login, accountID, userPersonalDetail.avatar) ?? FallbackAvatar,
             type: CONST.ICON_TYPE_AVATAR,
             name: userPersonalDetail.login ?? '',
         };
@@ -544,7 +544,7 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
         icons: [
             {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                source: (participant.avatar || detail?.avatar) ?? FallbackAvatar,
+                source: getOptimisticAvatarURL(login, detail?.accountID, participant.avatar || detail?.avatar) ?? FallbackAvatar,
                 name: login,
                 type: CONST.ICON_TYPE_AVATAR,
                 id: detail?.accountID,
@@ -1443,6 +1443,9 @@ function getUserToInviteOption({searchValue, loginsToExclude = {}, selectedOptio
             login: searchValue,
         },
     };
+
+    setOptimisticLoginToAccountID(searchValue, optimisticAccountID);
+
     const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, {
         showChatPreviewLine,
     });
@@ -1452,16 +1455,7 @@ function getUserToInviteOption({searchValue, loginsToExclude = {}, selectedOptio
     userToInvite.text = userToInvite.text || searchValue;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     userToInvite.alternateText = userToInvite.alternateText || searchValue;
-
-    // If user doesn't exist, use a fallback avatar
-    userToInvite.icons = [
-        {
-            source: FallbackAvatar,
-            id: optimisticAccountID,
-            name: searchValue,
-            type: CONST.ICON_TYPE_AVATAR,
-        },
-    ];
+    userToInvite.avatar = userToInvite.icons?.[0].source;
 
     return userToInvite;
 }
@@ -2004,7 +1998,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
         alternateText: formatPhoneNumber(login || getDisplayNameOrDefault(personalDetail, '', false)),
         icons: [
             {
-                source: personalDetail?.avatar ?? FallbackAvatar,
+                source: getOptimisticAvatarURL(login, personalDetail?.accountID, personalDetail?.avatar) ?? FallbackAvatar,
                 name: personalDetail?.login ?? '',
                 type: CONST.ICON_TYPE_AVATAR,
                 id: personalDetail?.accountID,

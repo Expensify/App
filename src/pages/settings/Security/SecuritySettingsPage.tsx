@@ -35,6 +35,7 @@ import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getOptimisticAvatarURL} from '@libs/UserUtils';
 import type {AnchorPosition} from '@styles/index';
 import {close as modalClose} from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -230,7 +231,7 @@ function SecuritySettingsPage() {
                         description: personalDetail?.displayName ? formattedEmail : '',
                         badgeText: translate('delegate.role', {role}),
                         avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                        icon: personalDetail?.avatar ?? FallbackAvatar,
+                        icon: getOptimisticAvatarURL(email, personalDetail?.accountID, personalDetail?.avatar) ?? FallbackAvatar,
                         iconType: CONST.ICON_TYPE_AVATAR,
                         numberOfLinesDescription: 1,
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -259,7 +260,7 @@ function SecuritySettingsPage() {
                     description: personalDetail?.displayName ? formattedEmail : '',
                     badgeText: translate('delegate.role', {role}),
                     avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    icon: personalDetail?.avatar ?? FallbackAvatar,
+                    icon: getOptimisticAvatarURL(email, personalDetail?.accountID, personalDetail?.avatar) ?? FallbackAvatar,
                     iconType: CONST.ICON_TYPE_AVATAR,
                     numberOfLinesDescription: 1,
                     wrapperStyle: [styles.sectionMenuItemTopDescription],

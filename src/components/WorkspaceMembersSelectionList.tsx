@@ -9,6 +9,7 @@ import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsLi
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
+import {getOptimisticAvatarURL} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {FallbackAvatar} from './Icon/Expensicons';
@@ -63,7 +64,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
                         keyForList: email,
                         isSelected: selectedApprover === email,
                         login: email,
-                        icons: [{source: avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
+                        icons: [{source: getOptimisticAvatarURL(login, accountID, avatar) ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                         rightElement: (
                             <MemberRightIcon
                                 role={employee.role}

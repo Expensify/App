@@ -32,7 +32,7 @@ import {
     isHiddenForCurrentUser as isReportHiddenForCurrentUser,
     navigateToPrivateNotes,
 } from '@libs/ReportUtils';
-import {generateAccountID} from '@libs/UserUtils';
+import {generateAccountID, getOptimisticAvatarURL} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
 import type {ProfileNavigatorParamList} from '@navigation/types';
 import {openExternalLink} from '@userActions/Link';
@@ -191,7 +191,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                     <Avatar
                                         containerStyles={[styles.avatarXLarge]}
                                         imageStyles={[styles.avatarXLarge]}
-                                        source={details?.avatar}
+                                        source={getOptimisticAvatarURL(details?.login, details?.accountID, details?.avatar) ?? undefined}
                                         avatarID={accountID}
                                         type={CONST.ICON_TYPE_AVATAR}
                                         size={CONST.AVATAR_SIZE.X_LARGE}

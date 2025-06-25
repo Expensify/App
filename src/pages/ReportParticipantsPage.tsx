@@ -47,6 +47,7 @@ import {
     isTaskReport,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import {getOptimisticAvatarURL} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -180,7 +181,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                 pendingAction,
                 icons: [
                     {
-                        source: details?.avatar ?? FallbackAvatar,
+                        source: getOptimisticAvatarURL(details?.login, accountID, details?.avatar) ?? FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,

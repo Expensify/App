@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnonymousUser} from '@libs/actions/Session';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
+import {getOptimisticAvatarURL} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -26,7 +27,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     let userDisplayName = ReportUtils.getUserDetailTooltipText(accountID, userDetails.displayName ? userDetails.displayName.trim() : '');
     let userLogin = !isCurrentUserAnonymous && userDetails.login?.trim() && userDetails.login !== userDetails.displayName ? Str.removeSMSDomain(userDetails.login) : '';
 
-    let userAvatar = userDetails.avatar;
+    let userAvatar = getOptimisticAvatarURL(userDetails.login, accountID, userDetails.avatar);
     let userAccountID = accountID;
 
     // We replace the actor's email, name, and avatar with the Copilot manually for now. This will be improved upon when
@@ -36,7 +37,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
         const delegateUserDisplayName = ReportUtils.getUserDetailTooltipText(delegateAccountID);
         userDisplayName = `${delegateUserDisplayName} (${translate('reportAction.asCopilot')} ${userDisplayName})`;
         userLogin = delegateUserDetails?.login ?? '';
-        userAvatar = delegateUserDetails?.avatar;
+        userAvatar = getOptimisticAvatarURL(delegateUserDetails?.login, delegateAccountID, delegateUserDetails?.avatar);
         userAccountID = delegateAccountID;
     }
 
@@ -59,7 +60,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
                 <View style={styles.emptyAvatar}>
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
-                        source={icon?.source ?? userAvatar}
+                        source={icon?.source ?? userAvatar ?? undefined}
                         avatarID={icon?.id ?? userAccountID}
                         type={icon?.type ?? CONST.ICON_TYPE_AVATAR}
                         name={icon?.name ?? userLogin}

@@ -28,6 +28,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {getOptimisticAvatarURL} from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -130,7 +131,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                     <MenuItem
                         label={translate('workspace.moreFeatures.companyCards.cardholder')}
                         title={displayName}
-                        icon={cardholder?.avatar ?? FallbackAvatar}
+                        icon={getOptimisticAvatarURL(cardholder?.login, card?.accountID, cardholder?.avatar) ?? FallbackAvatar}
                         iconType={CONST.ICON_TYPE_AVATAR}
                         description={cardholder?.login}
                         interactive={false}
