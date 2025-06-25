@@ -15,7 +15,7 @@ import type {
 import type {OnyxCollection} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
-import type {SearchColumnType} from '@components/Search/types';
+import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 import type SpendCategorySelectorListItem from '@pages/workspace/categories/SpendCategorySelectorListItem';
@@ -33,8 +33,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type ChatListItem from './ChatListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
-import type ReportListItem from './Search/ReportListItem';
 import type SearchQueryListItem from './Search/SearchQueryListItem';
+import type TransactionGroupListItem from './Search/TransactionGroupListItem';
 import type TransactionListItem from './Search/TransactionListItem';
 import type TableListItem from './TableListItem';
 import type TravelDomainListItem from './TravelDomainListItem';
@@ -325,17 +325,21 @@ type TaskListItemType = ListItem &
         shouldShowYear: boolean;
     };
 
-type ReportListItemType = ListItem &
+type TransactionGroupListItemType = ListItem & {
+    /** List of grouped transactions */
+    transactions: TransactionListItemType[];
+};
+
+type TransactionReportGroupListItemType = TransactionGroupListItemType &
     SearchReport & {
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
 
         /** The personal details of the user paying the request */
         to: SearchPersonalDetails;
-
-        /** List of transactions that belong to this report */
-        transactions: TransactionListItemType[];
     };
+
+type TransactionMemberGroupListItemType = TransactionGroupListItemType & SearchPersonalDetails;
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
@@ -459,7 +463,9 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
 };
 
-type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    groupBy?: SearchGroupBy;
+};
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     queryJSONHash?: number;
@@ -477,7 +483,7 @@ type ValidListItem =
     | typeof TableListItem
     | typeof InviteMemberListItem
     | typeof TransactionListItem
-    | typeof ReportListItem
+    | typeof TransactionGroupListItem
     | typeof ChatListItem
     | typeof SearchQueryListItem
     | typeof SearchRouterItem
@@ -855,7 +861,7 @@ type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem
 
 type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
 
-type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
+type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
 
 export type {
     BaseListItemProps,
@@ -870,8 +876,10 @@ export type {
     RadioListItemProps,
     SingleSelectListItemProps,
     MultiSelectListItemProps,
-    ReportListItemProps,
-    ReportListItemType,
+    TransactionGroupListItemProps,
+    TransactionGroupListItemType,
+    TransactionReportGroupListItemType,
+    TransactionMemberGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,
