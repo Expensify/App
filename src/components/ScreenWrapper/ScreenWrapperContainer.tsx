@@ -1,11 +1,8 @@
-import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
-import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
-import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import {useInputBlurContext} from '@components/InputBlurContext';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import ModalContext from '@components/Modal/ModalContext';
@@ -83,8 +80,10 @@ type ScreenWrapperContainerProps = React.PropsWithChildren<{
     /** Whether to enable edge to edge bottom safe area padding */
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 
-    /** Overrides the focus trap default settings */
-    focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
+    /**
+     * Whether the screen is focused. (Only passed if wrapped in ScreenWrapper)
+     */
+    isFocused?: boolean;
 }>;
 
 function ScreenWrapperContainer({
@@ -107,9 +106,8 @@ function ScreenWrapperContainer({
     enableEdgeToEdgeBottomSafeAreaPadding,
     includePaddingTop = true,
     includeSafeAreaPaddingBottom = false,
-    focusTrapSettings,
+    isFocused = true,
 }: ScreenWrapperContainerProps) {
-    const isFocused = useIsFocused();
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
@@ -201,40 +199,38 @@ function ScreenWrapperContainer({
     }, [setIsBlurred]);
 
     return (
-        <FocusTrapForScreen focusTrapSettings={focusTrapSettings}>
+        <View
+            ref={forwardedRef}
+            style={[styles.flex1, {minHeight}]}
+            // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
+            {...panResponder.panHandlers}
+            testID={testID}
+        >
             <View
-                ref={forwardedRef}
-                style={[styles.flex1, {minHeight}]}
+                fsClass="fs-unmask"
+                style={[style, paddingTopStyle]}
                 // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
-                {...panResponder.panHandlers}
-                testID={testID}
+                {...keyboardDismissPanResponder.panHandlers}
             >
-                <View
-                    fsClass="fs-unmask"
-                    style={[style, paddingTopStyle]}
-                    // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
-                    {...keyboardDismissPanResponder.panHandlers}
+                <KeyboardAvoidingView
+                    style={[styles.w100, styles.h100, !isBlurred ? {maxHeight} : undefined, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
+                    behavior={keyboardAvoidingViewBehavior}
+                    enabled={shouldEnableKeyboardAvoidingView}
+                    // Whether the mobile offline indicator or the content in general
+                    // should be offset by the bottom safe area padding when the keyboard is open.
+                    shouldOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding}
+                    keyboardVerticalOffset={keyboardVerticalOffset}
                 >
-                    <KeyboardAvoidingView
-                        style={[styles.w100, styles.h100, !isBlurred ? {maxHeight} : undefined, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
-                        behavior={keyboardAvoidingViewBehavior}
-                        enabled={shouldEnableKeyboardAvoidingView}
-                        // Whether the mobile offline indicator or the content in general
-                        // should be offset by the bottom safe area padding when the keyboard is open.
-                        shouldOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding}
-                        keyboardVerticalOffset={keyboardVerticalOffset}
+                    <PickerAvoidingView
+                        style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
+                        enabled={shouldEnablePickerAvoiding}
                     >
-                        <PickerAvoidingView
-                            style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
-                            enabled={shouldEnablePickerAvoiding}
-                        >
-                            {children}
-                        </PickerAvoidingView>
-                    </KeyboardAvoidingView>
-                </View>
-                {showBottomContent && <View style={bottomContentStyle}>{bottomContent}</View>}
+                        {children}
+                    </PickerAvoidingView>
+                </KeyboardAvoidingView>
             </View>
-        </FocusTrapForScreen>
+            {showBottomContent && <View style={bottomContentStyle}>{bottomContent}</View>}
+        </View>
     );
 }
 ScreenWrapperContainer.displayName = 'ScreenWrapperContainer';

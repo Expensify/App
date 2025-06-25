@@ -1,5 +1,5 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {UNSTABLE_usePreventRemove, useNavigation} from '@react-navigation/native';
+import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {forwardRef, useContext, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, View, ViewStyle} from 'react-native';
@@ -8,6 +8,8 @@ import {useOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
 import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
+import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
+import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import HeaderGap from '@components/HeaderGap';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import withNavigationFallback from '@components/withNavigationFallback';
@@ -63,6 +65,9 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
         /** Whether to disable the safe area padding for (nested) offline indicators */
         disableOfflineIndicatorSafeAreaPadding?: boolean;
 
+        /** Settings for the focus trap */
+        focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
+
         /** Called when navigated Screen's transition is finished. It does not fire when user exit the page. */
         onEntryTransitionEnd?: () => void;
     };
@@ -86,6 +91,7 @@ function ScreenWrapper(
         enableEdgeToEdgeBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPaddingProp,
         shouldKeyboardOffsetBottomSafeAreaPadding: shouldKeyboardOffsetBottomSafeAreaPaddingProp,
         isOfflineIndicatorTranslucent,
+        focusTrapSettings,
         ...restContainerProps
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
@@ -99,6 +105,7 @@ function ScreenWrapper(
      */
     const navigationFallback = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const navigation = navigationProp ?? navigationFallback;
+    const isFocused = useIsFocused();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -218,45 +225,48 @@ function ScreenWrapper(
     }, []);
 
     return (
-        <ScreenWrapperContainer
-            forwardedRef={ref}
-            style={[styles.flex1, style]}
-            bottomContent={bottomContent}
-            didScreenTransitionEnd={didScreenTransitionEnd}
-            shouldKeyboardOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding || shouldOffsetMobileOfflineIndicator}
-            enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPaddingProp}
-            includePaddingTop={includePaddingTop}
-            includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...restContainerProps}
-        >
-            <HeaderGap styles={headerGapStyles} />
-            {isDevelopment && <CustomDevMenu />}
-            <ScreenWrapperStatusContext.Provider value={statusContextValue}>
-                <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
-                    {
-                        // If props.children is a function, call it to provide the insets to the children.
-                        typeof children === 'function'
-                            ? children({
-                                  insets,
-                                  safeAreaPaddingBottomStyle,
-                                  didScreenTransitionEnd,
-                              })
-                            : children
-                    }
+        <FocusTrapForScreen focusTrapSettings={focusTrapSettings}>
+            <ScreenWrapperContainer
+                forwardedRef={ref}
+                style={[styles.flex1, style]}
+                bottomContent={bottomContent}
+                didScreenTransitionEnd={didScreenTransitionEnd}
+                shouldKeyboardOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding || shouldOffsetMobileOfflineIndicator}
+                enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPaddingProp}
+                includePaddingTop={includePaddingTop}
+                includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
+                isFocused={isFocused}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...restContainerProps}
+            >
+                <HeaderGap styles={headerGapStyles} />
+                {isDevelopment && <CustomDevMenu />}
+                <ScreenWrapperStatusContext.Provider value={statusContextValue}>
+                    <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
+                        {
+                            // If props.children is a function, call it to provide the insets to the children.
+                            typeof children === 'function'
+                                ? children({
+                                      insets,
+                                      safeAreaPaddingBottomStyle,
+                                      didScreenTransitionEnd,
+                                  })
+                                : children
+                        }
 
-                    <ScreenWrapperOfflineIndicators
-                        offlineIndicatorStyle={offlineIndicatorStyle}
-                        shouldShowOfflineIndicator={displaySmallScreenOfflineIndicator}
-                        shouldShowOfflineIndicatorInWideScreen={displayWideScreenOfflineIndicator}
-                        shouldSmallScreenOfflineIndicatorStickToBottom={displayStickyMobileOfflineIndicator}
-                        isOfflineIndicatorTranslucent={isOfflineIndicatorTranslucent}
-                        extraContent={bottomContent}
-                        addBottomSafeAreaPadding={addSmallScreenOfflineIndicatorBottomSafeAreaPadding}
-                    />
-                </ScreenWrapperOfflineIndicatorContext.Provider>
-            </ScreenWrapperStatusContext.Provider>
-        </ScreenWrapperContainer>
+                        <ScreenWrapperOfflineIndicators
+                            offlineIndicatorStyle={offlineIndicatorStyle}
+                            shouldShowOfflineIndicator={displaySmallScreenOfflineIndicator}
+                            shouldShowOfflineIndicatorInWideScreen={displayWideScreenOfflineIndicator}
+                            shouldSmallScreenOfflineIndicatorStickToBottom={displayStickyMobileOfflineIndicator}
+                            isOfflineIndicatorTranslucent={isOfflineIndicatorTranslucent}
+                            extraContent={bottomContent}
+                            addBottomSafeAreaPadding={addSmallScreenOfflineIndicatorBottomSafeAreaPadding}
+                        />
+                    </ScreenWrapperOfflineIndicatorContext.Provider>
+                </ScreenWrapperStatusContext.Provider>
+            </ScreenWrapperContainer>
+        </FocusTrapForScreen>
     );
 }
 ScreenWrapper.displayName = 'ScreenWrapper';
