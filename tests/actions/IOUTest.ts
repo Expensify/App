@@ -58,7 +58,7 @@ import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
@@ -154,7 +154,8 @@ describe('actions/IOU', () => {
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             },
         });
-        TranslationStore.load(CONST.LOCALES.EN);
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
     });
 
     let mockFetch: MockFetch;
@@ -2311,6 +2312,63 @@ describe('actions/IOU', () => {
         });
     });
 
+    describe('saveSplitTransactions', () => {
+        it('should delete the original transaction thread report', async () => {
+            const expenseReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const transaction: Transaction = {
+                amount: 100,
+                currency: 'USD',
+                transactionID: '1',
+                reportID: expenseReport.reportID,
+                created: DateUtils.getDBTime(),
+                merchant: 'test',
+            };
+            const transactionThread: Report = {
+                ...createRandomReport(2),
+            };
+            const iouAction: ReportAction = {
+                ...buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    comment: '',
+                    participants: [],
+                    transactionID: transaction.transactionID,
+                    iouReportID: expenseReport.reportID,
+                }),
+                childReportID: transactionThread.reportID,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                [iouAction.reportActionID]: iouAction,
+            });
+            const draftTransaction: OnyxEntry<Transaction> = {
+                ...transaction,
+                comment: {
+                    originalTransactionID: transaction.transactionID,
+                },
+            };
+            saveSplitTransactions(draftTransaction, 1);
+
+            await waitForBatchedUpdates();
+
+            const originalTransactionThread = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouAction.childReportID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+            expect(originalTransactionThread).toBe(undefined);
+        });
+    });
+
     describe('payMoneyRequestElsewhere', () => {
         it('clears outstanding IOUReport', () => {
             const amount = 10000;
@@ -2414,7 +2472,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch?.pause?.();
                     if (chatReport && iouReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport);
+                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2589,7 +2647,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     if (chatReport && expenseReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, expenseReport);
+                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.VBBA, chatReport, expenseReport, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2718,7 +2776,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     mockFetch?.fail?.();
                     if (chatReport && expenseReport) {
-                        payMoneyRequest('ACH', chatReport, expenseReport);
+                        payMoneyRequest('ACH', chatReport, expenseReport, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -2759,7 +2817,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             // When paying the IOU report
-            payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport);
+            payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, iouReport, undefined);
 
             await waitForBatchedUpdates();
 
@@ -2858,7 +2916,7 @@ describe('actions/IOU', () => {
                 })
                 .then(() => {
                     // When partially paying  an iou report from the chat report via the report preview
-                    payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {reportID: topMostReportID}, iouReport, false);
+                    payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {reportID: topMostReportID}, iouReport, undefined, false);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -2933,7 +2991,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     // When the expense report is paid elsewhere (but really, any payment option would work)
                     if (chatReport && expenseReport) {
-                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport);
+                        payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport, undefined);
                     }
                     return waitForBatchedUpdates();
                 })

@@ -9,7 +9,7 @@ import {translate} from '@src/libs/Localize';
 import asMutable from '@src/types/utils/asMutable';
 import arrayDifference from '@src/utils/arrayDifference';
 
-jest.mock('@src/languages/TranslationStore');
+jest.mock('@src/languages/IntlStore');
 
 const originalTranslations = {
     [CONST.LOCALES.EN]: flattenObject(en),

@@ -137,6 +137,11 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
+type BusinessBankAccountParams = {
+    amount: string;
+    last4Digits: string;
+};
+
 type PhoneErrorRouteParams = {
     phoneErrorMethodsRoute: string;
 };
@@ -201,6 +206,8 @@ type TransferParams = {amount: string};
 
 type InstantSummaryParams = {rate: string; minAmount: string};
 
+type BankAccountLastFourParams = {lastFour: string};
+
 type NotYouParams = {user: string};
 
 type DateShouldBeBeforeParams = {dateString: string};
@@ -222,8 +229,6 @@ type UntilTimeParams = {time: string};
 type StepCounterParams = {step: number; total?: number; text?: string};
 
 type UserIsAlreadyMemberParams = {login: string; name: string};
-
-type GoToRoomParams = {roomName: string};
 
 type NewWorkspaceNameParams = {userName: string; workspaceNumber?: number};
 
@@ -779,6 +784,10 @@ type ContactMethodsRouteParams = {
     contactMethodsRoute: string;
 };
 
+type BusinessTaxIDParams = {
+    country: string;
+};
+
 export type {
     ContactMethodsRouteParams,
     SplitExpenseEditTitleParams,
@@ -873,7 +882,6 @@ export type {
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
-    GoToRoomParams,
     SubmittedToVacationDelegateParams,
     HeldRequestParams,
     InstantSummaryParams,
@@ -1031,6 +1039,7 @@ export type {
     SettlementDateParams,
     PolicyExpenseChatNameParams,
     YourPlanPriceValueParams,
+    BusinessBankAccountParams,
     NeedCategoryForExportToIntegrationParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
@@ -1044,6 +1053,7 @@ export type {
     UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     SubscriptionSettingsSummaryParams,
+    BankAccountLastFourParams,
     ReviewParams,
     CreateExpensesParams,
     CurrencyInputDisabledTextParams,
@@ -1052,5 +1062,6 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    BusinessTaxIDParams,
     PhoneErrorRouteParams,
 };

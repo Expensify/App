@@ -63,8 +63,8 @@ index 37b70ad..7441734 100644
      }
    }
  
--  componentDidUpdate(prevProps: Props) {
-+  componentDidUpdate(prevProps: Props, prevState: State) {
+-  componentDidUpdate(prevProps: VirtualizedListProps) {
++  componentDidUpdate(prevProps: VirtualizedListProps, prevState: State) {
      const {data, extraData, getItemLayout} = this.props;
      if (data !== prevProps.data || extraData !== prevProps.extraData) {
        // clear the viewableIndices cache to also trigger
@@ -83,11 +83,11 @@ index 37b70ad..7441734 100644
 @@ -1225,7 +1232,7 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
      zoomScale: 1,
    };
-   _scrollRef: ?React.ElementRef<any> = null;
+   _scrollRef: ?React.ElementRef<typeof ScrollView> = null;
 -  _sentStartForContentLength = 0;
 +  _sentStartForFirstVisibleItemKey: ?string = null;
    _sentEndForContentLength = 0;
-   _updateCellsToRenderBatcher: Batchinator;
+   _updateCellsToRenderTimeoutID: ?TimeoutID = null;
    _viewabilityTuples: Array<ViewabilityHelperCallbackTuple> = [];
 @@ -1566,16 +1573,16 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
        onStartReached != null &&
