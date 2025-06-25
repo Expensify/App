@@ -179,15 +179,13 @@ function VacationDelegatePage() {
                     return;
                 }
 
-                if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                    Navigation.goBack(ROUTES.SETTINGS_STATUS);
-                    return;
-                }
-
                 if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
                     setIsWarningModalVisible(true);
                     setNewVacationDelegate(option?.login ?? '');
+                    return;
                 }
+
+                Navigation.goBack(ROUTES.SETTINGS_STATUS);
             });
         },
         [currentUserLogin, vacationDelegate],
