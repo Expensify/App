@@ -17,7 +17,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {isMobileSafari} from '@libs/Browser';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import getPlatform from '@libs/getPlatform';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
@@ -368,13 +367,7 @@ function BaseModal(
                             >
                                 <View
                                     onLayout={onViewLayout}
-                                    style={[
-                                        styles.defaultModalContainer,
-                                        modalContainerStyle,
-                                        modalPaddingStyles,
-                                        !isVisible && styles.pointerEventsNone,
-                                        isMobileSafari() && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && {maxHeight: `${windowHeight}px`},
-                                    ]}
+                                    style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
                                     ref={ref}
                                 >
                                     <ColorSchemeWrapper>{children}</ColorSchemeWrapper>

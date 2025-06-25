@@ -48,9 +48,6 @@ export default {
     mh85vh: {
         maxHeight: '85vh',
     },
-    mh100dvh: {
-        maxHeight: '100dvh',
-    },
     mnh100: {
         minHeight: '100%',
     },

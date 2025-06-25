@@ -1,4 +1,4 @@
-import type {MutableRefObject, ReactElement} from 'react';
+import type {ReactElement, RefObject} from 'react';
 import React, {createContext, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {KeyboardEvents, useKeyboardHandler} from 'react-native-keyboard-controller';
 import {runOnJS} from 'react-native-reanimated';
@@ -20,7 +20,7 @@ type KeyboardStateContextValue = {
     keyboardActiveHeight: number;
 
     /** Ref to check if the keyboard is animating */
-    isKeyboardAnimatingRef: MutableRefObject<boolean>;
+    isKeyboardAnimatingRef: RefObject<boolean>;
 };
 
 const KeyboardStateContext = createContext<KeyboardStateContextValue>({

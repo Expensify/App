@@ -1,5 +1,6 @@
 import type {ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
+import {isMobileSafari} from '@libs/Browser';
 import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -225,6 +226,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     justifyContent: 'center',
                     overflow: 'hidden',
                     boxShadow: theme.shadow,
+                    ...(isMobileSafari() ? {maxHeight: `${windowDimensions.windowHeight}px`} : {}),
                 };
 
                 if (shouldUseModalPaddingStyle) {
