@@ -131,6 +131,10 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             return [newSections, ''];
         }
 
+        const fiveRecents = [...chatOptions.recentReports].slice(0, 5);
+        const restOfRecents = [...chatOptions.recentReports].slice(5);
+        const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
+
         const formatResults = formatSectionsFromSearchTerm(
             cleanSearchTerm,
             attendees.map((attendee) => ({
@@ -149,14 +153,14 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
         newSections.push({
             title: translate('common.recents'),
-            data: chatOptions.recentReports,
-            shouldShow: chatOptions.recentReports.length > 0,
+            data: fiveRecents,
+            shouldShow: fiveRecents.length > 0,
         });
 
         newSections.push({
             title: translate('common.contacts'),
-            data: chatOptions.personalDetails,
-            shouldShow: chatOptions.personalDetails.length > 0,
+            data: contactsWithRestOfRecents,
+            shouldShow: contactsWithRestOfRecents.length > 0,
         });
 
         if (
