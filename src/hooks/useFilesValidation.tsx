@@ -4,12 +4,13 @@ import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
+import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import {getFileValidationErrorText, resizeImageIfNeeded, isHeicOrHeifImage, splitExtensionFromFileName, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
-import CONST from '@src/CONST';
+import {getFileValidationErrorText, isHeicOrHeifImage, resizeImageIfNeeded, splitExtensionFromFileName, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
+import CONST from '@src/CONST';
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
 
@@ -24,12 +25,12 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
     const [fileError, setFileError] = useState<ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null>(null);
     const [pdfFilesToRender, setPdfFilesToRender] = useState<FileObject[]>([]);
-    const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
     const [validFilesToUpload, setValidFilesToUpload] = useState([] as FileObject[]);
     const [isValidatingMultipleFiles, setIsValidatingMultipleFiles] = useState(false);
     const [invalidFileExtension, setInvalidFileExtension] = useState('');
     const [errorQueue, setErrorQueue] = useState<ErrorObject[]>([]);
     const [currentErrorIndex, setCurrentErrorIndex] = useState(0);
+    const {setIsLoaderVisible} = useFullScreenLoader();
 
     const validatedPDFs = useRef<FileObject[]>([]);
     const validFiles = useRef<FileObject[]>([]);
@@ -39,7 +40,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
     const resetValidationState = useCallback(() => {
         setIsErrorModalVisible(false);
         setPdfFilesToRender([]);
-        setIsLoadingReceipt(false);
+        setIsLoaderVisible(false);
         setIsValidatingMultipleFiles(false);
         setFileError(null);
         setValidFilesToUpload([]);
@@ -50,7 +51,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         validFiles.current = [];
         filesToValidate.current = [];
         collectedErrors.current = [];
-    }, []);
+    }, [setIsLoaderVisible]);
 
     const hideModalAndReset = useCallback(() => {
         setIsErrorModalVisible(false);
@@ -109,9 +110,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         }
 
         if (collectedErrors.current.length > 0) {
-            const uniqueErrors = Array.from(
-                new Set(collectedErrors.current.map(error => JSON.stringify(error)))
-            ).map(errorStr => JSON.parse(errorStr) as ErrorObject);
+            const uniqueErrors = Array.from(new Set(collectedErrors.current.map((error) => JSON.stringify(error)))).map((errorStr) => JSON.parse(errorStr) as ErrorObject);
             setErrorQueue(uniqueErrors);
             setCurrentErrorIndex(0);
             const firstError = uniqueErrors.at(0);
@@ -140,28 +139,28 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
 
                 // Check if we need to convert images
                 if (validImages.some((file) => isHeicOrHeifImage(file))) {
-                    setIsLoadingReceipt(true);
+                    setIsLoaderVisible(true);
 
                     return Promise.all(validImages.map((file) => convertHeicImageToJpegPromise(file))).then((convertedImages) => {
                         // Check if we need to resize images
                         if (convertedImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
                             return Promise.all(convertedImages.map((file) => resizeImageIfNeeded(file))).then((processedImages) => {
-                                setIsLoadingReceipt(false);
+                                setIsLoaderVisible(false);
                                 return Promise.resolve({processedImages, pdfsToLoad});
                             });
                         }
 
                         // No resizing needed, just return the converted images
-                        setIsLoadingReceipt(false);
+                        setIsLoaderVisible(false);
                         return Promise.resolve({processedImages: convertedImages, pdfsToLoad});
                     });
                 }
 
                 // No conversion needed, but check if we need to resize images
                 if (validImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
-                    setIsLoadingReceipt(true);
+                    setIsLoaderVisible(true);
                     return Promise.all(validImages.map((file) => resizeImageIfNeeded(file))).then((processedImages) => {
-                        setIsLoadingReceipt(false);
+                        setIsLoaderVisible(false);
                         return Promise.resolve({processedImages, pdfsToLoad});
                     });
                 }
@@ -179,9 +178,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                     }
 
                     if (collectedErrors.current.length > 0) {
-                        const uniqueErrors = Array.from(
-                            new Set(collectedErrors.current.map(error => JSON.stringify(error)))
-                        ).map(errorStr => JSON.parse(errorStr) as ErrorObject);
+                        const uniqueErrors = Array.from(new Set(collectedErrors.current.map((error) => JSON.stringify(error)))).map((errorStr) => JSON.parse(errorStr) as ErrorObject);
                         setErrorQueue(uniqueErrors);
                         setCurrentErrorIndex(0);
                         const firstError = uniqueErrors.at(0);
@@ -289,7 +286,6 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
     );
 
     return {
-        isLoadingReceipt,
         PDFValidationComponent,
         validateFiles,
         ErrorModal,

@@ -411,7 +411,7 @@ function SearchPage({route}: SearchPageProps) {
         navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
     };
 
-    const {validateFiles, isLoadingReceipt, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
 
     const initScanRequest = (e: DragEvent) => {
         const files = Array.from(e?.dataTransfer?.files ?? []);
@@ -478,7 +478,6 @@ function SearchPage({route}: SearchPageProps) {
     if (shouldUseNarrowLayout) {
         return (
             <>
-                {isLoadingReceipt && <FullScreenLoadingIndicator />}
                 <DragAndDropProvider isDisabled={!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
                     {PDFValidationComponent}
                     <SearchPageNarrow
@@ -556,7 +555,6 @@ function SearchPage({route}: SearchPageProps) {
                             shouldShowOfflineIndicatorInWideScreen={!!shouldShowOfflineIndicator}
                             offlineIndicatorStyle={styles.mtAuto}
                         >
-                            {isLoadingReceipt && <FullScreenLoadingIndicator />}
                             <DragAndDropProvider isDisabled={!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
                                 {PDFValidationComponent}
                                 <SearchPageHeader
