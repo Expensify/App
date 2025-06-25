@@ -18,7 +18,6 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {formatCardExpiration, getDomainCards, maskCard} from '@libs/CardUtils';
@@ -74,7 +73,6 @@ function ExpensifyCardPage({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const [currentCardID, setCurrentCardID] = useState<number>(-1);
     const isTravelCard = cardList?.[cardID]?.nameValuePairs?.isTravelCard;
@@ -359,7 +357,7 @@ function ExpensifyCardPage({
                         />
                     </>
                 )}
-                {!!isBetaEnabled(CONST.BETAS.WALLET) && cardToAdd !== undefined && (
+                {cardToAdd !== undefined && (
                     <AddToWalletButton
                         card={cardToAdd}
                         buttonStyle={styles.alignSelfCenter}
