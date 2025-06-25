@@ -19,8 +19,8 @@ describe('ChatGPTTranslator.performTranslation', () => {
     const invalidTranslation = '[it] Hello name!'; // missing ${...}
 
     const originalHTML = '<img src="photo.jpg" alt="A dog" class="photo">';
-    const validHTMLTranslation = '<img src="photo.jpg" alt="Un chien" class="photo">';
-    const invalidHTMLTranslation = '<img src="different.jpg" alt="Un chien" class="photo">';
+    const validHTMLTranslation = '[it] <img src="photo.jpg" alt="Un chien" class="photo">';
+    const invalidHTMLTranslation = '[it] <img src="different.jpg" alt="Un chien" class="photo">'; // different src
 
     let translator: ChatGPTTranslator;
 
