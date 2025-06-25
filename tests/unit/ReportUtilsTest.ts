@@ -33,6 +33,7 @@ import {
     getGroupChatName,
     getIconsForParticipants,
     getInvoiceChatByParticipants,
+    getMoneyRequestReportName,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
     getParticipantsList,
@@ -3229,6 +3230,145 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
             expect(isReportOutstanding(report, policy.id)).toBe(false);
+        });
+    });
+
+    describe('getMoneyRequestReportName', () => {
+        const mockPolicy = createRandomPolicy(1);
+
+        it('should return report name when it exists and is expense report with non-IOU name', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                reportName: 'Custom Expense Report',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
+            };
+
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).toBe('Custom Expense Report');
+        });
+
+        it('should not return report name when it equals IOU (case insensitive)', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                reportName: 'iou',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
+            };
+
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).not.toBe('iou');
+            expect(result).toContain('$1.00'); // Should fall through to default formatting
+        });
+
+        it('should not return report name when it equals IOU in uppercase', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                reportName: 'IOU',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
+            };
+
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).not.toBe('IOU');
+            expect(result).toContain('$1.00'); // Should fall through to default formatting
+        });
+
+        it('should not return report name when it equals IOU in mixed case', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                reportName: 'IoU',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
+            };
+
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).not.toBe('IoU');
+            expect(result).toContain('$1.00'); // Should fall through to default formatting
+        });
+
+        it('should not return report name when report is not an expense report', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                reportName: 'Custom Report Name',
+                type: CONST.REPORT.TYPE.IOU,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
+            };
+
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).not.toBe('Custom Report Name');
+            expect(result).toContain('$1.00'); // Should fall through to default formatting
+        });
+
+        it('should not return report name when reportName is empty', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                reportName: '',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
+            };
+
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).not.toBe('');
+            expect(result).toContain('$1.00'); // Should fall through to default formatting
+        });
+
+        it('should not return report name when reportName is undefined', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
+            };
+            delete report.reportName;
+
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).toContain('$1.00'); // Should fall through to default formatting
+        });
+        it('should not return report name when report is null', () => {
+            const result = getMoneyRequestReportName({report: null as unknown as Report, policy: mockPolicy});
+            expect(result).toContain('$0.00'); // Should fall through to default formatting
+        });
+
+        it('should return report name for valid expense report with name containing "iou" as substring', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                reportName: 'Previous IOU Report',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
+            };
+
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).toBe('Previous IOU Report');
+        });
+
+        it('should return report name for valid expense report with special characters', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                reportName: 'Q1 2024 - Travel & Meals',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                managerID: currentUserAccountID,
+            };
+
+            const result = getMoneyRequestReportName({report, policy: mockPolicy});
+            expect(result).toBe('Q1 2024 - Travel & Meals');
         });
     });
 
