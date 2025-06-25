@@ -54,7 +54,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
     const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (_transactions) => getUnreportedTransactions(_transactions),
-        initialValue: [],
         canBeMissing: true,
     });
 
