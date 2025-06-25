@@ -1,6 +1,6 @@
 # `react-native` patches
 
-### [react-native+0.77.1+026+textinput-prevent-focus-on-first-responder.patch](react-native+0.77.1+026+textinput-prevent-focus-on-first-responder.patch)
+### [react-native+0.79.2+025+textinput-prevent-focus-on-first-responder.patch](react-native+0.79.2+025+textinput-prevent-focus-on-first-responder.patch)
 
 - Reason: On iOS, a text input automatically becomes the "first responder" in UIKit's "UIResponder" chain. Once a text input becomes the first responder, it will be automatically focused. (This also causes the keyboard ot open)
   - This is not handled by React or React Native, but is rather an native iOS/UIKit behaviour. This patch adds additional an additional `TextInput` prop (`preventFocusOnFirstResponder`) and a ref method (`preventFocusOnFirstResponderOnce`) to bypass the focus on first responder.
