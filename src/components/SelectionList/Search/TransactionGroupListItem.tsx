@@ -6,7 +6,6 @@ import type {SearchGroupBy} from '@components/Search/types';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {
     ListItem,
-    TransactionCardGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListItemType,
     TransactionListItemType,
@@ -136,7 +135,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ),
             [CONST.SEARCH.GROUP_BY.CARDS]: (
                 // s77rt CardListItemHeader
-                <></>
+                <View />
             ),
         };
 
