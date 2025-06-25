@@ -5,10 +5,6 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
-type ReportWithIDRouteParams = {
-    reportWithIDRoute: string;
-};
-
 type AddressLineParams = {
     lineNumber: number;
 };
@@ -73,6 +69,11 @@ type BeginningOfChatHistoryDomainRoomPartOneParams = {
 
 type BeginningOfChatHistoryAdminRoomPartOneParams = {
     workspaceName: string;
+};
+
+type AdminsChatReportRouteParams = {
+    adminsChatReportRoute: string;
+    pricingURL: string;
 };
 
 type BeginningOfChatHistoryAnnounceRoomPartOneParams = {
@@ -789,7 +790,6 @@ type BusinessTaxIDParams = {
 };
 
 export type {
-    ReportWithIDRouteParams,
     ContactMethodsRouteParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
@@ -903,6 +903,7 @@ export type {
     PaidElsewhereParams,
     PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
+    AdminsChatReportRouteParams,
     PaySomeoneParams,
     PayerOwesAmountParams,
     DuplicateTransactionParams,

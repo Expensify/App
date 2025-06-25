@@ -78,7 +78,8 @@ function SubscriptionSettings() {
         upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
     });
     const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins.toString() : undefined;
-    const reportWithIDRoute = `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID)}`;
+    const adminsChatReportRoute = `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID)}`;
+    const pricingURL = `${CONST.PRICING}`;
 
     const onOptionSelected = (option: SubscriptionType) => {
         if (privateSubscription?.type !== option && isActingAsDelegate) {
@@ -179,7 +180,7 @@ function SubscriptionSettings() {
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
                 <Text style={[styles.textSupporting, styles.mb5]}>
-                    <RenderHTML html={`<muted-text>${translate('subscription.subscriptionSettings.learnMore', {reportWithIDRoute})}</muted-text>`} />
+                    <RenderHTML html={translate('subscription.subscriptionSettings.learnMore', {adminsChatReportRoute, pricingURL})} />
                 </Text>
 
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>

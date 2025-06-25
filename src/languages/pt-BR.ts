@@ -24,6 +24,7 @@ import type {
     AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
     AdminCanceledRequestParams,
+    AdminsChatReportRouteParams,
     AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -168,7 +169,6 @@ import type {
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     ReportPolicyNameParams,
-    ReportWithIDRouteParams,
     RequestAmountParams,
     RequestCountParams,
     RequestedAmountMessageParams,
@@ -6529,8 +6529,8 @@ const translations = {
             whatsMainReason: 'Qual é o principal motivo para você desativar a renovação automática?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Renova em ${date}.`,
             pricingConfiguration: 'O preço depende da configuração. Para o menor preço, escolha uma assinatura anual e obtenha o Expensify Card.',
-            learnMore: ({reportWithIDRoute}: ReportWithIDRouteParams) =>
-                `Saiba mais em nosso  <a href=${CONST.PRICING}>página de preços</a>  ou converse com nossa equipe no seu  <a href="${reportWithIDRoute}">#admins room.</a>`,
+            learnMore: ({adminsChatReportRoute, pricingURL}: AdminsChatReportRouteParams) =>
+                `<muted-text>Saiba mais em nosso  <a href="${pricingURL}">página de preços</a>  ou converse com nossa equipe no seu  <a href="${adminsChatReportRoute}">#admins room.</a></muted-text>`,
             estimatedPrice: 'Preço estimado',
             changesBasedOn: 'Isso muda com base no uso do seu Expensify Card e nas opções de assinatura abaixo.',
         },

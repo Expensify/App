@@ -12,6 +12,7 @@ import type {
     AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
     AdminCanceledRequestParams,
+    AdminsChatReportRouteParams,
     AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -156,7 +157,6 @@ import type {
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     ReportPolicyNameParams,
-    ReportWithIDRouteParams,
     RequestAmountParams,
     RequestCountParams,
     RequestedAmountMessageParams,
@@ -6491,8 +6491,8 @@ const translations = {
             whatsMainReason: "What's the main reason you're disabling auto-renew?",
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Renews on ${date}.`,
             pricingConfiguration: 'Pricing depends on configuration. For the lowest price, choose an annual subscription and get the Expensify Card.',
-            learnMore: ({reportWithIDRoute}: ReportWithIDRouteParams) =>
-                `Learn more on our <a href=${CONST.PRICING}>pricing page</a> or chat with our team in your <a href="${reportWithIDRoute}">#admins room</a>.`,
+            learnMore: ({adminsChatReportRoute, pricingURL}: AdminsChatReportRouteParams) =>
+                `<muted-text>Learn more on our <a href="${pricingURL}">pricing page</a> or chat with our team in your <a href="${adminsChatReportRoute}">#admins room</a>.</muted-text>`,
             estimatedPrice: 'Estimated price',
             changesBasedOn: 'This changes based on your Expensify Card usage and the subscription options below.',
         },

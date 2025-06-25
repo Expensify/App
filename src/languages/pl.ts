@@ -24,6 +24,7 @@ import type {
     AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
     AdminCanceledRequestParams,
+    AdminsChatReportRouteParams,
     AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -168,7 +169,6 @@ import type {
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     ReportPolicyNameParams,
-    ReportWithIDRouteParams,
     RequestAmountParams,
     RequestCountParams,
     RequestedAmountMessageParams,
@@ -6517,8 +6517,8 @@ const translations = {
             whatsMainReason: 'Jaki jest główny powód, dla którego wyłączasz automatyczne odnawianie?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Odnawia się ${date}.`,
             pricingConfiguration: 'Ceny zależą od konfiguracji. Aby uzyskać najniższą cenę, wybierz subskrypcję roczną i zdobądź kartę Expensify.',
-            learnMore: ({reportWithIDRoute}: ReportWithIDRouteParams) =>
-                `Dowiedz się więcej na naszej  <a href=${CONST.PRICING}>strona cenowa</a>  lub porozmawiaj z naszym zespołem w swoim języku  <a href="${reportWithIDRoute}">#admins room.</a>`,
+            learnMore: ({adminsChatReportRoute, pricingURL}: AdminsChatReportRouteParams) =>
+                `<muted-text>Dowiedz się więcej na naszej  <a href="${pricingURL}">strona cenowa</a>  lub porozmawiaj z naszym zespołem w swoim języku  <a href="${adminsChatReportRoute}">#admins room.</a></muted-text>`,
             estimatedPrice: 'Szacowana cena',
             changesBasedOn: 'To zmienia się w zależności od korzystania z Karty Expensify i poniższych opcji subskrypcji.',
         },

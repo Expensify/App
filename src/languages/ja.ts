@@ -24,6 +24,7 @@ import type {
     AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
     AdminCanceledRequestParams,
+    AdminsChatReportRouteParams,
     AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -168,7 +169,6 @@ import type {
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     ReportPolicyNameParams,
-    ReportWithIDRouteParams,
     RequestAmountParams,
     RequestCountParams,
     RequestedAmountMessageParams,
@@ -6486,8 +6486,8 @@ const translations = {
             whatsMainReason: '自動更新を無効にする主な理由は何ですか？',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `${date}に更新されます。`,
             pricingConfiguration: '価格は構成によって異なります。最も安い価格を得るには、年次サブスクリプションを選択し、Expensifyカードを取得してください。',
-            learnMore: ({reportWithIDRoute}: ReportWithIDRouteParams) =>
-                `詳細については、こちらをご覧ください  <a href=${CONST.PRICING}>'価格ページ</a>  または、お使いの言語で私たちのチームとチャットしてください  <a href="${reportWithIDRoute}">#admins room.</a>`,
+            learnMore: ({adminsChatReportRoute, pricingURL}: AdminsChatReportRouteParams) =>
+                `<muted-text>詳細については、こちらをご覧ください  <a href="${pricingURL}">'価格ページ</a>  または、お使いの言語で私たちのチームとチャットしてください  <a href="${adminsChatReportRoute}">#admins room.</a></muted-text>`,
             estimatedPrice: '見積価格',
             changesBasedOn: 'これは、Expensifyカードの使用状況と以下のサブスクリプションオプションに基づいて変更されます。',
         },

@@ -11,6 +11,7 @@ import type {
     AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
     AdminCanceledRequestParams,
+    AdminsChatReportRouteParams,
     AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -155,7 +156,6 @@ import type {
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     ReportPolicyNameParams,
-    ReportWithIDRouteParams,
     RequestAmountParams,
     RequestCountParams,
     RequestedAmountMessageParams,
@@ -7013,8 +7013,8 @@ const translations = {
             whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Se renovará el ${date}.`,
             pricingConfiguration: 'El precio depende de la configuración. Para obtener el precio más bajo, elige una suscripción anual y obtén la Tarjeta Expensify.',
-            learnMore: ({reportWithIDRoute}: ReportWithIDRouteParams) =>
-                `Obtén más información en nuestra <a href=${CONST.PRICING}>página de precios</a>  o chatea con nuestro equipo en tu <a href="${reportWithIDRoute}">sala #admins.</a>.`,
+            learnMore: ({adminsChatReportRoute, pricingURL}: AdminsChatReportRouteParams) =>
+                `<muted-text>Obtén más información en nuestra <a href="${pricingURL}">página de precios</a>  o chatea con nuestro equipo en tu <a href="${adminsChatReportRoute}">sala #admins.</a>.</muted-text>`,
             estimatedPrice: 'Precio estimado',
             changesBasedOn: 'Esto varía según el uso de tu Tarjeta Expensify y las opciones de suscripción que elijas a continuación.',
         },
