@@ -23,7 +23,6 @@ import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
-import {clearIsInApprovalWorkflowInviteFlow} from '@libs/actions/Workflow';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -65,7 +64,9 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     });
     const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [isInApprovalWorkflowInviteFlow] = useOnyx(ONYXKEYS.IS_IN_APPROVAL_WORKFLOW_INVITE_FLOW, {canBeMissing: true});
+
+    // Check if we're coming from approval workflow based on backTo route
+    const isFromApprovalWorkflow = route.params.backTo?.includes('workflows/approvals/expenses-from');
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
 
     const welcomeNoteSubject = useMemo(
@@ -108,9 +109,8 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
 
         // Check if we're coming from approval workflow
-        if (isInApprovalWorkflowInviteFlow) {
-            // Clear the flag and continue to the approver page
-            clearIsInApprovalWorkflowInviteFlow();
+        if (isFromApprovalWorkflow) {
+            // Continue to the approver page
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
             return;
         }
@@ -152,12 +152,8 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     useEffect(() => {
         return () => {
             clearWorkspaceInviteRoleDraft(route.params.policyID);
-            // Clear approval workflow invite flag when component unmounts
-            if (isInApprovalWorkflowInviteFlow) {
-                clearIsInApprovalWorkflowInviteFlow();
-            }
         };
-    }, [route.params.policyID, isInApprovalWorkflowInviteFlow]);
+    }, [route.params.policyID]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -177,13 +173,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => {
-                        if (isInApprovalWorkflowInviteFlow) {
-                            // Clear flag and go back to approval workflow expenses from page
-                            clearIsInApprovalWorkflowInviteFlow();
-                            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
-                        } else {
-                            Navigation.goBack(route.params.backTo);
-                        }
+                        Navigation.goBack(route.params.backTo);
                     }}
                 />
                 <FormProvider
