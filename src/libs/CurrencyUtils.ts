@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Currency} from '@src/types/onyx';
@@ -50,7 +50,7 @@ function getCurrencyUnit(currency: string = CONST.CURRENCY.USD): number {
  * Get localized currency symbol for currency(ISO 4217) Code
  */
 function getLocalizedCurrencySymbol(currencyCode: string): string | undefined {
-    const parts = formatToParts(TranslationStore.getCurrentLocale(), 0, {
+    const parts = formatToParts(IntlStore.getCurrentLocale(), 0, {
         style: 'currency',
         currency: currencyCode,
     });
@@ -114,7 +114,7 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
     if (!currency) {
         currencyWithFallback = CONST.CURRENCY.USD;
     }
-    return format(TranslationStore.getCurrentLocale(), convertedAmount, {
+    return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
         currency: currencyWithFallback,
 
@@ -136,7 +136,7 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
 function convertToShortDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
 
-    return format(TranslationStore.getCurrentLocale(), convertedAmount, {
+    return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
         currency,
 
@@ -154,7 +154,7 @@ function convertToShortDisplayString(amountInCents = 0, currency: string = CONST
  */
 function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRENCY.USD): string {
     const convertedAmount = amount / 100.0;
-    return format(TranslationStore.getCurrentLocale(), convertedAmount, {
+    return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
         currency,
         minimumFractionDigits: CONST.MIN_TAX_RATE_DECIMAL_PLACES,
@@ -167,7 +167,7 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
  */
 function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD) {
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
-    return formatToParts(TranslationStore.getCurrentLocale(), convertedAmount, {
+    return formatToParts(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
         currency,
 

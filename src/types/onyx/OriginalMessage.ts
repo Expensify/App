@@ -74,6 +74,12 @@ type OriginalMessageIOU = {
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
+
+    /** Where the invoice is paid with business account or not */
+    payAsBusiness?: boolean;
+
+    /** The bank account id */
+    bankAccountID?: number;
 };
 
 /** Names of moderation decisions */
