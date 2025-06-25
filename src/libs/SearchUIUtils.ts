@@ -517,6 +517,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
+
         const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
         const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const shouldShowBlankTo = !report || isOpenExpenseReport(report);
@@ -532,6 +533,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
         const transactionSection: TransactionListItemType = {
+            ...transactionItem,
             action: getAction(data, allViolations, key),
             from,
             to,
