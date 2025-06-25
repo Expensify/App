@@ -52,7 +52,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
     const onEmojiSelected = useRef<OnEmojiSelected>(() => {});
     const activeEmoji = useRef<string | undefined>(undefined);
     const emojiSearchInput = useRef<BaseTextInputRef | null>(null);
-    const composerToRefocusOnClose = useRef<ComposerType>();
+    const composerToRefocusOnClose = useRef<ComposerType | undefined>(undefined);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
