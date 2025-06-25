@@ -134,15 +134,12 @@ const Pagination: Middleware = (requestResponse, request) => {
             value: mergedPages,
         });
 
-        const oldestUnreadReportActionID = 'oldestUnreadReportActionID' in response && (response.oldestUnreadReportActionID as string);
-
-        if (oldestUnreadReportActionID) {
-            response.onyxData.push({
-                key: `${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${resourceID}`,
-                onyxMethod: Onyx.METHOD.SET,
-                value: oldestUnreadReportActionID,
-            });
-        }
+        const oldestUnreadReportActionID = 'oldestUnreadReportActionID' in response && ((response.oldestUnreadReportActionID as string) ?? '-1');
+        response.onyxData.push({
+            key: `${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${resourceID}`,
+            onyxMethod: Onyx.METHOD.SET,
+            value: oldestUnreadReportActionID,
+        });
 
         return Promise.resolve(response);
     });

@@ -5,6 +5,7 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import type {FlatList, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -269,14 +270,24 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
-    const [oldestUnreadReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${reportID}`, {canBeMissing: true});
+    const [oldestUnreadReportActionID, setOldestUnreadReportActionID] = useState<string>();
+    const [oldestUnreadReportActionIDValueFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${reportID}`, {canBeMissing: true});
     const {
         reportActions: unfilteredReportActions,
         linkedAction,
         sortedAllReportActions,
         hasNewerActions,
         hasOlderActions,
-    } = usePaginatedReportActions(reportID, reportActionIDFromRoute ?? oldestUnreadReportActionID);
+    } = usePaginatedReportActions(reportID, reportActionIDFromRoute ?? (oldestUnreadReportActionID === '-1' ? undefined : oldestUnreadReportActionID));
+
+    useEffect(() => {
+        if (!!oldestUnreadReportActionID || !oldestUnreadReportActionIDValueFromOnyx) {
+            return;
+        }
+
+        setOldestUnreadReportActionID(oldestUnreadReportActionIDValueFromOnyx);
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_OLDEST_UNREAD_REPORT_ACTION_ID}${reportID}`, null);
+    }, [oldestUnreadReportActionID, oldestUnreadReportActionIDValueFromOnyx, reportID]);
 
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`, {canBeMissing: true});
@@ -777,7 +788,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // only one we will have in cache.
     const isInitiallyLoadingReport = isUnread(report, transactionThreadReport) && (reportMetadata.isLoadingInitialReportActions ?? false) && reportActions.length <= 1;
     const isInitiallyLoadingReportWhileOffline = isUnread(report, transactionThreadReport) && (reportMetadata.isLoadingInitialReportActions ?? false) && isOffline;
-    const isReportReady = !isInitiallyLoadingReport && !isInitiallyLoadingReportWhileOffline;
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
