@@ -12,7 +12,7 @@ import HttpUtils from '@libs/HttpUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
-import {findSelfDMReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {getRequestType, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
@@ -38,6 +38,7 @@ import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNo
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import { setTransactionReport } from '@libs/actions/Transaction';
 
 type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
@@ -198,7 +199,7 @@ function IOURequestStepParticipants({
             }
 
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
-            selectedReportID.current = firstParticipantReportID ?? reportID;
+            selectedReportID.current = firstParticipantReportID ?? generateReportID();
         },
         [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense],
     );
@@ -213,9 +214,13 @@ function IOURequestStepParticipants({
             setSplitShares(initialTransaction, initialTransaction.amount, initialTransaction.currency, participantAccountIDs);
         }
 
+        const newReportID = selectedReportID.current;
         transactions.forEach((transaction) => {
             setMoneyRequestTag(transaction.transactionID, '');
             setMoneyRequestCategory(transaction.transactionID, '');
+            if (participants?.at(0)?.reportID !== newReportID) {
+                setTransactionReport(transaction.transactionID, newReportID, true);   
+            }
         });
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
             const {expenseChatReportID, policyID, policyName} = createDraftWorkspace();
@@ -245,7 +250,7 @@ function IOURequestStepParticipants({
             action,
             iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
             initialTransactionID,
-            selectedReportID.current || reportID,
+            newReportID,
         );
 
         const route = isCategorizing
