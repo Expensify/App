@@ -1,5 +1,5 @@
-import type {ReactNode} from 'react';
-import React, {useMemo, useRef, useState} from 'react';
+import type { ReactNode} from 'react';
+import React, {useMemo, useRef, useState, useCallback} from 'react';
 import type {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -72,11 +72,11 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, onPr
      * Toggle the overlay between open & closed, and re-calculate the
      * position of the trigger
      */
-    const toggleOverlay = () => {
+    const toggleOverlay = useCallback(() => {
         if (onPress && !isOverlayVisible) {
             onPress();
         }
-        
+
         setIsOverlayVisible((previousValue) => {
             if (!previousValue && willAlertModalBecomeVisible) {
                 return false;
@@ -84,7 +84,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, onPr
 
             return !previousValue;
         });
-    };
+    }, [isOverlayVisible, onPress, willAlertModalBecomeVisible]);
 
     /**
      * When no items are selected, render the label, otherwise, render the
@@ -147,7 +147,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, onPr
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
             >
-                {isOverlayVisible && React.useMemo(() => PopoverComponent({closeOverlay: toggleOverlay}), [PopoverComponent, toggleOverlay])}
+                {React.useMemo(() => isOverlayVisible && PopoverComponent({closeOverlay: toggleOverlay}), [isOverlayVisible, PopoverComponent, toggleOverlay])}
             </PopoverWithMeasuredContent>
         </>
     );

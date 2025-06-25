@@ -60,27 +60,18 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (data) => ({email: data?.email})});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [isFilterDataLoaded, setIsFilterDataLoaded] = useState(false);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         canBeMissing: true,
-        selector: (data) => data ? Object.keys(data).reduce((acc, key) => {
-            const report = data[key];
-            if (report) {
-                acc[key] = {reportID: report.reportID, reportName: report.reportName};
-            }
-            return acc;
-        }, {} as Record<string, {reportID: string; reportName?: string}>) : {},
+        selector: (data) => {
+            if (!isFilterDataLoaded) {return {};}
+            return data ?? {};
+        },
     });
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: true,
-        selector: (data) => data ? Object.keys(data).reduce((acc, key) => {
-            const policy = data[key];
-            if (policy) {
-                acc[key] = {id: policy.id, name: policy.name, type: policy.type, role: policy.role};
-            }
-            return acc;
-        }, {} as Record<string, {id: string; name: string; type?: string; role?: string}>) : {},
+        selector: (data) => data ?? {},
     });
-    const [isFilterDataLoaded, setIsFilterDataLoaded] = useState(false);
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {
         canBeMissing: true,
         selector: (data) => {
@@ -115,37 +106,39 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || (!!selectionMode && selectionMode.isEnabled));
 
-    const taxRates = useMemo(() => getAllTaxRates(), [allPolicies]);
+    const taxRates = useMemo(() => getAllTaxRates(), []);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
 
     const typeOptions = useMemo(() => getTypeOptions(allPolicies, session?.email), [allPolicies, session?.email]);
     const statusOptions = useMemo(() => getStatusOptions(type, groupBy), [type, groupBy]);
 
-    const [filterFormValues, setFilterFormValues] = useState<SearchAdvancedFiltersForm | null>(null);
+    const [filterFormValues, setFilterFormValues] = useState<Partial<SearchAdvancedFiltersForm> | null>(null);
 
     const loadFilterFormValues = useCallback(() => {
         if (!isFilterDataLoaded) {
             const values = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
             setFilterFormValues(values);
             setIsFilterDataLoaded(true);
+            return values;
         }
-    }, [queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates, isFilterDataLoaded]);
+        return filterFormValues;
+    }, [queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates, isFilterDataLoaded, filterFormValues]);
 
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
-            if (!filterFormValues) {
-                loadFilterFormValues();
+            const currentFilterFormValues = filterFormValues ?? loadFilterFormValues();
+            if (!currentFilterFormValues) {
                 return;
             }
 
             const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
-                ...filterFormValues,
+                ...currentFilterFormValues,
                 ...values,
             };
 
             // If the type has changed, reset the status so we dont have an invalid status selected
-            if (updatedFilterFormValues.type !== filterFormValues.type) {
+            if (updatedFilterFormValues.type !== currentFilterFormValues.type) {
                 updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
             }
 
@@ -323,7 +316,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             },
         ].filter((filterItem) => isFilterSupported(filterItem.keyForList, type)),
-        [translate, typeComponent, statusComponent, datePickerComponent, userPickerComponent],
+        [translate, typeComponent, type, isDevelopment, groupByComponent, groupBy, statusComponent, datePickerComponent, userPickerComponent],
     );
 
     const filterValues = useMemo(() => {
@@ -401,9 +394,10 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 >
                     {filterComponents.map((filter) => {
                         const onDropdownPress = () => {
-                            if (!isFilterDataLoaded) {
-                                loadFilterFormValues();
+                            if (isFilterDataLoaded) {
+                                return;
                             }
+                            loadFilterFormValues();
                         };
 
                         return (
