@@ -11378,23 +11378,22 @@ function shouldOptimisticallyUpdateSearch(currentSearchQueryJSON: SearchQueryJSO
         return false;
     }
 
-    const submitQueryJSON = buildSearchQueryJSON(
-        buildQueryStringFromFilterFormValues({
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-            groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-            from: [`${currentUserPersonalDetails?.accountID}`],
-        }),
-    );
+    const submitQueryString = buildQueryStringFromFilterFormValues({
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+        from: [`${currentUserPersonalDetails?.accountID}`],
+    });
 
-    const approveQueryJSON = buildSearchQueryJSON(
-        buildQueryStringFromFilterFormValues({
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
-            groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-            from: [`${currentUserPersonalDetails?.accountID}`],
-        }),
-    );
+    const submitQueryJSON = buildSearchQueryJSON(submitQueryString);
+
+    const approveQueryString = buildQueryStringFromFilterFormValues({
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+        from: [`${currentUserPersonalDetails?.accountID}`],
+    });
+    const approveQueryJSON = buildSearchQueryJSON(approveQueryString);
 
     const validSearchTypes =
         (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) || (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE);
