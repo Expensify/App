@@ -24,7 +24,6 @@ import {
     isValid,
     parse,
     set,
-    setDefaultOptions,
     startOfDay,
     startOfWeek,
     subDays,
@@ -32,16 +31,15 @@ import {
     subMinutes,
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
-import {enGB} from 'date-fns/locale/en-GB';
-import {es} from 'date-fns/locale/es';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
+import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {setCurrentDate} from './actions/CurrentDate';
 import {setNetworkLastOffline} from './actions/Network';
@@ -50,7 +48,6 @@ import Log from './Log';
 import memoize from './memoize';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
-type Locale = ValueOf<typeof CONST.LOCALES>;
 type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
@@ -93,12 +90,12 @@ Onyx.connect({
     callback: (val) => {
         networkTimeSkew = val?.timeSkew ?? 0;
         if (!val?.lastOfflineAt) {
-            setNetworkLastOffline(getLocalDateFromDatetime(TranslationStore.getCurrentLocale()));
+            setNetworkLastOffline(getLocalDateFromDatetime(IntlStore.getCurrentLocale()));
         }
 
         const newIsOffline = val?.isOffline ?? val?.shouldForceOffline;
         if (newIsOffline && isOffline === false) {
-            setNetworkLastOffline(getLocalDateFromDatetime(TranslationStore.getCurrentLocale()));
+            setNetworkLastOffline(getLocalDateFromDatetime(IntlStore.getCurrentLocale()));
         }
         isOffline = newIsOffline;
     },
@@ -125,30 +122,11 @@ function getWeekEndsOn(): WeekDay {
 }
 
 /**
- * Gets the locale string and setting default locale for date-fns
- */
-function setLocale(localeString: Locale | undefined) {
-    switch (localeString) {
-        case CONST.LOCALES.EN:
-            setDefaultOptions({locale: enGB});
-            break;
-        case CONST.LOCALES.ES:
-            setDefaultOptions({locale: es});
-            break;
-        default:
-            break;
-    }
-}
-
-/**
  * Gets the user's stored time zone NVP and returns a localized
  * Date object for the given ISO-formatted datetime string
  */
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 function getLocalDateFromDatetime(locale: Locale | undefined, datetime?: string, currentSelectedTimezone: string | SelectedTimezone = timezone.selected): Date {
-    if (locale) {
-        setLocale(locale);
-    }
     if (!datetime) {
         const res = toZonedTime(new Date(), currentSelectedTimezone);
         if (Number.isNaN(res.getTime())) {
@@ -293,7 +271,7 @@ function datetimeToCalendarTime(
 function datetimeToRelative(locale: Locale | undefined, datetime: string): string {
     const date = getLocalDateFromDatetime(locale, datetime);
     const now = getLocalDateFromDatetime(locale);
-    return formatDistance(date, now, {addSuffix: true, locale: locale === CONST.LOCALES.EN ? enGB : es});
+    return formatDistance(date, now, {addSuffix: true});
 }
 
 /**
@@ -371,10 +349,7 @@ function getCurrentTimezone(): Required<Timezone> {
 /**
  * @returns [January, February, March, April, May, June, July, August, ...]
  */
-function getMonthNames(preferredLocale: Locale = CONST.LOCALES.DEFAULT): string[] {
-    if (preferredLocale) {
-        setLocale(preferredLocale);
-    }
+function getMonthNames(): string[] {
     const fullYear = new Date().getFullYear();
     const monthsArray = eachMonthOfInterval({
         start: new Date(fullYear, 0, 1), // January 1st of the current year
@@ -387,10 +362,7 @@ function getMonthNames(preferredLocale: Locale = CONST.LOCALES.DEFAULT): string[
 /**
  * @returns [Monday, Tuesday, Wednesday, ...]
  */
-function getDaysOfWeek(preferredLocale: Locale = CONST.LOCALES.DEFAULT): string[] {
-    if (preferredLocale) {
-        setLocale(preferredLocale);
-    }
+function getDaysOfWeek(): string[] {
     const weekStartsOn = getWeekStartsOn();
     const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
     const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
@@ -1010,7 +982,6 @@ const DateUtils = {
     getMicroseconds,
     getDBTime,
     getDBTimeWithSkew,
-    setLocale,
     subtractMillisecondsFromDateTime,
     addMillisecondsFromDateTime,
     getEndOfToday,
