@@ -12,8 +12,8 @@ import path from 'path';
 import type {PackageJson} from 'type-fest';
 import getPreviousVersion from '@github/actions/javascript/getPreviousVersion/getPreviousVersion';
 import CONST from '@github/libs/CONST';
-import GitUtils from '@github/libs/GitUtils';
 import GithubUtils from '@github/libs/GithubUtils';
+import GitUtils from '@github/libs/GitUtils';
 import * as VersionUpdater from '@github/libs/versionUpdater';
 import type {SemverLevel} from '@github/libs/versionUpdater';
 import * as Log from '../../scripts/utils/Logger';
@@ -173,25 +173,13 @@ function initGithubAPIMocking() {
 
         return Promise.resolve({
             data: {
-                url: '',
-                html_url: '',
-                permalink_url: '',
-                diff_url: '',
-                patch_url: '',
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-                base_commit: {} as any,
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-                merge_base_commit: {} as any,
-                status: mockCommits.length > 0 ? 'ahead' : ('identical' as const),
-                ahead_by: mockCommits.length,
-                behind_by: 0,
-                total_commits: mockCommits.length,
                 commits: mockCommits,
             },
-            status: 200 as const,
+            status: 200,
             headers: {},
             url: '',
-        });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
     });
 }
 
@@ -504,7 +492,7 @@ describe('CIGitLogic', () => {
         deployStaging();
 
         // Verify output for checklist and deploy comment
-        await assertPRsMergedBetween('2.0.0-0', '2.0.0-1-staging', [1]);//asd
+        await assertPRsMergedBetween('2.0.0-0', '2.0.0-1-staging', [1]);
     });
 
     test("Merge a pull request with the checklist locked, but don't CP it", async () => {
