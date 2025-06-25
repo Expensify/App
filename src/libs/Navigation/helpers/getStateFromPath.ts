@@ -2,13 +2,15 @@ import type {NavigationState, PartialState} from '@react-navigation/native';
 import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import type {Route} from '@src/ROUTES';
+import getBestMatchingPath from './pathMap';
 
 /**
  * @param path - The path to parse
  * @returns - It's possible that there is no navigation action for the given path
  */
 function getStateFromPath(path: Route): PartialState<NavigationState> {
-    const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
+    let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
+    normalizedPath = getBestMatchingPath(normalizedPath) ?? normalizedPath;
 
     // This function is used in the linkTo function where we want to use default getStateFromPath function.
     const state = RNGetStateFromPath(normalizedPath, linkingConfig.config);
