@@ -20,6 +20,12 @@ function useCancellationType(): CancellationType | undefined {
             return CONST.CANCELLATION_TYPE.MANUAL;
         }
 
+        // Check for cancellation with type "none"
+        const noneCancellation = cancellationDetails?.find((detail) => detail.cancellationType === CONST.CANCELLATION_TYPE.NONE);
+        if (noneCancellation) {
+            return CONST.CANCELLATION_TYPE.NONE;
+        }
+
         // There are no new items in the cancellation details NVP
         // eslint-disable-next-line react-compiler/react-compiler
         if (previousCancellationDetails.current?.length === cancellationDetails?.length) {
