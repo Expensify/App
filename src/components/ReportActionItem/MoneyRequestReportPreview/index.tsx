@@ -60,12 +60,12 @@ function MoneyRequestReportPreview({
     const currentWrapperWidth = useRef<number>(0);
     const [isMoneyPreviewContentReady, setIsMoneyPreviewContentReady] = useState(false);
 
-    const onLayout = () => {
+    const onLayout = useCallback(() => {
         if (!currentWidth.current || !currentWrapperWidth.current || isMoneyPreviewContentReady) {
             return;
         }
         setIsMoneyPreviewContentReady(true);
-    };
+    }, [isMoneyPreviewContentReady]);
 
     const reportPreviewStyles = useMemo(
         () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, currentWidth?.current, currentWrapperWidth?.current),
@@ -92,6 +92,20 @@ function MoneyRequestReportPreview({
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
+
+    const onCarouselLayout = useCallback(() => {
+        return (e: LayoutChangeEvent) => {
+            currentWidth.current = e.nativeEvent.layout.width;
+            onLayout();
+        };
+    }, [onLayout]);
+
+    const onWrapperLayout = useCallback(() => {
+        return (e: LayoutChangeEvent) => {
+            currentWrapperWidth.current = e.nativeEvent.layout.width;
+            onLayout();
+        };
+    }, [onLayout]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
@@ -136,14 +150,8 @@ function MoneyRequestReportPreview({
             invoiceReceiverPolicy={invoiceReceiverPolicy}
             lastTransactionViolations={lastTransactionViolations}
             renderTransactionItem={renderItem}
-            onCarouselLayout={(e: LayoutChangeEvent) => {
-                currentWidth.current = e.nativeEvent.layout.width;
-                onLayout();
-            }}
-            onWrapperLayout={(e: LayoutChangeEvent) => {
-                currentWrapperWidth.current = e.nativeEvent.layout.width;
-                onLayout();
-            }}
+            onCarouselLayout={onCarouselLayout}
+            onWrapperLayout={onWrapperLayout}
             currentWidth={currentWidth?.current}
             reportPreviewStyles={reportPreviewStyles}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
