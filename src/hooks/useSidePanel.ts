@@ -11,7 +11,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import KeyboardUtils from '@src/utils/keyboard';
 import useLocalize from './useLocalize';
-import usePrevious from './usePrevious';
 import useResponsiveLayout from './useResponsiveLayout';
 import useWindowDimensions from './useWindowDimensions';
 
