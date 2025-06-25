@@ -137,7 +137,6 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
-
 type WorkspacesListRouteParams = {
     workspacesListRoute: string;
 };
