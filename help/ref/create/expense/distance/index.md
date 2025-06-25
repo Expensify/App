@@ -5,71 +5,31 @@ title: Distance Expense
 
 # Distance Expense
 
-Create mileage expenses for business travel using Expensify's distance tracking and calculation features.
+Create mileage expenses using Expensify's built-in mapping.
 
-## When to Use Distance Expenses
+## How to Create
 
-Distance expenses are perfect for:
-- **Business trips** in your personal vehicle
-- **Client visits** and meetings
-- **Commuting** between work locations (not home to office)
-- **Delivery or pickup** for business purposes
-- **Any business travel** where you're using your own vehicle
+1. Click the **+** button and select **Create expense**
+2. Choose **Distance** 
+3. Enter your **Start** and **End** locations
+4. Add stops if needed
+5. Click **Next** and choose your workspace
+6. Review distance, amount, and date
+7. Click **Create expense**
 
-## Creating a Distance Expense
+## How Rates Work
 
-### Setting Your Route
-- **Start location**: Enter your starting address or use current location
-- **End location**: Enter your destination address
-- **Stops**: Add multiple waypoints for complex trips
-- **Route options**: Choose the most accurate route taken
+**Submitting to a workspace:** You'll choose from distance rates enabled by your workspace admin.
 
-### Automatic Calculations
-Expensify will automatically:
-- **Calculate total distance** using mapping data
-- **Apply your workspace mileage rate** 
-- **Convert to expense amount** (distance × rate)
-- **Account for tax implications** if configured
+**Personal tracking:** Expensify applies default rates based on your currency (e.g., current IRS rate for USD).
 
-## Mileage Rates
+## Tips
 
-### Workspace Rates
-Your workspace admin sets mileage rates based on:
-- **IRS standard rates** (updated annually)
-- **Custom company rates** 
-- **Vehicle type** (car, motorcycle, etc.)
-- **Geographic region** if rates vary by location
+- Recent locations appear for quick selection
+- For round trips: enter the same start/end location with stops in between
+- Distance unit (miles/km) depends on workspace settings
 
-### Current Rates
-- Check your workspace distance rate settings
-- Rates are typically per mile or per kilometer
-- May include separate rates for different vehicle types
+## Related Links
 
-## Required Information
-
-- **Business purpose**: Why was this trip necessary?
-- **Date and time**: When the travel occurred
-- **Category**: Assign to appropriate expense category
-- **Route accuracy**: Verify the calculated route matches your actual path
-
-## Tips for Accuracy
-
-- **Use exact addresses** for more precise calculations
-- **Add stops** if you made multiple business-related stops
-- **Record immediately** while the trip is fresh in memory
-- **Include business purpose** - Required for tax compliance
-- **Keep odometer records** as backup documentation
-
-## Tax Considerations
-
-For business mileage:
-- **IRS compliance**: Follow current deduction guidelines
-- **Documentation**: Keep detailed records of business purpose
-- **Personal vs. business**: Only claim legitimate business miles
-- **Commuting rules**: Regular home-to-office commuting is typically not deductible
-
-## Related Articles
-
-- [Distance Expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Expenses)
-- [Set distance rates](https://help.expensify.com/articles/new-expensify/workspaces/Set-distance-rates)
-- [Create an Expense](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense) 
+- [Create an Expense](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense)
+- [Distance Expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Expenses) 
