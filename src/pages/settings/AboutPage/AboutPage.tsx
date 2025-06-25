@@ -54,6 +54,8 @@ function AboutPage() {
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const termsURL = CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL;
+    const privacyURL = CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL;
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
@@ -166,7 +168,7 @@ function AboutPage() {
                     </Section>
                 </View>
                 <View style={[styles.sidebarFooter, styles.mb5]}>
-                    <RenderHTML html={`<muted-text>${translate('initialSettingsPage.readTheTermsAndPrivacy')}</muted-text>`} />
+                    <RenderHTML html={translate('initialSettingsPage.readTheTermsAndPrivacy', {termsURL, privacyURL})} />
                 </View>
             </ScrollView>
         </ScreenWrapper>

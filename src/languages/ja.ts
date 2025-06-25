@@ -156,6 +156,7 @@ import type {
     PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
     RailTicketParams,
+    ReadTheTermsAndPrivacyRouteParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -1525,7 +1526,8 @@ const translations = {
         restoreStashed: '隠されたログインを復元',
         signOutConfirmationText: 'サインアウトすると、オフラインでの変更が失われます。',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: `読む <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>利用規約</a> および <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>プライバシー</a>.`,
+        readTheTermsAndPrivacy: ({termsURL, privacyURL}: ReadTheTermsAndPrivacyRouteParams) =>
+            `<muted-text>読む <a href="${termsURL}">利用規約</a> および <a href="${privacyURL}">プライバシー</a>.</muted-text>`,
         help: '助けて',
         accountSettings: 'アカウント設定',
         account: 'アカウント',
