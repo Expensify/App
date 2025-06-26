@@ -25,7 +25,7 @@ const shouldShowColumnConfig: Record<SortableColumnName, (isIOUReport: boolean) 
     [CONST.SEARCH.TABLE_COLUMNS.IN]: () => false,
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: () => false,
     [CONST.SEARCH.TABLE_COLUMNS.TO]: () => false,
-    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: () => false,
+    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: () => false,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: () => false,
     [CONST.SEARCH.TABLE_COLUMNS.TITLE]: () => false,
@@ -50,6 +50,10 @@ const columnConfig: ColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
+        translationKey: 'common.description',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
