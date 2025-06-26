@@ -1,3 +1,4 @@
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -66,7 +67,11 @@ function navigateToQuickAction(
             selectOption(() => {
                 const optimisticReportID = createNewReport(currentUserPersonalDetails, policyID);
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID, backTo: Navigation.getActiveRoute()}));
+                    Navigation.navigate(
+                        isSearchTopmostFullScreenRoute()
+                            ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID, backTo: Navigation.getActiveRoute()})
+                            : ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()),
+                    );
                 });
             }, true);
             break;
