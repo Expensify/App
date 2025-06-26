@@ -252,6 +252,23 @@ function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
         });
     }
 
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID) {
+        if (typeof filterValue === 'string') {
+            return filterValue
+                .split(',')
+                .map((id) => id.trim())
+                .filter((id) => id.length > 0)
+                .join(',');
+        }
+        return filterValue.map((reportID) =>
+            reportID
+                .split(',')
+                .map((id) => id.trim())
+                .filter((id) => id.length > 0)
+                .join(','),
+        );
+    }
+
     return filterValue;
 }
 
@@ -425,7 +442,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             if (
                 (filterKey === FILTER_KEYS.MERCHANT ||
                     filterKey === FILTER_KEYS.DESCRIPTION ||
-                    filterKey === FILTER_KEYS.REPORT_ID ||
                     filterKey === FILTER_KEYS.REIMBURSABLE ||
                     filterKey === FILTER_KEYS.BILLABLE ||
                     filterKey === FILTER_KEYS.TITLE ||
@@ -435,6 +451,17 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm) {
                     return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
+                }
+            }
+            if (filterKey === FILTER_KEYS.REPORT_ID && filterValue) {
+                const reportIDs = (filterValue as string)
+                    .split(',')
+                    .map((id) => id.trim())
+                    .filter((id) => id.length > 0);
+
+                const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+                if (keyInCorrectForm && reportIDs.length > 0) {
+                    return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${reportIDs.join(',')}`;
                 }
             }
 
