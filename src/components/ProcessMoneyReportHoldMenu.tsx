@@ -78,16 +78,14 @@ function ProcessMoneyReportHoldMenu({
                 startAnimation();
             }
             approveMoneyRequest(moneyRequestReport, full, transactions, snapshot);
-            // eslint-disable-next-line rulesdir/no-default-id-values
-            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '-1', moneyRequestReport?.reportID ?? '')) {
-                // eslint-disable-next-line rulesdir/no-default-id-values
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID ?? ''));
+            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId(), moneyRequestReport?.reportID)) {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport?.reportID));
             }
         } else if (chatReport && paymentType) {
             if (startAnimation) {
                 startAnimation();
             }
-            payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
+            payMoneyRequest(paymentType, chatReport, moneyRequestReport, undefined, full);
         }
         onClose();
     };

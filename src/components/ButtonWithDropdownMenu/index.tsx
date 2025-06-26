@@ -1,4 +1,4 @@
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
@@ -50,6 +50,8 @@ function ButtonWithDropdownMenu<IValueType>({
     testID,
     secondLineText = '',
     icon,
+    shouldPopoverUseScrollView = false,
+    containerStyles,
     shouldUseModalPaddingStyle = true,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
@@ -71,7 +73,11 @@ function ButtonWithDropdownMenu<IValueType>({
     const areAllOptionsDisabled = options.every((option) => option.disabled);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
-    const nullCheckRef = (ref: MutableRefObject<View | null>) => ref ?? null;
+    const nullCheckRef = (ref: RefObject<View | null>) => ref ?? null;
+
+    useEffect(() => {
+        setSelectedItemIndex(defaultSelectedIndex);
+    }, [defaultSelectedIndex]);
 
     useEffect(() => {
         if (!dropdownAnchor.current) {
@@ -232,18 +238,27 @@ function ButtonWithDropdownMenu<IValueType>({
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     // eslint-disable-next-line react-compiler/react-compiler
                     anchorRef={nullCheckRef(dropdownAnchor)}
-                    withoutOverlay
-                    shouldUseScrollView
                     scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && styles.pv4}
-                    shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
                     anchorAlignment={anchorAlignment}
+                    shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
                     headerText={menuHeaderText}
+                    shouldUseScrollView={shouldPopoverUseScrollView}
+                    containerStyles={containerStyles}
                     menuItems={options.map((item, index) => ({
                         ...item,
                         onSelected: item.onSelected
-                            ? () => item.onSelected?.()
+                            ? () => {
+                                  item.onSelected?.();
+                                  if (item.shouldUpdateSelectedIndex) {
+                                      setSelectedItemIndex(index);
+                                  }
+                              }
                             : () => {
                                   onOptionSelected?.(item);
+                                  if (!item.shouldUpdateSelectedIndex && typeof item.shouldUpdateSelectedIndex === 'boolean') {
+                                      return;
+                                  }
+
                                   setSelectedItemIndex(index);
                               },
                         shouldCallAfterModalHide: true,
