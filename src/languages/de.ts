@@ -3271,6 +3271,7 @@ const translations = {
             defaultCategory: 'Standardkategorie',
             viewTransactions: 'Transaktionen anzeigen',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Ausgaben von ${displayName}`,
+            cannotDeleteWorkspaceAnnualSubscriptionError: 'Sie können den Arbeitsbereich erst am Ende der jährlichen Abonnementlaufzeit löschen.',
         },
         perDiem: {
             subtitle: 'Setzen Sie Tagespauschalen, um die täglichen Ausgaben der Mitarbeiter zu kontrollieren.',

@@ -3255,6 +3255,7 @@ const translations = {
             defaultCategory: 'Categoria predefinita',
             viewTransactions: 'Visualizza transazioni',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Spese di ${displayName}`,
+            cannotDeleteWorkspaceAnnualSubscriptionError: "Non puoi eliminare lo spazio di lavoro fino alla fine del termine dell'abbonamento annuale.",
         },
         perDiem: {
             subtitle: 'Imposta le tariffe di diaria per controllare la spesa giornaliera dei dipendenti.',

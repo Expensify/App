@@ -3214,6 +3214,7 @@ const translations = {
             defaultCategory: '默认类别',
             viewTransactions: '查看交易记录',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}的费用`,
+            cannotDeleteWorkspaceAnnualSubscriptionError: '在年度订阅期结束之前，您无法删除工作区。',
         },
         perDiem: {
             subtitle: '设置每日津贴标准以控制员工的日常支出。',

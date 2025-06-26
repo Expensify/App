@@ -3257,6 +3257,7 @@ const translations = {
             defaultCategory: 'Standaardcategorie',
             viewTransactions: 'Transacties bekijken',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Uitgaven van ${displayName}`,
+            cannotDeleteWorkspaceAnnualSubscriptionError: 'U kunt de werkruimte niet verwijderen tot het einde van de jaarlijkse abonnementsperiode.',
         },
         perDiem: {
             subtitle: 'Stel dagvergoedingen in om de dagelijkse uitgaven van werknemers te beheersen.',

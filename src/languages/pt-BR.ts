@@ -3253,6 +3253,7 @@ const translations = {
             defaultCategory: 'Categoria padrão',
             viewTransactions: 'Ver transações',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Despesas de ${displayName}`,
+            cannotDeleteWorkspaceAnnualSubscriptionError: 'Você não pode excluir o espaço de trabalho até o final do período de assinatura anual.',
         },
         perDiem: {
             subtitle: 'Defina taxas de diárias para controlar os gastos diários dos funcionários.',
