@@ -152,6 +152,11 @@ function isSubmitAction(
         return true;
     }
 
+    const hasOnlyPendingTransactions = reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction));
+    if (hasOnlyPendingTransactions) {
+        return false;
+    }
+
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
 
     const isScheduledSubmitEnabled = policy?.harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
