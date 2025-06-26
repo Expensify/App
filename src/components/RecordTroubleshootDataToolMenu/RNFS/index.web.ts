@@ -1,7 +1,9 @@
-const RNFS = {
+import type RNFSModule from './types';
+
+const RNFS: RNFSModule = {
     exists: () => Promise.resolve(false),
-    unlink: () => Promise.resolve(true),
-    copyFile: () => Promise.resolve(true),
+    unlink: () => Promise.resolve(),
+    copyFile: () => Promise.resolve(),
     DocumentDirectoryPath: '',
     writeFile: (path: string, data: string, encoding: string) => {
         const dataStr = `data:text/json;charset=${encoding},${encodeURIComponent(JSON.stringify(data))}`;
@@ -12,6 +14,8 @@ const RNFS = {
         document.body.appendChild(downloadAnchorNode); // required for Firefox
         downloadAnchorNode.click();
         downloadAnchorNode.remove();
+
+        return Promise.resolve();
     },
 };
 

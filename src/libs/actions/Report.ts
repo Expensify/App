@@ -2735,6 +2735,11 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             value: {[reportPreviewReportActionID]: optimisticReportPreview},
         },
         {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
+            value: {lastVisibleActionCreated: optimisticReportPreview.created},
+        },
+        {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
             value: optimisticNextStep,
@@ -2765,6 +2770,12 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
             value: quickAction ?? null,
+        },
+
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
+            value: {lastVisibleActionCreated: parentReport?.lastVisibleActionCreated},
         },
     ];
 
