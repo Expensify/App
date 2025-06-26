@@ -726,6 +726,7 @@ function PureReportActionItem({
         }
 
         if (isConciergeSplitOptions(action)) {        
+            const options = ['common.yes', 'common.no', 'debug.reportActionPreview'] as const;
             if (isResolvedConciergeSplitOptions(action)) {
                 return [];
             }
@@ -734,11 +735,10 @@ function PureReportActionItem({
                 return [];
             }
 
-            const options = ['common.yes', 'common.no', 'debug.reportActionPreview'] as const;
-
-            return options.map((option, i) => ({
-                text: `${i + 1} - ${translate(option)}`,
+            return options.map((option) => ({
+                text: option,
                 key: `${action.reportActionID}-conciergeSplitOptions-${option}`,
+                isPrimary: option === 'common.yes',
                 onPress: () => {
                     // resolveConciergeCategoryOptions(reportID, originalReportID, action.reportActionID, option);
                 },
@@ -1171,6 +1171,19 @@ function PureReportActionItem({
                             items={actionableItemButtons}
                             shouldUseLocalization
                             layout={isActionableTrackExpense(action) ? 'vertical' : 'horizontal'}
+                        />
+                    )}
+                </View>
+            );
+        } else if (isConciergeSplitOptions(action)) {
+            children = (
+                <View>
+                    <ReportActionItemBasicMessage message={translate('common.split')} />
+                    {actionableItemButtons.length > 0 && (
+                        <ActionableItemButtons
+                            items={actionableItemButtons}
+                            layout='horizontal'
+                            shouldUseLocalization
                         />
                     )}
                 </View>

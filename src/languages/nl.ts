@@ -293,6 +293,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
+        split: 'We hebben vastgesteld dat deze uitgave meerdere categorieën heeft. Wilt u deze uitgave splitsen?',
         count: 'Aantal',
         cancel: 'Annuleren',
         dismiss: 'Verwijderen',

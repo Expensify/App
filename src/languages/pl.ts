@@ -293,6 +293,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
+        split: 'Zauważyliśmy, że ten wydatki ma elementy z wieloma kategoriami. Chcesz podzielić ten wydatki?',
         count: 'Liczba',
         cancel: 'Anuluj',
         dismiss: 'Odrzuć',
