@@ -22,7 +22,7 @@ type MoneyRequestReportPreviewProps = {
     allReports: OnyxCollection<Report>;
 
     /** All the data of the policy collection */
-    policies?: OnyxCollection<Policy>;
+    policies: OnyxCollection<Policy>;
 
     /** The report's policyID, used for Onyx subscription */
     policyID: string | undefined;
@@ -74,12 +74,12 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     transactions: Transaction[];
     violations: OnyxCollection<TransactionViolation[]>;
     policy: OnyxEntry<Policy>;
-    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;
+    invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
     lastTransactionViolations: TransactionViolations;
 };
 
 type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps &
-    Omit<MoneyRequestReportPreviewProps, 'allReports' | 'policyID' | 'transactionsAndViolationsByReport'> & {
+    Omit<MoneyRequestReportPreviewProps, 'allReports' | 'policies' | 'policyID' | 'transactionsAndViolationsByReport'> & {
         /** Extra styles passed used by MoneyRequestReportPreviewContent */
         reportPreviewStyles: MoneyRequestReportPreviewStyleType;
 

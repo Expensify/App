@@ -189,7 +189,7 @@ type PureReportActionItemProps = {
     allReports: OnyxCollection<OnyxTypes.Report>;
 
     /** All the data of the policy collection */
-    policies?: OnyxCollection<OnyxTypes.Policy>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
 
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;

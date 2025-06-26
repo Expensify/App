@@ -14,7 +14,7 @@ type DuplicateTransactionItemProps = {
     index: number;
     allReports: OnyxCollection<Report>;
     /** All the data of the policy collection */
-    policies?: OnyxCollection<Policy>;
+    policies: OnyxCollection<Policy>;
 };
 
 function DuplicateTransactionItem({transaction, index, allReports, policies}: DuplicateTransactionItemProps) {
