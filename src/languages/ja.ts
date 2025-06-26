@@ -1029,6 +1029,7 @@ const translations = {
         share: '共有',
         participants: '参加者',
         createExpense: '経費を作成',
+        trackDistance: '距離を追跡する',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `${expensesNumber}件の経費を作成`,
         addExpense: '経費を追加',
         chooseRecipient: '受取人を選択',
@@ -5707,6 +5708,7 @@ const translations = {
             groupBy: {
                 reports: '報告',
                 members: 'メンバー',
+                cards: 'カード',
             },
         },
         groupBy: 'グループ',
@@ -6357,14 +6359,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'オファーを請求する',
                 noThanks: '結構です',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `最初の1年間は${discountType}%オフ！`,
-                    phrase2: `支払いカードを追加して、年間サブスクリプションを開始するだけです。`,
-                },
-                onboardingChatTitle: {
-                    phrase1: '期間限定オファー:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `最初の1年間は${discountType}%オフ！`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>最初の1年間は${discountType}%オフ！</strong> 支払いカードを追加して、年間サブスクリプションを開始するだけです。`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `期間限定オファー: 最初の1年間は${discountType}%オフ！`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `${hours}時間 ${minutes}分 ${seconds}秒以内に${days > 0 ? `${days}日 :` : ''}を請求してください`,
             },
         },

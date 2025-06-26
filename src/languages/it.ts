@@ -1026,6 +1026,7 @@ const translations = {
         share: 'Condividi',
         participants: 'Partecipanti',
         createExpense: 'Crea spesa',
+        trackDistance: 'Traccia distanza',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Crea ${expensesNumber} spese`,
         addExpense: 'Aggiungi spesa',
         chooseRecipient: 'Scegli destinatario',
@@ -5763,6 +5764,7 @@ const translations = {
             groupBy: {
                 reports: 'Rapporto',
                 members: 'Membro',
+                cards: 'Carta',
             },
         },
         groupBy: 'Gruppo per',
@@ -6418,14 +6420,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'Richiedi offerta',
                 noThanks: 'No grazie',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% di sconto sul tuo primo anno!`,
-                    phrase2: `Basta aggiungere una carta di pagamento e iniziare un abbonamento annuale.`,
-                },
-                onboardingChatTitle: {
-                    phrase1: 'Offerta a tempo limitato:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% di sconto sul tuo primo anno!`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>${discountType}% di sconto sul tuo primo anno!</strong> Basta aggiungere una carta di pagamento e iniziare un abbonamento annuale.`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Offerta a tempo limitato: ${discountType}% di sconto sul tuo primo anno!`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Richiedi entro ${days > 0 ? `${days}g :` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
         },

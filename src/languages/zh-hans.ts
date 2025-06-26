@@ -1020,6 +1020,7 @@ const translations = {
         share: '分享',
         participants: '参与者',
         createExpense: '创建报销单',
+        trackDistance: '跟踪距离',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `创建${expensesNumber}笔费用`,
         addExpense: '添加费用',
         chooseRecipient: '选择收件人',
@@ -5645,6 +5646,7 @@ const translations = {
             groupBy: {
                 reports: '报告',
                 members: '成员',
+                cards: '卡片',
             },
         },
         groupBy: '组别',
@@ -6278,14 +6280,8 @@ const translations = {
             earlyDiscount: {
                 claimOffer: '领取优惠',
                 noThanks: '不，谢谢',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `首年${discountType}%折扣！`,
-                    phrase2: `只需添加一张支付卡并开始年度订阅。`,
-                },
-                onboardingChatTitle: {
-                    phrase1: '限时优惠：',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `首年${discountType}%折扣！`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) => `<strong>首年${discountType}%折扣！</strong> 只需添加一张支付卡并开始年度订阅。`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `限时优惠：首年${discountType}%折扣！`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `在 ${days > 0 ? `${days}天 :` : ''}${hours}小时 : ${minutes}分钟 : ${seconds}秒 内认领`,
             },
         },
