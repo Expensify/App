@@ -12218,11 +12218,14 @@ class OpenAIUtils {
         // poll for completion
         let response = '';
         let count = 0;
-        const threadId = threadRun.thread_id; // Store thread_id to avoid losing it
+        const run = threadRun.id;
+        const thread = threadRun.thread_id;
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
-            console.log('threadRun: ', threadRun);
+            console.log('threadRun [1]: ', threadRun);
+            console.log(' -- thread: ', thread);
+            console.log(' -- run: ', run);
             // await thread run completion
-            threadRun = await this.client.beta.threads.runs.retrieve(threadId, threadRun.id);
+            threadRun = await this.client.beta.threads.runs.retrieve(run, {});
             if (threadRun.status !== 'completed') {
                 count++;
                 await new Promise((resolve) => {
@@ -12230,7 +12233,8 @@ class OpenAIUtils {
                 });
                 continue;
             }
-            for await (const message of this.client.beta.threads.messages.list(threadId)) {
+            console.log(' threadRun [2]: ', threadRun);
+            for await (const message of this.client.beta.threads.messages.list(run)) {
                 if (message.role !== 'assistant') {
                     continue;
                 }
@@ -12240,6 +12244,7 @@ class OpenAIUtils {
                     .trim();
                 console.log('Parsed assistant response:', response);
             }
+            console.log(' threadRun [3]: ', run);
             if (!response) {
                 throw new Error('Assistant response is empty or had no text content. This is unexpected.');
             }
