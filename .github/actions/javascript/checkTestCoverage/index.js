@@ -12164,7 +12164,7 @@ class OpenAIUtils {
                 continue;
             }
             console.log(' threadRun [2]: ', threadRun);
-            for await (const message of this.client.beta.threads.messages.list(run)) {
+            for await (const message of this.client.beta.threads.messages.list(thread)) {
                 console.log(' message [continuing]: ', message);
                 if (message.role !== 'assistant') {
                     console.log(' jules [continuing]: ', threadRun);
