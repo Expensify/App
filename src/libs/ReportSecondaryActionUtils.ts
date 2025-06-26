@@ -48,6 +48,7 @@ import {
     hasReceipt as hasReceiptTransactionUtils,
     isCardTransaction as isCardTransactionUtils,
     isDuplicate,
+    isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isReceiptBeingScanned,
@@ -119,8 +120,8 @@ function isSubmitAction(
         return false;
     }
 
-    // If we have a single pending transaction, we don't want to show the submit action because the report would be empty.
-    if (reportTransactions.length === 1 && isPending(reportTransactions.at(0))) {
+    const hasOnlyPendingTransactions = reportTransactions.length > 0 && reportTransactions.every((transaction) => isExpensifyCardTransaction(transaction) && isPending(transaction));
+    if (hasOnlyPendingTransactions) {
         return false;
     }
 
