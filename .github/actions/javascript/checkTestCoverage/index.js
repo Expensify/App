@@ -1058,50 +1058,6 @@ exports.Context = Context;
 
 /***/ }),
 
-/***/ 5438:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getOctokit = exports.context = void 0;
-const Context = __importStar(__nccwpck_require__(4087));
-const utils_1 = __nccwpck_require__(3030);
-exports.context = new Context.Context();
-/**
- * Returns a hydrated octokit ready to use for GitHub Actions
- *
- * @param     token    the repo PAT or GITHUB_TOKEN
- * @param     options  other options to set
- */
-function getOctokit(token, options, ...additionalPlugins) {
-    const GitHubWithPlugins = utils_1.GitHub.plugin(...additionalPlugins);
-    return new GitHubWithPlugins(utils_1.getOctokitOptions(token, options));
-}
-exports.getOctokit = getOctokit;
-//# sourceMappingURL=github.js.map
-
-/***/ }),
-
 /***/ 7914:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -11516,7 +11472,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
-const github_1 = __nccwpck_require__(5438);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 async function run() {
@@ -11524,9 +11479,15 @@ async function run() {
         // Get the GitHub URL input
         const githubUrl = core.getInput('GITHUB_URL');
         core.info(`GitHub URL: ${githubUrl}`);
-        const issue = github_1.context.issue.number;
-        core.info(`Issue from context: ${issue}`);
-        await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, 65042, 'NOT ENOUGH TESTS');
+        // Extract issue/PR number from GitHub URL
+        // Expected format: https://github.com/owner/repo/pull/123 or https://github.com/owner/repo/issues/123
+        const urlMatch = githubUrl.match(/\/(?:pull|issues)\/(\d+)/);
+        const issueNumber = urlMatch ? parseInt(urlMatch[1], 10) : null;
+        if (!issueNumber) {
+            throw new Error(`Could not extract issue/PR number from URL: ${githubUrl}`);
+        }
+        core.info(`Extracted issue number: ${issueNumber}`);
+        await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, issueNumber, 'NOT ENOUGH TESTS');
     }
     catch (error) {
         core.setFailed(error instanceof Error ? error.message : String(error));
