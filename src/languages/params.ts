@@ -678,7 +678,7 @@ type WorkspaceMemberList = {
 
 type FileLimitParams = {
     fileLimit: number;
-}
+};
 
 type FileTypeParams = {
     fileType: string;
