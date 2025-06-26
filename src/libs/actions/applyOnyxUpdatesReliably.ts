@@ -1,8 +1,9 @@
+import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import {handleMissingOnyxUpdates} from './OnyxUpdateManager';
-import * as OnyxUpdates from './OnyxUpdates';
+import {doesClientNeedToBeUpdated, apply as onyxApply, saveUpdateInformation} from './OnyxUpdates';
 
 type ApplyOnyxUpdatesReliablyOptions = {
     clientLastUpdateID?: number;
@@ -20,6 +21,7 @@ type ApplyOnyxUpdatesReliablyOptions = {
  */
 export default function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer, {shouldRunSync = false, clientLastUpdateID}: ApplyOnyxUpdatesReliablyOptions = {}) {
     const fetchMissingUpdates = () => {
+        Log.info('[applyOnyxUpdatesReliably] Fetching missing updates');
         // If we got here, that means we are missing some updates on our local storage. To
         // guarantee that we're not fetching more updates before our local data is up to date,
         // let's stop the sequential queue from running until we're done catching up.
@@ -28,7 +30,7 @@ export default function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer,
         if (shouldRunSync) {
             handleMissingOnyxUpdates(updates, clientLastUpdateID);
         } else {
-            OnyxUpdates.saveUpdateInformation(updates);
+            saveUpdateInformation(updates);
         }
     };
 
@@ -40,8 +42,8 @@ export default function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer,
     }
 
     const previousUpdateID = Number(updates.previousUpdateID) ?? CONST.DEFAULT_NUMBER_ID;
-    if (!OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID})) {
-        OnyxUpdates.apply(updates);
+    if (!doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID})) {
+        onyxApply(updates);
         return;
     }
 

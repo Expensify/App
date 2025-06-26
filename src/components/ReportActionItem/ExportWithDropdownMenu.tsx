@@ -16,12 +16,14 @@ import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportActions} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
 type ExportWithDropdownMenuProps = {
     report: OnyxEntry<Report>;
+
+    reportActions: OnyxEntry<ReportActions>;
 
     connectionName: ConnectionName;
 
@@ -32,6 +34,7 @@ type ExportWithDropdownMenuProps = {
 
 function ExportWithDropdownMenu({
     report,
+    reportActions,
     connectionName,
     dropdownAnchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -45,7 +48,6 @@ function ExportWithDropdownMenu({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
     const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD, {canBeMissing: true});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
 
     const iconToDisplay = getIntegrationIcon(connectionName);
     const canBeExported = canBeExportedUtils(report);

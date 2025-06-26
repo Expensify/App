@@ -21,6 +21,7 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
+    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -31,6 +32,8 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessBankAccountParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -51,6 +54,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodParams,
     ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
@@ -88,7 +92,6 @@ import type {
     FlightParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
-    GoToRoomParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -505,6 +508,7 @@ const translations = {
         default: 'Predeterminado',
         update: 'Actualizar',
         member: 'Miembro',
+        success: 'Éxito',
         auditor: 'Auditor',
         role: 'Role',
         currency: 'Divisa',
@@ -530,6 +534,7 @@ const translations = {
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
         export: 'Exportar',
+        basicExport: 'Exportar básico',
         initialValue: 'Valor inicial',
         currentDate: 'Fecha actual',
         value: 'Valor',
@@ -589,7 +594,6 @@ const translations = {
         after: 'Después',
         reschedule: 'Reprogramar',
         general: 'General',
-        never: 'Nunca',
         workspacesTabTitle: 'Espacios',
         getTheApp: 'Descarga la app',
         scanReceiptsOnTheGo: 'Escanea recibos desde tu teléfono',
@@ -999,6 +1003,7 @@ const translations = {
         share: 'Compartir',
         participants: 'Participantes',
         createExpense: 'Crear gasto',
+        trackDistance: 'Gasto de distancia',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Crear ${expensesNumber} gastos`,
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pagar a ${name ?? 'alguien'}`,
         chooseRecipient: 'Elige destinatario',
@@ -1089,13 +1094,20 @@ const translations = {
         individual: 'Individual',
         business: 'Empresa',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pago ${formattedAmount} como individuo` : `Pago individual`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pago ${formattedAmount} como individuo` : `Pago con cuenta personal`),
+        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con billetera` : `con billetera`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como negocio` : `Pagar como empresa`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} de otra forma` : `Pagar de otra forma`),
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como negocio` : `Pago con cuenta empresarial`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Marcar ${formattedAmount} como pagado` : `Marcar como pagado`),
+        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pagado ${amount} con cuenta personal ${last4Digits}` : `Pagado con cuenta personal`),
+        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pagado ${amount} con cuenta de empresa ${last4Digits}` : `Pagado con cuenta de empresa`),
+        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
+            formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`,
+        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => `Pagó ${amount} con la cuenta bancaria ${last4Digits}.`,
+        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Cuenta personal • ${lastFour}`,
+        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Cuenta de empresa • ${lastFour}`,
         nextStep: 'Pasos siguientes',
         finished: 'Finalizado',
-        flip: 'Cambiar',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Solicitar ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -1128,8 +1140,8 @@ const translations = {
             `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}pagó de otra forma`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}pagó con Expensify`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}marcó como pagado`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}pagó con la billetera`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''}pagó con Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
@@ -1463,6 +1475,7 @@ const translations = {
             noLogsToShare: 'No hay logs que compartir',
             useProfiling: 'Usar el trazado',
             profileTrace: 'Traza de ejecución',
+            results: 'Resultados',
             releaseOptions: 'Opciones de publicación',
             testingPreferences: 'Preferencias para Tests',
             useStagingServer: 'Usar servidor "staging"',
@@ -1483,6 +1496,7 @@ const translations = {
             invalidFile: 'Archivo inválido',
             invalidFileDescription: 'El archivo que ests intentando importar no es válido. Por favor, inténtalo de nuevo.',
             invalidateWithDelay: 'Invalidar con retraso',
+            recordTroubleshootData: 'Registrar datos de resolución de problemas',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -1611,14 +1625,14 @@ const translations = {
         mergeFailureGenericHeading: 'No se pueden fusionar cuentas',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: 'Informar de actividad sospechosa',
         lockAccount: 'Bloquear cuenta',
         unlockAccount: 'Desbloquear cuenta',
         compromisedDescription:
-            'Si sospechas que tu cuenta de Expensify ha sido comprometida, puedes bloquearla para evitar nuevas transacciones con la Tarjeta Expensify y bloquear cambios no deseados en la cuenta.',
-        domainAdminsDescriptionPartOne: 'Para los administradores de dominio, ',
-        domainAdminsDescriptionPartTwo: 'esta acción detiene toda la actividad de la Tarjeta Expensify y las acciones administrativas ',
-        domainAdminsDescriptionPartThree: 'en todos tus dominios.',
-        warning: `Una vez que tu cuenta esté bloqueada, nuestro equipo investigará y eliminará cualquier acceso no autorizado. Para recuperar el acceso, deberás trabajar con Concierge para asegurar tu cuenta.`,
+            '¿Notas algo extraño en tu cuenta? Informarlo bloqueará tu cuenta de inmediato, detendrá nuevas transacciones con la Tarjeta Expensify y evitará cualquier cambio en la cuenta.',
+        domainAdminsDescription: 'Para administradores de dominio: Esto también detiene toda la actividad de la Tarjeta Expensify y las acciones administrativas en tus dominios.',
+        areYouSure: '¿Estás seguro de que deseas bloquear tu cuenta de Expensify?',
+        ourTeamWill: 'Nuestro equipo investigará y eliminará cualquier acceso no autorizado. Para recuperar el acceso, tendrás que trabajar con Concierge.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'No se pudo bloquear la cuenta',
@@ -1784,6 +1798,7 @@ const translations = {
         enableWallet: 'Habilitar billetera',
         addBankAccountToSendAndReceive: 'Recibe el reembolso de los gastos que envíes a un espacio de trabajo.',
         addBankAccount: 'Añadir cuenta bancaria',
+        addDebitOrCreditCard: 'Añadir tarjeta de débito o crédito',
         assignedCards: 'Tarjetas asignadas',
         assignedCardsDescription: 'Son tarjetas asignadas por un administrador del espacio de trabajo para gestionar los gastos de la empresa.',
         expensifyCard: 'Tarjeta Expensify',
@@ -1994,6 +2009,7 @@ const translations = {
         cardLastFour: 'Tarjeta terminada en',
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
         defaultPaymentMethod: 'Predeterminado',
+        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Cuenta bancaria • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -2402,11 +2418,8 @@ const translations = {
         toGetStarted: 'Conecta una cuenta bancaria para reembolsar gastos, emitir Tarjetas Expensify, y cobrar y pagar facturas todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Tus números de ruta y de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
-        hasPhoneLoginError: {
-            phrase1: 'Para añadir una cuenta bancaria verificada,',
-            link: 'asegúrate de que tu nombre de usuario principal sea un correo electrónico válido',
-            phrase2: ' y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
-        },
+        hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
+            `Para añadir una cuenta bancaria verificada, <a href="${contactMethodRoute}">asegúrate de que tu nombre de usuario principal sea un correo electrónico válido</a> y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.`,
         hasBeenThrottledError: 'Se ha producido un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
         hasCurrencyError: {
             phrase1: '¡Ups! Parece que la moneda de tu espacio de trabajo no está configurada en USD. Para continuar, ve a ',
@@ -2694,14 +2707,40 @@ const translations = {
         whatsTheBusinessAddress: '¿Cuál es la dirección de la empresa?',
         whatsTheBusinessContactInformation: '¿Cuál es la información de contacto de la empresa?',
         whatsTheBusinessRegistrationNumber: '¿Cuál es el número de registro de la empresa?',
-        whatsTheBusinessTaxIDEIN: '¿Cuál es el número de identificación fiscal ID/EIN/VAT/GST de la empresa?',
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return '¿Cuál es el Número de Identificación del Empleador (EIN)?';
+                case CONST.COUNTRY.CA:
+                    return '¿Cuál es el Número de Empresa (BN)?';
+                case CONST.COUNTRY.GB:
+                    return '¿Cuál es el Número de Registro de IVA (VRN)?';
+                case CONST.COUNTRY.AU:
+                    return '¿Cuál es el Número de Empresa Australiano (ABN)?';
+                default:
+                    return '¿Cuál es el número de IVA de la UE?';
+            }
+        },
         whatsThisNumber: '¿Qué es este número?',
         whereWasTheBusinessIncorporated: '¿Dónde se constituyó la empresa?',
         whatTypeOfBusinessIsIt: '¿Qué tipo de empresa es?',
         whatsTheBusinessAnnualPayment: '¿Cuál es el volumen anual de pagos de la empresa?',
         whatsYourExpectedAverageReimbursements: '¿Cuál es el monto promedio esperado de reembolso?',
         registrationNumber: 'Número de registro',
-        taxIDEIN: 'Número de identificación fiscal/EIN',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'EU VAT';
+            }
+        },
         businessAddress: 'Dirección de la empresa',
         businessType: 'Tipo de empresa',
         incorporation: 'Constitución',
@@ -2725,6 +2764,20 @@ const translations = {
         findAverageReimbursement: 'Encuentra el monto promedio de reembolso',
         error: {
             registrationNumber: 'Por favor, proporciona un número de registro válido',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return 'Por favor, proporcione un Número de Identificación del Empleador (EIN) válido';
+                    case CONST.COUNTRY.CA:
+                        return 'Por favor, proporcione un Número de Empresa (BN) válido';
+                    case CONST.COUNTRY.GB:
+                        return 'Por favor, proporcione un Número de Registro de IVA (VRN) válido';
+                    case CONST.COUNTRY.AU:
+                        return 'Por favor, proporcione un Número de Empresa Australiano (ABN) válido';
+                    default:
+                        return 'Por favor, proporcione un número de IVA de la UE válido';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
@@ -3130,7 +3183,6 @@ const translations = {
             unavailable: 'Espacio de trabajo no disponible',
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón invitar que está arriba.',
             notAuthorized: `No tienes acceso a esta página. Si estás intentando unirte a este espacio de trabajo, pide al dueño del espacio de trabajo que te añada como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
-            goToRoom: ({roomName}: GoToRoomParams) => `Ir a la sala ${roomName}`,
             goToWorkspace: 'Ir al espacio de trabajo',
             goToWorkspaces: 'Ir a espacios de trabajo',
             clearFilter: 'Borrar filtro',
@@ -3147,7 +3199,7 @@ const translations = {
             welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
             subscription: 'Suscripción',
             markAsEntered: 'Marcar como introducido manualmente',
-            markAsExported: 'Marcar como exportado manualmente',
+            markAsExported: 'Marcar como exportado',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
@@ -5642,7 +5694,14 @@ const translations = {
                 title: 'No hay gastos para exportar',
                 subtitle: 'Es hora de relajarse, buen trabajo.',
             },
+            emptyUnapprovedResults: {
+                title: 'No hay gastos para aprobar',
+                subtitle: 'Cero gastos. Máxima relajación. ¡Bien hecho!',
+            },
         },
+        unapproved: 'No aprobado',
+        unapprovedCash: 'Efectivo no aprobado',
+        unapprovedCompanyCards: 'Tarjetas de empresa no aprobadas',
         saveSearch: 'Guardar búsqueda',
         savedSearchesMenuItemTitle: 'Guardadas',
         searchName: 'Nombre de la búsqueda',
@@ -5663,6 +5722,10 @@ const translations = {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Antes de ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `Después de ${date ?? ''}`,
                 on: ({date}: OptionalParam<DateParams> = {}) => `En ${date ?? ''}`,
+                presets: {
+                    [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'El mes pasado',
+                },
             },
             status: 'Estado',
             keyword: 'Palabra clave',
@@ -5695,7 +5758,13 @@ const translations = {
             posted: 'Fecha de contabilización',
             billable: 'Facturable',
             reimbursable: 'Reembolsable',
+            groupBy: {
+                reports: 'Informe',
+                members: 'Miembro',
+                cards: 'Tarjeta',
+            },
         },
+        groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este informe no tiene gastos.',
             emptyStateSubtitle: 'Puedes añadir gastos a este informe usando el botón de arriba.',
@@ -6498,7 +6567,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Notificar la pérdida / daño de la tarjeta física',
         screenTitle: 'Notificar la pérdida o deterioro de la tarjeta',
         nextButtonLabel: 'Siguiente',
         reasonTitle: '¿Por qué necesitas una tarjeta nueva?',
@@ -6512,6 +6580,8 @@ const translations = {
         shipNewCardButton: 'Enviar tarjeta nueva',
         addressError: 'La dirección es obligatoria',
         reasonError: 'Se requiere justificación',
+        successTitle: '¡Tu nueva tarjeta está en camino!',
+        successDescription: 'Tendrás que activarla cuando llegue en unos días hábiles. Mientras tanto, tu tarjeta virtual está lista para usar.',
     },
     eReceipt: {
         guaranteed: 'eRecibo garantizado',
@@ -6808,14 +6878,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'Solicitar oferta',
                 noThanks: 'No, gracias',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `¡${discountType}% de descuento en tu primer año!`,
-                    phrase2: `¡Solo añade una tarjeta de pago y comienza una suscripción anual!`,
-                },
-                onboardingChatTitle: {
-                    phrase1: 'Oferta por tiempo limitado:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `¡${discountType}% de descuento en tu primer año!`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>¡${discountType}% de descuento en tu primer año!</strong> ¡Solo añade una tarjeta de pago y comienza una suscripción anual!`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Oferta por tiempo limitado: ¡${discountType}% de descuento en tu primer año!`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Solicítala en ${days > 0 ? `${days}d : ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
         },
@@ -6974,11 +7039,7 @@ const translations = {
                     part2: '.',
                 },
             },
-            acknowledgement: {
-                part1: 'Al solicitar la cancelación anticipada, reconozco y acepto que Expensify no tiene ninguna obligación de conceder dicha solicitud en virtud de las ',
-                link: 'Condiciones de Servicio',
-                part2: ' de Expensify u otro acuerdo de servicios aplicable entre Expensify y yo, y que Expensify se reserva el derecho exclusivo a conceder dicha solicitud.',
-            },
+            acknowledgement: `Al solicitar la cancelación anticipada, reconozco y acepto que Expensify no tiene ninguna obligación de conceder dicha solicitud en virtud de las <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Condiciones de Servicio</a> de Expensify u otro acuerdo de servicios aplicable entre Expensify y yo, y que Expensify se reserva el derecho exclusivo a conceder dicha solicitud.`,
         },
     },
     feedbackSurvey: {
