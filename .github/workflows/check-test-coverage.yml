@@ -19,4 +19,4 @@ jobs:
       - name: Check Test Coverage
         uses: ./.github/actions/javascript/checkTestCoverage
         with:
-          GITHUB_URL: ${{ inputs.github_url }} 
+          GITHUB_URL: ${{ inputs.github_url }}
