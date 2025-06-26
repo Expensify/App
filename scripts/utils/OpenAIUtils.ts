@@ -75,8 +75,10 @@ class OpenAIUtils {
         let response = '';
         let count = 0;
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
+            console.log('threadRun: ', threadRun);
+
             // await thread run completion
-            threadRun = await this.client.beta.threads.runs.retrieve(threadRun.thread_id, {thread_id: threadRun.id});
+            threadRun = await this.client.beta.threads.runs.retrieve(threadRun.thread_id, threadRun.id as any);
             if (threadRun.status !== 'completed') {
                 count++;
                 await new Promise((resolve) => {
