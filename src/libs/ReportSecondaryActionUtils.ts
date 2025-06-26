@@ -119,6 +119,11 @@ function isSubmitAction(
         return false;
     }
 
+    // If we have a single pending transaction, we don't want to show the submit action because the report would be empty.
+    if (reportTransactions.length === 1 && isPending(reportTransactions.at(0))) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
 
     if (!isExpenseReport || report?.total === 0) {
