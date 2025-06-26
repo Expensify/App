@@ -171,13 +171,6 @@ describe('getSecondaryAction', () => {
         } as unknown as Transaction;
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
-
-        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`, [
-            {
-                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-            } as TransactionViolation,
-        ]);
-
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryReportActions({report, chatReport, reportTransactions: [transaction], violations: {}, policy});
