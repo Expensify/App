@@ -405,7 +405,7 @@ function SearchPage({route}: SearchPageProps) {
                           currentUserPersonalDetails,
                           reportID: newReportID,
                       });
-            setMoneyRequestReceipt(transaction?.transactionID ?? '', source, file.name ?? '', true);
+            setMoneyRequestReceipt(transaction?.transactionID, source, file.name ?? '', true);
         });
         navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
     };

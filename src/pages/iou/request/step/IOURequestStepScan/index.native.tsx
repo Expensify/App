@@ -537,9 +537,9 @@ function IOURequestStepScan({
                           currentUserPersonalDetails,
                           reportID,
                       });
-            newReceiptFiles.push({file, source: file.uri ?? '', transactionID: transaction.transactionID ?? ''});
+            newReceiptFiles.push({file, source: file.uri ?? '', transactionID: transaction.transactionID});
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            setMoneyRequestReceipt(transaction.transactionID ?? '', file.uri ?? '', file.name || '', true);
+            setMoneyRequestReceipt(transaction.transactionID, file.uri ?? '', file.name || '', true);
         });
 
         if (shouldSkipConfirmation) {
