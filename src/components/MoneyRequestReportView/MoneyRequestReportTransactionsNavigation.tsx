@@ -1,45 +1,39 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
+import PrevNextButtons from '@components/PrevNextButtons';
+import {clearActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
-import {clearActiveTransactionThreadIDs, getActiveTransactionThreadIDs} from './TransactionThreadReportIDRepository';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
-    /** The report for which we are displaying the navigation buttons */
-    report: OnyxEntry<Report>;
+    currentReportID: string;
+
+    parentReportID?: string;
 
     /** The route to navigate back to when the user clicks on the back button */
     backTo?: string;
 };
 
-function MoneyRequestReportTransactionsNavigation({report, backTo}: MoneyRequestReportRHPNavigationButtonsProps) {
-    const styles = useThemeStyles();
-    const theme = useTheme();
-
-    const reportIDsList = getActiveTransactionThreadIDs();
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {
+function MoneyRequestReportTransactionsNavigation({currentReportID, parentReportID, backTo}: MoneyRequestReportRHPNavigationButtonsProps) {
+    const [reportIDsList = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
+        canBeMissing: true,
+    });
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canBeMissing: true,
         selector: (reportActions) => Object.values(reportActions ?? {}),
     });
 
-    const {prevReportID, prevParentReportActionID, nextReportID, nextParentReportActionID} = (() => {
-        if (!reportIDsList) {
+    const {prevReportID, prevParentReportActionID, nextReportID, nextParentReportActionID} = useMemo(() => {
+        if (!reportIDsList || reportIDsList.length < 2) {
             return {prevReportID: undefined, prevParentReportActionID: undefined, nextReportID: undefined, nextParentReportActionID: undefined};
         }
 
-        const currentReportIndex = reportIDsList.findIndex((id) => id === report?.reportID);
+        const currentReportIndex = reportIDsList.findIndex((id) => id === currentReportID);
 
         const prevID = currentReportIndex > 0 ? reportIDsList.at(currentReportIndex - 1) : undefined;
         const nextID = currentReportIndex <= reportIDsList.length - 1 ? reportIDsList.at(currentReportIndex + 1) : undefined;
@@ -47,7 +41,7 @@ function MoneyRequestReportTransactionsNavigation({report, backTo}: MoneyRequest
         const nextReportActionID = currentReportIndex <= reportIDsList.length - 1 ? parentReportActions?.find((action) => action.childReportID === nextID)?.reportActionID : undefined;
 
         return {prevReportID: prevID, prevParentReportActionID: prevReportActionID, nextReportID: nextID, nextParentReportActionID: nextReportActionID};
-    })();
+    }, [currentReportID, parentReportActions, reportIDsList]);
 
     /**
      * We clear the sibling transactionThreadIDs when unmounting this component
@@ -67,65 +61,23 @@ function MoneyRequestReportTransactionsNavigation({report, backTo}: MoneyRequest
         return;
     }
 
-    const pressableStyle = [
-        styles.ml1,
-        styles.alignItemsCenter,
-        styles.justifyContentCenter,
-        {
-            borderRadius: 50,
-            width: 28,
-            height: 28,
-            backgroundColor: theme.borderLighter,
-        },
-    ];
-
     return (
-        <>
-            <PressableWithFeedback
-                accessibilityRole={CONST.ROLE.BUTTON}
-                accessible
-                accessibilityLabel={CONST.ROLE.BUTTON}
-                disabled={!prevReportID}
-                style={pressableStyle}
-                onPress={(e) => {
-                    e?.preventDefault();
-                    Navigation.navigate(
-                        ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, parentReportActionID: prevParentReportActionID, parentReportID: report?.parentReportID, backTo}),
-                        {
-                            forceReplace: true,
-                        },
-                    );
-                }}
-            >
-                <Icon
-                    src={Expensicons.BackArrow}
-                    small
-                    fill={theme.icon}
-                    isButtonIcon
-                />
-            </PressableWithFeedback>
-            <PressableWithFeedback
-                accessibilityRole={CONST.ROLE.BUTTON}
-                accessible
-                accessibilityLabel={CONST.ROLE.BUTTON}
-                disabled={!nextReportID}
-                style={pressableStyle}
-                onPress={(e) => {
-                    e?.preventDefault();
-                    Navigation.navigate(
-                        ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, parentReportActionID: nextParentReportActionID, parentReportID: report?.parentReportID, backTo}),
-                        {forceReplace: true},
-                    );
-                }}
-            >
-                <Icon
-                    src={Expensicons.ArrowRight}
-                    small
-                    fill={theme.icon}
-                    isButtonIcon
-                />
-            </PressableWithFeedback>
-        </>
+        <PrevNextButtons
+            isPrevButtonDisabled={!prevReportID}
+            isNextButtonDisabled={!nextReportID}
+            onNext={(e) => {
+                e?.preventDefault();
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, parentReportActionID: nextParentReportActionID, parentReportID, backTo}), {
+                    forceReplace: true,
+                });
+            }}
+            onPrevious={(e) => {
+                e?.preventDefault();
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, parentReportActionID: prevParentReportActionID, parentReportID, backTo}), {
+                    forceReplace: true,
+                });
+            }}
+        />
     );
 }
 

@@ -1,7 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
@@ -13,7 +13,7 @@ import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import Timing from '@libs/actions/Timing';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
-import {selectAllTransactionsForReport} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {generateNewRandomInt, rand64} from '@libs/NumberUtils';
@@ -63,6 +63,9 @@ type ReportActionsViewProps = {
     hasOlderActions: boolean;
 
     isReportTransactionThread?: boolean;
+
+    /** All transactions grouped by reportID */
+    transactionsAndViolationsByReport: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -75,6 +78,7 @@ function ReportActionsView({
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
+    transactionsAndViolationsByReport,
     isReportTransactionThread,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
@@ -98,11 +102,9 @@ function ReportActionsView({
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
-    const [reportTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (allTransactions: OnyxCollection<OnyxTypes.Transaction>) =>
-            selectAllTransactionsForReport(allTransactions, reportID, allReportActions ?? []).map((transaction) => transaction.transactionID),
-        canBeMissing: true,
-    });
+    const {transactions} = transactionsAndViolationsByReport[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
+    const reportTransactions = getAllNonDeletedTransactions(Object.values(transactions ?? {}) ?? [], allReportActions ?? []);
+    const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
@@ -318,6 +320,7 @@ function ReportActionsView({
                 loadNewerChats={loadNewerChats}
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
+                transactionsAndViolationsByReport={transactionsAndViolationsByReport}
             />
             <UserTypingEventListener report={report} />
         </>

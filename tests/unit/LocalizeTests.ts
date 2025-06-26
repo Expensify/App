@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import CONST from '../../src/CONST';
 import * as Localize from '../../src/libs/Localize';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -56,9 +56,9 @@ describe('localize', () => {
                 },
             ],
         ])('formatList(%s)', async (input, {[CONST.LOCALES.DEFAULT]: expectedOutput, [CONST.LOCALES.ES]: expectedOutputES}) => {
-            await TranslationStore.load(CONST.LOCALES.EN);
+            await IntlStore.load(CONST.LOCALES.EN);
             expect(Localize.formatList(input)).toBe(expectedOutput);
-            await TranslationStore.load(CONST.LOCALES.ES);
+            await IntlStore.load(CONST.LOCALES.ES);
             expect(Localize.formatList(input)).toBe(expectedOutputES);
         });
     });
