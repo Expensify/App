@@ -125,7 +125,7 @@ function ReportActionItemSingle({
     const actorAccountID = getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
 
     // We want to display only the sender's avatar next to the report preview if it only contains one person's expenses.
-    const areIOUActionsOnlyFromOnePerson = isReportPreviewAction && iouActions?.length && (iouActions.every(isActionCreator) || !iouActions.some(isActionCreator));
+    const areIOUActionsOnlyFromOnePerson = isReportPreviewAction && !!iouActions?.length && (iouActions.every(isActionCreator) || !iouActions.some(isActionCreator));
 
     const isSendMoneyFlow = !!getSendMoneyFlowOneTransactionThreadID(iouActions, report);
 
