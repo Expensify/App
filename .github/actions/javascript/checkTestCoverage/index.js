@@ -11499,7 +11499,7 @@ async function run() {
 }
 async function promptAssistant(issueNumber) {
     const apiKey = (0, core_1.getInput)('PROPOSAL_POLICE_API_KEY', { required: true });
-    const assistantID = 'g-685db91277508191be5cc841ccf61832'; // TODO @BEN
+    const assistantID = 'asst_4YdgxpJNCqt9zYtpVvEaWg4a'; // TODO @BEN
     const openAI = new OpenAIUtils_1.default(apiKey);
     const prompt = `aslkdjfalksdjfalksdjfaldj`; // TODO @BEN
     core.info(`Prompt: ${prompt}`);
