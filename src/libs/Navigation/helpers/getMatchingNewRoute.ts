@@ -1,5 +1,15 @@
 import oldRoutes from '@navigation/linkingConfig/OldRoutes';
 
+/**
+ * Maps an old route path to its corresponding new route based on the `oldRoutes` map.
+ * It finds the best matching pattern (with wildcard `*` support) and replaces the matched
+ * part of the path with the new route value.
+ *
+ * @param path - The input URL path to match and transform.
+ * @returns The new route path if a match is found, otherwise `undefined`.
+ *
+ * Related issue: https://github.com/Expensify/App/issues/64968
+ */
 function getMatchingNewRoute(path: string) {
     let bestMatch;
     let maxLength = -1;
