@@ -6,7 +6,7 @@ import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
-import {Plus} from '@components/Icon/Expensicons';
+import {Eye, Plus} from '@components/Icon/Expensicons';
 import {Workflows} from '@components/Icon/Illustrations';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
@@ -52,6 +52,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import ApprovalChart from './ApprovalChart';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import type {AutoReportingFrequencyKey} from './WorkspaceAutoReportingFrequencyPage';
@@ -64,6 +65,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const [viewingApprovalChart, setViewingApprovalChart] = useState(false);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -211,15 +213,26 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 />
                             </OfflineWithFeedback>
                         ))}
-                        <MenuItem
-                            title={translate('workflowsPage.addApprovalButton')}
-                            titleStyle={styles.textStrong}
-                            icon={Plus}
-                            iconHeight={20}
-                            iconWidth={20}
-                            style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                            onPress={addApprovalAction}
-                        />
+                        <View>
+                            <MenuItem
+                                title={translate('workflowsPage.addApprovalButton')}
+                                titleStyle={styles.textStrong}
+                                icon={Plus}
+                                iconHeight={20}
+                                iconWidth={20}
+                                style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                                onPress={addApprovalAction}
+                            />
+                            <MenuItem
+                                title="View approval workflow"
+                                titleStyle={styles.textStrong}
+                                icon={Eye}
+                                iconHeight={20}
+                                iconWidth={20}
+                                style={[styles.sectionMenuItemTopDescription, styles.mt4, styles.mbn3]}
+                                onPress={() => setViewingApprovalChart(true)}
+                            />
+                        </View>
                     </>
                 ),
                 disabled: isSmartLimitEnabled,
@@ -377,43 +390,47 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
-            <WorkspacePageWithSections
-                headerText={translate('workspace.common.workflows')}
-                icon={Workflows}
-                route={route}
-                shouldShowOfflineIndicatorInWideScreen
-                shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
-                isLoading={isLoading}
-                shouldShowLoading={isLoading}
-                shouldUseScrollView
-                addBottomSafeAreaPadding
-            >
-                <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    {optionItems.map(renderOptionItem)}
-                    {isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ? (
-                        <ConfirmModal
-                            title={translate('workspace.bankAccount.workspaceCurrencyNotSupported')}
-                            isVisible={isUpdateWorkspaceCurrencyModalOpen}
-                            onConfirm={confirmCurrencyChangeAndHideModal}
-                            onCancel={() => setIsUpdateWorkspaceCurrencyModalOpen(false)}
-                            prompt={updateWorkspaceCurrencyPrompt}
-                            confirmText={translate('workspace.bankAccount.updateWorkspaceCurrency')}
-                            cancelText={translate('common.cancel')}
-                        />
-                    ) : (
-                        <ConfirmModal
-                            title={translate('workspace.bankAccount.workspaceCurrency')}
-                            isVisible={isUpdateWorkspaceCurrencyModalOpen}
-                            onConfirm={confirmCurrencyChangeAndHideModal}
-                            onCancel={() => setIsUpdateWorkspaceCurrencyModalOpen(false)}
-                            prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
-                            confirmText={translate('workspace.bankAccount.updateToUSD')}
-                            cancelText={translate('common.cancel')}
-                            danger
-                        />
-                    )}
-                </View>
-            </WorkspacePageWithSections>
+            {viewingApprovalChart && <ApprovalChart />}
+
+            {!viewingApprovalChart && (
+                <WorkspacePageWithSections
+                    headerText={translate('workspace.common.workflows')}
+                    icon={Workflows}
+                    route={route}
+                    shouldShowOfflineIndicatorInWideScreen
+                    shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
+                    isLoading={isLoading}
+                    shouldShowLoading={isLoading}
+                    shouldUseScrollView
+                    addBottomSafeAreaPadding
+                >
+                    <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        {optionItems.map(renderOptionItem)}
+                        {isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ? (
+                            <ConfirmModal
+                                title={translate('workspace.bankAccount.workspaceCurrencyNotSupported')}
+                                isVisible={isUpdateWorkspaceCurrencyModalOpen}
+                                onConfirm={confirmCurrencyChangeAndHideModal}
+                                onCancel={() => setIsUpdateWorkspaceCurrencyModalOpen(false)}
+                                prompt={updateWorkspaceCurrencyPrompt}
+                                confirmText={translate('workspace.bankAccount.updateWorkspaceCurrency')}
+                                cancelText={translate('common.cancel')}
+                            />
+                        ) : (
+                            <ConfirmModal
+                                title={translate('workspace.bankAccount.workspaceCurrency')}
+                                isVisible={isUpdateWorkspaceCurrencyModalOpen}
+                                onConfirm={confirmCurrencyChangeAndHideModal}
+                                onCancel={() => setIsUpdateWorkspaceCurrencyModalOpen(false)}
+                                prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
+                                confirmText={translate('workspace.bankAccount.updateToUSD')}
+                                cancelText={translate('common.cancel')}
+                                danger
+                            />
+                        )}
+                    </View>
+                </WorkspacePageWithSections>
+            )}
         </AccessOrNotFoundWrapper>
     );
 }
