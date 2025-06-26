@@ -160,6 +160,17 @@ type Geometry = {
 /** Accepted receipt paths */
 type ReceiptSource = string;
 
+type LineItem = {
+    /** Amount of the line item */
+    amount: number;
+
+    /** Name of the line item */
+    name: string;
+
+    /** Category of the line item */
+    category: ValueOf<typeof CONST.POLICY.DEFAULT_CATEGORIES>;
+};
+
 /** Model of receipt */
 type Receipt = {
     /** Name of receipt file */
@@ -188,6 +199,9 @@ type Receipt = {
 
     /** Receipt is Test Drive testing receipt */
     isTestDriveReceipt?: true;
+
+    /** Line items for the receipt */
+    lineItems?: LineItem[];
 };
 
 /** Model of route */
