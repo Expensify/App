@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
-type ReportListItem = ListItem & {
+type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
     value: string;
 };
@@ -30,7 +30,7 @@ function SearchTransactionsChangeReport() {
         return [...reports];
     }, [allReports, selectedTransactions]);
 
-    const selectReport = (item: ReportListItem) => {
+    const selectReport = (item: TransactionGroupListItem) => {
         if (selectedTransactionsKeys.length === 0) {
             return;
         }

@@ -19,7 +19,7 @@ import type {Report} from '@src/types/onyx';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import StepScreenWrapper from './StepScreenWrapper';
 
-type ReportListItem = ListItem & {
+type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
     value: string;
 };
@@ -42,7 +42,7 @@ const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 type Props = {
     backTo: Route | undefined;
     transactionsReports: Report[];
-    selectReport: (item: ReportListItem) => void;
+    selectReport: (item: TransactionGroupListItem) => void;
     removeFromReport?: () => void;
     isEditing?: boolean;
 };
@@ -78,7 +78,7 @@ function IOURequestEditReportCommon({backTo, transactionsReports, selectReport, 
         [allReports, currentUserPersonalDetails.accountID, transactionsReports, allPoliciesID, reportNameValuePairs],
     );
 
-    const reportOptions: ReportListItem[] = useMemo(() => {
+    const reportOptions: TransactionGroupListItem[] = useMemo(() => {
         if (!allReports) {
             return [];
         }
