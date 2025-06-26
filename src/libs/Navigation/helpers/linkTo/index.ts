@@ -62,7 +62,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // This is the state generated with the default getStateFromPath function.
     // It won't include the whole state that will be generated for this path but the focused route will be correct.
     // It is necessary because getActionFromState will generate RESET action for whole state generated with our custom getStateFromPath function.
-    const stateFromPath = getStateFromPath(normalizedPath) as PartialState<NavigationState<RootNavigatorParamList>>;
+    const stateFromPath = getStateFromPath(normalizedPathAfterRedirection) as PartialState<NavigationState<RootNavigatorParamList>>;
     const currentState = navigation.getRootState() as NavigationState<RootNavigatorParamList>;
 
     const focusedRouteFromPath = findFocusedRoute(stateFromPath);
