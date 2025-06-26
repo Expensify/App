@@ -27,7 +27,7 @@ import {
     isIndividualInvoiceRoom as isIndividualInvoiceRoomUtil,
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport,
-    reportTransactionsSelector
+    reportTransactionsSelector,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -379,7 +379,7 @@ function SettlementButton({
         latestBankItem,
     ]);
 
-    const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, snapshot?: SearchResults, transactions?: Transaction[]) => {
+    const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, searchSnapshot?: SearchResults, transactionList?: Transaction[]) => {
         if (policy && shouldRestrictUserBillableActions(policy.id)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return;
@@ -389,7 +389,7 @@ function SettlementButton({
             if (confirmApproval) {
                 confirmApproval();
             } else {
-                approveMoneyRequest(iouReport, false, transactions, snapshot);
+                approveMoneyRequest(iouReport, false, transactionList, searchSnapshot);
             }
             return;
         }
