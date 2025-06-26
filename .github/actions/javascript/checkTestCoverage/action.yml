@@ -7,7 +7,7 @@ inputs:
     GITHUB_TOKEN:
         description: 'Auth token for New Expensify Github'
         required: true
-    PROPOSAL_POLICE_API_KEY:
+    TESTRAIL_TRYHARD_OPENAI_API_KEY:
         description: 'OpenAI API key for accessing AI services'
         required: true
 

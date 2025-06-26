@@ -11498,8 +11498,8 @@ async function run() {
     }
 }
 async function promptAssistant(issueNumber) {
-    const apiKey = (0, core_1.getInput)('PROPOSAL_POLICE_API_KEY', { required: true });
-    const assistantID = 'asst_4YdgxpJNCqt9zYtpVvEaWg4a'; // TODO @BEN
+    const apiKey = (0, core_1.getInput)('TESTRAIL_TRYHARD_OPENAI_API_KEY', { required: true });
+    const assistantID = 'asst_7ZKVOjvodqEzb1wkzWlLYpVf';
     const openAI = new OpenAIUtils_1.default(apiKey);
     const prompt = `aslkdjfalksdjfalksdjfaldj`; // TODO @BEN
     core.info(`Prompt: ${prompt}`);
