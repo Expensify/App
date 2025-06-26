@@ -4958,6 +4958,10 @@ const translations = {
                 one: 'Czy na pewno chcesz usunąć tę stawkę?',
                 other: 'Czy na pewno chcesz usunąć te stawki?',
             }),
+            errors: {
+                rateNameRequired: 'Nazwa stawki jest wymagana',
+                existingRateName: 'Stawka odległości o tej nazwie już istnieje',
+            },
         },
         editor: {
             descriptionInputLabel: 'Opis',
