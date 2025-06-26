@@ -1,13 +1,10 @@
-const pathMap: Record<string, string> = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    '/settings/workspaces/*': '/workspaces/',
-};
+import oldRoutes from '@navigation/linkingConfig/OldRoutes';
 
-function getBestMatchingPath(path: string) {
+function getMatchingNewRoute(path: string) {
     let bestMatch;
     let maxLength = -1;
 
-    for (const pattern of Object.keys(pathMap)) {
+    for (const pattern of Object.keys(oldRoutes)) {
         const regexStr = `^${pattern.replace('*', '.*')}`;
         const regex = new RegExp(regexStr);
 
@@ -21,6 +18,6 @@ function getBestMatchingPath(path: string) {
     }
 
     const finalRegexp = bestMatch?.replace('*', '') ?? '';
-    return path.replace(finalRegexp, pathMap[bestMatch]);
+    return path.replace(finalRegexp, oldRoutes[bestMatch]);
 }
-export default getBestMatchingPath;
+export default getMatchingNewRoute;

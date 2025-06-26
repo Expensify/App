@@ -12,9 +12,9 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
+import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
 import {isFullScreenName} from './isNavigatorName';
-import getBestMatchingPath from './pathMap';
 import replacePathInNestedState from './replacePathInNestedState';
 
 let allReports: OnyxCollection<Report>;
@@ -227,7 +227,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 const getAdaptedStateFromPath: GetAdaptedStateFromPath = (path, options, shouldReplacePathInNestedState = true) => {
     let normalizedPath = !path.startsWith('/') ? `/${path}` : path;
 
-    normalizedPath = getBestMatchingPath(normalizedPath) ?? normalizedPath;
+    normalizedPath = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
     // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
     if (normalizedPath === CONST.SIGNIN_ROUTE) {
