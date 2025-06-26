@@ -122,6 +122,7 @@ import type {
     LastSyncAccountingParams,
     LastSyncDateParams,
     LeftWorkspaceParams,
+    LicensesParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -206,6 +207,7 @@ import type {
     SyncStageNameConnectionsParams,
     TaskCreatedActionParams,
     TaxAmountParams,
+    TermsOfUseRouteParams,
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
@@ -2064,8 +2066,9 @@ const translations = {
         chooseThemeBelowOrSync: '选择下面的主题，或与您的设备设置同步。',
     },
     termsOfUse: {
-        terms: `通过登录，您同意 <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>服务条款</a> 和 <a href=${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>隐私</a>.`,
-        licenses: `资金传输由${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）根据其提供 <a href=${CONST.OLD_DOT_PUBLIC_URLS.LICENSES_URL}>许可证</a>.`,
+        terms: ({termsURL, privacyURL}: TermsOfUseRouteParams) => `<muted-text>通过登录，您同意 <a href="${termsURL}">服务条款</a> 和 <a href="${privacyURL}">隐私</a>.</muted-text>`,
+        licenses: ({licensesURL}: LicensesParams) =>
+            `<muted-text>资金传输由${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}(NMLS ID:2017010)根据其提供 <a href="${licensesURL}">许可证</a>.</muted-text>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: '没有收到魔法代码？',
