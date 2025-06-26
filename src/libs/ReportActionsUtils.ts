@@ -2935,22 +2935,6 @@ function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>): strin
     return translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage});
 }
 
-function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
-    if (!isSubmittedAction(action)) {
-        return;
-    }
-
-    return getOriginalMessage(action)?.vacationer;
-}
-
-function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
-    if (!isSubmittedAction(action)) {
-        return;
-    }
-
-    return getOriginalMessage(action)?.to;
-}
-
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -3116,8 +3100,6 @@ export {
     getReportActionFromExpensifyCard,
     isReopenedAction,
     getIntegrationSyncFailedMessage,
-    getVacationer,
-    getSubmittedTo,
     getReceiptScanFailedMessage,
 };
 
