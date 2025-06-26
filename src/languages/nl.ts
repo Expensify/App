@@ -2290,11 +2290,13 @@ const translations = {
                     'En u bent klaar! Jazeker, zo makkelijk is het.',
             },
             addAccountingIntegrationTask: {
-                title: ({integrationName, workspaceAccountingLink}) => `Verbinden met [${integrationName}](${workspaceAccountingLink})`,
+                title: ({integrationName, workspaceAccountingLink}) =>
+                    `Verbind${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' met'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'uw' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `Verbind met ${integrationName} voor automatische uitgaven en synchronisatie die de maandafsluiting een fluitje van een cent maken.\n` +
+                    `Verbind${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' uw' : ' met'} ${integrationName} voor automatische uitgavencodering en synchronisatie die de maandafsluiting een fluitje van een cent maken.\n` +
                     '\n' +
-                    '1. Klik op *Werkruimtes*.\n' +
+                    '1. Klik op *Instellingen*.\n' +
+                    '2. Ga naar *Werkruimtes*.\n' +
                     '3. Selecteer uw werkruimte.\n' +
                     '4. Klik op *Boekhouding*.\n' +
                     `5. Zoek ${integrationName}.\n` +
@@ -2360,20 +2362,17 @@ const translations = {
             },
 
             inviteAccountantTask: {
-                title: ({workspaceMembersLink}) => `Nodig uw [accountant](${workspaceMembersLink}) uit`,
+                title: ({workspaceMembersLink}) => `Nodig uw [boekhouder](${workspaceMembersLink}) uit`,
                 description: ({workspaceMembersLink}) =>
-                    '*Nodig uw accountant* uit voor Expensify en deel uw uitgaven om de belastingtijd gemakkelijker te maken.\n' +
+                    '*Nodig uw boekhouder uit* om samen te werken in uw werkruimte en zakelijke uitgaven te beheren.\n' +
                     '\n' +
                     '1. Klik op *Werkruimtes*.\n' +
-                    '3. Selecteer uw werkruimte.\n' +
-                    '4. Klik op *Leden* > Lid uitnodigen.\n' +
-                    '5. Voer hun e-mailadres of telefoonnummer in.\n' +
-                    '6. Voeg een uitnodigingsbericht toe als u wilt.\n' +
-                    '7. U wordt ingesteld als de uitgavengoedkeurder. U kunt dit wijzigen naar een andere beheerder zodra u uw team uitnodigt.\n' +
+                    '2. Selecteer uw werkruimte.\n' +
+                    '3. Klik op *Leden*.\n' +
+                    '4. Klik op *Lid uitnodigen*.\n' +
+                    '5. Voer het e-mailadres van uw boekhouder in.\n' +
                     '\n' +
-                    'Dat is alles, veel plezier met declareren! 😄\n' +
-                    '\n' +
-                    `[Breng me naar werkruimtemedewerkers](${workspaceMembersLink}).`,
+                    `[Nodig nu uw boekhouder uit](${workspaceMembersLink}).`,
             },
 
             startChatTask: {

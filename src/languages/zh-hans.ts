@@ -2263,12 +2263,22 @@ const translations = {
                     '\u60a8\u5df2\u7ecf\u5b8c\u6210\uff01\u662f\u7684\uff0c\u5c31\u8fd9\u4e48\u7b80\u5355\u3002',
             },
             addAccountingIntegrationTask: {
-                title: ({integrationName, workspaceAccountingLink}) => `\u8FDE\u63A5\u5230[${integrationName}](${workspaceAccountingLink})`,
+                title: ({integrationName, workspaceAccountingLink}) =>
+                    `\u8FDE\u63A5${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : '\u5230'}[${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '\u60A8\u7684' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `\u8FDE\u63A5\u5230${integrationName}\uFF0C\u5B9E\u73B0\u81EA\u52A8\u8D39\u7528\u7F16\u7801\u548C\u540C\u6B65\uFF0C\u8BA9\u6708\u672B\u7ED3\u8D26\u53D8\u5F97\u8F7B\u800C\u6613\u4E3E\u3002\n\n1. \u70B9\u51FB*\u5DE5\u4F5C\u533A*。\n3. \u9009\u62E9\u60A8\u7684\u5DE5\u4F5C\u533A\u3002\n4. \u70B9\u51FB*\u4F1A\u8BA1*。\n5. \u627E\u5230${integrationName}\u3002\n6. \u70B9\u51FB*\u8FDE\u63A5*。\n\n${
+                    `\u8FDE\u63A5${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '\u60A8\u7684' : '\u5230'} ${integrationName}\uFF0C\u5B9E\u73B0\u81EA\u52A8\u8D39\u7528\u7F16\u7801\u548C\u540C\u6B65\uFF0C\u8BA9\u6708\u672B\u7ED3\u8D26\u53D8\u5F97\u8F7B\u800C\u6613\u4E3E\u3002\n` +
+                    '\n' +
+                    '1. \u70B9\u51FB *\u8BBE\u7F6E*。\n' +
+                    '2. \u524D\u5F80 *\u5DE5\u4F5C\u533A*。\n' +
+                    '3. \u9009\u62E9\u60A8\u7684\u5DE5\u4F5C\u533A\u3002\n' +
+                    '4. \u70B9\u51FB *\u4F1A\u8BA1*。\n' +
+                    `5. \u627E\u5230 ${integrationName}\u3002\n` +
+                    '6. \u70B9\u51FB *\u8FDE\u63A5*。\n' +
+                    '\n' +
+                    `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
-                            ? `[\u5E26\u6211\u5230\u4F1A\u8BA1\u9875\u9762](${workspaceAccountingLink})。\n\n![\\u8FDE\\u63A5\\u5230${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                            : `[\u5E26\u6211\u5230\u4F1A\u8BA1\u9875\u9762](${workspaceAccountingLink})`
+                            ? `[\u5E26\u6211\u5230\u4F1A\u8BA1\u9875\u9762](${workspaceAccountingLink})\u3002\n\n![\u8FDE\u63A5\u5230 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                            : `[\u5E26\u6211\u5230\u4F1A\u8BA1\u9875\u9762](${workspaceAccountingLink})\u3002`
                     }`,
             },
             connectCorporateCardTask: {
@@ -2323,20 +2333,17 @@ const translations = {
                     `![Set up tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
             },
             inviteAccountantTask: {
-                title: ({workspaceMembersLink}) => `\u9080\u8bf7\u60a8\u7684\u3010\u4f1a\u8ba1\u5e08\u3011(${workspaceMembersLink})`,
+                title: ({workspaceMembersLink}) => `\u9080\u8BF7\u60A8\u7684[\u4F1A\u8BA1](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*\u9080\u8bf7\u60a8\u7684\u4f1a\u8ba1\u5e08*\u5230 Expensify \uff0c\u5e76\u5206\u4eab\u60a8\u7684\u652f\u51fa\uff0c\u4ee5\u4fbf\u4e8e\u62a5\u7a0e\u3002\n' +
+                    '*\u9080\u8BF7\u60A8\u7684\u4F1A\u8BA1* \u4E0E\u60A8\u540C\u6B65\u5408\u4F5C\uFF0C\u5E76\u7BA1\u7406\u60A8\u7684\u5546\u52A1\u652F\u51FA\u3002\n' +
                     '\n' +
-                    '1. \u70b9\u51fb *\u5de5\u4f5c\u533a*\u3002\n' +
-                    '3. \u9009\u62e9\u60a8\u7684\u5de5\u4f5c\u533a\u3002\n' +
-                    '4. \u70b9\u51fb *\u6210\u5458* > \u9080\u8bf7\u6210\u5458\u3002\n' +
-                    '5. \u8f93\u5165\u4ed6\u4eec\u7684\u7535\u5b50\u90ae\u4ef6\u6216\u7535\u8bdd\u53f7\u7801\u3002\n' +
-                    '6. \u5982\u6709\u9700\u8981\uff0c\u53ef\u6dfb\u52a0\u9080\u8bf7\u4fe1\u606f\u3002\n' +
-                    '7. \u60a8\u5c06\u88ab\u8bbe\u7f6e\u4e3a\u652f\u51fa\u6279\u51c6\u4eba\u3002\u4e00\u65e6\u60a8\u9080\u8bf7\u56e2\u961f\uff0c\u53ef\u4ee5\u5c06\u5176\u66f4\u6539\u4e3a\u4efb\u4f55\u7ba1\u7406\u5458\u3002\n' +
+                    '1. \u70B9\u51FB *\u5DE5\u4F5C\u533A*。\n' +
+                    '2. \u9009\u62E9\u60A8\u7684\u5DE5\u4F5C\u533A\u3002\n' +
+                    '3. \u70B9\u51FB *\u6210\u5458*。\n' +
+                    '4. \u70B9\u51FB *\u9080\u8BF7\u6210\u5458*。\n' +
+                    '5. \u8F93\u5165\u60A8\u4F1A\u8BA1\u7684\u90AE\u7BB1\u5730\u5740\u3002\n' +
                     '\n' +
-                    '\u5c31\u8fd9\u4e48\u7b80\u5355\uff0c\u62a5\u9500\u5feb\u4e50\uff01 \u00f0\u009f\u0098\u0084\n' +
-                    '\n' +
-                    `\u3010\u5e26\u6211\u5230\u5de5\u4f5c\u533a\u6210\u5458\u3011(${workspaceMembersLink})\u3002`,
+                    `[\u7ACB\u5373\u9080\u8BF7\u60A8\u7684\u4F1A\u8BA1](${workspaceMembersLink})\u3002`,
             },
             startChatTask: {
                 title: '\u5f00\u59cb\u804a\u5929',

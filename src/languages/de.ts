@@ -2290,14 +2290,18 @@ const translations = {
                     'Fertig! So einfach ist das.',
             },
             addAccountingIntegrationTask: {
-                title: ({integrationName, workspaceAccountingLink}) => `Verbinde [${integrationName}](${workspaceAccountingLink})`,
+                title: ({integrationName, workspaceAccountingLink}) =>
+                    `Verbinde${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' mit'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'deiner' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `Verbinde ${integrationName}, um Ausgaben automatisch zuzuordnen und den Monatsabschluss zu vereinfachen.\n\n` +
-                    '1. Klicke auf *Workspaces*.\n' +
-                    '2. Wähle deinen Workspace.\n' +
-                    '3. Klicke auf *Buchhaltung*.\n' +
-                    `4. Finde ${integrationName}.\n` +
-                    '5. Klicke auf *Verbinden*.\n\n' +
+                    `Verbinde ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'deine' : 'mit'} ${integrationName}, um Ausgaben automatisch zuzuordnen und den Monatsabschluss zu vereinfachen.\n` +
+                    '\n' +
+                    '1. Klicke auf *Einstellungen*.\n' +
+                    '2. Gehe zu *Workspaces*.\n' +
+                    '3. Wähle deinen Workspace.\n' +
+                    '4. Klicke auf *Buchhaltung*.\n' +
+                    `5. Finde ${integrationName}.\n` +
+                    '6. Klicke auf *Verbinden*.\n' +
+                    '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
                             ? `[Zu Buchhaltung](${workspaceAccountingLink}).\n\n![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
@@ -2348,15 +2352,15 @@ const translations = {
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Lade deinen [Buchhalter](${workspaceMembersLink}) ein`,
                 description: ({workspaceMembersLink}) =>
-                    '*Lade deinen Buchhalter* zu Expensify ein und teile deine Ausgaben, um die Steuerzeit zu vereinfachen.\n\n' +
+                    '*Lade deinen Buchhalter ein*, um gemeinsam an deinem Workspace zu arbeiten und Geschäftsausgaben zu verwalten.\n' +
+                    '\n' +
                     '1. Klicke auf *Workspaces*.\n' +
                     '2. Wähle deinen Workspace.\n' +
-                    '3. Klicke auf *Mitglieder* > Mitglied einladen.\n' +
-                    '4. Gib E-Mail oder Telefonnummer ein.\n' +
-                    '5. Optional: Nachricht hinzufügen.\n' +
-                    '6. Du wirst als Genehmiger gesetzt – kann später geändert werden.\n\n' +
-                    'Das war’s – viel Spaß beim Abrechnen! 😄\n\n' +
-                    `[Zu den Mitgliedern](${workspaceMembersLink}).`,
+                    '3. Klicke auf *Mitglieder*.\n' +
+                    '4. Klicke auf *Mitglied einladen*.\n' +
+                    '5. Gib die E-Mail-Adresse deines Buchhalters ein.\n' +
+                    '\n' +
+                    `[Jetzt Buchhalter einladen](${workspaceMembersLink}).`,
             },
             startChatTask: {
                 title: 'Starte einen Chat',

@@ -2287,11 +2287,13 @@ const translations = {
                     'E pronto! Sim, é simples assim.',
             },
             addAccountingIntegrationTask: {
-                title: ({integrationName, workspaceAccountingLink}) => `Conecte-se ao [${integrationName}](${workspaceAccountingLink})`,
+                title: ({integrationName, workspaceAccountingLink}) =>
+                    `Conecte-se${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' ao'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'seu' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `Conecte-se ao ${integrationName} para categorização automática de despesas e sincronização que torna o fechamento do mês muito fácil.\n` +
+                    `Conecte-se${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' ao seu' : ' ao'} ${integrationName} para categorização automática de despesas e sincronização que torna o fechamento do mês muito fácil.\n` +
                     '\n' +
-                    '1. Clique em *Espaços de trabalho*.\n' +
+                    '1. Clique em *Configurações*.\n' +
+                    '2. Vá para *Espaços de trabalho*.\n' +
                     '3. Selecione seu espaço de trabalho.\n' +
                     '4. Clique em *Contabilidade*.\n' +
                     `5. Encontre ${integrationName}.\n` +
@@ -2359,18 +2361,15 @@ const translations = {
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Convide seu [contador](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*Convide seu contador* para o Expensify e compartilhe suas despesas para facilitar a época de impostos.\n' +
+                    '*Convide seu contador* para colaborar no seu espaço de trabalho e gerenciar as despesas da sua empresa.\n' +
                     '\n' +
                     '1. Clique em *Espaços de trabalho*.\n' +
-                    '3. Selecione seu espaço de trabalho.\n' +
-                    '4. Clique em *Membros* > Convidar membro.\n' +
-                    '5. Insira o e-mail ou número de telefone deles.\n' +
-                    '6. Adicione uma mensagem de convite, se desejar.\n' +
-                    '7. Você será definido como o aprovador de despesas. Você pode mudar isso para qualquer administrador depois de convidar sua equipe.\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Clique em *Membros*.\n' +
+                    '4. Clique em *Convidar membro*.\n' +
+                    '5. Insira o e-mail do seu contador.\n' +
                     '\n' +
-                    'É isso, boas despesas! 😄\n' +
-                    '\n' +
-                    `[Leve-me para os membros do espaço de trabalho](${workspaceMembersLink}).`,
+                    `[Convide seu contador agora](${workspaceMembersLink}).`,
             },
 
             startChatTask: {

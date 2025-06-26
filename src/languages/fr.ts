@@ -2291,10 +2291,13 @@ const translations = {
                     'Et voilà, aussi simple que ça.',
             },
             addAccountingIntegrationTask: {
-                title: ({integrationName, workspaceAccountingLink}) => `Connecter à [${integrationName}](${workspaceAccountingLink})`,
+                title: ({integrationName, workspaceAccountingLink}) =>
+                    `Connecter${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' à'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'votre' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `Connectez-vous à ${integrationName} pour automatiser le codage et la synchronisation des dépenses. La clôture mensuelle devient un jeu d’enfant.\n\n` +
-                    '1. Cliquez sur *Espaces de travail*.\n' +
+                    `Connectez${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '-vous à votre' : '-vous à'} ${integrationName} pour automatiser le codage et la synchronisation des dépenses. La clôture mensuelle devient un jeu d’enfant.\n` +
+                    '\n' +
+                    '1. Cliquez sur *Paramètres*.\n' +
+                    '2. Accédez à *Espaces de travail*.\n' +
                     '3. Sélectionnez votre espace.\n' +
                     '4. Cliquez sur *Comptabilité*.\n' +
                     `5. Trouvez ${integrationName}.\n` +
@@ -2349,15 +2352,15 @@ const translations = {
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Invitez votre [comptable](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*Invitez votre comptable* sur Expensify et partagez vos dépenses pour faciliter les déclarations fiscales.\n\n' +
+                    '*Invitez votre comptable* à collaborer dans votre espace de travail et à gérer les dépenses de votre entreprise.\n' +
+                    '\n' +
                     '1. Cliquez sur *Espaces de travail*.\n' +
-                    '3. Sélectionnez votre espace.\n' +
-                    '4. Cliquez sur *Membres* > Inviter un membre.\n' +
-                    '5. Saisissez son email ou numéro de téléphone.\n' +
-                    '6. Ajoutez un message si vous le souhaitez.\n' +
-                    '7. Vous serez défini comme valideur. Vous pouvez changer cela une fois l’équipe invitée.\n\n' +
-                    'C’est tout, bonnes dépenses ! 😄\n\n' +
-                    `[Accéder aux membres](${workspaceMembersLink}).`,
+                    '2. Sélectionnez votre espace.\n' +
+                    '3. Cliquez sur *Membres*.\n' +
+                    '4. Cliquez sur *Inviter un membre*.\n' +
+                    '5. Saisissez l’adresse e-mail de votre comptable.\n' +
+                    '\n' +
+                    `[Invitez votre comptable maintenant](${workspaceMembersLink}).`,
             },
             startChatTask: {
                 title: 'Démarrer un chat',

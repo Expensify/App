@@ -2284,20 +2284,22 @@ const translations = {
                     'En u bent klaar! Jazeker, zo makkelijk is het.',
             },
             addAccountingIntegrationTask: {
-                title: ({integrationName, workspaceAccountingLink}) => `Verbinden met [${integrationName}](${workspaceAccountingLink})`,
+                title: ({integrationName, workspaceAccountingLink}) =>
+                    `Połącz${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' z'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'swoim' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `Verbind met ${integrationName} voor automatische uitgaven en synchronisatie die de maandafsluiting een fluitje van een cent maken.\n` +
+                    `Połącz${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' swój' : ' z'} ${integrationName}, aby automatycznie kategoryzować wydatki i synchronizować dane, co ułatwi zamknięcie miesiąca.\n` +
                     '\n' +
-                    '1. Klik op *Werkruimtes*.\n' +
-                    '3. Selecteer uw werkruimte.\n' +
-                    '4. Klik op *Boekhouding*.\n' +
-                    `5. Zoek ${integrationName}.\n` +
-                    '6. Klik op *Verbinden*.\n' +
+                    '1. Kliknij *Ustawienia*.\n' +
+                    '2. Przejdź do *Przestrzenie robocze*.\n' +
+                    '3. Wybierz swoją przestrzeń roboczą.\n' +
+                    '4. Kliknij *Księgowość*.\n' +
+                    `5. Znajdź ${integrationName}.\n` +
+                    '6. Kliknij *Połącz*.\n' +
                     '\n' +
                     `${
                         integrationName && CONST.connectionsVideoPaths[integrationName]
-                            ? `[Breng me naar boekhouding](${workspaceAccountingLink}).\n\n![Verbind met ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                            : `[Breng me naar boekhouding](${workspaceAccountingLink}).`
+                            ? `[Przejdź do księgowości](${workspaceAccountingLink}).\n\n![Połącz z ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                            : `[Przejdź do księgowości](${workspaceAccountingLink}).`
                     }`,
             },
             connectCorporateCardTask: {
@@ -2354,20 +2356,17 @@ const translations = {
             },
 
             inviteAccountantTask: {
-                title: ({workspaceMembersLink}) => `Nodig uw [accountant](${workspaceMembersLink}) uit`,
+                title: ({workspaceMembersLink}) => `Zaproś swojego [księgowego](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*Nodig uw accountant* uit voor Expensify en deel uw uitgaven om de belastingtijd gemakkelijker te maken.\n' +
+                    '*Zaproś swojego księgowego*, aby współpracował w Twojej przestrzeni roboczej i zarządzał wydatkami firmowymi.\n' +
                     '\n' +
-                    '1. Klik op *Werkruimtes*.\n' +
-                    '3. Selecteer uw werkruimte.\n' +
-                    '4. Klik op *Leden* > Lid uitnodigen.\n' +
-                    '5. Voer hun e-mailadres of telefoonnummer in.\n' +
-                    '6. Voeg een uitnodigingsbericht toe als u wilt.\n' +
-                    '7. U wordt ingesteld als de uitgavengoedkeurder. U kunt dit wijzigen naar een andere beheerder zodra u uw team uitnodigt.\n' +
+                    '1. Kliknij *Przestrzenie robocze*.\n' +
+                    '2. Wybierz swoją przestrzeń roboczą.\n' +
+                    '3. Kliknij *Członkowie*.\n' +
+                    '4. Kliknij *Zaproś członka*.\n' +
+                    '5. Wpisz adres e-mail swojego księgowego.\n' +
                     '\n' +
-                    'Dat is alles, veel plezier met declareren! 😄\n' +
-                    '\n' +
-                    `[Breng me naar werkruimtemedewerkers](${workspaceMembersLink}).`,
+                    `[Zaproś swojego księgowego teraz](${workspaceMembersLink}).`,
             },
 
             startChatTask: {

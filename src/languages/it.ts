@@ -2288,11 +2288,13 @@ const translations = {
                     'E il gioco è fatto! Sì, è davvero così facile.',
             },
             addAccountingIntegrationTask: {
-                title: ({integrationName, workspaceAccountingLink}) => `Connetti a [${integrationName}](${workspaceAccountingLink})`,
+                title: ({integrationName, workspaceAccountingLink}) =>
+                    `Connetti${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' a'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'il tuo' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `Connetti a ${integrationName} per una codifica automatica delle spese e sincronizzazione che semplifica la chiusura di fine mese.\n` +
+                    `Connetti${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' il tuo' : ' a'} ${integrationName} per una codifica automatica delle spese e sincronizzazione che semplifica la chiusura di fine mese.\n` +
                     '\n' +
-                    '1. Clicca su *Spazi di lavoro*.\n' +
+                    '1. Clicca su *Impostazioni*.\n' +
+                    '2. Vai a *Spazi di lavoro*.\n' +
                     '3. Seleziona il tuo spazio di lavoro.\n' +
                     '4. Clicca su *Contabilità*.\n' +
                     `5. Trova ${integrationName}.\n` +
@@ -2357,18 +2359,15 @@ const translations = {
             inviteAccountantTask: {
                 title: ({workspaceMembersLink}) => `Invita il tuo [commercialista](${workspaceMembersLink})`,
                 description: ({workspaceMembersLink}) =>
-                    '*Invita il tuo commercialista* su Expensify e condividi le tue spese per rendere più facile la dichiarazione dei redditi.\n' +
+                    '*Invita il tuo commercialista* a collaborare nel tuo spazio di lavoro e a gestire le spese aziendali.\n' +
                     '\n' +
                     '1. Clicca su *Spazi di lavoro*.\n' +
-                    '3. Seleziona il tuo spazio di lavoro.\n' +
-                    '4. Clicca su *Membri* > Invita membro.\n' +
-                    '5. Inserisci la loro email o numero di telefono.\n' +
-                    '6. Aggiungi un messaggio d’invito se vuoi.\n' +
-                    '7. Sarai impostato come approvatore delle spese. Puoi cambiare questo ruolo in un qualsiasi admin dopo aver invitato il tuo team.\n' +
+                    '2. Seleziona il tuo spazio di lavoro.\n' +
+                    '3. Clicca su *Membri*.\n' +
+                    '4. Clicca su *Invita un membro*.\n' +
+                    "5. Inserisci l'indirizzo email del tuo commercialista.\n" +
                     '\n' +
-                    'Tutto qui, buone spese! 😄\n' +
-                    '\n' +
-                    `[Vai ai membri dello spazio di lavoro](${workspaceMembersLink}).`,
+                    `[Invita ora il tuo commercialista](${workspaceMembersLink}).`,
             },
             startChatTask: {
                 title: 'Avvia una chat',
