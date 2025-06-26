@@ -500,6 +500,7 @@ function TransactionItemRow({
                             <TransactionItemRowRBRWithOnyx
                                 transaction={transactionItem}
                                 missingFieldError={missingFieldError}
+                                containerStyles={[{marginLeft: 38}]}
                             />
                         </View>
                     </Animated.View>
