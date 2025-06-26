@@ -264,5 +264,4 @@ export type {
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
-    VacationDelegate,
 };
