@@ -2,7 +2,7 @@ import type {LayoutChangeEvent, ListRenderItem, StyleProp, ViewStyle} from 'reac
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, ReportTransactionsAndViolationsDerivedValue, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
 type TransactionPreviewStyle = {
     [key in keyof TransactionPreviewStyleType]: number;
@@ -56,6 +56,9 @@ type MoneyRequestReportPreviewProps = {
 
     /** Whether to show a border to separate Reports Chat Item and Money Request Report Preview */
     shouldShowBorder?: boolean;
+
+    /** All transactions grouped by reportID */
+    transactionsAndViolationsByReport: ReportTransactionsAndViolationsDerivedValue;
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {
@@ -67,11 +70,10 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     policy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;
     lastTransactionViolations: TransactionViolations;
-    isDelegateAccessRestricted: boolean;
 };
 
 type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps &
-    Omit<MoneyRequestReportPreviewProps, 'policyID'> & {
+    Omit<MoneyRequestReportPreviewProps, 'policyID' | 'transactionsAndViolationsByReport'> & {
         /** Extra styles passed used by MoneyRequestReportPreviewContent */
         reportPreviewStyles: MoneyRequestReportPreviewStyleType;
 

@@ -194,6 +194,9 @@ type PureReportActionItemProps = {
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
 
+    /** All transactions grouped by reportID */
+    transactionsAndViolationsByReport?: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
+
     /** Array of report actions for the report for this action */
     // eslint-disable-next-line react/no-unused-prop-types
     reportActions: OnyxTypes.ReportAction[];
@@ -376,6 +379,7 @@ function PureReportActionItem({
     report,
     policy,
     transactionThreadReport,
+    transactionsAndViolationsByReport = {},
     linkedReportActionID,
     displayAsGroup,
     index,
@@ -907,6 +911,7 @@ function PureReportActionItem({
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
+                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
@@ -927,6 +932,7 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
                     shouldShowBorder={shouldShowBorder}
+                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                 />
             );
         } else if (isTaskAction(action)) {
@@ -1164,6 +1170,8 @@ function PureReportActionItem({
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
+            children = <ReportActionItemBasicMessage message={translate('receipt.scanFailed')} />;
         } else if (isRenamedAction(action)) {
             const message = getRenamedAction(action, isExpenseReport(report));
             children = <ReportActionItemBasicMessage message={message} />;
@@ -1359,7 +1367,12 @@ function PureReportActionItem({
     }
 
     if (isTripPreview(action) && isThreadReportParentAction) {
-        return <TripSummary reportID={getOriginalMessage(action)?.linkedReportID} />;
+        return (
+            <TripSummary
+                reportID={getOriginalMessage(action)?.linkedReportID}
+                transactionsAndViolationsByReport={transactionsAndViolationsByReport}
+            />
+        );
     }
 
     if (isChronosOOOListAction(action)) {
