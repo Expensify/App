@@ -36,7 +36,7 @@ import {approveMoneyRequest, savePreferredPaymentMethod as savePreferredPaymentM
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, BankAccount, LastPaymentMethodType, Policy, SearchResults, Transaction} from '@src/types/onyx';
+import type {AccountData, BankAccount, LastPaymentMethodType, Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
