@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread, isInvoiceRoom, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Report, ReportAction, ReportTransactionsAndViolationsDerivedValue, Transaction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
 
@@ -34,6 +34,9 @@ type ReportActionsListItemRendererProps = {
 
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport: OnyxEntry<Report>;
+
+    /** All transactions grouped by reportID */
+    transactionsAndViolationsByReport: ReportTransactionsAndViolationsDerivedValue;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
@@ -69,6 +72,7 @@ function ReportActionsListItemRenderer({
     index,
     report,
     transactionThreadReport,
+    transactionsAndViolationsByReport,
     displayAsGroup,
     mostRecentIOUReportActionID = '',
     shouldHideThreadDividerLine,
@@ -166,6 +170,7 @@ function ReportActionsListItemRenderer({
                 index={index}
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                transactionsAndViolationsByReport={transactionsAndViolationsByReport}
             />
         );
     }
@@ -198,6 +203,7 @@ function ReportActionsListItemRenderer({
             index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+            transactionsAndViolationsByReport={transactionsAndViolationsByReport}
         />
     );
 }

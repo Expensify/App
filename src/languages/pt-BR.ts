@@ -67,6 +67,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodParams,
     ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
@@ -549,6 +550,7 @@ const translations = {
         userID: 'ID do Usuário',
         disable: 'Desativar',
         export: 'Exportar',
+        basicExport: 'Exporta\u00E7\u00E3o b\u00E1sica',
         initialValue: 'Valor inicial',
         currentDate: 'Data atual',
         value: 'Valor',
@@ -1018,6 +1020,7 @@ const translations = {
         share: 'Compartilhar',
         participants: 'Participantes',
         createExpense: 'Criar despesa',
+        trackDistance: 'Rastrear distância',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Criar ${expensesNumber} despesas`,
         addExpense: 'Adicionar despesa',
         chooseRecipient: 'Escolher destinatário',
@@ -1122,7 +1125,6 @@ const translations = {
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Conta empresarial • ${lastFour}`,
         nextStep: 'Próximos passos',
         finished: 'Concluído',
-        flip: 'Inverter',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar fatura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Enviar ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `para ${comment}` : ''}`,
@@ -1489,6 +1491,7 @@ const translations = {
             noLogsToShare: 'Sem registros para compartilhar',
             useProfiling: 'Usar perfilamento',
             profileTrace: 'Rastreamento de perfil',
+            results: 'Resultados',
             releaseOptions: 'Opções de lançamento',
             testingPreferences: 'Testando preferências',
             useStagingServer: 'Usar Servidor de Staging',
@@ -1509,6 +1512,7 @@ const translations = {
             invalidFile: 'Arquivo inválido',
             invalidFileDescription: 'O arquivo que você está tentando importar não é válido. Por favor, tente novamente.',
             invalidateWithDelay: 'Invalidar com atraso',
+            recordTroubleshootData: 'Registro de dados de solução de problemas',
         },
         debugConsole: {
             saveLog: 'Salvar log',
@@ -2415,11 +2419,8 @@ const translations = {
         toGetStarted: 'Adicione uma conta bancária para reembolsar despesas, emitir Cartões Expensify, coletar pagamentos de faturas e pagar contas, tudo em um só lugar.',
         plaidBodyCopy: 'Dê aos seus funcionários uma maneira mais fácil de pagar - e serem reembolsados - por despesas da empresa.',
         checkHelpLine: 'Seu número de roteamento e número da conta podem ser encontrados em um cheque da conta.',
-        hasPhoneLoginError: {
-            phrase1: 'Para conectar uma conta bancária, por favor',
-            link: 'adicione um e-mail como seu login principal',
-            phrase2: 'e tente novamente. Você pode adicionar seu número de telefone como um login secundário.',
-        },
+        hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
+            `Para conectar uma conta bancária, por favor <a href="${contactMethodRoute}">adicione um e-mail como seu login principal</a> e tente novamente. Você pode adicionar seu número de telefone como um login secundário.`,
         hasBeenThrottledError: 'Ocorreu um erro ao adicionar sua conta bancária. Por favor, aguarde alguns minutos e tente novamente.',
         hasCurrencyError: {
             phrase1: 'Ops! Parece que a moeda do seu espaço de trabalho está definida para uma moeda diferente de USD. Para continuar, por favor vá para',
@@ -3200,7 +3201,7 @@ const translations = {
             welcomeNote: 'Por favor, use o Expensify para enviar seus recibos para reembolso, obrigado!',
             subscription: 'Assinatura',
             markAsEntered: 'Marcar como inserido manualmente',
-            markAsExported: 'Marcar como exportado manualmente',
+            markAsExported: 'Marcar como exportado',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Vamos verificar se tudo está correto.',
             lineItemLevel: 'Nível de item linha',
@@ -5740,6 +5741,7 @@ const translations = {
             groupBy: {
                 reports: 'Relatório',
                 members: 'Membro',
+                cards: 'Cartão',
             },
         },
         groupBy: 'Agrupar por',
@@ -6392,14 +6394,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'Resgatar oferta',
                 noThanks: 'Não, obrigado.',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% de desconto no seu primeiro ano!`,
-                    phrase2: `Basta adicionar um cartão de pagamento e iniciar uma assinatura anual.`,
-                },
-                onboardingChatTitle: {
-                    phrase1: 'Oferta por tempo limitado:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% de desconto no seu primeiro ano!`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>${discountType}% de desconto no seu primeiro ano!</strong> Basta adicionar um cartão de pagamento e iniciar uma assinatura anual.`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Oferta por tempo limitado: ${discountType}% de desconto no seu primeiro ano!`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Reivindicar dentro de ${days > 0 ? `${days}d :` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
         },
