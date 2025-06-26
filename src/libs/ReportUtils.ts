@@ -18,7 +18,7 @@ import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
-import type {IOUAction, IOUType, OnboardingAccounting, OnboardingCompanySize, OnboardingPurpose, OnboardingTaskLinks} from '@src/CONST';
+import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
@@ -75,6 +75,8 @@ import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {handleReportChanged} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
+import {getOnboardingMessages} from './actions/Welcome/OnboardingFlow';
+import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTaskLinks} from './actions/Welcome/OnboardingFlow';
 import type {AddCommentOrAttachmentParams} from './API/parameters';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -2047,10 +2049,7 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transact
  * Whether the provided report is an archived room
  */
 function isArchivedNonExpenseReport(report: OnyxInputOrEntry<Report> | SearchReport, isReportArchived = false): boolean {
-    if (!report) {
-        return false;
-    }
-    return !(isExpenseReport(report) || isExpenseRequest(report)) && isReportArchived;
+    return isReportArchived && !(isExpenseReport(report) || isExpenseRequest(report));
 }
 
 /**
@@ -9027,12 +9026,11 @@ function canEditWriteCapability(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
 }
 
 /**
- * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
+ * @param policy - the workspace the room is on, null if the user isn't a member of the workspace
+ * @param isReportArchived - whether the workspace room is archived
  */
-function canEditRoomVisibility(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    return isPolicyAdminPolicyUtils(policy) && !isArchivedNonExpenseReport(report, !!getReportNameValuePairs(report?.reportID)?.private_isArchived);
+function canEditRoomVisibility(policy: OnyxEntry<Policy>, isReportArchived: boolean): boolean {
+    return !isReportArchived && isPolicyAdminPolicyUtils(policy);
 }
 
 /**
@@ -10076,7 +10074,7 @@ function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: s
 function prepareOnboardingOnyxData(
     introSelected: OnyxEntry<IntroSelected>,
     engagementChoice: OnboardingPurpose,
-    onboardingMessage: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
+    onboardingMessage: OnboardingMessage,
     adminsChatReportID?: string,
     onboardingPolicyID?: string,
     userReportedIntegration?: OnboardingAccounting,
@@ -10085,12 +10083,12 @@ function prepareOnboardingOnyxData(
 ) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
-        onboardingMessage = CONST.CREATE_EXPENSE_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
+        onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
     }
 
     if (engagementChoice === CONST.ONBOARDING_CHOICES.EMPLOYER || engagementChoice === CONST.ONBOARDING_CHOICES.SUBMIT) {
         // eslint-disable-next-line no-param-reassign
-        onboardingMessage = CONST.CREATE_EXPENSE_ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.SUBMIT];
+        onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
     // Guides are assigned and tasks are posted in the #admins room for the MANAGE_TEAM and TRACK_WORKSPACE onboarding actions, except for emails that have a '+'.

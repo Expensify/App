@@ -16,9 +16,9 @@ import {
     canEditWriteCapability,
     getReportNotificationPreference,
     isAdminRoom,
-    isArchivedNonExpenseReport,
+    isArchivedNonExpenseReport as isArchivedNonExpenseReportUtils,
     isHiddenForCurrentUser,
-    isMoneyRequestReport as isMoneyRequestReportUtil,
+    isMoneyRequestReport as isMoneyRequestReportUtils,
     isSelfDM,
 } from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
@@ -36,22 +36,21 @@ function ReportSettingsPage({report, policy, route}: ReportSettingsPageProps) {
     const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
+    const isReportArchived = useReportIsArchived(reportID);
+    const isArchivedNonExpenseReport = isArchivedNonExpenseReportUtils(report, isReportArchived);
     // The workspace the report is on, null if the user isn't a member of the workspace
     const linkedWorkspace = useMemo(() => (report?.policyID && policy?.id === report?.policyID ? policy : undefined), [policy, report?.policyID]);
-    const isMoneyRequestReport = isMoneyRequestReportUtil(report);
-    const isReportArchived = useReportIsArchived(report?.reportID);
-    const shouldDisableSettings = isEmptyObject(report) || isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report);
+    const isMoneyRequestReport = isMoneyRequestReportUtils(report);
+    const shouldDisableSettings = isArchivedNonExpenseReport || isEmptyObject(report) || isSelfDM(report);
     const notificationPreferenceValue = getReportNotificationPreference(report);
     const notificationPreference =
         notificationPreferenceValue && !isHiddenForCurrentUser(notificationPreferenceValue)
             ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}`)
             : '';
     const writeCapability = isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : (report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL);
-
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
     const shouldAllowWriteCapabilityEditing = useMemo(() => canEditWriteCapability(report, linkedWorkspace, isReportArchived), [report, linkedWorkspace, isReportArchived]);
-    const shouldAllowChangeVisibility = useMemo(() => canEditRoomVisibility(report, linkedWorkspace), [report, linkedWorkspace]);
+    const shouldAllowChangeVisibility = useMemo(() => canEditRoomVisibility(linkedWorkspace, isArchivedNonExpenseReport), [linkedWorkspace, isArchivedNonExpenseReport]);
 
     const shouldShowNotificationPref = !isMoneyRequestReport && !isHiddenForCurrentUser(notificationPreferenceValue);
 

@@ -172,9 +172,9 @@ function ReportActionsList({
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-    const isReportArchived = useReportIsArchived(report?.reportID);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
     const participantsContext = useContext(PersonalDetailsContext);
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
