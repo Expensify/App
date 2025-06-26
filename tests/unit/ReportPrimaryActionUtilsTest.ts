@@ -73,6 +73,30 @@ describe('getPrimaryAction', () => {
         expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy})).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
 
+    it('should not return SUBMIT option for admin with only pending transactions', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            status: CONST.TRANSACTION.STATUS.PENDING,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy})).toBe('');
+    });
+
     it('should return Approve for report being processed', async () => {
         const report = {
             reportID: REPORT_ID,
