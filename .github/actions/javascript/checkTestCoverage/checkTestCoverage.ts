@@ -1,6 +1,6 @@
-const core = require('@actions/core');
+import * as core from '@actions/core';
 
-async function run() {
+async function run(): Promise<void> {
     try {
         // Get the GitHub URL input
         const githubUrl = core.getInput('GITHUB_URL');
@@ -10,7 +10,7 @@ async function run() {
         core.info(`GitHub URL: ${githubUrl}`);
         
     } catch (error) {
-        core.setFailed(error.message);
+        core.setFailed(error instanceof Error ? error.message : String(error));
     }
 }
 
