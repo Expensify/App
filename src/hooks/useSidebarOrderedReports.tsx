@@ -69,10 +69,10 @@ function SidebarOrderedReportsContextProvider({
 
     const getOrderedReportIDs = useCallback(
         (currentReportID?: string) =>
-            SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, transactionViolations, reportNameValuePairs, reportAttributes),
+            SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, priorityMode, transactionViolations, reportNameValuePairs, reportAttributes),
         // we need reports draft in deps array to reload the list when a draft is added or removed
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [chatReports, betas, policies, priorityMode, transactionViolations, draftAmount, reportNameValuePairs, reportAttributes],
+        [chatReports, betas, priorityMode, transactionViolations, draftAmount, reportNameValuePairs, reportAttributes],
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
