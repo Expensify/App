@@ -89,7 +89,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 ...values,
             };
 
-            // If the type has changed, reset all other filters so we dont have an invalid filter applied
+            // If the type has changed, reset the status so we dont have an invalid status selected
             if (updatedFilterFormValues.type !== filterFormValues.type) {
                 Object.keys(updatedFilterFormValues)
                     .filter((key) => key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE)
