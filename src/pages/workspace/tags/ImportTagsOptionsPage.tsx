@@ -69,9 +69,6 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         return Object.values(singleLevelTags).some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     }, [isMultiLevelTags, policyTagLists]);
 
-    if (hasAccountingConnections) {
-        return <NotFoundPage />;
-    }
     const startMultiLevelTagImportFlow = useCallback(() => {
         setImportedSpreadsheetIsImportingMultiLevelTags(true);
         if (hasVisibleTags) {
@@ -94,7 +91,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
             setShouldRunPostUpgradeFlow(false);
         }, [shouldRunPostUpgradeFlow, policy, startMultiLevelTagImportFlow]),
     );
-    
+
     if (hasAccountingConnections) {
         return <NotFoundPage />;
     }
