@@ -1110,6 +1110,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 splits: 'array',
                 dismissedViolations: 'object',
                 splitExpenses: 'array',
+                isDemoTransaction: 'boolean',
             });
         case 'accountant':
             return validateObject<ObjectElement<Transaction, 'accountant'>>(value, {
