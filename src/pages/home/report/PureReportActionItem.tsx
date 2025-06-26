@@ -106,6 +106,7 @@ import {
     isCardIssuedAction,
     isChronosOOOListAction,
     isConciergeCategoryOptions,
+    isConciergeSplitOptions,
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
@@ -118,6 +119,7 @@ import {
     isReimbursementQueuedAction,
     isRenamedAction,
     isResolvedConciergeCategoryOptions,
+    isResolvedConciergeSplitOptions,
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTagModificationAction,
     isTaskAction,
@@ -723,6 +725,29 @@ function PureReportActionItem({
             }));
         }
 
+        if (isConciergeSplitOptions(action)) {
+            const options = getOriginalMessage(action)?.options;
+            if (!options) {
+                return [];
+            }
+
+            if (isResolvedConciergeSplitOptions(action)) {
+                return [];
+            }
+
+            if (!reportID) {
+                return [];
+            }
+
+            return options.map((option, i) => ({
+                text: `${i + 1} - ${option}`,
+                key: `${action.reportActionID}-conciergeSplitOptions-${option}`,
+                onPress: () => {
+                    // resolveConciergeCategoryOptions(reportID, originalReportID, action.reportActionID, option);
+                },
+            }));
+        }
+
         if (!isActionableWhisper && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
             return [];
         }
@@ -1216,7 +1241,7 @@ function PureReportActionItem({
                                     {actionableItemButtons.length > 0 && (
                                         <ActionableItemButtons
                                             items={actionableItemButtons}
-                                            layout={isActionableTrackExpense(action) || isConciergeCategoryOptions(action) ? 'vertical' : 'horizontal'}
+                                            layout={isActionableTrackExpense(action) || isConciergeCategoryOptions(action) || isConciergeSplitOptions(action) ? 'vertical' : 'horizontal'}
                                             shouldUseLocalization={!isConciergeCategoryOptions(action)}
                                         />
                                     )}
