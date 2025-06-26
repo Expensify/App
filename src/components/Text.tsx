@@ -26,9 +26,15 @@ type TextProps = RNTextProps &
 
         /** The family of the font to use */
         family?: keyof FontUtilsType['fontFamily']['platform'];
+
+        /** Should apply default line height */
+        shouldUseDefaultLineHeight?: boolean;
     };
 
-function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, ...props}: TextProps, ref: ForwardedRef<RNText>) {
+function Text(
+    {color, fontSize = variables.fontSizeNormal, textAlign = 'left', children, family = 'EXP_NEUE', style = {}, shouldUseDefaultLineHeight = true, ...props}: TextProps,
+    ref: ForwardedRef<RNText>,
+) {
     const theme = useTheme();
     const customStyle = useContext(CustomStylesForChildrenContext);
 
@@ -41,7 +47,7 @@ function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', c
         ...StyleSheet.flatten(customStyle),
     };
 
-    if (!componentStyle.lineHeight && componentStyle.fontSize === variables.fontSizeNormal) {
+    if (!componentStyle.lineHeight && componentStyle.fontSize === variables.fontSizeNormal && shouldUseDefaultLineHeight) {
         componentStyle.lineHeight = variables.fontSizeNormalHeight;
     }
 
