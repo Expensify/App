@@ -91,18 +91,16 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
             // If the type has changed, reset all other filters so we dont have an invalid filter applied
             if (updatedFilterFormValues.type !== filterFormValues.type) {
-                Object.keys(updatedFilterFormValues).forEach((key) => {
-                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
-                        return;
-                    }
+                Object.keys(updatedFilterFormValues)
+                    .filter((key) => key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE)
+                    .forEach((key) => {
+                        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
+                            updatedFilterFormValues[key] = CONST.SEARCH.STATUS.EXPENSE.ALL;
+                            return;
+                        }
 
-                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
-                        updatedFilterFormValues[key] = CONST.SEARCH.STATUS.EXPENSE.ALL;
-                        return;
-                    }
-
-                    updatedFilterFormValues[key as keyof SearchAdvancedFiltersForm] = undefined;
-                });
+                        updatedFilterFormValues[key as keyof SearchAdvancedFiltersForm] = undefined;
+                    });
             }
 
             const filterString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
