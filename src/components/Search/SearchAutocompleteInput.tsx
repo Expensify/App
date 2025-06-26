@@ -41,7 +41,7 @@ type SearchAutocompleteInputProps = {
     onSubmit?: () => void;
 
     /** SearchAutocompleteList ref for managing TextInput and SearchAutocompleteList focus */
-    autocompleteListRef?: RefObject<SelectionListHandle>;
+    autocompleteListRef?: RefObject<SelectionListHandle | null>;
 
     /** Whether the input is full width */
     isFullWidth: boolean;
@@ -221,7 +221,7 @@ function SearchAutocompleteInput(
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
                         textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pl3]}
-                        inputStyle={[inputWidth, {lineHeight: undefined}]}
+                        inputStyle={[inputWidth, styles.lineHeightUndefined]}
                         placeholderTextColor={theme.textSupporting}
                         onFocus={() => {
                             onFocus?.();

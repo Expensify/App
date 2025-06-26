@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} fr
 import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
@@ -92,6 +91,9 @@ type MoneyRequestAmountInputProps = {
     /** The width of inner content */
     contentWidth?: number;
 
+    /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
+    shouldApplyPaddingToContainer?: boolean;
+
     /** The testID of the input. Used to locate this view in end-to-end tests. */
     testID?: string;
 } & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace' | 'submitBehavior'>;
@@ -133,11 +135,11 @@ function MoneyRequestAmountInput(
         contentWidth,
         testID,
         submitBehavior,
+        shouldApplyPaddingToContainer = false,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
-    const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -336,7 +338,7 @@ function MoneyRequestAmountInput(
             style={props.inputStyle}
             containerStyle={props.containerStyle}
             prefixStyle={props.prefixStyle}
-            prefixContainerStyle={[styles.pb2half, props.prefixContainerStyle]}
+            prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             maxLength={maxLength}
             hideFocusedState={hideFocusedState}
@@ -345,6 +347,7 @@ function MoneyRequestAmountInput(
             contentWidth={contentWidth}
             testID={testID}
             submitBehavior={submitBehavior}
+            shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
         />
     );
 }
