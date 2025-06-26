@@ -12218,10 +12218,11 @@ class OpenAIUtils {
         // poll for completion
         let response = '';
         let count = 0;
+        const threadId = threadRun.thread_id; // Store thread_id to avoid losing it
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
             console.log('threadRun: ', threadRun);
             // await thread run completion
-            threadRun = await this.client.beta.threads.runs.retrieve(threadRun.thread_id, threadRun.id);
+            threadRun = await this.client.beta.threads.runs.retrieve(threadId, threadRun.id);
             if (threadRun.status !== 'completed') {
                 count++;
                 await new Promise((resolve) => {
@@ -12229,7 +12230,7 @@ class OpenAIUtils {
                 });
                 continue;
             }
-            for await (const message of this.client.beta.threads.messages.list(threadRun.thread_id)) {
+            for await (const message of this.client.beta.threads.messages.list(threadId)) {
                 if (message.role !== 'assistant') {
                     continue;
                 }
