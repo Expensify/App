@@ -46,7 +46,6 @@ import {
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
     isAllowedToApproveExpenseReport,
-    isArchivedNonExpenseReport as isArchivedNonExpenseReportUtils,
     isArchivedNonExpenseReportWithID,
     isArchivedReport,
     isChatUsedForOnboarding,
