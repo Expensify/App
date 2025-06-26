@@ -3,6 +3,7 @@ import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useMemo, useState} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -34,7 +35,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {OnyxCollection} from 'react-native-onyx';
 import TransactionPreview from './TransactionPreview';
 
 type MoneyRequestActionProps = {

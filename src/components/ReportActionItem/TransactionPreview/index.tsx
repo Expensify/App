@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
+import {usePersonalDetails, useSession} from '@components/OnyxProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import useLocalize from '@hooks/useLocalize';
@@ -22,7 +23,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {usePersonalDetails, useSession} from '@components/OnyxProvider';
 import TransactionPreviewContent from './TransactionPreviewContent';
 import type {TransactionPreviewProps} from './types';
 

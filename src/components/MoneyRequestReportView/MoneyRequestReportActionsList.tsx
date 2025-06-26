@@ -504,6 +504,7 @@ function MoneyRequestReportActionsList({
             linkedReportActionID,
             transactionsAndViolationsByReport,
             allReports,
+            policies,
         ],
     );
 

@@ -63,7 +63,7 @@ const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = n
                     <PortalProvider>
                         <MoneyRequestReportPreview
                             allReports={{
-                              [`${ONYXKEYS.COLLECTION.REPORT}${mockChatReport.iouReportID}`]: mockChatReport,
+                                [`${ONYXKEYS.COLLECTION.REPORT}${mockChatReport.iouReportID}`]: mockChatReport,
                             }}
                             policies={{}}
                             policyID={mockChatReport.policyID}
