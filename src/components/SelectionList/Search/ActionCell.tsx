@@ -11,7 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {payMoneyRequest} from '@libs/actions/IOU';
+import {payMoneyRequestOnSearch} from '@libs/actions/Search';
 import {getBankAccountRoute} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -40,6 +40,8 @@ type ActionCellProps = {
     isLoading?: boolean;
     policyID?: string;
     reportID?: string;
+    hash?: number;
+    amount?: number;
 };
 
 function ActionCell({
@@ -52,6 +54,8 @@ function ActionCell({
     isLoading = false,
     policyID = '',
     reportID = '',
+    hash,
+    amount,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -67,13 +71,13 @@ function ActionCell({
 
     const confirmPayment = useCallback(
         (type: PaymentMethodType | undefined) => {
-            if (!type || !chatReport) {
+            if (!type || !reportID || !hash || !amount) {
                 return;
             }
 
-            payMoneyRequest(type, chatReport, iouReport);
+            payMoneyRequestOnSearch(hash, [{amount, paymentType: type, reportID}]);
         },
-        [chatReport, iouReport],
+        [hash, amount, reportID],
     );
 
     if (!isChildListItem && ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE)) {
@@ -125,13 +129,13 @@ function ActionCell({
                 shouldUseShortForm
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                 currency={iouReport?.currency}
-                policyID={policyID}
+                policyID={policyID || iouReport?.policyID}
                 iouReport={iouReport}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
                 onPress={confirmPayment}
                 style={[styles.w100]}
-                shouldShowPersonalBankAccountOption={!policyID}
+                shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
             />
         );
     }

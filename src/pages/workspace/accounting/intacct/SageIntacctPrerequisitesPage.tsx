@@ -79,6 +79,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID={SageIntacctPrerequisitesPage.displayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.intacct.sageIntacctSetup')}

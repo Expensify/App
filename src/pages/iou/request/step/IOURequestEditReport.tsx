@@ -10,7 +10,7 @@ import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
-type ReportListItem = ListItem & {
+type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
     value: string;
 };
@@ -24,14 +24,14 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
 
-    const selectReport = (item: ReportListItem) => {
-        if (selectedTransactionIDs.length === 0) {
+    const selectReport = (item: TransactionGroupListItem) => {
+        if (selectedTransactionIDs.length === 0 || item.value === reportID) {
+            Navigation.dismissModal();
             return;
         }
-        if (item.value !== transactionReport?.reportID) {
-            changeTransactionsReport(selectedTransactionIDs, item.value);
-            clearSelectedTransactions(true);
-        }
+
+        changeTransactionsReport(selectedTransactionIDs, item.value);
+        clearSelectedTransactions(true);
         Navigation.dismissModalWithReport({reportID: item.value});
     };
 

@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
-import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -15,7 +15,7 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getSubmitToAccountID, getPersonalPolicy} from '@libs/PolicyUtils';
 import {getChatReportID, getReportType, hasHeldExpenses, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
-import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
+import {isTransactionListItemType, isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,14 +42,14 @@ Onyx.connect({
     waitForCollectionCallback: true,
 });
 
-function handleActionButtonPress(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
+function handleActionButtonPress(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void, isInMobileSelectionMode: boolean) {
     // The transactionIDList is needed to handle actions taken on `status:all` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
-    const allReportTransactions = (isReportListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
+    const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
-    if (hasHeldExpense) {
+    if (hasHeldExpense || isInMobileSelectionMode) {
         goToItem();
         return;
     }
@@ -143,7 +143,7 @@ function getFormatedAmount(selectedReports: SelectedReports[], selectedTransacti
     return formattedAmount ?? '';
 }
 
-function getPayActionCallback(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
+function getPayActionCallback(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod);
 
     if (!lastPolicyPaymentMethod) {
@@ -210,6 +210,7 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
                 search: {
                     status: queryJSON?.status,
                     type: queryJSON?.type,
+                    isLoading: false,
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
@@ -304,6 +305,10 @@ function openSearchFiltersCardPage() {
 
     const failureData: OnyxUpdate[] = [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, value: null}];
     API.read(READ_COMMANDS.OPEN_SEARCH_FILTERS_CARD_PAGE, null, {optimisticData, successData, failureData});
+}
+
+function openSearchPage() {
+    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
 }
 
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
@@ -504,6 +509,7 @@ export {
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
     openSearchFiltersCardPage,
+    openSearchPage as openSearch,
     getLastPolicyPaymentMethod,
     getLastPolicyBankAccountID,
     getPayOption,

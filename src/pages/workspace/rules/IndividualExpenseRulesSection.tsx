@@ -20,6 +20,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type IndividualExpenseRulesSectionProps = {
     policyID: string;
@@ -175,10 +176,14 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         title: prohibitedExpenses,
         descriptionTranslationKey: 'workspace.rules.individualExpenseRules.prohibitedExpenses',
         action: () => Navigation.navigate(ROUTES.RULES_PROHIBITED_DEFAULT.getRoute(policyID)),
-        pendingAction: policy?.pendingFields?.prohibitedExpenses,
+        pendingAction: !isEmptyObject(policy?.prohibitedExpenses?.pendingFields) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined,
     });
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
+
+    // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
+    // Control policies if the policy does not contain the attribute
+    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? true;
 
     return (
         <Section
@@ -239,9 +244,9 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                         <View style={[styles.flexRow, styles.mb1, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.individualExpenseRules.attendeeTracking')}</Text>
                             <Switch
-                                isOn={!!policy?.isAttendeeTrackingEnabled}
+                                isOn={isAttendeeTrackingEnabled}
                                 accessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
-                                onToggle={() => setPolicyAttendeeTrackingEnabled(policyID, !policy?.isAttendeeTrackingEnabled)}
+                                onToggle={() => setPolicyAttendeeTrackingEnabled(policyID, !isAttendeeTrackingEnabled)}
                             />
                         </View>
                     </OfflineWithFeedback>

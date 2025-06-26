@@ -1,11 +1,12 @@
 import {format, isValid, parse} from 'date-fns';
+import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashHas from 'lodash/has';
-import lodashIsEqual from 'lodash/isEqual';
 import lodashSet from 'lodash/set';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {UnreportedExpenseListItemType} from '@components/SelectionList/types';
 import {getPolicyCategoriesData} from '@libs/actions/Policy/Category';
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
@@ -15,7 +16,6 @@ import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
-import BaseLocaleListener from '@libs/Localize/LocaleListener/BaseLocaleListener';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {
     getCleanedTagName,
@@ -42,10 +42,11 @@ import {
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -331,15 +332,17 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
     return isMerchantEmpty;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+/**
+ * Determine if we should show the attendee selector for a given expense on a give policy.
+ */
 function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
-    if (!policy?.isAttendeeTrackingEnabled) {
+    if ((iouType !== CONST.IOU.TYPE.SUBMIT && iouType !== CONST.IOU.TYPE.CREATE) || !policy?.id || policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
         return false;
     }
 
-    return (
-        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM)
-    );
+    // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
+    // Control policies if the policy does not contain the attribute
+    return policy?.isAttendeeTrackingEnabled ?? true;
 }
 
 /**
@@ -435,7 +438,7 @@ function getUpdatedTransaction({
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport ? -amount : amount;
             const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
-                toLocaleDigit(BaseLocaleListener.getPreferredLocale(), digit),
+                toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -475,7 +478,7 @@ function getUpdatedTransaction({
             const updatedAmount = isFromExpenseReport ? -amount : amount;
             const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
             const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, translateLocal, (digit) =>
-                toLocaleDigit(BaseLocaleListener.getPreferredLocale(), digit),
+                toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -556,14 +559,18 @@ function getDescription(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false): number {
+function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false, disableOppositeConversion = false): number {
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
-    if (!isFromExpenseReport || isFromTrackedExpense) {
+    if ((!isFromExpenseReport || isFromTrackedExpense) && !allowNegative) {
         const amount = transaction?.modifiedAmount ?? 0;
         if (amount) {
             return Math.abs(amount);
         }
         return Math.abs(transaction?.amount ?? 0);
+    }
+
+    if (disableOppositeConversion) {
+        return transaction?.amount ?? 0;
     }
 
     // Expense report case:
@@ -574,8 +581,9 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
         return -amount;
     }
 
-    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
     amount = transaction?.amount ?? 0;
+
+    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
     return amount ? -amount : 0;
 }
 
@@ -659,12 +667,14 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined): string {
     if (transaction && isDistanceRequest(transaction)) {
         const report = getReportOrDraftReport(transaction.reportID);
+        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+        // eslint-disable-next-line deprecation/deprecation
         const policy = policyParam ?? getPolicy(report?.policyID);
         const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
         const {unit, rate} = mileageRate;
         const distanceInMeters = getDistanceInMeters(transaction, unit);
         return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
-            toLocaleDigit(BaseLocaleListener.getPreferredLocale(), digit),
+            toLocaleDigit(IntlStore.getCurrentLocale(), digit),
         );
     }
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '');
@@ -1378,7 +1388,7 @@ function compareDuplicateTransactionFields(
 
     // Helper function to check if all comments are equal
     function areAllCommentsEqual(items: Array<OnyxEntry<Transaction>>, firstTransaction: OnyxEntry<Transaction>) {
-        return items.every((item) => lodashIsEqual(getDescription(item), getDescription(firstTransaction)));
+        return items.every((item) => deepEqual(getDescription(item), getDescription(firstTransaction)));
     }
 
     // Helper function to check if all fields are equal for a given key
@@ -1409,6 +1419,8 @@ function compareDuplicateTransactionFields(
             const firstTransaction = transactions.at(0);
             const isFirstTransactionCommentEmptyObject = typeof firstTransaction?.comment === 'object' && firstTransaction?.comment?.comment === '';
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+            // eslint-disable-next-line deprecation/deprecation
             const policy = getPolicy(report?.policyID);
 
             const areAllFieldsEqualForKey = areAllFieldsEqual(transactions, (item) => keys.map((key) => item?.[key]).join('|'));
@@ -1595,6 +1607,27 @@ function isTransactionPendingDelete(transaction: OnyxEntry<Transaction>): boolea
     return getTransactionPendingAction(transaction) === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+/**
+ * Creates sections data for unreported expenses, marking transactions with DELETE pending action as disabled
+ */
+function createUnreportedExpenseSections(transactions: Array<Transaction | undefined>): Array<{shouldShow: boolean; data: UnreportedExpenseListItemType[]}> {
+    return [
+        {
+            shouldShow: true,
+            data: transactions
+                .filter((t): t is Transaction => t !== undefined)
+                .map(
+                    (transaction): UnreportedExpenseListItemType => ({
+                        ...transaction,
+                        isDisabled: isTransactionPendingDelete(transaction),
+                        keyForList: transaction.transactionID,
+                        errors: transaction.errors as Errors | undefined,
+                    }),
+                ),
+        },
+    ];
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -1699,6 +1732,7 @@ export {
     getOriginalTransactionWithSplitInfo,
     getTransactionPendingAction,
     isTransactionPendingDelete,
+    createUnreportedExpenseSections,
 };
 
 export type {TransactionChanges};

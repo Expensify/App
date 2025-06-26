@@ -24,7 +24,6 @@ import {
     isValid,
     parse,
     set,
-    setDefaultOptions,
     startOfDay,
     startOfWeek,
     subDays,
@@ -32,24 +31,23 @@ import {
     subMinutes,
 } from 'date-fns';
 import {formatInTimeZone, fromZonedTime, toDate, toZonedTime, format as tzFormat} from 'date-fns-tz';
-import {enGB} from 'date-fns/locale/en-GB';
-import {es} from 'date-fns/locale/es';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {timezoneBackwardMap} from '@src/TIMEZONES';
+import {timezoneBackwardToNewMap, timezoneNewToBackwardMap} from '@src/TIMEZONES';
+import type Locale from '@src/types/onyx/Locale';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {setCurrentDate} from './actions/CurrentDate';
 import {setNetworkLastOffline} from './actions/Network';
 import {translate, translateLocal} from './Localize';
-import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
 import Log from './Log';
+import memoize from './memoize';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
-type Locale = ValueOf<typeof CONST.LOCALES>;
 type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
@@ -85,23 +83,19 @@ Onyx.connect({
 });
 
 let networkTimeSkew = 0;
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: (value) => (networkTimeSkew = value?.timeSkew ?? 0),
-});
-
 let isOffline: boolean | undefined;
 
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => {
+        networkTimeSkew = val?.timeSkew ?? 0;
         if (!val?.lastOfflineAt) {
-            setNetworkLastOffline(getLocalDateFromDatetime(BaseLocaleListener.getPreferredLocale()));
+            setNetworkLastOffline(getLocalDateFromDatetime(IntlStore.getCurrentLocale()));
         }
 
         const newIsOffline = val?.isOffline ?? val?.shouldForceOffline;
         if (newIsOffline && isOffline === false) {
-            setNetworkLastOffline(getLocalDateFromDatetime(BaseLocaleListener.getPreferredLocale()));
+            setNetworkLastOffline(getLocalDateFromDatetime(IntlStore.getCurrentLocale()));
         }
         isOffline = newIsOffline;
     },
@@ -128,27 +122,11 @@ function getWeekEndsOn(): WeekDay {
 }
 
 /**
- * Gets the locale string and setting default locale for date-fns
- */
-function setLocale(localeString: Locale) {
-    switch (localeString) {
-        case CONST.LOCALES.EN:
-            setDefaultOptions({locale: enGB});
-            break;
-        case CONST.LOCALES.ES:
-            setDefaultOptions({locale: es});
-            break;
-        default:
-            break;
-    }
-}
-
-/**
  * Gets the user's stored time zone NVP and returns a localized
  * Date object for the given ISO-formatted datetime string
  */
-function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSelectedTimezone: SelectedTimezone = timezone.selected): Date {
-    setLocale(locale);
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+function getLocalDateFromDatetime(locale: Locale | undefined, datetime?: string, currentSelectedTimezone: string | SelectedTimezone = timezone.selected): Date {
     if (!datetime) {
         const res = toZonedTime(new Date(), currentSelectedTimezone);
         if (Number.isNaN(res.getTime())) {
@@ -215,6 +193,22 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
 }
 
 /**
+ * We have to fall back to older timezone names for native platforms that do not ship with newer timezone names to avoid a crash.
+ * Memoize to prevent unnecessary calculation as timezone support will not change on runtime on a platform.
+ */
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): SelectedTimezone | string => {
+    try {
+        const date = new Date();
+        const testDate = toZonedTime(date, timezoneInput);
+        format(testDate, CONST.DATE.FNS_FORMAT_STRING);
+        return timezoneInput;
+    } catch (error) {
+        return timezoneNewToBackwardMap[timezoneInput];
+    }
+});
+
+/**
  * Formats an ISO-formatted datetime string to local date and time string
  *
  * e.g.
@@ -222,8 +216,14 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
  * Jan 20 at 5:30 PM          within the past year
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
-function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZone = false, currentSelectedTimezone: SelectedTimezone = timezone.selected, isLowercase = false): string {
-    const date = getLocalDateFromDatetime(locale, datetime, currentSelectedTimezone);
+function datetimeToCalendarTime(
+    locale: Locale | undefined,
+    datetime: string,
+    includeTimeZone = false,
+    currentSelectedTimezone: SelectedTimezone = timezone.selected,
+    isLowercase = false,
+): string {
+    const date = getLocalDateFromDatetime(locale, datetime, fallbackToSupportedTimezone(currentSelectedTimezone));
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = translate(locale, 'common.todayAt');
     let tomorrowAt = translate(locale, 'common.tomorrowAt');
@@ -268,10 +268,10 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, includeTimeZon
  * Jan 20               within the past year
  * Jan 20, 2019         anything over 1 year
  */
-function datetimeToRelative(locale: Locale, datetime: string): string {
+function datetimeToRelative(locale: Locale | undefined, datetime: string): string {
     const date = getLocalDateFromDatetime(locale, datetime);
     const now = getLocalDateFromDatetime(locale);
-    return formatDistance(date, now, {addSuffix: true, locale: locale === CONST.LOCALES.EN ? enGB : es});
+    return formatDistance(date, now, {addSuffix: true});
 }
 
 /**
@@ -349,10 +349,7 @@ function getCurrentTimezone(): Required<Timezone> {
 /**
  * @returns [January, February, March, April, May, June, July, August, ...]
  */
-function getMonthNames(preferredLocale: Locale): string[] {
-    if (preferredLocale) {
-        setLocale(preferredLocale);
-    }
+function getMonthNames(): string[] {
     const fullYear = new Date().getFullYear();
     const monthsArray = eachMonthOfInterval({
         start: new Date(fullYear, 0, 1), // January 1st of the current year
@@ -365,10 +362,7 @@ function getMonthNames(preferredLocale: Locale): string[] {
 /**
  * @returns [Monday, Tuesday, Wednesday, ...]
  */
-function getDaysOfWeek(preferredLocale: Locale): string[] {
-    if (preferredLocale) {
-        setLocale(preferredLocale);
-    }
+function getDaysOfWeek(): string[] {
     const weekStartsOn = getWeekStartsOn();
     const startOfCurrentWeek = startOfWeek(new Date(), {weekStartsOn});
     const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
@@ -757,7 +751,7 @@ function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE
 /**
  *
  * @param timezone
- * function format unsupported timezone to supported timezone
+ * Convert unsupported old timezone to app supported timezone
  * @returns Timezone
  */
 function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
@@ -765,7 +759,7 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
         return timezoneInput;
     }
     return {
-        selected: timezoneBackwardMap[timezoneInput.selected] ?? timezoneInput.selected,
+        selected: timezoneBackwardToNewMap[timezoneInput.selected] ?? timezoneInput.selected,
         automatic: timezoneInput.automatic,
     };
 }
@@ -967,7 +961,7 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
         // On macOs and iOS devices some platform use deprecated old timezone values which results in invalid time string error.
         // Try with backward timezone values on error.
     } catch {
-        return formatInTimeZone(date, timezoneBackwardMap[timeZone], formatStr, options);
+        return formatInTimeZone(date, timezoneNewToBackwardMap[timeZone as SelectedTimezone], formatStr, options);
     }
 };
 
@@ -988,7 +982,6 @@ const DateUtils = {
     getMicroseconds,
     getDBTime,
     getDBTimeWithSkew,
-    setLocale,
     subtractMillisecondsFromDateTime,
     addMillisecondsFromDateTime,
     getEndOfToday,
