@@ -21,7 +21,6 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,6 +28,7 @@ import {startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
 import {completeTestDriveTask} from '@libs/actions/Task';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
@@ -82,14 +82,19 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const contextMenuAnchor = useRef<RNText>(null);
-    const {isBetaEnabled} = usePermissions();
     const [modalVisible, setModalVisible] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const hasCardFeed = useMemo(() => Object.keys(mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList)).length > 0, [userCardList, workspaceCardFeeds]);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        canBeMissing: true,
+    });
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
@@ -98,10 +103,10 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     }, [allPolicies]);
 
     const typeMenuItems = useMemo(() => {
-        return createTypeMenuSections(session, allPolicies)
+        return createTypeMenuSections(session, hasCardFeed, allPolicies)
             .map((section) => section.menuItems)
             .flat();
-    }, [session, allPolicies]);
+    }, [session, hasCardFeed, allPolicies]);
 
     const tripViewChildren = useMemo(() => {
         const onLongPress = (event: GestureResponderEvent | MouseEvent) => {
@@ -165,6 +170,18 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
+    const viewTourReportID = introSelected?.viewTour;
+    const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
+
+    // Default 'Folder' lottie animation, along with its background styles
+    const defaultViewItemHeader = useMemo(
+        () => ({
+            headerMedia: LottieAnimations.GenericEmptyState,
+            headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
+            lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
+        }),
+        [StyleUtils, styles.emptyStateFolderWebStyles, theme.emptyFolderBG],
+    );
 
     const content: EmptySearchViewItem = useMemo(() => {
         // Begin by going through all of our To-do searches, and returning their empty state
@@ -189,8 +206,12 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
 
         const startTestDrive = () => {
             InteractionManager.runAfterInteractions(() => {
-                if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
-                    completeTestDriveTask();
+                if (
+                    introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
+                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE
+                ) {
+                    completeTestDriveTask(viewTourReport, viewTourReportID);
                     Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
                 } else {
                     Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT.route);
@@ -200,12 +221,18 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
 
         // If we are grouping by reports, show a custom message rather than a type-specific message
         if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+            if (hasResults) {
+                return {
+                    ...defaultViewItemHeader,
+                    title: translate('search.searchResults.emptyResults.title'),
+                    subtitle: translate('search.searchResults.emptyResults.subtitle'),
+                };
+            }
+
             return {
-                headerMedia: LottieAnimations.GenericEmptyState,
+                ...defaultViewItemHeader,
                 title: translate('search.searchResults.emptyReportResults.title'),
                 subtitle: translate(hasSeenTour ? 'search.searchResults.emptyReportResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyReportResults.subtitle'),
-                headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-                lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
                 buttons: [
                     ...(!hasSeenTour
                         ? [
@@ -215,7 +242,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                               },
                           ]
                         : []),
-                    ...(isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && groupPoliciesWithChatEnabled.length > 0
+                    ...(groupPoliciesWithChatEnabled.length > 0
                         ? [
                               {
                                   buttonText: translate('quickAction.createReport'),
@@ -268,9 +295,9 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                if (!hasResults) {
+                if (!hasResults || Object.values(transactions ?? {}).length === 0) {
                     return {
-                        headerMedia: LottieAnimations.GenericEmptyState,
+                        ...defaultViewItemHeader,
                         title: translate('search.searchResults.emptyExpenseResults.title'),
                         subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
                         buttons: [
@@ -295,8 +322,6 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                                 success: true,
                             },
                         ],
-                        headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-                        lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
                     };
                 }
             // We want to display the default nothing to show message if there is any filter applied.
@@ -304,7 +329,6 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
             case CONST.SEARCH.DATA_TYPES.INVOICE:
                 if (!hasResults) {
                     return {
-                        headerMedia: LottieAnimations.GenericEmptyState,
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
                         subtitle: translate(hasSeenTour ? 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyInvoiceResults.subtitle'),
                         buttons: [
@@ -329,19 +353,16 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                                 success: true,
                             },
                         ],
-                        headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-                        lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
+                        ...defaultViewItemHeader,
                     };
                 }
             // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.CHAT:
             default:
                 return {
-                    headerMedia: LottieAnimations.GenericEmptyState,
+                    ...defaultViewItemHeader,
                     title: translate('search.searchResults.emptyResults.title'),
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
-                    headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-                    lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
                 };
         }
     }, [
@@ -352,22 +373,24 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         translate,
         StyleUtils,
         theme.todoBG,
-        theme.emptyFolderBG,
         theme.travelBG,
         styles.emptyStateFireworksWebStyles,
         styles.emptyStateFolderWebStyles,
         styles.textAlignLeft,
         styles.tripEmptyStateLottieWebView,
         introSelected?.choice,
+        hasResults,
+        defaultViewItemHeader,
         hasSeenTour,
-        isBetaEnabled,
         groupPoliciesWithChatEnabled,
         activePolicy,
         activePolicyID,
         currentUserPersonalDetails,
         tripViewChildren,
-        hasResults,
         shouldRedirectToExpensifyClassic,
+        viewTourReport,
+        viewTourReportID,
+        transactions,
     ]);
 
     return (

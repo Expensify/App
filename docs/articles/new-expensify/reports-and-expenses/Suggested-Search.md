@@ -1,11 +1,13 @@
 ---
-title: Suggested Search
-description: Learn how Suggested Search simplifies submitting, approving, paying, and exporting expense reports in New Expensify.
-keywords: [Suggested Search, Submit, Approve, Pay, Export, New Expensify, To-do, LHN, batch processing, filters, expense report actions]
+
+title: Suggested-Search.md
+description: Learn how Suggested Search simplifies submitting, approving, or paying expense reports in New Expensify.
+keywords: [Suggested Search, Submit, Approve, Pay, New Expensify, To-do, LHN, batch processing, filters, expense report actions]
+
 ---
 <div id="new-expensify" markdown="1">
 
-Suggested Search helps you quickly take action on expense reports you need to submit, approve, pay, or export, all tailored to your role in a workspace.
+Suggested Search helps you quickly take action on expense reports you need to submit, approve, or pay, all tailored to your role in a workspace.
 
 ---
 
@@ -14,10 +16,10 @@ Suggested Search helps you quickly take action on expense reports you need to su
 **Navigation: Left-hand Menu > Reports > Expense Reports > Suggested Search**.
 
 Suggested Search surfaces key report actions in your **Reports** page so you can:
-- Submit any expenses that are waiting for you to action them.
-- Approve reports that need your review.
-- Pay approved reports ready for reimbursement.
-- Export finalized reports to accounting platforms.
+- Submit expenses waiting on you
+- Approve reports that need your review
+- Pay approved reports ready for reimbursement
+
 
 These shortcuts are personalized based on your role and workspace configuration, helping you process reports in batches without an advanced search.
 
@@ -31,40 +33,6 @@ Depending on your role, you’ll see shortcuts like:
 - **Submit** – Reports you’ve drafted and need to submit.
 - **Approve** – Reports awaiting your review.
 - **Pay** – Reports ready for reimbursement.
-- **Export** – Reports ready for accounting export (e.g., to QuickBooks).
-
----
-
-# Workflow Breakdown
-
-Here’s how these actions are usually completed manually and how Suggested Search streamlines them for you.
-
-## Submit
-
-1. Go to **Reports > Expense Reports**.
-2. Click the **Drafts** tab.
-3. Use the **Filter** to select `From: yourself`.
-4. View and submit your draft reports.
-
-## Approve
-
-1. Go to **Reports > Expense Reports**.
-2. Click the **Outstanding** tab.
-3. Use the **Filter** to select `To: yourself`.
-4. View reports that need your approval.
-
-## Pay
-
-1. Go to **Reports > Expense Reports**.
-2. Click the **Approved** tab.
-3. Use the **Filter** to select `To: yourself`.
-4. View approved reports ready for payment.
-
-## Export
-
-1. Go to **Reports > Expense Reports**.
-2. In the search bar, enter: `status:approved,paid,done`.
-3. View finalized reports eligible for export.
 
 ---
 
@@ -86,10 +54,6 @@ Here’s how these actions are usually completed manually and how Suggested Sear
 - See **Pay** for reports ready to reimburse.
 - See a celebratory message (e.g., “All reports paid!”) when cleared.
 
-## Admins (Exports)
-- See **Export** for reports eligible for accounting export (e.g., to QuickBooks Online).
-- Filter uses `exported:never` to show only unexported reports.
-
 ---
 
 # Best Practices
@@ -102,7 +66,7 @@ Here’s how these actions are usually completed manually and how Suggested Sear
 
 # FAQ
 
-## What if I don't see the Submit, Approve, Pay, or Export options?
+## What if I don't see the Submit, Approve, or Pay options?
 
 Suggested searches only appear when:
 - You have reports that require those actions.
@@ -115,6 +79,6 @@ Not yet. The **Workspace filter** is currently single-select. Multi-workspace su
 ## What is the difference between Explore and To-do?
 
 - **Explore** = General browsing (e.g., Expenses, Chats)
-- **To-do** = Personalized actions based on your role (e.g., Submit, Approve, Pay, Export)
+- **To-do** = Personalized actions based on your role (e.g., Submit, Approve, Pay)
 
 </div>

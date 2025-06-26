@@ -228,7 +228,6 @@ describe('ProductTrainingContextProvider', () => {
         it('should hide tooltip when hideProductTrainingTooltip is called', async () => {
             // When migrated user has dismissed welcome modal
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            Onyx.merge(ONYXKEYS.NVP_TRY_NEW_DOT, {nudgeMigration: {timestamp: new Date()}});
             const date = new Date();
             Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
                 migratedUserWelcomeModal: {

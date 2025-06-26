@@ -34,8 +34,6 @@ const mockTransactionsBig = Array.from({length: 12}).map((item, index) => {
     return {...transactionR14932, transactionID: `${transactionR14932.transactionID}${index}`};
 });
 
-const reportPreviewStyle = getMoneyRequestReportPreviewStyle(false, 400, 400, false);
-
 const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
     <TransactionPreviewContent
         action={actionR14932}
@@ -134,6 +132,7 @@ export default {
 function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {parameters: {useLightTheme?: boolean; transactionsBig?: boolean}}) {
     const theme = parameters.useLightTheme ? CONST.THEME.LIGHT : CONST.THEME.DARK;
     const transactions = parameters.transactionsBig ? mockTransactionsBig : props.transactions;
+    const reportPreviewStyle = getMoneyRequestReportPreviewStyle(false, transactions.length, 400, 400);
 
     return (
         <ThemeProvider theme={theme}>

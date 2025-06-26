@@ -4,6 +4,7 @@ import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -19,6 +20,7 @@ import {
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
     getFilteredCardList,
+    getPlaidInstitutionIconUrl,
     hasCardListObject,
     hasOnlyOneCardToAssign,
     isCustomFeed,
@@ -51,6 +53,8 @@ type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & Pla
 
 function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNewCardPageProps) {
     const {policyID} = route.params;
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
@@ -125,22 +129,32 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         setShouldShowError(false);
     };
 
-    const companyCardFeeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).map((key) => ({
-        value: key,
-        text: getCustomOrFormattedFeedName(key, cardFeeds?.settings?.companyCardNicknames),
-        keyForList: key,
-        isDisabled: companyFeeds[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        pendingAction: companyFeeds[key]?.pendingAction,
-        isSelected: selectedFeed === key,
-        leftElement: (
-            <Icon
-                src={getCardFeedIcon(key, illustrations)}
-                height={variables.cardIconHeight}
-                width={variables.cardIconWidth}
-                additionalStyles={[styles.mr3, styles.cardIcon]}
-            />
-        ),
-    }));
+    const companyCardFeeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).map((key) => {
+        const plaidUrl = getPlaidInstitutionIconUrl(key);
+
+        return {
+            value: key,
+            text: getCustomOrFormattedFeedName(key, cardFeeds?.settings?.companyCardNicknames),
+            keyForList: key,
+            isDisabled: companyFeeds[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingAction: companyFeeds[key]?.pendingAction,
+            isSelected: selectedFeed === key,
+
+            leftElement: plaidUrl ? (
+                <PlaidCardFeedIcon
+                    plaidUrl={plaidUrl}
+                    style={styles.mr3}
+                />
+            ) : (
+                <Icon
+                    src={getCardFeedIcon(key, illustrations)}
+                    height={variables.cardIconHeight}
+                    width={variables.cardIconWidth}
+                    additionalStyles={[styles.mr3, styles.cardIcon]}
+                />
+            ),
+        };
+    });
 
     const feeds = shouldShowExpensifyCard
         ? [

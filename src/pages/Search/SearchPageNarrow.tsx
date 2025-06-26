@@ -158,7 +158,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
                         </View>
                         <View style={[styles.flex1]}>
                             <Animated.View style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.bgTransparent]}>
-                                <View style={[styles.narrowSearchHeaderStyle, styles.flex1]}>
+                                <View style={[styles.flex1, styles.pt2, styles.appBG]}>
                                     <SearchPageHeader
                                         queryJSON={queryJSON}
                                         searchRouterListVisible={searchRouterListVisible}

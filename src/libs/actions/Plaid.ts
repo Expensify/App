@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {OpenPlaidBankAccountSelectorParams, OpenPlaidBankLoginParams} from '@libs/API/parameters';
+import type OpenPlaidCompanyCardLoginParams from '@libs/API/parameters/OpenPlaidCompanyCardLoginParams';
 import {READ_COMMANDS} from '@libs/API/types';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
 import CONST from '@src/CONST';
@@ -41,6 +42,34 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
     ];
 
     API.read(READ_COMMANDS.OPEN_PLAID_BANK_LOGIN, params, {optimisticData});
+}
+
+/**
+ * Gets the Plaid Link token used to initialize the Plaid SDK for Company card
+ */
+function openPlaidCompanyCardLogin(country: string) {
+    const {redirectURI, androidPackage} = getPlaidLinkTokenParameters();
+
+    const params: OpenPlaidCompanyCardLoginParams = {
+        redirectURI,
+        androidPackage,
+        country,
+    };
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.PLAID_DATA,
+            value: {...CONST.PLAID.DEFAULT_DATA, isLoading: true},
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.PLAID_LINK_TOKEN,
+            value: '',
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_PLAID_CARDS_BANK_LOGIN, params, {optimisticData});
 }
 
 function openPlaidBankAccountSelector(publicToken: string, bankName: string, allowDebit: boolean, bankAccountID: number) {
@@ -85,4 +114,4 @@ function openPlaidBankAccountSelector(publicToken: string, bankName: string, all
     });
 }
 
-export {openPlaidBankAccountSelector, openPlaidBankLogin};
+export {openPlaidBankAccountSelector, openPlaidBankLogin, openPlaidCompanyCardLogin};

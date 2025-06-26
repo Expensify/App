@@ -11,10 +11,10 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {OnboardingCompanySize} from '@libs/actions/Welcome/OnboardingFlow';
 import Navigation from '@libs/Navigation/Navigation';
 import {setOnboardingCompanySize} from '@userActions/Welcome';
 import CONST from '@src/CONST';
-import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingEmployeesProps} from './types';
@@ -32,15 +32,19 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySize | null | undefined>(onboardingCompanySize);
     const [error, setError] = useState('');
 
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const companySizeOptions: OnboardingListItem[] = useMemo(() => {
-        return Object.values(CONST.ONBOARDING_COMPANY_SIZE).map((companySize): OnboardingListItem => {
-            return {
-                text: translate(`onboarding.employees.${companySize}`),
-                keyForList: companySize,
-                isSelected: companySize === selectedCompanySize,
-            };
-        });
-    }, [translate, selectedCompanySize]);
+        const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+        return Object.values(CONST.ONBOARDING_COMPANY_SIZE)
+            .filter((size) => !isSmb || size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO)
+            .map((companySize): OnboardingListItem => {
+                return {
+                    text: translate(`onboarding.employees.${companySize}`),
+                    keyForList: companySize,
+                    isSelected: companySize === selectedCompanySize,
+                };
+            });
+    }, [translate, selectedCompanySize, onboardingValues?.signupQualifier]);
 
     const footerContent = (
         <>

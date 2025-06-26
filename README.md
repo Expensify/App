@@ -510,7 +510,7 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
     [submodule "Mobile-Expensify"]
         ignore = all
     ```
-4. Run `git config --global submodule.recurse true` in order to have the submodule updated when you pull App
+4. Run `git config --global submodule.recurse true` in order to have the submodule updated when you pull App.
 
 
 > [!Note]  
@@ -783,8 +783,13 @@ Some pointers:
 - Always prefer longer and more complex strings in the translation files. For example
   if you need to generate the text `User has sent $20.00 to you on Oct 25th at 10:05am`, add just one
   key to the translation file and use the arrow function version, like so:
-  `nameOfTheKey: ({amount, dateTime}) => "User has sent " + amount + " to you on " + dateTime,`.
+
+  ```
+  nameOfTheKey: ({amount, dateTime}) => `User has sent ${amount} to you on ${datetime}`,
+  ```
+
   This is because the order of the phrases might vary from one language to another.
+
 - When working with translations that involve plural forms, it's important to handle different cases correctly.
 
   For example:
@@ -809,6 +814,25 @@ Some pointers:
   In your code, you can use the translation like this:
 
   `translate('common.messages', {count: 1});`
+
+## Generating translations
+`src/languages/en.ts` is the source of truth for static strings in the App. `src/languages/es.ts` is (for now) manually-curated. The remainder are AI-generated. The script to perform this transformation is `scripts/generateTranslations.ts`.
+
+### Running the translation script
+To run the translation script:
+
+```bash
+npx ts-node scripts/generateTranslations.ts
+```
+
+You will need `OPENAI_API_KEY` set in your `.env`. Expensify employees can follow [these instructions](https://stackoverflowteams.com/c/expensify/questions/20012).  If you want to test the script without actually talking to ChatGPT, you can pass the `--dry-run` flag to the script.
+
+### Fine-tuning translations
+If you are unhappy with the results of an AI translation, there are currently two methods of recourse:
+
+1. If you are adding a string that can have an ambiguous meaning without proper context, you can add a context annotation in `en.ts`. This takes the form of a comment before your string starting with `@context`.
+2. The base prompt(s) can be found in `prompts/translation`, and can be adjusted if necessary.
+
 ----
 
 # Deploying
@@ -849,10 +873,7 @@ The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/
 The [`finishReleaseCycle` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging (with a new `PATCH` version), and creates a new `StagingDeployCash` deploy checklist.
 
 ### testBuild
-The [`testBuild` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuild.yml) builds ad-hoc staging apps (standalone iOS, standalone Android, web, and desktop) directly from pull requests in the App repository. This process enables testers to review modifications before they are merged into the main branch and deployed to the staging environment. To initiate this workflow, the PR number from the App repository is required as input.
-
-### testBuildHybrid
-The [`testBuildHybrid` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuildHybrid.yml) builds ad-hoc staging versions of hybrid apps (iOS and Android) from pull requests submitted to the App and Mobile-Expensify repositories. This workflow facilitates testing changes by accepting up to two inputs:
+The [`testBuild` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuild.yml) builds ad-hoc staging apps (hybrid iOS, hybrid Android, web, and desktop) from pull requests submitted to the App and Mobile-Expensify repositories. This process enables testers to review modifications before they are merged into the main branch and deployed to the staging environment. This workflow accepts up to two inputs:
 - A PR number from the App repository for testing New Dot (ND) changes.
 - A PR number from the Mobile-Expensify repository for testing Old Dot (OD) changes.
 

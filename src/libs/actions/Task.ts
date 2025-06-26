@@ -388,16 +388,7 @@ function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
     });
 }
 
-/**
- * Complete a task
- */
-function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string): OnyxData {
-    const taskReportID = taskReport?.reportID ?? reportIDFromAction;
-
-    if (!taskReportID) {
-        return {};
-    }
-
+function buildTaskData(taskReport: OnyxEntry<OnyxTypes.Report>, taskReportID: string) {
     const message = `marked as complete`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, message);
     const parentReport = getParentReport(taskReport);
@@ -473,6 +464,21 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromActio
         taskReportID,
         completedTaskReportActionID: completedTaskReportAction.reportActionID,
     };
+
+    return {optimisticData, failureData, successData, parameters};
+}
+
+/**
+ * Complete a task
+ */
+function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string): OnyxData {
+    const taskReportID = taskReport?.reportID ?? reportIDFromAction;
+
+    if (!taskReportID) {
+        return {};
+    }
+
+    const {optimisticData, successData, failureData, parameters} = buildTaskData(taskReport, taskReportID);
 
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
@@ -1318,11 +1324,9 @@ function getFinishOnboardingTaskOnyxData(taskName: IntroSelectedTask): OnyxData 
 
     return {};
 }
-function completeTestDriveTask(shouldUpdateSelfTourViewedOnlyLocally = false) {
-    const taskReportID = introSelected?.viewTour;
-    const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+function completeTestDriveTask(viewTourReport: OnyxEntry<OnyxTypes.Report>, viewTourReportID: string | undefined, shouldUpdateSelfTourViewedOnlyLocally = false) {
     setSelfTourViewed(shouldUpdateSelfTourViewedOnlyLocally);
-    completeTask(taskReport, taskReportID);
+    completeTask(viewTourReport, viewTourReportID);
 }
 
 export {
@@ -1337,6 +1341,7 @@ export {
     setShareDestinationValue,
     clearOutTaskInfo,
     reopenTask,
+    buildTaskData,
     completeTask,
     clearOutTaskInfoAndNavigate,
     startOutCreateTaskQuickAction,

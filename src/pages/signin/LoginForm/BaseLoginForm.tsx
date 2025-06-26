@@ -25,6 +25,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
+import StringUtils from '@libs/StringUtils';
 import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import {useLogin} from '@pages/signin/SignInLoginContext';
@@ -62,7 +63,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible}: BaseLoginFormProps, re
      */
     const validate = useCallback(
         (value: string) => {
-            const loginTrim = value.trim();
+            const loginTrim = StringUtils.removeInvisibleCharacters(value.trim());
             if (!loginTrim) {
                 setFormError('common.pleaseEnterEmailOrPhoneNumber');
                 return false;
@@ -137,7 +138,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible}: BaseLoginFormProps, re
             return;
         }
 
-        const loginTrim = login.trim();
+        const loginTrim = StringUtils.removeInvisibleCharacters(login.trim());
 
         const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim));
         const parsedPhoneNumber = parsePhoneNumber(phoneLogin);

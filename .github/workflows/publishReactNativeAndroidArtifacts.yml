@@ -1,6 +1,16 @@
 name: Publish React Native Android Artifacts
 
 on:
+  workflow_dispatch:
+    inputs:
+      build_standalone:
+        description: 'Build Standalone artifacts'
+        required: false
+        type: boolean
+      build_hybridapp:
+        description: 'Build HybridApp artifacts'
+        required: false
+        type: boolean
   push:
     branches:
       - main
@@ -23,20 +33,23 @@ jobs:
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           submodules: true
-          ref: ${{ github.event.before }}
+          ref: ${{ github.event.before || 'main' }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Get previous patches hash
+        if: ${{ github.event_name != 'workflow_dispatch' }}
         id: getOldPatchesHash
         run: |
             echo "HYBRID_APP_HASH=$(./scripts/compute-patches-hash.sh patches Mobile-Expensify/patches)" >> "$GITHUB_OUTPUT"
             echo "STANDALONE_APP_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
 
       - name: Get previous react-native version
+        if: ${{ github.event_name != 'workflow_dispatch' }}
         id: getOldVersion
         run: echo "VERSION=$(jq -r '.dependencies["react-native"]' package.json)" >> "$GITHUB_OUTPUT"
 
       - name: Checkout new ref
+        if: ${{ github.event_name != 'workflow_dispatch' }}
         run: |
           git fetch origin ${{ github.event.after }} --depth=1
           git checkout ${{ github.event.after }}
@@ -49,10 +62,12 @@ jobs:
             echo "STANDALONE_APP_HASH=$(./scripts/compute-patches-hash.sh patches)" >> "$GITHUB_OUTPUT"
 
       - name: Get new react-native version
+        if: ${{ github.event_name != 'workflow_dispatch' }}
         id: getNewVersion
         run: echo "VERSION=$(jq -r '.dependencies["react-native"]' package.json)" >> "$GITHUB_OUTPUT"
 
       - name: Check if version changed
+        if: ${{ github.event_name != 'workflow_dispatch' }}
         id: didVersionChange
         run: |
           readonly DID_VERSION_CHANGE=${{ steps.getOldVersion.outputs.VERSION != steps.getNewVersion.outputs.VERSION && 'true' || 'false' }}
@@ -62,6 +77,7 @@ jobs:
           fi
 
       - name: Check if patches changed
+        if: ${{ github.event_name != 'workflow_dispatch' }}
         id: didPatchesChange
         run: |
           readonly DID_HYBRID_APP_PATCHES_CHANGE=${{ steps.getOldPatchesHash.outputs.HYBRID_APP_HASH != steps.getNewPatchesHash.outputs.HYBRID_APP_HASH && 'true' || 'false' }}
@@ -80,6 +96,23 @@ jobs:
       - name: Get artifact build targets
         id: getArtifactBuildTargets
         run: |
+          if [[ '${{ github.event_name }}' == 'workflow_dispatch' ]]; then
+            BUILD_TARGETS=()
+
+            if [[ '${{ inputs.build_standalone }}' == 'true' ]]; then
+              BUILD_TARGETS+=(false)
+            fi
+
+            if [[ '${{ inputs.build_hybridapp }}' == 'true' ]]; then
+              BUILD_TARGETS+=(true)
+            fi
+
+            if [[ ${#BUILD_TARGETS[@]} -ne 0 ]]; then
+              echo "BUILD_TARGETS=$(printf '%s\n' "${BUILD_TARGETS[@]}" | jq -R . | jq -c -s .)" >> "$GITHUB_OUTPUT"
+            fi
+            exit 0
+          fi
+
           # When there is a version change or standalone app patches change, we need to build for both hybrid and standalone
           if [[ '${{ steps.didVersionChange.outputs.DID_VERSION_CHANGE }}' == 'true' || '${{ steps.didPatchesChange.outputs.DID_STANDALONE_APP_PATCHES_CHANGE }}' == 'true' ]]; then
             echo "BUILD_TARGETS=[\"true\", \"false\"]" >> "$GITHUB_OUTPUT"

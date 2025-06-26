@@ -49,7 +49,7 @@ function OnboardingWelcomeVideo() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isModalDisabled, setIsModalDisabled] = useState(true);
     const route = useRoute<PlatformStackRouteProp<WelcomeVideoModalNavigatorParamList, typeof SCREENS.WELCOME_VIDEO.ROOT>>();
-    const isFromRoot = route?.params?.isFromRoot === 'true';
+    const shouldOpenSearch = route?.params?.shouldOpenSearch === 'true';
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
@@ -63,13 +63,13 @@ function OnboardingWelcomeVideo() {
         }
         const {hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
 
-        if (!!(hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) || isFromRoot) {
+        if (!!(hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) || !shouldOpenSearch) {
             return;
         }
         setIsModalDisabled(false);
         const defaultCannedQuery = buildCannedSearchQuery();
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultCannedQuery}));
-    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotMetadata, dismissedProductTrainingMetadata, tryNewDot, isFromRoot]);
+    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotMetadata, dismissedProductTrainingMetadata, tryNewDot, shouldOpenSearch]);
 
     /**
      * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
