@@ -108,6 +108,7 @@ class OpenAIUtils {
             if (!response) {
                 throw new Error('Assistant response is empty or had no text content. This is unexpected.');
             }
+            console.log(response);
         }
         return response;
     }

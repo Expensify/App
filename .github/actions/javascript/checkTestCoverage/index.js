@@ -11504,6 +11504,7 @@ async function promptAssistant(issueNumber) {
     const prompt = `aslkdjfalksdjfalksdjfaldj`; // TODO @BEN
     core.info(`Prompt: ${prompt}`);
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
+    console.log(' ...parsing ');
     const parsedAssistantResponse = JSON.parse((0, sanitizeJSONStringValues_1.default)(assistantResponse));
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
     // TODO: Later on we will comment response on the PR
@@ -12180,6 +12181,7 @@ class OpenAIUtils {
             if (!response) {
                 throw new Error('Assistant response is empty or had no text content. This is unexpected.');
             }
+            console.log(response);
         }
         return response;
     }
