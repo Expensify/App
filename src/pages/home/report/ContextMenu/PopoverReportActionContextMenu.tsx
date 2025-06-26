@@ -68,6 +68,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const [isThreadReportParentAction, setIsThreadReportParentAction] = useState(false);
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
     const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
+    const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -82,7 +83,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const onPopoverShow = useRef(() => {});
     const [isContextMenuOpening, setIsContextMenuOpening] = useState(false);
     const onPopoverHide = useRef(() => {});
-    const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>();
+    const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>(undefined);
     const onCancelDeleteModal = useRef(() => {});
     const onConfirmDeleteModal = useRef(() => {});
 
@@ -170,11 +171,13 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             disabledOptions = [],
             shouldCloseOnTarget = false,
             isOverflowMenu = false,
+            withoutOverlay = true,
         } = showContextMenuParams;
         const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = report;
         const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
         const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
         setIsContextMenuOpening(true);
+        setIsWithoutOverlay(withoutOverlay);
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
         contextMenuTargetNode.current = event.target as HTMLDivElement;
@@ -343,7 +346,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 disableAnimation={false}
                 shouldSetModalVisibility={false}
                 fullscreen
-                withoutOverlay
+                withoutOverlay={isWithoutOverlay}
                 anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
                 shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}

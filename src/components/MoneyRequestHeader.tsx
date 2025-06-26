@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -82,7 +83,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: false});
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    const shouldShowLoadingBar = useLoadingBarVisibility();
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -308,7 +309,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     />
                 </View>
             )}
-            <LoadingBar shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false} />
+            <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
@@ -327,7 +328,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         throw new Error('Data missing');
                     }
                     if (isTrackExpenseAction(parentReportAction)) {
-                        deleteTrackExpense(report?.chatReportID, transaction.transactionID, parentReportAction, true);
+                        deleteTrackExpense(report?.parentReportID, transaction.transactionID, parentReportAction, true);
                     } else {
                         deleteMoneyRequest(transaction.transactionID, parentReportAction, true);
                         removeTransaction(transaction.transactionID);

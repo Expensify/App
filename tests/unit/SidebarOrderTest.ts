@@ -6,7 +6,7 @@ import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
@@ -36,7 +36,8 @@ describe('Sidebar', () => {
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
         initOnyxDerivedValues();
-        TranslationStore.load(CONST.LOCALES.EN);
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
     });
 
     beforeEach(() => {

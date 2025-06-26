@@ -22,6 +22,7 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
+    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -32,6 +33,8 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessBankAccountParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -52,6 +55,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodParams,
     ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
@@ -89,7 +93,6 @@ import type {
     FlightParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
-    GoToRoomParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -321,6 +324,7 @@ const translations = {
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
         inbox: 'Inbox',
+        success: 'Success',
         group: 'Group',
         profile: 'Profile',
         referral: 'Referral',
@@ -537,6 +541,7 @@ const translations = {
         userID: 'User ID',
         disable: 'Disable',
         export: 'Export',
+        basicExport: 'Basic export',
         initialValue: 'Initial value',
         currentDate: 'Current date',
         value: 'Value',
@@ -598,7 +603,6 @@ const translations = {
         after: 'After',
         reschedule: 'Reschedule',
         general: 'General',
-        never: 'Never',
         workspacesTabTitle: 'Workspaces',
         getTheApp: 'Get the app',
         scanReceiptsOnTheGo: 'Scan receipts from your phone',
@@ -1004,6 +1008,7 @@ const translations = {
         share: 'Share',
         participants: 'Participants',
         createExpense: 'Create expense',
+        trackDistance: 'Track distance',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Create ${expensesNumber} expenses`,
         addExpense: 'Add expense',
         chooseRecipient: 'Choose recipient',
@@ -1094,13 +1099,20 @@ const translations = {
         individual: 'Individual',
         business: 'Business',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : `Pay as an individual`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : `Pay with personal account`),
+        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with wallet` : `Pay with wallet`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay as a business`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay with business account`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Mark ${formattedAmount} as paid` : `Mark as paid`),
+        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Paid ${amount} with personal account ${last4Digits}` : `Paid with personal account`),
+        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Paid ${amount} with business account ${last4Digits}` : `Paid with business account`),
+        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
+            formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`,
+        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => `Paid ${amount} with bank account ${last4Digits}.`,
+        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Personal account • ${lastFour}`,
+        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Business Account • ${lastFour}`,
         nextStep: 'Next steps',
         finished: 'Finished',
-        flip: 'Flip',
         sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
         submitAmount: ({amount}: RequestAmountParams) => `Submit ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? ` for ${comment}` : ''}`,
@@ -1133,8 +1145,8 @@ const translations = {
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}paid elsewhere`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}paid with Expensify`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}marked as paid`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}paid with wallet`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''}paid with Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
         noReimbursableExpenses: 'This report has an invalid amount',
@@ -1466,6 +1478,7 @@ const translations = {
             noLogsToShare: 'No logs to share',
             useProfiling: 'Use profiling',
             profileTrace: 'Profile trace',
+            results: 'Results',
             releaseOptions: 'Release options',
             testingPreferences: 'Testing preferences',
             useStagingServer: 'Use Staging Server',
@@ -1486,6 +1499,7 @@ const translations = {
             invalidFile: 'Invalid file',
             invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
             invalidateWithDelay: 'Invalidate with delay',
+            recordTroubleshootData: 'Record Troubleshoot Data',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -1614,13 +1628,14 @@ const translations = {
         mergeFailureGenericHeading: 'Can’t merge accounts',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: 'Report suspicious activity',
         lockAccount: 'Lock account',
         unlockAccount: 'Unlock account',
-        compromisedDescription: 'If you suspect your Expensify account is compromised, you can lock it to prevent new Expensify Card transactions and block unwanted account changes.',
-        domainAdminsDescriptionPartOne: 'For domain admins, ',
-        domainAdminsDescriptionPartTwo: 'this action halts all Expensify Card activity and admin actions ',
-        domainAdminsDescriptionPartThree: 'across your domain(s).',
-        warning: `Once your account is locked, our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge to secure your account.`,
+        compromisedDescription:
+            'Notice something off with your account? Reporting it will immediately lock your account, block new Expensify Card transactions, and prevent any account changes.',
+        domainAdminsDescription: 'For domain admins: This also pauses all Expensify Card activity and admin actions across your domain(s).',
+        areYouSure: 'Are you sure you want to lock your Expensify account?',
+        ourTeamWill: "Our team will investigate and remove any unauthorized access. To regain access, you'll need to work with Concierge.",
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Failed to lock account',
@@ -1784,6 +1799,7 @@ const translations = {
         enableWallet: 'Enable wallet',
         addBankAccountToSendAndReceive: 'Get paid back for expenses you submit to a workspace.',
         addBankAccount: 'Add bank account',
+        addDebitOrCreditCard: 'Add debit or credit card',
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
         expensifyCard: 'Expensify Card',
@@ -1993,6 +2009,7 @@ const translations = {
         cardLastFour: 'Card ending in',
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
         defaultPaymentMethod: 'Default',
+        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Bank Account • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -2382,11 +2399,8 @@ const translations = {
         toGetStarted: 'Add a bank account to reimburse expenses, issue Expensify Cards, collect invoice payments, and pay bills all from one place.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
-        hasPhoneLoginError: {
-            phrase1: 'To connect a bank account, please',
-            link: 'add an email as your primary login',
-            phrase2: ' and try again. You can add your phone number as a secondary login.',
-        },
+        hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
+            `To connect a bank account, please <a href="${contactMethodRoute}">add an email as your primary login</a> and try again. You can add your phone number as a secondary login.`,
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: {
             phrase1: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to ',
@@ -2673,14 +2687,40 @@ const translations = {
         whatsTheBusinessAddress: "What's the business address?",
         whatsTheBusinessContactInformation: "What's the business contact information?",
         whatsTheBusinessRegistrationNumber: "What's the business registration number?",
-        whatsTheBusinessTaxIDEIN: "What's the business tax ID/EIN/VAT/GST registration number?",
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'What’s the Employer Identification Number (EIN)?';
+                case CONST.COUNTRY.CA:
+                    return 'What’s the Business Number (BN)?';
+                case CONST.COUNTRY.GB:
+                    return 'What’s the VAT Registration Number (VRN)?';
+                case CONST.COUNTRY.AU:
+                    return 'What’s the Australian Business Number (ABN)?';
+                default:
+                    return 'What’s the EU VAT number?';
+            }
+        },
         whatsThisNumber: "What's this number?",
         whereWasTheBusinessIncorporated: 'Where was the business incorporated?',
         whatTypeOfBusinessIsIt: 'What type of business is it?',
         whatsTheBusinessAnnualPayment: "What's the business's annual payment volume?",
         whatsYourExpectedAverageReimbursements: "What's your expected average reimbursement amount?",
         registrationNumber: 'Registration number',
-        taxIDEIN: 'Tax ID/EIN number',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'EU VAT';
+            }
+        },
         businessAddress: 'Business address',
         businessType: 'Business type',
         incorporation: 'Incorporation',
@@ -2704,6 +2744,20 @@ const translations = {
         findAverageReimbursement: 'Find average reimbursement amount',
         error: {
             registrationNumber: 'Please provide a valid registration number',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return 'Please provide a valid Employer Identification Number (EIN)';
+                    case CONST.COUNTRY.CA:
+                        return 'Please provide a valid Business Number (BN)';
+                    case CONST.COUNTRY.GB:
+                        return 'Please provide a valid VAT Registration Number (VRN)';
+                    case CONST.COUNTRY.AU:
+                        return 'Please provide a valid Australian Business Number (ABN)';
+                    default:
+                        return 'Please provide a valid EU VAT number';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
@@ -3109,7 +3163,6 @@ const translations = {
             unavailable: 'Unavailable workspace',
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the invite button above.',
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
-            goToRoom: ({roomName}: GoToRoomParams) => `Go to ${roomName} room`,
             goToWorkspace: 'Go to workspace',
             goToWorkspaces: 'Go to workspaces',
             clearFilter: 'Clear filter',
@@ -3126,7 +3179,7 @@ const translations = {
             welcomeNote: 'Please use Expensify to submit your receipts for reimbursement, thanks!',
             subscription: 'Subscription',
             markAsEntered: 'Mark as manually entered',
-            markAsExported: 'Mark as manually exported',
+            markAsExported: 'Mark as exported',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: "Let's double check that everything looks right.",
             lineItemLevel: 'Line-item level',
@@ -5590,7 +5643,14 @@ const translations = {
                 title: 'No expenses to export',
                 subtitle: 'Time to take it easy, nice work.',
             },
+            emptyUnapprovedResults: {
+                title: 'No expenses to approve',
+                subtitle: 'Zero expenses. Maximum chill. Well done!',
+            },
         },
+        unapproved: 'Unapproved',
+        unapprovedCash: 'Unapproved cash',
+        unapprovedCompanyCards: 'Unapproved company cards',
         saveSearch: 'Save search',
         deleteSavedSearch: 'Delete saved search',
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
@@ -5611,6 +5671,10 @@ const translations = {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Before ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `After ${date ?? ''}`,
                 on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
+                presets: {
+                    [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
+                },
             },
             status: 'Status',
             keyword: 'Keyword',
@@ -5643,7 +5707,13 @@ const translations = {
             posted: 'Posted date',
             billable: 'Billable',
             reimbursable: 'Reimbursable',
+            groupBy: {
+                reports: 'Report', // s77rt use singular key name
+                members: 'Member', // s77rt use singular key name
+                cards: 'Card', // s77rt use singular key name
+            },
         },
+        groupBy: 'Group by',
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses.',
             emptyStateSubtitle: 'You can add expenses to this report \n using the button above.',
@@ -5982,7 +6052,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Report physical card loss / damage',
         screenTitle: 'Report card lost or damaged',
         nextButtonLabel: 'Next',
         reasonTitle: 'Why do you need a new card?',
@@ -5996,6 +6065,8 @@ const translations = {
         shipNewCardButton: 'Ship new card',
         addressError: 'Address is required',
         reasonError: 'Reason is required',
+        successTitle: 'Your new card is on the way!',
+        successDescription: "You'll need to activate it once it arrives in a few business days. In the meantime, your virtual card is ready to use.",
     },
     eReceipt: {
         guaranteed: 'Guaranteed eReceipt',
@@ -6287,14 +6358,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'Claim offer',
                 noThanks: 'No thanks',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year!`,
-                    phrase2: `Just add a payment card and start an annual subscription.`,
-                },
-                onboardingChatTitle: {
-                    phrase1: 'Limited-time offer:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year!`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>${discountType}% off your first year!</strong> Just add a payment card and start an annual subscription.`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Limited-time offer: ${discountType}% off your first year!`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Claim within ${days > 0 ? `${days}d : ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
         },
@@ -6453,11 +6519,7 @@ const translations = {
                     part2: '.',
                 },
             },
-            acknowledgement: {
-                part1: 'By requesting early cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify ',
-                link: 'Terms of Service',
-                part2: ' or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.',
-            },
+            acknowledgement: `By requesting early cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Terms of Service</a>  or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.`,
         },
     },
     feedbackSurvey: {
