@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -21,7 +22,7 @@ function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabe
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
-
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
     const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`, {canBeMissing: true});
@@ -39,10 +40,12 @@ function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabe
                     type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
                     value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
                 />
-                <WorkspaceCardsListLabel
-                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
-                    value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
-                />
+                {!isUkEuCurrencySupported && (
+                    <WorkspaceCardsListLabel
+                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
+                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
+                    />
+                )}
             </View>
         );
     }
@@ -57,10 +60,12 @@ function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabe
                     type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
                     value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
                 />
-                <WorkspaceCardsListLabel
-                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
-                    value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
-                />
+                {!isUkEuCurrencySupported && (
+                    <WorkspaceCardsListLabel
+                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
+                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
+                    />
+                )}
             </View>
         </View>
     ) : (
@@ -75,10 +80,12 @@ function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabe
                     value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] ?? 0}
                 />
             </View>
-            <WorkspaceCardsListLabel
-                type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
-                value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
-            />
+            {!isUkEuCurrencySupported && (
+                <WorkspaceCardsListLabel
+                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
+                    value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] ?? 0}
+                />
+            )}
         </View>
     );
 }
