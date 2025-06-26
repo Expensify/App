@@ -59,9 +59,8 @@ function canSubmit(
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasBeenReopened = hasReportBeenReopened(reportActions);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
-    const hasNonPendingTransaction = !!transactions && transactions?.length > 0 && transactions.some((transaction) => !isPending(transaction));
 
-    if (!hasNonPendingTransaction) {
+    if (!!transactions && transactions?.length > 0 && !transactions.some((transaction) => !isPending(transaction))) {
         return false;
     }
 

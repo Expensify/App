@@ -119,8 +119,7 @@ function isSubmitAction(
         return false;
     }
 
-    const hasNonPendingTransaction = reportTransactions.length > 0 && reportTransactions.some((transaction) => !isPending(transaction));
-    if (!hasNonPendingTransaction) {
+    if (reportTransactions.length > 0 && !reportTransactions.some((transaction) => !isPending(transaction))) {
         return false;
     }
 

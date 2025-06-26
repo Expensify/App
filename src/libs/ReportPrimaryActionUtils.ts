@@ -80,9 +80,8 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     const isOpenReport = isOpenReportUtils(report);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
-    const hasNonPendingTransaction = reportTransactions.length > 0 && reportTransactions.some((transaction) => !isPending(transaction));
 
-    if (!hasNonPendingTransaction) {
+    if (reportTransactions.length > 0 && !reportTransactions.some((transaction) => !isPending(transaction))) {
         return false;
     }
 
