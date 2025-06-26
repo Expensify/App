@@ -93,13 +93,24 @@ function adaptStateIfNecessary({state, options: {sidebarScreen, defaultCentralSc
             // @ts-expect-error Updating read only property
             // eslint-disable-next-line no-param-reassign
             state.stale = true;
+            const previousSelectedCentralScreenRoute = previousSameNavigatorState?.routes?.at(-1);
+            const previousSelectedCentralScreenPolicyID = getRoutePolicyID(previousSelectedCentralScreenRoute as NavigationPartialRoute);
 
-            // @ts-expect-error Updating read only property
-            // Push the default settings central pane screen.
-            state.routes.push({
-                name: previousSelectedCentralScreen ?? defaultCentralScreen,
-                params: state.routes.at(0)?.params,
-            });
+            if (previousSelectedCentralScreenPolicyID === routePolicyID) {
+                // @ts-expect-error Updating read only property
+                // Push the default settings central pane screen.
+                state.routes.push({
+                    name: previousSelectedCentralScreen ?? defaultCentralScreen,
+                    params: state.routes.at(0)?.params,
+                });
+            } else {
+                // @ts-expect-error Updating read only property
+                // Push the default settings central pane screen.
+                state.routes.push({
+                    name: defaultCentralScreen,
+                    params: state.routes.at(0)?.params,
+                });
+            }
         }
     }
 
