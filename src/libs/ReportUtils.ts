@@ -3951,7 +3951,6 @@ function getMoneyRequestReportName({
  * Gets transaction created, amount, currency, comment, and waypoints (for distance expense)
  * into a flat object. Used for displaying transactions and sending them in API commands
  */
-
 function getTransactionDetails(
     transaction: OnyxInputOrEntry<Transaction>,
     createdDateFormat: string = CONST.DATE.FNS_FORMAT_STRING,
@@ -3982,6 +3981,18 @@ function getTransactionDetails(
         originalCurrency: getOriginalCurrency(transaction),
         postedDate: getFormattedPostedDate(transaction),
     };
+}
+
+/**
+ * Get the amount of a transaction with proper report context handling.
+ * This is a lightweight alternative to getTransactionDetails when only the amount is needed.
+ */
+function getTransactionDetailsAmount(transaction: OnyxInputOrEntry<Transaction>): number | undefined {
+    if (!transaction) {
+        return;
+    }
+    const report = getReportOrDraftReport(transaction?.reportID);
+    return getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report));
 }
 
 function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comment {
@@ -11517,6 +11528,7 @@ export {
     isOneTransactionReport,
     isWorkspaceTaskReport,
     isWorkspaceThread,
+    getTransactionDetailsAmount
 };
 
 export type {

@@ -1,9 +1,9 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getTransactionDetailsAmount} from '@libs/ReportUtils';
 import {getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
@@ -12,7 +12,11 @@ function TotalCell({shouldShowTooltip, transactionItem}: TransactionDataCellProp
     const {translate} = useLocalize();
     const currency = getTransactionCurrency(transactionItem);
 
-    const amount = getTransactionDetails(transactionItem)?.amount;
+    const amount = useMemo(() => {
+        return getTransactionDetailsAmount(transactionItem);
+        // We want this memo to update only when the amount of transactionItem changes
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [transactionItem.amount, transactionItem.modifiedAmount]);
     let amountToDisplay = convertToDisplayString(amount, currency);
     if (isScanning(transactionItem)) {
         amountToDisplay = translate('iou.receiptStatusTitle');
