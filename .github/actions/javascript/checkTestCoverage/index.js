@@ -11868,7 +11868,7 @@ async function run() {
     }
 }
 async function promptAssistant(issueNumber) {
-    const apiKey = (0, core_1.getInput)('OPENAI_API_KEY', { required: true });
+    const apiKey = (0, core_1.getInput)('PROPOSAL_POLICE_API_KEY', { required: true });
     const assistantID = 'asst_4YdgxpJNCqt9zYtpVvEaWg4a'; // TODO @BEN
     // const openAI = new OpenAIUtils(apiKey);
     if (!process.env.OPENAI_API_KEY) {
