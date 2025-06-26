@@ -4,6 +4,7 @@ import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useSta
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
@@ -183,6 +184,7 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
 import TripSummary from './TripSummary';
+import {addComment} from '@userActions/Report';
 
 type PureReportActionItemProps = {
     /** Report for this action */
@@ -726,6 +728,44 @@ function PureReportActionItem({
                 },
             }));
         }
+        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ASKABOUTATTENDEETRACKING) {
+            return [
+                {
+                    text: 'common.yes',
+                    key: `${action.reportActionID}-askAboutAttendeeTracking-yes`,
+                    onPress: () => {
+                        if (!reportID) {
+                            return;
+                        }
+                        const translatedResponse = translate('common.yes');
+                        addComment(reportID, translatedResponse);
+                        Onyx.merge(`report_${reportID}`, {
+                            [`reportActions_${action.reportActionID}`]: {
+                                ...action,
+                                message: [{type: 'text', text: translatedResponse}],
+                            },
+                        });
+                    },
+                },
+                {
+                    text: 'common.no',
+                    key: `${action.reportActionID}-askAboutAttendeeTracking-no`,
+                    onPress: () => {
+                        if (!reportID) {
+                            return;
+                        }
+                        const translatedResponse = translate('common.no');
+                        addComment(reportID, translatedResponse);
+                        Onyx.merge(`report_${reportID}`, {
+                            [`reportActions_${action.reportActionID}`]: {
+                                ...action,
+                                message: [{type: 'text', text: translatedResponse}],
+                            },
+                        });
+                    },
+                },
+            ];
+        }
 
         if (!isActionableWhisper && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
             return [];
@@ -1185,6 +1225,19 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedAuditRateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
             children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ASKABOUTATTENDEETRACKING) {
+            children = (
+                <View>
+                    <ReportActionItemBasicMessage message="Do you want to enable attendee tracking?" />
+                    {actionableItemButtons.length > 0 && (
+                        <ActionableItemButtons
+                            items={actionableItemButtons}
+                            shouldUseLocalization
+                            layout="horizontal"
+                        />
+                    )}
+                </View>
+            );
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action);
