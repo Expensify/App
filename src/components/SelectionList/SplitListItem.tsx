@@ -79,7 +79,7 @@ function SplitListItem<TItem extends ListItem>({
                                     style={[styles.flexShrink1]}
                                     numberOfLines={1}
                                 >
-                                    {splitItem.merchant}
+                                    {splitItem.description ?? splitItem.merchant}
                                 </Text>
                             </View>
                         </View>
