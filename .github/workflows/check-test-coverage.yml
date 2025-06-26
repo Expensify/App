@@ -20,3 +20,5 @@ jobs:
         uses: ./.github/actions/javascript/checkTestCoverage
         with:
           GITHUB_URL: ${{ inputs.github_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROPOSAL_POLICE_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}
