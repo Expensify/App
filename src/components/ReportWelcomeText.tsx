@@ -185,12 +185,17 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                         </Text>
                     ))}
                 {isChatRoom && isAdminRoom && !isArchivedRoom && (
-                    <Text>
-                        <Text>{welcomeMessage.phrase1}</Text>
-                        {welcomeMessage.phrase2 !== undefined && <Text style={styles.textStrong}>{welcomeMessage.phrase2}</Text>}
-                        {welcomeMessage.phrase3 !== undefined && <Text>{welcomeMessage.phrase3}</Text>}
-                        {welcomeMessage.phrase4 !== undefined && <Text>{welcomeMessage.phrase4}</Text>}
-                    </Text>
+                    <>
+                        <Text>
+                            <Text>{welcomeMessage.phrase1}</Text>
+                            {welcomeMessage.phrase2 !== undefined && <Text style={styles.textStrong}>{welcomeMessage.phrase2}</Text>}
+                            {welcomeMessage.phrase3 !== undefined && <Text>{welcomeMessage.phrase3}</Text>}
+                            {welcomeMessage.phrase4 !== undefined && <Text>{welcomeMessage.phrase4}</Text>}
+                        </Text>
+                        <View style={[styles.renderHTML, styles.mv3]}>
+                            <RenderHTML html='<img src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExYmsydWY3aW5hdmJrbWlrN3JkMGczcGY0cXExeXR4YWZhOWJkY2lpZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/KB5MTnK6WtbzB81FcU/giphy.gif" style="width: 200px; height: 150px;" alt="Welcome to admins room">' />
+                        </View>
+                    </>
                 )}
                 {isSelfDM && (
                     <Text>
