@@ -67,6 +67,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodParams,
     ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
@@ -549,6 +550,7 @@ const translations = {
         userID: '用户 ID',
         disable: '禁用',
         export: '导出',
+        basicExport: '基本导出',
         initialValue: '初始值',
         currentDate: '当前日期',
         value: '值',
@@ -1011,6 +1013,7 @@ const translations = {
         share: '分享',
         participants: '参与者',
         createExpense: '创建报销单',
+        trackDistance: '跟踪距离',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `创建${expensesNumber}笔费用`,
         addExpense: '添加费用',
         chooseRecipient: '选择收件人',
@@ -1112,7 +1115,6 @@ const translations = {
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `企业账户 • ${lastFour}`,
         nextStep: '下一步',
         finished: '完成',
-        flip: '翻转',
         sendInvoice: ({amount}: RequestAmountParams) => `发送 ${amount} 发票`,
         submitAmount: ({amount}: RequestAmountParams) => `提交 ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `对于${comment}` : ''}`,
@@ -1475,6 +1477,7 @@ const translations = {
             noLogsToShare: '没有日志可分享',
             useProfiling: '使用分析工具',
             profileTrace: '个人资料追踪',
+            results: '成果',
             releaseOptions: '发布选项',
             testingPreferences: '测试偏好设置',
             useStagingServer: '使用测试服务器',
@@ -1495,6 +1498,7 @@ const translations = {
             invalidFile: '文件无效',
             invalidFileDescription: '您尝试导入的文件无效。请再试一次。',
             invalidateWithDelay: '延迟失效',
+            recordTroubleshootData: '记录故障排除数据',
         },
         debugConsole: {
             saveLog: '保存日志',
@@ -2389,11 +2393,8 @@ const translations = {
         toGetStarted: '添加一个银行账户以报销费用、发行Expensify卡、收取发票付款并从一个地方支付账单。',
         plaidBodyCopy: '为您的员工提供一种更简单的方式来支付公司费用并获得报销。',
         checkHelpLine: '您的银行路由号码和账户号码可以在该账户的支票上找到。',
-        hasPhoneLoginError: {
-            phrase1: '要连接银行账户，请',
-            link: '添加一个电子邮件作为您的主要登录方式',
-            phrase2: '并重试。您可以添加电话号码作为辅助登录。',
-        },
+        hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
+            `要连接银行账户，请 <a href="${contactMethodRoute}">添加一个电子邮件作为您的主要登录方式</a> 并重试。您可以添加电话号码作为辅助登录。`,
         hasBeenThrottledError: '添加您的银行账户时发生错误。请稍等几分钟后重试。',
         hasCurrencyError: {
             phrase1: '哎呀！您的工作区货币似乎设置为不同于 USD 的货币。要继续，请前往',
@@ -5638,6 +5639,7 @@ const translations = {
             groupBy: {
                 reports: '报告',
                 members: '成员',
+                cards: '卡片',
             },
         },
         groupBy: '组别',
@@ -6271,14 +6273,8 @@ const translations = {
             earlyDiscount: {
                 claimOffer: '领取优惠',
                 noThanks: '不，谢谢',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `首年${discountType}%折扣！`,
-                    phrase2: `只需添加一张支付卡并开始年度订阅。`,
-                },
-                onboardingChatTitle: {
-                    phrase1: '限时优惠：',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `首年${discountType}%折扣！`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) => `<strong>首年${discountType}%折扣！</strong> 只需添加一张支付卡并开始年度订阅。`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `限时优惠：首年${discountType}%折扣！`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `在 ${days > 0 ? `${days}天 :` : ''}${hours}小时 : ${minutes}分钟 : ${seconds}秒 内认领`,
             },
         },
