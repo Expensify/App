@@ -38,7 +38,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
     };
 
-    const handleGlobalCreateReport = (item: ReportListItem) => {
+    const handleGlobalCreateReport = (item: TransactionGroupListItem) => {
         if (!transaction) {
             return;
         }
@@ -71,7 +71,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
     };
 
-    const handleRegularReportSelection = (item: ReportListItem) => {
+    const handleRegularReportSelection = (item: TransactionGroupListItem) => {
         if (!transaction) {
             return;
         }
