@@ -169,12 +169,6 @@ type OriginalMessageSubmitted = {
 
     /** Was the report submitted via harvesting (delayed submit) */
     harvesting?: boolean;
-
-    /** The login the approver who is acting on behalf of the vacationer */
-    to?: string;
-
-    /** The login of the approver who is on a vacation */
-    vacationer?: string;
 };
 
 /** Model of `closed` report action */
@@ -727,9 +721,6 @@ type OriginalMessageApproved = {
 
     /** Report ID of the expense */
     expenseReportID: string;
-
-    /** The login of approver who is on vacation */
-    managerOnVacation?: string;
 };
 
 /** Model of `forwarded` report action */
