@@ -486,11 +486,7 @@ const WRITE_COMMANDS = {
     COMPLETE_CONCIERGE_CALL: 'CompleteConciergeCall',
     FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING: 'FinishCorpayBankAccountOnboarding',
     REOPEN_REPORT: 'ReopenReport',
-<<<<<<< HEAD
-    GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
     TRAVEL_SIGNUP_REQUEST: 'RequestTravelAccess',
-=======
->>>>>>> 93a63a6d19645feef8cc440d967de0435ce86a5b
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
