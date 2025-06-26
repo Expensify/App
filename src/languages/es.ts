@@ -1003,6 +1003,7 @@ const translations = {
         share: 'Compartir',
         participants: 'Participantes',
         createExpense: 'Crear gasto',
+        trackDistance: 'Gasto de distancia',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Crear ${expensesNumber} gastos`,
         paySomeone: ({name}: PaySomeoneParams = {}) => `Pagar a ${name ?? 'alguien'}`,
         chooseRecipient: 'Elige destinatario',
@@ -5760,6 +5761,7 @@ const translations = {
             groupBy: {
                 reports: 'Informe',
                 members: 'Miembro',
+                cards: 'Tarjeta',
             },
         },
         groupBy: 'Agrupar por',

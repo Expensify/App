@@ -1008,6 +1008,7 @@ const translations = {
         share: 'Share',
         participants: 'Participants',
         createExpense: 'Create expense',
+        trackDistance: 'Track distance',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Create ${expensesNumber} expenses`,
         addExpense: 'Add expense',
         chooseRecipient: 'Choose recipient',
@@ -5707,6 +5708,7 @@ const translations = {
             groupBy: {
                 reports: 'Report', // s77rt use singular key name
                 members: 'Member', // s77rt use singular key name
+                cards: 'Card', // s77rt use singular key name
             },
         },
         groupBy: 'Group by',
