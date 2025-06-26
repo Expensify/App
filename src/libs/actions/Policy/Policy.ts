@@ -1883,6 +1883,7 @@ function buildPolicyData(
     file?: File,
     shouldAddOnboardingTasks = true,
     companySize?: OnboardingCompanySize,
+    isFromOnboarding = false,
 ) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2222,6 +2223,7 @@ function buildPolicyData(
         currency: outputCurrency,
         file: clonedFile,
         companySize,
+        isFromOnboarding,
     };
 
     if (
@@ -2272,6 +2274,7 @@ function createWorkspace(
     file?: File,
     shouldAddOnboardingTasks = true,
     companySize?: OnboardingCompanySize,
+    isFromOnboarding = false,
 ): CreateWorkspaceParams {
     const {optimisticData, failureData, successData, params} = buildPolicyData(
         policyOwnerEmail,
@@ -2284,6 +2287,7 @@ function createWorkspace(
         file,
         shouldAddOnboardingTasks,
         companySize,
+        isFromOnboarding,
     );
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
