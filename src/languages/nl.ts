@@ -6214,7 +6214,7 @@ const translations = {
         reviewRequired: 'Beoordeling vereist',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Kan ontvangst niet automatisch koppelen vanwege een verbroken bankverbinding';
+                return 'Kan bon niet automatisch koppelen vanwege verbroken bankverbinding.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin

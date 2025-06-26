@@ -6226,7 +6226,7 @@ const translations = {
         reviewRequired: 'Revisione richiesta',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Impossibile abbinare automaticamente la ricevuta a causa di una connessione bancaria interrotta';
+                return 'Impossibile associare automaticamente la ricevuta a causa di una connessione bancaria interrotta.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin

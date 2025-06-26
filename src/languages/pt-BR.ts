@@ -6210,7 +6210,7 @@ const translations = {
         reviewRequired: 'Revisão necessária',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida';
+                return 'Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin

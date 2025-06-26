@@ -6197,7 +6197,7 @@ const translations = {
         reviewRequired: 'Wymagana recenzja',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
-                return 'Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z bankiem';
+                return 'Nie można automatycznie dopasować paragonu z powodu przerwanego połączenia z bankiem.';
             }
             if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
