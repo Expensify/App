@@ -233,7 +233,7 @@ function BaseReportActionContextMenu({
                 moneyRequestAction,
                 areHoldRequirementsMet,
                 account,
-                transactions: linkedTransactions ?? [],
+                transactions: linkedTransactions?.filter((linkedTransaction): linkedTransaction is NonNullable<typeof linkedTransaction> => linkedTransaction !== undefined) ?? [],
             }),
     );
 
