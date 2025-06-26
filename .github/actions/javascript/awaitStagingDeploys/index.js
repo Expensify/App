@@ -12843,14 +12843,15 @@ class GithubUtils {
     static async getCommitHistoryBetweenTags(fromTag, toTag) {
         console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
         try {
-            const { data: comparison } = await this.octokit.repos.compareCommits({
+            const commits = await this.paginate(this.octokit.repos.compareCommits, {
                 owner: CONST_1.default.GITHUB_OWNER,
                 repo: CONST_1.default.APP_REPO,
                 base: fromTag,
                 head: toTag,
-            });
+                per_page: 250,
+            }, (response) => response.data.commits);
             // Map API response to our CommitType object
-            return comparison.commits.map((commit) => ({
+            return commits.map((commit) => ({
                 commit: commit.sha,
                 subject: commit.commit.message,
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
