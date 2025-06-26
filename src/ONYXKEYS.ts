@@ -555,9 +555,6 @@ const ONYXKEYS = {
     NVP_LAST_ECASH_ANDROID_LOGIN: 'nvp_lastECashAndroidLogin',
     NVP_LAST_ANDROID_LOGIN: 'nvp_lastAndroidLogin',
 
-    /** Set when the delete workspace annual subscription error modal is open */
-    IS_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION_ERROR_MODAL_OPEN: 'isDeleteWorkspaceAnnualSubscriptionErrorModalOpen',
-
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1206,7 +1203,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_LAST_IPHONE_LOGIN]: string;
     [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS]: string[];
-    [ONYXKEYS.IS_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION_ERROR_MODAL_OPEN]: boolean;
 };
 
 type OnyxDerivedValuesMapping = {

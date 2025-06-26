@@ -61,7 +61,7 @@ import type {
     UpgradeToCorporateParams,
 } from '@libs/API/parameters';
 import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -496,26 +496,14 @@ function deleteWorkspace(policyID: string, policyName: string) {
         }
     });
 
+    const params: DeleteWorkspaceParams = {policyID};
+
+    API.write(WRITE_COMMANDS.DELETE_WORKSPACE, params, {optimisticData, finallyData, failureData});
+
     // Reset the lastAccessedWorkspacePolicyID
     if (policyID === lastAccessedWorkspacePolicyID) {
         updateLastAccessedWorkspace(undefined);
     }
-
-    const params: DeleteWorkspaceParams = {policyID};
-
-    if (NetworkStore.isOffline()) {
-        API.write(WRITE_COMMANDS.DELETE_WORKSPACE, params, {optimisticData, finallyData, failureData});
-        return;
-    }
-
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method, rulesdir/no-multiple-api-calls
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DELETE_WORKSPACE, params, {optimisticData, finallyData, failureData}).then((response) => {
-        if (!response || response.jsonCode !== CONST.JSON_CODE.EXP_ERROR || response.message !== CONST.ERROR_TITLE.CANNOT_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION) {
-            return;
-        }
-        clearDeleteWorkspaceError(policyID);
-        setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(true);
-    });
 }
 
 function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>) {
@@ -5444,10 +5432,6 @@ function setIsComingFromGlobalReimbursementsFlow(value: boolean) {
     Onyx.set(ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW, value);
 }
 
-function setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(isOpen: boolean) {
-    Onyx.merge(ONYXKEYS.IS_DELETE_WORKSPACE_ANNUAL_SUBSCRIPTION_ERROR_MODAL_OPEN, isOpen);
-}
-
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -5546,7 +5530,6 @@ export {
     updateInvoiceCompanyName,
     updateInvoiceCompanyWebsite,
     updateDefaultPolicy,
-    setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen,
     getAssignedSupportData,
     downgradeToTeam,
     getAccessiblePolicies,
