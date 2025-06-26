@@ -725,22 +725,19 @@ function PureReportActionItem({
             }));
         }
 
-        if (isConciergeSplitOptions(action)) {
-            const options = getOriginalMessage(action)?.options;
-            if (!options) {
-                return [];
-            }
-
+        if (isConciergeSplitOptions(action)) {        
             if (isResolvedConciergeSplitOptions(action)) {
                 return [];
             }
-
+            
             if (!reportID) {
                 return [];
             }
 
+            const options = ['common.yes', 'common.no', 'debug.reportActionPreview'] as const;
+
             return options.map((option, i) => ({
-                text: `${i + 1} - ${option}`,
+                text: `${i + 1} - ${translate(option)}`,
                 key: `${action.reportActionID}-conciergeSplitOptions-${option}`,
                 onPress: () => {
                     // resolveConciergeCategoryOptions(reportID, originalReportID, action.reportActionID, option);
@@ -1242,7 +1239,7 @@ function PureReportActionItem({
                                         <ActionableItemButtons
                                             items={actionableItemButtons}
                                             layout={isActionableTrackExpense(action) || isConciergeCategoryOptions(action) || isConciergeSplitOptions(action) ? 'vertical' : 'horizontal'}
-                                            shouldUseLocalization={!isConciergeCategoryOptions(action)}
+                                            shouldUseLocalization={!isConciergeCategoryOptions(action) && !isConciergeSplitOptions(action)}
                                         />
                                     )}
                                 </View>
