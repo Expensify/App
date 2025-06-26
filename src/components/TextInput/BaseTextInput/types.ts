@@ -33,6 +33,9 @@ type CustomBaseTextInputProps = {
     /** Customize the TextInput container */
     textInputContainerStyles?: StyleProp<ViewStyle>;
 
+    /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
+    shouldApplyPaddingToContainer?: boolean;
+
     /** Customizes the touchable wrapper of the TextInput component */
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
@@ -177,6 +180,9 @@ type CustomBaseTextInputProps = {
 
     /** Callback when the input is cleared using the clear button */
     onClearInput?: () => void;
+
+    /** Whether the input should be enforced to take full height of container. Default is `false` */
+    shouldUseFullInputHeight?: boolean;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
