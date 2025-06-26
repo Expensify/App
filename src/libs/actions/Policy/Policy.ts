@@ -85,7 +85,7 @@ import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import {buildTaskData} from '@userActions/Task';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
-import CONST from '@src/CONST';
+import CONST, { OnboardingAccounting } from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     IntroSelected,
@@ -1884,6 +1884,7 @@ function buildPolicyData(
     shouldAddOnboardingTasks = true,
     companySize?: OnboardingCompanySize,
     isFromOnboarding = false,
+    userReportedIntegration?: OnboardingAccounting,
 ) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2224,6 +2225,7 @@ function buildPolicyData(
         file: clonedFile,
         companySize,
         isFromOnboarding,
+        userReportedIntegration,
     };
 
     if (
@@ -2275,6 +2277,7 @@ function createWorkspace(
     shouldAddOnboardingTasks = true,
     companySize?: OnboardingCompanySize,
     isFromOnboarding = false,
+    userReportedIntegration?: OnboardingAccounting,
 ): CreateWorkspaceParams {
     const {optimisticData, failureData, successData, params} = buildPolicyData(
         policyOwnerEmail,
@@ -2288,6 +2291,7 @@ function createWorkspace(
         shouldAddOnboardingTasks,
         companySize,
         isFromOnboarding,
+        userReportedIntegration,
     );
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
