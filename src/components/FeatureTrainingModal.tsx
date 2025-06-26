@@ -1,6 +1,6 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import type {ImageContentFit} from 'expo-image';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useRef, useState} from 'react';
 import {Image, InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ImageResizeMode, ImageSourcePropType, LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -210,6 +210,7 @@ function FeatureTrainingModal({
     const [illustrationAspectRatio, setIllustrationAspectRatio] = useState(illustrationAspectRatioProp ?? VIDEO_ASPECT_RATIO);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
+    const hasHelpButtonBeenPressed = useRef(false);
     const scrollViewRef = useRef<RNScrollView>(null);
     const [containerHeight, setContainerHeight] = useState(0);
     const [contentHeight, setContentHeight] = useState(0);
@@ -393,7 +394,7 @@ function FeatureTrainingModal({
                 ...modalInnerContainerStyle,
             }}
             onModalHide={() => {
-                if (!shouldCallOnHelpWhenModalHidden) {
+                if (!shouldCallOnHelpWhenModalHidden || !hasHelpButtonBeenPressed.current) {
                     return;
                 }
                 onHelp();
@@ -438,6 +439,7 @@ function FeatureTrainingModal({
                             onPress={() => {
                                 if (shouldCallOnHelpWhenModalHidden) {
                                     setIsModalVisible(false);
+                                    hasHelpButtonBeenPressed.current = true;
                                     return;
                                 }
                                 onHelp();

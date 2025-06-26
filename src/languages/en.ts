@@ -55,6 +55,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodParams,
     ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
@@ -540,6 +541,7 @@ const translations = {
         userID: 'User ID',
         disable: 'Disable',
         export: 'Export',
+        basicExport: 'Basic export',
         initialValue: 'Initial value',
         currentDate: 'Current date',
         value: 'Value',
@@ -1006,6 +1008,7 @@ const translations = {
         share: 'Share',
         participants: 'Participants',
         createExpense: 'Create expense',
+        trackDistance: 'Track distance',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Create ${expensesNumber} expenses`,
         addExpense: 'Add expense',
         chooseRecipient: 'Choose recipient',
@@ -1110,7 +1113,6 @@ const translations = {
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Business Account • ${lastFour}`,
         nextStep: 'Next steps',
         finished: 'Finished',
-        flip: 'Flip',
         sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
         submitAmount: ({amount}: RequestAmountParams) => `Submit ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? ` for ${comment}` : ''}`,
@@ -1476,6 +1478,7 @@ const translations = {
             noLogsToShare: 'No logs to share',
             useProfiling: 'Use profiling',
             profileTrace: 'Profile trace',
+            results: 'Results',
             releaseOptions: 'Release options',
             testingPreferences: 'Testing preferences',
             useStagingServer: 'Use Staging Server',
@@ -1496,6 +1499,7 @@ const translations = {
             invalidFile: 'Invalid file',
             invalidFileDescription: 'The file you are trying to import is not valid. Please try again.',
             invalidateWithDelay: 'Invalidate with delay',
+            recordTroubleshootData: 'Record Troubleshoot Data',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -2395,11 +2399,8 @@ const translations = {
         toGetStarted: 'Add a bank account to reimburse expenses, issue Expensify Cards, collect invoice payments, and pay bills all from one place.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
-        hasPhoneLoginError: {
-            phrase1: 'To connect a bank account, please',
-            link: 'add an email as your primary login',
-            phrase2: ' and try again. You can add your phone number as a secondary login.',
-        },
+        hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
+            `To connect a bank account, please <a href="${contactMethodRoute}">add an email as your primary login</a> and try again. You can add your phone number as a secondary login.`,
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: {
             phrase1: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to ',
@@ -3176,7 +3177,7 @@ const translations = {
             welcomeNote: 'Please use Expensify to submit your receipts for reimbursement, thanks!',
             subscription: 'Subscription',
             markAsEntered: 'Mark as manually entered',
-            markAsExported: 'Mark as manually exported',
+            markAsExported: 'Mark as exported',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: "Let's double check that everything looks right.",
             lineItemLevel: 'Line-item level',
@@ -5707,6 +5708,7 @@ const translations = {
             groupBy: {
                 reports: 'Report', // s77rt use singular key name
                 members: 'Member', // s77rt use singular key name
+                cards: 'Card', // s77rt use singular key name
             },
         },
         groupBy: 'Group by',
@@ -6354,14 +6356,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'Claim offer',
                 noThanks: 'No thanks',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year!`,
-                    phrase2: `Just add a payment card and start an annual subscription.`,
-                },
-                onboardingChatTitle: {
-                    phrase1: 'Limited-time offer:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% off your first year!`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>${discountType}% off your first year!</strong> Just add a payment card and start an annual subscription.`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Limited-time offer: ${discountType}% off your first year!`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Claim within ${days > 0 ? `${days}d : ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
         },
