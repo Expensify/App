@@ -109,9 +109,9 @@ function VacationDelegatePage() {
                 data: [
                     {
                         ...delegatePersonalDetails,
-                        text: delegatePersonalDetails?.displayName ?? '',
-                        alternateText: delegatePersonalDetails?.login ?? undefined,
-                        login: delegatePersonalDetails.login ?? undefined,
+                        text: delegatePersonalDetails?.displayName ?? vacationDelegate.delegate,
+                        alternateText: delegatePersonalDetails?.login ?? vacationDelegate.delegate,
+                        login: delegatePersonalDetails.login ?? vacationDelegate.delegate,
                         keyForList: `vacationDelegate-${delegatePersonalDetails.login}`,
                         isDisabled: false,
                         isSelected: true,
@@ -182,7 +182,10 @@ function VacationDelegatePage() {
                 if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
                     setIsWarningModalVisible(true);
                     setNewVacationDelegate(option?.login ?? '');
+                    return;
                 }
+
+                Navigation.goBack(ROUTES.SETTINGS_STATUS);
             });
         },
         [currentUserLogin, vacationDelegate],

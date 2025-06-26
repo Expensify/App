@@ -172,6 +172,7 @@ function StatusPage() {
     );
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
+    const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
 
     return (
         <ScreenWrapper
@@ -252,8 +253,8 @@ function StatusPage() {
                             onClose={clearVacationDelegateError}
                         >
                             <MenuItem
-                                title={vacationDelegatePersonalDetails?.displayName ?? formattedDelegateLogin ?? vacationDelegate?.delegate}
-                                description={formattedDelegateLogin ?? vacationDelegate?.delegate}
+                                title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
+                                description={fallbackVacationDelegateLogin}
                                 avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
                                 icon={vacationDelegatePersonalDetails?.avatar ?? Expensicons.FallbackAvatar}
                                 iconType={CONST.ICON_TYPE_AVATAR}

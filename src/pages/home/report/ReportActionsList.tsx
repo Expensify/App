@@ -108,6 +108,9 @@ type ReportActionsListProps = {
 
     /** Should enable auto scroll to top threshold */
     shouldEnableAutoScrollToTopThreshold?: boolean;
+
+    /** All transactions grouped by reportID */
+    transactionsAndViolationsByReport: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
 };
 
 const IS_CLOSE_TO_NEWEST_THRESHOLD = 15;
@@ -148,6 +151,7 @@ function ReportActionsList({
     listID,
     shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
+    transactionsAndViolationsByReport,
 }: ReportActionsListProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
@@ -166,6 +170,7 @@ function ReportActionsList({
     const isFocused = useIsFocused();
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
     const participantsContext = useContext(PersonalDetailsContext);
@@ -585,6 +590,7 @@ function ReportActionsList({
                     index={index}
                     report={report}
                     transactionThreadReport={transactionThreadReport}
+                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={
                         !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID)) &&
@@ -596,23 +602,26 @@ function ReportActionsList({
                     shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                    transactions={Object.values(transactions ?? {})}
                 />
             );
         },
         [
+            sortedReportActions,
+            parentReportAction,
+            parentReportActionForTransactionThread,
             report,
+            transactionThreadReport,
+            transactionsAndViolationsByReport,
             allReports,
+            transactions,
             linkedReportActionID,
             sortedVisibleReportActions,
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
-            parentReportAction,
-            sortedReportActions,
-            transactionThreadReport,
-            parentReportActionForTransactionThread,
-            shouldUseThreadDividerLine,
-            firstVisibleReportActionID,
             unreadMarkerReportActionID,
+            firstVisibleReportActionID,
+            shouldUseThreadDividerLine,
         ],
     );
 
