@@ -1,8 +1,9 @@
 import {appleAuthAndroid} from '@invertase/react-native-apple-authentication';
 import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
+import {setNewDotSignInState} from '@libs/actions/HybridApp';
 import Log from '@libs/Log';
-import * as Session from '@userActions/Session';
+import {beginAppleSignIn} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {AppleSignInProps} from '.';
@@ -37,7 +38,10 @@ function appleSignInRequest(): Promise<string | undefined> {
 function AppleSignIn({onPress = () => {}}: AppleSignInProps) {
     const handleSignIn = () => {
         appleSignInRequest()
-            .then((token) => Session.beginAppleSignIn(token))
+            .then((token) => {
+                setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
+                beginAppleSignIn(token);
+            })
             .catch((error: Record<string, unknown>) => {
                 if (error.message === appleAuthAndroid.Error.SIGNIN_CANCELLED) {
                     return null;
