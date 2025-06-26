@@ -81,9 +81,6 @@ type BaseTextInputWithCurrencySymbolProps = {
     /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
     shouldApplyPaddingToContainer?: boolean;
 
-    /** Whether the amount is negative */
-    isNegative?: boolean;
-
     /** The test ID of TextInput. Used to locate the view in end-to-end tests. */
     testID?: string;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'autoGrowExtraSpace' | 'contentWidth' | 'onPress' | 'submitBehavior'>;

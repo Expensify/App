@@ -92,7 +92,7 @@ Earn **1%–2% cash back**
 
 ## 🌍 Localized Pricing
 
-- Equivalent pricing available in **GBP**, **AUD**, and **NZD**
+- Equivalent pricing available in **EUR**, **GBP**, **AUD**, and **NZD**
 
 ## 🧾 Receipts
 
