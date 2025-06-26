@@ -13,7 +13,7 @@ jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameR
 // eslint-disable-next-line no-promise-executor-return
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-describe('useNewTransactions after clean cache', () => {
+describe('useNewTransactions after cleared cache', () => {
     const transactionsAlreadyInReport = [
         {transactionID: '2', amount: 200, created: '2023-10-02', currency: 'USD', reportID: 'report1', merchant: ''},
         {transactionID: '3', amount: 300, created: '2023-10-03', currency: 'USD', reportID: 'report1', merchant: ''},
@@ -115,7 +115,7 @@ describe('useNewTransactions after clean cache', () => {
             hasOnceLoadedReportActions: true,
             transactions: [],
         });
-        await delay(1000);
+        await delay(1000); // We need to wait to ensure that the second useEffect is executed
         expect(result.current).toEqual([]);
 
         // 3. User added new transaction
@@ -156,14 +156,14 @@ describe('useNewTransactions after clean cache', () => {
         // 4. User removes a transaction
         rerender({
             hasOnceLoadedReportActions: true,
-            transactions: transactionsAlreadyInReport.slice(1), // Remove the first transaction
+            transactions: transactionsAlreadyInReport.slice(1),
         });
         await delay(10);
         expect(result.current).toEqual([]);
     });
 });
 
-describe('useNewTransactions with hydrated cache', () => {
+describe('useNewTransactions with transactions in cache', () => {
     const transactionsAlreadyInReport = [
         {transactionID: '2', amount: 200, created: '2023-10-02', currency: 'USD', reportID: 'report1', merchant: ''},
         {transactionID: '3', amount: 300, created: '2023-10-03', currency: 'USD', reportID: 'report1', merchant: ''},
