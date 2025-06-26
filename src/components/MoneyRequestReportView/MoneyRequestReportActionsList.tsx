@@ -534,7 +534,7 @@ function MoneyRequestReportActionsList({
 
     return (
         <View
-            style={[styles.flex1]}
+            style={styles.flex1}
             ref={wrapperViewRef}
         >
             {shouldUseNarrowLayout && !!selectionMode?.isEnabled && (
@@ -590,11 +590,11 @@ function MoneyRequestReportActionsList({
                     />
                 </>
             )}
+            <FloatingMessageCounter
+                isActive={isFloatingMessageCounterVisible}
+                onClick={scrollToBottomAndMarkReportAsRead}
+            />
             <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
-                <FloatingMessageCounter
-                    isActive={isFloatingMessageCounterVisible}
-                    onClick={scrollToBottomAndMarkReportAsRead}
-                />
                 {isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState ? (
                     <>
                         <MoneyRequestViewReportFields
