@@ -17,8 +17,8 @@ import {FallbackAvatar, IntacctSquare, NetSuiteExport, NetSuiteSquare, QBDSquare
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
-import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
@@ -938,34 +938,6 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
-let allPolicyTagLists: OnyxCollection<PolicyTagLists> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTagLists = {};
-            return;
-        }
-        allPolicyTagLists = value;
-    },
-});
-
-let allPolicyCategories: OnyxCollection<PolicyCategories> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
-    waitForCollectionCallback: true,
-    callback: (val) => (allPolicyCategories = val),
-});
-
-let allTransactionViolations: OnyxCollection<TransactionViolations> = {};
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => (allTransactionViolations = value),
-});
-
 let allReports: OnyxCollection<Report>;
 let reportsByPolicyID: ReportByPolicyMap;
 Onyx.connect({
@@ -1856,26 +1828,33 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
  *
  * @param policyUpdate Changed policy properties, if none pass empty object
  * @param policyCategoriesUpdate Changed categories properties, if none pass empty object
+ * @param policyTagListsUpdate Changed categories properties, if none pass empty object
  */
 function pushTransactionViolationsOnyxData(
     onyxData: OnyxData,
     policyID: string,
-    policyTagLists: PolicyTagLists,
     policyCategories: PolicyCategories,
+    policyTagLists: PolicyTagLists,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
-    policyUpdate: Partial<Policy> = {},
+    policyUpdate: Partial<Policy>,
     policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
+    policyTagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
 ): OnyxData {
-    if (isEmptyObject(policyUpdate) && isEmptyObject(policyCategoriesUpdate)) {
+    if (isEmptyObject(policyUpdate) && (isEmptyObject(policyCategoriesUpdate) || isEmptyObject(policyTagListsUpdate))) {
         return onyxData;
     }
-    const optimisticPolicyCategories = Object.keys(policyCategories).reduce<Record<string, PolicyCategory>>((acc, categoryName) => {
+    const optimisticPolicyTagLists = Object.keys(policyTagLists).reduce<PolicyTagLists>((acc, tagName) => {
+        acc[tagName] = {...policyTagLists[tagName], ...(policyTagListsUpdate?.[tagName] ?? {})};
+        return acc;
+    }, {});
+
+    const optimisticPolicyCategories = Object.keys(policyCategories).reduce<PolicyCategories>((acc, categoryName) => {
         acc[categoryName] = {...policyCategories[categoryName], ...(policyCategoriesUpdate?.[categoryName] ?? {})};
         return acc;
-    }, {}) as PolicyCategories;
+    }, {});
 
     const optimisticPolicy = {...allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ...policyUpdate} as Policy;
-    const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, policyTagLists);
+    const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticPolicyTagLists);
 
     getAllPolicyReports(policyID).forEach((report) => {
         if (!report?.reportID) {
@@ -1885,13 +1864,13 @@ function pushTransactionViolationsOnyxData(
         const isReportAnInvoice = isInvoiceReport(report);
 
         getReportTransactions(report.reportID).forEach((transaction: Transaction) => {
-            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
+            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
 
             const optimisticTransactionViolations = ViolationsUtils.getViolationsOnyxData(
                 transaction,
-                transactionViolations,
+                transactionViolations ?? [],
                 optimisticPolicy,
-                policyTagLists,
+                optimisticPolicyTagLists,
                 optimisticPolicyCategories,
                 hasDependentTags,
                 isReportAnInvoice,
@@ -1902,7 +1881,7 @@ function pushTransactionViolationsOnyxData(
                 onyxData?.failureData?.push({
                     onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                    value: transactionViolations,
+                    value: transactionViolations ?? null,
                 });
             }
         });

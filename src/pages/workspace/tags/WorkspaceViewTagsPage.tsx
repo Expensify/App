@@ -73,6 +73,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const {selectionMode} = useMobileSelectionMode();
     const currentTagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
@@ -113,9 +114,10 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         onNavigationCallBack: () => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID) : undefined),
     });
 
+    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true}) ?? [];
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
-            setWorkspaceTagEnabled(policyID, {[tagName]: {name: tagName, enabled: value}}, route.params.orderWeight);
+            setWorkspaceTagEnabled(policyID, {[tagName]: {name: tagName, enabled: value}}, route.params.orderWeight, policyCategories, allTransactionViolations);
         },
         [policyID, route.params.orderWeight],
     );
@@ -213,7 +215,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const deleteTags = () => {
-        deletePolicyTags(policyID, selectedTags);
+        deletePolicyTags(policyID, selectedTags, policyCategories, allTransactionViolations);
         setIsDeleteTagsConfirmModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
@@ -283,7 +285,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyID, tagsToDisable, route.params.orderWeight);
+                    setWorkspaceTagEnabled(policyID, tagsToDisable, route.params.orderWeight, policyCategories, allTransactionViolations);
                 },
             });
         }
@@ -295,7 +297,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyID, tagsToEnable, route.params.orderWeight);
+                    setWorkspaceTagEnabled(policyID, tagsToEnable, route.params.orderWeight, policyCategories, allTransactionViolations);
                 },
             });
         }
@@ -316,7 +318,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     if (!!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)) {
-        setPolicyTagsRequired(policyID, false, route.params.orderWeight);
+        setPolicyTagsRequired(policyID, false, route.params.orderWeight, policyTags, policyCategories, allTransactionViolations);
     }
 
     const navigateToEditTag = () => {
@@ -376,7 +378,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                                     return;
                                 }
 
-                                setPolicyTagsRequired(policyID, on, route.params.orderWeight);
+                                setPolicyTagsRequired(policyID, on, route.params.orderWeight, policyTags, policyCategories, allTransactionViolations);
                             }}
                             pendingAction={currentPolicyTag.pendingFields?.required}
                             errors={currentPolicyTag?.errorFields?.required ?? undefined}

@@ -30,6 +30,8 @@ type EditTagPageProps =
 function EditTagPage({route}: EditTagPageProps) {
     const policyID = route.params.policyID;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true});
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -64,7 +66,7 @@ function EditTagPage({route}: EditTagPageProps) {
             const tagName = values.tagName.trim();
             // Do not call the API if the edited tag name is the same as the current tag name
             if (currentTagName !== tagName) {
-                renamePolicyTag(policyID, {oldName: route.params.tagName, newName: values.tagName.trim()}, route.params.orderWeight);
+                renamePolicyTag(policyID, {oldName: route.params.tagName, newName: values.tagName.trim()}, route.params.orderWeight, policyCategories, allTransactionViolations);
             }
             Keyboard.dismiss();
             Navigation.goBack(
