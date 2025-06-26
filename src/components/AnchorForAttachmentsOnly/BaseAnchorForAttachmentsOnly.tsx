@@ -26,7 +26,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(source);
     const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
 
-    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
+    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`, {canBeMissing: true});
 
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
