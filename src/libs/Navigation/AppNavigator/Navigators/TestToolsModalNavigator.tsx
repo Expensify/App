@@ -42,9 +42,8 @@ function TestToolsModalNavigator() {
             <PressableWithoutFeedback
                 ref={outerViewRef}
                 onPress={handleOuterClick}
-                style={[styles.getTestToolsNavigatorOuterView(shouldUseNarrowLayout), styles.cursorDefault]}
-                accessibilityRole="button"
-                accessibilityLabel="button"
+                style={[styles.getTestToolsNavigatorOuterView(shouldUseNarrowLayout)]}
+                accessible={false}
             >
                 <FocusTrapForScreens>
                     <View
