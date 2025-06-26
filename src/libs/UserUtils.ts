@@ -97,10 +97,7 @@ function getLoginListBrickRoadIndicator(loginList: OnyxEntry<LoginList>): LoginL
  * Gets the appropriate brick road indicator status for the Profile section.
  * Error status is higher priority, so we check for that first.
  */
-function getProfilePageBrickRoadIndicator(
-    loginList: OnyxEntry<LoginList>,
-    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>,
-): LoginListIndicator {
+function getProfilePageBrickRoadIndicator(loginList: OnyxEntry<LoginList>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): LoginListIndicator {
     const hasPhoneNumberError = !!privatePersonalDetails?.errorFields?.phoneNumber;
     if (hasLoginListError(loginList) || hasPhoneNumberError) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
