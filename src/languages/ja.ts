@@ -2284,22 +2284,38 @@ const translations = {
             },
             addAccountingIntegrationTask: {
                 title: ({integrationName, workspaceAccountingLink}) =>
-                    `${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : '['}${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : integrationName}](${workspaceAccountingLink})${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '\u3092\u63A5\u7D9A' : '\u3068\u63A5\u7D9A\u3059\u308B'}`,
+                    (integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : '[') +
+                    (integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : integrationName) +
+                    '](' +
+                    workspaceAccountingLink +
+                    ')' +
+                    (integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '\u3092\u63A5\u7D9A' : '\u3068\u63A5\u7D9A\u3059\u308B'),
                 description: ({integrationName, workspaceAccountingLink}) =>
-                    `${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? integrationName + '\u3092\u63A5\u7D9A\u3059\u308B' : integrationName + '\u3068\u63A5\u7D9A\u3059\u308B'}\u3068\u3001\u7D4C\u8CBB\u306E\u81EA\u52D5\u30B3\u30FC\u30C7\u30A3\u30F3\u30B0\u3068\u540C\u671F\u304C\u53EF\u80FD\u306B\u306A\u308A\u3001\u6708\u672B\u306E\u7D50\u7B97\u304C\u5BB9\u6613\u306B\u306A\u308A\u307E\u3059\u3002\n` +
+                    (integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other
+                        ? integrationName + '\u3092\u63A5\u7D9A\u3059\u308B'
+                        : integrationName + '\u3068\u63A5\u7D9A\u3059\u308B') +
+                    '\u3068\u3001\u7D4C\u8CBB\u306E\u81EA\u52D5\u30B3\u30FC\u30C7\u30A3\u30F3\u30B0\u3068\u540C\u671F\u304C\u53EF\u80FD\u306B\u306A\u308A\u3001\u6708\u672B\u306E\u7D50\u7B97\u304C\u5BB9\u6613\u306B\u306A\u308A\u307E\u3059\u3002\n' +
                     '\n' +
                     '1. *\u8A2D\u5B9A* \u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
                     '2. *\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9* \u306B\u79FB\u52D5\u3057\u307E\u3059\u3002\n' +
                     '3. \u3042\u306A\u305F\u306E\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u3092\u9078\u629E\u3057\u307E\u3059\u3002\n' +
                     '4. *\u4F1A\u8A08* \u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
-                    `5. ${integrationName} \u3092\u63A2\u3057\u307E\u3059\u3002\n` +
+                    '5. ' +
+                    integrationName +
+                    ' \u3092\u63A2\u3057\u307E\u3059\u3002\n' +
                     '6. *\u63A5\u7D9A* \u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
                     '\n' +
-                    `${
-                        integrationName && CONST.connectionsVideoPaths[integrationName]
-                            ? `[\u4F1A\u8A08\u306B\u79FB\u52D5](${workspaceAccountingLink})\u3002\n\n![${integrationName}\u306B\u63A5\u7D9A](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                            : `[\u4F1A\u8A08\u306B\u79FB\u52D5](${workspaceAccountingLink})\u3002`
-                    }`,
+                    (integrationName && CONST.connectionsVideoPaths[integrationName]
+                        ? '[\u4F1A\u8A08\u306B\u79FB\u52D5](' +
+                          workspaceAccountingLink +
+                          ')\u3002\n\n![' +
+                          integrationName +
+                          '\u306B\u63A5\u7D9A](' +
+                          CONST.CLOUDFRONT_URL +
+                          '/' +
+                          CONST.connectionsVideoPaths[integrationName] +
+                          ')'
+                        : '[\u4F1A\u8A08\u306B\u79FB\u52D5](' + workspaceAccountingLink + ')\u3002'),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `[\u3042\u306A\u305F\u306E\u6CD5\u4EBA\u30AB\u30FC\u30C9](${corporateCardLink})\u3092\u63A5\u7D9A\u3059\u308B`,
