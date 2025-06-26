@@ -9250,12 +9250,12 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
         const policy = getPolicy(iouReport?.policyID);
         const currentUserCanPay = canIOUBePaid(iouReport, chatReport, policy);
         const currentUserCanApprove = canApproveIOU(iouReport, policy);
-        
+
         // Special case: If current user is the expense owner, they shouldn't be able to pay their own expense
         // even if they're a policy admin. They can only approve if they're the assigned manager.
         const isCurrentUserExpenseOwner = iouReport?.ownerAccountID === getCurrentUserAccountID();
         const adjustedCanPay = isCurrentUserExpenseOwner ? false : currentUserCanPay;
-        
+
         const shouldShowSettlementButton = adjustedCanPay || currentUserCanApprove;
         return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton;
     });
