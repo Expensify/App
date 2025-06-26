@@ -5,6 +5,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {setNewDotSignInState} from '@userActions/HybridApp';
+import CONFIG from '@src/CONFIG';
 import type ValidateLoginPageProps from './types';
 
 function ValidateLoginPage({
@@ -26,6 +28,11 @@ function ValidateLoginPage({
                 }
                 Navigation.goBack();
             } else {
+                // On HybridApp we need to orchestrate the sign-in flow of both apps so we need to set the state to STARTED here
+                if(CONFIG.IS_HYBRID_APP) {
+                    setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
+                }
+
                 Session.signInWithValidateCodeAndNavigate(Number(accountID), validateCode, '', exitTo);
             }
         });
