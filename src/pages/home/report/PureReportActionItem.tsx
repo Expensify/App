@@ -188,6 +188,9 @@ type PureReportActionItemProps = {
     /** All the data of the report collection */
     allReports: OnyxCollection<OnyxTypes.Report>;
 
+    /** All the data of the policy collection */
+    policies?: OnyxCollection<OnyxTypes.Policy>;
+
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -359,9 +362,6 @@ type PureReportActionItemProps = {
     /** User payment card ID */
     userBillingFundID?: number;
 
-    /** Policies */
-    policies?: OnyxCollection<OnyxTypes.Policy>;
-
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
 };
@@ -379,6 +379,7 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
  */
 function PureReportActionItem({
     allReports,
+    policies,
     action,
     report,
     policy,
@@ -428,7 +429,6 @@ function PureReportActionItem({
     clearAllRelatedReportActionErrors = () => {},
     dismissTrackExpenseActionableWhisper = () => {},
     userBillingFundID,
-    policies,
     shouldShowBorder,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
@@ -925,6 +925,7 @@ function PureReportActionItem({
             children = (
                 <MoneyRequestReportPreview
                     allReports={allReports}
+                    policies={policies}
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
                     policyID={report?.policyID}
                     chatReportID={reportID}

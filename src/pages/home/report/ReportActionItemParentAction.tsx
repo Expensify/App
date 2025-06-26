@@ -27,6 +27,9 @@ type ReportActionItemParentActionProps = {
     /** All the data of the report collection */
     allReports: OnyxCollection<OnyxTypes.Report>;
 
+    /** All the data of the policy collection */
+    policies: OnyxCollection<OnyxTypes.Policy>;
+
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
@@ -64,6 +67,7 @@ type ReportActionItemParentActionProps = {
 
 function ReportActionItemParentAction({
     allReports,
+    policies,
     report,
     transactionThreadReport,
     reportActions,
@@ -142,6 +146,7 @@ function ReportActionItemParentAction({
                         )}
                         <ReportActionItem
                             allReports={allReports}
+                            policies={policies}
                             onPress={
                                 canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])
                                     ? () => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction, isOffline)

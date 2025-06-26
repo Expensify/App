@@ -21,6 +21,9 @@ type MoneyRequestReportPreviewProps = {
     /** All the data of the report collection */
     allReports: OnyxCollection<Report>;
 
+    /** All the data of the policy collection */
+    policies?: OnyxCollection<Policy>;
+
     /** The report's policyID, used for Onyx subscription */
     policyID: string | undefined;
 

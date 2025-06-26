@@ -16,12 +16,14 @@ type DebugReportActionPreviewProps = {
 
 function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPreviewProps) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     return (
         <ScrollView>
             <ReportActionItem
                 allReports={allReports}
+                policies={policies}
                 action={reportAction ?? ({} as ReportAction)}
                 report={report ?? ({} as Report)}
                 reportActions={[]}
