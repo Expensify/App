@@ -160,6 +160,13 @@ function BaseReportActionContextMenu({
         return reportActions[reportActionID];
     }, [reportActions, reportActionID]);
 
+    const [linkedTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (transactions) => {
+            return Object.values(transactions ?? {}).filter((t) => t?.reportID === reportAction?.childReportID);
+        },
+        canBeMissing: true,
+    });
+
     const sourceID = getSourceIDFromReportAction(reportAction);
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`, {canBeMissing: true});
@@ -226,6 +233,7 @@ function BaseReportActionContextMenu({
                 moneyRequestAction,
                 areHoldRequirementsMet,
                 account,
+                transactions: linkedTransactions ?? [],
             }),
     );
 
