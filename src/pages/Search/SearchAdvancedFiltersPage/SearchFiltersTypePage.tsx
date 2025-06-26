@@ -51,16 +51,18 @@ function SearchFiltersTypePage() {
         };
 
         if (hasTypeChanged) {
-            Object.keys(searchAdvancedFiltersForm ?? {})
-                .filter((key) => key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE)
-                .forEach((key) => {
-                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
-                        updatedFilters[key] = CONST.SEARCH.STATUS.EXPENSE.ALL;
-                        return;
-                    }
+            Object.keys(searchAdvancedFiltersForm ?? {}).forEach((key) => {
+                if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
+                    return;
+                }
 
-                    updatedFilters[key as keyof SearchAdvancedFiltersForm] = null;
-                });
+                if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
+                    updatedFilters[key] = CONST.SEARCH.STATUS.EXPENSE.ALL;
+                    return;
+                }
+
+                updatedFilters[key as keyof SearchAdvancedFiltersForm] = null;
+            });
         }
 
         updateAdvancedFilters(updatedFilters);
