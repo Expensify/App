@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'};
@@ -7,9 +8,17 @@ const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'var
 let collator = new Intl.Collator(CONST.LOCALES.DEFAULT, COLLATOR_OPTIONS);
 
 Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (locale) => {
-        collator = new Intl.Collator(locale ?? CONST.LOCALES.DEFAULT, COLLATOR_OPTIONS);
+    key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+    initWithStoredValues: false,
+    callback: (areTranslationsLoading) => {
+        if (areTranslationsLoading ?? true) {
+            return;
+        }
+        const locale = IntlStore.getCurrentLocale();
+        if (!locale) {
+            return;
+        }
+        collator = new Intl.Collator(locale, COLLATOR_OPTIONS);
     },
 });
 

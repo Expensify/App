@@ -1,9 +1,9 @@
 import {useIsFocused} from '@react-navigation/native';
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
-import type {ReportListItemType, SearchListItem, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
+import type {SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import {search} from '@libs/actions/Search';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -61,8 +61,8 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             return;
         }
 
-        const hasTransactionsIDsChange = !isEqual(transactionsIDs, previousTransactionsIDs);
-        const hasReportActionsIDsChange = !isEqual(reportActionsIDs, previousReportActionsIDs);
+        const hasTransactionsIDsChange = !deepEqual(transactionsIDs, previousTransactionsIDs);
+        const hasReportActionsIDsChange = !deepEqual(reportActionsIDs, previousReportActionsIDs);
 
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {
@@ -187,7 +187,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
                         return true;
                     }
 
-                    // Handle ReportListItemType with transactions array
+                    // Handle TransactionGroupListItemType with transactions array
                     if ('transactions' in item && Array.isArray(item.transactions)) {
                         return item.transactions.some((transaction) => transaction?.transactionID === newID);
                     }
@@ -224,9 +224,9 @@ function extractTransactionIDsFromSearchResults(searchResultsData: Partial<Searc
             transactionIDs.push((item as TransactionListItemType).transactionID);
         }
 
-        // Check for transactions array within the item (ReportListItemType)
-        if (Array.isArray((item as ReportListItemType)?.transactions)) {
-            (item as ReportListItemType).transactions.forEach((transaction) => {
+        // Check for transactions array within the item (TransactionGroupListItemType)
+        if (Array.isArray((item as TransactionGroupListItemType)?.transactions)) {
+            (item as TransactionGroupListItemType).transactions.forEach((transaction) => {
                 if (!transaction?.transactionID) {
                     return;
                 }
