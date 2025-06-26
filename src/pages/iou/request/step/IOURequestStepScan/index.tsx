@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, InteractionManager, PanResponder, PixelRatio, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -20,7 +19,6 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LocationPermissionModal from '@components/LocationPermissionModal';
@@ -998,58 +996,56 @@ function IOURequestStepScan({
             testID={IOURequestStepScan.displayName}
         >
             {(isDraggingOverWrapper) => (
-                <>
-                    <View
-                        onLayout={() => {
-                            if (!onLayout) {
-                                return;
-                            }
-                            onLayout(setTestReceiptAndNavigate);
-                        }}
-                        style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
-                    >
-                        <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
-                        </View>
-                        {/* TODO: remove beta check after the feature is enabled */}
-                        {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
-                            <DragAndDropConsumer onDrop={handleDropReceipt}>
-                                <DropZoneUI
-                                    icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
-                                    dropStyles={styles.receiptDropOverlay(true)}
-                                    dropTitle={isEditing ? translate('dropzone.replaceReceipt') : translate('dropzone.scanReceipts')}
-                                    dropTextStyles={styles.receiptDropText}
-                                    dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
-                                />
-                            </DragAndDropConsumer>
-                        ) : (
-                            <ReceiptDropUI
-                                onDrop={(e) => {
-                                    const file = e?.dataTransfer?.files[0];
-                                    if (file) {
-                                        file.uri = URL.createObjectURL(file);
-                                        validateFiles([file]);
-                                    }
-                                }}
-                                receiptImageTopPosition={receiptImageTopPosition}
-                            />
-                        )}
-                        {/*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */}
-                        {!isMobile() && <DownloadAppBanner />}
-                        {ErrorModal}
-                        {startLocationPermissionFlow && !!receiptFiles.length && (
-                            <LocationPermissionModal
-                                startPermissionFlow={startLocationPermissionFlow}
-                                resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
-                                onGrant={() => navigateToConfirmationStep(receiptFiles, true)}
-                                onDeny={() => {
-                                    updateLastLocationPermissionPrompt();
-                                    navigateToConfirmationStep(receiptFiles, false);
-                                }}
-                            />
-                        )}
+                <View
+                    onLayout={() => {
+                        if (!onLayout) {
+                            return;
+                        }
+                        onLayout(setTestReceiptAndNavigate);
+                    }}
+                    style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
+                >
+                    <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
                     </View>
-                </>
+                    {/* TODO: remove beta check after the feature is enabled */}
+                    {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
+                        <DragAndDropConsumer onDrop={handleDropReceipt}>
+                            <DropZoneUI
+                                icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
+                                dropStyles={styles.receiptDropOverlay(true)}
+                                dropTitle={isEditing ? translate('dropzone.replaceReceipt') : translate('dropzone.scanReceipts')}
+                                dropTextStyles={styles.receiptDropText}
+                                dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
+                            />
+                        </DragAndDropConsumer>
+                    ) : (
+                        <ReceiptDropUI
+                            onDrop={(e) => {
+                                const file = e?.dataTransfer?.files[0];
+                                if (file) {
+                                    file.uri = URL.createObjectURL(file);
+                                    validateFiles([file]);
+                                }
+                            }}
+                            receiptImageTopPosition={receiptImageTopPosition}
+                        />
+                    )}
+                    {/*  We use isMobile() here to explicitly hide DownloadAppBanner component on both mobile web and native apps */}
+                    {!isMobile() && <DownloadAppBanner />}
+                    {ErrorModal}
+                    {startLocationPermissionFlow && !!receiptFiles.length && (
+                        <LocationPermissionModal
+                            startPermissionFlow={startLocationPermissionFlow}
+                            resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
+                            onGrant={() => navigateToConfirmationStep(receiptFiles, true)}
+                            onDeny={() => {
+                                updateLastLocationPermissionPrompt();
+                                navigateToConfirmationStep(receiptFiles, false);
+                            }}
+                        />
+                    )}
+                </View>
             )}
         </StepScreenDragAndDropWrapper>
     );

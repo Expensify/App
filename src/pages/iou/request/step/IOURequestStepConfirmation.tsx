@@ -956,7 +956,7 @@ function IOURequestStepConfirmation({
         setMoneyRequestReceipt(currentTransactionID, source, file.name ?? '', true);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal, isLoadingReceipt} = useFilesValidation(setReceiptOnDrop);
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptOnDrop);
 
     const handleDroppingReceipt = (e: DragEvent) => {
         const file = e?.dataTransfer?.files[0];
@@ -966,7 +966,7 @@ function IOURequestStepConfirmation({
         }
     };
 
-    if (isLoadingTransaction ?? isLoadingReceipt) {
+    if (isLoadingTransaction) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -1025,7 +1025,7 @@ function IOURequestStepConfirmation({
                             />
                         ) : null}
                     </HeaderWithBackButton>
-                    {(isLoading || isLoadingReceipt || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <FullScreenLoadingIndicator />}
+                    {(isLoading || (isScanRequest(transaction) && !Object.values(receiptFiles).length)) && <FullScreenLoadingIndicator />}
                     {PDFValidationComponent}
                     {/* TODO: remove beta check after the feature is enabled */}
                     {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
