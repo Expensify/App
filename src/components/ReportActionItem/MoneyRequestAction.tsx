@@ -175,6 +175,7 @@ function MoneyRequestAction({
 
     const TransactionPreviewComponent = (
         <TransactionPreview
+            allReports={allReports}
             iouReportID={requestReportID}
             chatReportID={chatReportID}
             reportID={reportID}
