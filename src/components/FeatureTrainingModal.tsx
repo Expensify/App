@@ -416,9 +416,20 @@ function FeatureTrainingModal({
                 </View>
                 <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
                     {!!title && !!description && (
-                        <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentInnerContainerStyles]}>
+                        <View
+                            style={[
+                                onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [shouldRenderHTMLDescription ? styles.mb5 : styles.mb10],
+                                contentInnerContainerStyles,
+                            ]}
+                        >
                             {typeof title === 'string' ? <Text style={[styles.textHeadlineH1, titleStyles]}>{title}</Text> : title}
-                            {shouldRenderHTMLDescription ? <RenderHTML html={description} /> : <Text style={styles.textSupporting}>{description}</Text>}
+                            {shouldRenderHTMLDescription ? (
+                                <View style={styles.mb2}>
+                                    <RenderHTML html={description} />
+                                </View>
+                            ) : (
+                                <Text style={styles.textSupporting}>{description}</Text>
+                            )}
                             {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
                             {children}
                         </View>
