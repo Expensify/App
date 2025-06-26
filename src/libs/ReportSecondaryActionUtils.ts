@@ -152,11 +152,6 @@ function isSubmitAction(
         return true;
     }
 
-    const hasOnlyPendingTransactions = reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction));
-    if (hasOnlyPendingTransactions) {
-        return false;
-    }
-
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
 
     const isScheduledSubmitEnabled = policy?.harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
@@ -191,6 +186,10 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
+    }
+
+    if (reportTransactions.length > 0 && !reportTransactions.some((transaction) => !isPending(transaction))) {
+        return false;
     }
 
     const transactionIDs = reportTransactions.map((t) => t.transactionID);
