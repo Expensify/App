@@ -31,7 +31,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
     const isWalletStatementGenerating = walletStatement?.isGenerating ?? false;
     const prevIsWalletStatementGenerating = usePrevious(isWalletStatementGenerating);
     const [isDownloading, setIsDownloading] = useState(isWalletStatementGenerating);
-    const {translate, updateLocale} = useLocalize();
+    const {translate} = useLocalize();
     const {environment} = useEnvironment();
     const {isOffline} = useNetwork();
 
@@ -44,10 +44,6 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we want this effect to run only on mount
     }, []);
-
-    useEffect(() => {
-        updateLocale();
-    }, [updateLocale]);
 
     const processDownload = useCallback(() => {
         if (isWalletStatementGenerating) {
