@@ -52,7 +52,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'rbr',
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.issmall === undefined) {
-                        return {...styles.formError, ...styles.mb0};
+                        return {...styles.formError, ...styles.mb0, textDecorationLine: 'none'};
                     }
                     return {...styles.formError, ...styles.mb0, ...styles.textMicro};
                 },

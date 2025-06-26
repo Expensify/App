@@ -3053,8 +3053,7 @@ const translations = {
         tripSummary: 'Trip summary',
         departs: 'Departs',
         errorMessage: 'Something went wrong. Please try again later.',
-        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
-            `<alert-text>Please <a href="${phoneErrorMethodsRoute}">add a work email as your primary login</a> to book travel.</alert-text>`,
+        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) => `<rbr>Please <a href="${phoneErrorMethodsRoute}">add a work email as your primary login</a> to book travel.</rbr>`,
         domainSelector: {
             title: 'Domain',
             subtitle: 'Choose a domain for Expensify Travel setup.',
