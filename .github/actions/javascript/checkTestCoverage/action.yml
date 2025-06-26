@@ -4,6 +4,12 @@ inputs:
     GITHUB_URL:
         description: 'GitHub repository URL to check'
         required: true
+    GITHUB_TOKEN:
+        description: 'Auth token for New Expensify Github'
+        required: true
+    PROPOSAL_POLICE_API_KEY:
+        description: 'OpenAI API key for accessing AI services'
+        required: true
 
 runs:
     using: 'node20'
