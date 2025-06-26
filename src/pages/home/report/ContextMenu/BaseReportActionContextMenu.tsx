@@ -162,7 +162,7 @@ function BaseReportActionContextMenu({
 
     const [linkedTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (transactions) => {
-            return Object.values(transactions ?? {}).filter((t) => t?.reportID === reportAction?.childReportID);
+            return Object.values(transactions ?? {}).filter((t) => t?.reportID && t?.reportID === reportAction?.childReportID);
         },
         canBeMissing: true,
     });
