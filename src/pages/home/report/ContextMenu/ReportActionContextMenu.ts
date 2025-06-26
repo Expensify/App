@@ -43,6 +43,7 @@ type ShowContextMenuParams = {
     disabledOptions?: ContextMenuAction[];
     shouldCloseOnTarget?: boolean;
     isOverflowMenu?: boolean;
+    withoutOverlay?: boolean;
 };
 
 type ShowContextMenu = (params: ShowContextMenuParams) => void;

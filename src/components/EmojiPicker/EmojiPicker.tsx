@@ -42,6 +42,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
         vertical: 0,
     });
     const [emojiPopoverAnchorOrigin, setEmojiPopoverAnchorOrigin] = useState<AnchorOrigin>(DEFAULT_ANCHOR_ORIGIN);
+    const [isWithoutOverlay, setIsWithoutOverlay] = useState(true);
     const [activeID, setActiveID] = useState<string | null>();
     const emojiPopoverAnchorRef = useRef<EmojiPopoverAnchor | null>(null);
     const emojiAnchorDimension = useRef({
@@ -85,6 +86,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
         onWillShow,
         id,
         activeEmoji: activeEmojiValue,
+        withoutOverlay = true,
         composerToRefocusOnClose: composerToRefocusOnCloseValue,
     }: ShowEmojiPickerOptions) => {
         composerToRefocusOnClose.current = composerToRefocusOnCloseValue;
@@ -97,6 +99,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
         activeEmoji.current = activeEmojiValue;
+        setIsWithoutOverlay(withoutOverlay);
         emojiPopoverAnchorRef.current = emojiPopoverAnchorValue;
         const emojiPopoverAnchor = getEmojiPopoverAnchor();
         // Drop focus to avoid blue focus ring.
@@ -232,7 +235,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
                 horizontal: emojiPopoverAnchorPosition.horizontal,
             }}
             anchorRef={getEmojiPopoverAnchor() as RefObject<View | HTMLDivElement>}
-            withoutOverlay
+            withoutOverlay={isWithoutOverlay}
             popoverDimensions={{
                 width: CONST.EMOJI_PICKER_SIZE.WIDTH,
                 height: CONST.EMOJI_PICKER_SIZE.HEIGHT,

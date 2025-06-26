@@ -27,6 +27,7 @@ type ShowEmojiPickerOptions = {
     onWillShow?: EmojiPickerOnWillShow;
     id?: string;
     activeEmoji?: string;
+    withoutOverlay?: boolean;
     composerToRefocusOnClose?: ComposerType;
 };
 
