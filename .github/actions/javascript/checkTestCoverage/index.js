@@ -11499,9 +11499,9 @@ async function run() {
 }
 async function promptAssistant(issueNumber) {
     const apiKey = (0, core_1.getInput)('PROPOSAL_POLICE_API_KEY', { required: true });
-    const assistantID = ''; // TODO @BEN
+    const assistantID = 'g-685db91277508191be5cc841ccf61832'; // TODO @BEN
     const openAI = new OpenAIUtils_1.default(apiKey);
-    const prompt = `I NEED HELP WITH SOMETHING`; // TODO @BEN
+    const prompt = `aslkdjfalksdjfalksdjfaldj`; // TODO @BEN
     core.info(`Prompt: ${prompt}`);
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
     const parsedAssistantResponse = JSON.parse((0, sanitizeJSONStringValues_1.default)(assistantResponse));
