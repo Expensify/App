@@ -163,6 +163,7 @@ import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session'
 import {isBlockedFromConcierge} from '@userActions/User';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -728,43 +729,36 @@ function PureReportActionItem({
                 },
             }));
         }
-        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ASKABOUTATTENDEETRACKING) {
-            return [
-                {
-                    text: 'common.yes',
-                    key: `${action.reportActionID}-askAboutAttendeeTracking-yes`,
-                    onPress: () => {
-                        if (!reportID) {
-                            return;
-                        }
-                        const translatedResponse = translate('common.yes');
-                        addComment(reportID, translatedResponse);
-                        Onyx.merge(`report_${reportID}`, {
-                            [`reportActions_${action.reportActionID}`]: {
-                                ...action,
-                                message: [{type: 'text', text: translatedResponse}],
+        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT_WITH_OPTIONS) {
+            const originalMessage = getOriginalMessage(action) as any;
+            const options = originalMessage?.options || ['common.yes', 'common.no'];
+
+            // Check if this action has already been resolved
+            if (originalMessage?.selectedOption) {
+                return [];
+            }
+
+            return options.map((option: string) => ({
+                text: option,
+                key: `${action.reportActionID}-addCommentWithOptions-${option.toLowerCase().replace(/\./g, '-')}`,
+                onPress: () => {
+                    if (!reportID) {
+                        return;
+                    }
+                    // Check if it's a translation key (contains a dot) or plain text
+                    const translatedResponse = option.includes('.') ? translate(option as any) : option;
+                    addComment(reportID, translatedResponse);
+                    // Mark the action as resolved by updating the originalMessage
+                    Onyx.merge(ONYXKEYS.COLLECTION.REPORT_ACTIONS + reportID, {
+                        [action.reportActionID]: {
+                            originalMessage: {
+                                ...originalMessage,
+                                selectedOption: option,
                             },
-                        });
-                    },
+                        },
+                    });
                 },
-                {
-                    text: 'common.no',
-                    key: `${action.reportActionID}-askAboutAttendeeTracking-no`,
-                    onPress: () => {
-                        if (!reportID) {
-                            return;
-                        }
-                        const translatedResponse = translate('common.no');
-                        addComment(reportID, translatedResponse);
-                        Onyx.merge(`report_${reportID}`, {
-                            [`reportActions_${action.reportActionID}`]: {
-                                ...action,
-                                message: [{type: 'text', text: translatedResponse}],
-                            },
-                        });
-                    },
-                },
-            ];
+            }));
         }
 
         if (!isActionableWhisper && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
@@ -1225,10 +1219,12 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedAuditRateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
             children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ASKABOUTATTENDEETRACKING) {
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT_WITH_OPTIONS) {
+            const originalMessage = getOriginalMessage(action) as any;
+            const questionText = (originalMessage && originalMessage['question']) || "Do you want to enable attendee tracking?";
             children = (
                 <View>
-                    <ReportActionItemBasicMessage message="Do you want to enable attendee tracking?" />
+                    <ReportActionItemBasicMessage message={questionText} />
                     {actionableItemButtons.length > 0 && (
                         <ActionableItemButtons
                             items={actionableItemButtons}
