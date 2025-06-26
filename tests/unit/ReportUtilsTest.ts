@@ -2575,7 +2575,7 @@ describe('ReportUtils', () => {
             expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.USER}, false)).toBeFalsy();
         });
 
-        it('should return false for policy rooms that are archived regardless of the policy role', async () => {
+        it('should return false for policy rooms that are archived regardless of the policy role', () => {
             expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.ADMIN}, true)).toBeFalsy();
             expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.AUDITOR}, true)).toBeFalsy();
             expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.USER}, true)).toBeFalsy();
