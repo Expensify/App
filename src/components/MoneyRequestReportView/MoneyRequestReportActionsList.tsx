@@ -82,8 +82,8 @@ type MoneyRequestReportListProps = {
     /** Array of report actions for this report */
     reportActions?: OnyxTypes.ReportAction[];
 
-    /** All transactions grouped by reportID */
-    transactionsAndViolationsByReport: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
+    /** List of transactions belonging to this report */
+    transactions?: OnyxTypes.Transaction[];
 
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
@@ -109,7 +109,7 @@ function MoneyRequestReportActionsList({
     report,
     policy,
     reportActions = [],
-    transactionsAndViolationsByReport,
+    transactions = [],
     newTransactions,
     hasNewerActions,
     hasOlderActions,
@@ -124,9 +124,7 @@ function MoneyRequestReportActionsList({
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const {transactions: reportTransactions} = transactionsAndViolationsByReport[report.reportID] ?? {};
-    const transactions = useMemo(() => Object.values(reportTransactions ?? {}) ?? [], [reportTransactions]);
-    const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
+    const reportTransactionIDs = transactions.map((transaction) => transaction.transactionID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {canBeMissing: true});
 
     const reportID = report?.reportID;
@@ -486,7 +484,6 @@ function MoneyRequestReportActionsList({
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                     shouldHideThreadDividerLine
                     linkedReportActionID={linkedReportActionID}
-                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                 />
             );
         },
@@ -500,7 +497,6 @@ function MoneyRequestReportActionsList({
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
-            transactionsAndViolationsByReport,
             allReports,
         ],
     );
