@@ -45,6 +45,9 @@ function AmountWithoutCurrencyInput(
         [onInputChange],
     );
 
+    const positiveMask = [`[09999999]${separator}[09]`];
+    const positiveAndNegativeMask = [`[09999999]${separator}[09]`, `-[09999999]${separator}[09]`];
+
     return (
         <TextInput
             inputID={inputID}
@@ -58,8 +61,9 @@ function AmountWithoutCurrencyInput(
             keyboardType={!shouldAllowNegative ? CONST.KEYBOARD_TYPE.DECIMAL_PAD : undefined}
             type="mask"
             mask={`[09999999]${separator}[09]`}
-            allowedKeys="0123456789.,"
-            validationRegex={'^(?!.*[.,].*[.,])\\d{0,8}(?:[.,]\\d{0,2})?$'}
+            allowedKeys="0123456789.,-"
+            validationRegex={'^-?(?!.*[.,].*[.,])\\d{0,8}(?:[.,]\\d{0,2})?$'}
+            affinityFormat={shouldAllowNegative ? positiveAndNegativeMask : positiveMask}
             // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
             // See https://github.com/Expensify/App/issues/51868 for more information
             autoCapitalize="words"

@@ -166,6 +166,9 @@ type CustomBaseTextInputProps = {
     /** The mask of the masked input */
     mask?: MaskedTextInputOwnProps['mask'];
 
+    /** The list of masks to be applied for the input */
+    affinityFormat?: MaskedTextInputOwnProps['affinityFormat'];
+    
     /** A set of permitted characters for the input */
     allowedKeys?: MaskedTextInputOwnProps['allowedKeys'];
 
