@@ -60,7 +60,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
             'muted-text': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-text',
-                mixedUAStyles: {...styles.colorMuted, ...styles.mb0},
+                mixedUAStyles: {...styles.colorMuted, ...styles.mb0, lineHeight: 16},
                 contentModel: HTMLContentModel.block,
             }),
             'muted-text-label': HTMLElementModel.fromCustomModel({
