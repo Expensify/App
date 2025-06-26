@@ -6513,7 +6513,7 @@ const translations = {
             requestSubmitted: {
                 title: 'Request submitted',
                 subtitle: {
-                    part1: "Thanks for letting us know you're interested in canceling your subscription. We're reviewing your request and will be in touch soon via your chat with ",
+                    part1: 'Thanks for letting us know you’re interested in canceling your subscription. We’re reviewing your request and will be in touch soon via your chat with ',
                     link: 'Concierge',
                     part2: '.',
                 },
