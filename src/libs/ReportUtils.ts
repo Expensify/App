@@ -2395,12 +2395,11 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
     const policyType = policy?.type;
     const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = iouReport?.managerID === session?.accountID;
-
     if (isPaidGroupPolicy(iouReport)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            // If we get here without a reimburser only show the pay button if we are the admin but not the report owner.
+            // If we get here without a reimburser only show the pay button if we are the admin.
             if (!policy?.achAccount?.reimburser) {
-                return isAdmin && !isReportOwner(iouReport);
+                return isAdmin;
             }
 
             // If we are the reimburser and the report is approved or we are the manager then we can pay it.
@@ -2408,11 +2407,11 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
             return isReimburser && (isApproved || isManager);
         }
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
-            return isAdmin && !isReportOwner(iouReport) && (isApproved || isManager);
+            return isAdmin && (isApproved || isManager);
         }
         return false;
     }
-    return (isAdmin && !isReportOwner(iouReport)) || (isMoneyRequestReport(iouReport) && isManager);
+    return isAdmin || (isMoneyRequestReport(iouReport) && isManager);
 }
 
 /**

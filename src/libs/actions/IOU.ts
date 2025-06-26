@@ -9248,7 +9248,15 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         // eslint-disable-next-line deprecation/deprecation
         const policy = getPolicy(iouReport?.policyID);
-        const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy) || canApproveIOU(iouReport, policy);
+        const currentUserCanPay = canIOUBePaid(iouReport, chatReport, policy);
+        const currentUserCanApprove = canApproveIOU(iouReport, policy);
+        
+        // Special case: If current user is the expense owner, they shouldn't be able to pay their own expense
+        // even if they're a policy admin. They can only approve if they're the assigned manager.
+        const isCurrentUserExpenseOwner = iouReport?.ownerAccountID === getCurrentUserAccountID();
+        const adjustedCanPay = isCurrentUserExpenseOwner ? false : currentUserCanPay;
+        
+        const shouldShowSettlementButton = adjustedCanPay || currentUserCanApprove;
         return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton;
     });
 }
