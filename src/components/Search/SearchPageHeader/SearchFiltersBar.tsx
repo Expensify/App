@@ -58,7 +58,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption, shouldShowFiltersBarLoading} = useSearchContext();
 
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.email});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -76,7 +76,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || (!!selectionMode && selectionMode.isEnabled));
 
-    const typeOptions = useMemo(() => getTypeOptions(allPolicies, session?.email), [allPolicies, session?.email]);
+    const typeOptions = useMemo(() => getTypeOptions(allPolicies, email), [allPolicies, email]);
 
     const filterFormValues = useMemo(() => {
         return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
