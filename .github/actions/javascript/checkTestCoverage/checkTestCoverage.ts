@@ -49,7 +49,7 @@ async function promptAssistant(issueNumber: number): Promise<void> {
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
 
     // TODO: Later on we will comment response on the PR
-    await commentOnGithubPR(issueNumber, 'NOT ENOUGH TESTS');
+    await commentOnGithubPR(issueNumber, parsedAssistantResponse.message);
 }
 
 async function commentOnGithubPR(issueNumber: number, comment: string): Promise<void> {
