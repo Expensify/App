@@ -11472,45 +11472,130 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
-const core_1 = __nccwpck_require__(2186);
-const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const fs = __importStar(__nccwpck_require__(7147));
+const path_1 = __importDefault(__nccwpck_require__(1017));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const OpenAIUtils_1 = __importDefault(__nccwpck_require__(3956));
-const sanitizeJSONStringValues_1 = __importDefault(__nccwpck_require__(136));
 async function run() {
     try {
-        // Get the GitHub URL input
-        const githubUrl = core.getInput('GITHUB_URL');
-        core.info(`GitHub URL: ${githubUrl}`);
-        // Extract issue/PR number from GitHub URL
-        // Expected format: https://github.com/owner/repo/pull/123 or https://github.com/owner/repo/issues/123
-        const urlMatch = githubUrl.match(/\/(?:pull|issues)\/(\d+)/);
-        const issueNumber = urlMatch ? parseInt(urlMatch[1], 10) : null;
-        core.info(`Extracted issue number: ${issueNumber}`);
-        if (!issueNumber) {
-            throw new Error(`Could not extract issue/PR number from URL: ${githubUrl}`);
-        }
-        // Make chatGPT request
-        promptAssistant(issueNumber);
+        // Get inputs
+        const prUrl = core.getInput('PR_URL', { required: true });
+        const openaiApiKey = core.getInput('TESTRAIL_TRYHARD_OPENAI_API_KEY', { required: true });
+        core.info(`Analyzing PR: ${prUrl}`);
+        // Parse PR URL to extract owner, repo, and PR number
+        const prData = parsePRUrl(prUrl);
+        // Fetch PR information from GitHub API
+        const prInfo = await fetchPRInformation(prData);
+        // Get the prompt template
+        const promptTemplate = getPromptTemplate();
+        // Create the full prompt by substituting PR information
+        const fullPrompt = createPromptWithPRData(promptTemplate, prInfo);
+        // Query OpenAI assistant
+        const assistantResponse = await queryOpenAIAssistant(fullPrompt, openaiApiKey);
+        // Comment on the PR with the response
+        await commentOnPR(prInfo, assistantResponse);
+        core.info('Successfully analyzed PR and posted comment');
     }
     catch (error) {
-        core.setFailed(error instanceof Error ? error.message : String(error));
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        core.error(`Error: ${errorMessage}`);
+        core.setFailed(errorMessage);
     }
 }
-async function promptAssistant(issueNumber) {
-    const apiKey = (0, core_1.getInput)('TESTRAIL_TRYHARD_OPENAI_API_KEY', { required: true });
-    const assistantID = 'asst_7ZKVOjvodqEzb1wkzWlLYpVf';
-    const openAI = new OpenAIUtils_1.default(apiKey);
-    const prompt = `aslkdjfalksdjfalksdjfaldj`; // TODO @BEN
-    core.info(`Prompt: ${prompt}`);
-    const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
-    const parsedAssistantResponse = JSON.parse((0, sanitizeJSONStringValues_1.default)(assistantResponse));
-    console.log('parsedAssistantResponse: ', parsedAssistantResponse);
-    // TODO: Later on we will comment response on the PR
-    await commentOnGithubPR(issueNumber, 'NOT ENOUGH TESTS');
+function parsePRUrl(prUrl) {
+    // Expected format: https://github.com/owner/repo/pull/123
+    const urlMatch = prUrl.match(/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/);
+    if (!urlMatch) {
+        throw new Error(`Invalid PR URL format. Expected: https://github.com/owner/repo/pull/123, got: ${prUrl}`);
+    }
+    const [, owner, repo, prNumberStr] = urlMatch;
+    const number = parseInt(prNumberStr, 10);
+    if (Number.isNaN(number)) {
+        throw new Error(`Invalid PR number: ${prNumberStr}`);
+    }
+    return { owner, repo, number };
 }
-async function commentOnGithubPR(issueNumber, comment) {
-    await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, issueNumber, comment);
+async function fetchPRInformation(prData) {
+    try {
+        // Fetch PR details
+        /* eslint-disable @typescript-eslint/naming-convention */
+        const prResponse = await GithubUtils_1.default.octokit.pulls.get({
+            owner: prData.owner,
+            repo: prData.repo,
+            pull_number: prData.number,
+        });
+        // Fetch PR diff
+        const diffResponse = await GithubUtils_1.default.octokit.pulls.get({
+            owner: prData.owner,
+            repo: prData.repo,
+            pull_number: prData.number,
+            mediaType: {
+                format: 'diff',
+            },
+        });
+        /* eslint-enable @typescript-eslint/naming-convention */
+        return {
+            title: prResponse.data.title,
+            body: prResponse.data.body ?? '',
+            diff: String(diffResponse.data),
+            number: prData.number,
+            repo: {
+                owner: prData.owner,
+                name: prData.repo,
+            },
+        };
+    }
+    catch (error) {
+        throw new Error(`Failed to fetch PR information: ${error instanceof Error ? error.message : String(error)}`);
+    }
+}
+function getPromptTemplate() {
+    try {
+        const promptPath = path_1.default.join(__dirname, 'prompt.md');
+        const promptContent = fs.readFileSync(promptPath, 'utf8');
+        return promptContent;
+    }
+    catch (error) {
+        throw new Error(`Failed to read prompt template: ${error instanceof Error ? error.message : String(error)}`);
+    }
+}
+function createPromptWithPRData(promptTemplate, prInfo) {
+    // Create the PR context object that will be substituted into the prompt
+    const prContext = {
+        title: prInfo.title,
+        description: prInfo.body,
+        diff: prInfo.diff,
+    };
+    // Replace the {PULL_REQUEST_CONTEXT} placeholder with actual PR data
+    const fullPrompt = promptTemplate.replace('{PULL_REQUEST_CONTEXT}', JSON.stringify(prContext, null, 2));
+    return fullPrompt;
+}
+async function queryOpenAIAssistant(prompt, apiKey) {
+    try {
+        const openAI = new OpenAIUtils_1.default(apiKey);
+        const assistantID = 'asst_7ZKVOjvodqEzb1wkzWlLYpVf';
+        core.info('Querying OpenAI assistant...');
+        const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
+        if (!assistantResponse) {
+            throw new Error('Received empty response from OpenAI assistant');
+        }
+        return assistantResponse;
+    }
+    catch (error) {
+        throw new Error(`Failed to query OpenAI assistant: ${error instanceof Error ? error.message : String(error)}`);
+    }
+}
+async function commentOnPR(prInfo, response) {
+    try {
+        // Format the response as a nice comment
+        const commentBody = `## 🔍 Test Coverage Analysis\n\n${response}`;
+        // Create comment on the PR
+        await GithubUtils_1.default.createComment(`${prInfo.repo.owner}/${prInfo.repo.name}`, prInfo.number, commentBody);
+        core.info(`Successfully posted comment on PR #${prInfo.number}`);
+    }
+    catch (error) {
+        throw new Error(`Failed to comment on PR: ${error instanceof Error ? error.message : String(error)}`);
+    }
 }
 run();
 
@@ -12026,59 +12111,6 @@ class GithubUtils {
     }
 }
 exports["default"] = GithubUtils;
-
-
-/***/ }),
-
-/***/ 136:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-function sanitizeJSONStringValues(inputString) {
-    function replacer(str) {
-        return ({
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            '\\': '\\\\',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            '\t': '\\t',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            '\n': '\\n',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            '\r': '\\r',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            '\f': '\\f',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            '"': '\\"',
-        }[str] ?? '');
-    }
-    try {
-        const parsed = JSON.parse(inputString);
-        // Function to recursively sanitize string values in an object
-        const sanitizeValues = (obj) => {
-            if (typeof obj === 'string') {
-                return obj.replace(/\\|\t|\n|\r|\f|"/g, replacer);
-            }
-            if (Array.isArray(obj)) {
-                return obj.map((item) => sanitizeValues(item));
-            }
-            if (obj && typeof obj === 'object') {
-                const result = {};
-                for (const key of Object.keys(obj)) {
-                    result[key] = sanitizeValues(obj[key]);
-                }
-                return result;
-            }
-            return obj;
-        };
-        return JSON.stringify(sanitizeValues(parsed));
-    }
-    catch (e) {
-        throw new Error('Invalid JSON input.');
-    }
-}
-exports["default"] = sanitizeJSONStringValues;
 
 
 /***/ }),

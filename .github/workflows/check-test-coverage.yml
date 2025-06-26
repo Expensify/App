@@ -3,8 +3,8 @@ name: Check Test Coverage
 on:
   workflow_dispatch:
     inputs:
-      github_url:
-        description: 'GitHub repository URL to check'
+      pr_url:
+        description: 'GitHub Pull Request URL to analyze'
         required: true
         type: string
 
@@ -19,6 +19,6 @@ jobs:
       - name: Check Test Coverage
         uses: ./.github/actions/javascript/checkTestCoverage
         with:
-          GITHUB_URL: ${{ inputs.github_url }}
+          PR_URL: ${{ inputs.pr_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TESTRAIL_TRYHARD_OPENAI_API_KEY: ${{ secrets.TESTRAIL_TRYHARD_OPENAI_API_KEY }}

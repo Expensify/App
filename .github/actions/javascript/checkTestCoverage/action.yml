@@ -1,11 +1,11 @@
 name: 'Check Test Coverage'
-description: 'A simple action that takes a GitHub URL and prints it'
+description: 'Analyzes a GitHub PR and identifies test cases that might be affected by the changes'
 inputs:
-    GITHUB_URL:
-        description: 'GitHub repository URL to check'
+    PR_URL:
+        description: 'GitHub Pull Request URL to analyze'
         required: true
     GITHUB_TOKEN:
-        description: 'Auth token for New Expensify Github'
+        description: 'Auth token for GitHub API access'
         required: true
     TESTRAIL_TRYHARD_OPENAI_API_KEY:
         description: 'OpenAI API key for accessing AI services'
