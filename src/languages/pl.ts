@@ -6534,7 +6534,7 @@ const translations = {
                 subtitle: 'Twoja roczna subskrypcja została anulowana.',
                 info: 'Jeśli chcesz nadal korzystać ze swojego miejsca pracy na zasadzie płatności za użycie, wszystko jest gotowe.',
                 preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
-                    `Jeśli chcesz zapobiec przyszłym działaniom i opłatom, musisz <a href="${workspacesListRoute}">usuń swoje przestrzenie robocze</a> . Zauważ, że gdy usuniesz swoje miejsce pracy, zostaniesz obciążony opłatą za wszelkie zaległe działania, które miały miejsce w bieżącym miesiącu kalendarzowym.`,
+                    `Jeśli chcesz zapobiec przyszłym działaniom i opłatom, musisz <a href="${workspacesListRoute}">usuń swoje przestrzenie robocze</a>. Zauważ, że gdy usuniesz swoje miejsce pracy, zostaniesz obciążony opłatą za wszelkie zaległe działania, które miały miejsce w bieżącym miesiącu kalendarzowym.`,
             },
             requestSubmitted: {
                 title: 'Żądanie zostało złożone',

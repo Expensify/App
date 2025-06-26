@@ -6565,7 +6565,7 @@ const translations = {
                 subtitle: 'Il tuo abbonamento annuale è stato annullato.',
                 info: 'Se vuoi continuare a utilizzare il tuo workspace su base pay-per-use, sei a posto.',
                 preventFutureActivity: ({workspacesListRoute}: WorkspacesListRouteParams) =>
-                    `Se desideri prevenire attività e addebiti futuri, devi <a href="${workspacesListRoute}">elimina il tuo/i tuoi spazio/i di lavoro</a> . Si noti che quando si eliminano i propri workspace, verrà addebitata qualsiasi attività in sospeso che è stata sostenuta durante il mese di calendario corrente.`,
+                    `Se desideri prevenire attività e addebiti futuri, devi <a href="${workspacesListRoute}">elimina il tuo/i tuoi spazio/i di lavoro</a>. Si noti che quando si eliminano i propri workspace, verrà addebitata qualsiasi attività in sospeso che è stata sostenuta durante il mese di calendario corrente.`,
             },
             requestSubmitted: {
                 title: 'Richiesta inviata',
