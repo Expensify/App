@@ -1321,6 +1321,7 @@ function getOneTransactionThreadReportID(
         return singleAction?.childReportID;
     }
 
+    // TODO: remove singleActionChildReport search when API update to return childReportID inside OpenApp response is implemented
     const singleActionChildReport = Object.values(allReports ?? {}).find((item) => singleAction && item?.parentReportActionID === singleAction.reportActionID);
 
     // Since we don't always create transaction thread optimistically, we return CONST.FAKE_REPORT_ID
