@@ -1,23 +1,51 @@
 import mermaid from 'mermaid';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Platform, View} from 'react-native';
 import WebView from 'react-native-webview';
 import {ReactZoomPanPinchContentRef, TransformComponent, TransformWrapper} from 'react-zoom-pan-pinch';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {Minus, Plus} from '@components/Icon/Expensicons';
+import {F1Car, Minus, Plus} from '@components/Icon/Expensicons';
+import colors from '@styles/theme/colors';
 
 interface ApprovalChartProps {
     goBack: () => void;
 }
 
 export default function ApprovalChart({goBack}: ApprovalChartProps) {
+    const [loading, setLoading] = useState(false);
+
     const chart = `
     graph TD
-        A[Start] --> B{Is it working?}
-        B -- Yes --> C[Great!]
-        B -- No --> D[Fix it]
-        D --> B
+
+%% Level 1: submitsTo only
+AmeliaAveo["Amelia Aveo"]:::rounded -->|"submits to"| CarolConvertible_L2["Carol Convertible"]:::rounded
+CarolConvertible_L1["Carol Convertible"]:::rounded -->|"submits to"| ChrisCavalier_L2a["Chris Cavalier"]:::rounded
+ChrisCavalier_L1["Chris Cavalier"]:::rounded -->|"submits to"| LoganDacia_L2a["Logan Dacia"]:::rounded
+ConradCobalt_L1["Conrad Cobalt"]:::rounded -->|"submits to"| DorianDelorean_L2a["Dorian Delorean"]:::rounded
+DorianDelorean_L1["Dorian Delorean"]:::rounded -->|"submits to"| ChrisCavalier_L2b["Chris Cavalier"]:::rounded
+EloiseElantra["Eloise Elantra"]:::rounded -->|"submits to"| ChrisCavalier_L2c["Chris Cavalier"]:::rounded
+JudyJetta["Judy Jetta"]:::rounded -->|"submits to"| RichardReliant_L2a["Richard Reliant"]:::rounded
+LebronJames_L1["Lebron James"]:::rounded -->|"submits to"| RichardReliant_L2b["Richard Reliant"]:::rounded
+LoganDacia_L1["Logan Dacia"]:::rounded -->|"submits to"| RichardReliant_L2c["Richard Reliant"]:::rounded
+MarkMalibu["Mark Malibu"]:::rounded -->|"submits to"| LebronJames_L2a["Lebron James"]:::rounded
+NormanNeon["Norman Neon"]:::rounded -->|"submits to"| LebronJames_L2b["Lebron James"]:::rounded
+PeterPinto["Peter Pinto"]:::rounded -->|"submits to"| VictorVersa_L2["Victor Versa"]:::rounded
+RichardReliant_L1["Richard Reliant"]:::rounded -->|"submits to"| LoganDacia_L2d["Logan Dacia"]:::rounded
+VictorVersa_L1["Victor Versa"]:::rounded -->|"submits to"| LebronJames_L2c["Lebron James"]:::rounded
+
+%% Level 2+: forwardsTo only
+CarolConvertible_L2 -.->|"forwards to"| ConradCobalt_L3["Conrad Cobalt"]:::rounded
+ConradCobalt_L3 -.->|"forwards to"| DorianDelorean_L4["Dorian Delorean"]:::rounded
+DorianDelorean_L4 -.->|"forwards to"| ChrisCavalier_L5["Chris Cavalier"]:::rounded
+
+LebronJames_L2a -.->|"forwards to"| VictorVersa_L3a["Victor Versa"]:::rounded
+VictorVersa_L3a -.->|"forwards to"| AshtonAztek_L4["Ashton Aztek"]:::rounded
+AshtonAztek_L4 -.->|"forwards to"| ChrisCavalier_L5b["Chris Cavalier"]:::rounded
+
+RichardReliant_L2b -.->|"forwards to"| LebronJames_L3["Lebron James"]:::rounded
+LoganDacia_L2a -.->|"forwards to"| DorianDelorean_L3a["Dorian Delorean"]:::rounded
+    classDef rounded rx:27,stroke:transparent;
     `;
 
     return (
@@ -28,7 +56,9 @@ export default function ApprovalChart({goBack}: ApprovalChartProps) {
                 style={{zIndex: 50}}
             />
 
-            {Platform.OS === 'web' ? <ApprovalChartWeb chart={chart} /> : <ApprovalChartMobile chart={chart} />}
+            {loading && <LoadingState />}
+            {!loading && Platform.OS === 'web' && <ApprovalChartWeb chart={chart} />}
+            {!loading && Platform.OS !== 'web' && <ApprovalChartMobile chart={chart} />}
         </View>
     );
 }
@@ -37,12 +67,20 @@ interface ChartViewProps {
     chart: string;
 }
 
-export function ApprovalChartWeb({chart}: ChartViewProps) {
+function ApprovalChartWeb({chart}: ChartViewProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const workflowRef = useRef<ReactZoomPanPinchContentRef>(null);
 
     useEffect(() => {
         if (containerRef.current) {
+            mermaid.initialize({
+                themeVariables: {
+                    mainBkg: colors.green,
+                    textColor: colors.white,
+                    edgeLabelBackground: colors.green700,
+                    lineColor: colors.green700,
+                },
+            });
             containerRef.current.innerHTML = chart;
             mermaid.run({nodes: [containerRef.current]});
         }
@@ -133,5 +171,13 @@ function ApprovalChartMobile({chart}: ChartViewProps) {
             source={{html: htmlContent}}
             style={{flex: 1}}
         />
+    );
+}
+
+function LoadingState() {
+    return (
+        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+            <F1Car />
+        </View>
     );
 }

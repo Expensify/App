@@ -320,6 +320,33 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                 {translate('common.workspacesTabTitle')}
                             </Text>
                         </PressableWithFeedback>
+                        {/* <PressableWithFeedback
+                            onPress={() => {}}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={'Charts'}
+                            style={styles.leftNavigationTabBarItem}
+                        >
+                            <View>
+                                <Icon
+                                    src={Expensicons.Table}
+                                    fill={selectedTab === NAVIGATION_TABS.CHARTS ? theme.iconMenu : theme.icon}
+                                    width={variables.iconBottomBar}
+                                    height={variables.iconBottomBar}
+                                />
+                                {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
+                            </View>
+                            <Text
+                                style={[
+                                    styles.textSmall,
+                                    styles.textAlignCenter,
+                                    styles.mt1Half,
+                                    selectedTab === NAVIGATION_TABS.CHARTS ? styles.textBold : styles.textSupporting,
+                                    styles.navigationTabBarLabel,
+                                ]}
+                            >
+                                Charts
+                            </Text>
+                        </PressableWithFeedback> */}
                         <NavigationTabBarAvatar
                             style={styles.leftNavigationTabBarItem}
                             isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}

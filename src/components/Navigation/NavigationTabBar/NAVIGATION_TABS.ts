@@ -2,6 +2,7 @@ const NAVIGATION_TABS = {
     HOME: 'HOME',
     SEARCH: 'SEARCH',
     WORKSPACES: 'WORKSPACES',
+    CHARTS: 'CHARTS',
     SETTINGS: 'SETTINGS',
 } as const;
 

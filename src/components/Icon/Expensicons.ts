@@ -99,6 +99,8 @@ import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import Export from '@assets/images/export.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
+import F1Car from '@assets/images/f1/f1-car.svg';
+import F1Helmet from '@assets/images/f1/f1-helmet.svg';
 import Feed from '@assets/images/feed.svg';
 import Filter from '@assets/images/filter.svg';
 import Filters from '@assets/images/filters.svg';
@@ -486,4 +488,6 @@ export {
     SageIntacctExport,
     SapExport,
     XeroExport,
+    F1Car,
+    F1Helmet,
 };
