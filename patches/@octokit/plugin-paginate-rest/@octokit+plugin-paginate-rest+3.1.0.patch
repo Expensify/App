@@ -23,7 +23,7 @@ index 043ecb3..8af9a5d 100644
    delete response.data.repository_selection;
    delete response.data.total_count;
 +  delete response.data.total_commits;
-   const namespaceKey = Object.keys(response.data)[0];
+   const namespaceKey = "total_commits" in response.data ? "commits" : Object.keys(response.data)[0];
    const data = response.data[namespaceKey];
    response.data = data;
 @@ -51,6 +53,7 @@ function normalizePaginatedListResponse(response) {
