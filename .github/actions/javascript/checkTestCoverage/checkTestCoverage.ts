@@ -1,4 +1,6 @@
 import * as core from '@actions/core';
+import * as dotenv from 'dotenv';
+import path from 'path';
 import {getInput} from '@actions/core';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
@@ -36,8 +38,17 @@ async function run(): Promise<void> {
 }
 
 async function promptAssistant(issueNumber: number): Promise<void> {
-    const apiKey = getInput('PROPOSAL_POLICE_API_KEY', {required: true});
+    const apiKey = getInput('OPENAI_API_KEY', {required: true});
     const assistantID = 'asst_4YdgxpJNCqt9zYtpVvEaWg4a'; // TODO @BEN
+    // const openAI = new OpenAIUtils(apiKey);
+
+    if (!process.env.OPENAI_API_KEY) {
+        // If not, try to load it from .env
+        dotenv.config({path: path.resolve(__dirname, '../.env')});
+        if (!process.env.OPENAI_API_KEY) {
+            throw new Error('❌ OPENAI_API_KEY not found in environment.');
+        }
+    }
     const openAI = new OpenAIUtils(apiKey);
 
     const prompt = `aslkdjfalksdjfalksdjfaldj`; // TODO @BEN
