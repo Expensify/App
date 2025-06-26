@@ -72,7 +72,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     if (hasAccountingConnections) {
         return <NotFoundPage />;
     }
-    const startMultiLevelTagImportFlow = () => {
+    const startMultiLevelTagImportFlow = useCallback(() => {
         setImportedSpreadsheetIsImportingMultiLevelTags(true);
         if (hasVisibleTags) {
             setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
@@ -82,17 +82,22 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
             );
         }
-    };
+    }, [hasVisibleTags, policyID, isQuickSettingsFlow, backTo]);
 
     useFocusEffect(
         useCallback(() => {
             if (!shouldRunPostUpgradeFlow || !isControlPolicy(policy)) {
                 return;
             }
+
             startMultiLevelTagImportFlow();
             setShouldRunPostUpgradeFlow(false);
-        }, [shouldRunPostUpgradeFlow, policy, hasVisibleTags, policyID, isQuickSettingsFlow, backTo]),
+        }, [shouldRunPostUpgradeFlow, policy, startMultiLevelTagImportFlow]),
     );
+    
+    if (hasAccountingConnections) {
+        return <NotFoundPage />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
