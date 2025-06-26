@@ -133,6 +133,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                 />
             ),
+            [CONST.SEARCH.GROUP_BY.CARDS]: (
+                // s77rt CardListItemHeader
+                <View />
+            ),
         };
 
         if (!groupBy) {
