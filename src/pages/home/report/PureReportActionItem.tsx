@@ -185,6 +185,9 @@ import ReportAttachmentsContext from './ReportAttachmentsContext';
 import TripSummary from './TripSummary';
 
 type PureReportActionItemProps = {
+    /** All the data of the report collection */
+    allReports: OnyxCollection<OnyxTypes.Report>;
+
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -375,6 +378,7 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
  * Instead, pass all Onyx read/write operations as props.
  */
 function PureReportActionItem({
+    allReports,
     action,
     report,
     policy,
@@ -919,6 +923,7 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
             children = (
                 <MoneyRequestReportPreview
+                    allReports={allReports}
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
                     policyID={report?.policyID}
                     chatReportID={reportID}

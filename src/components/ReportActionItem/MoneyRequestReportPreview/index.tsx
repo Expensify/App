@@ -22,6 +22,7 @@ import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent
 import type {MoneyRequestReportPreviewProps} from './types';
 
 function MoneyRequestReportPreview({
+    allReports,
     iouReportID,
     policyID,
     chatReportID,
@@ -40,7 +41,7 @@ function MoneyRequestReportPreview({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
         {canBeMissing: true},
@@ -50,7 +51,7 @@ function MoneyRequestReportPreview({
             personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
         canBeMissing: true,
     });
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
     const {transactions: reportTransactions, violations} = transactionsAndViolationsByReport[iouReportID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const {isOffline} = useNetwork();
     const filteredTransactions = Object.values(reportTransactions ?? {}).filter((transaction) => isOffline || transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -66,7 +67,6 @@ function MoneyRequestReportPreview({
         () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, currentWidth, currentWrapperWidth),
         [StyleUtils, currentWidth, currentWrapperWidth, shouldUseNarrowLayout, transactions.length],
     );
-
     const shouldShowIOUData = useMemo(() => {
         if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
             return false;

@@ -18,6 +18,9 @@ type MoneyRequestReportPreviewStyleType = {
 };
 
 type MoneyRequestReportPreviewProps = {
+    /** All the data of the report collection */
+    allReports: OnyxCollection<Report>;
+
     /** The report's policyID, used for Onyx subscription */
     policyID: string | undefined;
 
@@ -73,7 +76,7 @@ type MoneyRequestReportPreviewContentOnyxProps = {
 };
 
 type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps &
-    Omit<MoneyRequestReportPreviewProps, 'policyID' | 'transactionsAndViolationsByReport'> & {
+    Omit<MoneyRequestReportPreviewProps, 'allReports' | 'policyID' | 'transactionsAndViolationsByReport'> & {
         /** Extra styles passed used by MoneyRequestReportPreviewContent */
         reportPreviewStyles: MoneyRequestReportPreviewStyleType;
 

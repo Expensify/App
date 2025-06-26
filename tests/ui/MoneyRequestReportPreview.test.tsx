@@ -62,6 +62,9 @@ const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = n
                 <ScreenWrapper testID="test">
                     <PortalProvider>
                         <MoneyRequestReportPreview
+                            allReports={{
+                              [`${ONYXKEYS.COLLECTION.REPORT}${mockChatReport.iouReportID}`]: mockChatReport,
+                            }}
                             policyID={mockChatReport.policyID}
                             action={mockAction}
                             iouReportID={mockChatReport.iouReportID}
@@ -149,7 +152,6 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
         setCurrentWidth();
         await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions).then(waitForBatchedUpdates);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockChatReport.iouReportID}`, mockChatReport).then(waitForBatchedUpdates);
         const {reportName: moneyRequestReportPreviewName = ''} = mockChatReport;
         for (const transaction of arrayOfTransactions) {
             const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);

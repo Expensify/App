@@ -89,6 +89,7 @@ function ReportActionItem({allReports, action, report, transactions, shouldShowD
         <PureReportActionItem
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            allReports={allReports}
             action={action}
             report={report}
             policy={policy}
