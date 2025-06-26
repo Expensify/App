@@ -6,13 +6,11 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@navigation/Navigation';
-import {shouldShowProfileTool} from '@userActions/TestTool';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Button from './Button';
-import ClientSideLoggingToolMenu from './ClientSideLoggingToolMenu';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import ProfilingToolMenu from './ProfilingToolMenu';
+import RecordTroubleshootDataToolMenu from './RecordTroubleshootDataToolMenu';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import ScrollView from './ScrollView';
 import TestToolMenu from './TestToolMenu';
@@ -52,8 +50,7 @@ function TestToolsModalPage() {
                             >
                                 {translate('initialSettingsPage.troubleshoot.releaseOptions')}
                             </Text>
-                            {shouldShowProfileTool() && <ProfilingToolMenu />}
-                            <ClientSideLoggingToolMenu />
+                            <RecordTroubleshootDataToolMenu />
                             {!!shouldStoreLogs && (
                                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
                                     <Button
