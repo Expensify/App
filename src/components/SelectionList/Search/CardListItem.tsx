@@ -112,12 +112,20 @@ function CardListItem<TItem extends ListItem>({
                                     </View>
                                 </UserDetailsTooltip>
                                 <View style={[styles.cardItemSecondaryIconStyle, StyleUtils.getBorderColorStyle(theme.componentBG)]}>
-                                    <Icon
-                                        src={item.bankIcon.icon}
-                                        width={variables.cardMiniatureWidth}
-                                        height={variables.cardMiniatureHeight}
-                                        additionalStyles={styles.cardMiniature}
-                                    />
+                                    {!!item?.plaidUrl && (
+                                        <PlaidCardFeedIcon
+                                            plaidUrl={item.plaidUrl}
+                                            isSmall
+                                        />
+                                    )}
+                                    {!item?.plaidUrl && (
+                                        <Icon
+                                            src={item.bankIcon.icon}
+                                            width={variables.cardMiniatureWidth}
+                                            height={variables.cardMiniatureHeight}
+                                            additionalStyles={styles.cardMiniature}
+                                        />
+                                    )}
                                 </View>
                             </View>
                         ) : (

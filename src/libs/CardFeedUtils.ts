@@ -66,6 +66,7 @@ function createCardFilterItem(card: Card, personalDetailsList: PersonalDetailsLi
     const icon = getCardFeedIcon(card?.bank as CompanyCardFeed, illustrations);
     const cardName = card?.nameValuePairs?.cardTitle;
     const text = personalDetails?.displayName ?? cardName;
+    const plaidUrl = getPlaidInstitutionIconUrl(card?.bank);
 
     return {
         lastFourPAN: card.lastFourPAN,
@@ -74,6 +75,7 @@ function createCardFilterItem(card: Card, personalDetailsList: PersonalDetailsLi
         cardName,
         cardOwnerPersonalDetails: personalDetails ?? undefined,
         text,
+        plaidUrl,
         keyForList: card.cardID.toString(),
         isSelected,
         bankIcon: {
