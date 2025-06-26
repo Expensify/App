@@ -3233,6 +3233,10 @@ describe('ReportUtils', () => {
     });
 
     describe('getMoneyReportPreviewName', () => {
+        beforeAll(async () => {
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {}});
+        });
         it('should return the report name if present', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
@@ -3240,9 +3244,10 @@ describe('ReportUtils', () => {
             };
             const report: Report = {
                 ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             };
             const result = getMoneyReportPreviewName(action, report);
-            expect(result).toBe('Five, Four, One, Three, Two...');
+            expect(result).toBe(report.reportName);
         });
 
         it('should return the child report name if the report name is not present', () => {
