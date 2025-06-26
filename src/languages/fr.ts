@@ -67,6 +67,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodParams,
     ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
@@ -549,6 +550,7 @@ const translations = {
         userID: 'ID utilisateur',
         disable: 'Désactiver',
         export: 'Exportation',
+        basicExport: 'Exportation basique',
         initialValue: 'Valeur initiale',
         currentDate: 'Current date',
         value: 'Valeur',
@@ -1021,6 +1023,7 @@ const translations = {
         share: 'Partager',
         participants: 'Participants',
         createExpense: 'Créer une dépense',
+        trackDistance: 'Suivre la distance',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Créer ${expensesNumber} dépenses`,
         addExpense: 'Ajouter une dépense',
         chooseRecipient: 'Choisir le destinataire',
@@ -1495,6 +1498,7 @@ const translations = {
             noLogsToShare: 'Aucun journal à partager',
             useProfiling: 'Utiliser le profilage',
             profileTrace: 'Profil de trace',
+            results: 'Résultats',
             releaseOptions: 'Options de publication',
             testingPreferences: 'Préférences de test',
             useStagingServer: 'Utiliser le serveur de staging',
@@ -1515,6 +1519,7 @@ const translations = {
             invalidFile: 'Fichier invalide',
             invalidFileDescription: "Le fichier que vous essayez d'importer n'est pas valide. Veuillez réessayer.",
             invalidateWithDelay: 'Invalider avec délai',
+            recordTroubleshootData: 'Enregistrement des données de dépannage',
         },
         debugConsole: {
             saveLog: 'Enregistrer le journal',
@@ -2432,11 +2437,8 @@ const translations = {
             'Ajoutez un compte bancaire pour rembourser les dépenses, émettre des cartes Expensify, collecter les paiements de factures et payer les factures, le tout depuis un seul endroit.',
         plaidBodyCopy: "Offrez à vos employés un moyen plus simple de payer - et d'être remboursés - pour les dépenses de l'entreprise.",
         checkHelpLine: 'Votre numéro de routage et votre numéro de compte se trouvent sur un chèque pour le compte.',
-        hasPhoneLoginError: {
-            phrase1: 'Pour connecter un compte bancaire, veuillez',
-            link: 'ajoutez un e-mail comme identifiant principal',
-            phrase2: 'et réessayez. Vous pouvez ajouter votre numéro de téléphone comme connexion secondaire.',
-        },
+        hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
+            `Pour connecter un compte bancaire, veuillez <a href="${contactMethodRoute}">ajoutez un e-mail comme identifiant principal</a> et réessayez. Vous pouvez ajouter votre numéro de téléphone comme connexion secondaire.`,
         hasBeenThrottledError: "Une erreur s'est produite lors de l'ajout de votre compte bancaire. Veuillez attendre quelques minutes et réessayer.",
         hasCurrencyError: {
             phrase1: "Oups ! Il semble que la devise de votre espace de travail soit différente de l'USD. Pour continuer, veuillez aller sur",
@@ -3222,7 +3224,7 @@ const translations = {
             welcomeNote: 'Veuillez utiliser Expensify pour soumettre vos reçus pour remboursement, merci !',
             subscription: 'Abonnement',
             markAsEntered: 'Marquer comme saisi manuellement',
-            markAsExported: 'Marquer comme exporté manuellement',
+            markAsExported: 'Marquer comme exporté',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exporter vers ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Vérifions que tout est correct.',
             lineItemLevel: 'Niveau des postes de dépense',
@@ -5779,6 +5781,7 @@ const translations = {
             groupBy: {
                 reports: 'Rapport',
                 members: 'Membre',
+                cards: 'Carte',
             },
         },
         groupBy: 'Groupe par',
@@ -6435,14 +6438,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: "Réclamer l'offre",
                 noThanks: 'Non merci',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% de réduction sur votre première année !`,
-                    phrase2: `Ajoutez simplement une carte de paiement et commencez un abonnement annuel.`,
-                },
-                onboardingChatTitle: {
-                    phrase1: 'Offre à durée limitée :',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% de réduction sur votre première année !`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>${discountType}% de réduction sur votre première année !</strong> Ajoutez simplement une carte de paiement et commencez un abonnement annuel.`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Offre à durée limitée : ${discountType}% de réduction sur votre première année !`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Réclamer dans ${days > 0 ? `${days}j :` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
         },
