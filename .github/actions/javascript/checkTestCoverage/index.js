@@ -12155,7 +12155,7 @@ class OpenAIUtils {
             console.log(' -- thread: ', thread);
             console.log(' -- run: ', run);
             // await thread run completion
-            threadRun = await this.client.beta.threads.runs.retrieve(run, {});
+            threadRun = await this.client.beta.threads.runs.retrieve(run, { thread_id: thread });
             if (threadRun.status !== 'completed') {
                 count++;
                 await new Promise((resolve) => {
