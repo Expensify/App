@@ -75,7 +75,7 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
     sap: 'SAP',
     oracle: 'Oracle',
     microsoftDynamics: 'Microsoft Dynamics',
-    other: 'Other',
+    other: 'accounting software',
 };
 
 const connectionsVideoPaths = {
@@ -179,6 +179,51 @@ const setupCategoriesTask: OnboardingTask = {
         `[Take me to workspace category settings](${workspaceCategoriesLink}).\n` +
         '\n' +
         `![Set up categories](${CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
+};
+
+const inviteAccountantTask: OnboardingTask = {
+    type: 'inviteAccountant',
+    autoCompleted: false,
+    mediaAttributes: {},
+    title: ({workspaceMembersLink}) => `Invite your [accountant](${workspaceMembersLink})`,
+    description: ({workspaceMembersLink}) =>
+        '*Invite your accountant* to collaborate on your workspace and manage your business expenses.\n' +
+        '\n' +
+        '1. Click *Workspaces*.\n' +
+        '2. Select your workspace.\n' +
+        '3. Click *Members*.\n' +
+        '4. Click *Invite member*.\n' +
+        "5. Enter your accountant's email address.\n" +
+        '\n' +
+        `[Invite your accountant now](${workspaceMembersLink}).`,
+};
+
+const reviewWorkspaceSettingsTask: OnboardingTask = {
+    type: 'reviewWorkspaceSettings',
+    autoCompleted: false,
+    mediaAttributes: {},
+    title: ({workspaceSettingsLink}) => `Review your [workspace settings](${workspaceSettingsLink})`,
+    description: ({workspaceSettingsLink}) =>
+        "Here's how to review and update your workspace settings:\n" +
+        '1. Click the settings tab.\n' +
+        '2. Click *Workspaces* > [Your workspace].\n' +
+        `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
+};
+
+const createReportTask: OnboardingTask = {
+    type: 'createReport',
+    autoCompleted: false,
+    mediaAttributes: {},
+    title: 'Create a report',
+    description:
+        'Here’s how to create a report:\n' +
+        '\n' +
+        '1. Click the green *+* button.\n' +
+        '2. Choose *Create report*.\n' +
+        '3. Click *Add expense*.\n' +
+        '4. Add your first expense.\n' +
+        '\n' +
+        'And you’re done!',
 };
 
 const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
@@ -1228,10 +1273,7 @@ const CONST = {
             APPROVE: 'approve',
             UNAPPROVE: 'unapprove',
             CANCEL_PAYMENT: 'cancelPayment',
-            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
-            MARK_AS_EXPORTED: 'markAsExported',
             HOLD: 'hold',
-            DOWNLOAD_CSV: 'downloadCSV',
             DOWNLOAD_PDF: 'downloadPDF',
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
@@ -1240,6 +1282,7 @@ const CONST = {
             ADD_EXPENSE: 'addExpense',
             SPLIT: 'split',
             REOPEN: 'reopen',
+            EXPORT: 'export',
             PAY: 'pay',
         },
         PRIMARY_ACTIONS: {
@@ -1285,6 +1328,7 @@ const CONST = {
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
                 ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
+                POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
                 APPROVED: 'APPROVED',
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
@@ -1582,6 +1626,7 @@ const CONST = {
         EXPORT_OPTIONS: {
             EXPORT_TO_INTEGRATION: 'exportToIntegration',
             MARK_AS_EXPORTED: 'markAsExported',
+            DOWNLOAD_CSV: 'downloadCSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -5541,9 +5586,10 @@ const CONST = {
                         [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
                         [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]}`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
-                    title: ({integrationName, workspaceAccountingLink}) => `Connect to [${integrationName}](${workspaceAccountingLink})`,
+                    title: ({integrationName, workspaceAccountingLink}) =>
+                        `Connect${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' to'} [${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other ? 'your' : ''} ${integrationName}](${workspaceAccountingLink})`,
                     description: ({integrationName, workspaceAccountingLink}) =>
-                        `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
+                        `Connect ${integrationName === ONBOARDING_ACCOUNTING_MAPPING.other ? 'your' : 'to'} ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
                         '\n' +
                         '1. Click *Settings*.\n' +
                         '2. Go to *Workspaces*.\n' +
@@ -5639,25 +5685,7 @@ const CONST = {
                 width: 1280,
                 height: 960,
             },
-            tasks: [
-                createWorkspaceTask,
-                testDriveAdminTask,
-                {
-                    type: 'createReport',
-                    autoCompleted: false,
-                    mediaAttributes: {},
-                    title: 'Create your first report',
-                    description:
-                        'Here’s how to create a report:\n' +
-                        '\n' +
-                        '1. Click the green *+* button.\n' +
-                        '2. Choose *Create report*.\n' +
-                        '3. Click *Add expense*.\n' +
-                        '4. Add your first expense.\n' +
-                        '\n' +
-                        'And you’re done!',
-                },
-            ],
+            tasks: [createWorkspaceTask, testDriveAdminTask, createReportTask, setupCategoriesTask, inviteAccountantTask, reviewWorkspaceSettingsTask],
         },
         [onboardingChoices.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
         [onboardingChoices.CHAT_SPLIT]: {
@@ -5701,17 +5729,7 @@ const CONST = {
         [onboardingChoices.ADMIN]: {
             message: "As an admin, learn how to manage your team's workspace and submit expenses yourself.",
             tasks: [
-                {
-                    type: 'reviewWorkspaceSettings',
-                    autoCompleted: false,
-                    mediaAttributes: {},
-                    title: ({workspaceSettingsLink}) => `Review your [workspace settings](${workspaceSettingsLink})`,
-                    description: ({workspaceSettingsLink}) =>
-                        "Here's how to review and update your workspace settings:\n" +
-                        '1. Click the settings tab.\n' +
-                        '2. Click *Workspaces* > [Your workspace].\n' +
-                        `[Go to your workspace](${workspaceSettingsLink}). We'll track them in the #admins room.`,
-                },
+                reviewWorkspaceSettingsTask,
                 {
                     type: 'submitExpense',
                     autoCompleted: false,
@@ -6586,6 +6604,7 @@ const CONST = {
         GROUP_BY: {
             REPORTS: 'reports',
             MEMBERS: 'members',
+            CARDS: 'cards',
         },
         BOOLEAN: {
             YES: 'yes',

@@ -742,6 +742,14 @@ function isActionableReportMentionWhisper(reportAction: OnyxEntry<ReportAction>)
 }
 
 /**
+ * Checks if a given report action corresponds to a welcome whisper.
+ * @param reportAction
+ */
+function isExpenseChatWelcomeWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_EXPENSE_CHAT_WELCOME_WHISPER> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_EXPENSE_CHAT_WELCOME_WHISPER);
+}
+
+/**
  * Checks whether an action is actionable track expense.
  */
 function isActionableTrackExpense(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER> {
@@ -3002,6 +3010,7 @@ export {
     isActionableMentionWhisper,
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
+    isExpenseChatWelcomeWhisper,
     isConciergeCategoryOptions,
     isResolvedConciergeCategoryOptions,
     isAddCommentAction,
