@@ -796,7 +796,6 @@ function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, pa
         categoryName,
         payrollCode,
     };
-    
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_PAYROLL_CODE, parameters, onyxData);
 }
@@ -875,7 +874,6 @@ function setWorkspaceRequiresCategory(
     policyTagLists: PolicyTagLists = {},
     allTransactionViolations: OnyxCollection<TransactionViolations> = {},
 ) {
-
     const policyUpdate = {
         requiresCategory,
         errors: {
@@ -885,7 +883,7 @@ function setWorkspaceRequiresCategory(
             requiresCategory: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         },
     };
-    
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -924,12 +922,12 @@ function setWorkspaceRequiresCategory(
     };
 
     pushTransactionViolationsOnyxData(
-        onyxData, 
-        policyID, 
+        onyxData,
+        policyID,
         allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {},
         policyTagLists,
-        allTransactionViolations, 
-        policyUpdate as Partial<Policy>
+        allTransactionViolations,
+        policyUpdate as Partial<Policy>,
     );
     const parameters = {
         policyID,
@@ -1105,7 +1103,7 @@ function enablePolicyCategories(
         Object.entries(policyCategories).map(([categoryName]) => [categoryName, {name: categoryName, enabled}]),
     );
 
-    pushTransactionViolationsOnyxData(onyxData, policyID, policyCategories, policyTagLists,  allTransactionViolations, policyUpdate, policyCategoriesUpdate);
+    pushTransactionViolationsOnyxData(onyxData, policyID, policyCategories, policyTagLists, allTransactionViolations, policyUpdate, policyCategoriesUpdate);
 
     if (onyxUpdatesToDisableCategories.length > 0) {
         onyxData.optimisticData?.push(...onyxUpdatesToDisableCategories);

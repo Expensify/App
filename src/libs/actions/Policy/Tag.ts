@@ -31,17 +31,7 @@ import type {PolicyTagList} from '@pages/workspace/tags/types';
 import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    ImportedSpreadsheet,
-    Policy,
-    PolicyCategories,
-    PolicyTag,
-    PolicyTagLists,
-    PolicyTags,
-    RecentlyUsedTags,
-    Report,
-    TransactionViolations,
-} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy, PolicyCategories, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report, TransactionViolations} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -976,7 +966,7 @@ function renamePolicyTagList(
     const policyTagLists = policyTags
         ? Object.keys(policyTags ?? {}).reduce<PolicyTagLists>((acc, tagName) => {
               if (tagName === oldName) {
-                return acc;
+                  return acc;
               }
               acc[tagName] = {...policyTags?.[tagName]};
               return acc;
