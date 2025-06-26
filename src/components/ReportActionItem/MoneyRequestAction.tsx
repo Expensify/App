@@ -34,9 +34,13 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {OnyxCollection} from 'react-native-onyx';
 import TransactionPreview from './TransactionPreview';
 
 type MoneyRequestActionProps = {
+    /** All the data of the report collection */
+    allReports: OnyxCollection<OnyxTypes.Report>;
+
     /** All the data of the action */
     action: OnyxTypes.ReportAction;
 
@@ -72,6 +76,7 @@ type MoneyRequestActionProps = {
 };
 
 function MoneyRequestAction({
+    allReports,
     action,
     chatReportID,
     requestReportID,
@@ -84,8 +89,8 @@ function MoneyRequestAction({
     isWhisper = false,
     shouldDisplayContextMenu = true,
 }: MoneyRequestActionProps) {
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`, {canBeMissing: true});
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`];
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false, canBeMissing: true});
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
