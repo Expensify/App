@@ -38,7 +38,8 @@ import type {TransactionViolation} from '@src/types/onyx';
 import type {SearchPersonalDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
-import MerchantOrDescriptionCell from './DataCells/MerchantCell';
+import MerchantOrDescriptionCell from './DataCells/MerchantOrDescriptionCell';
+import DescriptionCell from './DataCells/DescriptionCell';
 import ReceiptCell from './DataCells/ReceiptCell';
 import TagCell from './DataCells/TagCell';
 import TaxCell from './DataCells/TaxCell';
@@ -361,6 +362,14 @@ function TransactionItemRow({
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
                     />
+                </View>
+            ),
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: (
+                <View
+                    key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}
+                >
+                    <DescriptionCell description={getDescription(transactionItem)} shouldUseNarrowLayout={shouldUseNarrowLayout} shouldShowTooltip={shouldShowTooltip} />
                 </View>
             ),
         }),
