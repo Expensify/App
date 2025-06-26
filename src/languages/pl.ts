@@ -1018,6 +1018,7 @@ const translations = {
         share: 'Udostępnij',
         participants: 'Uczestnicy',
         createExpense: 'Utwórz wydatek',
+        trackDistance: 'Śledź odległość',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Utwórz ${expensesNumber} wydatki`,
         addExpense: 'Dodaj wydatek',
         chooseRecipient: 'Wybierz odbiorcę',
