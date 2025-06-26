@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
 import {isMobileSafari as isMobileSafariBrowser} from '@libs/Browser';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -38,7 +39,6 @@ import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNo
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import { setTransactionReport } from '@libs/actions/Transaction';
 
 type IOURequestStepParticipantsProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
@@ -219,7 +219,7 @@ function IOURequestStepParticipants({
             setMoneyRequestTag(transaction.transactionID, '');
             setMoneyRequestCategory(transaction.transactionID, '');
             if (participants?.at(0)?.reportID !== newReportID) {
-                setTransactionReport(transaction.transactionID, newReportID, true);   
+                setTransactionReport(transaction.transactionID, newReportID, true);
             }
         });
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
