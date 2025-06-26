@@ -6147,6 +6147,10 @@ const CONST = {
             TRIP: 'trip',
             CHAT: 'chat',
         },
+        ACTION_FILTERS: {
+            PAY: 'pay',
+            EXPORT: 'export',
+        },
         ACTION_TYPES: {
             VIEW: 'view',
             REVIEW: 'review',
@@ -6154,6 +6158,7 @@ const CONST = {
             APPROVE: 'approve',
             PAY: 'pay',
             DONE: 'done',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
         },
         BULK_ACTION_TYPES: {
@@ -6179,6 +6184,9 @@ const CONST = {
             REPORTS: 'reports',
             MEMBERS: 'members',
             CARDS: 'cards',
+        },
+        EXPORT_STATUS: {
+            PENDING: 'pending',
         },
         BOOLEAN: {
             YES: 'yes',
@@ -6287,6 +6295,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
+            ACTION: 'action',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6329,6 +6338,7 @@ const CONST = {
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            ACTION: 'action',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',
@@ -6348,6 +6358,18 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
+        SUGGESTED_SEARCH_KEYS: {
+            EXPENSES: 'expenses',
+            REPORTS: 'reports',
+            CHATS: 'chats',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT: 'export',
+            UNAPPROVED: 'unapproved',
+            UNAPPROVED_CASH: 'unapprovedCash',
+            UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
+        },
     },
 
     /**

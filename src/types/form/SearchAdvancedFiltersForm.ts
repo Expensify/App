@@ -58,6 +58,7 @@ const FILTER_KEYS = {
     ASSIGNEE: 'assignee',
     REIMBURSABLE: 'reimbursable',
     BILLABLE: 'billable',
+    ACTION: 'action',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -100,6 +101,8 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_AFTER,
         FILTER_KEYS.EXPORTED_BEFORE,
         FILTER_KEYS.EXPORTED_ON,
+        FILTER_KEYS.EXPORTER,
+        FILTER_KEYS.ACTION,
     ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
         FILTER_KEYS.TYPE,
@@ -137,6 +140,8 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_AFTER,
         FILTER_KEYS.EXPORTED_BEFORE,
         FILTER_KEYS.EXPORTED_ON,
+        FILTER_KEYS.EXPORTER,
+        FILTER_KEYS.ACTION,
     ],
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
         FILTER_KEYS.TYPE,
@@ -174,6 +179,8 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.EXPORTED_AFTER,
         FILTER_KEYS.EXPORTED_BEFORE,
         FILTER_KEYS.EXPORTED_ON,
+        FILTER_KEYS.EXPORTER,
+        FILTER_KEYS.ACTION,
     ],
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
         FILTER_KEYS.TYPE,
@@ -250,6 +257,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ASSIGNEE]: string[];
         [FILTER_KEYS.REIMBURSABLE]: string;
         [FILTER_KEYS.BILLABLE]: string;
+        [FILTER_KEYS.ACTION]: string;
     }
 >;
 
