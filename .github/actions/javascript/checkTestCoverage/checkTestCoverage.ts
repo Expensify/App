@@ -8,8 +8,10 @@ async function run(): Promise<void> {
         // Get the GitHub URL input
         const githubUrl = core.getInput('GITHUB_URL');
         core.info(`GitHub URL: ${githubUrl}`);
+        const issue = context.issue.number;
+        core.info(`Issue from context: ${issue}`);
 
-        await GithubUtils.createComment(CONST.APP_REPO, context.issue.number, 'NOT ENOUGH TESTS');
+        await GithubUtils.createComment(CONST.APP_REPO, 65042, 'NOT ENOUGH TESTS');
         
     } catch (error) {
         core.setFailed(error instanceof Error ? error.message : String(error));

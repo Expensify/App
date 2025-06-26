@@ -11524,7 +11524,9 @@ async function run() {
         // Get the GitHub URL input
         const githubUrl = core.getInput('GITHUB_URL');
         core.info(`GitHub URL: ${githubUrl}`);
-        await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, github_1.context.issue.number, 'NOT ENOUGH TESTS');
+        const issue = github_1.context.issue.number;
+        core.info(`Issue from context: ${issue}`);
+        await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, 65042, 'NOT ENOUGH TESTS');
     }
     catch (error) {
         core.setFailed(error instanceof Error ? error.message : String(error));
