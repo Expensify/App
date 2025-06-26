@@ -1,0 +1,17 @@
+name: Update Test Coverage Section
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  update-coverage-section:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update Test Coverage Section
+        uses: ./.github/actions/javascript/updateCoverageSection
+        with:
+          GITHUB_TOKEN: ${{ github.token }}

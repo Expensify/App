@@ -1,0 +1,9 @@
+name: 'Update PR with Test Coverage Section'
+description: 'Appends a Test Coverage section to the PR description with summary and artifact link.'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+inputs:
+  GITHUB_TOKEN:
+    description: 'GitHub token for authentication'
+    required: true 

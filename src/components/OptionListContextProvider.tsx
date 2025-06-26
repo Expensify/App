@@ -263,15 +263,14 @@ const useOptionsListContext = () => useContext(OptionsListContext);
 const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
     const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
 
     useEffect(() => {
-        if (!shouldInitialize || areOptionsInitialized || isLoadingApp) {
+        if (!shouldInitialize || areOptionsInitialized) {
             return;
         }
 
         initializeOptions();
-    }, [shouldInitialize, initializeOptions, areOptionsInitialized, isLoadingApp]);
+    }, [shouldInitialize, initializeOptions, areOptionsInitialized]);
 
     return {
         initializeOptions,
