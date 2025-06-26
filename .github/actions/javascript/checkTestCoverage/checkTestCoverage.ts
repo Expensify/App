@@ -4,6 +4,7 @@ import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import OpenAIUtils from '../../../../scripts/utils/OpenAIUtils';
 import sanitizeJSONStringValues from '@github/libs/sanitizeJSONStringValues';
+import OpenAI from 'openai';
 
 // Duplicated from proposalPoliceComment.ts for now!
 type AssistantResponse = {
@@ -55,4 +56,35 @@ async function commentOnGithubPR(issueNumber: number, comment: string): Promise<
     await GithubUtils.createComment(CONST.APP_REPO, issueNumber, comment);
 }
 
-run();
+async function runSomething(): Promise<void> {
+    const client = new OpenAI({apiKey: getInput('TESTRAIL_TRYHARD_OPENAI_API_KEY', {required: true})});
+    const thread = await client.beta.threads.create();
+    
+    // 2. Add user message
+  await client.beta.threads.messages.create(thread.id, {
+        role: "user",
+        content: "Can you help me find the right QA test cases for this PR?",
+    });
+
+    // 3. Start a run with your Assistant
+    const run = await client.beta.threads.runs.create(thread.id, {
+        assistant_id: "asst_7ZKVOjvodqEzb1wkzWlLYpVf",
+    });
+
+    // 4. Poll until the run completes
+    let runStatus;
+    while (true) {
+        runStatus = await client.beta.threads.runs.retrieve(thread.id, run.id);
+        if (runStatus.status === "completed") break;
+        await new Promise((res) => setTimeout(res, 1000));
+    }
+
+    // 5. Read assistant's reply
+    const messages = await client.beta.threads.messages.list(thread.id);
+    const lastMessage = messages.data[0];
+
+    console.log(`Assistant: ${lastMessage.content[0].text.value}`);
+}
+
+// run();
+runSomething();

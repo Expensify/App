@@ -11477,6 +11477,7 @@ const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const OpenAIUtils_1 = __importDefault(__nccwpck_require__(3956));
 const sanitizeJSONStringValues_1 = __importDefault(__nccwpck_require__(136));
+const openai_1 = __importDefault(__nccwpck_require__(47));
 async function run() {
     try {
         // Get the GitHub URL input
@@ -11512,7 +11513,33 @@ async function promptAssistant(issueNumber) {
 async function commentOnGithubPR(issueNumber, comment) {
     await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, issueNumber, comment);
 }
-run();
+async function runSomething() {
+    const client = new openai_1.default({ apiKey: (0, core_1.getInput)('TESTRAIL_TRYHARD_OPENAI_API_KEY', { required: true }) });
+    const thread = await client.beta.threads.create();
+    // 2. Add user message
+    await client.beta.threads.messages.create(thread.id, {
+        role: "user",
+        content: "Can you help me find the right QA test cases for this PR?",
+    });
+    // 3. Start a run with your Assistant
+    const run = await client.beta.threads.runs.create(thread.id, {
+        assistant_id: "asst_7ZKVOjvodqEzb1wkzWlLYpVf",
+    });
+    // 4. Poll until the run completes
+    let runStatus;
+    while (true) {
+        runStatus = await client.beta.threads.runs.retrieve(thread.id, run.id);
+        if (runStatus.status === "completed")
+            break;
+        await new Promise((res) => setTimeout(res, 1000));
+    }
+    // 5. Read assistant's reply
+    const messages = await client.beta.threads.messages.list(thread.id);
+    const lastMessage = messages.data[0];
+    console.log(`Assistant: ${lastMessage.content[0].text.value}`);
+}
+// run();
+runSomething();
 
 
 /***/ }),
