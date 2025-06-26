@@ -30,9 +30,6 @@ async function run(): Promise<void> {
         // Make chatGPT request
         promptAssistant(issueNumber);
 
-        // Then comment on the PR
-        await commentOnGithubPR(issueNumber);
-
     } catch (error) {
         core.setFailed(error instanceof Error ? error.message : String(error));
     }
@@ -49,10 +46,13 @@ async function promptAssistant(issueNumber: number): Promise<void> {
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
     const parsedAssistantResponse = JSON.parse(sanitizeJSONStringValues(assistantResponse)) as AssistantResponse;
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
+
+    // TODO: Later on we will comment response on the PR
+    await commentOnGithubPR(issueNumber, 'NOT ENOUGH TESTS');
 }
 
-async function commentOnGithubPR(issueNumber: number): Promise<void> {
-    await GithubUtils.createComment(CONST.APP_REPO, issueNumber, 'NOT ENOUGH TESTS');
+async function commentOnGithubPR(issueNumber: number, comment: string): Promise<void> {
+    await GithubUtils.createComment(CONST.APP_REPO, issueNumber, comment);
 }
 
 run();
