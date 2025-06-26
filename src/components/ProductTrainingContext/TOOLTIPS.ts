@@ -27,6 +27,7 @@ type ShouldShowConditionProps = {
     isUserPolicyEmployee: boolean;
     isUserPolicyAdmin: boolean;
     hasBeenAddedToNudgeMigration: boolean;
+    isUserInPaidPolicy: boolean;
 };
 
 type TooltipData = {
@@ -138,7 +139,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(SCAN_TEST_TOOLTIP),
         name: SCAN_TEST_TOOLTIP,
         priority: 900,
-        shouldShow: ({hasBeenAddedToNudgeMigration}) => !hasBeenAddedToNudgeMigration,
+        shouldShow: ({isUserInPaidPolicy, hasBeenAddedToNudgeMigration}) => !isUserInPaidPolicy && !hasBeenAddedToNudgeMigration,
         shouldRenderActionButtons: true,
     },
     [SCAN_TEST_TOOLTIP_MANAGER]: {

@@ -9,7 +9,7 @@ import {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type {Video} from '@userActions/Report';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -142,7 +142,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
 }
 
 const getOnboardingMessages = (locale?: Locale) => {
-    const resolvedLocale = locale ?? TranslationStore.getCurrentLocale();
+    const resolvedLocale = locale ?? IntlStore.getCurrentLocale();
     const testDrive = {
         ONBOARDING_TASK_NAME: translate(resolvedLocale, 'onboarding.testDrive.name', {}),
         EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
@@ -299,6 +299,14 @@ const getOnboardingMessages = (locale?: Locale) => {
         description: ({workspaceSettingsLink}) => translate(resolvedLocale, 'onboarding.tasks.reviewWorkspaceSettingsTask.description', {workspaceSettingsLink}),
     };
 
+    const inviteAccountantTask: OnboardingTask = {
+        type: 'inviteAccountant',
+        autoCompleted: false,
+        mediaAttributes: {},
+        title: ({workspaceMembersLink}) => translate(resolvedLocale, 'onboarding.tasks.inviteAccountantTask.title', {workspaceMembersLink}),
+        description: ({workspaceMembersLink}) => translate(resolvedLocale, 'onboarding.tasks.inviteAccountantTask.description', {workspaceMembersLink}),
+    };
+
     const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
         message: translate(resolvedLocale, 'onboarding.messages.onboardingEmployerOrSubmitMessage'),
         tasks: [testDriveEmployeeTask, adminSubmitExpenseTask],
@@ -332,7 +340,7 @@ const getOnboardingMessages = (locale?: Locale) => {
             width: 1280,
             height: 960,
         },
-        tasks: [createWorkspaceTask, testDriveAdminTask, createReportTask],
+        tasks: [createWorkspaceTask, testDriveAdminTask, createReportTask, setupCategoriesTask, inviteAccountantTask, reviewWorkspaceSettingsTask],
     };
 
     const onboardingChatSplitMessage: OnboardingMessage = {

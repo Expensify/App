@@ -74,7 +74,7 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
     sap: 'SAP',
     oracle: 'Oracle',
     microsoftDynamics: 'Microsoft Dynamics',
-    other: 'Other',
+    other: 'accounting software',
 };
 
 const connectionsVideoPaths = {
@@ -1039,10 +1039,7 @@ const CONST = {
             APPROVE: 'approve',
             UNAPPROVE: 'unapprove',
             CANCEL_PAYMENT: 'cancelPayment',
-            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
-            MARK_AS_EXPORTED: 'markAsExported',
             HOLD: 'hold',
-            DOWNLOAD_CSV: 'downloadCSV',
             DOWNLOAD_PDF: 'downloadPDF',
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
@@ -1051,6 +1048,7 @@ const CONST = {
             ADD_EXPENSE: 'addExpense',
             SPLIT: 'split',
             REOPEN: 'reopen',
+            EXPORT: 'export',
             PAY: 'pay',
         },
         PRIMARY_ACTIONS: {
@@ -1096,6 +1094,7 @@ const CONST = {
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
                 ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
+                POLICY_EXPENSE_CHAT_WELCOME_WHISPER: 'POLICYEXPENSECHATWELCOMEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
                 APPROVED: 'APPROVED',
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
@@ -1393,6 +1392,7 @@ const CONST = {
         EXPORT_OPTIONS: {
             EXPORT_TO_INTEGRATION: 'exportToIntegration',
             MARK_AS_EXPORTED: 'markAsExported',
+            DOWNLOAD_CSV: 'downloadCSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -2877,6 +2877,13 @@ const CONST = {
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
             MAX_EXPENSE_AGE: 'maxExpenseAge',
+        },
+        PROHIBITED_EXPENSES: {
+            ALCOHOL: 'alcohol',
+            HOTEL_INCIDENTALS: 'hotelIncidentals',
+            GAMBLING: 'gambling',
+            TOBACCO: 'tobacco',
+            ADULT_ENTERTAINMENT: 'adultEntertainment',
         },
         CONNECTIONS: {
             NAME: {
@@ -6131,7 +6138,6 @@ const CONST = {
     },
 
     SEARCH: {
-        NEVER: 'never',
         RESULTS_PAGE_SIZE: 50,
         DATA_TYPES: {
             EXPENSE: 'expense',
@@ -6170,6 +6176,8 @@ const CONST = {
         },
         GROUP_BY: {
             REPORTS: 'reports',
+            MEMBERS: 'members',
+            CARDS: 'cards',
         },
         BOOLEAN: {
             YES: 'yes',
@@ -6326,6 +6334,10 @@ const CONST = {
             AFTER: 'After',
             ON: 'On',
         },
+        DATE_PRESETS: {
+            NEVER: 'never',
+            LAST_MONTH: 'last-month',
+        },
         SNAPSHOT_ONYX_KEYS: [
             ONYXKEYS.COLLECTION.REPORT,
             ONYXKEYS.COLLECTION.POLICY,
@@ -6335,6 +6347,131 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
+    },
+
+    /**
+     * SEARCH_TYPE_FILTERS_KEYS is an object keyed by the different search types.
+     * Each value is then an array of arrays where each inner array is a separate section in the UI.
+     */
+    get SEARCH_TYPE_FILTERS_KEYS() {
+        return {
+            [this.SEARCH.DATA_TYPES.EXPENSE]: [
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                    this.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+                ],
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
+                ],
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.PAID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
+                ],
+            ],
+            [this.SEARCH.DATA_TYPES.INVOICE]: [
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                ],
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+                ],
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.PAID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
+                ],
+            ],
+            [this.SEARCH.DATA_TYPES.TRIP]: [
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                    this.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+                ],
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+                ],
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.PAID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
+                ],
+            ],
+            [this.SEARCH.DATA_TYPES.CHAT]: [
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.IN,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                ],
+            ],
+            [this.SEARCH.DATA_TYPES.TASK]: [
+                [
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.IN,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                ],
+            ],
+        } as const;
     },
 
     EXPENSE: {
@@ -6775,9 +6912,9 @@ const CONST = {
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
-        IOU: 'Iou',
-        EXPENSE: 'Expense',
-        INVOICE: 'Invoice',
+        IOU: 'iou',
+        EXPENSE: 'expense',
+        INVOICE: 'invoice',
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',

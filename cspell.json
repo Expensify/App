@@ -174,6 +174,7 @@
         "ERECEIPTS",
         "Español",
         "ethnicities",
+        "EUVAT",
         "evenodd",
         "eventmachine",
         "evictable",
@@ -681,8 +682,7 @@
         "zoneinfo",
         "zxcv",
         "zxldvw",
-        "مثال",
-        "pnrs"
+        "مثال"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
@@ -711,6 +711,7 @@
         "assets/emojis/es.ts",
         "patches/**",
         "docs/assets/Files/**",
+        "docs/sitemap.xml",
         "ios/NewExpensify.xcodeproj/**",
         "ios/GoogleService-Info.plist",
         "ios/GoogleService-Info-DEV.plist",
