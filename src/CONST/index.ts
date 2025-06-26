@@ -6791,6 +6791,9 @@ const CONST = {
             APPROVE: 'approve',
             PAY: 'pay',
             EXPORT: 'export',
+            UNAPPROVED: 'unapproved',
+            UNAPPROVED_CASH: 'unapprovedCash',
+            UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
         },
     },
 
