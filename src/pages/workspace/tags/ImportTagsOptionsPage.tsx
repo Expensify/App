@@ -1,4 +1,5 @@
-import React, {useMemo, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -52,6 +53,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const [isSwitchSingleToMultipleLevelTagWarningModalVisible, setIsSwitchSingleToMultipleLevelTagWarningModalVisible] = useState(false);
 
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
+    const [shouldRunPostUpgradeFlow, setShouldRunPostUpgradeFlow] = useState(false);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
@@ -70,6 +72,27 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     if (hasAccountingConnections) {
         return <NotFoundPage />;
     }
+    const startMultiLevelTagImportFlow = () => {
+        setImportedSpreadsheetIsImportingMultiLevelTags(true);
+        if (hasVisibleTags) {
+            setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
+        } else {
+            cleanPolicyTags(policyID);
+            Navigation.navigate(
+                isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+            );
+        }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!shouldRunPostUpgradeFlow || !isControlPolicy(policy)) {
+                return;
+            }
+            startMultiLevelTagImportFlow();
+            setShouldRunPostUpgradeFlow(false);
+        }, [shouldRunPostUpgradeFlow, policy, hasVisibleTags, policyID, isQuickSettingsFlow, backTo]),
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -115,20 +138,11 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                         shouldShowRightIcon
                         onPress={() => {
                             if (!isControlPolicy(policy)) {
+                                setShouldRunPostUpgradeFlow(true);
                                 Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiLevelTags.alias, Navigation.getActiveRoute()));
                                 return;
                             }
-                            setImportedSpreadsheetIsImportingMultiLevelTags(true);
-                            if (hasVisibleTags) {
-                                setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
-                            } else {
-                                cleanPolicyTags(policyID);
-                                Navigation.navigate(
-                                    isQuickSettingsFlow
-                                        ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                                        : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-                                );
-                            }
+                            startMultiLevelTagImportFlow();
                         }}
                     />
                 </FullPageOfflineBlockingView>
