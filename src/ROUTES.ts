@@ -150,7 +150,7 @@ const ROUTES = {
     },
     PROFILE_AVATAR: {
         route: 'a/:accountID/avatar',
-        getRoute: (accountID: number) => `a/${accountID}/avatar` as const,
+        getRoute: (accountID: number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}/avatar`, backTo),
     },
 
     DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
@@ -347,7 +347,6 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
-    SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
     SETTINGS_CONSOLE: {
         route: 'settings/troubleshoot/console',

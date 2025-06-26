@@ -168,7 +168,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
-    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.ADDRESS]: {
         policyID: string;
@@ -2007,6 +2006,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE_AVATAR]: {
         policyID: string;

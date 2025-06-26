@@ -6,6 +6,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {putOnHold} from '@libs/actions/IOU';
+import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -22,6 +23,7 @@ import {
     canDeleteReportAction,
     canDeleteTransaction,
     canEditReportDescription,
+    canEditRoomVisibility,
     canEditWriteCapability,
     canHoldUnholdReportAction,
     findLastAccessedReport,
@@ -61,7 +63,6 @@ import {
 import type {OptionData} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
-import type {OnboardingTaskLinks} from '@src/CONST';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -2564,6 +2565,20 @@ describe('ReportUtils', () => {
             const invoiceRoom = {...createRandomReport(13), chatType: CONST.REPORT.CHAT_TYPE.INVOICE};
 
             expect(canEditWriteCapability(invoiceRoom, adminPolicy, false)).toBe(false);
+        });
+    });
+
+    describe('canEditRoomVisibility', () => {
+        it('should return true for policy rooms that are not archived and the user is an admin', () => {
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.ADMIN}, false)).toBeTruthy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.AUDITOR}, false)).toBeFalsy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.USER}, false)).toBeFalsy();
+        });
+
+        it('should return false for policy rooms that are archived regardless of the policy role', () => {
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.ADMIN}, true)).toBeFalsy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.AUDITOR}, true)).toBeFalsy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.USER}, true)).toBeFalsy();
         });
     });
 
