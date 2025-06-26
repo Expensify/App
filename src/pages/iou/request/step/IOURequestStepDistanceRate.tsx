@@ -65,7 +65,7 @@ function IOURequestStepDistanceRate({
         .sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0))
         .map((rate) => {
             const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
-            const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE;
+            const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
             const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
             return {
                 text: rate.name ?? rateForDisplay,

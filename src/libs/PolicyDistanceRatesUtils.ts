@@ -61,8 +61,11 @@ function validateTaxClaimableValue(values: FormOnyxValues<TaxReclaimableForm>, r
  * @param rates
  */
 function getOptimisticRateName(rates: Record<string, Rate>): string {
-    const existingRatesWithSameName = Object.values(rates ?? {}).filter((rate) => (rate.name ?? '').startsWith(CONST.CUSTOM_UNITS.DEFAULT_RATE));
-    return existingRatesWithSameName.length ? `${CONST.CUSTOM_UNITS.DEFAULT_RATE} ${existingRatesWithSameName.length}` : CONST.CUSTOM_UNITS.DEFAULT_RATE;
+    if (Object.keys(rates).length === 0) {
+        return CONST.CUSTOM_UNITS.DEFAULT_RATE;
+    }
+    const newRateCount = Object.values(rates).filter((rate) => rate.name?.startsWith(CONST.CUSTOM_UNITS.NEW_RATE)).length;
+    return newRateCount === 0 ? CONST.CUSTOM_UNITS.NEW_RATE : `${CONST.CUSTOM_UNITS.NEW_RATE} ${newRateCount}`;
 }
 
 export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue};
