@@ -67,6 +67,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodParams,
     ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
@@ -549,6 +550,7 @@ const translations = {
         userID: 'Gebruikers-ID',
         disable: 'Uitschakelen',
         export: 'Exporteren',
+        basicExport: 'Basis export',
         initialValue: 'Initiële waarde',
         currentDate: "I'm unable to provide real-time information, including the current date. Please check your device or calendar for the current date.",
         value: 'Waarde',
@@ -1018,6 +1020,7 @@ const translations = {
         share: 'Delen',
         participants: 'Deelnemers',
         createExpense: 'Uitgave aanmaken',
+        trackDistance: 'Afstand bijhouden',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Maak ${expensesNumber} uitgaven aan`,
         addExpense: 'Uitgave toevoegen',
         chooseRecipient: 'Kies ontvanger',
@@ -1123,7 +1126,6 @@ const translations = {
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Zakelijke rekening • ${lastFour}`,
         nextStep: 'Volgende stappen',
         finished: 'Voltooid',
-        flip: 'Omdraaien',
         sendInvoice: ({amount}: RequestAmountParams) => `Verstuur ${amount} factuur`,
         submitAmount: ({amount}: RequestAmountParams) => `Verstuur ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `voor ${comment}` : ''}`,
@@ -1493,6 +1495,7 @@ const translations = {
             noLogsToShare: 'Geen logs om te delen',
             useProfiling: 'Gebruik profilering',
             profileTrace: 'Profieltracering',
+            results: 'Resultaten',
             releaseOptions: 'Release-opties',
             testingPreferences: 'Voorkeuren testen',
             useStagingServer: 'Gebruik Staging Server',
@@ -1513,6 +1516,7 @@ const translations = {
             invalidFile: 'Ongeldig bestand',
             invalidFileDescription: 'Het bestand dat je probeert te importeren is niet geldig. Probeer het opnieuw.',
             invalidateWithDelay: 'Ongeldig maken met vertraging',
+            recordTroubleshootData: 'Probleemoplossingsgegevens opnemen',
         },
         debugConsole: {
             saveLog: 'Log opslaan',
@@ -2419,11 +2423,8 @@ const translations = {
             'Voeg een bankrekening toe om onkosten terug te betalen, Expensify-kaarten uit te geven, factuurbetalingen te innen en rekeningen te betalen, allemaal vanuit één plek.',
         plaidBodyCopy: 'Geef uw medewerkers een eenvoudigere manier om te betalen - en terugbetaald te worden - voor bedrijfskosten.',
         checkHelpLine: 'Uw routingnummer en rekeningnummer kunt u vinden op een cheque voor de rekening.',
-        hasPhoneLoginError: {
-            phrase1: 'Om een bankrekening te koppelen, graag',
-            link: 'voeg een e-mail toe als je primaire login',
-            phrase2: 'en probeer het opnieuw. U kunt uw telefoonnummer toevoegen als secundaire login.',
-        },
+        hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
+            `Om een bankrekening te koppelen, graag <a href="${contactMethodRoute}">voeg een e-mail toe als je primaire login</a> en probeer het opnieuw. U kunt uw telefoonnummer toevoegen als secundaire login.`,
         hasBeenThrottledError: 'Er is een fout opgetreden bij het toevoegen van uw bankrekening. Wacht een paar minuten en probeer het opnieuw.',
         hasCurrencyError: {
             phrase1: 'Oeps! Het lijkt erop dat de valuta van uw werkruimte is ingesteld op een andere valuta dan USD. Om verder te gaan, ga naar',
@@ -3204,7 +3205,7 @@ const translations = {
             welcomeNote: 'Gebruik alstublieft Expensify om uw bonnetjes in te dienen voor terugbetaling, bedankt!',
             subscription: 'Abonnement',
             markAsEntered: 'Markeren als handmatig ingevoerd',
-            markAsExported: 'Markeren als handmatig geëxporteerd',
+            markAsExported: 'Markeren als geëxporteerd',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exporteer naar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Laten we dubbel controleren of alles er goed uitziet.',
             lineItemLevel: 'Regelniveau',
@@ -5743,6 +5744,7 @@ const translations = {
             groupBy: {
                 reports: 'Verslag',
                 members: 'Lid',
+                cards: 'Kaart',
             },
         },
         groupBy: 'Groep per',
@@ -6396,14 +6398,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'Aanbieding claimen',
                 noThanks: 'Nee, bedankt',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% korting op uw eerste jaar!`,
-                    phrase2: `Voeg gewoon een betaalkaart toe en start een jaarlijks abonnement.`,
-                },
-                onboardingChatTitle: {
-                    phrase1: 'Aanbieding voor beperkte tijd:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% korting op uw eerste jaar!`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>${discountType}% korting op uw eerste jaar!</strong> Voeg gewoon een betaalkaart toe en start een jaarlijks abonnement.`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Aanbieding voor beperkte tijd: ${discountType}% korting op uw eerste jaar!`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Claim binnen ${days > 0 ? `${days}d :` : ''}${hours}u : ${minutes}m : ${seconds}s`,
             },
         },
