@@ -449,6 +449,12 @@ function buildNextStep(
 
                 break;
             }
+
+            if ((report?.total ?? 0) > 0) {
+                optimisticNextStep = noActionRequired;
+                break;
+            }
+
             // Self review
             optimisticNextStep = {
                 type,
