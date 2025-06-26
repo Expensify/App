@@ -379,7 +379,7 @@ function SettlementButton({
         latestBankItem,
     ]);
 
-    const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, searchSnapshot?: SearchResults, transactionList?: Transaction[]) => {
+    const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => {
         if (policy && shouldRestrictUserBillableActions(policy.id)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return;
@@ -389,7 +389,7 @@ function SettlementButton({
             if (confirmApproval) {
                 confirmApproval();
             } else {
-                approveMoneyRequest(iouReport, false, transactionList, searchSnapshot);
+                approveMoneyRequest(iouReport, false, transactions, snapshot);
             }
             return;
         }
@@ -530,7 +530,7 @@ function SettlementButton({
             return;
         }
 
-        selectPaymentType(event, selectedOption as PaymentMethodType, snapshot, transactions);
+        selectPaymentType(event, selectedOption as PaymentMethodType);
     };
 
     const customText = getCustomText();
