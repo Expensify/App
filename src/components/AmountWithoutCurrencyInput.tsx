@@ -73,6 +73,6 @@ function AmountWithoutCurrencyInput(
     );
 }
 
-AmountWithoutCurrencyInput.displayName = 'AmountWithoutCurrencyForm';
+AmountWithoutCurrencyInput.displayName = 'AmountWithoutCurrencyInput';
 
 export default React.forwardRef(AmountWithoutCurrencyInput);
