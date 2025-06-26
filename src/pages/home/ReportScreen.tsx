@@ -32,7 +32,7 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {selectAllTransactionsForReport, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
@@ -303,10 +303,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back.
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
 
-    const [reportTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (allTransactions): OnyxTypes.Transaction[] => selectAllTransactionsForReport(allTransactions, reportIDFromRoute, reportActions),
+    const [transactionsAndViolationsByReport] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {
         canBeMissing: false,
     });
+    const {transactions} = transactionsAndViolationsByReport?.[reportID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
+    const reportTransactions = getAllNonDeletedTransactions(Object.values(transactions ?? {}) ?? [], reportActions);
     const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
@@ -840,6 +841,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         hasOlderActions={hasOlderActions}
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
+                                        transactionsAndViolationsByReport={transactionsAndViolationsByReport ?? {}}
                                     />
                                 ) : null}
                                 {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
@@ -847,7 +849,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         report={report}
                                         policy={policy}
                                         reportActions={reportActions}
-                                        transactions={reportTransactions}
+                                        transactionsAndViolationsByReport={transactionsAndViolationsByReport ?? {}}
                                         newTransactions={newTransactions}
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}
