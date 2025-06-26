@@ -37,7 +37,7 @@ async function run(): Promise<void> {
 
 async function promptAssistant(issueNumber: number): Promise<void> {
     const apiKey = getInput('PROPOSAL_POLICE_API_KEY', {required: true});
-    const assistantID = 'g-685db91277508191be5cc841ccf61832'; // TODO @BEN
+    const assistantID = 'asst_4YdgxpJNCqt9zYtpVvEaWg4a'; // TODO @BEN
     const openAI = new OpenAIUtils(apiKey);
 
     const prompt = `aslkdjfalksdjfalksdjfaldj`; // TODO @BEN
