@@ -156,7 +156,7 @@ import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
-import {addComment, expandURLPreview} from '@userActions/Report';
+import {expandURLPreview, resolveConciergeCategoryOptions} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
@@ -193,6 +193,9 @@ type PureReportActionItemProps = {
 
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
+
+    /** All transactions grouped by reportID */
+    transactionsAndViolationsByReport?: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
 
     /** Array of report actions for the report for this action */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -376,6 +379,7 @@ function PureReportActionItem({
     report,
     policy,
     transactionThreadReport,
+    transactionsAndViolationsByReport = {},
     linkedReportActionID,
     displayAsGroup,
     index,
@@ -710,11 +714,15 @@ function PureReportActionItem({
                 return [];
             }
 
+            if (!reportID) {
+                return [];
+            }
+
             return options.map((option, i) => ({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
-                    addComment(originalReportID, option);
+                    resolveConciergeCategoryOptions(reportID, originalReportID, action.reportActionID, option);
                 },
             }));
         }
@@ -903,6 +911,7 @@ function PureReportActionItem({
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
+                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
@@ -923,6 +932,7 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
                     shouldShowBorder={shouldShowBorder}
+                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                 />
             );
         } else if (isTaskAction(action)) {
@@ -1160,6 +1170,8 @@ function PureReportActionItem({
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
+            children = <ReportActionItemBasicMessage message={translate('receipt.scanFailed')} />;
         } else if (isRenamedAction(action)) {
             const message = getRenamedAction(action, isExpenseReport(report));
             children = <ReportActionItemBasicMessage message={message} />;
@@ -1355,7 +1367,12 @@ function PureReportActionItem({
     }
 
     if (isTripPreview(action) && isThreadReportParentAction) {
-        return <TripSummary reportID={getOriginalMessage(action)?.linkedReportID} />;
+        return (
+            <TripSummary
+                reportID={getOriginalMessage(action)?.linkedReportID}
+                transactionsAndViolationsByReport={transactionsAndViolationsByReport}
+            />
+        );
     }
 
     if (isChronosOOOListAction(action)) {

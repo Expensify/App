@@ -66,6 +66,7 @@ import {
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getReceiptScanFailedMessage,
     getReopenedMessage,
     getReportActionHtml,
     getReportActionMessageText,
@@ -829,6 +830,8 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
+        lastMessageTextFromReport = getReceiptScanFailedMessage();
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(lastReportAction, false);
     } else if (isActionableJoinRequest(lastReportAction)) {
@@ -1601,7 +1604,6 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
             chatReport,
             currentReportId: topmostReportId,
             betas,
-            policies,
             doesReportHaveViolations,
             isInFocusMode: false,
             excludeEmptyChats: false,

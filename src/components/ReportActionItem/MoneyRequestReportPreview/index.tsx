@@ -2,9 +2,8 @@ import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
-import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
+import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
-import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,6 +35,7 @@ function MoneyRequestReportPreview({
     shouldDisplayContextMenu = true,
     isInvoice = false,
     shouldShowBorder,
+    transactionsAndViolationsByReport,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -50,11 +50,14 @@ function MoneyRequestReportPreview({
             personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
         canBeMissing: true,
     });
-    const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
+    const {transactions: reportTransactions, violations} = transactionsAndViolationsByReport[iouReportID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
+    const {isOffline} = useNetwork();
+    const filteredTransactions = Object.values(reportTransactions ?? {}).filter((transaction) => isOffline || transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const policy = usePolicy(policyID);
+    const transactions = useMemo(() => Object.values(filteredTransactions ?? {}) ?? [], [filteredTransactions]);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
-    const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
     const [currentWidth, setCurrentWidth] = useState<number>(0);
@@ -125,7 +128,6 @@ function MoneyRequestReportPreview({
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             invoiceReceiverPolicy={invoiceReceiverPolicy}
             lastTransactionViolations={lastTransactionViolations}
-            isDelegateAccessRestricted={isDelegateAccessRestricted}
             renderTransactionItem={renderItem}
             onCarouselLayout={(e: LayoutChangeEvent) => {
                 setCurrentWidth(e.nativeEvent.layout.width);

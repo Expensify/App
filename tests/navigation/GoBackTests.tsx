@@ -26,7 +26,8 @@ jest.mock('@src/components/Navigation/TopLevelNavigationTabBar');
 
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
-
+const mockedPolicyID = 'test-policy';
+const mockedBackToRoute = '/test';
 describe('Go back on the narrow layout', () => {
     beforeEach(() => {
         mockedGetIsNarrowLayout.mockReturnValue(true);
@@ -451,6 +452,52 @@ describe('Go back on the narrow layout', () => {
             expect(reportsSplitAfterGoBack?.state?.index).toBe(3);
             expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.REPORT);
             expect(reportsSplitAfterGoBack?.state?.routes.at(-1)?.params).toMatchObject({reportID: '1'});
+        });
+    });
+});
+describe('Go back on the wide layout', () => {
+    beforeEach(() => {
+        mockedGetIsNarrowLayout.mockReturnValue(false);
+        mockedUseResponsiveLayout.mockReturnValue({
+            ...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE,
+            shouldUseNarrowLayout: false,
+            isSmallScreenWidth: false,
+            isLargeScreenWidth: true,
+        });
+    });
+
+    it('should preserved backTo params between central screen and side bar screen', () => {
+        // Given the initialized navigation with workspaces split navigator
+        render(
+            <TestNavigationContainer
+                initialState={{
+                    index: 0,
+                    routes: [
+                        {
+                            name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                            state: {
+                                index: 0,
+                                routes: [
+                                    {
+                                        name: SCREENS.WORKSPACE.PER_DIEM,
+                                        params: {policyID: mockedPolicyID, backTo: mockedBackToRoute},
+                                    },
+                                ],
+                            },
+                        },
+                    ],
+                }}
+            />,
+        );
+
+        // Then the backTo params should be preserved in the sidebar route
+        const initialRootState = navigationRef.current?.getRootState();
+        const initialWorkspaceNavigator = initialRootState?.routes.at(0);
+        const initialRoutes = initialWorkspaceNavigator?.state?.routes ?? [];
+        const initialSidebarRoute = initialRoutes.find((route) => route.name === SCREENS.WORKSPACE.INITIAL);
+        expect(initialSidebarRoute?.params).toMatchObject({
+            policyID: mockedPolicyID,
+            backTo: mockedBackToRoute,
         });
     });
 });

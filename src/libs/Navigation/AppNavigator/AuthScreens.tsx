@@ -4,6 +4,7 @@ import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
@@ -305,23 +306,26 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             init();
         }
 
-        // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
-        // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
-        if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
-            if (delegatorEmail) {
-                connect(delegatorEmail, true)
-                    ?.then((success) => {
-                        App.setAppLoading(!!success);
-                    })
-                    .finally(() => {
-                        setIsDelegatorFromOldDotIsReady(true);
-                    });
+        // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
+        if (!CONFIG.IS_HYBRID_APP) {
+            // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
+            // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp() and connect() for delegator from OldDot.
+            if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
+                if (delegatorEmail) {
+                    connect(delegatorEmail, true)
+                        ?.then((success) => {
+                            App.setAppLoading(!!success);
+                        })
+                        .finally(() => {
+                            setIsDelegatorFromOldDotIsReady(true);
+                        });
+                } else {
+                    App.openApp();
+                }
             } else {
-                App.openApp();
+                Log.info('[AuthScreens] Sending ReconnectApp');
+                App.reconnectApp(initialLastUpdateIDAppliedToClient);
             }
-        } else {
-            Log.info('[AuthScreens] Sending ReconnectApp');
-            App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
         App.setUpPoliciesAndNavigate(session);
@@ -536,7 +540,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }
 
     return (
-        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, LockedAccountModalProvider]}>
+        <ComposeProviders components={[OptionsListContextProvider, SidebarOrderedReportsContextProvider, SearchContextProvider, LockedAccountModalProvider, DelegateNoAccessModalProvider]}>
             <RootStack.Navigator persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen

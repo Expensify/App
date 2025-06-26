@@ -32,6 +32,7 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {generateReportID, getBankAccountRoute, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
@@ -483,6 +484,11 @@ function IOURequestStepConfirmation({
                 return;
             }
 
+            const optimisticChatReportID = generateReportID();
+            const optimisticCreatedReportActionID = rand64();
+            const optimisticIOUReportID = generateReportID();
+            const optimisticReportPreviewActionID = rand64();
+
             transactions.forEach((item, index) => {
                 const receipt = receiptFiles[item.transactionID];
                 const isTestReceipt = receipt?.isTestReceipt ?? false;
@@ -494,6 +500,10 @@ function IOURequestStepConfirmation({
 
                 requestMoneyIOUActions({
                     report,
+                    optimisticChatReportID,
+                    optimisticCreatedReportActionID,
+                    optimisticIOUReportID,
+                    optimisticReportPreviewActionID,
                     participantParams: {
                         payeeEmail: currentUserPersonalDetails.login,
                         payeeAccountID: currentUserPersonalDetails.accountID,
@@ -525,6 +535,8 @@ function IOURequestStepConfirmation({
                         waypoints: Object.keys(item.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
                         customUnitRateID,
                         isTestDrive: item.receipt?.isTestDriveReceipt,
+                        originalTransactionID: item.comment?.originalTransactionID,
+                        source: item.comment?.source,
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
                     backToReport,

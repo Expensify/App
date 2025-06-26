@@ -80,6 +80,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const backTo = route.params?.backTo;
     const policy = usePolicy(policyId);
     const {selectionMode} = useMobileSelectionMode();
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyId}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`, {canBeMissing: true});
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
@@ -115,9 +117,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
-            setWorkspaceCategoryEnabled(policyId, {[categoryName]: {name: categoryName, enabled: value}});
+            setWorkspaceCategoryEnabled(policyId, {[categoryName]: {name: categoryName, enabled: value}}, policyTagLists, allTransactionViolations);
         },
-        [policyId],
+        [policyId, policyTagLists, allTransactionViolations],
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {
@@ -225,7 +227,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const handleDeleteCategories = () => {
-        deleteWorkspaceCategories(policyId, selectedCategories);
+        deleteWorkspaceCategories(policyId, selectedCategories, policyTagLists, allTransactionViolations);
         setDeleteCategoriesConfirmModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
@@ -329,7 +331,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             return;
                         }
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(policyId, categoriesToDisable);
+                        setWorkspaceCategoryEnabled(policyId, categoriesToDisable, policyTagLists, allTransactionViolations);
                     },
                 });
             }
@@ -351,7 +353,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedCategories([]);
-                        setWorkspaceCategoryEnabled(policyId, categoriesToEnable);
+                        setWorkspaceCategoryEnabled(policyId, categoriesToEnable, policyTagLists, allTransactionViolations);
                     },
                 });
             }
