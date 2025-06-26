@@ -48,7 +48,6 @@ import {
     hasReceipt as hasReceiptTransactionUtils,
     isCardTransaction as isCardTransactionUtils,
     isDuplicate,
-    isExpensifyCardTransaction,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isReceiptBeingScanned,
@@ -120,7 +119,7 @@ function isSubmitAction(
         return false;
     }
 
-    const hasOnlyPendingTransactions = reportTransactions.length > 0 && reportTransactions.every((transaction) => isExpensifyCardTransaction(transaction) && isPending(transaction));
+    const hasOnlyPendingTransactions = reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction));
     if (hasOnlyPendingTransactions) {
         return false;
     }
