@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.1.70-5",
+  "version": "9.1.71-9",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -75,7 +75,8 @@
     "react-compiler-healthcheck-test": "react-compiler-healthcheck --verbose &> react-compiler-output.txt",
     "generate-search-parser": "peggy --format es -o src/libs/SearchParser/searchParser.js src/libs/SearchParser/searchParser.peggy src/libs/SearchParser/baseRules.peggy",
     "generate-autocomplete-parser": "peggy --format es -o src/libs/SearchParser/autocompleteParser.js src/libs/SearchParser/autocompleteParser.peggy src/libs/SearchParser/baseRules.peggy && ./scripts/parser-workletization.sh src/libs/SearchParser/autocompleteParser.js",
-    "web:prod": "http-server ./dist --cors"
+    "web:prod": "http-server ./dist --cors",
+    "octokit": "cd scripts && npx ts-node -i -e \"$(cat ./octokit.ts)\""
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -127,7 +128,7 @@
     "date-fns-tz": "^3.2.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
-    "expensify-common": "^2.0.141",
+    "expensify-common": "^2.0.142",
     "expo": "53.0.7",
     "expo-asset": "^11.1.2",
     "expo-av": "^15.1.5",
@@ -140,6 +141,7 @@
     "howler": "^2.2.4",
     "htmlparser2": "^7.2.0",
     "idb-keyval": "^6.2.1",
+    "jszip": "^3.10.1",
     "lodash-es": "4.17.21",
     "lottie-react-native": "6.5.1",
     "mapbox-gl": "^2.15.0",

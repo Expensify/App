@@ -91,6 +91,9 @@ function TransactionItemRowRBRWithOnyx({transaction, containerStyles, missingFie
         // and end with a single dot.
         ...transactionViolations.map((violation) => {
             const message = ViolationsUtils.getViolationTranslation(violation, translate);
+            if (!message.length) {
+                return [];
+            }
             return message.endsWith('.') ? message : `${message}.`;
         }),
     ].join(' ');
