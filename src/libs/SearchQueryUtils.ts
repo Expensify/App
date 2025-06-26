@@ -253,20 +253,17 @@ function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
     }
 
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID) {
-        if (typeof filterValue === 'string') {
-            return filterValue
+        const cleanReportIDs = (value: string) =>
+            value
                 .split(',')
                 .map((id) => id.trim())
                 .filter((id) => id.length > 0)
                 .join(',');
+
+        if (typeof filterValue === 'string') {
+            return cleanReportIDs(filterValue);
         }
-        return filterValue.map((reportID) =>
-            reportID
-                .split(',')
-                .map((id) => id.trim())
-                .filter((id) => id.length > 0)
-                .join(','),
-        );
+        return filterValue.map(cleanReportIDs);
     }
 
     return filterValue;
