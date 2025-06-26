@@ -47,7 +47,9 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [processedMenuItems, setProcessedMenuItems] = useState<PopoverMenuItem[]>([]);
 
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
+    const allCards = useMemo(() => {
+        return mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList);
+    }, [userCardList, workspaceCardFeeds]);
 
     const cardFeedNamesWithType = useMemo(() => getCardFeedNamesWithType({workspaceCardFeeds, translate}), [workspaceCardFeeds, translate]);
 

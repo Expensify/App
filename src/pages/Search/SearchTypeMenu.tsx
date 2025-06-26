@@ -67,7 +67,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
+    const [allCards, hasCardFeed] = useMemo(() => {
+        const mergedCards = mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList);
+        return [mergedCards, Object.keys(mergedCards).length > 0];
+    }, [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
     const {clearSelectedTransactions} = useSearchContext();
     const {typeMenuSections} = useSearchTypeMenuSections(hash);
@@ -250,7 +253,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                             const isInitialItem = initialSearchKeys.current.includes(item.key);
 
                             return (
-                                <Animated.View entering={!isInitialItem ? FadeIn : undefined}>
+                                <Animated.View
+                                    key={item.translationPath}
+                                    entering={!isInitialItem ? FadeIn : undefined}
+                                >
                                     <MenuItem
                                         key={item.key}
                                         disabled={false}
