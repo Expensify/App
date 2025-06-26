@@ -1021,6 +1021,7 @@ const translations = {
         share: 'Delen',
         participants: 'Deelnemers',
         createExpense: 'Uitgave aanmaken',
+        trackDistance: 'Afstand bijhouden',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Maak ${expensesNumber} uitgaven aan`,
         addExpense: 'Uitgave toevoegen',
         chooseRecipient: 'Kies ontvanger',
@@ -5741,6 +5742,7 @@ const translations = {
             groupBy: {
                 reports: 'Verslag',
                 members: 'Lid',
+                cards: 'Kaart',
             },
         },
         groupBy: 'Groep per',

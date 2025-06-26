@@ -1014,6 +1014,7 @@ const translations = {
         share: '分享',
         participants: '参与者',
         createExpense: '创建报销单',
+        trackDistance: '跟踪距离',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `创建${expensesNumber}笔费用`,
         addExpense: '添加费用',
         chooseRecipient: '选择收件人',
@@ -5636,6 +5637,7 @@ const translations = {
             groupBy: {
                 reports: '报告',
                 members: '成员',
+                cards: '卡片',
             },
         },
         groupBy: '组别',

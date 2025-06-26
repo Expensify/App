@@ -1024,6 +1024,7 @@ const translations = {
         share: 'Partager',
         participants: 'Participants',
         createExpense: 'Créer une dépense',
+        trackDistance: 'Suivre la distance',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Créer ${expensesNumber} dépenses`,
         addExpense: 'Ajouter une dépense',
         chooseRecipient: 'Choisir le destinataire',
@@ -5778,6 +5779,7 @@ const translations = {
             groupBy: {
                 reports: 'Rapport',
                 members: 'Membre',
+                cards: 'Carte',
             },
         },
         groupBy: 'Groupe par',
