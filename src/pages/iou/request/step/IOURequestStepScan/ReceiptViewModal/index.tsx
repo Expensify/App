@@ -86,41 +86,39 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
     }, [route.params.backTo]);
 
     return (
-        <>
-            <Modal
-                type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-                isVisible
-                onClose={handleGoBack}
-                onModalHide={clearAttachmentErrors}
+        <Modal
+            type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
+            isVisible
+            onClose={handleGoBack}
+            onModalHide={clearAttachmentErrors}
+        >
+            <HeaderWithBackButton
+                title={translate('common.receipt')}
+                shouldDisplayHelpButton={false}
+                onBackButtonPress={handleGoBack}
+                onCloseButtonPress={handleCloseConfirmModal}
             >
-                <HeaderWithBackButton
-                    title={translate('common.receipt')}
-                    shouldDisplayHelpButton={false}
-                    onBackButtonPress={handleGoBack}
-                    onCloseButtonPress={handleCloseConfirmModal}
-                >
-                    <Button
-                        shouldShowRightIcon
-                        iconRight={Expensicons.Trashcan}
-                        onPress={() => setIsDeleteReceiptConfirmModalVisible(true)}
-                        innerStyles={styles.bgTransparent}
-                        large
-                    />
-                </HeaderWithBackButton>
-                <AttachmentCarouselView
-                    attachments={receipts}
-                    source={currentReceipt?.source ?? ''}
-                    page={page}
-                    setPage={setPage}
-                    attachmentID={currentReceipt?.transactionID}
-                    onClose={handleGoBack}
-                    autoHideArrows={autoHideArrows}
-                    cancelAutoHideArrow={cancelAutoHideArrows}
-                    setShouldShowArrows={setShouldShowArrows}
-                    onAttachmentError={setAttachmentError}
-                    shouldShowArrows={shouldShowArrows}
+                <Button
+                    shouldShowRightIcon
+                    iconRight={Expensicons.Trashcan}
+                    onPress={() => setIsDeleteReceiptConfirmModalVisible(true)}
+                    innerStyles={styles.bgTransparent}
+                    large
                 />
-            </Modal>
+            </HeaderWithBackButton>
+            <AttachmentCarouselView
+                attachments={receipts}
+                source={currentReceipt?.source ?? ''}
+                page={page}
+                setPage={setPage}
+                attachmentID={currentReceipt?.transactionID}
+                onClose={handleGoBack}
+                autoHideArrows={autoHideArrows}
+                cancelAutoHideArrow={cancelAutoHideArrows}
+                setShouldShowArrows={setShouldShowArrows}
+                onAttachmentError={setAttachmentError}
+                shouldShowArrows={shouldShowArrows}
+            />
             <ConfirmModal
                 title={translate('receipt.deleteReceipt')}
                 isVisible={isDeleteReceiptConfirmModalVisible}
@@ -132,7 +130,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                 onBackdropPress={handleCloseConfirmModal}
                 danger
             />
-        </>
+        </Modal>
     );
 }
 
