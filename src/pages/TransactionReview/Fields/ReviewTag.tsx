@@ -4,14 +4,14 @@ import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
-import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
+import useTransactionFieldNavigation from '@hooks/useTransactionFieldNavigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import duplicateReviewConfig from '../Duplicates/duplicateReviewConfig';
+import mergeTransactionConfig from '../Merge/mergeTransactionConfig';
 import type {FieldItemType} from './ReviewFields';
 import ReviewFields from './ReviewFields';
 
@@ -20,13 +20,16 @@ function ReviewTag() {
     const {translate} = useLocalize();
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID ?? '');
 
-    const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
-    const compareResult = TransactionUtils.compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID ?? '-1');
-    const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
-    const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
+    const isMerge = route.path?.includes('merge');
+    const config = isMerge ? mergeTransactionConfig : duplicateReviewConfig;
+    const [reviewDuplicates] = useOnyx(config.onyxKey, {canBeMissing: true});
+    const compareResult = config.compareFields(transactionID, reviewDuplicates?.reportID ?? '-1');
+    const stepNames = Object.keys(compareResult.change ?? {}).map((_, index) => (index + 1).toString());
+    const {currentScreenIndex, goBack, navigateToNextScreen} = useTransactionFieldNavigation(
         Object.keys(compareResult.change ?? {}),
         'tag',
         route.params.threadReportID ?? '',
+        config.routes,
         route.params.backTo,
     );
     const options = useMemo(
@@ -43,7 +46,7 @@ function ReviewTag() {
     );
     const setTag = (data: FieldItemType<'tag'>) => {
         if (data.value !== undefined) {
-            setReviewDuplicatesKey({tag: data.value});
+            config.setFieldAction({tag: data.value});
         }
         navigateToNextScreen();
     };
