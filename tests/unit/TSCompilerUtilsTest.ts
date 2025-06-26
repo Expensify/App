@@ -199,6 +199,27 @@ describe('TSCompilerUtils', () => {
                 }),
             ).not.toThrow();
         });
+
+        it('handles nested objects', () => {
+            const ast1 = createSourceFile('const x = { a: 1, b: {c: 2}, d: 3};');
+            const ast2 = createSourceFile('const x = { a: 1, b: {c: 2}, d: 3};');
+
+            TSCompilerUtils.traverseASTsInParallel(
+                [
+                    {
+                        label: 'one',
+                        node: ast1,
+                    },
+                    {
+                        label: 'two',
+                        node: ast2,
+                    },
+                ],
+                (nodes) => {
+                    expect(nodes.one).toStrictEqual(nodes.two);
+                },
+            );
+        });
     });
 
     describe('findDefaultExport', () => {
