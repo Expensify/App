@@ -510,7 +510,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (requiredTagCount > 0 && !hasDependentTags && isMultiLevelTags) {
             options.push({
-                icon: Expensicons.Checkmark,
+                icon: Expensicons.Close,
                 text: translate('workspace.tags.notRequireTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.REQUIRE,
                 onSelected: () => {

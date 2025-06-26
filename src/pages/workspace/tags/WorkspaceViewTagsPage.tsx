@@ -411,7 +411,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 {tagList.length > 0 && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
+                        turnOnSelectionModeOnLongPress={!hasDependentTags}
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                         sections={[{data: filteredTagList, isDisabled: false}]}
                         selectedItems={selectedTags}
