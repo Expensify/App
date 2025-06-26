@@ -5,6 +5,10 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/settings/workspaces/')).toBe('/workspaces/');
     });
 
+    it('returns mapped base path when input matches the exact pattern', () => {
+        expect(getMatchingNewRoute('/settings/workspaces')).toBe('/workspaces');
+    });
+
     it('returns mapped path when input matches the pattern and have more content', () => {
         expect(getMatchingNewRoute('/settings/workspaces/anything/more')).toBe('/workspaces/anything/more');
     });
