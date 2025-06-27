@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Accordion from '@components/Accordion';
@@ -15,6 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {initDraftSplitExpenseDataForEdit} from '@libs/actions/IOU';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import variables from '@styles/variables';
 import BaseListItem from './BaseListItem';
 import type {ListItem, SplitListItemProps, SplitListItemType} from './types';
@@ -25,7 +26,7 @@ function SplitListItem<TItem extends ListItem>({item, isFocused, showTooltip, is
     const StyleUtils = useStyleUtils();
     const [isExpanded, setIsExpanded] = useState(false);
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isExpanded);
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
     const splitItem = item as unknown as SplitListItemType;
 
@@ -41,6 +42,12 @@ function SplitListItem<TItem extends ListItem>({item, isFocused, showTooltip, is
             transform: [{rotate: `${rotation.value}deg`}],
         };
     });
+
+    const totalAmount = useMemo(() => {
+        return convertAmountToDisplayString(splitItem.expenses.reduce((acc, expense) => acc + expense.amount, 0));
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [splitItem.expenses, preferredLocale]);
 
     return (
         <BaseListItem
@@ -92,13 +99,16 @@ function SplitListItem<TItem extends ListItem>({item, isFocused, showTooltip, is
                             </View>
                         </View>
                     </View>
-                    <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
-                        <Animated.View style={animatedIconStyle}>
-                            <Icon
-                                src={Expensicons.DownArrow}
-                                fill={theme.icon}
-                            />
-                        </Animated.View>
+                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                        <Text style={[styles.textBold]}>{totalAmount}</Text>
+                        <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
+                            <Animated.View style={animatedIconStyle}>
+                                <Icon
+                                    src={Expensicons.DownArrow}
+                                    fill={theme.icon}
+                                />
+                            </Animated.View>
+                        </View>
                     </View>
                 </View>
                 <Accordion
