@@ -796,7 +796,7 @@ function MoneyReportHeader({
                 }
 
                 const currentTransaction = transactions.at(0);
-                initSplitExpense(currentTransaction, moneyRequestReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+                initSplitExpense(currentTransaction, moneyRequestReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), false, policy);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {

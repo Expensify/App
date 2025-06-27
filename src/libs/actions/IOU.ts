@@ -11405,7 +11405,7 @@ function getSearchOnyxUpdate({
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
-function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportID: string, isOpenCreatedSplit?: boolean) {
+function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportID: string, isOpenCreatedSplit?: boolean, policy?: OnyxEntry<OnyxTypes.Policy>) {
     if (!transaction) {
         return;
     }
@@ -11468,7 +11468,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
                 transactionID: NumberUtils.rand64(),
                 amount: lineItem.amount,
                 description: lineItem.name,
-                category: lineItem.category,
+                category: policy?.mccGroup?.[lineItem.category.toLowerCase()]?.category ?? '',
                 tags: transaction?.tag ? [transaction?.tag] : [],
                 created: transactionDetails?.created ?? defaultCreated,
             });
