@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
+import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Accordion from '@components/Accordion';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -27,6 +28,19 @@ function SplitListItem<TItem extends ListItem>({item, isFocused, showTooltip, is
     const {translate} = useLocalize();
 
     const splitItem = item as unknown as SplitListItemType;
+
+    // Animated rotation for the arrow icon
+    const rotation = useSharedValue(0);
+
+    const animatedIconStyle = useAnimatedStyle(() => {
+        rotation.value = withTiming(isExpanded ? -180 : 0, {
+            duration: 200,
+            easing: Easing.inOut(Easing.quad),
+        });
+        return {
+            transform: [{rotate: `${rotation.value}deg`}],
+        };
+    });
 
     return (
         <BaseListItem
@@ -79,10 +93,12 @@ function SplitListItem<TItem extends ListItem>({item, isFocused, showTooltip, is
                         </View>
                     </View>
                     <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
-                        <Icon
-                            src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
-                            fill={theme.icon}
-                        />
+                        <Animated.View style={animatedIconStyle}>
+                            <Icon
+                                src={Expensicons.DownArrow}
+                                fill={theme.icon}
+                            />
+                        </Animated.View>
                     </View>
                 </View>
                 <Accordion
