@@ -862,6 +862,7 @@ function PureReportActionItem({
         initSplitExpense,
         policy,
         dismissConciergeSplitOptionsAction,
+        getOriginalMessage,
     ]);
 
     /**
