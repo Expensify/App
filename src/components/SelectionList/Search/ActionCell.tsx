@@ -42,6 +42,7 @@ type ActionCellProps = {
     reportID?: string;
     hash?: number;
     amount?: number;
+    isDisabled?: boolean;
 };
 
 function ActionCell({
@@ -56,6 +57,7 @@ function ActionCell({
     reportID = '',
     hash,
     amount,
+    isDisabled = false,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -119,6 +121,7 @@ function ActionCell({
                 iconFill={theme.danger}
                 iconHoverFill={theme.dangerHover}
                 isNested
+                isDisabled={isDisabled}
             />
         ) : null;
     }
