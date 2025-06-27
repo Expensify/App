@@ -1487,6 +1487,7 @@ const CONST = {
         PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
         SKELETON_ANIMATION_SPEED: 3,
         SEARCH_OPTIONS_COMPARISON: 'search_options_comparison',
+        SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
