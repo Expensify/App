@@ -9,7 +9,6 @@ function replacePathInNestedState(state: PartialState<NavigationState<RootNaviga
         return;
     }
 
-    // @ts-expect-error Updating read only property
     found.path = path;
 }
 export default replacePathInNestedState;
