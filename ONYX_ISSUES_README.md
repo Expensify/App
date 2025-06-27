@@ -103,6 +103,13 @@ This will:
 - Sub-issues appear directly in the parent issue's interface
 - Provides a clean, native GitHub experience for issue hierarchy
 
+### Duplicate Detection
+- Automatically searches for existing issues with the same title before creating new ones
+- Skips creation of duplicate issues and provides clear feedback
+- In dry-run mode, shows which issues already exist vs. which would be created
+- For existing issues, attempts to link them to parents if not already linked
+- Tracks and reports the number of duplicates skipped in the summary
+
 ## Error Handling
 
 The script includes comprehensive error handling:
@@ -115,6 +122,7 @@ The script includes comprehensive error handling:
 - Follows DRY principles with modular, reusable functions
 - Maintainable code structure with separated concerns
 - Module paths are clickable links to the actual files in the repository
+- Automatic duplicate detection to prevent creating issues that already exist
 
 ## Rate Limiting
 
@@ -133,17 +141,20 @@ Creating parent issue: Refactor src/libs/ActiveClientManager/index.ts Onyx.conne
 Created parent issue #123 with ID: MDU6SXNzdWUxMjM0NTY3ODk=
 
 Creating sub-issue: Remove Onyx.connect reference: ONYXKEYS.ACTIVE_CLIENTS in src/libs/ActiveClientManager/index.ts
-Created sub-issue #124 with ID: MDU6SXNzdWUxMjM0NTY3OTA=
+Skipped - duplicate sub-issue already exists: #125
 
-Linking sub-issue to parent...
-Linked sub-issue to parent issue
+Checking if duplicate sub-issue is already linked to parent...
+Linked existing sub-issue to parent issue
 
 ================== SUMMARY ==================
 Finished processing onyxrefs.txt
 Parent issues created: 1
-Sub-issues created: 1
+Parent issues skipped (duplicates): 0
+Sub-issues created: 0
+Sub-issues skipped (duplicates): 1
 Issue links created: 1
-Total issues created: 2
+Total NEW issues created: 1
+Total duplicates skipped: 1
 
 All issues assigned to: tgolen
 All issues labeled with: Engineering, Improvement

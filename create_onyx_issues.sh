@@ -56,6 +56,23 @@ get_repo_info() {
     echo "Expensify/App"
 }
 
+# Function to check if an issue with the same title already exists
+check_duplicate_issue() {
+    local title="$1"
+
+    # Search for issues with the exact title (case-insensitive)
+    local existing_issue
+    if existing_issue=$(gh issue list --search "\"$title\" in:title" --json number,title --jq '.[] | select(.title == "'"$title"'") | .number' 2>/dev/null); then
+        if [[ -n "$existing_issue" ]]; then
+            echo "$existing_issue"
+            return 0
+        fi
+    fi
+
+    # No duplicate found
+    return 1
+}
+
 # Common template parts for issue bodies
 get_parent_issue_reference() {
     echo "This is part of deprecating Onyx.connect. [Parent Issue](https://github.com/Expensify/Expensify/issues/507850)"
@@ -107,9 +124,17 @@ EOF
 }
 
 # Function to create a GitHub issue and return both number and ID (separated by |)
+# Returns "DUPLICATE|existing_number" if duplicate found
 create_issue() {
     local title="$1"
     local body="$2"
+
+    # Check for duplicate issues first
+    local duplicate_number
+    if duplicate_number=$(check_duplicate_issue "$title"); then
+        echo "DUPLICATE|$duplicate_number"
+        return 0
+    fi
 
     # Add rate limiting to avoid hitting GitHub API limits
     sleep 1
@@ -188,6 +213,8 @@ current_file_path=""
 parent_issues_created=0
 sub_issues_created=0
 links_created=0
+parent_duplicates_skipped=0
+sub_duplicates_skipped=0
 
 while IFS= read -r line || [[ -n "$line" ]]; do
     # Skip empty lines
@@ -209,16 +236,44 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             echo "PARENT ISSUE:"
             echo "  Title: $parent_title"
             echo "  File: $file_path"
+
+            # Check for duplicates in dry-run mode too (if GitHub CLI is authenticated)
+            if command -v gh &> /dev/null && gh auth status &> /dev/null; then
+                if duplicate_number=$(check_duplicate_issue "$parent_title"); then
+                    echo "  Status: DUPLICATE - issue #$duplicate_number already exists"
+                    ((parent_duplicates_skipped++))
+                    current_parent_id="$duplicate_number|dry-run-parent-id"
+                else
+                    echo "  Status: WOULD CREATE"
+                    ((parent_issues_created++))
+                    current_parent_id="dry-run-parent-number|dry-run-parent-id"
+                fi
+            else
+                echo "  Status: WOULD CREATE (duplicate check skipped - GitHub CLI not authenticated)"
+                ((parent_issues_created++))
+                current_parent_id="dry-run-parent-number|dry-run-parent-id"
+            fi
             echo ""
-            ((parent_issues_created++))
-            current_parent_id="dry-run-parent-number|dry-run-parent-id"
         else
             echo "Creating parent issue: $parent_title"
             if current_parent_id=$(create_issue "$parent_title" "$parent_body"); then
                 parent_number=$(echo "$current_parent_id" | cut -d'|' -f1)
                 parent_id=$(echo "$current_parent_id" | cut -d'|' -f2)
-                echo "Created parent issue #$parent_number with ID: $parent_id"
-                ((parent_issues_created++))
+
+                if [[ "$parent_number" == "DUPLICATE" ]]; then
+                    echo "Skipped - duplicate parent issue already exists: #$parent_id"
+                    ((parent_duplicates_skipped++))
+                    # For duplicates, we need to get the actual issue ID for linking
+                    if actual_parent_id=$(gh issue view "$parent_id" --json id --jq ".id" 2>/dev/null); then
+                        current_parent_id="$parent_id|$actual_parent_id"
+                    else
+                        current_parent_id=""
+                        continue
+                    fi
+                else
+                    echo "Created parent issue #$parent_number with ID: $parent_id"
+                    ((parent_issues_created++))
+                fi
             else
                 echo "Failed to create parent issue for $file_path" >&2
                 current_parent_id=""
@@ -248,28 +303,61 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             echo "    File: $current_file_path"
             echo "    Onyx Key: $onyx_key"
             echo "    Reference: $content"
+
+            # Check for duplicates in dry-run mode too (if GitHub CLI is authenticated)
+            if command -v gh &> /dev/null && gh auth status &> /dev/null; then
+                if duplicate_number=$(check_duplicate_issue "$sub_title"); then
+                    echo "    Status: DUPLICATE - issue #$duplicate_number already exists"
+                    ((sub_duplicates_skipped++))
+                else
+                    echo "    Status: WOULD CREATE"
+                    ((sub_issues_created++))
+                    ((links_created++))  # In dry-run, assume all sub-issues would be linked
+                fi
+            else
+                echo "    Status: WOULD CREATE (duplicate check skipped - GitHub CLI not authenticated)"
+                ((sub_issues_created++))
+                ((links_created++))  # In dry-run, assume all sub-issues would be linked
+            fi
             echo ""
-            ((sub_issues_created++))
-            ((links_created++))  # In dry-run, assume all sub-issues would be linked
         else
             echo "Creating sub-issue: $sub_title"
             if sub_id=$(create_issue "$sub_title" "$sub_body"); then
                 sub_number=$(echo "$sub_id" | cut -d'|' -f1)
                 sub_issue_id=$(echo "$sub_id" | cut -d'|' -f2)
-                echo "Created sub-issue #$sub_number with ID: $sub_issue_id"
-                ((sub_issues_created++))
 
-                # Link sub-issue to parent issue
-                if [[ -n "$current_parent_id" ]]; then
-                    echo "Linking sub-issue to parent..."
-                    if link_sub_issue "$current_parent_id" "$sub_id"; then
-                        echo "Linked sub-issue to parent issue"
-                        ((links_created++))
-                    else
-                        echo "Warning: Failed to link sub-issue to parent" >&2
+                if [[ "$sub_number" == "DUPLICATE" ]]; then
+                    echo "Skipped - duplicate sub-issue already exists: #$sub_issue_id"
+                    ((sub_duplicates_skipped++))
+                    # For duplicates, we can still try to link if it's not already linked
+                    if [[ -n "$current_parent_id" ]]; then
+                        if actual_sub_id=$(gh issue view "$sub_issue_id" --json id --jq ".id" 2>/dev/null); then
+                            duplicate_sub_data="$sub_issue_id|$actual_sub_id"
+                            echo "Checking if duplicate sub-issue is already linked to parent..."
+                            if link_sub_issue "$current_parent_id" "$duplicate_sub_data" 2>/dev/null; then
+                                echo "Linked existing sub-issue to parent issue"
+                                ((links_created++))
+                            else
+                                echo "Note: Duplicate sub-issue may already be linked to parent"
+                            fi
+                        fi
                     fi
                 else
-                    echo "Warning: No parent issue ID available for linking" >&2
+                    echo "Created sub-issue #$sub_number with ID: $sub_issue_id"
+                    ((sub_issues_created++))
+
+                    # Link sub-issue to parent issue
+                    if [[ -n "$current_parent_id" ]]; then
+                        echo "Linking sub-issue to parent..."
+                        if link_sub_issue "$current_parent_id" "$sub_id"; then
+                            echo "Linked sub-issue to parent issue"
+                            ((links_created++))
+                        else
+                            echo "Warning: Failed to link sub-issue to parent" >&2
+                        fi
+                    else
+                        echo "Warning: No parent issue ID available for linking" >&2
+                    fi
                 fi
             else
                 echo "Failed to create sub-issue for $onyx_key in $current_file_path" >&2
@@ -282,10 +370,12 @@ done < "onyxrefs.txt"
 echo ""
 if [[ "$DRY_RUN" == true ]]; then
     echo "================== DRY RUN SUMMARY =================="
-    echo "Files to be processed: $parent_issues_created"
+    echo "Files to be processed: $((parent_issues_created + parent_duplicates_skipped))"
     echo "Parent issues that would be created: $parent_issues_created"
+    echo "Parent issues that already exist (duplicates): $parent_duplicates_skipped"
     echo "Sub-issues that would be created: $sub_issues_created"
-    echo "Total issues that would be created: $((parent_issues_created + sub_issues_created))"
+    echo "Sub-issues that already exist (duplicates): $sub_duplicates_skipped"
+    echo "Total NEW issues that would be created: $((parent_issues_created + sub_issues_created))"
     echo "Issue links that would be created: $links_created"
     echo ""
     echo "To create these issues, run: $0"
@@ -294,9 +384,12 @@ else
     echo "================== SUMMARY =================="
     echo "Finished processing onyxrefs.txt"
     echo "Parent issues created: $parent_issues_created"
+    echo "Parent issues skipped (duplicates): $parent_duplicates_skipped"
     echo "Sub-issues created: $sub_issues_created"
+    echo "Sub-issues skipped (duplicates): $sub_duplicates_skipped"
     echo "Issue links created: $links_created"
-    echo "Total issues created: $((parent_issues_created + sub_issues_created))"
+    echo "Total NEW issues created: $((parent_issues_created + sub_issues_created))"
+    echo "Total duplicates skipped: $((parent_duplicates_skipped + sub_duplicates_skipped))"
     echo ""
     echo "All issues assigned to: tgolen"
     echo "All issues labeled with: Engineering, Improvement"
