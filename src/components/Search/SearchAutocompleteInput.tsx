@@ -208,7 +208,7 @@ function SearchAutocompleteInput(
                         onChangeText={onSearchQueryChange}
                         autoFocus={autoFocus}
                         caretHidden={caretHidden}
-                        loadingSpinnerStyle={[styles.mt0, styles.mr0]}
+                        loadingSpinnerStyle={[styles.mt0, styles.mr0, styles.justifyContentCenter]}
                         role={CONST.ROLE.PRESENTATION}
                         placeholder={translate('search.searchPlaceholder')}
                         autoCapitalize="none"
