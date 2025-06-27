@@ -97,12 +97,9 @@ build_sub_issue_body() {
     cat << EOF
 $(get_parent_issue_reference)
 
-Module: [${file_path}](https://github.com/Expensify/App/blob/main/${file_path})
-Onyx Key: `${onyx_key}`
-
-Remove the Onyx.connect reference for \`${onyx_key}\` in \`${file_path}\`.
-
 ## Details
+- **Module**: [${file_path}](https://github.com/Expensify/App/blob/main/${file_path})
+- **Onyx Key**: `${onyx_key}`
 - **Reference**: `${content}`
 
 $(get_tdd_instructions)
