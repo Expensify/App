@@ -1227,8 +1227,8 @@ function PureReportActionItem({
             children = (
                 <AccountingContextProvider policy={policy}>
                     <View>
-                        <View>
-                            {!!questionText && <Text style={[styles.chatItemMessage]}>{Str.htmlDecode(questionText)}</Text>}
+                        <View style={[styles.chatItemMessage]}>
+                            <RenderHTML html={questionText} />
                         </View>
                         {actionableItemButtons.length > 0 && (
                             <ActionableItemButtons
