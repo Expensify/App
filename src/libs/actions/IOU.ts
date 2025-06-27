@@ -11485,11 +11485,12 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
     const splitExpenses = [];
     if (transaction?.receipt?.lineItems) {
         for (const lineItem of transaction?.receipt?.lineItems ?? []) {
+            const lineItemCategory = (lineItem?.category ?? '').toLowerCase();
             splitExpenses.push({
                 transactionID: NumberUtils.rand64(),
                 amount: lineItem.amount,
                 description: lineItem.name,
-                category: policy?.mccGroup?.[lineItem.category.toLowerCase()]?.category ?? '',
+                category: lineItemCategory ? (policy?.mccGroup?.[lineItemCategory]?.category ?? '') : '',
                 tags: transaction?.tag ? [transaction?.tag] : [],
                 created: transactionDetails?.created ?? defaultCreated,
             });
