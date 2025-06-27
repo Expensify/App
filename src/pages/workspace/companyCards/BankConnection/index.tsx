@@ -109,7 +109,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 translate(`workspace.moreFeatures.companyCards.pendingBankDescription`, {
                     bankName: addNewCard?.data?.plaidConnectedFeedName ?? bankName,
                 })}
-            <TextLink onPress={onOpenBankConnectionFlow}>{translate('workspace.moreFeatures.companyCards.pendingBankLink')}</TextLink>
+            <TextLink onPress={onOpenBankConnectionFlow}>{translate('workspace.moreFeatures.companyCards.pendingBankLink')}</TextLink>.
         </Text>
     );
 
@@ -163,9 +163,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                     iconWidth={styles.pendingBankCardIllustration.width}
                     iconHeight={styles.pendingBankCardIllustration.height}
                     title={translate('workspace.moreFeatures.companyCards.pendingBankTitle')}
-                    linkKey="workspace.moreFeatures.companyCards.pendingBankLink"
                     CustomSubtitle={CustomSubtitle}
-                    shouldShowLink
                     onLinkPress={onOpenBankConnectionFlow}
                     addBottomSafeAreaPadding
                 />

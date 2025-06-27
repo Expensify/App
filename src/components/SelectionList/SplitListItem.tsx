@@ -39,7 +39,7 @@ function SplitListItem<TItem extends ListItem>({
 
     const [prefixCharacterMargin, setPrefixCharacterMargin] = useState<number>(CONST.CHARACTER_WIDTH);
     const inputMarginLeft = prefixCharacterMargin + styles.pl1.paddingLeft;
-    const contentWidth = formattedOriginalAmount.length * CONST.CHARACTER_WIDTH;
+    const contentWidth = (formattedOriginalAmount.length + 1) * CONST.CHARACTER_WIDTH;
 
     return (
         <BaseListItem
@@ -154,11 +154,13 @@ function SplitListItem<TItem extends ListItem>({
                                 submitBehavior="blurAndSubmit"
                                 formatAmountOnBlur
                                 onAmountChange={onSplitExpenseAmountChange}
-                                prefixContainerStyle={[styles.pv0]}
-                                inputStyle={[styles.optionRowAmountInput]}
-                                containerStyle={[styles.textInputContainer, item.isSelected && styles.selectedTextInputContainer]}
+                                prefixContainerStyle={[styles.pv0, styles.h100]}
+                                prefixStyle={styles.lineHeightUndefined}
+                                inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
+                                containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                                 touchableInputWrapperStyle={[styles.ml3]}
-                                maxLength={formattedOriginalAmount.length}
+                                maxLength={formattedOriginalAmount.length + 1}
+                                shouldApplyPaddingToContainer
                                 contentWidth={contentWidth}
                             />
                         )}
