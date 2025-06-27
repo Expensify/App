@@ -729,7 +729,7 @@ function getLastMessageTextForReport(
     const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
     let lastMessageTextFromReport = '';
 
-    if (isArchivedNonExpenseReport(report, reportNameValuePairs)) {
+    if (isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived)) {
         const archiveReason =
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             (isClosedAction(lastOriginalReportAction) && getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
@@ -977,7 +977,7 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
             lastAction &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
-            !isArchivedNonExpenseReport(report, reportNameValuePairs) &&
+            !isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived) &&
             shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
@@ -2027,6 +2027,21 @@ function getAttendeeOptions(
         personalDetails.map(({item}) => item),
         'accountID',
     );
+
+    const recentAttendeeHasCurrentUser = recentAttendees.find((attendee) => attendee.email === currentUserLogin || attendee.login === currentUserLogin);
+    if (!recentAttendeeHasCurrentUser && currentUserLogin) {
+        const details = getPersonalDetailByEmail(currentUserLogin);
+        recentAttendees.push({
+            email: currentUserLogin,
+            login: currentUserLogin,
+            displayName: details?.displayName ?? currentUserLogin,
+            accountID: currentUserAccountID,
+            text: details?.displayName ?? currentUserLogin,
+            searchText: details?.displayName ?? currentUserLogin,
+            avatarUrl: details?.avatarThumbnail ?? '',
+        });
+    }
+
     const filteredRecentAttendees = recentAttendees
         .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
         .map((attendee) => ({
