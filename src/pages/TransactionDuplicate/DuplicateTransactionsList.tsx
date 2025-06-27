@@ -22,6 +22,7 @@ function DuplicateTransactionsList({transactions}: DuplicateTransactionsListProp
     const styles = useThemeStyles();
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
 
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<OnyxEntry<Transaction>>) => (
@@ -29,9 +30,10 @@ function DuplicateTransactionsList({transactions}: DuplicateTransactionsListProp
                 transaction={item}
                 index={index}
                 allReports={allReports}
+                policies={policies}
             />
         ),
-        [allReports],
+        [allReports, policies],
     );
 
     return (

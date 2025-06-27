@@ -3,6 +3,7 @@ import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useMemo, useState} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -37,6 +38,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TransactionPreview from './TransactionPreview';
 
 type MoneyRequestActionProps = {
+    /** All the data of the report collection */
+    allReports: OnyxCollection<OnyxTypes.Report>;
+
     /** All the data of the action */
     action: OnyxTypes.ReportAction;
 
@@ -72,6 +76,7 @@ type MoneyRequestActionProps = {
 };
 
 function MoneyRequestAction({
+    allReports,
     action,
     chatReportID,
     requestReportID,
@@ -84,8 +89,8 @@ function MoneyRequestAction({
     isWhisper = false,
     shouldDisplayContextMenu = true,
 }: MoneyRequestActionProps) {
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`, {canBeMissing: true});
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`];
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`];
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false, canBeMissing: true});
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -170,6 +175,7 @@ function MoneyRequestAction({
 
     const TransactionPreviewComponent = (
         <TransactionPreview
+            allReports={allReports}
             iouReportID={requestReportID}
             chatReportID={chatReportID}
             reportID={reportID}

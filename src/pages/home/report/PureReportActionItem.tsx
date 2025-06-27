@@ -185,6 +185,12 @@ import ReportAttachmentsContext from './ReportAttachmentsContext';
 import TripSummary from './TripSummary';
 
 type PureReportActionItemProps = {
+    /** All the data of the report collection */
+    allReports: OnyxCollection<OnyxTypes.Report>;
+
+    /** All the data of the policy collection */
+    policies: OnyxCollection<OnyxTypes.Policy>;
+
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -353,9 +359,6 @@ type PureReportActionItemProps = {
     /** User payment card ID */
     userBillingFundID?: number;
 
-    /** Policies */
-    policies?: OnyxCollection<OnyxTypes.Policy>;
-
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
 };
@@ -372,6 +375,8 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
  * Instead, pass all Onyx read/write operations as props.
  */
 function PureReportActionItem({
+    allReports,
+    policies,
     action,
     report,
     policy,
@@ -420,7 +425,6 @@ function PureReportActionItem({
     clearAllRelatedReportActionErrors = () => {},
     dismissTrackExpenseActionableWhisper = () => {},
     userBillingFundID,
-    policies,
     shouldShowBorder,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
@@ -847,6 +851,7 @@ function PureReportActionItem({
             const iouReportID = moneyRequestOriginalMessage?.IOUReportID?.toString();
             children = (
                 <MoneyRequestAction
+                    allReports={allReports}
                     // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
                     chatReportID={chatReportID}
                     requestReportID={iouReportID}
@@ -867,6 +872,7 @@ function PureReportActionItem({
                     children = (
                         <View style={[styles.mt1, styles.w100]}>
                             <TransactionPreview
+                                allReports={allReports}
                                 iouReportID={getIOUReportIDFromReportActionPreview(action)}
                                 chatReportID={reportID}
                                 reportID={reportID}
@@ -914,6 +920,8 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
             children = (
                 <MoneyRequestReportPreview
+                    allReports={allReports}
+                    policies={policies}
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
                     policyID={report?.policyID}
                     chatReportID={reportID}
