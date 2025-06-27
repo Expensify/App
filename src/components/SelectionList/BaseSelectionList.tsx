@@ -147,6 +147,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldUseDefaultRightHandSideCheckmark,
         selectedItems = [],
         isSelected,
+        shouldAddCurrentUserPostfix = true,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -594,6 +595,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         isSelected: selected,
                         ...item,
                     }}
+                    shouldAddCurrentUserPostfix={shouldAddCurrentUserPostfix}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     index={index}
                     isFocused={isItemFocused}

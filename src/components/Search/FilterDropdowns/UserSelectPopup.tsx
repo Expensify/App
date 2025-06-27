@@ -74,13 +74,17 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeSelectedOptions: true,
-                includeCurrentUser: true,
             },
         );
 
-        const {personalDetails: filteredOptionsList, recentReports} = filterAndOrderOptions(optionsList, cleanSearchTerm, {
+        const {
+            personalDetails: filteredOptionsList,
+            recentReports,
+            currentUserOption,
+        } = filterAndOrderOptions(optionsList, cleanSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            selectedOptions,
         });
 
         const personalDetailList = filteredOptionsList
@@ -99,7 +103,9 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 return 0;
             });
 
-        return [...(personalDetailList ?? []), ...(recentReports ?? [])];
+        const userOption = {...currentUserOption, isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === currentUserOption?.accountID)};
+
+        return [...(personalDetailList ?? []), ...(recentReports ?? []), ...(currentUserOption ? [userOption] : [])];
     }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, session?.accountID]);
 
     const {sections, headerMessage} = useMemo(() => {
@@ -175,6 +181,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 onSelectRow={selectUser}
                 onChangeText={setSearchTerm}
                 isLoadingNewOptions={isLoadingNewOptions}
+                shouldAddCurrentUserPostfix={false}
             />
 
             <View style={[styles.flexRow, styles.gap2, styles.mh5, !shouldUseNarrowLayout && styles.mb4]}>
