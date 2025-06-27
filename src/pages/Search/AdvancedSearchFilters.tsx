@@ -12,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 import type {SearchDateFilterKeys, SearchFilterKey, SearchGroupBy} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getCleanedTagName, getTagNamesFromTagsLists, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery, isSearchDatePreset, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import {getExpenseTypeTranslationKey, getStatusOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -55,6 +56,11 @@ const baseFilterConfig = {
         getTitle: getFilterDisplayTitle,
         description: 'common.type' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_TYPE,
+    },
+    groupBy: {
+        getTitle: getFilterDisplayTitle,
+        description: 'search.groupBy' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_GROUP_BY,
     },
     status: {
         getTitle: getStatusFilterDisplayTitle,
@@ -188,127 +194,6 @@ const baseFilterConfig = {
     },
 };
 
-/**
- * typeFiltersKeys is stored as an object keyed by the different search types.
- * Each value is then an array of arrays where each inner array is a separate section in the UI.
- */
-const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>>>> = {
-    [CONST.SEARCH.DATA_TYPES.EXPENSE]: [
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-        ],
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
-        ],
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-        ],
-    ],
-    [CONST.SEARCH.DATA_TYPES.INVOICE]: [
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-        ],
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-        ],
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-        ],
-    ],
-    [CONST.SEARCH.DATA_TYPES.TRIP]: [
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-        ],
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-        ],
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-        ],
-    ],
-    [CONST.SEARCH.DATA_TYPES.CHAT]: [
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-        ],
-    ],
-    [CONST.SEARCH.DATA_TYPES.TASK]: [
-        [
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-        ],
-    ],
-};
-
 function getFilterWorkspaceDisplayTitle(filters: SearchAdvancedFiltersForm, policies: WorkspaceListItem[]) {
     return policies.filter((value) => value.policyID === filters.policyID).at(0)?.text;
 }
@@ -376,7 +261,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
         }
 
         if (dateOn) {
-            dateValue.push(dateOn === CONST.SEARCH.NEVER ? translate('common.never') : translate('search.filters.date.on', {date: dateOn}));
+            dateValue.push(isSearchDatePreset(dateOn) ? translate(`search.filters.date.presets.${dateOn}`) : translate('search.filters.date.on', {date: dateOn}));
         }
 
         if (dateAfter) {
@@ -386,7 +271,7 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
         return dateValue.join(', ');
     }
 
-    const nonDateFilterKey = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY>;
+    const nonDateFilterKey = filterKey as Exclude<SearchFilterKey, SearchDateFilterKeys>;
 
     if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         const {lessThan, greaterThan} = filters;
@@ -439,6 +324,11 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
     if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
         const filterValue = filters[nonDateFilterKey];
         return filterValue ? translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.DATA_TYPES>}`) : undefined;
+    }
+
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
+        const filterValue = filters[nonDateFilterKey];
+        return filterValue ? translate(`search.filters.groupBy.${filterValue}`) : undefined;
     }
 
     const filterValue = filters[nonDateFilterKey];
@@ -518,6 +408,7 @@ function isFeatureEnabledInPolicies(policies: OnyxCollection<Policy>, featureNam
 function AdvancedSearchFilters() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isDevelopment} = useEnvironment();
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -580,8 +471,11 @@ function AdvancedSearchFilters() {
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
 
+    // s77rt remove DEV lock
+    const shouldDisplayGroupByFilter = isDevelopment;
+
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-    if (!Object.keys(typeFiltersKeys).includes(currentType)) {
+    if (!Object.keys(CONST.SEARCH_TYPE_FILTERS_KEYS).includes(currentType)) {
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
     }
 
@@ -613,16 +507,10 @@ function AdvancedSearchFilters() {
         applyFiltersAndNavigate();
     };
 
-    const filters = typeFiltersKeys[currentType]
+    const filters = CONST.SEARCH_TYPE_FILTERS_KEYS[currentType]
         .map((section) => {
             return section
                 .map((key) => {
-                    // 'feed' filter row does not appear in advanced filters, it is created using selected cards
-                    // 'payer' and 'reimburser' do not appear in advanced filters, they are created using suggested searches
-                    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
-                        return;
-                    }
-
                     const onPress = singleExecution(waitForNavigate(() => Navigation.navigate(baseFilterConfig[key].route)));
                     let filterTitle;
                     if (
@@ -637,7 +525,10 @@ function AdvancedSearchFilters() {
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
                         key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ||
-                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
+                        key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE
                     ) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
@@ -671,8 +562,6 @@ function AdvancedSearchFilters() {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
-                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE) {
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
                         if (!shouldDisplayWorkspaceFilter) {
                             return;
@@ -681,6 +570,11 @@ function AdvancedSearchFilters() {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, currentType, groupBy, translate);
+                    } else if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
+                        if (!shouldDisplayGroupByFilter) {
+                            return;
+                        }
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
                     }
                     return {
                         key,
