@@ -37128,7 +37128,6 @@ const core_1 = __nccwpck_require__(5850);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const OpenAIUtils_1 = __importDefault(__nccwpck_require__(3956));
-const sanitizeJSONStringValues_1 = __importDefault(__nccwpck_require__(136));
 async function run() {
     try {
         // Get the GitHub URL input
@@ -37158,10 +37157,10 @@ async function promptAssistant(issueNumber) {
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
     console.log(' ...parsing ');
     console.log('assistantResponse: ', assistantResponse);
-    const parsedAssistantResponse = JSON.parse((0, sanitizeJSONStringValues_1.default)(assistantResponse));
-    console.log('parsedAssistantResponse: ', parsedAssistantResponse);
+    // const parsedAssistantResponse = JSON.parse(sanitizeJSONStringValues(assistantResponse)) as AssistantResponse;
+    // console.log('parsedAssistantResponse: ', parsedAssistantResponse);
     // TODO: Later on we will comment response on the PR
-    await commentOnGithubPR(issueNumber, parsedAssistantResponse.message);
+    await commentOnGithubPR(issueNumber, assistantResponse);
 }
 async function commentOnGithubPR(issueNumber, comment) {
     await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, issueNumber, comment);
@@ -37690,59 +37689,6 @@ class GithubUtils {
     }
 }
 exports["default"] = GithubUtils;
-
-
-/***/ }),
-
-/***/ 136:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports["default"] = sanitizeJSONStringValues;
-function sanitizeJSONStringValues(inputString) {
-    function replacer(str) {
-        return ({
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            '\\': '\\\\',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            '\t': '\\t',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            '\n': '\\n',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            '\r': '\\r',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            '\f': '\\f',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            '"': '\\"',
-        }[str] ?? '');
-    }
-    try {
-        const parsed = JSON.parse(inputString);
-        // Function to recursively sanitize string values in an object
-        const sanitizeValues = (obj) => {
-            if (typeof obj === 'string') {
-                return obj.replace(/\\|\t|\n|\r|\f|"/g, replacer);
-            }
-            if (Array.isArray(obj)) {
-                return obj.map((item) => sanitizeValues(item));
-            }
-            if (obj && typeof obj === 'object') {
-                const result = {};
-                for (const key of Object.keys(obj)) {
-                    result[key] = sanitizeValues(obj[key]);
-                }
-                return result;
-            }
-            return obj;
-        };
-        return JSON.stringify(sanitizeValues(parsed));
-    }
-    catch (e) {
-        throw new Error('Invalid JSON input.');
-    }
-}
 
 
 /***/ }),
