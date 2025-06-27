@@ -11,6 +11,7 @@
  */
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
+import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -1023,6 +1024,7 @@ const translations = {
         share: 'Teilen',
         participants: 'Teilnehmer',
         createExpense: 'Ausgabe erstellen',
+        trackDistance: 'Entfernung verfolgen',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Erstelle ${expensesNumber} Ausgaben`,
         addExpense: 'Ausgabe hinzufügen',
         chooseRecipient: 'Empfänger auswählen',
@@ -2222,6 +2224,204 @@ const translations = {
             title: 'Konnte die Arbeits-E-Mail nicht hinzufügen',
             subtitle: ({workEmail}: WorkEmailMergingBlockedParams) =>
                 `Wir konnten ${workEmail} nicht hinzufügen. Bitte versuchen Sie es später in den Einstellungen erneut oder chatten Sie mit Concierge für Unterstützung.`,
+        },
+        tasks: {
+            testDriveAdminTask: {
+                title: ({testDriveURL}) => `Mache eine [Probefahrt](${testDriveURL})`,
+                description: ({testDriveURL}) => `[Mache eine kurze Produkttour](${testDriveURL}), um zu sehen, warum Expensify der schnellste Weg ist, Ausgaben zu verwalten.`,
+            },
+            testDriveEmployeeTask: {
+                title: ({testDriveURL}) => `Mache eine [Probefahrt](${testDriveURL})`,
+                description: ({testDriveURL}) => `Probiere uns in einer [Probefahrt](${testDriveURL}) aus und sichere deinem Team *3 Monate Expensify gratis!*`,
+            },
+            createTestDriveAdminWorkspaceTask: {
+                title: ({workspaceConfirmationLink}) => `[Erstelle](${workspaceConfirmationLink}) einen Workspace`,
+                description: 'Erstelle einen Workspace und konfiguriere die Einstellungen mit Hilfe deines Einrichtungsspezialisten!',
+            },
+            createWorkspaceTask: {
+                title: ({workspaceSettingsLink}) => `Erstelle einen [Workspace](${workspaceSettingsLink})`,
+                description: ({workspaceSettingsLink}) =>
+                    '*Erstelle einen Workspace*, um Ausgaben zu verfolgen, Belege zu scannen, zu chatten und mehr.\n\n' +
+                    '1. Klicke auf *Workspaces* > *Neuer Workspace*.\n\n' +
+                    `*Dein neuer Workspace ist bereit!* [Schau ihn dir an](${workspaceSettingsLink}).`,
+            },
+            setupCategoriesTask: {
+                title: ({workspaceCategoriesLink}) => `Richte [Kategorien](${workspaceCategoriesLink}) ein`,
+                description: ({workspaceCategoriesLink}) =>
+                    '*Richte Kategorien ein*, damit dein Team Ausgaben einfach zuordnen kann.\n\n' +
+                    '1. Klicke auf *Workspaces*.\n' +
+                    '2. Wähle deinen Workspace.\n' +
+                    '3. Klicke auf *Kategorien*.\n' +
+                    '4. Deaktiviere nicht benötigte Kategorien.\n' +
+                    '5. Füge oben rechts eigene Kategorien hinzu.\n\n' +
+                    `[Zu den Kategorie-Einstellungen](${workspaceCategoriesLink}).\n\n` +
+                    `![Kategorien einrichten](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
+            },
+            combinedTrackSubmitExpenseTask: {
+                title: 'Reiche eine Ausgabe ein',
+                description:
+                    '*Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg scannst.\n\n' +
+                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    '2. Wähle *Ausgabe erstellen*.\n' +
+                    '3. Betrag eingeben oder Beleg scannen.\n' +
+                    `4. Gib die E-Mail oder Telefonnummer deines Chefs ein.\n` +
+                    '5. Klicke auf *Erstellen*.\n\n' +
+                    'Fertig!',
+            },
+            adminSubmitExpenseTask: {
+                title: 'Reiche eine Ausgabe ein',
+                description:
+                    '*Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg scannst.\n\n' +
+                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    '2. Wähle *Ausgabe erstellen*.\n' +
+                    '3. Betrag eingeben oder Beleg scannen.\n' +
+                    '4. Details bestätigen.\n' +
+                    '5. Klicke auf *Erstellen*.\n\n' +
+                    'Fertig!',
+            },
+            trackExpenseTask: {
+                title: 'Verfolge eine Ausgabe',
+                description:
+                    '*Verfolge eine Ausgabe* in jeder Währung – mit oder ohne Beleg.\n\n' +
+                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    '2. Wähle *Ausgabe erstellen*.\n' +
+                    '3. Betrag eingeben oder Beleg scannen.\n' +
+                    '4. Wähle deinen *persönlichen* Bereich.\n' +
+                    '5. Klicke auf *Erstellen*.\n\n' +
+                    'Fertig! So einfach ist das.',
+            },
+            addAccountingIntegrationTask: {
+                title: ({integrationName, workspaceAccountingLink}) =>
+                    `Verbinde${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' mit'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'deiner' : ''} ${integrationName}](${workspaceAccountingLink})`,
+                description: ({integrationName, workspaceAccountingLink}) =>
+                    `Verbinde ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'deine' : 'mit'} ${integrationName}, um Ausgaben automatisch zuzuordnen und den Monatsabschluss zu vereinfachen.\n` +
+                    '\n' +
+                    '1. Klicke auf *Einstellungen*.\n' +
+                    '2. Gehe zu *Workspaces*.\n' +
+                    '3. Wähle deinen Workspace.\n' +
+                    '4. Klicke auf *Buchhaltung*.\n' +
+                    `5. Finde ${integrationName}.\n` +
+                    '6. Klicke auf *Verbinden*.\n' +
+                    '\n' +
+                    `${
+                        integrationName && CONST.connectionsVideoPaths[integrationName]
+                            ? `[Zu Buchhaltung](${workspaceAccountingLink}).\n\n![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                            : `[Zu Buchhaltung](${workspaceAccountingLink}).`
+                    }`,
+            },
+            connectCorporateCardTask: {
+                title: ({corporateCardLink}) => `Verbinde [deine Firmenkarte](${corporateCardLink})`,
+                description: ({corporateCardLink}) =>
+                    `Verbinde deine Firmenkarte, um Ausgaben automatisch zu importieren und zuzuordnen.\n\n` +
+                    '1. Klicke auf *Workspaces*.\n' +
+                    '2. Wähle deinen Workspace.\n' +
+                    '3. Klicke auf *Firmenkarten*.\n' +
+                    '4. Folge den Anweisungen zur Verbindung.\n\n' +
+                    `[Zur Kartenverbindung](${corporateCardLink}).`,
+            },
+            inviteTeamTask: {
+                title: ({workspaceMembersLink}) => `Lade [dein Team](${workspaceMembersLink}) ein`,
+                description: ({workspaceMembersLink}) =>
+                    '*Lade dein Team* zu Expensify ein, damit es sofort mit dem Verfolgen von Ausgaben beginnen kann.\n\n' +
+                    '1. Klicke auf *Workspaces*.\n' +
+                    '2. Wähle deinen Workspace.\n' +
+                    '3. Klicke auf *Mitglieder* > *Mitglied einladen*.\n' +
+                    '4. Gib E-Mails oder Telefonnummern ein.\n' +
+                    '5. Optional: eigene Einladung hinzufügen.\n\n' +
+                    `[Zu den Mitgliedereinstellungen](${workspaceMembersLink}).\n\n` +
+                    `![Team einladen](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+            },
+            setupCategoriesAndTags: {
+                title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) => `Richte [Kategorien](${workspaceCategoriesLink}) und [Tags](${workspaceMoreFeaturesLink}) ein`,
+                description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
+                    '*Richte Kategorien und Tags ein*, damit dein Team Ausgaben einfach zuordnen kann.\n\n' +
+                    `Importiere sie automatisch durch [Verbindung deiner Buchhaltungssoftware](${workspaceAccountingLink}) oder richte sie manuell in den [Workspace-Einstellungen](${workspaceCategoriesLink}) ein.`,
+            },
+            setupTagsTask: {
+                title: ({workspaceMoreFeaturesLink}) => `Richte [Tags](${workspaceMoreFeaturesLink}) ein`,
+                description: ({workspaceMoreFeaturesLink}) =>
+                    'Verwende Tags, um zusätzliche Ausgabendetails wie Projekte, Kunden, Standorte und Abteilungen hinzuzufügen. Für mehrere Tag-Ebenen kannst du auf den Control-Plan upgraden.\n\n' +
+                    '1. Klicke auf *Workspaces*.\n' +
+                    '2. Wähle deinen Workspace.\n' +
+                    '3. Klicke auf *Weitere Funktionen*.\n' +
+                    '4. Aktiviere *Tags*.\n' +
+                    '5. Navigiere zu *Tags* im Editor.\n' +
+                    '6. Klicke auf *+ Tag hinzufügen*, um eigene zu erstellen.\n\n' +
+                    `[Zu den weiteren Funktionen](${workspaceMoreFeaturesLink}).\n\n` +
+                    `![Tags einrichten](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
+            },
+            inviteAccountantTask: {
+                title: ({workspaceMembersLink}) => `Lade deinen [Buchhalter](${workspaceMembersLink}) ein`,
+                description: ({workspaceMembersLink}) =>
+                    '*Lade deinen Buchhalter ein*, um gemeinsam an deinem Workspace zu arbeiten und Geschäftsausgaben zu verwalten.\n' +
+                    '\n' +
+                    '1. Klicke auf *Workspaces*.\n' +
+                    '2. Wähle deinen Workspace.\n' +
+                    '3. Klicke auf *Mitglieder*.\n' +
+                    '4. Klicke auf *Mitglied einladen*.\n' +
+                    '5. Gib die E-Mail-Adresse deines Buchhalters ein.\n' +
+                    '\n' +
+                    `[Jetzt Buchhalter einladen](${workspaceMembersLink}).`,
+            },
+            startChatTask: {
+                title: 'Starte einen Chat',
+                description:
+                    '*Starte einen Chat* mit jeder Person über E-Mail oder Telefonnummer.\n\n' +
+                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    '2. Wähle *Chat starten*.\n' +
+                    '3. Gib eine E-Mail oder Telefonnummer ein.\n\n' +
+                    'Falls die Person Expensify noch nicht nutzt, wird sie automatisch eingeladen.\n\n' +
+                    'Jeder Chat wird außerdem als E-Mail oder SMS zugestellt.',
+            },
+            splitExpenseTask: {
+                title: 'Teile eine Ausgabe',
+                description:
+                    '*Teile Ausgaben* mit einer oder mehreren Personen.\n\n' +
+                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    '2. Wähle *Chat starten*.\n' +
+                    '3. Gib E-Mail-Adressen oder Telefonnummern ein.\n' +
+                    '4. Klicke im Chat auf den grauen *+*-Button > *Ausgabe teilen*.\n' +
+                    '5. Wähle *Manuell*, *Scan* oder *Entfernung*.\n\n' +
+                    'Du kannst Details hinzufügen oder es direkt abschicken. Zeit, dein Geld zurückzubekommen!',
+            },
+            reviewWorkspaceSettingsTask: {
+                title: ({workspaceSettingsLink}) => `Überprüfe deine [Workspace-Einstellungen](${workspaceSettingsLink})`,
+                description: ({workspaceSettingsLink}) =>
+                    'So überprüfst und aktualisierst du deine Workspace-Einstellungen:\n' +
+                    '1. Klicke auf den Tab *Einstellungen*.\n' +
+                    '2. Klicke auf *Workspaces* > [Dein Workspace].\n' +
+                    `[Zum Workspace](${workspaceSettingsLink}). Wir verfolgen Änderungen im Raum #admins.`,
+            },
+            createReportTask: {
+                title: 'Erstelle deinen ersten Bericht',
+                description:
+                    'So erstellst du einen Bericht:\n\n' +
+                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    '2. Wähle *Bericht erstellen*.\n' +
+                    '3. Klicke auf *Ausgabe hinzufügen*.\n' +
+                    '4. Füge deine erste Ausgabe hinzu.\n\n' +
+                    'Fertig!',
+            },
+        } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
+        testDrive: {
+            name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Mache eine [Probefahrt](${testDriveURL})` : 'Mache eine Probefahrt'),
+            embeddedDemoIframeTitle: 'Probefahrt',
+            employeeFakeReceipt: {
+                description: 'Mein Probefahrt-Beleg!',
+            },
+        },
+        messages: {
+            onboardingEmployerOrSubmitMessage: 'Erstattungen zu erhalten ist so einfach wie eine Nachricht zu senden. Lass uns die Grundlagen durchgehen.',
+            onboardingPersonalSpendMessage: 'So verfolgst du deine Ausgaben mit nur wenigen Klicks.',
+            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
+                `Hier ist eine Aufgabenliste, die ich für ein Unternehmen mit ${onboardingCompanySize} Einreichenden empfehle:`,
+            onboardingTrackWorkspaceMessage:
+                '# Lass uns loslegen\n👋 Ich helfe dir! Ich habe deine Workspace-Einstellungen für Einzelunternehmer und ähnliche Unternehmen angepasst. Du kannst sie über den folgenden Link anpassen!\n\nSo verfolgst du deine Ausgaben mit nur wenigen Klicks:',
+            onboardingChatSplitMessage: 'Rechnungen mit Freunden zu teilen ist so einfach wie eine Nachricht zu senden. So funktioniert’s.',
+            onboardingAdminMessage: 'Lerne, wie du den Workspace deines Teams als Admin verwaltest und eigene Ausgaben einreichst.',
+            onboardingLookingAroundMessage:
+                'Expensify ist vor allem für Ausgaben-, Reise- und Firmenkartenmanagement bekannt – aber wir können noch viel mehr. Sag mir, was dich interessiert, und ich helfe dir beim Einstieg.',
+            onboardingTestDriveReceiverMessage: '*Du hast 3 Monate gratis! Jetzt loslegen.*',
         },
         workspace: {
             title: 'Bleiben Sie mit einem Arbeitsbereich organisiert.',
@@ -5770,6 +5970,7 @@ const translations = {
             groupBy: {
                 reports: 'Bericht',
                 members: 'Mitglied',
+                cards: 'Karte',
             },
         },
         groupBy: 'Gruppe nach',
@@ -6240,10 +6441,10 @@ const translations = {
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Überprüfung erforderlich',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
-            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return '';
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
+                return 'Kassenbon kann aufgrund einer unterbrochenen Bankverbindung nicht automatisch zugeordnet werden.';
             }
-            if (brokenBankConnection) {
+            if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Kassenbon kann aufgrund einer unterbrochenen Bankverbindung, die ${email} beheben muss, nicht automatisch zugeordnet werden.`
                     : 'Konnte Beleg aufgrund einer defekten Bankverbindung, die Sie beheben müssen, nicht automatisch zuordnen.';

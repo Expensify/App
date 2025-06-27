@@ -11,6 +11,7 @@
  */
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
+import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -1019,6 +1020,7 @@ const translations = {
         share: 'Condividi',
         participants: 'Partecipanti',
         createExpense: 'Crea spesa',
+        trackDistance: 'Traccia distanza',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Crea ${expensesNumber} spese`,
         addExpense: 'Aggiungi spesa',
         chooseRecipient: 'Scegli destinatario',
@@ -2209,6 +2211,231 @@ const translations = {
             title: "Impossibile aggiungere l'email di lavoro",
             subtitle: ({workEmail}: WorkEmailMergingBlockedParams) =>
                 `Non siamo riusciti ad aggiungere ${workEmail}. Riprova più tardi in Impostazioni o chatta con Concierge per assistenza.`,
+        },
+        tasks: {
+            testDriveAdminTask: {
+                title: ({testDriveURL}) => `Fai un [test drive](${testDriveURL})`,
+                description: ({testDriveURL}) => `[Fai un breve tour del prodotto](${testDriveURL}) per scoprire perché Expensify è il modo più veloce per gestire le tue spese.`,
+            },
+            testDriveEmployeeTask: {
+                title: ({testDriveURL}) => `Fai un [test drive](${testDriveURL})`,
+                description: ({testDriveURL}) => `Prova un [test drive](${testDriveURL}) e ottieni *3 mesi gratuiti di Expensify!* per il tuo team`,
+            },
+            createTestDriveAdminWorkspaceTask: {
+                title: ({workspaceConfirmationLink}) => `[Crea](${workspaceConfirmationLink}) uno spazio di lavoro`,
+                description: 'Crea uno spazio di lavoro e configura le impostazioni con l’aiuto del tuo specialista di configurazione!',
+            },
+            createWorkspaceTask: {
+                title: ({workspaceSettingsLink}) => `Crea uno [spazio di lavoro](${workspaceSettingsLink})`,
+                description: ({workspaceSettingsLink}) =>
+                    '*Crea uno spazio di lavoro* per monitorare le spese, scansionare ricevute, chattare e altro.\n' +
+                    '\n' +
+                    '1. Clicca su *Spazi di lavoro* > *Nuovo spazio di lavoro*.\n' +
+                    '\n' +
+                    `*Il tuo nuovo spazio di lavoro è pronto!* [Dai un’occhiata](${workspaceSettingsLink}).`,
+            },
+            setupCategoriesTask: {
+                title: ({workspaceCategoriesLink}) => `Configura le [categorie](${workspaceCategoriesLink})`,
+                description: ({workspaceCategoriesLink}) =>
+                    '*Configura le categorie* in modo che il tuo team possa codificare le spese per una rendicontazione semplice.\n' +
+                    '\n' +
+                    '1. Clicca su *Spazi di lavoro*.\n' +
+                    '3. Seleziona il tuo spazio di lavoro.\n' +
+                    '4. Clicca su *Categorie*.\n' +
+                    '5. Disattiva le categorie che non ti servono.\n' +
+                    '6. Aggiungi le tue categorie in alto a destra.\n' +
+                    '\n' +
+                    `[Vai alle impostazioni delle categorie dello spazio di lavoro](${workspaceCategoriesLink}).\n` +
+                    '\n' +
+                    `![Configura le categorie](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
+            },
+            combinedTrackSubmitExpenseTask: {
+                title: 'Invia una spesa',
+                description:
+                    '*Invia una spesa* inserendo un importo o scansionando una ricevuta.\n' +
+                    '\n' +
+                    '1. Clicca sul pulsante verde *+*.\n' +
+                    '2. Scegli *Crea spesa*.\n' +
+                    '3. Inserisci un importo o scansiona una ricevuta.\n' +
+                    `4. Aggiungi l’email o il numero di telefono del tuo responsabile.\n` +
+                    '5. Clicca su *Crea*.\n' +
+                    '\n' +
+                    'E il gioco è fatto!',
+            },
+            adminSubmitExpenseTask: {
+                title: 'Invia una spesa',
+                description:
+                    '*Invia una spesa* inserendo un importo o scansionando una ricevuta.\n' +
+                    '\n' +
+                    '1. Clicca sul pulsante verde *+*.\n' +
+                    '2. Scegli *Crea spesa*.\n' +
+                    '3. Inserisci un importo o scansiona una ricevuta.\n' +
+                    '4. Conferma i dettagli.\n' +
+                    '5. Clicca su *Crea*.\n' +
+                    '\n' +
+                    'E il gioco è fatto!',
+            },
+            trackExpenseTask: {
+                title: 'Monitora una spesa',
+                description:
+                    '*Monitora una spesa* in qualsiasi valuta, con o senza ricevuta.\n' +
+                    '\n' +
+                    '1. Clicca sul pulsante verde *+*.\n' +
+                    '2. Scegli *Crea spesa*.\n' +
+                    '3. Inserisci un importo o scansiona una ricevuta.\n' +
+                    '4. Scegli il tuo spazio *personale*.\n' +
+                    '5. Clicca su *Crea*.\n' +
+                    '\n' +
+                    'E il gioco è fatto! Sì, è davvero così facile.',
+            },
+            addAccountingIntegrationTask: {
+                title: ({integrationName, workspaceAccountingLink}) =>
+                    `Connetti${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' a'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'il tuo' : ''} ${integrationName}](${workspaceAccountingLink})`,
+                description: ({integrationName, workspaceAccountingLink}) =>
+                    `Connetti${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' il tuo' : ' a'} ${integrationName} per una codifica automatica delle spese e sincronizzazione che semplifica la chiusura di fine mese.\n` +
+                    '\n' +
+                    '1. Clicca su *Impostazioni*.\n' +
+                    '2. Vai a *Spazi di lavoro*.\n' +
+                    '3. Seleziona il tuo spazio di lavoro.\n' +
+                    '4. Clicca su *Contabilità*.\n' +
+                    `5. Trova ${integrationName}.\n` +
+                    '6. Clicca su *Connetti*.\n' +
+                    '\n' +
+                    `${
+                        integrationName && CONST.connectionsVideoPaths[integrationName]
+                            ? `[Vai alla contabilità](${workspaceAccountingLink}).\n\n![Connetti a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                            : `[Vai alla contabilità](${workspaceAccountingLink}).`
+                    }`,
+            },
+            connectCorporateCardTask: {
+                title: ({corporateCardLink}) => `Collega [la tua carta aziendale](${corporateCardLink})`,
+                description: ({corporateCardLink}) =>
+                    `Collega la tua carta aziendale per importare e codificare automaticamente le spese.\n` +
+                    '\n' +
+                    '1. Clicca su *Spazi di lavoro*.\n' +
+                    '2. Seleziona il tuo spazio di lavoro.\n' +
+                    '3. Clicca su *Carte aziendali*.\n' +
+                    '4. Segui le istruzioni per collegare la tua carta.\n' +
+                    '\n' +
+                    `[Vai per collegare le mie carte aziendali](${corporateCardLink}).`,
+            },
+            inviteTeamTask: {
+                title: ({workspaceMembersLink}) => `Invita [il tuo team](${workspaceMembersLink})`,
+                description: ({workspaceMembersLink}) =>
+                    '*Invita il tuo team* su Expensify così possono iniziare a monitorare le spese oggi stesso.\n' +
+                    '\n' +
+                    '1. Clicca su *Spazi di lavoro*.\n' +
+                    '3. Seleziona il tuo spazio di lavoro.\n' +
+                    '4. Clicca su *Membri* > *Invita membro*.\n' +
+                    '5. Inserisci email o numeri di telefono.\n' +
+                    '6. Aggiungi un messaggio personalizzato se vuoi!\n' +
+                    '\n' +
+                    `[Vai ai membri dello spazio di lavoro](${workspaceMembersLink}).\n` +
+                    '\n' +
+                    `![Invita il tuo team](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+            },
+            setupCategoriesAndTags: {
+                title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) => `Configura [categorie](${workspaceCategoriesLink}) e [tag](${workspaceMoreFeaturesLink})`,
+                description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
+                    '*Configura categorie e tag* in modo che il tuo team possa codificare le spese per una rendicontazione semplice.\n' +
+                    '\n' +
+                    `Importale automaticamente [collegando il software di contabilità](${workspaceAccountingLink}), oppure configuralo manualmente nelle [impostazioni dello spazio di lavoro](${workspaceCategoriesLink}).`,
+            },
+            setupTagsTask: {
+                title: ({workspaceMoreFeaturesLink}) => `Configura i [tag](${workspaceMoreFeaturesLink})`,
+                description: ({workspaceMoreFeaturesLink}) =>
+                    'Usa i tag per aggiungere dettagli extra alle spese come progetti, clienti, sedi e reparti. Se ti servono più livelli di tag, puoi passare al piano Control.\n' +
+                    '\n' +
+                    '1. Clicca su *Spazi di lavoro*.\n' +
+                    '3. Seleziona il tuo spazio di lavoro.\n' +
+                    '4. Clicca su *Altre funzionalità*.\n' +
+                    '5. Abilita *Tag*.\n' +
+                    '6. Vai a *Tag* nell’editor dello spazio di lavoro.\n' +
+                    '7. Clicca su *+ Aggiungi tag* per crearne uno tuo.\n' +
+                    '\n' +
+                    `[Vai a altre funzionalità](${workspaceMoreFeaturesLink}).\n` +
+                    '\n' +
+                    `![Configura i tag](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
+            },
+            inviteAccountantTask: {
+                title: ({workspaceMembersLink}) => `Invita il tuo [commercialista](${workspaceMembersLink})`,
+                description: ({workspaceMembersLink}) =>
+                    '*Invita il tuo commercialista* a collaborare nel tuo spazio di lavoro e a gestire le spese aziendali.\n' +
+                    '\n' +
+                    '1. Clicca su *Spazi di lavoro*.\n' +
+                    '2. Seleziona il tuo spazio di lavoro.\n' +
+                    '3. Clicca su *Membri*.\n' +
+                    '4. Clicca su *Invita un membro*.\n' +
+                    "5. Inserisci l'indirizzo email del tuo commercialista.\n" +
+                    '\n' +
+                    `[Invita ora il tuo commercialista](${workspaceMembersLink}).`,
+            },
+            startChatTask: {
+                title: 'Avvia una chat',
+                description:
+                    '*Avvia una chat* con chiunque utilizzando la loro email o numero di telefono.\n' +
+                    '\n' +
+                    '1. Clicca sul pulsante verde *+*.\n' +
+                    '2. Scegli *Avvia chat*.\n' +
+                    '3. Inserisci un’email o numero di telefono.\n' +
+                    '\n' +
+                    'Se non stanno già usando Expensify, riceveranno automaticamente un invito.\n' +
+                    '\n' +
+                    'Ogni chat si trasformerà anche in un’email o messaggio a cui potranno rispondere direttamente.',
+            },
+            splitExpenseTask: {
+                title: 'Dividi una spesa',
+                description:
+                    '*Dividi le spese* con una o più persone.\n' +
+                    '\n' +
+                    '1. Clicca sul pulsante verde *+*.\n' +
+                    '2. Scegli *Avvia chat*.\n' +
+                    '3. Inserisci email o numeri di telefono.\n' +
+                    '4. Clicca sul pulsante grigio *+* nella chat > *Dividi spesa*.\n' +
+                    '5. Crea la spesa selezionando *Manuale*, *Scansione* o *Distanza*.\n' +
+                    '\n' +
+                    'Puoi aggiungere altri dettagli se vuoi, oppure inviarla subito. Recuperiamo i tuoi soldi!',
+            },
+            reviewWorkspaceSettingsTask: {
+                title: ({workspaceSettingsLink}) => `Rivedi le [impostazioni dello spazio di lavoro](${workspaceSettingsLink})`,
+                description: ({workspaceSettingsLink}) =>
+                    'Ecco come rivedere e aggiornare le impostazioni dello spazio di lavoro:\n' +
+                    '1. Clicca sulla scheda delle impostazioni.\n' +
+                    '2. Clicca su *Spazi di lavoro* > [Il tuo spazio di lavoro].\n' +
+                    `[Vai al tuo spazio di lavoro](${workspaceSettingsLink}). Le tracceremo nella stanza #admins.`,
+            },
+            createReportTask: {
+                title: 'Crea il tuo primo report',
+                description:
+                    'Ecco come creare un report:\n' +
+                    '\n' +
+                    '1. Clicca sul pulsante verde *+*.\n' +
+                    '2. Scegli *Crea report*.\n' +
+                    '3. Clicca su *Aggiungi spesa*.\n' +
+                    '4. Aggiungi la tua prima spesa.\n' +
+                    '\n' +
+                    'E il gioco è fatto!',
+            },
+        } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
+        testDrive: {
+            name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Fai un [test drive](${testDriveURL})` : 'Fai un test drive'),
+            embeddedDemoIframeTitle: 'Test Drive',
+            employeeFakeReceipt: {
+                description: 'La mia ricevuta del test drive!',
+            },
+        },
+        messages: {
+            onboardingEmployerOrSubmitMessage: 'Ricevere un rimborso è facile come inviare un messaggio. Vediamo le basi.',
+            onboardingPersonalSpendMessage: 'Ecco come monitorare le tue spese in pochi clic.',
+            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
+                `Ecco un elenco di attività che consiglio per un’azienda delle tue dimensioni con ${onboardingCompanySize} persone che inviano spese:`,
+            onboardingTrackWorkspaceMessage:
+                '# Iniziamo\n👋 Sono qui per aiutarti! Per iniziare, ho personalizzato le impostazioni dello spazio di lavoro per ditte individuali e aziende simili. Puoi modificarle cliccando il link qui sotto!\n\nEcco come monitorare le tue spese in pochi clic:',
+            onboardingChatSplitMessage: 'Dividere le spese con gli amici è facile come inviare un messaggio. Ecco come.',
+            onboardingAdminMessage: 'Scopri come gestire lo spazio di lavoro del tuo team come admin e inviare le tue spese.',
+            onboardingLookingAroundMessage:
+                'Expensify è noto per la gestione di spese, viaggi e carte aziendali, ma facciamo molto di più. Fammi sapere cosa ti interessa e ti aiuterò a iniziare.',
+            onboardingTestDriveReceiverMessage: '*Hai ottenuto 3 mesi gratuiti! Inizia da qui sotto.*',
         },
         workspace: {
             title: 'Rimani organizzato con uno spazio di lavoro',
@@ -5756,6 +5983,7 @@ const translations = {
             groupBy: {
                 reports: 'Rapporto',
                 members: 'Membro',
+                cards: 'Carta',
             },
         },
         groupBy: 'Gruppo per',
@@ -6225,10 +6453,10 @@ const translations = {
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Revisione richiesta',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
-            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return '';
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
+                return 'Impossibile associare automaticamente la ricevuta a causa di una connessione bancaria interrotta.';
             }
-            if (brokenBankConnection) {
+            if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Impossibile abbinare automaticamente la ricevuta a causa di una connessione bancaria interrotta che ${email} deve risolvere.`
                     : 'Impossibile abbinare automaticamente la ricevuta a causa di una connessione bancaria interrotta che devi risolvere.';
