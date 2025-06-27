@@ -38,7 +38,7 @@ import {
     isSettled,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {allHavePendingRTERViolation, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
 function canSubmit(
     report: Report,
@@ -99,6 +99,10 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    if (!!transactions && transactions?.length > 0 && !transactions.some((transaction) => !isPending(transaction))) {
         return false;
     }
 

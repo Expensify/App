@@ -41,6 +41,7 @@ import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
+    isPending,
     isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
@@ -118,6 +119,10 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
     if (!isExpenseReport || !isApprovalEnabled || reportTransactions.length === 0) {
+        return false;
+    }
+
+    if (reportTransactions.length > 0 && !reportTransactions.some((transaction) => !isPending(transaction))) {
         return false;
     }
 
