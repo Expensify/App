@@ -1,6 +1,6 @@
 import {WRITE_COMMANDS} from '@libs/API/types';
-import useNetwork from './useNetwork';
 import useCommandsLoading from './useCommandsLoading';
+import useNetwork from './useNetwork';
 
 // Commands that should trigger the LoadingBar to show
 const RELEVANT_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT, WRITE_COMMANDS.READ_NEWEST_ACTION]);
