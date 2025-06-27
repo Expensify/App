@@ -34,7 +34,6 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
                     onPress={() => {
                         if (item.text.toLowerCase().includes('connect')) {
                             startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBO});
-                            return;
                         }
                         item.onPress();
                     }}
