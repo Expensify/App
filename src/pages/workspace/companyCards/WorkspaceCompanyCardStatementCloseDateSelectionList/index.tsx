@@ -19,7 +19,12 @@ type StatementCloseDateListItem = ListItem & {
     value: CompanyCardStatementCloseDate;
 };
 
-function WorkspaceCompanyCardStatementCloseDateSelectionList() {
+type WorkspaceCompanyCardStatementCloseDateSelectionListProps = {
+    confirmText: string;
+    onSubmit: (statementCloseDate: CompanyCardStatementCloseDate, statementCustomCloseDate: number | undefined) => void;
+};
+
+function WorkspaceCompanyCardStatementCloseDateSelectionList({confirmText, onSubmit}: WorkspaceCompanyCardStatementCloseDateSelectionListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -63,10 +68,8 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList() {
             return;
         }
 
-        // s77rt do something with selectedDate / selectedCustomDate
-    }, [selectedDate, selectedCustomDate]);
-
-    // s77rt fix size (and add compact option)
+        onSubmit(selectedDate, selectedDate === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH ? selectedCustomDate : undefined);
+    }, [selectedDate, selectedCustomDate, onSubmit]);
 
     return (
         <ScreenWrapper
@@ -121,7 +124,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList() {
                             />
                         )}
                         <FormAlertWithSubmitButton
-                            buttonText={translate('common.submit')}
+                            buttonText={confirmText}
                             onSubmit={submit}
                             enabledWhenOffline
                         />

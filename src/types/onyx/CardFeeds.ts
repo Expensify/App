@@ -106,6 +106,9 @@ type AddNewCardFeedData = {
     /** Card feed provider */
     feedType: CardFeedProvider;
 
+    /** Stringified card feed details */
+    feedDetails: string;
+
     /** Name of the card */
     cardTitle: string;
 
