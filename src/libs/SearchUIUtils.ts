@@ -531,8 +531,8 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
 
         const transactionViolations = getTransactionViolations(allViolations, transactionItem);
         // Use Map.get() for faster lookups with default values
-        const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
-        const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
+        const from = personalDetailsMap.get(transactionItem?.accountID?.toString()) ?? emptyPersonalDetails;
+        const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem?.managerID?.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
         // const isPolicyExpenseChat = !!reports.find((rp) => rp.policyID === transactionItem.policyID && rp.isPolicyExpenseChat);
 
         // console.log({reports})

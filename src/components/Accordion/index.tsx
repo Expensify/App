@@ -31,8 +31,9 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
             return isExpanded.get() ? height.get() : 0;
         }
 
+        const animationDuration = isExpanded.get() ? duration : duration * 0.6; // Faster closing
         return withTiming(height.get() * Number(isExpanded.get()), {
-            duration,
+            duration: animationDuration,
             easing: Easing.inOut(Easing.quad),
         });
     });
@@ -43,14 +44,15 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
         }
 
         isAnimating.set(true);
+        const animationDuration = isExpanded.get() ? duration : duration * 0.5; // Faster closing
         return withTiming(
             isExpanded.get() ? 1 : 0,
             {
-                duration,
+                duration: animationDuration,
                 easing: Easing.inOut(Easing.quad),
             },
             (finished) => {
-                if (!finished || !isExpanded.get()) {
+                if (!finished) {
                     return;
                 }
                 isAnimating.set(false);
@@ -59,6 +61,7 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
     });
 
     const animatedStyle = useAnimatedStyle(() => {
+        // If not expanded and no toggle was triggered, hide immediately
         if (!isToggleTriggered.get() && !isExpanded.get()) {
             return {
                 height: 0,
@@ -67,12 +70,16 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
             };
         }
 
+        // During animation, always show the element
+        // Only hide when animation is complete and element should be closed
+        const shouldShow = isExpanded.get() || isAnimating.get();
+
         return {
             height: !isToggleTriggered.get() ? undefined : derivedHeight.get(),
             maxHeight: !isToggleTriggered.get() ? undefined : derivedHeight.get(),
             opacity: derivedOpacity.get(),
             overflow: isAnimating.get() ? 'hidden' : 'visible',
-            display: isExpanded.get() ? 'inline' : 'none',
+            display: shouldShow ? 'inline' : 'none',
         };
     });
 

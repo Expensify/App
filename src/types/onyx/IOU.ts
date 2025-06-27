@@ -139,8 +139,11 @@ type SplitExpense = {
     /** Description of this split */
     description?: string;
 
-    /** Category assigned to this split */
+    /** Category assigned to this split (actual category from the policy) */
     category?: string;
+
+    /** MCC group of the line-item on the receipt */
+    mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 
     /** Tags associated with this split */
     tags?: string[];

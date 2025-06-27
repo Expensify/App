@@ -789,6 +789,15 @@ function isResolvedConciergeCategoryOptions(reportAction: OnyxEntry<ReportAction
 }
 
 /**
+ * Checks whether an action is concierge category options and resolved.
+ */
+function isResolvedConciergeSplitOptions(reportAction: OnyxEntry<ReportAction>): boolean {
+    const originalMessage = getOriginalMessage(reportAction);
+    const selectedOption = originalMessage && typeof originalMessage === 'object' && 'selectedOption' in originalMessage ? originalMessage?.selectedOption : null;
+    return !!selectedOption;
+}
+
+/**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
@@ -1813,6 +1822,11 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
         return [{text: message, html: message, type: 'COMMENT'}];
     }
 
+    if (isConciergeSplitOptions(action)) {
+        const message = getReportActionMessageText(action);
+        return [{text: message, html: message, type: 'COMMENT'}];
+    }
+
     const actionMessage = action.previousMessage ?? action.message;
     if (Array.isArray(actionMessage)) {
         return actionMessage.filter((item): item is Message => !!item);
@@ -1906,6 +1920,10 @@ function isActionableJoinRequestPendingReportAction(reportAction: OnyxEntry<Repo
 
 function isConciergeCategoryOptions(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS);
+}
+
+function isConciergeSplitOptions(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_SPLIT_OPTIONS> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_SPLIT_OPTIONS);
 }
 
 function getActionableJoinRequestPendingReportAction(reportID: string): OnyxEntry<ReportAction> {
@@ -2988,7 +3006,9 @@ export {
     isActionableTrackExpense,
     isExpenseChatWelcomeWhisper,
     isConciergeCategoryOptions,
+    isConciergeSplitOptions,
     isResolvedConciergeCategoryOptions,
+    isResolvedConciergeSplitOptions,
     isAddCommentAction,
     isApprovedOrSubmittedReportAction,
     isIOURequestReportAction,

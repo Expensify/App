@@ -44,6 +44,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {dismissConciergeSplitOptionsAction, initSplitExpense} from '@libs/actions/IOU';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
@@ -106,6 +107,7 @@ import {
     isCardIssuedAction,
     isChronosOOOListAction,
     isConciergeCategoryOptions,
+    isConciergeSplitOptions,
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
@@ -118,6 +120,7 @@ import {
     isReimbursementQueuedAction,
     isRenamedAction,
     isResolvedConciergeCategoryOptions,
+    isResolvedConciergeSplitOptions,
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTagModificationAction,
     isTaskAction,
@@ -162,6 +165,7 @@ import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session'
 import {isBlockedFromConcierge} from '@userActions/User';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -358,6 +362,9 @@ type PureReportActionItemProps = {
 
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
+
+    /** All the data of the transaction collection */
+    allTransactions?: OnyxCollection<OnyxTypes.Transaction>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -422,6 +429,7 @@ function PureReportActionItem({
     userBillingFundID,
     policies,
     shouldShowBorder,
+    allTransactions,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -723,6 +731,33 @@ function PureReportActionItem({
             }));
         }
 
+        if (isConciergeSplitOptions(action)) {
+            if (isResolvedConciergeSplitOptions(action)) {
+                return [];
+            }
+
+            if (!reportID) {
+                return [];
+            }
+
+            const transactionID = getOriginalMessage(action)?.transactionID;
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+
+            return [
+                {
+                    text: 'common.seePreview',
+                    key: 'common.seePreview',
+                    onPress: () => initSplitExpense(transaction, originalReportID, false, policy),
+                    isPrimary: true,
+                },
+                {
+                    text: 'common.no',
+                    key: 'common.no',
+                    onPress: () => dismissConciergeSplitOptionsAction(originalReportID, action.reportActionID),
+                },
+            ];
+        }
+
         if (!isActionableWhisper && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
             return [];
         }
@@ -823,6 +858,8 @@ function PureReportActionItem({
         resolveActionableMentionWhisper,
         originalReportID,
         isBetaEnabled,
+        allTransactions,
+        policy,
     ]);
 
     /**
@@ -1153,6 +1190,19 @@ function PureReportActionItem({
                     )}
                 </View>
             );
+        } else if (isConciergeSplitOptions(action)) {
+            children = (
+                <View>
+                    <ReportActionItemBasicMessage message={translate('common.split')} />
+                    {actionableItemButtons.length > 0 && (
+                        <ActionableItemButtons
+                            items={actionableItemButtons}
+                            layout="horizontal"
+                            shouldUseLocalization
+                        />
+                    )}
+                </View>
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE)) {
             children = <ReportActionItemBasicMessage message={getDemotedFromWorkspaceMessage(action)} />;
         } else if (isCardIssuedAction(action)) {
@@ -1216,8 +1266,8 @@ function PureReportActionItem({
                                     {actionableItemButtons.length > 0 && (
                                         <ActionableItemButtons
                                             items={actionableItemButtons}
-                                            layout={isActionableTrackExpense(action) || isConciergeCategoryOptions(action) ? 'vertical' : 'horizontal'}
-                                            shouldUseLocalization={!isConciergeCategoryOptions(action)}
+                                            layout={isActionableTrackExpense(action) || isConciergeCategoryOptions(action) || isConciergeSplitOptions(action) ? 'vertical' : 'horizontal'}
+                                            shouldUseLocalization={!isConciergeCategoryOptions(action) && !isConciergeSplitOptions(action)}
                                         />
                                     )}
                                 </View>

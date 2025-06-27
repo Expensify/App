@@ -1,5 +1,6 @@
 export type {default as ImportMultiLevelTagsParams} from './ImportMultiLevelTagsParams';
 export type {default as CleanPolicyTagsParams} from './CleanPolicyTagsParams';
+export type {default as DismissConciergeSplitOptionsParams} from './DismissConciergeSplitOptionsParams';
 export type {default as ActivatePhysicalExpensifyCardParams} from './ActivatePhysicalExpensifyCardParams';
 export type {default as AddNewContactMethodParams} from './AddNewContactMethodParams';
 export type {default as AddPaymentCardParams} from './AddPaymentCardParams';

@@ -732,6 +732,17 @@ const getTimeValidationErrorKey = (inputTime: Date): string => {
 };
 
 /**
+ * Parse a string to a date in the UTC timezone.
+ */
+function parseLocaleDateUTC(datetime: string): Date {
+    const date = toDate(datetime, {timeZone: 'UTC'});
+    if (!isValid(date)) {
+        throw new Error(`Invalid date: ${datetime}`);
+    }
+    return toZonedTime(date, 'UTC');
+}
+
+/**
  *
  * Get a date and format this date using the UTC timezone.
  * param datetime
@@ -739,13 +750,12 @@ const getTimeValidationErrorKey = (inputTime: Date): string => {
  * returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
  */
 function formatWithUTCTimeZone(datetime: string, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING) {
-    const date = toDate(datetime, {timeZone: 'UTC'});
-
-    if (isValid(date)) {
-        return tzFormat(toZonedTime(date, 'UTC'), dateFormat);
+    try {
+        const date = parseLocaleDateUTC(datetime);
+        return tzFormat(date, dateFormat);
+    } catch {
+        return '';
     }
-
-    return '';
 }
 
 /**
@@ -1002,6 +1012,7 @@ const DateUtils = {
     isYesterday,
     getMonthNames,
     getDaysOfWeek,
+    parseLocaleDateUTC,
     formatWithUTCTimeZone,
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,

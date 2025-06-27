@@ -524,6 +524,11 @@ type OptimisticConciergeCategoryOptionsAction = Pick<
     'reportActionID' | 'actionName' | 'actorAccountID' | 'person' | 'automatic' | 'avatar' | 'created' | 'message' | 'pendingAction' | 'shouldShow' | 'originalMessage' | 'errors'
 > & {isOptimisticAction: boolean};
 
+type OptimisticConciergeSplitOptionsAction = Pick<
+    ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_SPLIT_OPTIONS>,
+    'reportActionID' | 'actionName' | 'actorAccountID' | 'person' | 'automatic' | 'avatar' | 'created' | 'message' | 'pendingAction' | 'shouldShow' | 'originalMessage' | 'errors'
+> & {isOptimisticAction: boolean};
+
 type OptimisticRenamedReportAction = Pick<
     ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>,
     'actorAccountID' | 'automatic' | 'avatar' | 'created' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'pendingAction' | 'actionName' | 'originalMessage'
@@ -11539,6 +11544,7 @@ export type {
     OptimisticChatReport,
     OptimisticClosedReportAction,
     OptimisticConciergeCategoryOptionsAction,
+    OptimisticConciergeSplitOptionsAction,
     OptimisticCreatedReportAction,
     OptimisticIOUReportAction,
     OptimisticTaskReportAction,
