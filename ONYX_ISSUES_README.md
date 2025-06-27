@@ -23,6 +23,8 @@ This directory contains scripts to automatically create GitHub issues from the `
 
    **Sub-Issue Feature**: The script uses GitHub's native sub-issue functionality, which requires the `GraphQL-Features: sub_issues` header in API calls.
 
+   **Project Assignment**: Issues are automatically assigned to [Expensify organization project #208](https://github.com/orgs/Expensify/projects/208). This requires your GitHub token to have the `read:project` scope. If you don't have this scope, issues will still be created but you'll need to manually add them to the project.
+
 2. **File format**: The `onyxrefs.txt` file should follow this format:
    ```
    ***path/to/file.ts
@@ -81,12 +83,18 @@ This will:
 
 ### Parent Issues
 - **Title**: `Refactor {file-path} Onyx.connect references`
-- **Body**: Contains context about the refactoring effort and mentions that sub-issues will be created
+- **Assignee**: `tgolen`
+- **Labels**: `Engineering`, `Improvement`
+- **Project**: Expensify organization project #208 (if token has proper scopes)
+- **Body**: Contains context about the refactoring effort, references to the main deprecation issue, and TDD instructions
 - **Purpose**: Track the overall refactoring effort for each file
 
 ### Sub-Issues
 - **Title**: `Remove Onyx.connect reference: {onyx-key} in {file-path}`
-- **Body**: Contains specific details about the reference to be removed
+- **Assignee**: `tgolen`
+- **Labels**: `Engineering`, `Improvement`
+- **Project**: Expensify organization project #208 (if token has proper scopes)
+- **Body**: Contains specific details about the reference to be removed, including TDD instructions
 - **Purpose**: Track individual Onyx.connect references that need to be refactored
 
 ### Issue Linking
@@ -104,6 +112,8 @@ The script includes comprehensive error handling:
 - Provides informative error messages
 - Includes rate limiting to avoid hitting GitHub API limits
 - Uses simplified GitHub CLI commands for better reliability
+- Follows DRY principles with modular, reusable functions
+- Maintainable code structure with separated concerns
 
 ## Rate Limiting
 
@@ -119,10 +129,14 @@ Starting to process onyxrefs.txt...
 Repository: Expensify/App
 
 Creating parent issue: Refactor src/libs/ActiveClientManager/index.ts Onyx.connect references
-Created parent issue with ID: MDU6SXNzdWUxMjM0NTY3ODk=
+Created parent issue #123 with ID: MDU6SXNzdWUxMjM0NTY3ODk=
+Note: Cannot add to project 208 - requires 'read:project' token scope
+      You can manually add issues at: https://github.com/orgs/Expensify/projects/208
 
 Creating sub-issue: Remove Onyx.connect reference: ONYXKEYS.ACTIVE_CLIENTS in src/libs/ActiveClientManager/index.ts
-Created sub-issue with ID: MDU6SXNzdWUxMjM0NTY3OTA=
+Created sub-issue #124 with ID: MDU6SXNzdWUxMjM0NTY3OTA=
+Note: Cannot add to project 208 - requires 'read:project' token scope
+      You can manually add issues at: https://github.com/orgs/Expensify/projects/208
 
 Linking sub-issue to parent...
 Linked sub-issue to parent issue
@@ -134,6 +148,8 @@ Sub-issues created: 1
 Issue links created: 1
 Total issues created: 2
 
+All issues assigned to: tgolen
+All issues labeled with: Engineering, Improvement
 You can view all created issues at: https://github.com/Expensify/App/issues
 ==============================================
 ```
@@ -157,6 +173,12 @@ You can view all created issues at: https://github.com/Expensify/App/issues
    - Ensure you have write permissions to the repository
    - Check that your GitHub token has the necessary scopes
 
+5. **Project Assignment Issues**
+   - If you see "Cannot add to project 208 - requires 'read:project' token scope"
+   - Update your GitHub token scopes at: https://github.com/settings/tokens
+   - Add the `read:project` scope to your token
+   - Or manually add created issues to the project at: https://github.com/orgs/Expensify/projects/208
+
 ### Debugging
 
 To debug issues:
@@ -176,10 +198,18 @@ The input file (`onyxrefs.txt`) must follow this exact format:
 
 ## Customization
 
-To modify the issue titles or content:
-1. Edit the `parent_title` and `parent_body` variables in the script
-2. Edit the `sub_title` and `sub_body` variables in the script
-3. Adjust the rate limiting delays if needed
+The script follows DRY (Don't Repeat Yourself) principles with modular functions:
+
+### Issue Template Customization
+- **Common Elements**: Modify `get_parent_issue_reference()` and `get_tdd_instructions()` functions
+- **Parent Issue Bodies**: Edit the `build_parent_issue_body()` function
+- **Sub-Issue Bodies**: Edit the `build_sub_issue_body()` function
+
+### Other Customizations
+1. **Issue Titles**: Modify the title templates in the main processing section
+2. **Assignee**: Change `--assignee tgolen` in the `create_issue()` function
+3. **Labels**: Modify `--label "Engineering,Improvement"` in the `create_issue()` function
+4. **Rate Limiting**: Adjust the `sleep` delays if needed
 
 ## Support
 

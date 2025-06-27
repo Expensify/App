@@ -56,6 +56,61 @@ get_repo_info() {
     echo "Expensify/App"
 }
 
+# Common template parts for issue bodies
+get_parent_issue_reference() {
+    echo "This is part of deprecating Onyx.connect. (Parent Issue)[https://github.com/Expensify/Expensify/issues/507850]"
+}
+
+get_tdd_instructions() {
+    echo "Be sure to refactor methods using test driven development:
+1. Create a unit test for methods before refactoring
+2. Refactor the methods
+3. Ensure the unit test still runs after refactoring
+4. Reinforce the unit testing with a functional test and a QA test"
+}
+
+# Function to build parent issue body
+build_parent_issue_body() {
+    local file_path="$1"
+
+    cat << EOF
+$(get_parent_issue_reference)
+
+Module: ${file_path}
+
+This issue tracks the refactoring of Onyx.connect references in ${file_path}.
+
+## Sub-issues
+Sub-issues will be created for each specific Onyx.connect reference that needs to be removed.
+
+## Context
+This is part of a larger effort to refactor Onyx.connect usage throughout the codebase.
+
+$(get_tdd_instructions)
+EOF
+}
+
+# Function to build sub-issue body
+build_sub_issue_body() {
+    local file_path="$1"
+    local onyx_key="$2"
+    local content="$3"
+
+    cat << EOF
+$(get_parent_issue_reference)
+
+Module: ${file_path}
+Onyx Key: ${onyx_key}
+
+Remove the Onyx.connect reference for \`${onyx_key}\` in \`${file_path}\`.
+
+## Details
+- **Reference**: ${content}
+
+$(get_tdd_instructions)
+EOF
+}
+
 # Function to create a GitHub issue and return both number and ID (separated by |)
 create_issue() {
     local title="$1"
@@ -64,9 +119,13 @@ create_issue() {
     # Add rate limiting to avoid hitting GitHub API limits
     sleep 1
 
-    # Create the issue and capture the output
+    # Create the issue with assignee and labels
     local issue_url
-    if ! issue_url=$(gh issue create --title "$title" --body "$body" 2>&1); then
+    if ! issue_url=$(gh issue create \
+        --title "$title" \
+        --body "$body" \
+        --assignee tgolen \
+        --label "Engineering,Improvement" 2>&1); then
         echo "Error creating issue: $issue_url" >&2
         return 1
     fi
@@ -79,6 +138,35 @@ create_issue() {
     if ! issue_id=$(gh issue view "$issue_number" --json id --jq ".id" 2>&1); then
         echo "Error getting issue ID: $issue_id" >&2
         return 1
+    fi
+
+    # Add issue to project 208 (requires 'read:project' scope)
+    # Note: This requires the GitHub token to have project scopes
+    # You can manually add issues to the project at: https://github.com/orgs/Expensify/projects/208
+    if gh api graphql -f query="
+        query { organization(login: \"Expensify\") { projectV2(number: 208) { id } } }
+    " > /dev/null 2>&1; then
+        local project_id=$(gh api graphql -f query="
+            query { organization(login: \"Expensify\") { projectV2(number: 208) { id } } }
+        " --jq '.data.organization.projectV2.id')
+
+        if ! gh api graphql -f query="
+            mutation {
+                addProjectV2ItemById(input: {
+                    projectId: \"$project_id\"
+                    contentId: \"$issue_id\"
+                }) {
+                    item {
+                        id
+                    }
+                }
+            }
+        " > /dev/null 2>&1; then
+            echo "Warning: Failed to add issue to project 208" >&2
+        fi
+    else
+        echo "Note: Cannot add to project 208 - requires 'read:project' token scope" >&2
+        echo "      You can manually add issues at: https://github.com/orgs/Expensify/projects/208" >&2
     fi
 
     # Return both number and ID separated by |
@@ -148,13 +236,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
 
                 # Create parent issue
         parent_title="Refactor ${file_path} Onyx.connect references"
-        parent_body="This issue tracks the refactoring of Onyx.connect references in ${file_path}.
-
-## Sub-issues
-Sub-issues will be created for each specific Onyx.connect reference that needs to be removed.
-
-## Context
-This is part of a larger effort to refactor Onyx.connect usage throughout the codebase."
+        parent_body=$(build_parent_issue_body "$file_path")
 
         if [[ "$DRY_RUN" == true ]]; then
             echo "PARENT ISSUE:"
@@ -191,18 +273,7 @@ This is part of a larger effort to refactor Onyx.connect usage throughout the co
 
                 # Create sub-issue
         sub_title="Remove Onyx.connect reference: ${onyx_key} in ${current_file_path}"
-        sub_body="Remove the Onyx.connect reference for \`${onyx_key}\` in \`${current_file_path}\`.
-
-## Details
-- **File**: \`${current_file_path}\`
-- **Onyx Key**: \`${onyx_key}\`
-- **Reference**: ${content}
-
-## Context
-This is part of refactoring Onyx.connect usage. The reference should be replaced with the appropriate modern Onyx pattern.
-
-## Parent Issue
-This is a sub-issue of the main refactoring issue for this file."
+        sub_body=$(build_sub_issue_body "$current_file_path" "$onyx_key" "$content")
 
                 if [[ "$DRY_RUN" == true ]]; then
             echo "  SUB-ISSUE:"
@@ -260,6 +331,8 @@ else
     echo "Issue links created: $links_created"
     echo "Total issues created: $((parent_issues_created + sub_issues_created))"
     echo ""
+    echo "All issues assigned to: tgolen"
+    echo "All issues labeled with: Engineering, Improvement"
     echo "You can view all created issues at: https://github.com/$(get_repo_info)/issues"
     echo "=============================================="
 fi
