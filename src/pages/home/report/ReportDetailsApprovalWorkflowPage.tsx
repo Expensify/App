@@ -7,10 +7,13 @@ import {ReactZoomPanPinchContentRef, TransformComponent, TransformWrapper} from 
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Minus, Plus} from '@components/Icon/Expensicons';
+import {useSession} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
@@ -30,6 +33,7 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {reportID, backTo} = route.params;
+    const session = useSession();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID || ''}`);
@@ -63,16 +67,49 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
             return target ? {...target, id: Math.random().toString(36).slice(2, 8)} : null;
         };
 
-        const getNameByEmail = (email: string) => {
-            const name = email.split('@')[0].split('.');
+        const getUserInfo = (email: string) => {
+            // First try to get personal details by email  
+            const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(email);
+            
+            if (personalDetail && personalDetail.displayName) {
+                return {
+                    firstName: personalDetail.firstName || '',
+                    lastName: personalDetail.lastName || '', 
+                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail) || email,
+                    avatar: personalDetail.avatar || UserUtils.getDefaultAvatarURL(personalDetail.accountID),
+                    accountID: personalDetail.accountID
+                };
+            }
 
+            // Try to find by searching through all personal details
+            const allPersonalDetailsArray = Object.values(personalDetails || {});
+            const foundDetail = allPersonalDetailsArray.find(detail => detail?.login?.toLowerCase() === email.toLowerCase());
+            
+            if (foundDetail && foundDetail.displayName) {
+                return {
+                    firstName: foundDetail.firstName || '',
+                    lastName: foundDetail.lastName || '', 
+                    displayName: PersonalDetailsUtils.getDisplayNameOrDefault(foundDetail) || email,
+                    avatar: foundDetail.avatar || UserUtils.getDefaultAvatarURL(foundDetail.accountID),
+                    accountID: foundDetail.accountID
+                };
+            }
+
+            // Fallback to email parsing if no personal details found
+            const name = email.split('@')[0].split('.');
             let firstName = name[0] ?? '';
             let lastName = name[1] ?? '';
-
             firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
             lastName = lastName.charAt(0).toUpperCase() + lastName.slice(1);
 
-            return {firstName, lastName};
+            const displayName = `${firstName} ${lastName}`.trim();
+            return {
+                firstName,
+                lastName,
+                displayName: displayName || email,
+                avatar: UserUtils.getDefaultAvatarURL(-1),
+                accountID: -1
+            };
         };
 
         // Build workflow chain for the report submitter
@@ -87,7 +124,7 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
             next = getNode(next, level);
         }
 
-        let chart = `graph TD\nclassDef rounded rx:27,stroke:transparent\nclassDef skipped fill:${colors.white},color:${colors.green},stroke:${colors.green},stroke-width:1px`;
+        let chart = `graph TD\nclassDef rounded stroke:transparent\nclassDef skipped fill:${colors.white},color:${colors.green},stroke:${colors.green},stroke-width:2px,stroke-dasharray:5\nclassDef currentUser stroke:${colors.orange},stroke-width:3px`;
 
         for (let j = 0; j < workflow.length - 1; j++) {
             const from = workflow[j];
@@ -95,18 +132,41 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
 
             if (!to) continue;
 
-            const fromName = getNameByEmail(from.email ?? '');
-            const toName = getNameByEmail(to?.email ?? '');
+            const fromInfo = getUserInfo(from.email ?? '');
+            const toInfo = getUserInfo(to?.email ?? '');
 
             const action = j === 0 ? 'submits to' : 'forwards to';
-            const skipped = from.skipped ? '(skipped)' : '';
-            const className = from.skipped ? 'skipped' : 'rounded';
+            
+            // Check if users are the current user
+            const isCurrentUser = fromInfo.accountID === session?.accountID;
+            const isToCurrentUser = toInfo.accountID === session?.accountID;
+            
+            const className = from.skipped ? 'skipped' : (isCurrentUser ? 'currentUser' : 'rounded');
 
-            chart += `\n${from.id}["${fromName.firstName} ${fromName.lastName} ${skipped}"]:::${className} -->|"${action}"| ${to.id}["${toName.firstName} ${toName.lastName}"]:::rounded`;
+            // Sanitize display names to prevent Mermaid markdown parsing issues
+            const sanitizeText = (text: string) => {
+                return text
+                    .replace(/@/g, '(at)') // Replace @ with 'at'
+                    .trim()
+                    .replace(/\s+/g, ' '); // Replace multiple spaces with single space
+            };
+            
+            const fromDisplayName = isCurrentUser 
+                ? `${sanitizeText(fromInfo.displayName) || 'User'} (you${from.skipped ? ' - skipped' : ''})`
+                : (sanitizeText(fromInfo.displayName) || 'User');
+            const toDisplayName = isToCurrentUser 
+                ? `${sanitizeText(toInfo.displayName) || 'User'} (you${to.skipped ? ' - skipped' : ''})`
+                : (sanitizeText(toInfo.displayName) || 'User');
+            const skippedText = (from.skipped && !isCurrentUser) ? ' (skipped)' : '';
+            const toSkippedText = (to.skipped && !isToCurrentUser) ? ' (skipped)' : '';
+            
+            const toClassName = to.skipped ? 'skipped' : (isToCurrentUser ? 'currentUser' : 'rounded');
+            
+            chart += `\n${from.id}("${fromDisplayName}${skippedText}"):::${className} -->|"${action}"| ${to.id}("${toDisplayName}${toSkippedText}"):::${toClassName}`;
         }
 
         return chart;
-    }, [policy?.employeeList, report?.ownerAccountID, personalDetails]);
+    }, [policy?.employeeList, report?.ownerAccountID, personalDetails, session?.accountID]);
 
     if (!report || !policy) {
         return (
@@ -189,7 +249,16 @@ function ApprovalChartWeb({chart, styles}: ChartViewProps) {
                     textColor: colors.white,
                     edgeLabelBackground: colors.green700,
                     lineColor: colors.green700,
+                    fontWeight: 'bold',
                 },
+                flowchart: {
+                    padding: 20,
+                    useMaxWidth: true,
+                    nodeSpacing: 50,
+                },
+                fontFamily: 'Expensify Neue',
+                fontSize: 16,
+                htmlLabels: true,
             });
             containerRef.current.innerHTML = chart;
             mermaid.run({nodes: [containerRef.current]});
@@ -269,7 +338,24 @@ function ApprovalChartMobile({chart}: ChartViewProps) {
         <body>
         <div class="mermaid">${chart}</div>
         <script>
-            mermaid.initialize({ startOnLoad: true });
+            mermaid.initialize({ 
+                startOnLoad: true,
+                themeVariables: {
+                    mainBkg: '${colors.green}',
+                    textColor: 'white',
+                    edgeLabelBackground: '${colors.green700}',
+                    lineColor: '${colors.green700}',
+                    fontWeight: 'bold',
+                },
+                flowchart: {
+                    padding: 20,
+                    useMaxWidth: true,
+                    nodeSpacing: 50,
+                },
+                fontFamily: 'Expensify Neue',
+                fontSize: 16,
+                htmlLabels: true,
+            });
         </script>
         </body>
         </html>
