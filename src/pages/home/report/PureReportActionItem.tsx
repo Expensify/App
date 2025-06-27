@@ -451,7 +451,7 @@ function PureReportActionItem({
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
     const isActionableWhisper = isActionableMentionWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
     // const [tryVirtualCFO] = useOnyx(ONYXKEYS.TRY_VIRTUAL_CFO, {canBeMissing: true});
-    const tryVirtualCFO = true;
+    const tryVirtualCFO = false;
     const [isVirtualCFOToggled] = useOnyx(ONYXKEYS.IS_VIRTUAL_CFO_TOGGLED, {canBeMissing: true});
     const shouldShowAnimatedCFOButton = !!tryVirtualCFO && !isVirtualCFOToggled;
 
