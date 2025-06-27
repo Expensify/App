@@ -667,14 +667,16 @@ function MoneyRequestConfirmationList({
                     hideFocusedState={false}
                     hideCurrencySymbol
                     formatAmountOnBlur
-                    prefixContainerStyle={[styles.pv0]}
-                    inputStyle={[styles.optionRowAmountInput]}
-                    containerStyle={[styles.textInputContainer]}
+                    prefixContainerStyle={[styles.pv0, styles.h100]}
+                    prefixStyle={styles.lineHeightUndefined}
+                    inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
+                    containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
-                    maxLength={formattedTotalAmount.length}
-                    contentWidth={formattedTotalAmount.length * 8}
+                    maxLength={formattedTotalAmount.length + 1}
+                    contentWidth={(formattedTotalAmount.length + 1) * 8}
+                    shouldApplyPaddingToContainer
                 />
             ),
         }));
@@ -688,8 +690,11 @@ function MoneyRequestConfirmationList({
         selectedParticipants,
         styles.flexWrap,
         styles.pl2,
+        styles.pr1,
+        styles.h100,
         styles.textLabel,
         styles.pv0,
+        styles.lineHeightUndefined,
         styles.optionRowAmountInput,
         styles.textInputContainer,
         styles.ml3,
@@ -860,12 +865,6 @@ function MoneyRequestConfirmationList({
      */
     const confirm = useCallback(
         (paymentMethod: PaymentMethodType | undefined) => {
-            if (expensesNumber > 1) {
-                // TODO: remove early return when bulk expense creation is implemented
-                // https://github.com/Expensify/App/issues/61184
-                return;
-            }
-
             if (!!routeError || !transactionID) {
                 return;
             }
@@ -934,7 +933,6 @@ function MoneyRequestConfirmationList({
             isMerchantEmpty,
             shouldDisplayFieldError,
             transaction,
-            expensesNumber,
             iouCategory.length,
             formError,
             iouType,

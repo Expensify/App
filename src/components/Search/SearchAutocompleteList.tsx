@@ -5,7 +5,6 @@ import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SelectionList from '@components/SelectionList';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
@@ -80,7 +79,7 @@ type SearchAutocompleteListProps = {
     onHighlightFirstItem?: () => void;
 
     /** Ref for textInput */
-    textInputRef?: React.RefObject<AnimatedTextInputRef>;
+    textInputRef?: React.RefObject<AnimatedTextInputRef | null>;
 };
 
 const defaultListOptions = {
@@ -370,19 +369,13 @@ function SearchAutocompleteList(
                     .filter((type) => type.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(type.toLowerCase()))
                     .sort();
 
-                return filteredTypes.map((type) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TYPE,
-                    text: type,
-                }));
+                return filteredTypes.map((type) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TYPE, text: type}));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY: {
                 const filteredGroupBy = groupByAutocompleteList.filter(
                     (groupByValue) => groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(groupByValue.toLowerCase()),
                 );
-                return filteredGroupBy.map((groupByValue) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY,
-                    text: groupByValue,
-                }));
+                return filteredGroupBy.map((groupByValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY, text: groupByValue}));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
                 const filteredStatuses = statusAutocompleteList
@@ -390,10 +383,7 @@ function SearchAutocompleteList(
                     .sort()
                     .slice(0, 10);
 
-                return filteredStatuses.map((status) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.STATUS,
-                    text: status,
-                }));
+                return filteredStatuses.map((status) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.STATUS, text: status}));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE: {
                 const filteredExpenseTypes = expenseTypes
@@ -559,10 +549,7 @@ function SearchAutocompleteList(
         text: StringUtils.lineBreaksToSpaces(item.text),
         wrapperStyle: [styles.pr3, styles.pl3],
     }));
-    sections.push({
-        title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined,
-        data: styledRecentReports,
-    });
+    sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {
         const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
@@ -605,14 +592,9 @@ function SearchAutocompleteList(
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
 
     return (
-        <>
-            {isInitialRender && (
-                <OptionsListSkeletonView
-                    fixedNumItems={4}
-                    shouldStyleAsTable
-                    speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                />
-            )}
+        // On page refresh, when the list is rendered before options are initialized the auto-focusing on initiallyFocusedOptionKey
+        // will fail because the list will be empty on first render so we only render after options are initialized.
+        areOptionsInitialized && (
             <SelectionList<OptionData | SearchQueryItem>
                 showLoadingPlaceholder={!areOptionsInitialized}
                 fixedNumItemsForLoader={4}
@@ -640,8 +622,9 @@ function SearchAutocompleteList(
                 shouldScrollToFocusedIndex={!isInitialRender}
                 shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
                 disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
+                addBottomSafeAreaPadding
             />
-        </>
+        )
     );
 }
 
