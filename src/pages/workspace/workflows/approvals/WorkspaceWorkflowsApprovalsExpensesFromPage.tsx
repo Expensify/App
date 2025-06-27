@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Badge from '@components/Badge';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -30,11 +31,7 @@ import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-<<<<<<< HEAD
-=======
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
-import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
->>>>>>> 2cf6301c3d674fe26a7797553c6bdcedf1f87d34
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
@@ -69,7 +66,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListMember[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -102,18 +98,35 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         setSelectedMembers((prevSelectedMembers) => {
             const workflowMembers = approvalWorkflow.members.map((member) => {
                 const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-<<<<<<< HEAD
                 let accountID = Number(policyMemberEmailsToAccountIDs[member.email]);
+                
+                // If no accountID found in workspace members, check invite options (for new users)
                 if (!accountID) {
                     const personalDetail = inviteOptions.personalDetails.find((detail) => detail.login === member.email);
                     const userToInvite = inviteOptions.userToInvite?.login === member.email ? inviteOptions.userToInvite : null;
                     accountID = personalDetail?.accountID ?? userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 }
-                const isAdmin = policy?.employeeList?.[member.email]?.role === CONST.REPORT.ROLE.ADMIN;
-=======
-                const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
+                
                 const login = personalDetailLogins?.[accountID];
->>>>>>> 2cf6301c3d674fe26a7797553c6bdcedf1f87d34
+                const isWorkspaceMember = !!policyMemberEmailsToAccountIDs[member.email];
+                const isAdmin = policy?.employeeList?.[member.email]?.role === CONST.REPORT.ROLE.ADMIN;
+                
+                // Determine right element based on member type
+                let rightElement: React.ReactNode;
+                if (isWorkspaceMember) {
+                    rightElement = (
+                        <MemberRightIcon
+                            role={policy?.employeeList?.[member.email]?.role}
+                            owner={policy?.owner}
+                            login={login}
+                        />
+                    );
+                } else if (isAdmin) {
+                    // For external users (invited), show admin badge if they're admin
+                    rightElement = <Badge text={translate('common.admin')} />;
+                } else {
+                    rightElement = undefined;
+                }
 
                 return {
                     text: member.displayName,
@@ -122,8 +135,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     isSelected: true,
                     login: member.email,
                     icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}],
-<<<<<<< HEAD
-                    rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
+                    rightElement,
                     accountID,
                 };
             });
@@ -133,20 +145,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
             return [...workflowMembers, ...preservedSelectedMembers];
         });
-    }, [approvalWorkflow?.members, policy?.employeeList, translate, inviteOptions.personalDetails, inviteOptions.userToInvite]);
-=======
-                    rightElement: (
-                        <MemberRightIcon
-                            role={policy?.employeeList?.[member.email]?.role}
-                            owner={policy?.owner}
-                            login={login}
-                        />
-                    ),
-                };
-            }),
-        );
-    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate]);
->>>>>>> 2cf6301c3d674fe26a7797553c6bdcedf1f87d34
+    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate, inviteOptions.personalDetails, inviteOptions.userToInvite]);
 
     const approversEmail = useMemo(() => approvalWorkflow?.approvers.map((member) => member?.email), [approvalWorkflow?.approvers]);
 
@@ -168,10 +167,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         isSelected: false,
                         login: member.email,
                         icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}],
-<<<<<<< HEAD
-                        rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
-                        accountID,
-=======
                         rightElement: (
                             <MemberRightIcon
                                 role={policy?.employeeList?.[member.email]?.role}
@@ -179,7 +174,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                                 login={login}
                             />
                         ),
->>>>>>> 2cf6301c3d674fe26a7797553c6bdcedf1f87d34
+                        accountID,
                     };
                 })
                 .filter(
@@ -199,6 +194,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             .map((item) => formatMemberForList(item))
             .map((member) => ({
                 ...member,
+                // For external users, show Badge for admin role
                 rightElement: policy?.employeeList?.[member.login]?.role === CONST.REPORT.ROLE.ADMIN ? <Badge text={translate('common.admin')} /> : undefined,
             }));
 
@@ -224,21 +220,19 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 shouldShow: true,
             },
         ];
-<<<<<<< HEAD
     }, [
         approvalWorkflow?.availableMembers,
         debouncedSearchTerm,
         policy?.preventSelfApproval,
         policy?.employeeList,
+        policy?.owner,
         selectedMembers,
         translate,
         approversEmail,
+        personalDetailLogins,
         inviteOptions.personalDetails,
         inviteOptions.userToInvite,
     ]);
-=======
-    }, [approvalWorkflow?.availableMembers, debouncedSearchTerm, policy?.preventSelfApproval, policy?.employeeList, policy?.owner, selectedMembers, approversEmail, personalDetailLogins]);
->>>>>>> 2cf6301c3d674fe26a7797553c6bdcedf1f87d34
 
     const goBack = useCallback(() => {
         let backTo;
