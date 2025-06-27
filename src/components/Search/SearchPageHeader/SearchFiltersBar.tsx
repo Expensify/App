@@ -20,6 +20,7 @@ import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup'
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -30,8 +31,8 @@ import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
+import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, isFilterSupported} from '@libs/SearchQueryUtils';
+import {getGroupByOptions, getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -50,6 +51,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isDevelopment} = useEnvironment();
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -121,6 +123,24 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             );
         },
         [translate, type, typeOptions, updateFilterForm],
+    );
+
+    const groupByComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            const items = getGroupByOptions();
+            const value = items.find((option) => option.value === groupBy) ?? null;
+
+            return (
+                <SingleSelectPopup
+                    label={translate('search.groupBy')}
+                    items={items}
+                    value={value}
+                    closeOverlay={closeOverlay}
+                    onChange={(item) => updateFilterForm({groupBy: item?.value})}
+                />
+            );
+        },
+        [translate, groupBy, updateFilterForm],
     );
 
     const statusComponent = useCallback(
@@ -209,23 +229,38 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 label: translate('common.type'),
                 PopoverComponent: typeComponent,
                 value: translate(`common.${type}`),
+                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
             },
+            // s77rt remove DEV lock
+            ...(isDevelopment
+                ? [
+                      {
+                          label: translate('search.groupBy'),
+                          PopoverComponent: groupByComponent,
+                          value: groupBy ? translate(`search.filters.groupBy.${groupBy}`) : null,
+                          keyForList: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+                      },
+                  ]
+                : []),
             {
                 label: translate('common.status'),
                 PopoverComponent: statusComponent,
                 value: statusValue.map((option) => translate(option.translation)),
+                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             },
             {
                 label: translate('common.date'),
                 PopoverComponent: datePickerComponent,
                 value: dateValue,
+                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             },
             {
                 label: translate('common.from'),
                 PopoverComponent: userPickerComponent,
                 value: fromValue,
+                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             },
-        ];
+        ].filter((filterItem) => isFilterSupported(filterItem.keyForList, type));
 
         return filterList;
     }, [
@@ -237,11 +272,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         filterFormValues.from,
         translate,
         typeComponent,
+        groupByComponent,
         statusComponent,
         datePickerComponent,
         userPickerComponent,
         status,
         personalDetails,
+        isDevelopment,
     ]);
 
     if (hasErrors) {

@@ -47,7 +47,7 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
 
-function RoomMembersPage({report, policies}: RoomMembersPageProps) {
+function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const route = useRoute<PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
@@ -59,7 +59,6 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails();
-    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`], [policies, report?.policyID]);
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
     const backTo = route.params.backTo;
 
@@ -302,12 +301,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
         [report.reportID],
     );
 
-    const isPolicyEmployee = useMemo(() => {
-        if (!report?.policyID || policies === null) {
-            return false;
-        }
-        return isPolicyEmployeeUtils(report.policyID, policies);
-    }, [report?.policyID, policies]);
+    const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtils(report.policyID, policy), [report?.policyID, policy]);
 
     const headerMessage = searchValue.trim() && !data.length ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}` : '';
 

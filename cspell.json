@@ -711,6 +711,7 @@
         "assets/emojis/es.ts",
         "patches/**",
         "docs/assets/Files/**",
+        "docs/sitemap.xml",
         "ios/NewExpensify.xcodeproj/**",
         "ios/GoogleService-Info.plist",
         "ios/GoogleService-Info-DEV.plist",
