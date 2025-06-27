@@ -6828,10 +6828,7 @@ const translations = {
             part3: '和',
             part4: '聊天关于费用。',
         },
-        workspaceChatTooltip: {
-            part1: '与 交谈',
-            part2: '审批人',
-        },
+        workspaceChatTooltip: '与 交谈 <strong>审批人</strong>',
         globalCreateTooltip: {
             part1: '创建费用',
             part2: '，开始聊天，',
