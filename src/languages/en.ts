@@ -284,6 +284,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
+        uncategorized: 'Uncategorized',
         seePreview: 'See preview',
         split: 'I detected multiple expense categories on this receipt. Would you like to view an itemized preview?',
         count: 'Count',

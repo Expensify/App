@@ -293,6 +293,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
+        uncategorized: 'カテゴリなし',
         seePreview: 'プレビューを見る',
         split: 'この経費には複数のカテゴリがあることがわかりました。この経費を分割しますか？',
         count: 'カウント',

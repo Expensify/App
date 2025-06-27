@@ -293,6 +293,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
+        uncategorized: 'Senza categoria',
         seePreview: 'Vedi anteprima',
         split: 'Abbiamo notato che questa spesa ha articoli con più categorie. Vuoi dividere questa spesa?',
         count: 'Contare',

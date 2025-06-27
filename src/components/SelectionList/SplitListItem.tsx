@@ -64,7 +64,7 @@ function SplitListItem<TItem extends ListItem>({item, isFocused, showTooltip, is
                                         style={[styles.flexShrink1]}
                                         numberOfLines={1}
                                     >
-                                        {splitItem.category}
+                                        {splitItem.category.length > 0 ? splitItem.category : translate('common.uncategorized')}
                                     </Text>
                                 </View>
                             </View>

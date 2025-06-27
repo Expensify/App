@@ -293,6 +293,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
+        uncategorized: '未分类',
         seePreview: '查看预览',
         split: '我们注意到这个费用有多个类别。你想分割这个费用吗？',
         count: '计数',
