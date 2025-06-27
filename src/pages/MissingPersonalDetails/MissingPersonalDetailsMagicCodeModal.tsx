@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {clearPersonalDetailsErrors} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction} from '@libs/actions/User';

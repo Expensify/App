@@ -1,6 +1,6 @@
-import {useOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+import useOnyx from './useOnyx';
 
 /**
  * Hook to fetch transactions associated with a specific `tripRoom` report.

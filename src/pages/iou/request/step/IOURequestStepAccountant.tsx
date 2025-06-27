@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {setMoneyRequestAccountant} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasActiveAdminWorkspaces as hasActiveAdminWorkspacesUtil} from '@libs/PolicyUtils';
