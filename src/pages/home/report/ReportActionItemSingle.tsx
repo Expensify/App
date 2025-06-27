@@ -21,7 +21,7 @@ import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getManagerOnVacation, getReportActionMessage, getSendMoneyFlowOneTransactionThreadID, getSubmittedTo, getVacationer, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getReportActionMessage, getSendMoneyFlowOneTransactionThreadID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
@@ -79,7 +79,7 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 };
 
 const showUserDetails = (accountID: number | undefined) => {
-    Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute()));
+    Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
 };
 
 const showWorkspaceDetails = (reportID: string | undefined) => {
@@ -138,16 +138,6 @@ function ReportActionItemSingle({
     let displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails});
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[accountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
-
-    // Vacation delegate details for submitted action
-    const vacationer = getVacationer(action);
-    const submittedTo = getSubmittedTo(action);
-    const vacationDelegateDetailsForSubmit = getPersonalDetailByEmail(vacationer ?? '');
-    const submittedToDetails = getPersonalDetailByEmail(submittedTo ?? '');
-
-    // Vacation delegate details for approved action
-    const managerOnVacation = getManagerOnVacation(action);
-    const vacationDelegateDetailsForApprove = getPersonalDetailByEmail(managerOnVacation ?? '');
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
@@ -372,19 +362,6 @@ function ReportActionItemSingle({
                 ) : null}
                 {!!action?.delegateAccountID && (
                     <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>
-                )}
-                {!!vacationer && !!submittedTo && (
-                    <Text style={[styles.chatDelegateMessage]}>
-                        {translate('statusPage.toAsVacationDelegate', {
-                            submittedToName: submittedToDetails?.displayName ?? submittedTo ?? '',
-                            vacationDelegateName: vacationDelegateDetailsForSubmit?.displayName ?? vacationer ?? '',
-                        })}
-                    </Text>
-                )}
-                {!!managerOnVacation && (
-                    <Text style={[styles.chatDelegateMessage]}>
-                        {translate('statusPage.asVacationDelegate', {nameOrEmail: vacationDelegateDetailsForApprove?.displayName ?? managerOnVacation ?? ''})}
-                    </Text>
                 )}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>
             </View>
