@@ -83,7 +83,7 @@ function SplitListItem<TItem extends ListItem>({item, isFocused, showTooltip, is
                                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                                     <Text
                                         fontSize={variables.fontSizeNormal}
-                                        style={[styles.flexShrink1]}
+                                        style={[styles.flexShrink1, styles.textBold]}
                                         numberOfLines={1}
                                     >
                                         {splitItem.category.length > 0 ? splitItem.category : translate('common.uncategorized')}
