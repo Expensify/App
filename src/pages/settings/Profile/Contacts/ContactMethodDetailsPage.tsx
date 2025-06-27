@@ -60,7 +60,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const isLoadingReportData = useReportDataLoading();
     const [isValidateCodeFormVisible, setIsValidateCodeFormVisible] = useState(true);
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
+    const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const {formatPhoneNumber, translate} = useLocalize();
