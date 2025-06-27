@@ -232,11 +232,8 @@ function ButtonWithDropdownMenu<IValueType>({
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     // eslint-disable-next-line react-compiler/react-compiler
                     anchorRef={nullCheckRef(dropdownAnchor)}
-<<<<<<< HEAD
-=======
                     withoutOverlay
                     shouldUseScrollView
->>>>>>> parent of eee5400b384 (Merge pull request #56838 from getusha/feat-standardize-pay-button)
                     scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && styles.pv4}
                     shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
                     anchorAlignment={anchorAlignment}
