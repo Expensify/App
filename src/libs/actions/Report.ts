@@ -5787,6 +5787,10 @@ function resolveConciergeCategoryOptions(reportID: string | undefined, actionRep
     } as Partial<ReportActions>);
 }
 
+function toggleVirtualCFO(isVirtualCFOToggled: boolean) {
+    Onyx.set(ONYXKEYS.IS_VIRTUAL_CFO_TOGGLED, isVirtualCFOToggled);
+}
+
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};
 
 export {
@@ -5897,4 +5901,5 @@ export {
     changeReportPolicyAndInviteSubmitter,
     removeFailedReport,
     openUnreportedExpense,
+    toggleVirtualCFO,
 };

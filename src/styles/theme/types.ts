@@ -55,6 +55,7 @@ type ThemeColors = {
     componentBG: Color;
     hoverComponentBG: Color;
     activeComponentBG: Color;
+    insightComponentBG: Color;
     signInSidebar: Color;
     sidebar: Color;
     sidebarHover: Color;

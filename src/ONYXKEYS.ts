@@ -552,6 +552,9 @@ const ONYXKEYS = {
     NVP_LAST_ECASH_ANDROID_LOGIN: 'nvp_lastECashAndroidLogin',
     NVP_LAST_ANDROID_LOGIN: 'nvp_lastAndroidLogin',
 
+    IS_VIRTUAL_CFO_TOGGLED: 'isVirtualCFOToggled',
+    TRY_VIRTUAL_CFO:' tryVirtualCFO',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1198,6 +1201,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_LAST_IPHONE_LOGIN]: string;
     [ONYXKEYS.NVP_LAST_ANDROID_LOGIN]: string;
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS]: string[];
+    [ONYXKEYS.IS_VIRTUAL_CFO_TOGGLED]: boolean | undefined;
+    [ONYXKEYS.TRY_VIRTUAL_CFO]: boolean | undefined;
 };
 
 type OnyxDerivedValuesMapping = {

@@ -6944,6 +6944,13 @@ const CONST = {
     },
 
     SIGNIN_ROUTE: '/signin',
+
+    ANIMATED_CFO_BUTTON: {
+        PROGRESS_DURATION: 1000,
+        RELEASE_DURATION: 500,
+        DELAY_DURATION: 300,
+        EXITING_DURATION: 300,
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

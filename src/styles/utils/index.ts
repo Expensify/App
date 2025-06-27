@@ -1621,13 +1621,16 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Generate the styles for the ReportActionItem wrapper view.
      */
-    getReportActionItemStyle: (isHovered = false, isClickable = false): ViewStyle => ({
+    getReportActionItemStyle: (isHovered = false, isClickable = false, isInsight = false): ViewStyle => ({
         display: 'flex',
         justifyContent: 'space-between',
-        backgroundColor: isHovered
-            ? theme.hoverComponentBG
-            : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
-              theme.transparent,
+        // eslint-disable-next-line no-nested-ternary
+        backgroundColor: isInsight
+            ? theme.insightComponentBG
+            : isHovered
+              ? theme.hoverComponentBG
+              : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
+                theme.transparent,
         opacity: 1,
         ...(isClickable ? styles.cursorPointer : styles.cursorInitial),
     }),

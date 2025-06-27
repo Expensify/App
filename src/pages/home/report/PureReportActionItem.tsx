@@ -3,10 +3,12 @@ import mapValues from 'lodash/mapValues';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
+import useOnyx from '@hooks/useOnyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
+import AnimatedCFOButton from '@components/AnimatedCFOButton';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -14,7 +16,7 @@ import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Icon from '@components/Icon';
-import {Eye} from '@components/Icon/Expensicons';
+import {Eye, Sparkles} from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -156,7 +158,7 @@ import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
-import {expandURLPreview, resolveConciergeCategoryOptions} from '@userActions/Report';
+import {expandURLPreview, resolveConciergeCategoryOptions, toggleVirtualCFO} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
@@ -168,6 +170,8 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ONYXKEYS from '@src/ONYXKEYS';
+import colors from '@styles/theme/colors';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
@@ -446,6 +450,10 @@ function PureReportActionItem({
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
     const isActionableWhisper = isActionableMentionWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
+    // const [tryVirtualCFO] = useOnyx(ONYXKEYS.TRY_VIRTUAL_CFO, {canBeMissing: true});
+    const tryVirtualCFO = true;
+    const [isVirtualCFOToggled] = useOnyx(ONYXKEYS.IS_VIRTUAL_CFO_TOGGLED, {canBeMissing: true});
+    const shouldShowAnimatedCFOButton = !!tryVirtualCFO && !isVirtualCFOToggled;
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
@@ -1482,6 +1490,7 @@ function PureReportActionItem({
                             style={StyleUtils.getReportActionItemStyle(
                                 hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined || isPaymentMethodPopoverActive,
                                 draftMessage === undefined && !!onPress,
+                                tryVirtualCFO,
                             )}
                         >
                             <OfflineWithFeedback
@@ -1522,7 +1531,29 @@ function PureReportActionItem({
                                                 />
                                             </View>
                                         )}
+                                        {!!tryVirtualCFO && (
+                                            <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
+                                                <View style={[styles.pl6, styles.mr3]}>
+                                                    <Icon
+                                                        fill={colors.pink600}
+                                                        src={Sparkles}
+                                                        small
+                                                    />
+                                                </View>
+                                                <Text style={[styles.chatItemMessageHeaderTimestamp, {color: colors.pink600, paddingTop: 0}]}>Insight</Text>
+                                            </View>
+                                        )}
                                         {renderReportActionItem(!!hovered || !!isReportActionLinked, isWhisper, hasErrors)}
+                                        {!!shouldShowAnimatedCFOButton && (
+                                            <View style={[styles.flexRow, styles.pl5, styles.pv2, styles.pr3]}>
+                                                <AnimatedCFOButton
+                                                    onAnimationFinish={() => {
+                                                        console.log('Animation finished');
+                                                        toggleVirtualCFO(true);
+                                                    }}
+                                                />
+                                            </View>
+                                        )}
                                     </>,
                                 )}
                             </OfflineWithFeedback>
