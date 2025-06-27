@@ -284,7 +284,7 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
-        split: 'We noticed that this expense has items with multiple categories. Would you like to split this expense?',
+        split: 'I detected multiple expense categories on this receipt. Would you like to view an itemized preview?',
         count: 'Count',
         cancel: 'Cancel',
         dismiss: 'Dismiss',
