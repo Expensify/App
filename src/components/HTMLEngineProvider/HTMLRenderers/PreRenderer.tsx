@@ -62,7 +62,14 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                                 if (isDisabled || !shouldDisplayContextMenu) {
                                     return;
                                 }
-                                return showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
+                                return showContextMenuForReport(
+                                    event,
+                                    anchor,
+                                    report?.reportID,
+                                    action,
+                                    checkIfContextMenuActive,
+                                    isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived),
+                                );
                             });
                         }}
                         shouldUseHapticsOnLongPress
