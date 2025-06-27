@@ -706,7 +706,7 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
     // HACK ALERT: We're temporarily filtering out any reportActions keyed by sequenceNumber
     // to prevent bugs during the migration from sequenceNumber -> reportActionID
     // eslint-disable-next-line deprecation/deprecation
-    if (String(reportAction.sequenceNumber) === key) {
+    if (String(reportAction.sequenceNumber) === key && reportAction.actionName !== 'ADDCOMMENTWITHOPTIONS') {
         Log.info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
         return true;
     }
@@ -841,11 +841,18 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
+    // Special case: ADDCOMMENTWITHOPTIONS should always be visible regardless of deleted status
+    if (reportAction.actionName === 'ADDCOMMENTWITHOPTIONS') {
+        return true;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !!reportAction.pendingAction;
 
-    return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
+    const result = !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
+    
+    return result;
 }
 
 /**
