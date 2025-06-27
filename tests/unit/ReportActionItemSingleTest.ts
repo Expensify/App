@@ -9,7 +9,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
-    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
     COLLECTION: {
         REPORT_ACTIONS: 'reportActions_',
         POLICY: 'policy_',
@@ -60,7 +59,6 @@ describe('ReportActionItemSingle', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                             ...policyCollectionDataSet,
                         }),
                     )

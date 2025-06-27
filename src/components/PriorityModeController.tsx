@@ -1,6 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import useReportDataLoading from '@hooks/useReportDataLoading';
 import {updateChatPriorityMode} from '@libs/actions/User';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
@@ -24,7 +25,7 @@ import FocusModeNotification from './FocusModeNotification';
  */
 export default function PriorityModeController() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    const isLoadingReportData = useReportDataLoading();
     const [isInFocusMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {selector: (priorityMode) => priorityMode === CONST.PRIORITY_MODE.GSD, canBeMissing: true});
     const [hasTriedFocusMode] = useOnyx(ONYXKEYS.NVP_TRY_FOCUS_MODE, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -50,7 +51,7 @@ export default function PriorityModeController() {
     // Listen for state changes and trigger the #focus mode when appropriate
     useEffect(() => {
         // Wait for Onyx state to fully load
-        if (isLoadingReportData !== false || isInFocusMode === undefined || hasTriedFocusMode === undefined || !accountID) {
+        if (isLoadingReportData || isInFocusMode === undefined || hasTriedFocusMode === undefined || !accountID) {
             return;
         }
 
