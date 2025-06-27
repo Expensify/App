@@ -117,6 +117,7 @@ function useIDOfReportPreviewSender({action, iouReport}: {action: OnyxEntry<Repo
     /* We need to perform the following checks to determine if the report preview is a single avatar: */
 
     // 1. If all actions are created by one person - either all actions are created by the current user or all actions are created by the user we have opened chat with.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const areActionsCreatedByOnePerson = iouActions?.every(isActionCreator) || !iouActions?.some(isActionCreator);
 
     // 2. If all amounts have the same sign - either all amounts are positive or all amounts are negative.

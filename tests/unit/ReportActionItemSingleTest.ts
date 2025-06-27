@@ -6,7 +6,7 @@ import {DO_NOT_USE__EXPORT_FOR_TESTS__useIDOfReportPreviewSender as useIDOfRepor
 import type {PersonalDetailsList} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';
-import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
+import {iouReportR14932} from '../../__mocks__/reportData/reports';
 import {transactionR14932} from '../../__mocks__/reportData/transactions';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -129,7 +129,7 @@ describe('useIDOfReportPreviewSender', () => {
         expect(result.current).toBeUndefined();
     });
 
-    it('returns childManagerAccountID when all conditions are met for Send Money flow', async () => {
+    it('returns childManagerAccountID when all conditions are met for Send Money flow', () => {
         const {result} = renderHook(() =>
             useIDOfReportPreviewSender({
                 action: {...validAction, childMoneyRequestCount: 0},
