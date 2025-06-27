@@ -1,4 +1,6 @@
+import React from 'react';
 import type {ValueOf} from 'type-fest';
+import RenderHTML from '@components/RenderHTML';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -31,7 +33,7 @@ type ShouldShowConditionProps = {
 };
 
 type TooltipData = {
-    content: Array<{text: TranslationPaths; isBold: boolean}>;
+    content: Array<{text: TranslationPaths | (() => React.ReactNode); isBold?: boolean}>;
     onHideTooltip: (isDismissedUsingCloseButton?: boolean) => void;
     name: ProductTrainingTooltipName;
     priority: number;
@@ -64,10 +66,11 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [GLOBAL_CREATE_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.globalCreateTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.globalCreateTooltip.part2', isBold: false},
-            {text: 'productTrainingTooltip.globalCreateTooltip.part3', isBold: false},
-            {text: 'productTrainingTooltip.globalCreateTooltip.part4', isBold: false},
+            {
+                text: () => {
+                    return React.createElement(RenderHTML, {html: 'productTrainingTooltip.globalCreateTooltip'});
+                },
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(GLOBAL_CREATE_TOOLTIP, isDismissedUsingCloseButton),
         name: GLOBAL_CREATE_TOOLTIP,
@@ -98,10 +101,11 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [GBR_RBR_CHAT]: {
         content: [
-            {text: 'productTrainingTooltip.GBRRBRChat.part1', isBold: false},
-            {text: 'productTrainingTooltip.GBRRBRChat.part2', isBold: true},
-            {text: 'productTrainingTooltip.GBRRBRChat.part3', isBold: false},
-            {text: 'productTrainingTooltip.GBRRBRChat.part4', isBold: true},
+            {
+                text: () => {
+                    return React.createElement(RenderHTML, {html: 'productTrainingTooltip.GBRRBRChat'});
+                },
+            },
         ],
         onHideTooltip: () => dismissProductTraining(GBR_RBR_CHAT),
         name: GBR_RBR_CHAT,
@@ -172,12 +176,15 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(OUTSTANDING_FILTER),
         name: OUTSTANDING_FILTER,
         priority: 1925,
-        shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
+        shouldShow: () => true,
     },
     [SCAN_TEST_DRIVE_CONFIRMATION]: {
         content: [
-            {text: 'productTrainingTooltip.scanTestDriveTooltip.part1', isBold: false},
-            {text: 'productTrainingTooltip.scanTestDriveTooltip.part2', isBold: true},
+            {
+                text: () => {
+                    return React.createElement(RenderHTML, {html: 'productTrainingTooltip.scanTestDriveTooltip'});
+                },
+            },
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_DRIVE_CONFIRMATION, isDismissedUsingCloseButton),
         name: SCAN_TEST_DRIVE_CONFIRMATION,

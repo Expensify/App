@@ -7414,18 +7414,8 @@ const translations = {
             part1: 'Chatea con ',
             part2: 'los aprobadores',
         },
-        globalCreateTooltip: {
-            part1: 'Crea gastos',
-            part2: ', empieza a chatear',
-            part3: '\ny más.',
-            part4: ' ¡Pruébalo!',
-        },
-        GBRRBRChat: {
-            part1: 'Verás 🟢 en ',
-            part2: 'acciones a realizar',
-            part3: ',\ny 🔴 en ',
-            part4: 'elementos para revisar.',
-        },
+        globalCreateTooltip: '<strong>Crea gastos</strong>, empieza a chatear\ny más. ¡Pruébalo!',
+        GBRRBRChat: 'Verás 🟢 en <strong>acciones a realizar</strong>,\ny 🔴 en <strong>elementos para revisar.</strong>',
         accountSwitcher: {
             part1: 'Accede a tus ',
             part2: 'cuentas copiloto',
@@ -7452,10 +7442,7 @@ const translations = {
             part1: 'Filtra los gastos\nque ',
             part2: 'necesitan aprobación',
         },
-        scanTestDriveTooltip: {
-            part1: '¡Envía este recibo para\n',
-            part2: 'completar la prueba!',
-        },
+        scanTestDriveTooltip: '¡Envía este recibo para\n<strong>completar la prueba!</strong>',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',

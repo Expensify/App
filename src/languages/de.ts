@@ -6964,18 +6964,8 @@ const translations = {
             part1: 'Chatten mit',
             part2: 'Genehmiger',
         },
-        globalCreateTooltip: {
-            part1: 'Ausgaben erstellen',
-            part2: ', beginnen Sie zu chatten,',
-            part3: 'und mehr.',
-            part4: 'Probieren Sie es aus!',
-        },
-        GBRRBRChat: {
-            part1: 'Du wirst 🟢 auf sehen',
-            part2: 'Maßnahmen ergreifen',
-            part3: ',\nund 🔴 auf',
-            part4: 'Elemente zur Überprüfung.',
-        },
+        globalCreateTooltip: '<strong>Ausgaben erstellen</strong>, beginnen Sie zu chatten,\nund mehr. Probieren Sie es aus!',
+        GBRRBRChat: 'Du wirst 🟢 auf sehen <strong>Maßnahmen ergreifen</strong>,\nund 🔴 auf <strong>Elemente zur Überprüfung.</strong>',
         accountSwitcher: {
             part1: 'Zugriff auf Ihre',
             part2: 'Copilot-Konten',
@@ -7002,10 +6992,7 @@ const translations = {
             part1: 'Filter für Ausgaben, die',
             part2: 'Genehmigung erforderlich',
         },
-        scanTestDriveTooltip: {
-            part1: 'Diesen Beleg senden an',
-            part2: 'Beenden Sie die Probefahrt!',
-        },
+        scanTestDriveTooltip: 'Diesen Beleg senden an\n<strong>Beenden Sie die Probefahrt!</strong>',
     },
     discardChangesConfirmation: {
         title: 'Änderungen verwerfen?',

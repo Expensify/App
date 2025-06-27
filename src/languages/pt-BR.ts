@@ -6960,18 +6960,8 @@ const translations = {
             part1: 'Converse com',
             part2: 'aprovadores',
         },
-        globalCreateTooltip: {
-            part1: 'Criar despesas',
-            part2: ', começar a conversar,',
-            part3: 'e mais.',
-            part4: 'Experimente!',
-        },
-        GBRRBRChat: {
-            part1: 'Você verá 🟢 em',
-            part2: 'ações a serem tomadas',
-            part3: ',\ne 🔴 em',
-            part4: 'itens para revisar.',
-        },
+        globalCreateTooltip: '<strong>Criar despesas</strong>, começar a conversar,\ne mais. Experimente!',
+        GBRRBRChat: 'Você verá 🟢 em <strong>ações a serem tomadas</strong>,\ne 🔴 em <strong>itens para revisar.</strong>',
         accountSwitcher: {
             part1: 'Acesse seu',
             part2: 'Contas Copilot',
@@ -6998,10 +6988,7 @@ const translations = {
             part1: 'Filtrar por despesas que',
             part2: 'precisa de aprovação',
         },
-        scanTestDriveTooltip: {
-            part1: 'Enviar este recibo para',
-            part2: 'complete o test drive!',
-        },
+        scanTestDriveTooltip: 'Enviar este recibo para\n<strong>complete o test drive!</strong>',
     },
     discardChangesConfirmation: {
         title: 'Descartar alterações?',
