@@ -3320,7 +3320,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             ? buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency, undefined, undefined, optimisticIOUReportID)
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticIOUReportID);
     } else if (isPolicyExpenseChat) {
-        // Splitting doesn't affect the amount, so no adjustment is needed
+        // Splitting doesn’t affect the amount, so no adjustment is needed
         // The amount remains constant after the split
         if (!isSplitExpense) {
             iouReport = {...iouReport};
@@ -4780,7 +4780,7 @@ function updateMoneyRequestDescription(
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories: OnyxTypes.PolicyCategories,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const parsedComment = getParsedComment(comment);
     const transactionChanges: TransactionChanges = {
@@ -4806,7 +4806,7 @@ function updateMoneyRequestDistanceRate(
     rateID: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories: OnyxTypes.PolicyCategories,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
     updatedTaxAmount?: number,
     updatedTaxCode?: string,
 ) {
@@ -6680,6 +6680,15 @@ function startSplitBill({
         });
     }
 
+    const redundantParticipants: Record<number, null> = {};
+    if (!existingSplitChatReport) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
+            value: {pendingFields: {createChat: null}, participants: redundantParticipants},
+        });
+    }
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6747,7 +6756,6 @@ function startSplitBill({
     }
 
     const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID}];
-    const redundantParticipants: Record<number, null> = {};
 
     participants.forEach((participant) => {
         // Disabling this line since participant.login can be an empty string
@@ -11536,7 +11544,7 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
 }
 
 /**
- * Append a new split expense entry to the draft transaction's splitExpenses array
+ * Append a new split expense entry to the draft transaction’s splitExpenses array
  */
 function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, draftTransaction: OnyxEntry<OnyxTypes.Transaction>) {
     if (!transaction || !draftTransaction) {
