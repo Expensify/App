@@ -48,7 +48,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: false});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const [transactionsAndViolationsByReport] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {canBeMissing: true});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
 
     const {reportActions: reportActionsWithDeletedExpenses} = usePaginatedReportActions(reportIDFromRoute);
@@ -133,7 +132,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     policy={policy}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                     backToRoute={route.params.backTo}
-                                    transactionsAndViolationsByReport={transactionsAndViolationsByReport ?? {}}
                                 />
                             </DragAndDropProvider>
                         </FullPageNotFoundView>
@@ -169,7 +167,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                         policy={policy}
                                         shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
                                         backToRoute={route.params.backTo}
-                                        transactionsAndViolationsByReport={transactionsAndViolationsByReport ?? {}}
                                     />
                                 </View>
                                 <PortalHost name="suggestions" />
