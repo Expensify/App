@@ -1275,7 +1275,6 @@ function AddWorkEmail(workEmail: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
             value: {
-                onboardingWorkEmail: workEmail,
                 isLoading: false,
             },
         },
@@ -1286,7 +1285,6 @@ function AddWorkEmail(workEmail: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
             value: {
-                onboardingWorkEmail: null,
                 isLoading: false,
             },
         },

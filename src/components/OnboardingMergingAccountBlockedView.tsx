@@ -12,6 +12,8 @@ import {ToddBehindCloud} from './Icon/Illustrations';
 type OnboardingMergingAccountBlockedViewProps = {
     // Work email to display in the subtitle
     workEmail: string | undefined;
+
+    // Whether the user is a VSB
     isVsb: boolean | undefined;
 };
 
