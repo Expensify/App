@@ -1774,7 +1774,7 @@ const translations = {
         nameOnCard: 'Nome sulla carta',
         paymentCardNumber: 'Numero di carta',
         expiration: 'Data di scadenza',
-        expirationDate: 'MMYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Indirizzo di fatturazione',
         growlMessageOnSave: 'La tua carta di pagamento è stata aggiunta con successo',
