@@ -86,7 +86,7 @@ This will:
 - **Assignee**: `tgolen`
 - **Labels**: `Engineering`, `Improvement`
 - **Project**: "Deprecate Onyx.connect" project
-- **Body**: Contains context about the refactoring effort and references to the main deprecation issue
+- **Body**: Contains context about the refactoring effort, references to the main deprecation issue, and clickable links to the module file
 - **Purpose**: Track the overall refactoring effort for each file
 
 ### Sub-Issues
@@ -94,7 +94,7 @@ This will:
 - **Assignee**: `tgolen`
 - **Labels**: `Engineering`, `Improvement`
 - **Project**: "Deprecate Onyx.connect" project
-- **Body**: Contains specific details about the reference to be removed, including TDD instructions
+- **Body**: Contains specific details about the reference to be removed, including TDD instructions and clickable links to the module file
 - **Purpose**: Track individual Onyx.connect references that need to be refactored
 
 ### Issue Linking
@@ -114,6 +114,7 @@ The script includes comprehensive error handling:
 - Uses simplified GitHub CLI commands for better reliability
 - Follows DRY principles with modular, reusable functions
 - Maintainable code structure with separated concerns
+- Module paths are clickable links to the actual files in the repository
 
 ## Rate Limiting
 
