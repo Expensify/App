@@ -127,7 +127,7 @@ function SubscriptAvatar({mainAvatar, secondaryAvatar, subscriptIcon, size = CON
                         width={subscriptIcon.width}
                         height={subscriptIcon.height}
                         additionalStyles={styles.alignSelfCenter}
-                        fill={subscriptIcon.fill ?? theme.icon}
+                        fill={subscriptIcon.fill}
                     />
                 </View>
             )}

@@ -294,7 +294,7 @@ function getAvatarSubscriptIconContainerStyle(iconWidth = 16, iconHeight = 16): 
         bottom: -4,
         right: -4,
         borderWidth,
-        borderRadius: borderWidth,
+        borderRadius: 2 + borderWidth,
         width: containerWidth,
         height: containerHeight,
     };
