@@ -120,6 +120,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type IntegrationServerExportTemplate from './IntegrationServerExportTemplate';
 
 export type {
     TryNewDot,
@@ -266,4 +267,5 @@ export type {
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
     VacationDelegate,
+    IntegrationServerExportTemplate,
 };
