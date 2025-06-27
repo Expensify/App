@@ -48,6 +48,10 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.formError, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
             }),
+            'mermaid-chart': HTMLElementModel.fromCustomModel({
+                tagName: 'mermaid-chart',
+                contentModel: HTMLContentModel.block,
+            }),
             rbr: HTMLElementModel.fromCustomModel({
                 tagName: 'rbr',
                 getMixedUAStyles: (tnode) => {

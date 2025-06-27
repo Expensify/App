@@ -1770,6 +1770,7 @@ const CONST = {
     ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE: 'data-expensify-width',
     ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE: 'data-expensify-height',
     ATTACHMENT_DURATION_ATTRIBUTE: 'data-expensify-duration',
+    MERMAID_CHART_ATTRIBUTE: 'data-mermaid-chart',
 
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',

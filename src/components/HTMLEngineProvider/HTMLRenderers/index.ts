@@ -8,6 +8,7 @@ import ImageRenderer from './ImageRenderer';
 import MentionHereRenderer from './MentionHereRenderer';
 import MentionReportRenderer from './MentionReportRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
+import MermaidRenderer from './MermaidRenderer';
 import NextStepEmailRenderer from './NextStepEmailRenderer';
 import PreRenderer from './PreRenderer';
 import RBRRenderer from './RBRRenderer';
@@ -38,6 +39,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     emoji: EmojiRenderer,
     'next-step-email': NextStepEmailRenderer,
     'deleted-action': DeletedActionRenderer,
+    'mermaid-chart': MermaidRenderer,
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 

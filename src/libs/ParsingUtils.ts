@@ -51,8 +51,20 @@ function decorateRangesWithShortMentions(ranges: MarkdownRange[], text: string, 
 function parseExpensiMarkWithShortMentions(text: string, availableMentions: string[], currentUserMentions?: string[]) {
     'worklet';
 
-    const parsedRanges = parseExpensiMark(text);
-    return decorateRangesWithShortMentions(parsedRanges, text, availableMentions, currentUserMentions);
+    // Check if the text contains mermaid chart syntax
+    // If it does, we skip live markdown processing since mermaid charts don't need markdown styling
+    if (text.includes('```mermaid')) {
+        return [];
+    }
+    
+    try {
+        const parsedRanges = parseExpensiMark(text);
+        return decorateRangesWithShortMentions(parsedRanges, text, availableMentions, currentUserMentions);
+    } catch (error) {
+        // If parsing fails (e.g., due to unknown tags), return empty ranges
+        console.warn('parseExpensiMark failed, returning empty ranges:', error);
+        return [];
+    }
 }
 
 export {parseExpensiMarkWithShortMentions, decorateRangesWithShortMentions};
