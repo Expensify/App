@@ -99,18 +99,18 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             const workflowMembers = approvalWorkflow.members.map((member) => {
                 const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
                 let accountID = Number(policyMemberEmailsToAccountIDs[member.email]);
-                
+
                 // If no accountID found in workspace members, check invite options (for new users)
                 if (!accountID) {
                     const personalDetail = inviteOptions.personalDetails.find((detail) => detail.login === member.email);
                     const userToInvite = inviteOptions.userToInvite?.login === member.email ? inviteOptions.userToInvite : null;
                     accountID = personalDetail?.accountID ?? userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 }
-                
+
                 const login = personalDetailLogins?.[accountID];
                 const isWorkspaceMember = !!policyMemberEmailsToAccountIDs[member.email];
                 const isAdmin = policy?.employeeList?.[member.email]?.role === CONST.REPORT.ROLE.ADMIN;
-                
+
                 // Determine right element based on member type
                 let rightElement: React.ReactNode;
                 if (isWorkspaceMember) {
