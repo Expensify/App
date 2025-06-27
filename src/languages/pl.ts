@@ -123,6 +123,7 @@ import type {
     LastSyncAccountingParams,
     LastSyncDateParams,
     LeftWorkspaceParams,
+    LicensesParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -207,6 +208,7 @@ import type {
     SyncStageNameConnectionsParams,
     TaskCreatedActionParams,
     TaxAmountParams,
+    TermsOfUseRouteParams,
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
@@ -2089,12 +2091,10 @@ const translations = {
         chooseThemeBelowOrSync: 'Wybierz motyw poniżej lub zsynchronizuj z ustawieniami urządzenia.',
     },
     termsOfUse: {
-        phrase1: 'Logując się, zgadzasz się na',
-        phrase2: 'Warunki korzystania z usługi',
-        phrase3: 'i',
-        phrase4: 'Prywatność',
-        phrase5: `Przekazy pieniężne są świadczone przez ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) zgodnie z jego`,
-        phrase6: 'licencje',
+        terms: ({termsURL, privacyURL}: TermsOfUseRouteParams) =>
+            `<muted-text>Logując się, zgadzasz się na <a href="${termsURL}">Warunki korzystania z usługi</a> i <a href="${privacyURL}">Prywatność</a>.</muted-text>`,
+        licenses: ({licensesURL}: LicensesParams) =>
+            `<muted-text>Przekazy pieniężne są świadczone przez ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) zgodnie z jego <a href="${licensesURL}">licencje</a>.</muted-text>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Nie otrzymałeś magicznego kodu?',

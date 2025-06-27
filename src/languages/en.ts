@@ -111,6 +111,7 @@ import type {
     LastSyncAccountingParams,
     LastSyncDateParams,
     LeftWorkspaceParams,
+    LicensesParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -195,6 +196,7 @@ import type {
     SyncStageNameConnectionsParams,
     TaskCreatedActionParams,
     TaxAmountParams,
+    TermsOfUseRouteParams,
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
@@ -2074,12 +2076,10 @@ const translations = {
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
     },
     termsOfUse: {
-        phrase1: 'By logging in, you agree to the',
-        phrase2: 'Terms of Service',
-        phrase3: 'and',
-        phrase4: 'Privacy',
-        phrase5: `Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its`,
-        phrase6: 'licenses',
+        terms: ({termsURL, privacyURL}: TermsOfUseRouteParams) =>
+            `<muted-text>By logging in, you agree to the <a href="${termsURL}">Terms of Service</a> and <a href="${privacyURL}">Privacy</a>.</muted-text>`,
+        licenses: ({licensesURL}: LicensesParams) =>
+            `<muted-text>Money transmission is provided by ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) pursuant to its <a href="${licensesURL}">licenses</a>.</muted-text>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",

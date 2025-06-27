@@ -123,6 +123,7 @@ import type {
     LastSyncAccountingParams,
     LastSyncDateParams,
     LeftWorkspaceParams,
+    LicensesParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -207,6 +208,7 @@ import type {
     SyncStageNameConnectionsParams,
     TaskCreatedActionParams,
     TaxAmountParams,
+    TermsOfUseRouteParams,
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
@@ -2094,12 +2096,10 @@ const translations = {
         chooseThemeBelowOrSync: 'Kies een thema hieronder, of synchroniseer met de instellingen van je apparaat.',
     },
     termsOfUse: {
-        phrase1: 'Door in te loggen, ga je akkoord met de',
-        phrase2: 'Servicevoorwaarden',
-        phrase3: 'en',
-        phrase4: 'Privacy',
-        phrase5: `Geldtransmissie wordt geleverd door ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) volgens zijn`,
-        phrase6: 'licenties',
+        terms: ({termsURL, privacyURL}: TermsOfUseRouteParams) =>
+            `<muted-text>Door in te loggen, ga je akkoord met de <a href="${termsURL}">Servicevoorwaarden</a> en <a href="${privacyURL}">Privacy</a>.</muted-text>`,
+        licenses: ({licensesURL}: LicensesParams) =>
+            `<muted-text>Geldtransmissie wordt geleverd door ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) volgens zijn <a href="${licensesURL}">licenties</a>.</muted-text>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Geen magische code ontvangen?',

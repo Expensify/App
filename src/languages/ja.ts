@@ -123,6 +123,7 @@ import type {
     LastSyncAccountingParams,
     LastSyncDateParams,
     LeftWorkspaceParams,
+    LicensesParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -207,6 +208,7 @@ import type {
     SyncStageNameConnectionsParams,
     TaskCreatedActionParams,
     TaxAmountParams,
+    TermsOfUseRouteParams,
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
@@ -2086,12 +2088,10 @@ const translations = {
         chooseThemeBelowOrSync: '以下のテーマを選択するか、デバイスの設定と同期してください。',
     },
     termsOfUse: {
-        phrase1: 'ログインすることにより、あなたは以下に同意したことになります',
-        phrase2: '利用規約',
-        phrase3: 'および',
-        phrase4: 'プライバシー',
-        phrase5: `送金は、${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）によって、その`,
-        phrase6: 'ライセンス',
+        terms: ({termsURL, privacyURL}: TermsOfUseRouteParams) =>
+            `<muted-text>ログインすることにより、あなたは以下に同意したことになります <a href="${termsURL}">利用規約</a> および <a href="${privacyURL}">プライバシー</a>.</muted-text>`,
+        licenses: ({licensesURL}: LicensesParams) =>
+            `<muted-text>送金は、${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}(NMLS ID:2017010)によって、その <a href="${licensesURL}">ライセンス</a>.</muted-text>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'マジックコードを受け取っていませんか？',
