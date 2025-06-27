@@ -745,8 +745,8 @@ function PureReportActionItem({
 
             return [
                 {
-                    text: 'debug.reportActionPreview',
-                    key: 'debug.reportActionPreview',
+                    text: 'common.seePreview',
+                    key: 'common.seePreview',
                     onPress: () => initSplitExpense(transaction, originalReportID, false, policy),
                     isPrimary: true,
                 },

@@ -275,6 +275,7 @@ import type {TranslationDeepObject} from './types';
 /* eslint-disable max-len */
 const translations = {
     common: {
+        seePreview: 'Ver vista previa',
         split: 'Notamos que este gasto tiene artículos con múltiples categorías. ¿Te gustaría dividir este gasto?',
         count: 'Contar',
         cancel: 'Cancelar',
