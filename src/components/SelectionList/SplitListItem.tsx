@@ -3,6 +3,7 @@ import {InteractionManager, Keyboard, View} from 'react-native';
 import Accordion from '@components/Accordion';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MCCIcons from '@components/Icon/MCCIcons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
@@ -46,7 +47,14 @@ function SplitListItem<TItem extends ListItem>({item, isFocused, showTooltip, is
         >
             <View style={[styles.flexColumn]}>
                 <View style={[styles.flexRow, styles.containerWithSpaceBetween]}>
-                    {/* TODO: category icon */}
+                    <View style={[styles.primaryMediumIcon, styles.mr3]}>
+                        <Icon
+                            src={MCCIcons[splitItem.mccGroup]}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                            fill={theme.icon}
+                        />
+                    </View>
                     <View style={[styles.flex1]}>
                         <View style={[styles.containerWithSpaceBetween]}>
                             <View style={[styles.minHeight5, styles.justifyContentCenter]}>

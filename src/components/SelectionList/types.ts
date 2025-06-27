@@ -14,6 +14,7 @@ import type {
 } from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy} from '@components/Search/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -426,6 +427,9 @@ type SplitListItemType = ListItem & {
 
     /** The report ID. */
     reportID: string;
+
+    /** MCC group for expenses in this group. */
+    mccGroup: ValueOf<typeof CONST.MCC_GROUPS>;
 
     /** List of split expenses to show in the category group accordion. */
     expenses: Array<

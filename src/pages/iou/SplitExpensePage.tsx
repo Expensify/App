@@ -199,6 +199,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     dateRange: '',
                     parentDraftTransaction: draftTransaction,
                     reportID,
+                    mccGroup: expense.mccGroup ?? CONST.MCC_GROUPS.MISCELLANEOUS,
                 };
             }
 
