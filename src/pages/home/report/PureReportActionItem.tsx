@@ -861,6 +861,7 @@ function PureReportActionItem({
         allTransactions,
         initSplitExpense,
         policy,
+        dismissConciergeSplitOptionsAction,
     ]);
 
     /**
