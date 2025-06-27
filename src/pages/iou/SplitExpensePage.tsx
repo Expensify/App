@@ -23,7 +23,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {isCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -91,26 +90,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         [draftTransaction],
     );
 
-    const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? '')), [translate]);
-
-    const [sections] = useMemo(() => {
-        const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
-        const isTransactionMadeWithCard = isCardTransaction(transaction);
-        const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
-
+    const sections = useMemo(() => {
+        const cashOrCard = translate(isCard  ? 'iou.card' : 'iou.cash');
         const items: SplitListItemType[] = (draftTransaction?.comment?.splitExpenses ?? []).map((item): SplitListItemType => {
-            const previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
-
             const date = DateUtils.formatWithUTCTimeZone(
                 item.created,
                 DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
             );
-            previewHeaderText.unshift({text: date}, dotSeparator);
-
-            const headerText = previewHeaderText.reduce((text, currentKey) => {
-                return `${text}${getTranslatedText(currentKey)}`;
-            }, '');
-
+            const headerText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
             return {
                 ...item,
                 headerText,
@@ -126,10 +113,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             };
         });
 
-        const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
-
-        return [newSections];
-    }, [transaction, draftTransaction, getTranslatedText, transactionDetailsAmount, currencySymbol, onSplitExpenseAmountChange, splitExpenseTransactionID]);
+        return [{data: items}] as Array<SectionListDataType<SplitListItemType>>;
+    }, [translate, isCard, draftTransaction?.comment?.splitExpenses, draftTransaction?.merchant, draftTransaction?.currency, transactionDetailsAmount, currencySymbol, onSplitExpenseAmountChange, splitExpenseTransactionID]);
 
     const headerContent = useMemo(
         () => (
