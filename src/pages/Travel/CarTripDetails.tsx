@@ -77,8 +77,8 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
             {!!reservation.reservationID && (
                 <MenuItemWithTopDescription
                     description={translate('travel.carDetails.confirmation')}
-                    title={reservation.reservationID}
-                    copyValue={reservation.reservationID}
+                    title={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
+                    copyValue={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
                 />
             )}
             {!!displayName && (
