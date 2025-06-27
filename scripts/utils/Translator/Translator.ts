@@ -70,7 +70,7 @@ abstract class Translator {
                         if (!TRANSLATABLE_ATTRIBUTES.includes(normalizedAttrName)) {
                             attributes.push(`${normalizedAttrName}="${attrValue ?? ''}"`);
                         }
-                    })
+                    });
                 }
 
                 return {
