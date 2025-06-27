@@ -11,10 +11,11 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OptionsPicker from '@components/OptionsPicker';
 import type {OptionsPickerItem} from '@components/OptionsPicker';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -53,6 +54,8 @@ const options: Array<OptionsPickerItem<SubscriptionType>> = [
 ];
 
 function SubscriptionSettings() {
+    const {environmentURL} = useEnvironment();
+
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -75,6 +78,8 @@ function SubscriptionSettings() {
         upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
     });
     const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins.toString() : undefined;
+    const adminsChatReportRoute = `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID)}`;
+    const pricingURL = CONST.PRICING;
 
     const onOptionSelected = (option: SubscriptionType) => {
         if (privateSubscription?.type !== option && isActingAsDelegate) {
@@ -159,10 +164,6 @@ function SubscriptionSettings() {
         </Text>
     );
 
-    const openAdminsRoom = () => {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
-    };
-
     if (!subscriptionPlan || (hasTeam2025Pricing && subscriptionPlan === CONST.POLICY.TYPE.TEAM)) {
         return <NotFoundPage />;
     }
@@ -179,15 +180,14 @@ function SubscriptionSettings() {
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
                 <Text style={[styles.textSupporting, styles.mb5]}>
-                    {translate('subscription.subscriptionSettings.learnMore.part1')}
-                    <TextLink href={CONST.PRICING}>{translate('subscription.subscriptionSettings.learnMore.pricingPage')}</TextLink>
-                    {translate('subscription.subscriptionSettings.learnMore.part2')}
-                    {adminsChatReportID ? (
-                        <TextLink onPress={openAdminsRoom}>{translate('subscription.subscriptionSettings.learnMore.adminsRoom')}</TextLink>
-                    ) : (
-                        translate('subscription.subscriptionSettings.learnMore.adminsRoom')
-                    )}
+                    <RenderHTML
+                        html={translate('subscription.subscriptionSettings.learnMore', {
+                            adminsChatReportRoute: adminsChatReportID ? adminsChatReportRoute : '#admins room.',
+                            pricingURL,
+                        })}
+                    />
                 </Text>
+
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>
                 <Text style={styles.mv1}>{priceDetails}</Text>
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.changesBasedOn')}</Text>

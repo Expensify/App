@@ -6,10 +6,11 @@ import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OptionItem from '@components/OptionsPicker/OptionItem';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
@@ -26,6 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function SubscriptionSettings() {
+    const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -43,10 +45,8 @@ function SubscriptionSettings() {
         upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
     });
     const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins.toString() : undefined;
-
-    const openAdminsRoom = () => {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
-    };
+    const adminsChatReportRoute = `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID)}`;
+    const pricingURL = CONST.PRICING;
 
     const subscriptionSizeSection =
         privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && privateSubscription?.userCount ? (
@@ -71,14 +71,12 @@ function SubscriptionSettings() {
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.mobileReducedFunctionalityMessage')}</Text>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
                 <Text style={[styles.textSupporting, styles.mb5]}>
-                    {translate('subscription.subscriptionSettings.learnMore.part1')}
-                    <TextLink href={CONST.PRICING}>{translate('subscription.subscriptionSettings.learnMore.pricingPage')}</TextLink>
-                    {translate('subscription.subscriptionSettings.learnMore.part2')}
-                    {adminsChatReportID ? (
-                        <TextLink onPress={openAdminsRoom}>{translate('subscription.subscriptionSettings.learnMore.adminsRoom')}</TextLink>
-                    ) : (
-                        translate('subscription.subscriptionSettings.learnMore.adminsRoom')
-                    )}
+                    <RenderHTML
+                        html={translate('subscription.subscriptionSettings.learnMore', {
+                            adminsChatReportRoute: adminsChatReportID ? adminsChatReportRoute : '#admins room.',
+                            pricingURL,
+                        })}
+                    />
                 </Text>
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>
                 <Text style={styles.mv1}>{priceDetails}</Text>
