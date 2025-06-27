@@ -368,6 +368,23 @@ function AttachmentModal({
         [getModalType, setSourceState, setFile, setModalType],
     );
 
+    useEffect(() => {
+        if (!validFilesToUpload.length) {
+            return;
+        }
+
+        if (validFilesToUpload.length > 0) {
+            if (fileError) {
+                return;
+            }
+            const fileToDisplay = validFilesToUpload.at(0);
+            if (fileToDisplay) {
+                const inputSource = fileToDisplay.uri ?? '';
+                handleOpenModal(inputSource, fileToDisplay);
+            }
+        }
+    }, [fileError, handleOpenModal, validFilesToUpload]);
+
     const validateFiles = useCallback(
         (data: FileObject[]) => {
             let validFiles: FileObject[] = [];
@@ -375,16 +392,9 @@ function AttachmentModal({
             Promise.all(data.map((fileToUpload) => isValidFile(fileToUpload, true).then((isValid) => (isValid ? fileToUpload : null)))).then((results) => {
                 validFiles = results.filter((validFile): validFile is FileObject => validFile !== null);
                 setValidFilesToUpload(validFiles);
-
-                if (validFiles.length > 0) {
-                    const fileToDisplay = validFiles.at(0);
-                    if (fileToDisplay) {
-                        handleOpenModal(fileToDisplay.uri ?? '', fileToDisplay);
-                    }
-                }
             });
         },
-        [isValidFile, handleOpenModal],
+        [isValidFile],
     );
 
     const confirmAndContinue = () => {
@@ -392,6 +402,9 @@ function AttachmentModal({
             validateFiles(validFilesToUpload);
         }
         setIsFileErrorModalVisible(false);
+        InteractionManager.runAfterInteractions(() => {
+            setFileError(null);
+        });
     };
 
     const validateAndDisplayMultipleFilesToUpload = useCallback(
