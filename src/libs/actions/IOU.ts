@@ -4301,7 +4301,9 @@ function getUpdateMoneyRequestParams(
         (hasModifiedTag || hasModifiedCategory || hasModifiedComment || hasModifiedDistanceRate || hasModifiedAmount || hasModifiedCreated)
     ) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        const optimisticViolations = hasModifiedAmount ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION) : currentTransactionViolations
+        const optimisticViolations = hasModifiedAmount
+            ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
+            : currentTransactionViolations;
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
             optimisticViolations,
@@ -4373,12 +4375,7 @@ function getUpdateMoneyRequestParams(
  * @param optimisticData
  * @param failureData
  */
-function updateDuplicateTransactionViolation(
-    transactionID: string, 
-    duplicateID: string,
-    optimisticData: OnyxUpdate[],
-    failureData: OnyxUpdate[],
-){
+function updateDuplicateTransactionViolation(transactionID: string, duplicateID: string, optimisticData: OnyxUpdate[], failureData: OnyxUpdate[]) {
     const duplicateTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`];
     if (!duplicateTransactionViolations) {
         return;
@@ -4414,7 +4411,7 @@ function updateDuplicateTransactionViolation(
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
         value: duplicateTransactionViolations,
     });
-};
+}
 
 /**
  * @param transactionID
@@ -7422,16 +7419,9 @@ function updateMoneyRequestAmountAndCurrency({
     } else {
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList ?? null, policyCategories ?? null);
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        ((currentTransactionViolations ?? []).find(
-            (violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION
-        )?.data?.duplicates ?? []).forEach(
-            (duplicateID) => updateDuplicateTransactionViolation(
-                transactionID,
-                duplicateID,
-                data.onyxData.optimisticData ?? [],
-                data.onyxData.failureData ?? []
-            )
-        )
+        ((currentTransactionViolations ?? []).find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? []).forEach((duplicateID) =>
+            updateDuplicateTransactionViolation(transactionID, duplicateID, data.onyxData.optimisticData ?? [], data.onyxData.failureData ?? []),
+        );
     }
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
