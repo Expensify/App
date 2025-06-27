@@ -5137,6 +5137,18 @@ function moveIOUReportToPolicy(reportID: string, policyID: string, isFromSettlem
         value: {[movedReportAction.reportActionID]: null},
     });
 
+    const movedIOUReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, expenseChatReportId, iouReportID, policyName, true);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+        value: {[movedIOUReportAction.reportActionID]: movedIOUReportAction},
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+        value: {[movedIOUReportAction.reportActionID]: null},
+    });
+
     const parameters: MoveIOUReportToExistingPolicyParams = {
         iouReportID,
         policyID,
@@ -5388,6 +5400,18 @@ function moveIOUReportToPolicyAndInviteSubmitter(reportID: string, policyID: str
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
         value: {[movedReportAction.reportActionID]: null},
+    });
+
+    const movedIOUReportAction = buildOptimisticMovedReportAction(iouReport.policyID, policyID, optimisticPolicyExpenseChatReportID, iouReportID, policy.name, true);
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+        value: {[movedIOUReportAction.reportActionID]: movedIOUReportAction},
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
+        value: {[movedIOUReportAction.reportActionID]: null},
     });
 
     const parameters: MoveIOUReportToPolicyAndInviteSubmitterParams = {
