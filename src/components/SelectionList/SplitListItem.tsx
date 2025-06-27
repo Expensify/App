@@ -69,7 +69,7 @@ function SplitListItem<TItem extends ListItem>({item, isFocused, showTooltip, is
                 <View style={[styles.flexRow, styles.containerWithSpaceBetween]}>
                     <View style={[styles.primaryMediumIcon, styles.mr3]}>
                         <Icon
-                            src={MCCIcons[splitItem.mccGroup]}
+                            src={MCCIcons[splitItem.mccGroup] ?? MCCIcons.Miscellaneous}
                             width={variables.iconSizeNormal}
                             height={variables.iconSizeNormal}
                             fill={theme.icon}
