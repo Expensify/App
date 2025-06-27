@@ -11406,7 +11406,7 @@ function dismissConciergeSplitOptionsAction(reportID: string, reportActionID: st
     const optimisticData = [{
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: null,
+        value: {[reportActionID]: null},
     }] as OnyxUpdate[];
 
     const reportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID];
