@@ -451,7 +451,7 @@ function PureReportActionItem({
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
     const isActionableWhisper = isActionableMentionWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
     // const [tryVirtualCFO] = useOnyx(ONYXKEYS.TRY_VIRTUAL_CFO, {canBeMissing: true});
-    const tryVirtualCFO = false;
+    const tryVirtualCFO = true;
     const isVirtualCFOToggled = action?.isVirtualCFOToggled;
     const shouldShowAnimatedCFOButton = !!tryVirtualCFO && !isVirtualCFOToggled;
 
@@ -1548,7 +1548,7 @@ function PureReportActionItem({
                                             <View style={[styles.flexRow, styles.pl5, styles.pv2, styles.pr3]}>
                                                 <AnimatedCFOButton
                                                     onAnimationFinish={() => {
-                                                        console.log('Animation finished');
+                                                        console.log('Animation finished 2');
                                                         toggleVirtualCFO(reportID, action.reportActionID, true);
                                                     }}
                                                 />

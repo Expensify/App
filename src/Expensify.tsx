@@ -44,7 +44,6 @@ import * as ReportActionContextMenu from './pages/home/report/ContextMenu/Report
 import type {Route} from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
-import SparkleFallContainer from '@components/ReportActionItem/SparkleFall/SparkleFallContainer';
 
 Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
@@ -303,7 +302,6 @@ function Expensify() {
                 />
             )}
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
-            <SparkleFallContainer />
         </DeeplinkWrapper>
     );
 }
