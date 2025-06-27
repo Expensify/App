@@ -1,9 +1,12 @@
-import React, {useCallback, useMemo} from 'react';
+import {Portal} from '@gorhom/portal';
+import React, {useCallback, useMemo, useRef} from 'react';
 import Animated, {Keyframe, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Button from './Button';
+import {FallingSparkleRef} from './SparkleFall/FallingSparkle';
+import SparkleFallContainer from './SparkleFall/SparkleFallContainer';
 
 type AnimatedCFOButtonProps = {
     onAnimationFinish: () => void;
@@ -13,6 +16,7 @@ function AnimatedCFOButton({onAnimationFinish}: AnimatedCFOButtonProps) {
     const holdProgress = useSharedValue<number>(0);
     const [isCompleted, setIsCompleted] = React.useState(false);
     const height = useSharedValue<number>(variables.componentSizeNormal);
+    const sparkleFallContainerRef = useRef<FallingSparkleRef | null>(null);
 
     // Base button style
     const baseButtonStyle = useAnimatedStyle(() => ({
@@ -41,15 +45,15 @@ function AnimatedCFOButton({onAnimationFinish}: AnimatedCFOButtonProps) {
         width: '100%',
     }));
 
+    const animationFinish = useCallback(() => {
+        sparkleFallContainerRef.current?.startAnimation();
+        onAnimationFinish();
+    }, []);
+
     const stretchOutY = useCallback(() => {
         'worklet';
-
-        if (isCompleted) {
-            runOnJS(onAnimationFinish)();
-            return;
-        }
-        height.set(withTiming(0, {duration: CONST.ANIMATED_CFO_BUTTON.EXITING_DURATION}, () => runOnJS(onAnimationFinish)()));
-    }, [height, isCompleted, onAnimationFinish]);
+        height.set(withTiming(0, {duration: CONST.ANIMATED_CFO_BUTTON.EXITING_DURATION}, () => runOnJS(animationFinish)()));
+    }, [height, isCompleted]);
 
     const buttonAnimation = useMemo(
         () =>
@@ -71,6 +75,9 @@ function AnimatedCFOButton({onAnimationFinish}: AnimatedCFOButtonProps) {
 
     return (
         <Animated.View style={[containerStyles]}>
+            <Portal>
+                <SparkleFallContainer ref={sparkleFallContainerRef} />
+            </Portal>
             {!isCompleted && (
                 <Animated.View
                     style={baseButtonStyle}
