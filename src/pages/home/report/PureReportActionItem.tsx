@@ -1221,8 +1221,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT_WITH_OPTIONS) {
             const originalMessage = getOriginalMessage(action) as any;
-            const questionText = (originalMessage && originalMessage['question']) || "Do you want to enable attendee tracking?";
-            
+            const questionText = (originalMessage && originalMessage['html']) || "Do you want to enable attendee tracking?";
+
             children = (
                 <View>
                     <ReportActionItemBasicMessage message={questionText} />
