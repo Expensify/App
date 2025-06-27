@@ -45,6 +45,7 @@ async function promptAssistant(issueNumber: number): Promise<void> {
 
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
     console.log(' ...parsing ');
+    console.log('assistantResponse: ', assistantResponse);
     const parsedAssistantResponse = JSON.parse(sanitizeJSONStringValues(assistantResponse)) as AssistantResponse;
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
 

@@ -37157,6 +37157,7 @@ async function promptAssistant(issueNumber) {
     core.info(`Prompt: ${prompt}`);
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
     console.log(' ...parsing ');
+    console.log('assistantResponse: ', assistantResponse);
     const parsedAssistantResponse = JSON.parse((0, sanitizeJSONStringValues_1.default)(assistantResponse));
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
     // TODO: Later on we will comment response on the PR
