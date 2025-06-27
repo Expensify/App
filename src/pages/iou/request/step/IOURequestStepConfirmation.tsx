@@ -36,7 +36,7 @@ import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {generateReportID, getBankAccountRoute, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
-import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, isScanRequest} from '@libs/TransactionUtils';
+import {getAttendees, getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, isScanRequest} from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
@@ -535,6 +535,8 @@ function IOURequestStepConfirmation({
                         waypoints: Object.keys(item.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
                         customUnitRateID,
                         isTestDrive: item.receipt?.isTestDriveReceipt,
+                        originalTransactionID: item.comment?.originalTransactionID,
+                        source: item.comment?.source,
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
                     backToReport,
@@ -1142,8 +1144,8 @@ function IOURequestStepConfirmation({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
-                        iouAmount={transaction?.amount ?? 0}
-                        iouAttendees={transaction?.comment?.attendees ?? []}
+                        iouAmount={Math.abs(transaction?.amount ?? 0)}
+                        iouAttendees={getAttendees(transaction)}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}

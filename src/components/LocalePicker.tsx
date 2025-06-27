@@ -1,13 +1,11 @@
 import React, {useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {setLocale} from '@userActions/App';
-import CONST from '@src/CONST';
-import {isFullySupportedLocale, LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
+import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Picker from './Picker';
 import type {PickerSize} from './Picker/types';
@@ -23,17 +21,16 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const {translate} = useLocalize();
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const {isBetaEnabled} = usePermissions();
 
     const locales = useMemo(() => {
-        const sortedLocales = isBetaEnabled(CONST.BETAS.STATIC_AI_TRANSLATIONS) ? SORTED_LOCALES : SORTED_LOCALES.filter((locale) => isFullySupportedLocale(locale));
+        const sortedLocales = SORTED_LOCALES;
         return sortedLocales.map((locale) => ({
             value: locale,
             label: LOCALE_TO_LANGUAGE_STRING[locale],
             keyForList: locale,
             isSelected: preferredLocale === locale,
         }));
-    }, [isBetaEnabled, preferredLocale]);
+    }, [preferredLocale]);
 
     const shouldDisablePicker = AccountUtils.isValidateCodeFormSubmitting(account);
 

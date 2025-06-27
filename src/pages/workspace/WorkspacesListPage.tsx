@@ -67,20 +67,11 @@ type WorkspaceItem = ListItem &
         dismissError: () => void;
         iconType?: ValueOf<typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON>;
         policyID?: string;
-        adminRoom?: string | null;
-        announceRoom?: string | null;
         isJoinRequestPending?: boolean;
     };
 
 // eslint-disable-next-line react/no-unused-prop-types
 type GetMenuItem = {item: WorkspaceItem; index: number};
-
-type ChatType = {
-    adminRoom?: string | null;
-    announceRoom?: string | null;
-};
-
-type ChatPolicyType = Record<string, ChatType>;
 
 const workspaceFeatures: FeatureListItem[] = [
     {
@@ -123,7 +114,6 @@ function WorkspacesListPage() {
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
@@ -186,9 +176,6 @@ function WorkspacesListPage() {
             const isAdmin = isPolicyAdmin(item as unknown as PolicyType, session?.email);
             const isOwner = item.ownerAccountID === session?.accountID;
             const isDefault = activePolicyID === item.policyID;
-            // Menu options to navigate to the chat report of #admins and #announce room.
-            // For navigation, the chat report ids may be unavailable due to the missing chat reports in Onyx.
-            // In such cases, let us use the available chat report ids from the policy.
             const threeDotsMenuItems: PopoverMenuItem[] = [
                 {
                     icon: Expensicons.Building,
@@ -234,22 +221,6 @@ function WorkspacesListPage() {
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
                     onSelected: callFunctionIfActionIsAllowed(() => leaveWorkspace(item.policyID)),
-                });
-            }
-
-            if (isAdmin && item.adminRoom) {
-                threeDotsMenuItems.push({
-                    icon: Expensicons.Hashtag,
-                    text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}),
-                    onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.adminRoom ?? '')),
-                });
-            }
-
-            if (item.announceRoom) {
-                threeDotsMenuItems.push({
-                    icon: Expensicons.Hashtag,
-                    text: translate('workspace.common.goToRoom', {roomName: CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE}),
-                    onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.announceRoom ?? '')),
                 });
             }
 
@@ -320,38 +291,6 @@ function WorkspacesListPage() {
         ],
     );
 
-    const policyRooms = useMemo(() => {
-        if (!reports || isEmptyObject(reports)) {
-            return;
-        }
-
-        return Object.values(reports).reduce<ChatPolicyType>((result, report) => {
-            if (!report?.reportID || !report.policyID || report.parentReportID) {
-                return result;
-            }
-
-            if (!result[report.policyID]) {
-                // eslint-disable-next-line no-param-reassign
-                result[report.policyID] = {};
-            }
-
-            switch (report.chatType) {
-                case CONST.REPORT.CHAT_TYPE.POLICY_ADMINS:
-                    // eslint-disable-next-line no-param-reassign
-                    result[report.policyID].adminRoom = report.reportID;
-                    break;
-                case CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE:
-                    // eslint-disable-next-line no-param-reassign
-                    result[report.policyID].announceRoom = report.reportID;
-                    break;
-                default:
-                    break;
-            }
-
-            return result;
-        }, {});
-    }, [reports]);
-
     const navigateToWorkspace = useCallback(
         (policyID: string) => {
             // On the wide layout, we always want to open the Profile page when opening workspace settings from the list
@@ -415,15 +354,13 @@ function WorkspacesListPage() {
                     iconFill: theme.textLight,
                     fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                     policyID: policy.id,
-                    adminRoom: policyRooms?.[policy.id]?.adminRoom ?? policy.chatReportIDAdmins?.toString(),
-                    announceRoom: policyRooms?.[policy.id]?.announceRoom ?? (policy.chatReportIDAnnounce ? policy.chatReportIDAnnounce?.toString() : ''),
                     ownerAccountID: policy.ownerAccountID,
                     role: policy.role,
                     type: policy.type,
                     employeeList: policy.employeeList,
                 };
             });
-    }, [reimbursementAccount?.errors, policies, isOffline, session?.email, allConnectionSyncProgresses, theme.textLight, policyRooms, navigateToWorkspace]);
+    }, [reimbursementAccount?.errors, policies, isOffline, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace]);
 
     const filterWorkspace = useCallback((workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue), []);
     const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title)), []);
@@ -499,9 +436,13 @@ function WorkspacesListPage() {
                 bottomContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
                 enableEdgeToEdgeBottomSafeAreaPadding={false}
             >
-                <TopBar breadcrumbLabel={translate('common.workspaces')} />
+                <View style={styles.topBarWrapper}>
+                    <TopBar breadcrumbLabel={translate('common.workspaces')} />
+                </View>
                 {shouldShowLoadingIndicator ? (
-                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <View style={[styles.flex1]}>
+                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    </View>
                 ) : (
                     <ScrollView
                         contentContainerStyle={styles.pt2}

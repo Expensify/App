@@ -29,6 +29,7 @@ function SMSDeliveryFailurePage() {
     }, [credentials?.login]);
 
     const SMSDeliveryFailureMessage = account?.smsDeliveryFailureStatus?.message;
+    const isResettingSMSDeliveryFailureStatus = account?.smsDeliveryFailureStatus?.isLoading;
 
     type TimeData = {
         days?: number;
@@ -65,7 +66,7 @@ function SMSDeliveryFailurePage() {
         Keyboard.dismiss();
     }, [isKeyboardShown]);
 
-    if (hasSMSDeliveryFailure && hasClickedValidate) {
+    if (hasSMSDeliveryFailure && hasClickedValidate && !isResettingSMSDeliveryFailureStatus) {
         return (
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
@@ -131,7 +132,7 @@ function SMSDeliveryFailurePage() {
             <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>
                 <FormAlertWithSubmitButton
                     buttonText={translate('common.validate')}
-                    isLoading={account?.smsDeliveryFailureStatus?.isLoading}
+                    isLoading={isResettingSMSDeliveryFailureStatus}
                     onSubmit={() => {
                         resetSMSDeliveryFailureStatus(login);
                         setHasClickedValidate(true);

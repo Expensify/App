@@ -290,7 +290,7 @@ function MergeResultPage() {
                 secondaryButtonText={secondaryButtonText}
                 onSecondaryButtonPress={onSecondaryButtonPress}
                 description={description}
-                descriptionStyle={{...descriptionStyle, ...styles.textSupporting}}
+                descriptionStyle={[descriptionStyle, styles.textSupporting]}
                 illustration={illustration}
                 illustrationStyle={illustrationStyle}
                 cta={cta}

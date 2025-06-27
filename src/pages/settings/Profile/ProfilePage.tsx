@@ -64,7 +64,6 @@ function ProfilePage() {
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
 
-    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const publicOptions = [
         {
@@ -82,7 +81,6 @@ function ProfilePage() {
             description: translate('statusPage.status'),
             title: emojiCode ? `${emojiCode} ${currentUserPersonalDetails?.status?.text ?? ''}` : '',
             pageRoute: ROUTES.SETTINGS_STATUS,
-            brickRoadIndicator: isEmptyObject(vacationDelegate?.errors) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
         },
         {
             description: translate('pronounsPage.pronouns'),

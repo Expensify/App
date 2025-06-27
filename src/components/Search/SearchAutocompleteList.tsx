@@ -4,13 +4,13 @@ import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'reac
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SelectionList from '@components/SelectionList';
 import type {SearchQueryItem, SearchQueryListItemProps} from '@components/SelectionList/Search/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useDebounce from '@hooks/useDebounce';
 import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -20,7 +20,7 @@ import {getCardFeedKey, getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import memoize from '@libs/memoize';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
-import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidPersonalDetailOptions} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidPersonalDetailOptions, optionsOrderBy, recentReportComparator} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -354,9 +354,8 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
-                const filteredChats = searchOptions.recentReports
-                    .filter((chat) => chat.text?.toLowerCase()?.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(chat.text.toLowerCase()))
-                    .slice(0, 10);
+                const filterChats = (chat: OptionData) => chat.text?.toLowerCase()?.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(chat.text.toLowerCase());
+                const filteredChats = optionsOrderBy(searchOptions.recentReports, 10, recentReportComparator, filterChats);
 
                 return filteredChats.map((chat) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
@@ -370,19 +369,13 @@ function SearchAutocompleteList(
                     .filter((type) => type.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(type.toLowerCase()))
                     .sort();
 
-                return filteredTypes.map((type) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TYPE,
-                    text: type,
-                }));
+                return filteredTypes.map((type) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TYPE, text: type}));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY: {
                 const filteredGroupBy = groupByAutocompleteList.filter(
                     (groupByValue) => groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(groupByValue.toLowerCase()),
                 );
-                return filteredGroupBy.map((groupByValue) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY,
-                    text: groupByValue,
-                }));
+                return filteredGroupBy.map((groupByValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY, text: groupByValue}));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
                 const filteredStatuses = statusAutocompleteList
@@ -390,10 +383,7 @@ function SearchAutocompleteList(
                     .sort()
                     .slice(0, 10);
 
-                return filteredStatuses.map((status) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.STATUS,
-                    text: status,
-                }));
+                return filteredStatuses.map((status) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.STATUS, text: status}));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE: {
                 const filteredExpenseTypes = expenseTypes
@@ -504,35 +494,43 @@ function SearchAutocompleteList(
     /**
      * Builds a suffix tree and returns a function to search in it.
      */
-    const filterOptions = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
+    const {search: filterOptions, isInitialized: isFastSearchInitialized} = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
 
     const recentReportsOptions = useMemo(() => {
-        if (autocompleteQueryValue.trim() === '') {
-            return searchOptions.recentReports.slice(0, 20);
+        Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+        if (autocompleteQueryValue.trim() === '' || !isFastSearchInitialized) {
+            const orderedReportOptions = optionsOrderBy(searchOptions.recentReports, 20, recentReportComparator);
+            Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+            return orderedReportOptions;
         }
 
-        Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
         const filteredOptions = filterOptions(autocompleteQueryValue);
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filteredOptions, autocompleteQueryValue, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
         });
-        Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
         if (filteredOptions.userToInvite) {
             reportOptions.push(filteredOptions.userToInvite);
         }
+        Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, filterOptions, searchOptions]);
+    }, [autocompleteQueryValue, filterOptions, searchOptions, isFastSearchInitialized]);
+
+    const debounceHandleSearch = useDebounce(
+        useCallback(() => {
+            if (!handleSearch || !autocompleteQueryWithoutFilters) {
+                return;
+            }
+            handleSearch(autocompleteQueryWithoutFilters);
+        }, [handleSearch, autocompleteQueryWithoutFilters]),
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+    );
 
     useEffect(() => {
-        if (!handleSearch) {
-            return;
-        }
-
-        handleSearch(autocompleteQueryWithoutFilters);
-    }, [autocompleteQueryWithoutFilters, handleSearch]);
+        debounceHandleSearch();
+    }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
 
     /* Sections generation */
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
@@ -559,10 +557,7 @@ function SearchAutocompleteList(
         text: StringUtils.lineBreaksToSpaces(item.text),
         wrapperStyle: [styles.pr3, styles.pl3],
     }));
-    sections.push({
-        title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined,
-        data: styledRecentReports,
-    });
+    sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {
         const autocompleteData = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
@@ -605,14 +600,9 @@ function SearchAutocompleteList(
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
 
     return (
-        <>
-            {isInitialRender && (
-                <OptionsListSkeletonView
-                    fixedNumItems={4}
-                    shouldStyleAsTable
-                    speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                />
-            )}
+        // On page refresh, when the list is rendered before options are initialized the auto-focusing on initiallyFocusedOptionKey
+        // will fail because the list will be empty on first render so we only render after options are initialized.
+        areOptionsInitialized && (
             <SelectionList<OptionData | SearchQueryItem>
                 showLoadingPlaceholder={!areOptionsInitialized}
                 fixedNumItemsForLoader={4}
@@ -640,8 +630,9 @@ function SearchAutocompleteList(
                 shouldScrollToFocusedIndex={!isInitialRender}
                 shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
                 disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
+                addBottomSafeAreaPadding
             />
-        </>
+        )
     );
 }
 

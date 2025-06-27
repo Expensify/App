@@ -203,7 +203,10 @@ function BaseReportActionContextMenu({
     const areHoldRequirementsMet =
         !isInvoiceReport &&
         isMoneyRequestOrReport &&
-        !isArchivedNonExpenseReport(transactionThreadReportID ? childReport : parentReport, transactionThreadReportID ? childReportNameValuePairs : parentReportNameValuePairs);
+        !isArchivedNonExpenseReport(
+            transactionThreadReportID ? childReport : parentReport,
+            transactionThreadReportID ? !!childReportNameValuePairs?.private_isArchived : !!parentReportNameValuePairs?.private_isArchived,
+        );
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     let filteredContextMenuActions = ContextMenuActions.filter(

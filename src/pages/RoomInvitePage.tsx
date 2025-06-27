@@ -37,7 +37,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
@@ -48,7 +47,7 @@ type Sections = Array<SectionListData<MemberForList, Section<MemberForList>>>;
 function RoomInvitePage({
     betas,
     report,
-    policies,
+    policy,
     route: {
         params: {backTo},
     },
@@ -183,7 +182,7 @@ function RoomInvitePage({
 
     // Non policy members should not be able to view the participants of a room
     const reportID = report?.reportID;
-    const isPolicyEmployee = useMemo(() => (report?.policyID ? isPolicyEmployeeUtil(report.policyID, policies as Record<string, Policy>) : false), [report?.policyID, policies]);
+    const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
     const backRoute = useMemo(() => {
         return reportID && (isPolicyEmployee ? ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo));
     }, [isPolicyEmployee, reportID, backTo]);

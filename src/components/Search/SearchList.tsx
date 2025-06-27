@@ -11,10 +11,10 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {PressableWithFeedback} from '@components/Pressable';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
-import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
+import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ExtendedTargetedEvent, ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ExtendedTargetedEvent, ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -31,9 +31,10 @@ import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/Keyboar
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchQueryJSON} from './types';
 
-type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
-type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem | typeof TaskListItem;
+type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
+type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem;
 
 type SearchListHandle = {
     scrollAndHighlightItem?: (items: string[]) => void;
@@ -69,11 +70,8 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
     /** Whether to prevent long press of options */
     shouldPreventLongPressRow?: boolean;
 
-    /** The hash of the queryJSON */
-    queryJSONHash: number;
-
-    /** Whether to group the list by reports */
-    shouldGroupByReports?: boolean;
+    /** The search query */
+    queryJSON: SearchQueryJSON;
 
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
@@ -101,15 +99,15 @@ function SearchList(
         ListFooterComponent,
         shouldPreventDefaultFocusOnSelectRow,
         shouldPreventLongPressRow,
-        queryJSONHash,
-        shouldGroupByReports,
+        queryJSON,
         onViewableItemsChanged,
         onLayout,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
     const styles = useThemeStyles();
-    const flattenedTransactions = shouldGroupByReports ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
+    const {hash, groupBy} = queryJSON;
+    const flattenedTransactions = groupBy ? (data as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : data;
     const flattenedTransactionWithoutPendingDelete = flattenedTransactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const selectedItemsLength = flattenedTransactions.reduce((acc, item) => {
         return item?.isSelected ? acc + 1 : acc;
@@ -335,10 +333,11 @@ function SearchList(
                         ...item,
                     }}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                    queryJSONHash={queryJSONHash}
+                    queryJSONHash={hash}
                     policies={policies}
                     isDisabled={isDisabled}
                     allReports={allReports}
+                    groupBy={groupBy}
                 />
             );
         },
@@ -351,7 +350,8 @@ function SearchList(
             onCheckboxPress,
             onSelectRow,
             policies,
-            queryJSONHash,
+            hash,
+            groupBy,
             setFocusedIndex,
             shouldPreventDefaultFocusOnSelectRow,
             allReports,

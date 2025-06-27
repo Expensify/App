@@ -11,6 +11,7 @@ import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpenses
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -36,9 +37,11 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [offset, setOffset] = useState(0);
     const {isOffline} = useNetwork();
+    const [selectedIds, setSelectedIds] = useState(new Set<string>());
 
     const {reportID, backToReport} = route.params;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const policy = usePolicy(report?.policyID);
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
@@ -136,8 +139,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         );
     }
 
-    const selectedIds = new Set<string>();
-
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
@@ -154,11 +155,19 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             <SelectionList<Transaction & ListItem>
                 ref={selectionListRef}
                 onSelectRow={(item) => {
-                    if (selectedIds.has(item.transactionID)) {
-                        selectedIds.delete(item.transactionID);
-                    } else {
-                        selectedIds.add(item.transactionID);
-                    }
+                    setSelectedIds((prevIds) => {
+                        const newIds = new Set(prevIds);
+                        if (newIds.has(item.transactionID)) {
+                            newIds.delete(item.transactionID);
+                        } else {
+                            newIds.add(item.transactionID);
+                            if (errorMessage) {
+                                setErrorMessage('');
+                            }
+                        }
+
+                        return newIds;
+                    });
                 }}
                 shouldShowTextInput={false}
                 canSelectMultiple
@@ -173,7 +182,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         return;
                     }
                     Navigation.dismissModal();
-                    changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID);
+                    changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID, policy);
                     setErrorMessage('');
                 }}
                 onEndReached={fetchMoreUnreportedTransactions}

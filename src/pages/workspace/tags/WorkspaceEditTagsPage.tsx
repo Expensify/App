@@ -52,10 +52,17 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
         [translate, policyTags, route.params.orderWeight],
     );
 
-    const goBackToTagsSettings = useCallback(
-        () => Navigation.goBack(isQuickSettingsFlow ? backTo : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID)),
-        [isQuickSettingsFlow, backTo, route.params.policyID],
-    );
+    const goBackToTagsSettings = useCallback(() => {
+        if (isQuickSettingsFlow) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        Navigation.goBack(
+            route.params.orderWeight
+                ? ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(route?.params?.policyID, route.params.orderWeight)
+                : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
+        );
+    }, [isQuickSettingsFlow, route.params.orderWeight, route.params?.policyID, backTo]);
 
     const updateTagListName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
