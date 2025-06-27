@@ -750,14 +750,14 @@ function PureReportActionItem({
                     const translatedResponse = option.includes('.') ? translate(option as any) : option;
                     addComment(reportID, translatedResponse);
                     // Mark the action as resolved by updating the originalMessage
-                    Onyx.merge(ONYXKEYS.COLLECTION.REPORT_ACTIONS + reportID, {
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                         [action.reportActionID]: {
                             originalMessage: {
                                 ...originalMessage,
                                 selectedOption: option,
                             },
                         },
-                    });
+                    } as Partial<OnyxTypes.ReportActions>);
                 },
             }));
         }
