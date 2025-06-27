@@ -51,7 +51,7 @@ function CardListItem<TItem extends ListItem>({
 
     const ownersAvatar = {
         source: getOptimisticAvatarURL(item.cardOwnerPersonalDetails?.login, item.cardOwnerPersonalDetails?.accountID, item.cardOwnerPersonalDetails?.avatar) ?? FallbackAvatar,
-        id: item.cardOwnerPersonalDetails?.accountID ?? -1,
+        id: item.cardOwnerPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
         type: CONST.ICON_TYPE_AVATAR,
         name: item.cardOwnerPersonalDetails?.displayName ?? '',
         fallbackIcon: item.cardOwnerPersonalDetails?.fallbackIcon,
@@ -86,7 +86,7 @@ function CardListItem<TItem extends ListItem>({
                             <View>
                                 <UserDetailsTooltip
                                     shouldRender={showTooltip}
-                                    accountID={Number(item.cardOwnerPersonalDetails?.accountID ?? -1)}
+                                    accountID={Number(item.cardOwnerPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID)}
                                     icon={ownersAvatar}
                                     fallbackUserDetails={{
                                         displayName: item.cardOwnerPersonalDetails?.displayName,
