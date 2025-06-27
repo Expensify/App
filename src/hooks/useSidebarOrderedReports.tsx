@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Log from '@libs/Log';
@@ -231,69 +231,55 @@ function SidebarOrderedReportsContextProvider({
     const prevShouldUseNarrowLayout = usePrevious(shouldUseNarrowLayout);
     const prevTransactionViolations = usePrevious(transactionViolations);
     const prevContextValue = usePrevious(contextValue);
+    const contextHadValue = useRef(true);
 
     // Debug logging for empty orderedReports
     useEffect(() => {
-        if (contextValue.orderedReports.length > 0 || prevContextValue.orderedReports.length === 0) {
-            return;
+        // Only log if the context had value before and now it doesn't
+        // Not using prevContextValue due to first render issue
+        if (contextValue.orderedReports.length === 0 && contextHadValue.current) {
+            Log.info('🔍 DEBUG: Empty orderedReports detected', false, {
+                timestamp: new Date().toISOString(),
+                current: {
+                    accountID,
+                    betas,
+                    chatReports,
+                    contextValue,
+                    currentReportsToDisplay,
+                    derivedCurrentReportID,
+                    orderedReportIDs,
+                    orderedReports,
+                    policies,
+                    priorityMode,
+                    reportAttributes,
+                    reportNameValuePairs,
+                    reportsToDisplayInLHN,
+                    shouldUseNarrowLayout,
+                    transactionViolations,
+                },
+                previous: {
+                    prevAccountID,
+                    prevBetas,
+                    prevChatReports,
+                    prevContextValue,
+                    prevCurrentReportsToDisplay,
+                    prevDerivedCurrentReportID,
+                    prevOrderedReportIDs,
+                    prevOrderedReports,
+                    prevPolicies,
+                    prevPriorityMode,
+                    prevReportAttributes,
+                    prevReportNameValuePairs,
+                    prevReportsToDisplayInLHN,
+                    prevShouldUseNarrowLayout,
+                    prevTransactionViolations,
+                },
+            });
         }
-
-        Log.info('🔍 DEBUG: Empty orderedReports detected', false, {
-            timestamp: new Date().toISOString(),
-            current: {
-                accountID,
-                betas,
-                chatReports,
-                contextValue,
-                currentReportsToDisplay,
-                derivedCurrentReportID,
-                orderedReportIDs,
-                orderedReports,
-                policies,
-                priorityMode,
-                reportAttributes,
-                reportNameValuePairs,
-                reportsToDisplayInLHN,
-                shouldUseNarrowLayout,
-                transactionViolations,
-            },
-            previous: {
-                prevAccountID,
-                prevBetas,
-                prevChatReports,
-                prevContextValue,
-                prevCurrentReportsToDisplay,
-                prevDerivedCurrentReportID,
-                prevOrderedReportIDs,
-                prevOrderedReports,
-                prevPolicies,
-                prevPriorityMode,
-                prevReportAttributes,
-                prevReportNameValuePairs,
-                prevReportsToDisplayInLHN,
-                prevShouldUseNarrowLayout,
-                prevTransactionViolations,
-            },
-        });
+        contextHadValue.current = contextValue.orderedReports.length > 0;
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        accountID,
-        betas,
-        chatReports,
-        contextValue,
-        currentReportsToDisplay,
-        derivedCurrentReportID,
-        orderedReportIDs,
-        orderedReports,
-        policies,
-        priorityMode,
-        reportAttributes,
-        reportNameValuePairs,
-        reportsToDisplayInLHN,
-        shouldUseNarrowLayout,
-        transactionViolations,
-    ]);
+    }, [contextValue]);
 
     return <SidebarOrderedReportsContext.Provider value={contextValue}>{children}</SidebarOrderedReportsContext.Provider>;
 }
