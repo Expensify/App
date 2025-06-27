@@ -26,19 +26,24 @@ import CONST from '@src/CONST';
 import ModalContent from './ModalContent';
 import ModalContext from './ModalContext';
 import ReanimatedModal from './ReanimatedModal';
-import type ModalProps from './ReanimatedModal/types';
+import type ReanimatedModalProps from './ReanimatedModal/types';
 import type BaseModalProps from './types';
 
 const REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED, CONST.MODAL.MODAL_TYPE.FULLSCREEN];
 
-type ModalComponentProps = (ReactNativeModalProps | ModalProps) & {
+type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
     type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
 };
 
 function ModalComponent({type, ...props}: ModalComponentProps) {
     if (type && REANIMATED_MODAL_TYPES.includes(type)) {
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return <ReanimatedModal {...(props as ModalProps)} />;
+        return (
+            <ReanimatedModal
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...(props as ReanimatedModalProps)}
+                type={type}
+            />
+        );
     }
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ReactNativeModal {...(props as ReactNativeModalProps)} />;

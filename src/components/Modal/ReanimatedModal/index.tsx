@@ -9,7 +9,7 @@ import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import Backdrop from './Backdrop';
 import Container from './Container';
-import type ModalProps from './types';
+import type ReanimatedModalProps from './types';
 
 function ReanimatedModal({
     testID,
@@ -32,9 +32,10 @@ function ReanimatedModal({
     onBackdropPress = noop,
     onBackButtonPress = noop,
     style,
+    type,
     statusBarTranslucent = false,
     ...props
-}: ModalProps) {
+}: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
     const [isContainerOpen, setIsContainerOpen] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -141,6 +142,7 @@ function ReanimatedModal({
             onOpenCallBack={onOpenCallBack}
             onCloseCallBack={onCloseCallBack}
             style={style}
+            type={type}
         >
             {children}
         </Container>
