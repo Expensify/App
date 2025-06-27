@@ -205,7 +205,7 @@ function navigate(route: Route, options?: LinkToOptions) {
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
  * these parameters shouldn't be included in the comparison.
  */
-const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'policyID'];
+const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'policyID', 'pop'];
 
 /**
  * @private
