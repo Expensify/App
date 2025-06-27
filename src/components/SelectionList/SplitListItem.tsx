@@ -14,8 +14,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {initDraftSplitExpenseDataForEdit} from '@libs/actions/IOU';
-import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
-import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {convertAmountToDisplayString, convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import variables from '@styles/variables';
 import BaseListItem from './BaseListItem';
 import type {ListItem, SplitListItemProps, SplitListItemType} from './types';
@@ -86,12 +85,13 @@ function SplitListItem<TItem extends ListItem>({item, isFocused, showTooltip, is
                                     {splitItem.dateRange}
                                 </Text>
                             </View>
-                            <View style={[styles.minHeight5, styles.justifyContentCenter, styles.gap2]}>
+                            <View style={[styles.minHeight5, styles.justifyContentCenter, styles.gap2, styles.flex1, styles.mr3]}>
                                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                                     <Text
                                         fontSize={variables.fontSizeNormal}
                                         style={[styles.flexShrink1, styles.textBold]}
                                         numberOfLines={1}
+                                        ellipsizeMode="tail"
                                     >
                                         {splitItem.category.length > 0 ? splitItem.category : translate('common.uncategorized')}
                                     </Text>
@@ -99,7 +99,7 @@ function SplitListItem<TItem extends ListItem>({item, isFocused, showTooltip, is
                             </View>
                         </View>
                     </View>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink0]}>
                         <Text style={[styles.textBold]}>{totalAmount}</Text>
                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
                             <Animated.View style={animatedIconStyle}>
