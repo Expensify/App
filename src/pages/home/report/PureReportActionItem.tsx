@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -1226,7 +1227,9 @@ function PureReportActionItem({
             children = (
                 <AccountingContextProvider policy={policy}>
                     <View>
-                        <ReportActionItemBasicMessage message={questionText} />
+                        <View>
+                            {!!questionText && <Text style={[styles.chatItemMessage]}>{Str.htmlDecode(questionText)}</Text>}
+                        </View>
                         {actionableItemButtons.length > 0 && (
                             <ActionableItemButtons
                                 items={actionableItemButtons}
