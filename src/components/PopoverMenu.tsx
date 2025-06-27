@@ -314,7 +314,6 @@ function PopoverMenu({
                     }}
                     wrapperStyle={[
                         StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
-                        shouldUseScrollView && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
                     ]}
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
@@ -392,6 +391,8 @@ function PopoverMenu({
         return styles.createMenuContainer;
     }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer]);
 
+    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = StyleSheet.flatten(scrollContainerStyle);
+
     return (
         <PopoverWithMeasuredContent
             anchorPosition={anchorPosition}
@@ -424,11 +425,13 @@ function PopoverMenu({
             <FocusTrapForModal active={isVisible}>
                 <View
                     onLayout={onLayout}
-                    style={[menuContainerStyle, containerStyles]}
+                    style={[menuContainerStyle, containerStyles, styles.pv0]}
                 >
                     {renderHeaderText()}
-                    {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                    {renderWithConditionalWrapper(shouldUseScrollView, scrollContainerStyle, renderedMenuItems)}
+                    <View style={[styles.pv4, {paddingTop, paddingBottom, paddingVertical}]}>
+                        {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
+                        {renderWithConditionalWrapper(shouldUseScrollView, restScrollContainerStyle, renderedMenuItems)}
+                    </View>
                 </View>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
