@@ -12,9 +12,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CategoryUtils from '@libs/CategoryUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -27,6 +30,8 @@ import type {PolicyEmployee} from '@src/types/onyx';
 type ChartedEmployee = PolicyEmployee & {
     id?: string;
     skipped?: boolean;
+    isCategoryApprover?: boolean;
+    isTagApprover?: boolean;
 };
 
 type ReportDetailsApprovalWorkflowPageProps = PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.APPROVAL_WORKFLOW>;
@@ -41,8 +46,26 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID || ''}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${report?.reportID ? TransactionUtils.getTransactionID(report.reportID) || '' : ''}`);
 
-        // Get the next approver using our own workflow logic
+    // Extract category and tag from the transaction
+    // Find the specific transaction for this report
+    const reportTransaction = transaction && typeof transaction === 'object' ? 
+        Object.values(transaction).find((t: any) => t?.reportID === reportID) : 
+        transaction;
+        
+    const reportCategory = (reportTransaction as any)?.category;
+    const reportTag = (reportTransaction as any)?.tag;
+
+    // Get category and tag approvers if they exist
+    const categoryApprover = reportCategory ? 
+        CategoryUtils.getCategoryApproverRule(policy?.rules?.approvalRules ?? [], reportCategory)?.approver : 
+        null;
+    const tagApprover = reportTag ? 
+        PolicyUtils.getTagApproverRule(policy, reportTag)?.approver : 
+        null;
+
+    // Get the next approver using our own workflow logic
     const nextApproverAccountID = useMemo(() => {
         if (!report || !policy?.employeeList || !personalDetails) return null;
         
@@ -69,59 +92,49 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
             return target ? {...target, id: Math.random().toString(36).slice(2, 8)} : null;
         };
         
-        // Build workflow chain
+        // Build complete workflow chain including category and tag approvers
         const workflow = [{...submitter, id: Math.random().toString(36).slice(2, 8), skipped: false}];
+        
+        // First, build the standard workflow chain (L4+) to check for duplicates
+        const standardWorkflow = [];
         let level = 0;
         let next = getNode(submitter, level);
         
-        while (next && workflow.length < 10) {
-            const isDup = workflow.some((e) => e.email === next?.email);
-            workflow.push({...next, skipped: isDup});
+        while (next && standardWorkflow.length < 10) {
+            standardWorkflow.push(next);
             level++;
             next = getNode(next, level);
         }
         
-        // Find who has already acted by looking at report actions
-        let lastActorIndex = 0; // Start with submitter (position 0)
+        // Check if category/tag approvers should be skipped based on CORRECT business rules
+        const isCategoryApproverSubmitter = categoryApprover && submitter.email === categoryApprover;
+        const isTagApproverSubmitter = tagApprover && submitter.email === tagApprover;
+        const isSamePersonForBoth = categoryApprover && tagApprover && categoryApprover === tagApprover;
         
-        if (reportActions) {
-            const sortedReportActions = ReportActionsUtils.getSortedReportActions(Object.values(reportActions));
-            
-            // Look through report actions to find the last person in our workflow who acted
-            for (let i = sortedReportActions.length - 1; i >= 0; i--) {
-                const action = sortedReportActions[i];
-                if (action && action.actorAccountID) {
-                    // Check for various approval/submission action types
-                    const isRelevantAction = ReportActionsUtils.isApprovedOrSubmittedReportAction(action) || 
-                                           action.actionName === 'APPROVED' ||
-                                           action.actionName === 'SUBMITTED' ||
-                                           action.actionName === 'FORWARDED';
-                    
-                    if (isRelevantAction) {
-                        // Find this actor in our workflow
-                        for (let j = 0; j < workflow.length; j++) {
-                            const workflowNode = workflow[j];
-                            if (workflowNode.email) {
-                                const userInfo = getUserInfo(workflowNode.email);
-                                if (userInfo.accountID === action.actorAccountID) {
-                                    lastActorIndex = j;
-                                    break;
-                                }
-                            }
-                        }
-                        break; // We found the most recent actor, stop looking
-                    }
-                }
-            }
+        // Add category approver (L2) if exists - ONLY skip if they're the submitter
+        if (categoryApprover) {
+            const categoryNode = {
+                email: categoryApprover,
+                id: Math.random().toString(36).slice(2, 8),
+                skipped: !!isCategoryApproverSubmitter
+            };
+            workflow.push(categoryNode);
         }
         
-        // Find the next non-skipped person after the last actor
-        for (let i = lastActorIndex + 1; i < workflow.length; i++) {
-            const workflowNode = workflow[i];
-            if (!workflowNode.skipped && workflowNode.email) {
-                const userInfo = getUserInfo(workflowNode.email);
-                return userInfo.accountID;
-            }
+        // Add tag approver (L3) if exists and not same as category - ONLY skip if they're submitter or same as category
+        if (tagApprover && !isSamePersonForBoth) {
+            const tagNode = {
+                email: tagApprover,
+                id: Math.random().toString(36).slice(2, 8),
+                skipped: !!(isTagApproverSubmitter || isSamePersonForBoth)
+            };
+            workflow.push(tagNode);
+        }
+        
+        // Add standard workflow chain (L4+) - mark as skipped if they already appear in the complete workflow
+        for (const standardNode of standardWorkflow) {
+            const isDup = workflow.some((e) => e.email === standardNode.email);
+            workflow.push({...standardNode, skipped: isDup});
         }
         
         function getUserInfo(email: string) {
@@ -169,8 +182,51 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
             };
         }
         
-        return null;
-    }, [report, policy?.employeeList, personalDetails, reportActions]);
+        // Find who has already acted by looking at report actions
+        let lastActorIndex = 0; // Start with submitter (position 0)
+        
+        if (reportActions) {
+            const sortedReportActions = ReportActionsUtils.getSortedReportActions(Object.values(reportActions));
+            
+            // Look through report actions to find the last person in our workflow who acted
+            for (let i = sortedReportActions.length - 1; i >= 0; i--) {
+                const action = sortedReportActions[i];
+                if (action && action.actorAccountID) {
+                    // Check for various approval/submission action types
+                    const isRelevantAction = ReportActionsUtils.isApprovedOrSubmittedReportAction(action) || 
+                                           action.actionName === 'APPROVED' ||
+                                           action.actionName === 'SUBMITTED' ||
+                                           action.actionName === 'FORWARDED';
+                    
+                    if (isRelevantAction) {
+                        // Find this actor in our workflow
+                        for (let j = 0; j < workflow.length; j++) {
+                            const workflowNode = workflow[j];
+                            if (workflowNode.email) {
+                                const userInfo = getUserInfo(workflowNode.email);
+                                if (userInfo.accountID === action.actorAccountID) {
+                                    lastActorIndex = j;
+                                    break;
+                                }
+                            }
+                        }
+                        break; // We found the most recent actor, stop looking
+                    }
+                }
+            }
+        }
+        
+        // Find the next non-skipped person after the last actor
+        for (let i = lastActorIndex + 1; i < workflow.length; i++) {
+            const workflowNode = workflow[i];
+            if (!workflowNode.skipped && workflowNode.email) {
+                const userInfo = getUserInfo(workflowNode.email);
+                return userInfo.accountID;
+            }
+        }
+        
+        return -1; // No next approver found
+    }, [report, policy?.employeeList, personalDetails, reportActions, categoryApprover, tagApprover]);
 
     const chart = useMemo(() => {
         if (!policy?.employeeList || !report?.ownerAccountID || !personalDetails) {
@@ -245,16 +301,51 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
             };
         };
 
-        // Build workflow chain for the report submitter
-        const workflow = [{...submitter, id: Math.random().toString(36).slice(2, 8), skipped: false}];
+        // Build the SAME complete workflow structure as used in nextApproverAccountID calculation
+        const workflow: ChartedEmployee[] = [{...submitter, id: Math.random().toString(36).slice(2, 8), skipped: false}];
+        
+        // First, build the standard workflow chain (L4+) to check for duplicates
+        const standardWorkflow: ChartedEmployee[] = [];
         let level = 0;
         let next = getNode(submitter, level);
-
-        while (next && workflow.length < 10) {
-            const isDup = workflow.some((e) => e.email === next?.email);
-            workflow.push({...next, skipped: isDup});
+        
+        while (next && standardWorkflow.length < 10) {
+            standardWorkflow.push({...next, id: Math.random().toString(36).slice(2, 8)});
             level++;
             next = getNode(next, level);
+        }
+        
+        // Check if category/tag approvers should be skipped based on CORRECT business rules
+        const isCategoryAppreverSubmitter = categoryApprover && submitter.email === categoryApprover;
+        const isTagApproverSubmitter = tagApprover && submitter.email === tagApprover;
+        const isSamePersonForBoth = categoryApprover && tagApprover && categoryApprover === tagApprover;
+        
+        // Add category approver (L2) if exists - ONLY skip if they're the submitter
+        if (categoryApprover) {
+            const categoryNode: ChartedEmployee = {
+                email: categoryApprover,
+                id: Math.random().toString(36).slice(2, 8),
+                skipped: !!isCategoryAppreverSubmitter,
+                isCategoryApprover: true
+            };
+            workflow.push(categoryNode);
+        }
+        
+        // Add tag approver (L3) if exists and not same as category - ONLY skip if they're submitter or same as category
+        if (tagApprover && !isSamePersonForBoth) {
+            const tagNode: ChartedEmployee = {
+                email: tagApprover,
+                id: Math.random().toString(36).slice(2, 8),
+                skipped: !!(isTagApproverSubmitter || isSamePersonForBoth),
+                isTagApprover: true
+            };
+            workflow.push(tagNode);
+        }
+        
+        // Add standard workflow chain (L4+) - mark as skipped if they already appear in the complete workflow
+        for (const standardNode of standardWorkflow) {
+            const isDup = workflow.some((e) => e.email === standardNode.email);
+            workflow.push({...standardNode, skipped: isDup});
         }
 
         let chart = `graph TD\nclassDef rounded stroke:transparent\nclassDef skipped fill:${colors.white},color:${colors.green},stroke:${colors.green},stroke-width:2px,stroke-dasharray:5\nclassDef nextApprover stroke:${colors.orange},stroke-width:3px`;
@@ -274,7 +365,7 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
             const isCurrentUser = fromInfo.accountID === session?.accountID;
             const isToCurrentUser = toInfo.accountID === session?.accountID;
             const isNextApprover = fromInfo.accountID === nextApproverAccountID;
-                        const isToNextApprover = toInfo.accountID === nextApproverAccountID;
+            const isToNextApprover = toInfo.accountID === nextApproverAccountID;
             
             const className = from.skipped ? 'skipped' : (isNextApprover ? 'nextApprover' : 'rounded');
 
@@ -301,11 +392,40 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
             
             const toClassName = to.skipped ? 'skipped' : (isToNextApprover ? 'nextApprover' : 'rounded');
             
-            chart += `\n${from.id}("${fromDisplayName}${skippedText}"):::${className} -->|"${action}"| ${to.id}("${toDisplayName}${toSkippedText}"):::${toClassName}`;
+            // Determine if we should use subgraphs for category/tag approvers
+            if (from.isCategoryApprover === true) {
+                const categorySubgraphId = `categoryApprover`;
+                chart += `\nsubgraph ${categorySubgraphId} ["Category Approver"]\n    ${from.id}("${fromDisplayName}${skippedText}"):::${className}\nend`;
+            }
+            
+            if (from.isTagApprover === true) {
+                const tagSubgraphId = `tagApprover`;  
+                chart += `\nsubgraph ${tagSubgraphId} ["Tag Approver"]\n    ${from.id}("${fromDisplayName}${skippedText}"):::${className}\nend`;
+            }
+            
+            if (to.isCategoryApprover === true) {
+                const categorySubgraphId = `categoryApprover`;
+                chart += `\nsubgraph ${categorySubgraphId} ["Category Approver"]\n    ${to.id}("${toDisplayName}${toSkippedText}"):::${toClassName}\nend`;
+            }
+            
+            if (to.isTagApprover === true) {
+                const tagSubgraphId = `tagApprover`;
+                chart += `\nsubgraph ${tagSubgraphId} ["Tag Approver"]\n    ${to.id}("${toDisplayName}${toSkippedText}"):::${toClassName}\nend`;
+            }
+            
+            // Add the regular nodes if they're not category/tag approvers
+            if (from.isCategoryApprover !== true && from.isTagApprover !== true) {
+                chart += `\n${from.id}("${fromDisplayName}${skippedText}"):::${className}`;
+            }
+            if (to.isCategoryApprover !== true && to.isTagApprover !== true) {
+                chart += `\n${to.id}("${toDisplayName}${toSkippedText}"):::${toClassName}`;
+            }
+            
+            chart += `\n${from.id} -->|"${action}"| ${to.id}`;
         }
 
         return chart;
-    }, [policy?.employeeList, report?.ownerAccountID, personalDetails, session?.accountID, nextApproverAccountID]);
+    }, [policy?.employeeList, report?.ownerAccountID, personalDetails, session?.accountID, nextApproverAccountID, categoryApprover, tagApprover]);
 
     if (!report || !policy) {
         return (
@@ -391,11 +511,17 @@ function ApprovalChartWeb({chart, styles}: ChartViewProps) {
                     edgeLabelBackground: colors.green700,
                     lineColor: colors.green700,
                     fontWeight: 'bold',
+                    // Subgraph styling
+                    clusterBkg: 'transparent',
+                    clusterBorder: '#666666',
+                    altBackground: 'transparent',
                 },
                 flowchart: {
                     padding: 20,
                     useMaxWidth: true,
                     nodeSpacing: 50,
+                    // @ts-ignore
+                    entityPadding: 20,
                 },
                 fontFamily: 'Expensify Neue',
                 fontSize: 16,
@@ -419,7 +545,7 @@ function ApprovalChartWeb({chart, styles}: ChartViewProps) {
     };
 
     return (
-        <div style={{width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', overflow: 'hidden'}}>
+        <div style={{width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', position: 'relative', overflow: 'hidden'}}>
             <TransformWrapper
                 ref={workflowRef}
                 minScale={0.1}
@@ -488,11 +614,15 @@ function ApprovalChartMobile({chart}: ChartViewProps) {
                     edgeLabelBackground: '${colors.green700}',
                     lineColor: '${colors.green700}',
                     fontWeight: 'bold',
+                    clusterBkg: 'transparent',
+                    clusterBorder: '#666666',
+                    altBackground: 'transparent',
                 },
                 flowchart: {
                     padding: 20,
                     useMaxWidth: true,
                     nodeSpacing: 50,
+                    entityPadding: 20,
                 },
                 fontFamily: 'Expensify Neue',
                 fontSize: 16,
