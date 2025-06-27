@@ -103,26 +103,24 @@ function SplitListItem<TItem extends ListItem>({item, isFocused, showTooltip, is
                                     expense.isTransactionLinked && StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG),
                                 ]}
                             >
-                                <View style={[styles.flex1]}>
-                                    <View style={[styles.containerWithSpaceBetween]}>
-                                        <View style={[styles.minHeight5, styles.justifyContentCenter]}>
+                                <View style={[styles.flex1, styles.w100, styles.justifyContentAround]}>
+                                    <View style={[styles.minHeight5, styles.justifyContentCenter]}>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
+                                        >
+                                            {expense.headerText}
+                                        </Text>
+                                    </View>
+                                    <View style={[styles.minHeight5, styles.justifyContentCenter]}>
+                                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                                             <Text
+                                                fontSize={variables.fontSizeNormal}
+                                                style={[styles.flexShrink1]}
                                                 numberOfLines={1}
-                                                style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                             >
-                                                {expense.headerText}
+                                                {expense.description ?? expense.merchant}
                                             </Text>
-                                        </View>
-                                        <View style={[styles.minHeight5, styles.justifyContentCenter, styles.gap2]}>
-                                            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                                                <Text
-                                                    fontSize={variables.fontSizeNormal}
-                                                    style={[styles.flexShrink1]}
-                                                    numberOfLines={1}
-                                                >
-                                                    {expense.description ?? expense.merchant}
-                                                </Text>
-                                            </View>
                                         </View>
                                     </View>
                                 </View>
