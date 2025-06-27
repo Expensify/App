@@ -1,6 +1,7 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import Log from '@libs/Log';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
@@ -215,6 +216,48 @@ function SidebarOrderedReportsContextProvider({
             policyMemberAccountIDs,
         };
     }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports]);
+
+    // Debug logging for empty orderedReports
+    useEffect(() => {
+        if (contextValue.orderedReports && contextValue.orderedReports.length > 0) {
+            return;
+        }
+
+        Log.info('🔍 DEBUG: Empty orderedReports detected', false, {
+            accountID,
+            betas,
+            chatReports,
+            contextValue,
+            currentReportsToDisplay,
+            derivedCurrentReportID,
+            orderedReportIDs,
+            orderedReports,
+            policies,
+            priorityMode,
+            reportAttributes,
+            reportNameValuePairs,
+            reportsToDisplayInLHN,
+            shouldUseNarrowLayout,
+            timestamp: new Date().toISOString(),
+            transactionViolations,
+        });
+    }, [
+        accountID,
+        betas,
+        chatReports,
+        contextValue,
+        currentReportsToDisplay,
+        derivedCurrentReportID,
+        orderedReportIDs,
+        orderedReports,
+        policies,
+        priorityMode,
+        reportAttributes,
+        reportNameValuePairs,
+        reportsToDisplayInLHN,
+        shouldUseNarrowLayout,
+        transactionViolations,
+    ]);
 
     return <SidebarOrderedReportsContext.Provider value={contextValue}>{children}</SidebarOrderedReportsContext.Provider>;
 }
