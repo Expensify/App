@@ -39,7 +39,7 @@ jobs:
         run: npm ci
 
       - name: Run Jest coverage (base branch)
-        run: npm test -- --coverage --coverageReporters=json-summary
+        run: npm run test --coverage --ci --coverageReporters=lcov --coverageReporters=json-summary --watchAll=false --passWithNoTests
 
       - name: Save base branch coverage summary
         run: cp coverage/coverage-summary.json base-coverage-summary.json
