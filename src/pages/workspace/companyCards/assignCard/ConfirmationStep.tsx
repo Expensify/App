@@ -46,7 +46,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const [cardFeeds] = useCardFeeds(policyID);
 
     const data = assignCard?.data;
-    const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
+    const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? data?.email;
 
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
 

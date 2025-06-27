@@ -5067,6 +5067,7 @@ const translations = {
         invite: {
             member: '邀请成员',
             members: '邀请成员',
+            inviteNewMember: '邀请新成员',
             invitePeople: '邀请新成员',
             genericFailureMessage: '邀请成员加入工作区时发生错误。请再试一次。',
             pleaseEnterValidLogin: `请确保电子邮件或电话号码有效（例如 ${CONST.EXAMPLE_PHONE_NUMBER}）。`,
