@@ -1,6 +1,7 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import Log from '@libs/Log';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
@@ -223,6 +224,70 @@ function SidebarOrderedReportsContextProvider({
             policyMemberAccountIDs,
         };
     }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports]);
+
+    // Previous state tracking for debug logging
+    const prevAccountID = usePrevious(accountID);
+    const prevChatReports = usePrevious(chatReports);
+    const prevCurrentReportsToDisplay = usePrevious(currentReportsToDisplay);
+    const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
+    const prevOrderedReportIDs = usePrevious(orderedReportIDs);
+    const prevOrderedReports = usePrevious(orderedReports);
+    const prevPolicies = usePrevious(policies);
+    const prevReportAttributes = usePrevious(reportAttributes);
+    const prevReportNameValuePairs = usePrevious(reportNameValuePairs);
+    const prevReportsToDisplayInLHN = usePrevious(reportsToDisplayInLHN);
+    const prevShouldUseNarrowLayout = usePrevious(shouldUseNarrowLayout);
+    const prevTransactionViolations = usePrevious(transactionViolations);
+    const prevContextValue = usePrevious(contextValue);
+    const contextHadValue = useRef(true);
+
+    // Debug logging for empty orderedReports
+    useEffect(() => {
+        // Only log if the context had value before and now it doesn't
+        // Not using prevContextValue due to first render issue
+        if (contextValue.orderedReports.length === 0 && contextHadValue.current) {
+            Log.info('🔍 DEBUG: Empty orderedReports detected', false, {
+                timestamp: new Date().toISOString(),
+                current: {
+                    accountID,
+                    betas,
+                    chatReports,
+                    contextValue,
+                    currentReportsToDisplay,
+                    derivedCurrentReportID,
+                    orderedReportIDs,
+                    orderedReports,
+                    policies,
+                    priorityMode,
+                    reportAttributes,
+                    reportNameValuePairs,
+                    reportsToDisplayInLHN,
+                    shouldUseNarrowLayout,
+                    transactionViolations,
+                },
+                previous: {
+                    prevAccountID,
+                    prevBetas,
+                    prevChatReports,
+                    prevContextValue,
+                    prevCurrentReportsToDisplay,
+                    prevDerivedCurrentReportID,
+                    prevOrderedReportIDs,
+                    prevOrderedReports,
+                    prevPolicies,
+                    prevPriorityMode,
+                    prevReportAttributes,
+                    prevReportNameValuePairs,
+                    prevReportsToDisplayInLHN,
+                    prevShouldUseNarrowLayout,
+                    prevTransactionViolations,
+                },
+            });
+        }
+        contextHadValue.current = contextValue.orderedReports.length > 0;
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [contextValue]);
 
     return <SidebarOrderedReportsContext.Provider value={contextValue}>{children}</SidebarOrderedReportsContext.Provider>;
 }
