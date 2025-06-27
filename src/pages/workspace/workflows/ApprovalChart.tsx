@@ -47,7 +47,12 @@ export default function ApprovalChart({policy, goBack}: ApprovalChartProps) {
         let workflows: ChartedEmployee[][] = [];
 
         for (const employee of employees) {
-            const workflow = [{...employee, skipped: false}];
+            // Skip workflows where user submits to themselves
+            if (employee.submitsTo === employee.email) {
+                continue;
+            }
+
+            const workflow = [{...employee, id: Math.random().toString(36).slice(2, 8), skipped: false}];
             let level = 0;
             let next = getNode(employee, level);
 
@@ -60,6 +65,20 @@ export default function ApprovalChart({policy, goBack}: ApprovalChartProps) {
 
             workflows.push(workflow);
         }
+
+        // Sort workflows by the last name of the first employee (ascending)
+        workflows.sort((a, b) => {
+            const getLastName = (email: string) => {
+                const name = email.split('@')[0].split('.');
+                let lastName = name[1] ?? name[0] ?? '';
+                return lastName.toLowerCase();
+            };
+
+            const lastNameA = getLastName(a[0]?.email ?? '');
+            const lastNameB = getLastName(b[0]?.email ?? '');
+            
+            return lastNameA.localeCompare(lastNameB);
+        });
 
         let chart = `graph TD\nclassDef rounded rx:27,stroke:transparent\nclassDef skipped fill:${colors.white},color:${colors.green},stroke:${colors.green},stroke-width:1px`;
 

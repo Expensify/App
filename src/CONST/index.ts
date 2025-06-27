@@ -1042,6 +1042,7 @@ const CONST = {
             DOWNLOAD_PDF: 'downloadPDF',
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
+            VIEW_APPROVAL_WORKFLOW: 'viewApprovalWorkflow',
             DELETE: 'delete',
             RETRACT: 'retract',
             ADD_EXPENSE: 'addExpense',
@@ -3616,6 +3617,7 @@ const CONST = {
         UNAPPROVE: 'unapprove',
         DEBUG: 'debug',
         GO_TO_WORKSPACE: 'goToWorkspace',
+        VIEW_APPROVAL_WORKFLOW: 'viewApprovalWorkflow',
         ERROR: 'error',
         TRACK: {
             SUBMIT: 'submit',
@@ -4834,7 +4836,7 @@ const CONST = {
         CURRENCY: 'XAF',
         FORMAT: 'symbol',
         SAMPLE_INPUT: '123456.789',
-        EXPECTED_OUTPUT: 'FCFA 123,457',
+        EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
     PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg', 'docs/index.html'],

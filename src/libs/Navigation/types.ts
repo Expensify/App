@@ -1174,6 +1174,10 @@ type ReportDetailsNavigatorParamList = {
         connectionName: ConnectionName;
         backTo?: Routes;
     };
+    [SCREENS.REPORT_DETAILS.APPROVAL_WORKFLOW]: {
+        reportID: string;
+        backTo?: Routes;
+    };
 };
 
 type ReportChangeWorkspaceNavigatorParamList = {

@@ -495,6 +495,10 @@ const ROUTES = {
         route: 'r/:reportID/details/export/:connectionName',
         getRoute: (reportID: string, connectionName: ConnectionName, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details/export/${connectionName as string}` as const, backTo),
     },
+    REPORT_WITH_ID_DETAILS_APPROVAL_WORKFLOW: {
+        route: 'r/:reportID/details/approval-workflow',
+        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details/approval-workflow` as const, backTo),
+    },
     REPORT_WITH_ID_CHANGE_WORKSPACE: {
         route: 'r/:reportID/change-workspace',
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/change-workspace` as const, backTo),

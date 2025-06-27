@@ -1019,6 +1019,7 @@ const translations = {
         cancelPayment: 'Cancel payment',
         cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
         viewDetails: 'View details',
+    viewApprovalWorkflow: 'View approval workflow',
         pending: 'Pending',
         canceled: 'Canceled',
         posted: 'Posted',

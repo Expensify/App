@@ -713,6 +713,17 @@ function MoneyReportHeader({
                 navigateToDetailsPage(moneyRequestReport, Navigation.getReportRHPActiveRoute());
             },
         },
+        [CONST.REPORT.SECONDARY_ACTIONS.VIEW_APPROVAL_WORKFLOW]: {
+            value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_APPROVAL_WORKFLOW,
+            text: translate('iou.viewApprovalWorkflow'),
+            icon: Expensicons.Workflows,
+            onSelected: () => {
+                if (!moneyRequestReport?.reportID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_APPROVAL_WORKFLOW.getRoute(moneyRequestReport.reportID, Navigation.getReportRHPActiveRoute()));
+            },
+        },
         [CONST.REPORT.SECONDARY_ACTIONS.EXPORT]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
             text: translate('common.export'),

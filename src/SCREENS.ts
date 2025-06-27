@@ -365,6 +365,7 @@ const SCREENS = {
         ROOT: 'Report_Details_Root',
         SHARE_CODE: 'Report_Details_Share_Code',
         EXPORT: 'Report_Details_Export',
+        APPROVAL_WORKFLOW: 'Report_Details_Approval_Workflow',
     },
 
     REPORT_CHANGE_WORKSPACE: {

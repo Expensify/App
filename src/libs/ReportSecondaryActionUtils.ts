@@ -556,6 +556,9 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
+    // Add "View approval workflow" button below "View details"
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_APPROVAL_WORKFLOW);
+
     if (isDeleteAction(report, reportTransactions, reportActions ?? [], policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }

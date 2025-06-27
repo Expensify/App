@@ -156,6 +156,7 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetails
     [SCREENS.REPORT_DETAILS.ROOT]: () => require<ReactComponentModule>('../../../../pages/ReportDetailsPage').default,
     [SCREENS.REPORT_DETAILS.SHARE_CODE]: () => require<ReactComponentModule>('../../../../pages/home/report/ReportDetailsShareCodePage').default,
     [SCREENS.REPORT_DETAILS.EXPORT]: () => require<ReactComponentModule>('../../../../pages/home/report/ReportDetailsExportPage').default,
+    [SCREENS.REPORT_DETAILS.APPROVAL_WORKFLOW]: () => require<ReactComponentModule>('../../../../pages/home/report/ReportDetailsApprovalWorkflowPage').default,
 });
 
 const ReportChangeWorkspaceModalStackNavigator = createModalStackNavigator<ReportChangeWorkspaceNavigatorParamList>({
