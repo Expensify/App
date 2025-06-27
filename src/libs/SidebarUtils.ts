@@ -48,6 +48,7 @@ import {
     getRetractedMessage,
     getSortedReportActions,
     getTagListNameUpdatedMessage,
+    getTagListUpdatedMessage,
     getTravelUpdateMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
@@ -721,6 +722,8 @@ function getOptionData({
             result.alternateText = getWorkspaceCategoryUpdateMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME)) {
             result.alternateText = getCleanedTagName(getTagListNameUpdatedMessage(lastAction) ?? '');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST)) {
+            result.alternateText = getCleanedTagName(getTagListUpdatedMessage(lastAction) ?? '');
         } else if (isTagModificationAction(lastAction?.actionName)) {
             result.alternateText = getCleanedTagName(getWorkspaceTagUpdateMessage(lastAction) ?? '');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT)) {

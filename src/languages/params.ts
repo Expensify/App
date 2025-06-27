@@ -339,6 +339,8 @@ type UpdatedPolicyTagFieldParams = {oldValue?: string; newValue: string; tagName
 
 type UpdatedPolicyCategoryNameParams = {oldName: string; newName?: string};
 
+type UpdatedPolicyTagListParams = {tagListName: string};
+
 type UpdatePolicyCustomUnitTaxEnabledParams = {newValue: boolean};
 
 type UpdatePolicyCustomUnitParams = {oldValue: string; newValue: string; customUnitName: string; updatedField: string};
@@ -1016,6 +1018,7 @@ export type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCategoryDescriptionHintTypeParams,
     UpdatedPolicyCategoryNameParams,
+    UpdatedPolicyTagListParams,
     UpdatedPolicyPreventSelfApprovalParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyFieldWithValueParam,

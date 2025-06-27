@@ -80,6 +80,7 @@ import {
     getReportActionMessage,
     getReportActionText,
     getTagListNameUpdatedMessage,
+    getTagListUpdatedMessage,
     getTravelUpdateMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
@@ -1100,6 +1101,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getWorkspaceCategoryUpdateMessage(action, policy)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME) {
             children = <ReportActionItemBasicMessage message={getCleanedTagName(getTagListNameUpdatedMessage(action))} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST) {
+            children = <ReportActionItemBasicMessage message={getCleanedTagName(getTagListUpdatedMessage(action))} />;
         } else if (isTagModificationAction(action.actionName)) {
             children = <ReportActionItemBasicMessage message={getCleanedTagName(getWorkspaceTagUpdateMessage(action))} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT) {
