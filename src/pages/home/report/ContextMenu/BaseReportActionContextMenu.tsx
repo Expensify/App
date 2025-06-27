@@ -345,6 +345,7 @@ function BaseReportActionContextMenu({
                             setIsEmojiPickerActive,
                             moneyRequestAction,
                             card,
+                            translate,
                         };
 
                         if ('renderContent' in contextAction) {

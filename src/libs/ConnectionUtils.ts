@@ -1,30 +1,29 @@
 import CONST from '@src/CONST';
 import type {QBDNonReimbursableExportAccountType, QBONonReimbursableExportAccountType} from '@src/types/onyx/Policy';
-import {translateLocal} from './Localize';
 
-function getQBONonReimbursableExportAccountType(exportDestination: QBONonReimbursableExportAccountType | undefined): string {
+function getQBONonReimbursableExportAccountType(exportDestination: QBONonReimbursableExportAccountType | undefined) {
     switch (exportDestination) {
         case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD:
-            return translateLocal('workspace.qbo.bankAccount');
+            return 'workspace.qbo.bankAccount';
         case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD:
-            return translateLocal('workspace.qbo.creditCardAccount');
+            return 'workspace.qbo.creditCardAccount';
         case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL:
-            return translateLocal('workspace.qbo.accountsPayable');
+            return 'workspace.qbo.accountsPayable';
         default:
-            return translateLocal('workspace.qbo.account');
+            return 'workspace.qbo.account';
     }
 }
 
-function getQBDNonReimbursableExportAccountType(exportDestination: QBDNonReimbursableExportAccountType | undefined): string {
+function getQBDNonReimbursableExportAccountType(exportDestination: QBDNonReimbursableExportAccountType | undefined) {
     switch (exportDestination) {
         case CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK:
-            return translateLocal('workspace.qbd.bankAccount');
+            return 'workspace.qbd.bankAccount';
         case CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD:
-            return translateLocal('workspace.qbd.creditCardAccount');
+            return 'workspace.qbd.creditCardAccount';
         case CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL:
-            return translateLocal('workspace.qbd.accountsPayable');
+            return 'workspace.qbd.accountsPayable';
         default:
-            return translateLocal('workspace.qbd.account');
+            return 'workspace.qbd.account';
     }
 }
 

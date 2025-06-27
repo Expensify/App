@@ -134,7 +134,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
 
         return {
             value: key,
-            text: getCustomOrFormattedFeedName(key, cardFeeds?.settings?.companyCardNicknames),
+            text: getCustomOrFormattedFeedName(translate, key, cardFeeds?.settings?.companyCardNicknames),
             keyForList: key,
             isDisabled: companyFeeds[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             pendingAction: companyFeeds[key]?.pendingAction,
