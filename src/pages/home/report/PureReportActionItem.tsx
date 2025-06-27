@@ -362,6 +362,9 @@ type PureReportActionItemProps = {
 
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
+
+    /** [Hackathon Virtual CFO 2.0] Virtual CFO actions */
+    virtualCFOActions?: OnyxTypes.VirtualCFOActions;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -426,6 +429,7 @@ function PureReportActionItem({
     userBillingFundID,
     policies,
     shouldShowBorder,
+    virtualCFOActions,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -450,9 +454,8 @@ function PureReportActionItem({
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
     const isActionableWhisper = isActionableMentionWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
-    // const [tryVirtualCFO] = useOnyx(ONYXKEYS.TRY_VIRTUAL_CFO, {canBeMissing: true});
-    const tryVirtualCFO = false;
-    const isVirtualCFOToggled = action?.isVirtualCFOToggled;
+    const tryVirtualCFO = true;
+    const isVirtualCFOToggled = virtualCFOActions?.isToggled;
     const shouldShowAnimatedCFOButton = !!tryVirtualCFO && !isVirtualCFOToggled;
 
     const highlightedBackgroundColorIfNeeded = useMemo(
@@ -1187,6 +1190,12 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedAuditRateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
             children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
+        } else if (tryVirtualCFO && !virtualCFOActions?.isToggled) {
+            children = (
+                <ReportActionItemBasicMessage message="">
+                    <Text>I&apos;ve looked at your spend this month and got some exiciting insights to share!</Text>
+                </ReportActionItemBasicMessage>
+            );
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action);
@@ -1549,7 +1558,7 @@ function PureReportActionItem({
                                                 <AnimatedCFOButton
                                                     onAnimationFinish={() => {
                                                         console.log('Animation finished');
-                                                        toggleVirtualCFO(reportID, action.reportActionID, true);
+                                                        toggleVirtualCFO(action.reportActionID, true);
                                                     }}
                                                 />
                                             </View>
@@ -1631,6 +1640,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
-        prevProps.userBillingFundID === nextProps.userBillingFundID
+        prevProps.userBillingFundID === nextProps.userBillingFundID &&
+        prevProps.virtualCFOActions?.isToggled === nextProps.virtualCFOActions?.isToggled
     );
 });

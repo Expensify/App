@@ -85,6 +85,9 @@ function ReportActionItem({allReports, action, report, transactions, shouldShowD
     const linkedReport = originalMessage && 'linkedReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.linkedReportID}`] : undefined;
     const iouReportOfLinkedReport = linkedReport && 'iouReportID' in linkedReport ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${linkedReport.iouReportID}`] : undefined;
 
+    // [Hackathon Virtual CFO 2.0] Get the virtual CFO actions for the report action
+    const [virtualCFOActions] = useOnyx(`${ONYXKEYS.COLLECTION.VIRTUAL_CFO_ACTIONS}${action.reportActionID}`, {canBeMissing: true});
+
     return (
         <PureReportActionItem
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -125,6 +128,7 @@ function ReportActionItem({allReports, action, report, transactions, shouldShowD
             clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}
             dismissTrackExpenseActionableWhisper={dismissTrackExpenseActionableWhisper}
             userBillingFundID={userBillingFundID}
+            virtualCFOActions={virtualCFOActions}
         />
     );
 }

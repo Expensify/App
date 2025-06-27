@@ -552,7 +552,6 @@ const ONYXKEYS = {
     NVP_LAST_ECASH_ANDROID_LOGIN: 'nvp_lastECashAndroidLogin',
     NVP_LAST_ANDROID_LOGIN: 'nvp_lastAndroidLogin',
 
-    IS_VIRTUAL_CFO_TOGGLED: 'isVirtualCFOToggled',
     TRY_VIRTUAL_CFO:' tryVirtualCFO',
 
     /** Collection Keys */
@@ -653,6 +652,8 @@ const ONYXKEYS = {
 
         /** Stores the information about the state of issuing a new card */
         ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard_',
+
+        VIRTUAL_CFO_ACTIONS: 'virtualCFOActions_',
     },
 
     /** List of Form ids */
@@ -1015,6 +1016,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED]: OnyxTypes.FundID;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST]: OnyxTypes.CardOnWaitlist;
     [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
+    [ONYXKEYS.COLLECTION.VIRTUAL_CFO_ACTIONS]: OnyxTypes.VirtualCFOActions;
 };
 
 type OnyxValuesMapping = {

@@ -119,6 +119,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type VirtualCFOActions from './VirtualCFOActions';
 
 export type {
     TryNewDot,
@@ -263,4 +264,5 @@ export type {
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
+    VirtualCFOActions,
 };
