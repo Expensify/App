@@ -80,6 +80,7 @@ function ReportActionItem({allReports, action, report, transactions, shouldShowD
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const targetReport = isChatThread(report) ? parentReport : report;
     const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWallet, targetReport?.reportID, action);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {});
 
     const taskReport = originalMessage && 'taskReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.taskReportID}`] : undefined;
     const linkedReport = originalMessage && 'linkedReportID' in originalMessage ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalMessage.linkedReportID}`] : undefined;
@@ -125,6 +126,7 @@ function ReportActionItem({allReports, action, report, transactions, shouldShowD
             clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}
             dismissTrackExpenseActionableWhisper={dismissTrackExpenseActionableWhisper}
             userBillingFundID={userBillingFundID}
+            allTransactions={allTransactions}
         />
     );
 }

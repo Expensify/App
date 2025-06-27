@@ -55,6 +55,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
+import {initSplitExpense} from '@libs/actions/IOU';
 import {
     extractLinksFromMessageHtml,
     getAddedApprovalRuleMessage,
@@ -170,6 +171,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
@@ -360,6 +362,9 @@ type PureReportActionItemProps = {
 
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
+
+    /** All the data of the transaction collection */
+    allTransactions?: Array<OnyxEntry<OnyxTypes.Transaction>>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -424,6 +429,7 @@ function PureReportActionItem({
     userBillingFundID,
     policies,
     shouldShowBorder,
+    allTransactions,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -726,7 +732,6 @@ function PureReportActionItem({
         }
 
         if (isConciergeSplitOptions(action)) {        
-            const options = ['common.yes', 'common.no', 'debug.reportActionPreview'] as const;
             if (isResolvedConciergeSplitOptions(action)) {
                 return [];
             }
@@ -735,14 +740,24 @@ function PureReportActionItem({
                 return [];
             }
 
-            return options.map((option) => ({
-                text: option,
-                key: `${action.reportActionID}-conciergeSplitOptions-${option}`,
-                isPrimary: option === 'common.yes',
-                onPress: () => {
-                    // resolveConciergeCategoryOptions(reportID, originalReportID, action.reportActionID, option);
+            const transactionID = getOriginalMessage(action)?.transactionID;
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+
+            return [
+                {
+                    text: 'debug.reportActionPreview',
+                    key: 'debug.reportActionPreview',
+                    onPress: () => initSplitExpense(transaction, originalReportID, false, policy),
+                    isPrimary: true,
                 },
-            }));
+                {
+                    text: 'common.no',
+                    key: 'common.no',
+                    onPress: () => {
+                        // resolveConciergeCategoryOptions(reportID, originalReportID, action.reportActionID, option);
+                    },
+                },
+            ]
         }
 
         if (!isActionableWhisper && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
