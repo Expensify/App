@@ -85,8 +85,6 @@ Sub-issues will be created for each specific Onyx.connect reference that needs t
 
 ## Context
 This is part of a larger effort to refactor Onyx.connect usage throughout the codebase.
-
-$(get_tdd_instructions)
 EOF
 }
 

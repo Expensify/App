@@ -86,7 +86,7 @@ This will:
 - **Assignee**: `tgolen`
 - **Labels**: `Engineering`, `Improvement`
 - **Project**: Expensify organization project #208 (if token has proper scopes)
-- **Body**: Contains context about the refactoring effort, references to the main deprecation issue, and TDD instructions
+- **Body**: Contains context about the refactoring effort and references to the main deprecation issue
 - **Purpose**: Track the overall refactoring effort for each file
 
 ### Sub-Issues
