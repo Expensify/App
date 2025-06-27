@@ -390,7 +390,6 @@ function AttachmentModal({
     const confirmAndContinue = () => {
         if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
             validateFiles(validFilesToUpload);
-            return;
         }
         setIsFileErrorModalVisible(false);
     };
