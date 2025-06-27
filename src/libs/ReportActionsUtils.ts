@@ -1249,6 +1249,8 @@ const isIOUActionMatchingTransactionList = (
 /**
  * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
+ *
+ * @param ignoreAllDeletedReportActions Filter out all deleted reportActions, even if they have visible childActions.
  */
 function getOneTransactionThreadReportID(
     report: OnyxEntry<Report>,
@@ -1256,6 +1258,7 @@ function getOneTransactionThreadReportID(
     reportActions: OnyxEntry<ReportActions> | ReportAction[],
     isOffline: boolean | undefined = undefined,
     reportTransactionIDs?: string[],
+    ignoreAllDeletedReportActions = false,
 ): string | undefined {
     // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
     if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
@@ -1294,7 +1297,7 @@ function getOneTransactionThreadReportID(
             // - the action is pending deletion and the user is offline
             (!!originalMessage?.IOUTransactionID ||
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                (isMessageDeleted(action) && action.childVisibleActionCount) ||
+                (ignoreAllDeletedReportActions ? !isMessageDeleted(action) : isMessageDeleted(action) && action.childVisibleActionCount) ||
                 (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline)))
         ) {
             iouRequestActions.push(action);

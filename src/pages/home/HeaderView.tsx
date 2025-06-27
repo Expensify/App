@@ -36,7 +36,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getOneTransactionThreadReportID, getReportActions, isMessageDeleted} from '@libs/ReportActionsUtils';
+import {getOneTransactionThreadReportID, getReportActions} from '@libs/ReportActionsUtils';
 import {
     canJoinChat,
     canUserPerformWriteAction,
@@ -142,18 +142,17 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isTaskReport = isTaskReportReportUtils(report);
     const [parentOfParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {canBeMissing: true});
     const {isOffline} = useNetwork();
-    const visibleParentOfParentReportActions = useMemo(() => {
-        if (!parentOfParentReport) {
-            return;
-        }
-
-        const allReportActions = getReportActions(parentOfParentReport);
-        return Object.values(allReportActions ?? {}).filter((action) => !isMessageDeleted(action) || (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isOffline));
-    }, [parentOfParentReport, isOffline]);
     const reportHeaderData =
         ((!isTaskReport && !isChatThread) ||
             (parentOfParentReport &&
-                !!getOneTransactionThreadReportID(parentOfParentReport, getReportOrDraftReport(parentOfParentReport?.chatReportID), visibleParentOfParentReportActions))) &&
+                !!getOneTransactionThreadReportID(
+                    parentOfParentReport,
+                    getReportOrDraftReport(parentOfParentReport?.chatReportID),
+                    getReportActions(parentOfParentReport),
+                    isOffline,
+                    undefined,
+                    true,
+                ))) &&
         report?.parentReportID
             ? parentReport
             : report;

@@ -8872,18 +8872,16 @@ function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: b
     let newAncestor = ancestor;
     // If `parentReport` is an money report with one transaction, navigate directly to `parentReport`,
     // preventing redundant navigation when threading back to the parent chat thread
-    if (parentReport && parentReportAction) {
-        const allParentReportActions = getReportActions(parentReport);
-        const visibleParentReportActions = Object.values(allParentReportActions ?? {}).filter(
-            (action) => !isMessageDeleted(action) || (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isOffline),
-        );
-        if (getOneTransactionThreadReportID(parentReport, getReportOrDraftReport(parentReport.chatReportID), visibleParentReportActions)) {
-            newAncestor = {
-                ...ancestor,
-                report: parentReport,
-                reportAction: parentReportAction,
-            };
-        }
+    if (
+        parentReport &&
+        parentReportAction &&
+        getOneTransactionThreadReportID(parentReport, getReportOrDraftReport(parentReport.chatReportID), getReportActions(parentReport), isOffline, undefined, true)
+    ) {
+        newAncestor = {
+            ...ancestor,
+            report: parentReport,
+            reportAction: parentReportAction,
+        };
     }
 
     if (isInNarrowPaneModal) {
