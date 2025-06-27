@@ -19,7 +19,7 @@ jobs:
         run: npm ci
 
       - name: Run Jest coverage (PR branch)
-        run: npm test -- --coverage --coverageReporters=json-summary
+        run: npm run test --coverage --ci --coverageReporters=lcov --coverageReporters=json-summary --watchAll=false --passWithNoTests
 
       - name: Save PR branch coverage summary
         run: cp coverage/coverage-summary.json pr-coverage-summary.json
