@@ -1,0 +1,136 @@
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FormHelpMessage from '@components/FormHelpMessage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import {ListItem} from '@components/SelectionList/types';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
+import type {CompanyCardStatementCloseDate} from '@src/types/onyx/CardFeeds';
+import CustomCloseDateSelectionList from './CustomCloseDateSelectionList';
+
+type StatementCloseDateListItem = ListItem & {
+    value: CompanyCardStatementCloseDate;
+};
+
+function WorkspaceCompanyCardStatementCloseDateSelectionList() {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
+    const [selectedDate, setSelectedDate] = useState<CompanyCardStatementCloseDate | undefined>(undefined);
+    const [selectedCustomDate, setSelectedCustomDate] = useState<number | undefined>(undefined);
+    const [error, setError] = useState<string | undefined>(undefined);
+
+    const [isChoosingCustomDate, setIsChoosingCustomDate] = useState(false);
+
+    const title = useMemo(
+        () => (isChoosingCustomDate ? translate('workspace.companyCards.customCloseDate') : translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')),
+        [translate, isChoosingCustomDate],
+    );
+
+    const goBack = useCallback(() => {
+        if (isChoosingCustomDate) {
+            setIsChoosingCustomDate(false);
+            return;
+        }
+
+        Navigation.goBack();
+    }, [isChoosingCustomDate]);
+
+    const selectDateAndClearError = useCallback((item: StatementCloseDateListItem) => {
+        setSelectedDate(item.value);
+        setError(undefined);
+    }, []);
+
+    const selectCustomDateAndClearError = useCallback(
+        (day: number) => {
+            setSelectedCustomDate(day);
+            setError(undefined);
+            goBack();
+        },
+        [goBack],
+    );
+
+    const submit = useCallback(() => {
+        if (!selectedDate || (selectedDate === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH && !selectedCustomDate)) {
+            setError(translate('workspace.moreFeatures.companyCards.error.statementCloseDateRequired'));
+            return;
+        }
+
+        // s77rt do something with selectedDate / selectedCustomDate
+    }, [selectedDate, selectedCustomDate]);
+
+    // s77rt fix size (and add compact option)
+
+    return (
+        <ScreenWrapper
+            testID={WorkspaceCompanyCardStatementCloseDateSelectionList.displayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
+            shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
+        >
+            <HeaderWithBackButton
+                title={title}
+                onBackButtonPress={goBack}
+            />
+            {isChoosingCustomDate ? (
+                <CustomCloseDateSelectionList
+                    initiallySelectedDay={selectedCustomDate}
+                    onConfirmSelectedDay={selectCustomDateAndClearError}
+                />
+            ) : (
+                <>
+                    <View style={[styles.gap7, styles.flexGrow1]}>
+                        <Text style={[styles.ph5]}>{translate('workspace.moreFeatures.companyCards.statementCloseDateDescription')}</Text>
+                        <View>
+                            {Object.values(CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE)?.map((option) => (
+                                <SingleSelectListItem
+                                    key={option}
+                                    showTooltip
+                                    item={{
+                                        value: option,
+                                        text: translate(`workspace.companyCards.statementCloseDate.${option}`),
+                                        isSelected: selectedDate === option,
+                                    }}
+                                    onSelectRow={selectDateAndClearError}
+                                />
+                            ))}
+                            {selectedDate === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH && (
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    brickRoadIndicator={error ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    title={selectedCustomDate?.toString()}
+                                    description={translate('workspace.companyCards.customCloseDate')}
+                                    onPress={() => setIsChoosingCustomDate(true)}
+                                />
+                            )}
+                        </View>
+                    </View>
+                    <View style={[styles.p5, styles.gap3]}>
+                        {!!error && (
+                            <FormHelpMessage
+                                isError
+                                message={error}
+                            />
+                        )}
+                        <FormAlertWithSubmitButton
+                            buttonText={translate('common.submit')}
+                            onSubmit={submit}
+                            enabledWhenOffline
+                        />
+                    </View>
+                </>
+            )}
+        </ScreenWrapper>
+    );
+}
+
+WorkspaceCompanyCardStatementCloseDateSelectionList.displayName = 'WorkspaceCompanyCardStatementCloseDateSelectionList';
+
+export default WorkspaceCompanyCardStatementCloseDateSelectionList;

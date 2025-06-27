@@ -4,6 +4,9 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Card statement close date */
+type CompanyCardStatementCloseDate = ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>;
+
 /** Card feed */
 type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
 
@@ -165,4 +168,5 @@ export type {
     CompanyCardNicknames,
     CompanyCardFeedWithNumber,
     FundID,
+    CompanyCardStatementCloseDate,
 };
