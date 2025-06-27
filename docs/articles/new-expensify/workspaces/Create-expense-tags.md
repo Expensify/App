@@ -55,10 +55,10 @@ Before you can manage tags, you need to enable the **Tags** feature for your wor
 
 You can use one of the following template files to build your tags list:
 
-[Dependent tags with GL codes](https://help.expensify.com/assets/Files/Dependent+with+GL+codes+format.csv)
-[Dependent tags without GL codes](https://help.expensify.com/assets/Files/Dependent+without+GL+codes+format.csv)
-[Independent tags with GL codes](https://help.expensify.com/assets/Files/Independent+with+GL+codes+format.csv)
-[Independent tags without GL codes](https://help.expensify.com/assets/Files/Independent+without+GL+codes+format.csv)
+- [Dependent tags with GL codes](https://help.expensify.com/assets/Files/Dependent+with+GL+codes+format.csv)
+- [Dependent tags without GL codes](https://help.expensify.com/assets/Files/Dependent+without+GL+codes+format.csv)
+- [Independent tags with GL codes](https://help.expensify.com/assets/Files/Independent+with+GL+codes+format.csv)
+- [Independent tags without GL codes](https://help.expensify.com/assets/Files/Independent+without+GL+codes+format.csv)
 
 **Notes:**
 - We currently only support up to 50,000 tags in a single file.
