@@ -123,7 +123,8 @@ create_issue() {
         --title "$title" \
         --body "$body" \
         --assignee tgolen \
-        --label "Engineering,Improvement" 2>&1); then
+        --label "Engineering,Improvement" \
+        --project "Deprecate Onyx.connect" 2>&1); then
         echo "Error creating issue: $issue_url" >&2
         return 1
     fi
@@ -136,35 +137,6 @@ create_issue() {
     if ! issue_id=$(gh issue view "$issue_number" --json id --jq ".id" 2>&1); then
         echo "Error getting issue ID: $issue_id" >&2
         return 1
-    fi
-
-    # Add issue to project 208 (requires 'read:project' scope)
-    # Note: This requires the GitHub token to have project scopes
-    # You can manually add issues to the project at: https://github.com/orgs/Expensify/projects/208
-    if gh api graphql -f query="
-        query { organization(login: \"Expensify\") { projectV2(number: 208) { id } } }
-    " > /dev/null 2>&1; then
-        local project_id=$(gh api graphql -f query="
-            query { organization(login: \"Expensify\") { projectV2(number: 208) { id } } }
-        " --jq '.data.organization.projectV2.id')
-
-        if ! gh api graphql -f query="
-            mutation {
-                addProjectV2ItemById(input: {
-                    projectId: \"$project_id\"
-                    contentId: \"$issue_id\"
-                }) {
-                    item {
-                        id
-                    }
-                }
-            }
-        " > /dev/null 2>&1; then
-            echo "Warning: Failed to add issue to project 208" >&2
-        fi
-    else
-        echo "Note: Cannot add to project 208 - requires 'read:project' token scope" >&2
-        echo "      You can manually add issues at: https://github.com/orgs/Expensify/projects/208" >&2
     fi
 
     # Return both number and ID separated by |

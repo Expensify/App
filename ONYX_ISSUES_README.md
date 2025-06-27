@@ -23,7 +23,7 @@ This directory contains scripts to automatically create GitHub issues from the `
 
    **Sub-Issue Feature**: The script uses GitHub's native sub-issue functionality, which requires the `GraphQL-Features: sub_issues` header in API calls.
 
-   **Project Assignment**: Issues are automatically assigned to [Expensify organization project #208](https://github.com/orgs/Expensify/projects/208). This requires your GitHub token to have the `read:project` scope. If you don't have this scope, issues will still be created but you'll need to manually add them to the project.
+   **Project Assignment**: Issues are automatically assigned to the "Deprecate Onyx.connect" project using the `--project` flag in GitHub CLI.
 
 2. **File format**: The `onyxrefs.txt` file should follow this format:
    ```
@@ -85,7 +85,7 @@ This will:
 - **Title**: `Refactor {file-path} Onyx.connect references`
 - **Assignee**: `tgolen`
 - **Labels**: `Engineering`, `Improvement`
-- **Project**: Expensify organization project #208 (if token has proper scopes)
+- **Project**: "Deprecate Onyx.connect" project
 - **Body**: Contains context about the refactoring effort and references to the main deprecation issue
 - **Purpose**: Track the overall refactoring effort for each file
 
@@ -93,7 +93,7 @@ This will:
 - **Title**: `Remove Onyx.connect reference: {onyx-key} in {file-path}`
 - **Assignee**: `tgolen`
 - **Labels**: `Engineering`, `Improvement`
-- **Project**: Expensify organization project #208 (if token has proper scopes)
+- **Project**: "Deprecate Onyx.connect" project
 - **Body**: Contains specific details about the reference to be removed, including TDD instructions
 - **Purpose**: Track individual Onyx.connect references that need to be refactored
 
@@ -130,13 +130,9 @@ Repository: Expensify/App
 
 Creating parent issue: Refactor src/libs/ActiveClientManager/index.ts Onyx.connect references
 Created parent issue #123 with ID: MDU6SXNzdWUxMjM0NTY3ODk=
-Note: Cannot add to project 208 - requires 'read:project' token scope
-      You can manually add issues at: https://github.com/orgs/Expensify/projects/208
 
 Creating sub-issue: Remove Onyx.connect reference: ONYXKEYS.ACTIVE_CLIENTS in src/libs/ActiveClientManager/index.ts
 Created sub-issue #124 with ID: MDU6SXNzdWUxMjM0NTY3OTA=
-Note: Cannot add to project 208 - requires 'read:project' token scope
-      You can manually add issues at: https://github.com/orgs/Expensify/projects/208
 
 Linking sub-issue to parent...
 Linked sub-issue to parent issue
@@ -173,11 +169,7 @@ You can view all created issues at: https://github.com/Expensify/App/issues
    - Ensure you have write permissions to the repository
    - Check that your GitHub token has the necessary scopes
 
-5. **Project Assignment Issues**
-   - If you see "Cannot add to project 208 - requires 'read:project' token scope"
-   - Update your GitHub token scopes at: https://github.com/settings/tokens
-   - Add the `read:project` scope to your token
-   - Or manually add created issues to the project at: https://github.com/orgs/Expensify/projects/208
+
 
 ### Debugging
 
@@ -209,7 +201,8 @@ The script follows DRY (Don't Repeat Yourself) principles with modular functions
 1. **Issue Titles**: Modify the title templates in the main processing section
 2. **Assignee**: Change `--assignee tgolen` in the `create_issue()` function
 3. **Labels**: Modify `--label "Engineering,Improvement"` in the `create_issue()` function
-4. **Rate Limiting**: Adjust the `sleep` delays if needed
+4. **Project**: Change `--project "Deprecate Onyx.connect"` in the `create_issue()` function
+5. **Rate Limiting**: Adjust the `sleep` delays if needed
 
 ## Support
 
