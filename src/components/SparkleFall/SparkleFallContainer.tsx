@@ -1,4 +1,4 @@
-import React, {useCallback, useImperativeHandle, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useState} from 'react';
 import {Dimensions, View} from 'react-native';
 import colors from '@styles/theme/colors';
 import FallingSparkle, {FallingSparkleRef} from './FallingSparkle';
@@ -37,6 +37,11 @@ function SparkleFallContainer({ ref }: { ref: React.RefObject<FallingSparkleRef 
         sparkles.forEach((sparkle) => {
             sparkle.ref?.current?.startAnimation();
         });
+    }, []);
+
+    useEffect(() => {
+        // @ts-ignore
+        window.sparkle = () => onStart();
     }, []);
 
     useImperativeHandle(ref, () => ({
