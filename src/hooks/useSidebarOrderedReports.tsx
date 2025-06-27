@@ -217,30 +217,66 @@ function SidebarOrderedReportsContextProvider({
         };
     }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports]);
 
+    // Previous state tracking for debug logging
+    const prevAccountID = usePrevious(accountID);
+    const prevChatReports = usePrevious(chatReports);
+    const prevCurrentReportsToDisplay = usePrevious(currentReportsToDisplay);
+    const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
+    const prevOrderedReportIDs = usePrevious(orderedReportIDs);
+    const prevOrderedReports = usePrevious(orderedReports);
+    const prevPolicies = usePrevious(policies);
+    const prevReportAttributes = usePrevious(reportAttributes);
+    const prevReportNameValuePairs = usePrevious(reportNameValuePairs);
+    const prevReportsToDisplayInLHN = usePrevious(reportsToDisplayInLHN);
+    const prevShouldUseNarrowLayout = usePrevious(shouldUseNarrowLayout);
+    const prevTransactionViolations = usePrevious(transactionViolations);
+    const prevContextValue = usePrevious(contextValue);
+
     // Debug logging for empty orderedReports
     useEffect(() => {
-        if (contextValue.orderedReports && contextValue.orderedReports.length > 0) {
+        if (contextValue.orderedReports.length > 0 || prevContextValue.orderedReports.length === 0) {
             return;
         }
 
         Log.info('🔍 DEBUG: Empty orderedReports detected', false, {
-            accountID,
-            betas,
-            chatReports,
-            contextValue,
-            currentReportsToDisplay,
-            derivedCurrentReportID,
-            orderedReportIDs,
-            orderedReports,
-            policies,
-            priorityMode,
-            reportAttributes,
-            reportNameValuePairs,
-            reportsToDisplayInLHN,
-            shouldUseNarrowLayout,
             timestamp: new Date().toISOString(),
-            transactionViolations,
+            current: {
+                accountID,
+                betas,
+                chatReports,
+                contextValue,
+                currentReportsToDisplay,
+                derivedCurrentReportID,
+                orderedReportIDs,
+                orderedReports,
+                policies,
+                priorityMode,
+                reportAttributes,
+                reportNameValuePairs,
+                reportsToDisplayInLHN,
+                shouldUseNarrowLayout,
+                transactionViolations,
+            },
+            previous: {
+                prevAccountID,
+                prevBetas,
+                prevChatReports,
+                prevContextValue,
+                prevCurrentReportsToDisplay,
+                prevDerivedCurrentReportID,
+                prevOrderedReportIDs,
+                prevOrderedReports,
+                prevPolicies,
+                prevPriorityMode,
+                prevReportAttributes,
+                prevReportNameValuePairs,
+                prevReportsToDisplayInLHN,
+                prevShouldUseNarrowLayout,
+                prevTransactionViolations,
+            },
         });
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         accountID,
         betas,
