@@ -58,7 +58,7 @@ get_repo_info() {
 
 # Common template parts for issue bodies
 get_parent_issue_reference() {
-    echo "This is part of deprecating Onyx.connect. (Parent Issue)[https://github.com/Expensify/Expensify/issues/507850]"
+    echo "This is part of deprecating Onyx.connect. [Parent Issue](https://github.com/Expensify/Expensify/issues/507850)"
 }
 
 get_tdd_instructions() {
@@ -98,12 +98,12 @@ build_sub_issue_body() {
 $(get_parent_issue_reference)
 
 Module: [${file_path}](https://github.com/Expensify/App/blob/main/${file_path})
-Onyx Key: ${onyx_key}
+Onyx Key: `${onyx_key}`
 
 Remove the Onyx.connect reference for \`${onyx_key}\` in \`${file_path}\`.
 
 ## Details
-- **Reference**: ${content}
+- **Reference**: `${content}`
 
 $(get_tdd_instructions)
 EOF
@@ -218,8 +218,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         else
             echo "Creating parent issue: $parent_title"
             if current_parent_id=$(create_issue "$parent_title" "$parent_body"); then
-                local parent_number=$(echo "$current_parent_id" | cut -d'|' -f1)
-                local parent_id=$(echo "$current_parent_id" | cut -d'|' -f2)
+                parent_number=$(echo "$current_parent_id" | cut -d'|' -f1)
+                parent_id=$(echo "$current_parent_id" | cut -d'|' -f2)
                 echo "Created parent issue #$parent_number with ID: $parent_id"
                 ((parent_issues_created++))
             else
@@ -257,8 +257,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         else
             echo "Creating sub-issue: $sub_title"
             if sub_id=$(create_issue "$sub_title" "$sub_body"); then
-                local sub_number=$(echo "$sub_id" | cut -d'|' -f1)
-                local sub_issue_id=$(echo "$sub_id" | cut -d'|' -f2)
+                sub_number=$(echo "$sub_id" | cut -d'|' -f1)
+                sub_issue_id=$(echo "$sub_id" | cut -d'|' -f2)
                 echo "Created sub-issue #$sub_number with ID: $sub_issue_id"
                 ((sub_issues_created++))
 
