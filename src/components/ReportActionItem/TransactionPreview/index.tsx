@@ -9,7 +9,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
+import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {getOriginalTransactionWithSplitInfo, isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
@@ -78,11 +78,15 @@ function TransactionPreview(props: TransactionPreviewProps) {
         Navigation.navigate(getReviewNavigationRoute(route, report, transaction, duplicates));
     }, [duplicates, report, route, transaction]);
 
-    const transactionPreview = transaction;
+    let transactionPreview = transaction;
 
     const {originalTransaction, isBillSplit} = getOriginalTransactionWithSplitInfo(transaction);
 
-    const iouAction = action;
+    if (isBillSplit) {
+        transactionPreview = originalTransaction;
+    }
+
+    const iouAction = isBillSplit && originalTransaction ? (getIOUActionForReportID(chatReportID, originalTransaction.transactionID) ?? action) : action;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isTransactionMadeWithCard = isCardTransaction(transaction);
@@ -104,7 +108,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...props}
                     action={iouAction}
-                    isBillSplit={isBillSplit && !transaction?.comment?.originalTransactionID}
+                    isBillSplit={isBillSplit}
                     chatReport={chatReport}
                     personalDetails={personalDetails}
                     transaction={transactionPreview}
