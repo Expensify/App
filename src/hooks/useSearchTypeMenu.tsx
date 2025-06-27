@@ -161,7 +161,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                         text: translate(item.translationPath),
                         isSelected,
                         icon: item.icon,
-                        iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
+                        ...(isSelected ? {iconFill: theme.iconSuccessFill} : {}),
                         iconRight: Expensicons.Checkmark,
                         shouldShowRightIcon: isSelected,
                         success: isSelected,

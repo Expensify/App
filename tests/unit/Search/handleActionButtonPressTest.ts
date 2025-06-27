@@ -5,6 +5,7 @@ import {handleActionButtonPress} from '@libs/actions/Search';
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
 const mockReportItemWithHold = {
+    groupedBy: 'reports',
     shouldAnimateInHighlight: false,
     accountID: 1206,
     action: 'approve',
