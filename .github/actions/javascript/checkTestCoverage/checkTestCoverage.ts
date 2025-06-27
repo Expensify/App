@@ -42,14 +42,27 @@ async function promptAssistant(issueNumber: number): Promise<void> {
     // Fetch the comprehensive PR data
     const prData = await getPullRequestData(issueNumber);
     const prDataString = JSON.stringify(prData, null, 2);
-    core.info(`Prompt: ${prDataString}`);
+    core.info(`Processing PR: ${prData.title}`);
+    core.info(`Diff size: ${prData.diff.length} characters`);
 
-    const assistantResponse = await openAI.promptAssistant(assistantID, prDataString);
-    console.log(' ...parsing ');
-    console.log('assistantResponse: ', assistantResponse);
-
-    // TODO: Later on we will comment response on the PR
-    await commentOnGithubPR(issueNumber, assistantResponse);
+    try {
+        const assistantResponse = await openAI.promptAssistant(assistantID, prDataString);
+        
+        if (!assistantResponse || assistantResponse.trim().length === 0) {
+            throw new Error('Received empty response from OpenAI assistant');
+        }
+        
+        core.info('Successfully received test coverage recommendations');
+        
+        // TODO: Later on we will comment response on the PR
+        await commentOnGithubPR(issueNumber, assistantResponse);
+        core.info(`Posted comment on PR #${issueNumber}`);
+        
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        core.error(`Failed to get test coverage recommendations: ${errorMessage}`);
+        throw error;
+    }
 }
 
 async function getPullRequestData(pullRequestNumber: number): Promise<{
