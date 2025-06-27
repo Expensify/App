@@ -480,7 +480,7 @@ async function main(): Promise<void> {
         translator = new ChatGPTTranslator(process.env.OPENAI_API_KEY);
     }
 
-    const languagesDir = process.env.LANGUAGES_DIR || path.join(__dirname, '../src/languages');
+    const languagesDir = process.env.LANGUAGES_DIR ?? path.join(__dirname, '../src/languages');
     const enSourceFile = path.join(languagesDir, 'en.ts');
 
     const generator = new TranslationGenerator({
