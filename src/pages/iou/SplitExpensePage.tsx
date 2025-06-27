@@ -1,5 +1,6 @@
+import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -91,30 +92,78 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     );
 
     const sections = useMemo(() => {
-        const cashOrCard = translate(isCard  ? 'iou.card' : 'iou.cash');
-        const items: SplitListItemType[] = (draftTransaction?.comment?.splitExpenses ?? []).map((item): SplitListItemType => {
+        const cashOrCard = translate(isCard ? 'iou.card' : 'iou.cash');
+
+        // First group expenses by category
+        const expensesGroupedByCategory: Record<string, SplitListItemType> = {};
+        for (const expense of draftTransaction?.comment?.splitExpenses ?? []) {
+            const category = expense.category ?? CONST.POLICY.DEFAULT_CATEGORIES.OTHER;
+            if (!(category in expensesGroupedByCategory)) {
+                expensesGroupedByCategory[category] = {
+                    category,
+                    total: 0,
+                    expenses: [],
+                    keyForList: category,
+                    dateRange: '',
+                };
+            }
+
+            // Keep a running total for each category
+            expensesGroupedByCategory[category].total += Number(expense.amount);
+
             const date = DateUtils.formatWithUTCTimeZone(
-                item.created,
-                DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+                expense.created,
+                DateUtils.doesDateBelongToAPastYear(expense.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
             );
             const headerText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
-            return {
-                ...item,
+            expensesGroupedByCategory[category].expenses.push({
+                ...expense,
                 headerText,
                 originalAmount: transactionDetailsAmount,
-                amount: transactionDetailsAmount >= 0 ? Math.abs(Number(item.amount)) : Number(item.amount),
+                amount: transactionDetailsAmount >= 0 ? Math.abs(Number(expense.amount)) : Number(expense.amount),
                 merchant: draftTransaction?.merchant ?? '',
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
-                transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                transactionID: expense?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                 currencySymbol,
                 onSplitExpenseAmountChange,
-                isTransactionLinked: splitExpenseTransactionID === item.transactionID,
-                keyForList: item?.transactionID,
-            };
-        });
+                isTransactionLinked: splitExpenseTransactionID === expense.transactionID,
+            });
+        }
 
-        return [{data: items}] as Array<SectionListDataType<SplitListItemType>>;
-    }, [translate, isCard, draftTransaction?.comment?.splitExpenses, draftTransaction?.merchant, draftTransaction?.currency, transactionDetailsAmount, currencySymbol, onSplitExpenseAmountChange, splitExpenseTransactionID]);
+        // Then calculate the date range for each category
+        const sectionList = Object.values(expensesGroupedByCategory);
+        for (const section of sectionList) {
+            let startDate = '';
+            let endDate = '';
+            for (const expense of section.expenses) {
+                if (!startDate) {
+                    startDate = expense.created;
+                }
+                if (!endDate) {
+                    endDate = expense.created;
+                }
+                if (expense.created < startDate) {
+                    startDate = expense.created;
+                }
+                if (expense.created > endDate) {
+                    endDate = expense.created;
+                }
+            }
+            section.dateRange = DateUtils.getFormattedDateRange(DateUtils.parseLocaleDateUTC(startDate), DateUtils.parseLocaleDateUTC(endDate));
+        }
+
+        return [{data: Object.values(expensesGroupedByCategory)}] as Array<SectionListDataType<SplitListItemType>>;
+    }, [
+        translate,
+        isCard,
+        draftTransaction?.comment?.splitExpenses,
+        draftTransaction?.merchant,
+        draftTransaction?.currency,
+        transactionDetailsAmount,
+        currencySymbol,
+        onSplitExpenseAmountChange,
+        splitExpenseTransactionID,
+    ]);
 
     const headerContent = useMemo(
         () => (
@@ -154,11 +203,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         );
     }, [onSaveSplitExpense, styles.mb2, styles.ph1, styles.w100, translate, errorMessage]);
 
-    const initiallyFocusedOptionKey = useMemo(
-        () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
-        [sections, splitExpenseTransactionID],
-    );
-
     return (
         <ScreenWrapper
             testID={SplitExpensePage.displayName}
@@ -177,15 +221,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <SelectionList
-                        onSelectRow={(item) => {
-                            Keyboard.dismiss();
-                            InteractionManager.runAfterInteractions(() => {
-                                initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, reportID);
-                            });
-                        }}
+                        onSelectRow={noop}
                         headerContent={headerContent}
                         sections={sections}
-                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         ListItem={SplitListItem}
                         containerStyle={[styles.flexBasisAuto, styles.pt1]}
                         footerContent={footerContent}

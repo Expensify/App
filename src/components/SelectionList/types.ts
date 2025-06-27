@@ -411,32 +411,45 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     FooterComponent?: ReactElement;
 };
 
-type SplitListItemType = ListItem &
-    SplitExpense & {
-        /** Item header text */
-        headerText: string;
+type SplitListItemType = ListItem & {
+    /** Category for the group of split expenses. */
+    category: string;
 
-        /** Merchant or vendor name */
-        merchant: string;
+    /** Total amount of the split expenses in the category. */
+    total: number;
 
-        /** Currency code */
-        currency: string;
+    /** The formatted date range of the split expenses in the category. */
+    dateRange: string;
 
-        /** ID of split expense */
-        transactionID: string;
+    /** List of split expenses to show in the category group accordion. */
+    expenses: Array<
+        SplitExpense & {
+            /** Item header text */
+            headerText: string;
 
-        /** Currency symbol */
-        currencySymbol: string;
+            /** Merchant or vendor name */
+            merchant: string;
 
-        /** Original amount before split */
-        originalAmount: number;
+            /** Currency code */
+            currency: string;
 
-        /** Indicates whether a split was opened through this transaction */
-        isTransactionLinked: boolean;
+            /** ID of split expense */
+            transactionID: string;
 
-        /** Function for updating amount */
-        onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
-    };
+            /** Currency symbol */
+            currencySymbol: string;
+
+            /** Original amount before split */
+            originalAmount: number;
+
+            /** Indicates whether a split was opened through this transaction */
+            isTransactionLinked: boolean;
+
+            /** Function for updating amount */
+            onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
+        }
+    >;
+};
 
 type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
