@@ -9252,18 +9252,15 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
         const currentUserCanPay = canIOUBePaid(iouReport, chatReport, policy);
         const currentUserCanApprove = canApproveIOU(iouReport, policy);
 
-        // Special case: If current user is the expense owner, they shouldn't be able to pay their own expense
-        // even if they're a policy admin. They can only approve if they're the assigned manager.
         const isCurrentUserExpenseOwner = iouReport?.ownerAccountID === getCurrentUserAccountID();
-        const adjustedCanPay = isCurrentUserExpenseOwner ? false : currentUserCanPay;
+        const isCurrentUserManager = iouReport?.managerID === getCurrentUserAccountID();
+        const adjustedCanPay = isCurrentUserExpenseOwner && !isCurrentUserManager ? false : currentUserCanPay;
 
         // For submitted expense reports, only show settlement button if user can approve (approval comes first)
         // For other states, show if user can pay or approve
         const isSubmittedExpenseReport = isExpenseReport(iouReport) && iouReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
-        const shouldShowSettlementButton = isSubmittedExpenseReport 
-            ? currentUserCanApprove 
-            : (adjustedCanPay || currentUserCanApprove);
-            
+        const shouldShowSettlementButton = isSubmittedExpenseReport ? currentUserCanApprove : adjustedCanPay || currentUserCanApprove;
+
         return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton;
     });
 }
