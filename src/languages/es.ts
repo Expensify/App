@@ -5701,6 +5701,7 @@ const translations = {
                 .map((v) => `"${v}"`)
                 .join(', ')} para que sean ${isRequired ? 'obligatorias' : 'no obligatorias'}`,
         importTags: 'importó un archivo CSV de etiquetas',
+        deletedAllTags: 'eliminó todas las etiquetas',
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `añadió la etiqueta "${tagName}" a la lista "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
