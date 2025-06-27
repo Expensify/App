@@ -11402,6 +11402,25 @@ function getSearchOnyxUpdate({
     }
 }
 
+function dismissConciergeSplitOptionsAction(reportID: string, reportActionID: string) {
+    const optimisticData = [{
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        value: null,
+    }] as OnyxUpdate[];
+
+    const reportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: reportAction,
+        },
+    ] as OnyxUpdate[];
+
+    API.write(WRITE_COMMANDS.DISMISS_CONCIERGE_SPLIT_OPTIONS, {reportActionID}, {optimisticData, failureData});
+}
+
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
@@ -11939,5 +11958,6 @@ export {
     updateSplitExpenseField,
     reopenReport,
     retractReport,
+    dismissConciergeSplitOptionsAction,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};

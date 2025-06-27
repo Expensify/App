@@ -55,7 +55,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
-import {initSplitExpense} from '@libs/actions/IOU';
+import {initSplitExpense, dismissConciergeSplitOptionsAction} from '@libs/actions/IOU';
 import {
     extractLinksFromMessageHtml,
     getAddedApprovalRuleMessage,
@@ -753,9 +753,7 @@ function PureReportActionItem({
                 {
                     text: 'common.no',
                     key: 'common.no',
-                    onPress: () => {
-                        // resolveConciergeCategoryOptions(reportID, originalReportID, action.reportActionID, option);
-                    },
+                    onPress: () => dismissConciergeSplitOptionsAction(originalReportID, action.reportActionID),
                 },
             ]
         }
@@ -860,6 +858,9 @@ function PureReportActionItem({
         resolveActionableMentionWhisper,
         originalReportID,
         isBetaEnabled,
+        allTransactions,
+        initSplitExpense,
+        policy,
     ]);
 
     /**
