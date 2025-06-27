@@ -164,7 +164,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             <Button
                                 danger
                                 large
-                                style={[styles.w100, styles.mb4]}
+                                style={[styles.w100, styles.mb3]}
                                 text={translate('iou.removeSplit')}
                                 onPress={() => {
                                     removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID);
