@@ -172,10 +172,10 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     if (!isCurrentUserManager) {
         return false;
     }
-    const isExpenseReport = isExpenseReportUtils(report);
-    const isReportApprover = isApproverUtils(policy, currentUserAccountID);
     const isProcessingReport = isProcessingReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
+    if (!isProcessingReport) {
+        return false;
+    }
 
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -183,6 +183,8 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
     }
+    const isExpenseReport = isExpenseReportUtils(report);
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -199,7 +201,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
-
+    const isReportApprover = isApproverUtils(policy, currentUserAccountID);
     const userControlsReport = isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
