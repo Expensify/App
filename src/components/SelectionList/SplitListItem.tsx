@@ -90,7 +90,7 @@ function SplitListItem<TItem extends ListItem>({item, isFocused, showTooltip, is
                     isToggleTriggered={shouldAnimateAccordionSection}
                     style={[styles.mt3]}
                 >
-                    {splitItem.expenses.map((expense) => {
+                    {splitItem.expenses.map((expense, index) => {
                         const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(expense.originalAmount, expense.currency);
                         return (
                             <PressableWithFeedback
@@ -103,7 +103,7 @@ function SplitListItem<TItem extends ListItem>({item, isFocused, showTooltip, is
                                 accessibilityLabel={translate('iou.splitExpense')}
                                 style={[
                                     styles.flexRow,
-                                    styles.pv3,
+                                    index === splitItem.expenses.length - 1 ? [styles.pt3, styles.pb1] : styles.pv3,
                                     styles.borderTop,
                                     styles.containerWithSpaceBetween,
                                     expense.isTransactionLinked && StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG),
