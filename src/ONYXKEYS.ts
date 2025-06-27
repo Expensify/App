@@ -17,6 +17,9 @@ const ONYXKEYS = {
     /** Holds information about the users account that is logging in */
     ACCOUNT: 'account',
 
+    /** Holds the user reported integration */
+    ONBOARDING_USER_REPORTED_INTEGRATION: 'onboardingUserReportedIntegration',
+
     /** Holds the reportID for the report between the user and their account manager */
     ACCOUNT_MANAGER_REPORT_ID: 'accountManagerReportID',
 

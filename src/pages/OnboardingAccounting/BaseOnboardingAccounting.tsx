@@ -41,6 +41,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BaseOnboardingAccountingProps} from './types';
+import {setOnboardingUserReportedIntegration} from '@libs/actions/Welcome';
 
 type Integration = {
     key: OnboardingAccounting;
@@ -210,13 +211,16 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
         // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
         const {adminsChatReportID, policyID} = shouldCreateWorkspace
-            ? createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false, onboardingCompanySize, true) // isFromOnboarding = true
+            ? createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false, onboardingCompanySize, true, userReportedIntegration) // isFromOnboarding = true
             : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
         if (shouldCreateWorkspace) {
             setOnboardingAdminsChatReportID(adminsChatReportID);
             setOnboardingPolicyID(policyID);
         }
+
+        // Set the userReportedIntegration into Onyx
+        setOnboardingUserReportedIntegration(userReportedIntegration);
 
         completeOnboarding({
             engagementChoice: onboardingPurposeSelected,

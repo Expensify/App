@@ -111,6 +111,10 @@ function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, adminsChatReportID ?? null);
 }
 
+function setOnboardingUserReportedIntegration(userReportedIntegration?: OnboardingAccounting) {
+    Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, userReportedIntegration ?? null);
+}
+
 function setOnboardingPolicyID(policyID?: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
 }
@@ -250,4 +254,5 @@ export {
     setSelfTourViewed,
     setOnboardingMergeAccountStepValue,
     updateOnboardingValuesAndNavigation,
+    setOnboardingUserReportedIntegration,
 };
