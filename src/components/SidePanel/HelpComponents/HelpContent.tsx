@@ -61,8 +61,16 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
 
         const cleanedPath = path.replaceAll('?', '');
         const expenseType = getExpenseType(transaction);
-        const reportOverride = expenseType ? `:${CONST.REPORT.HELP_TYPE.EXPENSE}/:${expenseType}` : `:${getHelpPaneReportType(report)}`;
-        return cleanedPath.replaceAll(':reportID', reportOverride);
+
+        if (expenseType) {
+            return cleanedPath.replaceAll(':reportID', `:${CONST.REPORT.HELP_TYPE.EXPENSE}/:${expenseType}`);
+        }
+
+        if (report) {
+            return cleanedPath.replaceAll(':reportID', `:${getHelpPaneReportType(report)}`);
+        }
+
+        return cleanedPath;
     }, [routeName, transaction, report]);
 
     const wasPreviousNarrowScreen = useRef(!isExtraLargeScreenWidth);
