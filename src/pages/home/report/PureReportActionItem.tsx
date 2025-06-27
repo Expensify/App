@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -172,6 +171,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import RenderCommentHTML from './comment/RenderCommentHTML';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
@@ -1222,13 +1222,19 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT_WITH_OPTIONS) {
             const originalMessage = getOriginalMessage(action) as any;
-            const questionText = (originalMessage && originalMessage['html']) || "Do you want to enable attendee tracking?";
+            const questionText = (originalMessage && originalMessage['html']) || 'Do you want to enable attendee tracking?';
 
             children = (
                 <AccountingContextProvider policy={policy}>
                     <View>
-                        <View style={[styles.chatItemMessage]}>
-                            <RenderHTML html={questionText} />
+                        <View>
+                            {!!questionText && (
+                                <RenderCommentHTML
+                                    containsOnlyEmojis={false}
+                                    source=""
+                                    html={questionText}
+                                />
+                            )}
                         </View>
                         {actionableItemButtons.length > 0 && (
                             <ActionableItemButtons
