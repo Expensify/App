@@ -82,79 +82,50 @@ function SplitListItem<TItem extends ListItem>({item, isFocused, showTooltip, is
                 <Accordion
                     isExpanded={isAccordionExpanded}
                     isToggleTriggered={shouldAnimateAccordionSection}
-                    style={[styles.flex1]}
+                    style={[styles.mt3]}
                 >
                     {splitItem.expenses.map((expense) => {
-                        const isBottomVisible = !!expense.category || !!expense.tags?.at(0);
                         const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(expense.originalAmount, expense.currency);
                         return (
                             <PressableWithFeedback
                                 onPress={() => {
-                                    Keyboard.dismiss();
+                                    // Keyboard.dismiss();
                                     // InteractionManager.runAfterInteractions(() => {
                                     //     initDraftSplitExpenseDataForEdit(draftTransaction, expense.transactionID, reportID);
                                     // });
                                 }}
                                 accessibilityLabel={translate('iou.splitExpense')}
-                                style={[styles.flex1, expense.isTransactionLinked && StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG)]}
+                                style={[
+                                    styles.flexRow,
+                                    styles.pv3,
+                                    styles.borderTop,
+                                    styles.containerWithSpaceBetween,
+                                    expense.isTransactionLinked && StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG),
+                                ]}
                             >
-                                <View style={[styles.containerWithSpaceBetween, !isBottomVisible && styles.justifyContentCenter]}>
-                                    <View style={[styles.minHeight5, styles.justifyContentCenter]}>
-                                        <Text
-                                            numberOfLines={1}
-                                            style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
-                                        >
-                                            {expense.headerText}
-                                        </Text>
-                                    </View>
-                                    <View style={[styles.minHeight5, styles.justifyContentCenter, styles.gap2]}>
-                                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                                <View style={[styles.flex1]}>
+                                    <View style={[styles.containerWithSpaceBetween]}>
+                                        <View style={[styles.minHeight5, styles.justifyContentCenter]}>
                                             <Text
-                                                fontSize={variables.fontSizeNormal}
-                                                style={[styles.flexShrink1]}
                                                 numberOfLines={1}
+                                                style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
                                             >
-                                                {expense.description ?? expense.merchant}
+                                                {expense.headerText}
                                             </Text>
+                                        </View>
+                                        <View style={[styles.minHeight5, styles.justifyContentCenter, styles.gap2]}>
+                                            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                                                <Text
+                                                    fontSize={variables.fontSizeNormal}
+                                                    style={[styles.flexShrink1]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {expense.description ?? expense.merchant}
+                                                </Text>
+                                            </View>
                                         </View>
                                     </View>
                                 </View>
-                                {isBottomVisible && (
-                                    <View style={[styles.splitItemBottomContent]}>
-                                        {!!splitItem.category && (
-                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pr1, styles.flexShrink1, !!expense.tags?.at(0) && styles.mw50]}>
-                                                <Icon
-                                                    src={Folder}
-                                                    height={variables.iconSizeExtraSmall}
-                                                    width={variables.iconSizeExtraSmall}
-                                                    fill={theme.icon}
-                                                />
-                                                <Text
-                                                    numberOfLines={1}
-                                                    style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
-                                                >
-                                                    {splitItem.category}
-                                                </Text>
-                                            </View>
-                                        )}
-                                        {!!expense.tags?.at(0) && (
-                                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pl1, !!splitItem.category && styles.mw50]}>
-                                                <Icon
-                                                    src={Tag}
-                                                    height={variables.iconSizeExtraSmall}
-                                                    width={variables.iconSizeExtraSmall}
-                                                    fill={theme.icon}
-                                                />
-                                                <Text
-                                                    numberOfLines={1}
-                                                    style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
-                                                >
-                                                    {getCleanedTagName(expense.tags?.at(0) ?? '')}
-                                                </Text>
-                                            </View>
-                                        )}
-                                    </View>
-                                )}
                                 <View style={[styles.flexRow]}>
                                     <View style={[styles.justifyContentCenter]}>
                                         <MoneyRequestAmountInput
