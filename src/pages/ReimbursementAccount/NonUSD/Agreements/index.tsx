@@ -5,6 +5,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import requiresDocusignStep from '@pages/ReimbursementAccount/NonUSD/utils/requiresDocusignStep';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {clearReimbursementAccountFinishCorpayBankAccountOnboarding, finishCorpayBankAccountOnboarding} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
@@ -46,9 +47,10 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Ag
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
     const agreementsStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isDocusignStepRequired = requiresDocusignStep(policyCurrency);
 
     const submit = () => {
-        if (policyCurrency === CONST.CURRENCY.CAD || policyCurrency === CONST.CURRENCY.USD) {
+        if (isDocusignStepRequired) {
             onSubmit();
             return;
         }
@@ -65,7 +67,7 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Ag
     };
 
     useEffect(() => {
-        if (policyCurrency === CONST.CURRENCY.CAD || policyCurrency === CONST.CURRENCY.USD) {
+        if (isDocusignStepRequired) {
             return;
         }
 
@@ -82,7 +84,7 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Ag
         return () => {
             clearReimbursementAccountFinishCorpayBankAccountOnboarding();
         };
-    }, [reimbursementAccount, onSubmit, policyCurrency]);
+    }, [reimbursementAccount, onSubmit, policyCurrency, isDocusignStepRequired]);
 
     const {
         componentToRender: SubStep,

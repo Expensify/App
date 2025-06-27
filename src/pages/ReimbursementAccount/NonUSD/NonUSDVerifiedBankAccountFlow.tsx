@@ -10,6 +10,7 @@ import Country from './Country/Country';
 import Docusign from './Docusign/Docusign';
 import Finish from './Finish';
 import SignerInfo from './SignerInfo';
+import requiresDocusignStep from './utils/requiresDocusignStep';
 
 type NonUSDVerifiedBankAccountFlowProps = {
     nonUSDBankAccountStep: string;
@@ -28,7 +29,8 @@ function NonUSDVerifiedBankAccountFlow({
     shouldShowContinueSetupButtonValue,
     policyCurrency,
 }: NonUSDVerifiedBankAccountFlowProps) {
-    const stepNames = policyCurrency === CONST.CURRENCY.CAD || policyCurrency === CONST.CURRENCY.USD ? CONST.NON_USD_BANK_ACCOUNT.CA_STEP_NAMES : CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES;
+    const isDocusignStepRequired = requiresDocusignStep(policyCurrency);
+    const stepNames = isDocusignStepRequired ? CONST.NON_USD_BANK_ACCOUNT.CA_STEP_NAMES : CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES;
 
     const handleNextNonUSDBankAccountStep = () => {
         switch (nonUSDBankAccountStep) {
@@ -48,9 +50,7 @@ function NonUSDVerifiedBankAccountFlow({
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
                 break;
             case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
-                setNonUSDBankAccountStep(
-                    policyCurrency === CONST.CURRENCY.CAD || policyCurrency === CONST.CURRENCY.USD ? CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN : CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH,
-                );
+                setNonUSDBankAccountStep(isDocusignStepRequired ? CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN : CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
                 break;
             case CONST.NON_USD_BANK_ACCOUNT.STEP.DOCUSIGN:
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
