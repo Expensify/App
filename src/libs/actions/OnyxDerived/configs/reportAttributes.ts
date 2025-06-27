@@ -109,9 +109,11 @@ export default createOnyxDerivedValueConfig({
                 return acc;
             }
 
+            const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
             const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
             const {hasAnyViolations, requiresAttention, isReportArchived, reportErrors} = generateReportAttributes({
                 report,
+                chatReport,
                 reportActions,
                 transactionViolations,
                 reportNameValuePairs,
@@ -119,7 +121,7 @@ export default createOnyxDerivedValueConfig({
 
             let brickRoadStatus;
             // if report has errors or violations, show red dot
-            if (SidebarUtils.shouldShowRedBrickRoad(report, reportActionsList, hasAnyViolations, reportErrors, transactions, transactionViolations, !!isReportArchived)) {
+            if (SidebarUtils.shouldShowRedBrickRoad(report, chatReport, reportActionsList, hasAnyViolations, reportErrors, transactions, transactionViolations, !!isReportArchived)) {
                 brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
             }
             // if report does not have error, check if it should show green dot

@@ -5,6 +5,8 @@ import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
+import SCREENS from './SCREENS';
+import type {Screen} from './SCREENS';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
@@ -51,6 +53,9 @@ const ROUTES = {
         getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${jsonQuery}` as const,
     },
     SEARCH_ADVANCED_FILTERS: 'search/filters',
+    SEARCH_ADVANCED_FILTERS_TYPE: 'search/filters/type',
+    SEARCH_ADVANCED_FILTERS_GROUP_BY: 'search/filters/groupBy',
+    SEARCH_ADVANCED_FILTERS_STATUS: 'search/filters/status',
     SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
     SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
     SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
@@ -145,7 +150,7 @@ const ROUTES = {
     },
     PROFILE_AVATAR: {
         route: 'a/:accountID/avatar',
-        getRoute: (accountID: number) => `a/${accountID}/avatar` as const,
+        getRoute: (accountID: number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}/avatar`, backTo),
     },
 
     DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
@@ -440,7 +445,7 @@ const ROUTES = {
         getRoute: (
             reportID: string | undefined,
             attachmentID: string | undefined,
-            type: ValueOf<typeof CONST.ATTACHMENT_TYPE>,
+            type: ValueOf<typeof CONST.ATTACHMENT_TYPE> | undefined,
             url: string,
             accountID?: number,
             isAuthTokenRequired?: boolean,
@@ -448,6 +453,7 @@ const ROUTES = {
             attachmentLink?: string,
             hashKey?: number,
         ) => {
+            const typeParam = type ? `&type=${type}` : '';
             const reportParam = reportID ? `&reportID=${reportID}` : '';
             const accountParam = accountID ? `&accountID=${accountID}` : '';
             const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
@@ -456,9 +462,7 @@ const ROUTES = {
             const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
             const hashKeyParam = hashKey ? `&hashKey=${hashKey}` : '';
 
-            return `attachment?source=${encodeURIComponent(url)}&type=${
-                type as string
-            }${reportParam}${attachmentIDParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}${hashKeyParam}` as const;
+            return `attachment?source=${encodeURIComponent(url)}${typeParam}${reportParam}${attachmentIDParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}${hashKeyParam}` as const;
         },
     },
     REPORT_PARTICIPANTS: {
@@ -1507,7 +1511,13 @@ const ROUTES = {
     },
     WORKSPACE_TAG_SETTINGS: {
         route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName',
-        getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}` as const,
+        getRoute: (policyID: string, orderWeight: number, tagName: string, parentTagsFilter?: string) => {
+            let queryParams = '';
+            if (parentTagsFilter) {
+                queryParams += `?parentTagsFilter=${parentTagsFilter}`;
+            }
+            return `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}${queryParams}` as const;
+        },
     },
     WORKSPACE_TAG_APPROVER: {
         route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/approver',
@@ -2007,6 +2017,22 @@ const ROUTES = {
         route: 'onboarding/work-email-validation',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email-validation`, backTo),
     },
+    ONBOARDING_WORKSPACE: {
+        route: 'onboarding/create-workspace',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/create-workspace`, backTo),
+    },
+    ONBOARDING_WORKSPACE_CONFIRMATION: {
+        route: 'onboarding/workspace-confirmation',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-confirmation`, backTo),
+    },
+    ONBOARDING_WORKSPACE_CURRENCY: {
+        route: 'onboarding/workspace-currency',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-currency`, backTo),
+    },
+    ONBOARDING_WORKSPACE_INVITE: {
+        route: 'onboarding/workspace-invite',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/workspace-invite`, backTo),
+    },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
     TEST_DRIVE_MODAL_ROOT: {
@@ -2014,6 +2040,7 @@ const ROUTES = {
         getRoute: (bossEmail?: string) => `onboarding/test-drive${bossEmail ? `?bossEmail=${encodeURIComponent(bossEmail)}` : ''}` as const,
     },
     TEST_DRIVE_DEMO_ROOT: 'onboarding/test-drive/demo',
+    AUTO_SUBMIT_MODAL_ROOT: '/auto-submit',
     WORKSPACE_CONFIRMATION: {
         route: 'workspace/confirmation',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation`, backTo),
@@ -2574,6 +2601,8 @@ const ROUTES = {
         route: 'r/:reportID/schedule-call/confirmation',
         getRoute: (reportID: string) => `r/${reportID}/schedule-call/confirmation` as const,
     },
+
+    TEST_TOOLS_MODAL: 'test-tools',
 } as const;
 
 /**
@@ -2588,7 +2617,20 @@ const HYBRID_APP_ROUTES = {
     MONEY_REQUEST_CREATE_TAB_DISTANCE: '/submit/new/distance',
 } as const;
 
-export {HYBRID_APP_ROUTES, getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES};
+/**
+ * Configuration for shared parameters that can be passed between routes.
+ * These parameters are commonly used across multiple screens and are preserved
+ * during navigation state transitions.
+ *
+ * Currently includes:
+ * - `backTo`: Specifies the route to return to when navigating back, preserving
+ *   navigation context in split-screen and central screen
+ */
+const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
+    [SCREENS.WORKSPACE.INITIAL]: ['backTo'],
+} as const;
+
+export {HYBRID_APP_ROUTES, getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS};
 export default ROUTES;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

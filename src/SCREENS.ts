@@ -42,6 +42,9 @@ const SCREENS = {
         MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
+        ADVANCED_FILTERS_TYPE_RHP: 'Search_Advanced_Filters_Type_RHP',
+        ADVANCED_FILTERS_GROUP_BY_RHP: 'Search_Advanced_Filters_GroupBy_RHP',
+        ADVANCED_FILTERS_STATUS_RHP: 'Search_Advanced_Filters_Status_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
         ADVANCED_FILTERS_SUBMITTED_RHP: 'Search_Advanced_Filters_Submitted_RHP',
         ADVANCED_FILTERS_APPROVED_RHP: 'Search_Advanced_Filters_Approved_RHP',
@@ -660,6 +663,10 @@ const SCREENS = {
         WORKSPACES: 'Onboarding_Workspaces',
         WORK_EMAIL: 'Onboarding_Work_Email',
         WORK_EMAIL_VALIDATION: 'Onboarding_Work_Email_Validation',
+        WORKSPACE_OPTIONAL: 'Onboarding_Workspace_Optional',
+        WORKSPACE_CONFIRMATION: 'Onboarding_Workspace_Confirmation',
+        WORKSPACE_CURRENCY: 'Onboarding_Workspace_Currency',
+        WORKSPACE_INVITE: 'Onboarding_Workspace_Invite',
     },
 
     WELCOME_VIDEO: {
@@ -677,7 +684,6 @@ const SCREENS = {
     TEST_DRIVE_MODAL: {
         ROOT: 'TestDrive_Modal_Root',
     },
-
     TEST_DRIVE_DEMO: {
         ROOT: 'TestDrive_Demo_Root',
     },
@@ -693,6 +699,7 @@ const SCREENS = {
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
     PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
+    AUTO_SUBMIT_ROOT: 'AutoSubmit_Modal_Root',
     CHANGE_POLICY_EDUCATIONAL_ROOT: 'ChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
     REPORT_PARTICIPANTS: {
@@ -733,6 +740,10 @@ const SCREENS = {
     SCHEDULE_CALL: {
         BOOK: 'ScheduleCall_Book',
         CONFIRMATION: 'ScheduleCall_Confirmation',
+    },
+
+    TEST_TOOLS_MODAL: {
+        ROOT: 'TestToolsModal_Root',
     },
 } as const;
 

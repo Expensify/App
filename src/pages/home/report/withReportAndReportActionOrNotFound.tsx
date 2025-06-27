@@ -8,6 +8,7 @@ import useReportDataLoading from '@hooks/useReportDataLoading';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FlagCommentNavigatorParamList, SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {canAccessReport} from '@libs/ReportUtils';
@@ -40,14 +41,13 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`, {canBeMissing: true});
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
+        const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {canBeMissing: true});
         const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`, {canBeMissing: true});
         const isLoadingReportData = useReportDataLoading();
         const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
-        const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
         const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`, {canEvict: false, canBeMissing: true});
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {
+        const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
             selector: (parentReportActions) => {
                 const parentReportActionID = report?.parentReportActionID;
                 if (!parentReportActionID) {
@@ -84,7 +84,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         // Perform all the loading checks
         const isLoadingReport = isLoadingReportData && !report?.reportID;
         const isLoadingReportAction = isEmptyObject(reportActions) || (reportMetadata?.isLoadingInitialReportActions && isEmptyObject(linkedReportAction));
-        const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, policies, betas));
+        const shouldHideReport = !isLoadingReport && (!report?.reportID || !canAccessReport(report, betas));
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {

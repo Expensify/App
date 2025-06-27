@@ -64,7 +64,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                 {shouldDisplayHelpButton && <HelpButton />}
                 {displaySearch && <SearchButton />}
             </View>
-            <LoadingBar shouldShow={(shouldShowLoadingBarForReports ?? false) || shouldShowLoadingBar} />
+            <LoadingBar shouldShow={shouldShowLoadingBarForReports || shouldShowLoadingBar} />
         </View>
     );
 }

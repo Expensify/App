@@ -118,7 +118,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
-    const {isBlockedFromSpotnanaTravel} = usePermissions();
+    const {isBlockedFromSpotnanaTravel, isBetaEnabled} = usePermissions();
+    const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin, canBeMissing: true});
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
@@ -401,6 +402,25 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
 
     const menuItems = [
         ...expenseMenuItems,
+        ...(isManualDistanceTrackingEnabled
+            ? [
+                  {
+                      icon: Expensicons.Location,
+                      text: translate('iou.trackDistance'),
+                      shouldCallAfterModalHide: shouldUseNarrowLayout,
+                      onSelected: () => {
+                          interceptAnonymousUser(() => {
+                              if (shouldRedirectToExpensifyClassic) {
+                                  setModalVisible(true);
+                                  return;
+                              }
+                              // Start the flow to start tracking a distance request
+                              return null;
+                          });
+                      },
+                  },
+              ]
+            : []),
         ...(shouldShowCreateReportOption
             ? [
                   {
@@ -490,7 +510,11 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       onSelected: () =>
                           interceptAnonymousUser(() => {
                               InteractionManager.runAfterInteractions(() => {
-                                  if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
+                                  if (
+                                      introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+                                      introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
+                                      introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE
+                                  ) {
                                       completeTestDriveTask(viewTourReport, viewTourReportID, isAnonymousUser());
                                       Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
                                   } else {
@@ -541,7 +565,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                         },
                     };
                 })}
-                withoutOverlay
                 anchorRef={fabRef}
             />
             <ConfirmModal

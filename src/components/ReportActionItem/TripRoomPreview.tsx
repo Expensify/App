@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -10,7 +11,6 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,9 +27,8 @@ import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActio
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 
 type TripRoomPreviewProps = {
@@ -37,7 +36,10 @@ type TripRoomPreviewProps = {
     action: ReportAction;
 
     /** The associated chatReport */
-    chatReportID: string | undefined;
+    chatReport: OnyxEntry<Report>;
+
+    /** The associated iouReport */
+    iouReport: OnyxEntry<Report>;
 
     /** Extra styles to pass to View wrapper */
     containerStyles?: StyleProp<ViewStyle>;
@@ -139,7 +141,8 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
 
 function TripRoomPreview({
     action,
-    chatReportID,
+    chatReport,
+    iouReport,
     containerStyles,
     contextMenuAnchor,
     isHovered = false,
@@ -148,8 +151,7 @@ function TripRoomPreview({
 }: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`, {canBeMissing: true});
+    const chatReportID = chatReport?.reportID;
     const tripTransactions = useTripTransactions(chatReportID);
 
     const reservationsData: ReservationData[] = getReservationsFromTripTransactions(tripTransactions);

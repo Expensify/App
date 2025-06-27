@@ -2,7 +2,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useEffect} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useReportDataLoading from '@hooks/useReportDataLoading';
@@ -32,8 +32,8 @@ type WithReportOrNotFoundOnyxProps = {
     /** Metadata of the report currently being looked at */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
 
-    /** The policies which the user has access to */
-    policies: OnyxCollection<OnyxTypes.Policy>;
+    /** The policy linked to the report */
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -65,10 +65,10 @@ export default function (
     return function <TProps extends WithReportOrNotFoundProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>) {
         function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
             const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
-            const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+            const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`, {canBeMissing: true});
+            const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
             const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`, {canBeMissing: true});
             const isLoadingReportData = useReportDataLoading();
-            const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`, {canBeMissing: true});
             const isFocused = useIsFocused();
             const contentShown = React.useRef(false);
             const isReportIdInRoute = !!props.route.params.reportID?.length;
@@ -90,8 +90,8 @@ export default function (
             }, [shouldFetchReport, isReportLoaded, props.route.params.reportID]);
 
             if (shouldRequireReportID || isReportIdInRoute) {
-                const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData || shouldFetchReport);
-                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, policies, betas);
+                const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData !== false || shouldFetchReport);
+                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, betas);
 
                 // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
@@ -121,7 +121,7 @@ export default function (
                     {...props}
                     report={report}
                     betas={betas}
-                    policies={policies}
+                    policy={policy}
                     reportMetadata={reportMetadata}
                     isLoadingReportData={isLoadingReportData}
                     ref={ref}

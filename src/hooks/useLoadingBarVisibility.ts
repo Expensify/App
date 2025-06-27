@@ -1,26 +1,24 @@
 import {WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useNetwork from './useNetwork';
 import useCommandsLoading from './useCommandsLoading';
 import useOnyx from './useOnyx';
 
-// Commands that should trigger loading bar visibility
-const LOADING_BAR_COMMANDS = [WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT];
+// Commands that should trigger the LoadingBar to show
+const RELEVANT_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, WRITE_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_REPORT, WRITE_COMMANDS.READ_NEWEST_ACTION]);
 
 /**
- * Hook that determines when the loading bar should be visible
- *
- * Monitors persisted requests queue for OpenApp, ReconnectApp, and OpenReport commands
- * that trigger report data fetching from the server. The loading bar is hidden when offline
- * to provide better UX since users can't interact with loading content while offline.
+ * Hook that determines whether LoadingBar should be visible based on active queue requests
+ * Shows LoadingBar when any of the RELEVANT_COMMANDS are being processed
  *
  * @returns boolean indicating if the loading bar should be visible
  */
 export default function useLoadingBarVisibility(): boolean {
-    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: false});
     const hasRelevantCommands = useCommandsLoading(LOADING_BAR_COMMANDS);
+    const {isOffline} = useNetwork();
 
-    // Loading bar should not be shown when offline since users can't interact with loading content
-    if (network?.isOffline) {
+    // Don't show loading bar if currently offline
+    if (isOffline) {
         return false;
     }
 
