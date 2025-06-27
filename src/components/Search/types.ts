@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type {PaymentMethodType} from '@components/KYCWall/types';
-import type {ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -66,6 +66,7 @@ type SingularSearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSear
 type SearchStatus = SingularSearchStatus | SingularSearchStatus[];
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
+type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 
 type SearchContextData = {
     currentSearchHash: number;
@@ -81,7 +82,7 @@ type SearchContext = SearchContextData & {
     /** If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise */
     setSelectedTransactions: {
         (selectedTransactionIDs: string[], unused?: undefined): void;
-        (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
+        (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
     };
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
     clearSelectedTransactions: {
@@ -200,4 +201,5 @@ export type {
     TableColumnSize,
     SearchGroupBy,
     SingularSearchStatus,
+    SearchDatePreset,
 };
