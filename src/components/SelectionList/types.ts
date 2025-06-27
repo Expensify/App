@@ -421,6 +421,12 @@ type SplitListItemType = ListItem & {
     /** The formatted date range of the split expenses in the category. */
     dateRange: string;
 
+    /** The parent draft transaction. */
+    parentDraftTransaction?: Transaction;
+
+    /** The report ID. */
+    reportID: string;
+
     /** List of split expenses to show in the category group accordion. */
     expenses: Array<
         SplitExpense & {

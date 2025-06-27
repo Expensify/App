@@ -1,6 +1,6 @@
 import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -105,6 +105,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     expenses: [],
                     keyForList: category,
                     dateRange: '',
+                    parentDraftTransaction: draftTransaction,
+                    reportID,
                 };
             }
 
@@ -153,17 +155,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
 
         return [{data: Object.values(expensesGroupedByCategory)}] as Array<SectionListDataType<SplitListItemType>>;
-    }, [
-        translate,
-        isCard,
-        draftTransaction?.comment?.splitExpenses,
-        draftTransaction?.merchant,
-        draftTransaction?.currency,
-        transactionDetailsAmount,
-        currencySymbol,
-        onSplitExpenseAmountChange,
-        splitExpenseTransactionID,
-    ]);
+    }, [translate, isCard, draftTransaction, transactionDetailsAmount, currencySymbol, onSplitExpenseAmountChange, splitExpenseTransactionID, reportID]);
 
     const headerContent = useMemo(
         () => (

@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import Accordion from '@components/Accordion';
 import Icon from '@components/Icon';
-import {Folder, Tag} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -14,7 +13,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {initDraftSplitExpenseDataForEdit} from '@libs/actions/IOU';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
-import {getCleanedTagName} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import BaseListItem from './BaseListItem';
 import type {ListItem, SplitListItemProps, SplitListItemType} from './types';
@@ -89,10 +87,10 @@ function SplitListItem<TItem extends ListItem>({item, isFocused, showTooltip, is
                         return (
                             <PressableWithFeedback
                                 onPress={() => {
-                                    // Keyboard.dismiss();
-                                    // InteractionManager.runAfterInteractions(() => {
-                                    //     initDraftSplitExpenseDataForEdit(draftTransaction, expense.transactionID, reportID);
-                                    // });
+                                    Keyboard.dismiss();
+                                    InteractionManager.runAfterInteractions(() => {
+                                        initDraftSplitExpenseDataForEdit(splitItem.parentDraftTransaction, expense.transactionID, splitItem.reportID);
+                                    });
                                 }}
                                 accessibilityLabel={translate('iou.splitExpense')}
                                 style={[
