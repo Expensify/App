@@ -7,6 +7,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useSearchContext} from '@components/Search/SearchContext';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -53,6 +54,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {reportActions: reportActionsWithDeletedExpenses} = usePaginatedReportActions(reportIDFromRoute);
     const reportActions = reportActionsWithDeletedExpenses.filter((value) => !isDeletedParentAction(value));
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
+    const {currentSearchHash} = useSearchContext();
+    const [currentSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
 
@@ -64,6 +67,24 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const reportID = report?.reportID;
 
+    const getOneTransactionID = () => {
+        const transactions = getReportTransactions(reportIDFromRoute).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const oneTransactionID = transactions.at(0)?.transactionID;
+
+        if (oneTransactionID) {
+            return oneTransactionID;
+        }
+
+        for (const key in currentSnapshot?.data) {
+            if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+                const transaction = currentSnapshot?.data?.[key as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`];
+                if (transaction?.reportID === reportID) {
+                    return transaction?.transactionID;
+                }
+            }
+        }
+    };
+
     const fetchReport = useCallback(() => {
         if (reportMetadata.isOptimisticReport) {
             return;
@@ -72,11 +93,21 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         // If there is one transaction thread that has not yet been created, we should create it.
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport && currentUserEmail) {
             const optimisticTransactionThreadReportID = generateReportID();
-            const transactions = getReportTransactions(reportIDFromRoute).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-            const oneTransactionID = transactions.at(0)?.transactionID;
+            const oneTransactionID = getOneTransactionID();
             const iouAction = getIOUActionForReportID(reportIDFromRoute, oneTransactionID);
             const optimisticTransactionThread = buildTransactionThread(iouAction, report, undefined, optimisticTransactionThreadReportID);
-            openReport(optimisticTransactionThreadReportID, undefined, [currentUserEmail], optimisticTransactionThread, iouAction?.reportActionID, false, [], undefined, true);
+            openReport(
+                optimisticTransactionThreadReportID,
+                undefined,
+                [currentUserEmail],
+                optimisticTransactionThread,
+                iouAction?.reportActionID,
+                false,
+                [],
+                undefined,
+                true,
+                oneTransactionID,
+            );
         }
 
         openReport(reportIDFromRoute, undefined, [], undefined, undefined, false, [], undefined, true);
