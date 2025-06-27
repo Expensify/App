@@ -1,16 +1,23 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type {PaymentMethodType} from '@components/KYCWall/types';
+import SettlementButton from '@components/SettlementButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {payMoneyRequestOnSearch} from '@libs/actions/Search';
+import {getBankAccountRoute} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
@@ -31,6 +38,10 @@ type ActionCellProps = {
     isChildListItem?: boolean;
     parentAction?: string;
     isLoading?: boolean;
+    policyID?: string;
+    reportID?: string;
+    hash?: number;
+    amount?: number;
 };
 
 function ActionCell({
@@ -41,6 +52,10 @@ function ActionCell({
     isChildListItem = false,
     parentAction = '',
     isLoading = false,
+    policyID = '',
+    reportID = '',
+    hash,
+    amount,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -48,8 +63,22 @@ function ActionCell({
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
 
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const text = isChildListItem ? translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]) : translate(actionTranslationsMap[action]);
     const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || (parentAction === CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`, {canBeMissing: true});
+    const bankAccountRoute = getBankAccountRoute(chatReport);
+
+    const confirmPayment = useCallback(
+        (type: PaymentMethodType | undefined) => {
+            if (!type || !reportID || !hash || !amount) {
+                return;
+            }
+
+            payMoneyRequestOnSearch(hash, [{amount, paymentType: type, reportID}]);
+        },
+        [hash, amount, reportID],
+    );
 
     if (!isChildListItem && ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE)) {
         return (
@@ -92,6 +121,23 @@ function ActionCell({
                 isNested
             />
         ) : null;
+    }
+
+    if (action === CONST.SEARCH.ACTION_TYPES.PAY) {
+        return (
+            <SettlementButton
+                shouldUseShortForm
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                currency={iouReport?.currency}
+                policyID={policyID || iouReport?.policyID}
+                iouReport={iouReport}
+                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                addBankAccountRoute={bankAccountRoute}
+                onPress={confirmPayment}
+                style={[styles.w100]}
+                shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
+            />
+        );
     }
 
     return (
