@@ -863,6 +863,9 @@ function PureReportActionItem({
         policy,
         dismissConciergeSplitOptionsAction,
         getOriginalMessage,
+        isResolvedConciergeSplitOptions,
+        isConciergeSplitOptions,
+        originalReportID,
     ]);
 
     /**
