@@ -6983,11 +6983,7 @@ const translations = {
             part3: ',\net 🔴 sur',
             part4: 'éléments à examiner.',
         },
-        accountSwitcher: {
-            part1: 'Accédez à votre',
-            part2: 'Comptes Copilot',
-            part3: 'ici',
-        },
+        accountSwitcher: 'Accédez à votre <strong>Comptes Copilot</strong> ici',
         expenseReportsFilter: {
             part1: 'Bienvenue ! Trouvez tous vos',
             part2: "rapports de l'entreprise",

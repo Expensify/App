@@ -6976,11 +6976,7 @@ const translations = {
             part3: ',\nen 🔴 op',
             part4: 'items om te beoordelen.',
         },
-        accountSwitcher: {
-            part1: 'Toegang tot uw',
-            part2: 'Copilot-accounts',
-            part3: 'hier',
-        },
+        accountSwitcher: 'Toegang tot uw <strong>Copilot-accounts</strong> hier',
         expenseReportsFilter: {
             part1: 'Welkom! Vind al uw',
             part2: 'rapporten van het bedrijf',

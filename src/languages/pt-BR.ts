@@ -6972,11 +6972,7 @@ const translations = {
             part3: ',\ne 🔴 em',
             part4: 'itens para revisar.',
         },
-        accountSwitcher: {
-            part1: 'Acesse seu',
-            part2: 'Contas Copilot',
-            part3: 'aqui',
-        },
+        accountSwitcher: 'Acesse seu <strong>Contas Copilot</strong> aqui',
         expenseReportsFilter: {
             part1: 'Bem-vindo! Encontre todos os seus',
             part2: 'relatórios da empresa',

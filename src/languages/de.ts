@@ -6976,11 +6976,7 @@ const translations = {
             part3: ',\nund 🔴 auf',
             part4: 'Elemente zur Überprüfung.',
         },
-        accountSwitcher: {
-            part1: 'Zugriff auf Ihre',
-            part2: 'Copilot-Konten',
-            part3: 'hier',
-        },
+        accountSwitcher: 'Zugriff auf Ihre <strong>Copilot-Konten</strong> hier',
         expenseReportsFilter: {
             part1: 'Willkommen! Finden Sie alle Ihre',
             part2: 'Berichte des Unternehmens',
