@@ -121,6 +121,8 @@ export default {
     lineHeighTaskTitle: getValueUsingPixelRatio(26, 30),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
     inputHeight: getValueUsingPixelRatio(52, 72),
+    inputPaddingTop: getValueUsingPixelRatio(15, 21),
+    inputPaddingBottom: getValueUsingPixelRatio(8, 11),
     inputHeightSmall: 28,
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
     communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
