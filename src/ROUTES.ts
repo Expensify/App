@@ -150,7 +150,7 @@ const ROUTES = {
     },
     PROFILE_AVATAR: {
         route: 'a/:accountID/avatar',
-        getRoute: (accountID: number) => `a/${accountID}/avatar` as const,
+        getRoute: (accountID: number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}/avatar`, backTo),
     },
 
     DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',

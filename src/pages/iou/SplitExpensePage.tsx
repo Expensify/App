@@ -1,5 +1,6 @@
+import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -14,7 +15,7 @@ import type {SectionListDataType, SplitListItemType} from '@components/Selection
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addSplitExpenseField, initDraftSplitExpenseDataForEdit, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
+import {addSplitExpenseField, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -23,7 +24,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {isCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -83,6 +83,97 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         saveSplitTransactions(draftTransaction, currentSearchHash);
     }, [currentSearchHash, draftTransaction, isCard, isPerDiem, sumOfSplitExpenses, transactionDetailsAmount, transactionDetails?.currency, translate]);
 
+    const onSaveSplitExpenseByCategory = useCallback(() => {
+        if (sumOfSplitExpenses > Math.abs(transactionDetailsAmount)) {
+            const difference = sumOfSplitExpenses - Math.abs(transactionDetailsAmount);
+            setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
+            return;
+        }
+        if (sumOfSplitExpenses < Math.abs(transactionDetailsAmount) && (isPerDiem || isCard)) {
+            const difference = Math.abs(transactionDetailsAmount) - sumOfSplitExpenses;
+            setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
+            return;
+        }
+
+        if ((draftTransaction?.comment?.splitExpenses ?? []).find((item) => item.amount === 0)) {
+            setErrorMessage(translate('iou.splitExpenseZeroAmount'));
+            return;
+        }
+
+        if (!draftTransaction?.comment?.splitExpenses) {
+            return;
+        }
+
+        // Group expenses by category and create one split per category
+        type CategoryGroup = {
+            category: string;
+            total: number;
+            expenses: Array<NonNullable<typeof draftTransaction.comment.splitExpenses>[0]>;
+            created: string;
+            description: string;
+            tags?: string[];
+        };
+
+        const expensesGroupedByCategory: Record<string, CategoryGroup> = {};
+        for (const expense of draftTransaction?.comment?.splitExpenses ?? []) {
+            const category = expense.category ?? CONST.POLICY.DEFAULT_CATEGORIES.OTHER;
+            if (!(category in expensesGroupedByCategory)) {
+                expensesGroupedByCategory[category] = {
+                    category,
+                    total: 0,
+                    expenses: [],
+                    created: expense.created ?? '',
+                    description: '',
+                    tags: expense.tags,
+                };
+            }
+
+            // Keep a running total for each category
+            expensesGroupedByCategory[category].total += Number(expense.amount);
+            expensesGroupedByCategory[category].expenses.push(expense);
+
+            // Use the earliest date for the category
+            const expenseCreated = expense.created ?? '';
+            if (expenseCreated && expenseCreated < expensesGroupedByCategory[category].created) {
+                expensesGroupedByCategory[category].created = expenseCreated;
+            }
+
+            // Combine descriptions
+            if (expense.description) {
+                if (expensesGroupedByCategory[category].description) {
+                    expensesGroupedByCategory[category].description = `${expensesGroupedByCategory[category].description}, ${expense.description}`;
+                } else {
+                    expensesGroupedByCategory[category].description = expense.description;
+                }
+            }
+        }
+
+        // Create a new draft transaction with category-based splits
+        const categoryBasedSplitExpenses = Object.values(expensesGroupedByCategory).map((categoryGroup) => ({
+            amount: categoryGroup.total,
+            category: categoryGroup.category,
+            created: categoryGroup.created,
+            description: categoryGroup.description,
+            tags: categoryGroup.tags,
+            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+        }));
+
+        if (!draftTransaction) {
+            return;
+        }
+
+        const categoryBasedDraftTransaction = {
+            ...draftTransaction,
+            amount: draftTransaction.amount ?? 0,
+            comment: {
+                ...draftTransaction.comment,
+                splitExpenses: categoryBasedSplitExpenses,
+            },
+        };
+
+        saveSplitTransactions(categoryBasedDraftTransaction, currentSearchHash);
+    }, [currentSearchHash, draftTransaction, isCard, isPerDiem, sumOfSplitExpenses, transactionDetailsAmount, transactionDetails?.currency, translate]);
+
     const onSplitExpenseAmountChange = useCallback(
         (currentItemTransactionID: string, value: number) => {
             const amountInCents = convertToBackendAmount(value);
@@ -91,45 +182,71 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         [draftTransaction],
     );
 
-    const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? '')), [translate]);
+    const sections = useMemo(() => {
+        const cashOrCard = translate(isCard ? 'iou.card' : 'iou.cash');
 
-    const [sections] = useMemo(() => {
-        const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
-        const isTransactionMadeWithCard = isCardTransaction(transaction);
-        const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
+        // First group expenses by category
+        const expensesGroupedByCategory: Record<string, SplitListItemType> = {};
+        for (const expense of draftTransaction?.comment?.splitExpenses ?? []) {
+            const category = expense.category ?? CONST.POLICY.DEFAULT_CATEGORIES.OTHER;
+            if (!(category in expensesGroupedByCategory)) {
+                expensesGroupedByCategory[category] = {
+                    category,
+                    total: 0,
+                    expenses: [],
+                    keyForList: category,
+                    dateRange: '',
+                    parentDraftTransaction: draftTransaction,
+                    reportID,
+                };
+            }
 
-        const items: SplitListItemType[] = (draftTransaction?.comment?.splitExpenses ?? []).map((item): SplitListItemType => {
-            const previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
+            // Keep a running total for each category
+            expensesGroupedByCategory[category].total += Number(expense.amount);
 
             const date = DateUtils.formatWithUTCTimeZone(
-                item.created,
-                DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+                expense.created,
+                DateUtils.doesDateBelongToAPastYear(expense.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
             );
-            previewHeaderText.unshift({text: date}, dotSeparator);
-
-            const headerText = previewHeaderText.reduce((text, currentKey) => {
-                return `${text}${getTranslatedText(currentKey)}`;
-            }, '');
-
-            return {
-                ...item,
+            const headerText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
+            expensesGroupedByCategory[category].expenses.push({
+                ...expense,
                 headerText,
                 originalAmount: transactionDetailsAmount,
-                amount: transactionDetailsAmount >= 0 ? Math.abs(Number(item.amount)) : Number(item.amount),
+                amount: transactionDetailsAmount >= 0 ? Math.abs(Number(expense.amount)) : Number(expense.amount),
                 merchant: draftTransaction?.merchant ?? '',
                 currency: draftTransaction?.currency ?? CONST.CURRENCY.USD,
-                transactionID: item?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                transactionID: expense?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                 currencySymbol,
                 onSplitExpenseAmountChange,
-                isTransactionLinked: splitExpenseTransactionID === item.transactionID,
-                keyForList: item?.transactionID,
-            };
-        });
+                isTransactionLinked: splitExpenseTransactionID === expense.transactionID,
+            });
+        }
 
-        const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
+        // Then calculate the date range for each category
+        const sectionList = Object.values(expensesGroupedByCategory);
+        for (const section of sectionList) {
+            let startDate = '';
+            let endDate = '';
+            for (const expense of section.expenses) {
+                if (!startDate) {
+                    startDate = expense.created;
+                }
+                if (!endDate) {
+                    endDate = expense.created;
+                }
+                if (expense.created < startDate) {
+                    startDate = expense.created;
+                }
+                if (expense.created > endDate) {
+                    endDate = expense.created;
+                }
+            }
+            section.dateRange = DateUtils.getFormattedDateRange(DateUtils.parseLocaleDateUTC(startDate), DateUtils.parseLocaleDateUTC(endDate));
+        }
 
-        return [newSections];
-    }, [transaction, draftTransaction, getTranslatedText, transactionDetailsAmount, currencySymbol, onSplitExpenseAmountChange, splitExpenseTransactionID]);
+        return [{data: Object.values(expensesGroupedByCategory)}] as Array<SectionListDataType<SplitListItemType>>;
+    }, [translate, isCard, draftTransaction, transactionDetailsAmount, currencySymbol, onSplitExpenseAmountChange, splitExpenseTransactionID, reportID]);
 
     const headerContent = useMemo(
         () => (
@@ -157,22 +274,25 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     />
                 )}
                 <Button
+                    large
+                    style={[styles.w100, styles.mb3]}
+                    text={translate('iou.splitByItem')}
+                    onPress={onSaveSplitExpense}
+                    pressOnEnter
+                    enterKeyEventListenerPriority={1}
+                />
+                <Button
                     success
                     large
                     style={[styles.w100]}
-                    text={translate('common.save')}
-                    onPress={onSaveSplitExpense}
+                    text={translate('iou.splitByCategory')}
+                    onPress={onSaveSplitExpenseByCategory}
                     pressOnEnter
                     enterKeyEventListenerPriority={1}
                 />
             </>
         );
-    }, [onSaveSplitExpense, styles.mb2, styles.ph1, styles.w100, translate, errorMessage]);
-
-    const initiallyFocusedOptionKey = useMemo(
-        () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
-        [sections, splitExpenseTransactionID],
-    );
+    }, [onSaveSplitExpense, onSaveSplitExpenseByCategory, styles.mb2, styles.mb3, styles.ph1, styles.w100, translate, errorMessage]);
 
     return (
         <ScreenWrapper
@@ -192,15 +312,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                         onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <SelectionList
-                        onSelectRow={(item) => {
-                            Keyboard.dismiss();
-                            InteractionManager.runAfterInteractions(() => {
-                                initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, reportID);
-                            });
-                        }}
+                        onSelectRow={noop}
                         headerContent={headerContent}
                         sections={sections}
-                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         ListItem={SplitListItem}
                         containerStyle={[styles.flexBasisAuto, styles.pt1]}
                         footerContent={footerContent}

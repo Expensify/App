@@ -618,6 +618,18 @@ type OriginalMessageConciergeCategoryOptions = {
     agentZero?: Record<string, unknown>;
 };
 
+/** Model of `concierge split options` report action */
+type OriginalMessageConciergeSplitOptions = {
+    /** The transaction ID associated with this action */
+    transactionID: string;
+
+    /** The options we present to the user when confidence in the predicted category is low */
+    options: string[];
+
+    /** The option selected by the user (set when the action is resolved) */
+    selectedOption?: string;
+};
+
 /** Model of `reimbursement queued` report action */
 type OriginalMessageReimbursementQueued = {
     /** How is the payment getting reimbursed */
@@ -937,6 +949,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
+    [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_SPLIT_OPTIONS]: OriginalMessageConciergeSplitOptions;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;

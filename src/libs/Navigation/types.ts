@@ -2006,6 +2006,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE_AVATAR]: {
         policyID: string;

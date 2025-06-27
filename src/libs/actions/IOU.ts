@@ -11402,10 +11402,31 @@ function getSearchOnyxUpdate({
     }
 }
 
+function dismissConciergeSplitOptionsAction(reportID: string, reportActionID: string) {
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[reportActionID]: null},
+        },
+    ] as OnyxUpdate[];
+
+    const reportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[reportActionID]: reportAction},
+        },
+    ] as OnyxUpdate[];
+
+    API.write(WRITE_COMMANDS.DISMISS_CONCIERGE_SPLIT_OPTIONS, {reportActionID}, {optimisticData, failureData});
+}
+
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
-function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportID: string, isOpenCreatedSplit?: boolean) {
+function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportID: string, isOpenCreatedSplit?: boolean, policy?: OnyxEntry<OnyxTypes.Policy>) {
     if (!transaction) {
         return;
     }
@@ -11461,27 +11482,43 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
     const defaultCreated = DateUtils.formatWithUTCTimeZone(DateUtils.getDBTime(), CONST.DATE.FNS_FORMAT_STRING);
 
+    const splitExpenses = [];
+    if (transaction?.receipt?.lineItems) {
+        for (const lineItem of transaction?.receipt?.lineItems ?? []) {
+            splitExpenses.push({
+                transactionID: NumberUtils.rand64(),
+                amount: lineItem.amount,
+                description: lineItem.name,
+                category: policy?.mccGroup?.[lineItem.category.toLowerCase()]?.category ?? '',
+                tags: transaction?.tag ? [transaction?.tag] : [],
+                created: transactionDetails?.created ?? defaultCreated,
+            });
+        }
+    } else {
+        splitExpenses.push(
+            {
+                transactionID: NumberUtils.rand64(),
+                amount: Math.floor(transactionDetailsAmount / 2),
+                description: transactionDetails?.comment,
+                category: transactionDetails?.category,
+                tags: transaction?.tag ? [transaction?.tag] : [],
+                created: transactionDetails?.created ?? defaultCreated,
+            },
+            {
+                transactionID: NumberUtils.rand64(),
+                amount: Math.ceil(transactionDetailsAmount / 2),
+                description: transactionDetails?.comment,
+                category: transactionDetails?.category,
+                tags: transaction?.tag ? [transaction?.tag] : [],
+                created: transactionDetails?.created ?? defaultCreated,
+            },
+        );
+    }
+
     const draftTransaction = buildOptimisticTransaction({
         originalTransactionID: transaction.transactionID,
         transactionParams: {
-            splitExpenses: [
-                {
-                    transactionID: NumberUtils.rand64(),
-                    amount: Math.floor(transactionDetailsAmount / 2),
-                    description: transactionDetails?.comment,
-                    category: transactionDetails?.category,
-                    tags: transaction?.tag ? [transaction?.tag] : [],
-                    created: transactionDetails?.created ?? defaultCreated,
-                },
-                {
-                    transactionID: NumberUtils.rand64(),
-                    amount: Math.ceil(transactionDetailsAmount / 2),
-                    description: transactionDetails?.comment,
-                    category: transactionDetails?.category,
-                    tags: transaction?.tag ? [transaction?.tag] : [],
-                    created: transactionDetails?.created ?? defaultCreated,
-                },
-            ],
+            splitExpenses,
             amount: transactionDetailsAmount,
             currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
             merchant: transactionDetails?.merchant ?? '',
@@ -11923,5 +11960,6 @@ export {
     updateSplitExpenseField,
     reopenReport,
     retractReport,
+    dismissConciergeSplitOptionsAction,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};

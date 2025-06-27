@@ -160,6 +160,9 @@ type Geometry = {
 /** Accepted receipt paths */
 type ReceiptSource = string;
 
+/**
+ * A line item on an itemized receipt.
+ */
 type LineItem = {
     /** Amount of the line item */
     amount: number;

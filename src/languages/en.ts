@@ -284,6 +284,9 @@ type AllCountries = Record<Country, string>;
 /* eslint-disable max-len */
 const translations = {
     common: {
+        uncategorized: 'Uncategorized',
+        seePreview: 'See preview',
+        split: 'I detected multiple expense categories on this receipt. Would you like to view an itemized preview?',
         count: 'Count',
         cancel: 'Cancel',
         dismiss: 'Dismiss',
@@ -996,6 +999,8 @@ const translations = {
         original: 'Original',
         split: 'Split',
         splitExpense: 'Split expense',
+        splitByItem: 'Split by item',
+        splitByCategory: 'Split by category',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} from ${merchant}`,
         addSplit: 'Add split',
         totalAmountGreaterThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Total amount is ${amount} greater than the original expense.`,

@@ -215,7 +215,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                     ) : (
                                         <Text
                                             style={[styles.textStrong]}
-                                            onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute()))}
+                                            onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}
                                             suppressHighlighting
                                         >
                                             {displayName}
