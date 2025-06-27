@@ -31,7 +31,7 @@ const SPEED = 100;
 
 function FallingSparkle({initialPosition, initialVelocity, color, delay, ref}: FallingSparkleProps) {
     const {height: screenHeight} = Dimensions.get('window');
-    const [isActive, setIsActive] = useState(false);
+    const [isOffscreen, setIsOffscreen] = useState(false);
 
     const translateX = useSharedValue<number>(initialPosition.x);
     const translateY = useSharedValue<number>(initialPosition.y);
@@ -44,24 +44,23 @@ function FallingSparkle({initialPosition, initialVelocity, color, delay, ref}: F
         translateY.set(initialPosition.y + initialVelocity.y * time + (1 / 2) * GRAVITY * time ** 2);
         translateX.set(translateX.get() + initialVelocity.x * time);
         if (translateY.get() > screenHeight) {
-            setIsActive(false);
+            setIsOffscreen(true);
         }
     }, false);
 
     // stop the animation when the sparkle is off the screen
     // uses a state flag and an effect because `frameCallback` can't be referenced inside itself
     useEffect(() => {
-        if (frameCallback.isActive && !isActive) {
+        if (frameCallback.isActive && isOffscreen) {
             frameCallback.setActive(false);
+            translateY.set(initialPosition.y);
+            translateX.set(initialPosition.x);
         }
-    }, [frameCallback, isActive]);
+    }, [frameCallback, isOffscreen]);
 
     const startAnimation = useCallback(() => {
         setTimeout(() => {
             frameCallback.setActive(true);
-            setTimeout(() => {
-                frameCallback.setActive(false);
-            }, 5000);
         }, delay);
     }, [initialPosition]);
 
