@@ -11491,7 +11491,7 @@ function initSplitExpense(transaction: OnyxEntry<OnyxTypes.Transaction>, reportI
                 amount: lineItem.amount,
                 description: lineItem.name,
                 category: lineItemCategory ? (policy?.mccGroup?.[lineItemCategory]?.category ?? '') : '',
-                mccGroup: lineItemCategory as ValueOf<typeof CONST.MCC_GROUPS>,
+                mccGroup: (lineItem?.category ?? CONST.MCC_GROUPS.MISCELLANEOUS) as ValueOf<typeof CONST.MCC_GROUPS>,
                 tags: transaction?.tag ? [transaction?.tag] : [],
                 created: transactionDetails?.created ?? defaultCreated,
             });
