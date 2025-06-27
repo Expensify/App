@@ -5787,8 +5787,23 @@ function resolveConciergeCategoryOptions(reportID: string | undefined, actionRep
     } as Partial<ReportActions>);
 }
 
-function toggleVirtualCFO(isVirtualCFOToggled: boolean) {
-    Onyx.set(ONYXKEYS.IS_VIRTUAL_CFO_TOGGLED, isVirtualCFOToggled);
+/**
+ * [Hackathon Virtual CFO 2.0] Toggles the virtual CFO for a report action
+ * @param actionReportID - The report ID where the report action is located
+ * @param reportActionID - The specific report action ID to update
+ * @param isVirtualCFOToggled - Whether the virtual CFO is toggled
+ * @returns 
+ */
+function toggleVirtualCFO(actionReportID: string | undefined, reportActionID: string | undefined, isVirtualCFOToggled: boolean) {
+    if (!actionReportID || !reportActionID) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionReportID}`, {
+        [reportActionID]: {
+            isVirtualCFOToggled,
+        },
+    });
 }
 
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected};

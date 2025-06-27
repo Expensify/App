@@ -452,7 +452,7 @@ function PureReportActionItem({
     const isActionableWhisper = isActionableMentionWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
     // const [tryVirtualCFO] = useOnyx(ONYXKEYS.TRY_VIRTUAL_CFO, {canBeMissing: true});
     const tryVirtualCFO = false;
-    const [isVirtualCFOToggled] = useOnyx(ONYXKEYS.IS_VIRTUAL_CFO_TOGGLED, {canBeMissing: true});
+    const isVirtualCFOToggled = action?.isVirtualCFOToggled;
     const shouldShowAnimatedCFOButton = !!tryVirtualCFO && !isVirtualCFOToggled;
 
     const highlightedBackgroundColorIfNeeded = useMemo(
@@ -1549,7 +1549,7 @@ function PureReportActionItem({
                                                 <AnimatedCFOButton
                                                     onAnimationFinish={() => {
                                                         console.log('Animation finished');
-                                                        toggleVirtualCFO(true);
+                                                        toggleVirtualCFO(reportID, action.reportActionID, true);
                                                     }}
                                                 />
                                             </View>

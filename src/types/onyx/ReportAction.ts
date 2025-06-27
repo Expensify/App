@@ -280,6 +280,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
      * Note: This is sent by the backend but we don't use it locally
      */
     timestamp?: number;
+
+    /** [Hackathon Virtual CFO 2.0] Whether the virtual CFO is toggled */
+    isVirtualCFOToggled?: boolean;
 }>;
 
 /**
