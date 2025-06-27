@@ -364,7 +364,7 @@ type PureReportActionItemProps = {
     shouldShowBorder?: boolean;
 
     /** All the data of the transaction collection */
-    allTransactions?: Array<OnyxEntry<OnyxTypes.Transaction>>;
+    allTransactions?: OnyxCollection<OnyxTypes.Transaction>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
