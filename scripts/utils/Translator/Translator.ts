@@ -1,3 +1,4 @@
+import {DomUtils, parseDocument} from 'htmlparser2';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 
 /**
@@ -55,23 +56,21 @@ abstract class Translator {
         const TRANSLATABLE_ATTRIBUTES = ['alt', 'title', 'placeholder', 'aria-label', 'aria-describedby', 'aria-labelledby', 'value'];
 
         const parseHTMLStructure = (s: string) => {
-            const tags = Array.from(s.matchAll(/<([^>]+)>/g));
-            return tags.map((match) => {
-                const tagContent = match[1];
-                const tagName = tagContent.split(/\s/).at(0)?.toLowerCase();
+            const doc = parseDocument(s);
+            const elements = DomUtils.getElementsByTagName(() => true, doc, true);
+
+            return elements.map((element) => {
+                const tagName = element.name.toLowerCase();
 
                 // Extract attributes, excluding translatable ones
                 const attributes: string[] = [];
-                const attrMatches = Array.from(tagContent.matchAll(/(\w+)(?:=["']([^"']*)["'])?/g));
-
-                for (const attrMatch of attrMatches) {
-                    const attrName = attrMatch[1].toLowerCase();
-                    const attrValue = attrMatch[2] || '';
-
-                    // Only include non-translatable attributes in comparison
-                    if (!TRANSLATABLE_ATTRIBUTES.includes(attrName)) {
-                        attributes.push(`${attrName}="${attrValue}"`);
-                    }
+                if (element.attribs) {
+                    Object.entries(element.attribs).forEach(([attrName, attrValue]) => {
+                        const normalizedAttrName = attrName.toLowerCase();
+                        if (!TRANSLATABLE_ATTRIBUTES.includes(normalizedAttrName)) {
+                            attributes.push(`${normalizedAttrName}="${attrValue ?? ''}"`);
+                        }
+                    })
                 }
 
                 return {
