@@ -9257,7 +9257,13 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
         const isCurrentUserExpenseOwner = iouReport?.ownerAccountID === getCurrentUserAccountID();
         const adjustedCanPay = isCurrentUserExpenseOwner ? false : currentUserCanPay;
 
-        const shouldShowSettlementButton = adjustedCanPay || currentUserCanApprove;
+        // For submitted expense reports, only show settlement button if user can approve (approval comes first)
+        // For other states, show if user can pay or approve
+        const isSubmittedExpenseReport = isExpenseReport(iouReport) && iouReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
+        const shouldShowSettlementButton = isSubmittedExpenseReport 
+            ? currentUserCanApprove 
+            : (adjustedCanPay || currentUserCanApprove);
+            
         return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton;
     });
 }
