@@ -155,6 +155,34 @@ function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undef
     return defaultAvatars[`Avatar${accountIDHashBucket}`];
 }
 
+const optimisticLoginToAccountIDMap = new Map<string, string | number>();
+
+function setOptimisticLoginToAccountID(login: string, accountID: string | number): void {
+    let newAccountID: string | number;
+
+    if (accountID) {
+        newAccountID = accountID;
+    } else {
+        newAccountID = generateAccountID(login);
+    }
+
+    optimisticLoginToAccountIDMap.set(login, newAccountID);
+}
+
+function getOptimisticAvatarURL(login?: string, accountID?: string | number, avatarSource?: AvatarSource | null): AvatarSource | undefined | null {
+    if (!login) {
+        return avatarSource;
+    }
+
+    const cachedAccountID = optimisticLoginToAccountIDMap.get(login);
+
+    if (cachedAccountID) {
+        return getDefaultAvatarURL(cachedAccountID);
+    }
+
+    return avatarSource;
+}
+
 /**
  * Helper method to return default avatar URL associated with the accountID
  */
@@ -277,5 +305,7 @@ export {
     isDefaultAvatar,
     getContactMethod,
     isCurrentUserValidated,
+    getOptimisticAvatarURL,
+    setOptimisticLoginToAccountID,
 };
 export type {AvatarSource};
