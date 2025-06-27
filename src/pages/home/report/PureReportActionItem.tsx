@@ -859,13 +859,7 @@ function PureReportActionItem({
         originalReportID,
         isBetaEnabled,
         allTransactions,
-        initSplitExpense,
         policy,
-        dismissConciergeSplitOptionsAction,
-        getOriginalMessage,
-        isResolvedConciergeSplitOptions,
-        isConciergeSplitOptions,
-        originalReportID,
     ]);
 
     /**
