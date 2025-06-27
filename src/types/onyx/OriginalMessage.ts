@@ -74,6 +74,12 @@ type OriginalMessageIOU = {
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
+
+    /** Where the invoice is paid with business account or not */
+    payAsBusiness?: boolean;
+
+    /** The bank account id */
+    bankAccountID?: number;
 };
 
 /** Names of moderation decisions */
@@ -133,6 +139,21 @@ type OriginalMessageActionableReportMentionWhisper = {
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
+};
+
+/** Model of `welcome whisper` report action */
+type OriginalMessagePolicyExpenseChatWelcomeWhisper = {
+    /** HTML content of the welcome message */
+    html: string;
+
+    /** Collection of accountIDs of users mentioned in message */
+    whisperedTo?: number[];
+
+    /** When was the welcome whisper last modified */
+    lastModified?: string;
+
+    /** Type of whisper (automated) */
+    type?: string;
 };
 
 /** Model of `submitted` report action */
@@ -844,6 +865,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER]: OriginalMessageActionableMentionWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER]: OriginalMessageActionableReportMentionWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER]: OriginalMessageActionableTrackedExpenseWhisper;
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_EXPENSE_CHAT_WELCOME_WHISPER]: OriginalMessagePolicyExpenseChatWelcomeWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT]: OriginalMessageAddComment;
     [CONST.REPORT.ACTIONS.TYPE.APPROVED]: OriginalMessageApproved;
     [CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD]: never;
@@ -917,6 +939,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessagePolicyChangeLog;
     } & {

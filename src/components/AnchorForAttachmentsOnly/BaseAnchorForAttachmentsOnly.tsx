@@ -26,9 +26,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(source);
     const sourceID = (source.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID) ?? [])[1];
 
-    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`, {
-        canBeMissing: true,
-    });
+    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`, {canBeMissing: true});
 
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -53,7 +51,14 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                         if (isDisabled || !shouldDisplayContextMenu) {
                             return;
                         }
-                        showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
+                        showContextMenuForReport(
+                            event,
+                            anchor,
+                            report?.reportID,
+                            action,
+                            checkIfContextMenuActive,
+                            isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived),
+                        );
                     }}
                     shouldUseHapticsOnLongPress
                     accessibilityLabel={displayName}

@@ -1164,6 +1164,8 @@ function PureReportActionItem({
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
+            children = <ReportActionItemBasicMessage message={translate('receipt.scanFailed')} />;
         } else if (isRenamedAction(action)) {
             const message = getRenamedAction(action, isExpenseReport(report));
             children = <ReportActionItemBasicMessage message={message} />;
@@ -1228,7 +1230,8 @@ function PureReportActionItem({
                                     index={index}
                                     ref={composerTextInputRef}
                                     shouldDisableEmojiPicker={
-                                        (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, reportNameValuePairs)
+                                        (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) ||
+                                        isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived)
                                     }
                                     isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
                                 />

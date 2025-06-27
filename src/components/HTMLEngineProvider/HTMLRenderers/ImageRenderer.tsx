@@ -122,7 +122,14 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                     return;
                                 }
                                 return onShowContextMenu(() =>
-                                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs)),
+                                    showContextMenuForReport(
+                                        event,
+                                        anchor,
+                                        report?.reportID,
+                                        action,
+                                        checkIfContextMenuActive,
+                                        isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived),
+                                    ),
                                 );
                             }}
                             isNested

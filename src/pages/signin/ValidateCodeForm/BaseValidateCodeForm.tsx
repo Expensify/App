@@ -24,10 +24,8 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidRecoveryCode, isValidTwoFactorCode, isValidValidateCode} from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
-import {resetSignInFlow, setNewDotSignInState} from '@userActions/HybridApp';
 import {clearAccountMessages, clearSignInData as sessionActionsClearSignInData, signIn, signInWithValidateCode} from '@userActions/Session';
 import {resendValidateCode as userActionsResendValidateCode} from '@userActions/User';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,7 +50,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: false});
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -156,10 +153,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
-        if (CONFIG.IS_HYBRID_APP) {
-            resetSignInFlow();
-        }
-
         userActionsResendValidateCode(credentials?.login ?? '');
         inputValidateCodeRef.current?.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
@@ -239,12 +232,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (account?.isLoading || hybridApp?.readyToShowAuthScreens || session?.authToken) {
+        if (account?.isLoading) {
             return;
-        }
-        if (CONFIG.IS_HYBRID_APP) {
-            resetSignInFlow();
         }
         if (account?.errors) {
             clearAccountMessages();
@@ -293,25 +282,13 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
         const recoveryCodeOr2faCode = isUsingRecoveryCode ? recoveryCode : twoFactorAuthCode;
 
-        setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
         const accountID = credentials?.accountID;
         if (accountID) {
             signInWithValidateCode(accountID, validateCode, recoveryCodeOr2faCode);
         } else {
             signIn(validateCode, recoveryCodeOr2faCode);
         }
-    }, [
-        account?.isLoading,
-        account?.errors,
-        account?.requiresTwoFactorAuth,
-        hybridApp?.readyToShowAuthScreens,
-        session?.authToken,
-        isUsingRecoveryCode,
-        recoveryCode,
-        twoFactorAuthCode,
-        credentials?.accountID,
-        validateCode,
-    ]);
+    }, [account?.isLoading, account?.errors, account?.requiresTwoFactorAuth, isUsingRecoveryCode, recoveryCode, twoFactorAuthCode, credentials?.accountID, validateCode]);
 
     return (
         <SafariFormWrapper>

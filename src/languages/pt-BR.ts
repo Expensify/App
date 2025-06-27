@@ -11,6 +11,7 @@
  */
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
+import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -34,6 +35,7 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
+    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -44,6 +46,8 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessBankAccountParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -64,6 +68,8 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -100,7 +106,6 @@ import type {
     FlightParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
-    GoToRoomParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -193,6 +198,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -244,6 +250,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -327,6 +334,7 @@ const translations = {
         twoFactorCode: 'Código de dois fatores',
         workspaces: 'Workspaces',
         inbox: 'Caixa de entrada',
+        success: 'Sucesso',
         group: 'Grupo',
         profile: 'Perfil',
         referral: 'Indicação',
@@ -543,6 +551,7 @@ const translations = {
         userID: 'ID do Usuário',
         disable: 'Desativar',
         export: 'Exportar',
+        basicExport: 'Exporta\u00E7\u00E3o b\u00E1sica',
         initialValue: 'Valor inicial',
         currentDate: 'Data atual',
         value: 'Valor',
@@ -604,10 +613,10 @@ const translations = {
         after: 'Depois',
         reschedule: 'Reagendar',
         general: 'Geral',
-        never: 'Nunca',
         workspacesTabTitle: 'Workspaces',
         getTheApp: 'Obtenha o aplicativo',
         scanReceiptsOnTheGo: 'Digitalize recibos com seu celular',
+        headsUp: 'Atenção!',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -967,6 +976,7 @@ const translations = {
         deleteReceipt: 'Excluir recibo',
         deleteConfirmation: 'Tem certeza de que deseja excluir este recibo?',
         addReceipt: 'Adicionar recibo',
+        scanFailed: 'O recibo não pôde ser escaneado, pois está faltando o comerciante, a data ou o valor.',
     },
     quickAction: {
         scanReceipt: 'Escanear recibo',
@@ -1011,6 +1021,7 @@ const translations = {
         share: 'Compartilhar',
         participants: 'Participantes',
         createExpense: 'Criar despesa',
+        trackDistance: 'Rastrear distância',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Criar ${expensesNumber} despesas`,
         addExpense: 'Adicionar despesa',
         chooseRecipient: 'Escolher destinatário',
@@ -1101,10 +1112,18 @@ const translations = {
         individual: 'Individual',
         business: 'Negócio',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pague ${formattedAmount} com Expensify` : `Pague com Expensify`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como indivíduo` : `Pagar como indivíduo`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como indivíduo` : `Pagar com conta pessoal`),
+        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} com carteira` : `Pagar com carteira`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pague ${formattedAmount} como uma empresa` : `Pagar como empresa`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pague ${formattedAmount} em outro lugar` : `Pague em outro lugar`),
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} como empresa` : `Pagar com conta empresarial`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Marcar ${formattedAmount} como pago` : `Marcar como pago`),
+        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta pessoal ${last4Digits}` : `Pago com conta pessoal`),
+        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Pago ${amount} com conta empresarial ${last4Digits}` : `Pago com conta empresarial`),
+        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
+            formattedAmount ? `Pagar ${formattedAmount} via ${policyName}` : `Pagar via ${policyName}`,
+        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => `Pago ${amount} com conta bancária ${last4Digits}.`,
+        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Conta pessoal • ${lastFour}`,
+        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Conta empresarial • ${lastFour}`,
         nextStep: 'Próximos passos',
         finished: 'Concluído',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar fatura de ${amount}`,
@@ -1140,8 +1159,8 @@ const translations = {
             `cancelou o pagamento de ${amount}, porque ${submitterDisplayName} não ativou sua Expensify Wallet dentro de 30 dias`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} adicionou uma conta bancária. O pagamento de ${amount} foi realizado.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''} pago em outro lugar`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''} pagou com Expensify`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}marcado como pago`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}pago com carteira`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''} pagou com Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>`,
         noReimbursableExpenses: 'Este relatório possui um valor inválido',
@@ -1473,6 +1492,7 @@ const translations = {
             noLogsToShare: 'Sem registros para compartilhar',
             useProfiling: 'Usar perfilamento',
             profileTrace: 'Rastreamento de perfil',
+            results: 'Resultados',
             releaseOptions: 'Opções de lançamento',
             testingPreferences: 'Testando preferências',
             useStagingServer: 'Usar Servidor de Staging',
@@ -1493,6 +1513,7 @@ const translations = {
             invalidFile: 'Arquivo inválido',
             invalidFileDescription: 'O arquivo que você está tentando importar não é válido. Por favor, tente novamente.',
             invalidateWithDelay: 'Invalidar com atraso',
+            recordTroubleshootData: 'Registro de dados de solução de problemas',
         },
         debugConsole: {
             saveLog: 'Salvar log',
@@ -1621,14 +1642,14 @@ const translations = {
         mergeFailureGenericHeading: 'Não é possível mesclar contas',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: 'Reportar atividade suspeita',
         lockAccount: 'Bloquear conta',
         unlockAccount: 'Desbloquear conta',
         compromisedDescription:
-            'Se você suspeitar que sua conta Expensify foi comprometida, você pode bloqueá-la para evitar novas transações com o Expensify Card e impedir alterações indesejadas na conta.',
-        domainAdminsDescriptionPartOne: 'Para administradores de domínio,',
-        domainAdminsDescriptionPartTwo: 'esta ação interrompe toda a atividade do Expensify Card e ações de administrador',
-        domainAdminsDescriptionPartThree: 'em todo o seu domínio/domínios.',
-        warning: `Uma vez que sua conta estiver bloqueada, nossa equipe investigará e removerá qualquer acesso não autorizado. Para recuperar o acesso, você precisará trabalhar com o Concierge para proteger sua conta.`,
+            'Notou algo estranho em sua conta? Relatar isso bloqueará imediatamente sua conta, interromperá novas transações do Cartão Expensify e impedirá alterações na conta.',
+        domainAdminsDescription: 'Para administradores de domínio: Isso também pausa toda a atividade do Cartão Expensify e ações administrativas em seus domínios.',
+        areYouSure: 'Tem certeza de que deseja bloquear sua conta Expensify?',
+        ourTeamWill: 'Nossa equipe investigará e removerá qualquer acesso não autorizado. Para recuperar o acesso, será necessário trabalhar com o Concierge.',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'Falha ao bloquear a conta',
@@ -1794,6 +1815,7 @@ const translations = {
         enableWallet: 'Ativar carteira',
         addBankAccountToSendAndReceive: 'Receba reembolso pelas despesas que você enviar para um espaço de trabalho.',
         addBankAccount: 'Adicionar conta bancária',
+        addDebitOrCreditCard: 'Adicionar cartão de débito ou crédito',
         assignedCards: 'Cartões atribuídos',
         assignedCardsDescription: 'Estes são cartões atribuídos por um administrador de espaço de trabalho para gerenciar os gastos da empresa.',
         expensifyCard: 'Expensify Card',
@@ -2006,6 +2028,7 @@ const translations = {
         cardLastFour: 'Cartão terminando em',
         addFirstPaymentMethod: 'Adicione um método de pagamento para enviar e receber pagamentos diretamente no aplicativo.',
         defaultPaymentMethod: 'Padrão',
+        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Conta bancária • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -2188,6 +2211,237 @@ const translations = {
             subtitle: ({workEmail}: WorkEmailMergingBlockedParams) =>
                 `Não conseguimos adicionar ${workEmail}. Por favor, tente novamente mais tarde em Configurações ou converse com o Concierge para obter orientação.`,
         },
+        tasks: {
+            testDriveAdminTask: {
+                title: ({testDriveURL}) => `Faça um [test drive](${testDriveURL})`,
+                description: ({testDriveURL}) => `[Faça um tour rápido pelo produto](${testDriveURL}) para ver por que o Expensify é a maneira mais rápida de fazer suas despesas.`,
+            },
+            testDriveEmployeeTask: {
+                title: ({testDriveURL}) => `Faça um [test drive](${testDriveURL})`,
+                description: ({testDriveURL}) => `[Faça um test drive](${testDriveURL}) conosco e sua equipe ganha *3 meses grátis de Expensify!*`,
+            },
+            createTestDriveAdminWorkspaceTask: {
+                title: ({workspaceConfirmationLink}) => `[Crie](${workspaceConfirmationLink}) um espaço de trabalho`,
+                description: 'Crie um espaço de trabalho e configure as definições com a ajuda do seu especialista em configuração!',
+            },
+            createWorkspaceTask: {
+                title: ({workspaceSettingsLink}) => `Crie um [espaço de trabalho](${workspaceSettingsLink})`,
+                description: ({workspaceSettingsLink}) =>
+                    '*Crie um espaço de trabalho* para rastrear despesas, digitalizar recibos, conversar e muito mais.\n' +
+                    '\n' +
+                    '1. Clique em *Espaços de trabalho* > *Novo espaço de trabalho*.\n' +
+                    '\n' +
+                    `*Seu novo espaço de trabalho está pronto!* [Confira](${workspaceSettingsLink}).`,
+            },
+            setupCategoriesTask: {
+                title: ({workspaceCategoriesLink}) => `Configure [categorias](${workspaceCategoriesLink})`,
+                description: ({workspaceCategoriesLink}) =>
+                    '*Configure categorias* para que sua equipe possa categorizar despesas para relatórios fáceis.\n' +
+                    '\n' +
+                    '1. Clique em *Espaços de trabalho*.\n' +
+                    '3. Selecione seu espaço de trabalho.\n' +
+                    '4. Clique em *Categorias*.\n' +
+                    '5. Desative quaisquer categorias que você não precise.\n' +
+                    '6. Adicione suas próprias categorias no canto superior direito.\n' +
+                    '\n' +
+                    `[Leve-me para as configurações de categoria do espaço de trabalho](${workspaceCategoriesLink}).\n` +
+                    '\n' +
+                    `![Configurar categorias](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
+            },
+            combinedTrackSubmitExpenseTask: {
+                title: 'Envie uma despesa',
+                description:
+                    '*Envie uma despesa* inserindo um valor ou digitalizando um recibo.\n' +
+                    '\n' +
+                    '1. Clique no botão verde *+*.\n' +
+                    '2. Escolha *Criar despesa*.\n' +
+                    '3. Insira um valor ou digitalize um recibo.\n' +
+                    `4. Adicione o e-mail ou número de telefone do seu chefe.\n` +
+                    '5. Clique em *Criar*.\n' +
+                    '\n' +
+                    'E pronto!',
+            },
+            adminSubmitExpenseTask: {
+                title: 'Envie uma despesa',
+                description:
+                    '*Envie uma despesa* inserindo um valor ou digitalizando um recibo.\n' +
+                    '\n' +
+                    '1. Clique no botão verde *+*.\n' +
+                    '2. Escolha *Criar despesa*.\n' +
+                    '3. Insira um valor ou digitalize um recibo.\n' +
+                    '4. Confirme os detalhes.\n' +
+                    '5. Clique em *Criar*.\n' +
+                    '\n' +
+                    `E pronto!`,
+            },
+            trackExpenseTask: {
+                title: 'Rastreie uma despesa',
+                description:
+                    '*Rastreie uma despesa* em qualquer moeda, com ou sem recibo.\n' +
+                    '\n' +
+                    '1. Clique no botão verde *+*.\n' +
+                    '2. Escolha *Criar despesa*.\n' +
+                    '3. Insira um valor ou digitalize um recibo.\n' +
+                    '4. Escolha seu espaço *pessoal*.\n' +
+                    '5. Clique em *Criar*.\n' +
+                    '\n' +
+                    'E pronto! Sim, é simples assim.',
+            },
+            addAccountingIntegrationTask: {
+                title: ({integrationName, workspaceAccountingLink}) =>
+                    `Conecte-se${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' ao'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'seu' : ''} ${integrationName}](${workspaceAccountingLink})`,
+                description: ({integrationName, workspaceAccountingLink}) =>
+                    `Conecte-se${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? ' ao seu' : ' ao'} ${integrationName} para categorização automática de despesas e sincronização que torna o fechamento do mês muito fácil.\n` +
+                    '\n' +
+                    '1. Clique em *Configurações*.\n' +
+                    '2. Vá para *Espaços de trabalho*.\n' +
+                    '3. Selecione seu espaço de trabalho.\n' +
+                    '4. Clique em *Contabilidade*.\n' +
+                    `5. Encontre ${integrationName}.\n` +
+                    '6. Clique em *Conectar*.\n' +
+                    '\n' +
+                    `${
+                        integrationName && CONST.connectionsVideoPaths[integrationName]
+                            ? `[Leve-me para a contabilidade](${workspaceAccountingLink}).\n\n![Conecte-se ao ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                            : `[Leve-me para a contabilidade](${workspaceAccountingLink}).`
+                    }`,
+            },
+            connectCorporateCardTask: {
+                title: ({corporateCardLink}) => `Conecte [seu cartão corporativo](${corporateCardLink})`,
+                description: ({corporateCardLink}) =>
+                    `Conecte seu cartão corporativo para importar e categorizar despesas automaticamente.\n` +
+                    '\n' +
+                    '1. Clique em *Espaços de trabalho*.\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Clique em *Cartões corporativos*.\n' +
+                    '4. Siga as instruções para conectar seu cartão.\n' +
+                    '\n' +
+                    `[Leve-me para conectar meus cartões corporativos](${corporateCardLink}).`,
+            },
+
+            inviteTeamTask: {
+                title: ({workspaceMembersLink}) => `Convide [sua equipe](${workspaceMembersLink})`,
+                description: ({workspaceMembersLink}) =>
+                    '*Convide sua equipe* para o Expensify para que eles possam começar a rastrear despesas hoje mesmo.\n' +
+                    '\n' +
+                    '1. Clique em *Espaços de trabalho*.\n' +
+                    '3. Selecione seu espaço de trabalho.\n' +
+                    '4. Clique em *Membros* > *Convidar membro*.\n' +
+                    '5. Insira e-mails ou números de telefone. \n' +
+                    '6. Adicione uma mensagem de convite personalizada, se desejar!\n' +
+                    '\n' +
+                    `[Leve-me para os membros do espaço de trabalho](${workspaceMembersLink}).\n` +
+                    '\n' +
+                    `![Convide sua equipe](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+            },
+
+            setupCategoriesAndTags: {
+                title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) => `Configure [categorias](${workspaceCategoriesLink}) e [tags](${workspaceMoreFeaturesLink})`,
+                description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
+                    '*Configure categorias e tags* para que sua equipe possa categorizar despesas para relatórios fáceis.\n' +
+                    '\n' +
+                    `Importe-as automaticamente [conectando seu software de contabilidade](${workspaceAccountingLink}), ou configure-as manualmente nas [configurações do seu espaço de trabalho](${workspaceCategoriesLink}).`,
+            },
+            setupTagsTask: {
+                title: ({workspaceMoreFeaturesLink}) => `Configure [tags](${workspaceMoreFeaturesLink})`,
+                description: ({workspaceMoreFeaturesLink}) =>
+                    'Use tags para adicionar detalhes extras de despesas, como projetos, clientes, locais e departamentos. Se você precisar de vários níveis de tags, pode fazer upgrade para o plano Control.\n' +
+                    '\n' +
+                    '1. Clique em *Espaços de trabalho*.\n' +
+                    '3. Selecione seu espaço de trabalho.\n' +
+                    '4. Clique em *Mais recursos*.\n' +
+                    '5. Habilite *Tags*.\n' +
+                    '6. Navegue até *Tags* no editor do espaço de trabalho.\n' +
+                    '7. Clique em *+ Adicionar tag* para criar as suas.\n' +
+                    '\n' +
+                    `[Leve-me para mais recursos](${workspaceMoreFeaturesLink}).\n` +
+                    '\n' +
+                    `![Configurar tags](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
+            },
+
+            inviteAccountantTask: {
+                title: ({workspaceMembersLink}) => `Convide seu [contador](${workspaceMembersLink})`,
+                description: ({workspaceMembersLink}) =>
+                    '*Convide seu contador* para colaborar no seu espaço de trabalho e gerenciar as despesas da sua empresa.\n' +
+                    '\n' +
+                    '1. Clique em *Espaços de trabalho*.\n' +
+                    '2. Selecione seu espaço de trabalho.\n' +
+                    '3. Clique em *Membros*.\n' +
+                    '4. Clique em *Convidar membro*.\n' +
+                    '5. Insira o e-mail do seu contador.\n' +
+                    '\n' +
+                    `[Convide seu contador agora](${workspaceMembersLink}).`,
+            },
+
+            startChatTask: {
+                title: 'Iniciar um bate-papo',
+                description:
+                    '*Inicie um bate-papo* com qualquer pessoa usando seu e-mail ou número de telefone.\n' +
+                    '\n' +
+                    '1. Clique no botão verde *+*.\n' +
+                    '2. Escolha *Iniciar bate-papo*.\n' +
+                    '3. Insira um e-mail ou número de telefone.\n' +
+                    '\n' +
+                    'Se eles ainda não estiverem usando o Expensify, serão convidados automaticamente.\n' +
+                    '\n' +
+                    'Cada bate-papo também se transformará em um e-mail ou mensagem de texto que eles podem responder diretamente.',
+            },
+
+            splitExpenseTask: {
+                title: 'Dividir uma despesa',
+                description:
+                    '*Divida despesas* com uma ou mais pessoas.\n' +
+                    '\n' +
+                    '1. Clique no botão verde *+*.\n' +
+                    '2. Escolha *Iniciar bate-papo*.\n' +
+                    '3. Insira e-mails ou números de telefone.\n' +
+                    '4. Clique no botão cinza *+* no bate-papo > *Dividir despesa*.\n' +
+                    '5. Crie a despesa selecionando *Manual*, *Digitalizar* ou *Distância*.\n' +
+                    '\n' +
+                    'Sinta-se à vontade para adicionar mais detalhes, se quiser, ou apenas envie. Vamos te reembolsar!',
+            },
+
+            reviewWorkspaceSettingsTask: {
+                title: ({workspaceSettingsLink}) => `Revise suas [configurações de espaço de trabalho](${workspaceSettingsLink})`,
+                description: ({workspaceSettingsLink}) =>
+                    'Veja como revisar e atualizar as configurações do seu espaço de trabalho:\n' +
+                    '1. Clique na aba de configurações.\n' +
+                    '2. Clique em *Espaços de trabalho* > [Seu espaço de trabalho].\n' +
+                    `[Vá para o seu espaço de trabalho](${workspaceSettingsLink}). Vamos rastreá-los na sala #admins.`,
+            },
+            createReportTask: {
+                title: 'Crie seu primeiro relatório',
+                description:
+                    'Veja como criar um relatório:\n' +
+                    '\n' +
+                    '1. Clique no botão verde *+*.\n' +
+                    '2. Escolha *Criar relatório*.\n' +
+                    '3. Clique em *Adicionar despesa*.\n' +
+                    '4. Adicione sua primeira despesa.\n' +
+                    '\n' +
+                    'E pronto!',
+            },
+        } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
+        testDrive: {
+            name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Faça um [test drive](${testDriveURL})` : 'Faça um test drive'),
+            embeddedDemoIframeTitle: 'Test Drive',
+            employeeFakeReceipt: {
+                description: 'Meu recibo de test drive!',
+            },
+        },
+        messages: {
+            onboardingEmployerOrSubmitMessage: 'Ser reembolsado é tão fácil quanto enviar uma mensagem. Vamos ver o básico.',
+            onboardingPersonalSpendMessage: 'Veja como rastrear seus gastos em poucos cliques.',
+            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
+                `Aqui está uma lista de tarefas que eu recomendaria para uma empresa do seu tamanho com ${onboardingCompanySize} remetentes:`,
+            onboardingTrackWorkspaceMessage:
+                '# Vamos configurar você\n👋 Estou aqui para ajudar! Para você começar, adaptei as configurações do seu espaço de trabalho para microempreendedores individuais e empresas semelhantes. Você pode ajustar seu espaço de trabalho clicando no link abaixo!\n\nVeja como rastrear seus gastos em poucos cliques:',
+            onboardingChatSplitMessage: 'Dividir contas com amigos é tão fácil quanto enviar uma mensagem. Veja como.',
+            onboardingAdminMessage: 'Aprenda a gerenciar o espaço de trabalho da sua equipe como administrador e enviar suas próprias despesas.',
+            onboardingLookingAroundMessage:
+                'O Expensify é mais conhecido por despesas, viagens e gerenciamento de cartões corporativos, mas fazemos muito mais do que isso. Diga-me o que lhe interessa e eu o ajudarei a começar.',
+            onboardingTestDriveReceiverMessage: '*Você tem 3 meses grátis! Comece abaixo.*',
+        },
         workspace: {
             title: 'Mantenha-se organizado com um espaço de trabalho',
             subtitle: 'Desbloqueie ferramentas poderosas para simplificar o gerenciamento de despesas, tudo em um só lugar. Com um espaço de trabalho, você pode:',
@@ -2360,6 +2614,13 @@ const translations = {
         time: 'Tempo',
         clearAfter: 'Limpar após',
         whenClearStatus: 'Quando devemos limpar seu status?',
+        vacationDelegate: 'Delegado de férias',
+        setVacationDelegate: `Defina um delegado de férias para aprovar relatórios em seu nome enquanto estiver fora do escritório.`,
+        vacationDelegateError: 'Ocorreu um erro ao atualizar seu delegado de férias.',
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `como delegado de férias de ${managerName}`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `para ${submittedToName} como delegado de férias de ${vacationDelegateName}`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `Você está designando ${nameOrEmail} como seu delegado de férias. Essa pessoa ainda não está em todos os seus espaços de trabalho. Se você continuar, um e-mail será enviado para todos os administradores dos seus espaços solicitando a inclusão dela.`,
     },
     stepCounter: ({step, total, text}: StepCounterParams) => {
         let result = `Etapa ${step}`;
@@ -2390,11 +2651,8 @@ const translations = {
         toGetStarted: 'Adicione uma conta bancária para reembolsar despesas, emitir Cartões Expensify, coletar pagamentos de faturas e pagar contas, tudo em um só lugar.',
         plaidBodyCopy: 'Dê aos seus funcionários uma maneira mais fácil de pagar - e serem reembolsados - por despesas da empresa.',
         checkHelpLine: 'Seu número de roteamento e número da conta podem ser encontrados em um cheque da conta.',
-        hasPhoneLoginError: {
-            phrase1: 'Para conectar uma conta bancária, por favor',
-            link: 'adicione um e-mail como seu login principal',
-            phrase2: 'e tente novamente. Você pode adicionar seu número de telefone como um login secundário.',
-        },
+        hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
+            `Para conectar uma conta bancária, por favor <a href="${contactMethodRoute}">adicione um e-mail como seu login principal</a> e tente novamente. Você pode adicionar seu número de telefone como um login secundário.`,
         hasBeenThrottledError: 'Ocorreu um erro ao adicionar sua conta bancária. Por favor, aguarde alguns minutos e tente novamente.',
         hasCurrencyError: {
             phrase1: 'Ops! Parece que a moeda do seu espaço de trabalho está definida para uma moeda diferente de USD. Para continuar, por favor vá para',
@@ -2682,14 +2940,40 @@ const translations = {
         whatsTheBusinessAddress: 'Qual é o endereço comercial?',
         whatsTheBusinessContactInformation: 'Qual é a informação de contato comercial?',
         whatsTheBusinessRegistrationNumber: 'Qual é o número de registro da empresa?',
-        whatsTheBusinessTaxIDEIN: 'Qual é o número de identificação fiscal/EIN/VAT/GST da empresa?',
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'Qual é o Número de Identificação do Empregador (EIN)?';
+                case CONST.COUNTRY.CA:
+                    return 'Qual é o Número Comercial (BN)?';
+                case CONST.COUNTRY.GB:
+                    return 'Qual é o Número de Registro de IVA (VRN)?';
+                case CONST.COUNTRY.AU:
+                    return 'Qual é o Número Comercial Australiano (ABN)?';
+                default:
+                    return 'Qual é o número de IVA da UE?';
+            }
+        },
         whatsThisNumber: 'Qual é esse número?',
         whereWasTheBusinessIncorporated: 'Onde a empresa foi incorporada?',
         whatTypeOfBusinessIsIt: 'Que tipo de negócio é?',
         whatsTheBusinessAnnualPayment: 'Qual é o volume anual de pagamentos da empresa?',
         whatsYourExpectedAverageReimbursements: 'Qual é o seu valor médio de reembolso esperado?',
         registrationNumber: 'Número de registro',
-        taxIDEIN: 'Número de CPF/CNPJ',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'IVA UE';
+            }
+        },
         businessAddress: 'Endereço comercial',
         businessType: 'Tipo de negócio',
         incorporation: 'Incorporação',
@@ -2713,6 +2997,20 @@ const translations = {
         findAverageReimbursement: 'Encontrar valor médio de reembolso',
         error: {
             registrationNumber: 'Por favor, forneça um número de registro válido.',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return 'Por favor, informe um Número de Identificação do Empregador (EIN) válido';
+                    case CONST.COUNTRY.CA:
+                        return 'Por favor, informe um Número Comercial (BN) válido';
+                    case CONST.COUNTRY.GB:
+                        return 'Por favor, informe um Número de Registro de IVA (VRN) válido';
+                    case CONST.COUNTRY.AU:
+                        return 'Por favor, informe um Número Comercial Australiano (ABN) válido';
+                    default:
+                        return 'Por favor, informe um número de IVA da UE válido';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
@@ -3119,7 +3417,6 @@ const translations = {
             unavailable: 'Espaço de trabalho indisponível',
             memberNotFound: 'Membro não encontrado. Para convidar um novo membro para o espaço de trabalho, por favor, use o botão de convite acima.',
             notAuthorized: `Você não tem acesso a esta página. Se você está tentando entrar neste espaço de trabalho, basta pedir ao proprietário do espaço de trabalho para adicioná-lo como membro. Algo mais? Entre em contato com ${CONST.EMAIL.CONCIERGE}.`,
-            goToRoom: ({roomName}: GoToRoomParams) => `Ir para a sala ${roomName}`,
             goToWorkspace: 'Ir para o espaço de trabalho',
             goToWorkspaces: 'Ir para espaços de trabalho',
             clearFilter: 'Limpar filtro',
@@ -3136,7 +3433,7 @@ const translations = {
             welcomeNote: 'Por favor, use o Expensify para enviar seus recibos para reembolso, obrigado!',
             subscription: 'Assinatura',
             markAsEntered: 'Marcar como inserido manualmente',
-            markAsExported: 'Marcar como exportado manualmente',
+            markAsExported: 'Marcar como exportado',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Vamos verificar se tudo está correto.',
             lineItemLevel: 'Nível de item linha',
@@ -4249,7 +4546,7 @@ const translations = {
                 pendingBankTitle: 'Verifique a janela do seu navegador',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) =>
                     `Por favor, conecte-se ao ${bankName} através da janela do navegador que acabou de abrir. Se nenhuma tiver sido aberta,`,
-                pendingBankLink: 'por favor, clique aqui.',
+                pendingBankLink: 'por favor, clique aqui',
                 giveItNameInstruction: 'Dê um nome ao cartão que o diferencie dos outros.',
                 updating: 'Atualizando...',
                 noAccountsFound: 'Nenhuma conta encontrada',
@@ -5609,7 +5906,14 @@ const translations = {
                 title: 'Nenhuma despesa para exportar',
                 subtitle: 'Hora de relaxar, bom trabalho.',
             },
+            emptyUnapprovedResults: {
+                title: 'Nenhuma despesa para aprovar',
+                subtitle: 'Zero despesas. Máximo relaxamento. Bem feito!',
+            },
         },
+        unapproved: 'Não aprovado',
+        unapprovedCash: 'Dinheiro não aprovado',
+        unapprovedCompanyCards: 'Cartões corporativos não aprovados',
         saveSearch: 'Salvar pesquisa',
         deleteSavedSearch: 'Excluir pesquisa salva',
         deleteSavedSearchConfirm: 'Tem certeza de que deseja excluir esta pesquisa?',
@@ -5630,6 +5934,10 @@ const translations = {
                 before: ({date}: OptionalParam<DateParams> = {}) => `Antes de ${date ?? ''}`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `Após ${date ?? ''}`,
                 on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
+                presets: {
+                    [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'No mês passado',
+                },
             },
             status: 'Status',
             keyword: 'Palavra-chave',
@@ -5662,7 +5970,13 @@ const translations = {
             posted: 'Data de postagem',
             billable: 'Faturável',
             reimbursable: 'Reembolsável',
+            groupBy: {
+                reports: 'Relatório',
+                members: 'Membro',
+                cards: 'Cartão',
+            },
         },
+        groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este relatório não possui despesas.',
             emptyStateSubtitle: 'Você pode adicionar despesas a este relatório usando o botão acima.',
@@ -5969,8 +6283,8 @@ const translations = {
         principalWorkEmail: 'Email principal de trabalho',
         updateYourEmail: 'Atualize seu endereço de e-mail',
         updateEmail: 'Atualizar endereço de e-mail',
-        contactMethods: 'Métodos de contato.',
-        schoolMailAsDefault: 'Antes de prosseguir, certifique-se de definir seu e-mail escolar como seu método de contato padrão. Você pode fazer isso em Configurações > Perfil >',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `Antes de prosseguir, certifique-se de definir seu e-mail escolar como seu método de contato padrão. Você pode fazer isso em Configurações > Perfil > <a href="${contactMethodsRoute}">Métodos de contato</a>.`,
         error: {
             enterPhoneEmail: 'Insira um e-mail ou número de telefone válido',
             enterEmail: 'Digite um e-mail',
@@ -6004,7 +6318,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: 'Relatar perda / dano do cartão físico',
         screenTitle: 'Boletim perdido ou danificado',
         nextButtonLabel: 'Próximo',
         reasonTitle: 'Por que você precisa de um novo cartão?',
@@ -6018,6 +6331,8 @@ const translations = {
         shipNewCardButton: 'Enviar novo cartão',
         addressError: 'Endereço é obrigatório',
         reasonError: 'Motivo é obrigatório',
+        successTitle: 'Seu novo cartão está a caminho!',
+        successDescription: 'Você precisará ativá-lo assim que ele chegar em alguns dias úteis. Enquanto isso, seu cartão virtual já está pronto para uso.',
     },
     eReceipt: {
         guaranteed: 'eReceipt garantido',
@@ -6128,10 +6443,10 @@ const translations = {
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Revisão necessária',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
-            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return '';
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
+                return 'Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida.';
             }
-            if (brokenBankConnection) {
+            if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida que ${email} precisa corrigir.`
                     : 'Não é possível associar automaticamente o recibo devido a uma conexão bancária interrompida que você precisa corrigir.';
@@ -6311,14 +6626,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'Resgatar oferta',
                 noThanks: 'Não, obrigado.',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% de desconto no seu primeiro ano!`,
-                    phrase2: `Basta adicionar um cartão de pagamento e iniciar uma assinatura anual.`,
-                },
-                onboardingChatTitle: {
-                    phrase1: 'Oferta por tempo limitado:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% de desconto no seu primeiro ano!`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>${discountType}% de desconto no seu primeiro ano!</strong> Basta adicionar um cartão de pagamento e iniciar uma assinatura anual.`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Oferta por tempo limitado: ${discountType}% de desconto no seu primeiro ano!`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Reivindicar dentro de ${days > 0 ? `${days}d :` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
         },
@@ -6477,11 +6787,7 @@ const translations = {
                     part2: '.',
                 },
             },
-            acknowledgement: {
-                part1: 'Ao solicitar o cancelamento antecipado, reconheço e concordo que a Expensify não tem obrigação de atender a tal solicitação sob a Expensify.',
-                link: 'Termos de Serviço',
-                part2: 'ou outro acordo de serviços aplicável entre mim e a Expensify e que a Expensify mantém a discrição exclusiva em relação à concessão de qualquer solicitação desse tipo.',
-            },
+            acknowledgement: `Ao solicitar o cancelamento antecipado, reconheço e concordo que a Expensify não tem obrigação de atender a tal solicitação sob a Expensify.<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Termos de Serviço</a>ou outro acordo de serviços aplicável entre mim e a Expensify e que a Expensify mantém a discrição exclusiva em relação à concessão de qualquer solicitação desse tipo.`,
         },
     },
     feedbackSurvey: {
