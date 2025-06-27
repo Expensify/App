@@ -6419,7 +6419,7 @@ describe('actions/IOU', () => {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 managerID: RORY_ACCOUNT_ID,
-                chatType: 'policyExpenseChat',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
             const fakeTransaction1: Transaction = {
                 ...createRandomTransaction(0),
@@ -6430,7 +6430,7 @@ describe('actions/IOU', () => {
             const fakeTransaction2: Transaction = {
                 ...createRandomTransaction(1),
                 reportID,
-                amount: 0,
+                amount: 27,
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
@@ -6458,18 +6458,16 @@ describe('actions/IOU', () => {
                 reportActionID: '0',
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                 created: '2024-08-08 18:70:44.171',
-                childReportID: '1',
+                childReportID: reportID,
             };
 
             const MOCK_REPORT_ACTIONS: ReportActions = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '0': deletedReportAction,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '1': {
-                    reportActionID: '1',
+                [deletedReportAction.reportActionID]: deletedReportAction,
+                [reportID]: {
+                    reportActionID: reportID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                     created: '2024-08-08 19:70:44.171',
-                    childReportID: '1',
+                    childReportID: reportID,
                     message: [
                         {
                             type: 'TEXT',
@@ -6481,7 +6479,7 @@ describe('actions/IOU', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`, MOCK_REPORT_ACTIONS);
 
-            expect(getIOUReportActionToApproveOrPay(fakeReport, '3')).toMatchObject(MOCK_REPORT_ACTIONS['1']);
+            expect(getIOUReportActionToApproveOrPay(fakeReport, undefined)).toMatchObject(MOCK_REPORT_ACTIONS[reportID]);
         });
     });
 });
