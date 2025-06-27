@@ -44,6 +44,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {dismissConciergeSplitOptionsAction, initSplitExpense} from '@libs/actions/IOU';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
@@ -55,7 +56,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
-import {initSplitExpense, dismissConciergeSplitOptionsAction} from '@libs/actions/IOU';
 import {
     extractLinksFromMessageHtml,
     getAddedApprovalRuleMessage,
@@ -165,13 +165,13 @@ import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session'
 import {isBlockedFromConcierge} from '@userActions/User';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
@@ -731,11 +731,11 @@ function PureReportActionItem({
             }));
         }
 
-        if (isConciergeSplitOptions(action)) {        
+        if (isConciergeSplitOptions(action)) {
             if (isResolvedConciergeSplitOptions(action)) {
                 return [];
             }
-            
+
             if (!reportID) {
                 return [];
             }
@@ -755,7 +755,7 @@ function PureReportActionItem({
                     key: 'common.no',
                     onPress: () => dismissConciergeSplitOptionsAction(originalReportID, action.reportActionID),
                 },
-            ]
+            ];
         }
 
         if (!isActionableWhisper && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
@@ -1197,7 +1197,7 @@ function PureReportActionItem({
                     {actionableItemButtons.length > 0 && (
                         <ActionableItemButtons
                             items={actionableItemButtons}
-                            layout='horizontal'
+                            layout="horizontal"
                             shouldUseLocalization
                         />
                     )}

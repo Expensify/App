@@ -2,15 +2,7 @@ import React from 'react';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-function DescriptionCell({
-    description,
-    shouldShowTooltip,
-    shouldUseNarrowLayout,
-}: {
-    description: string;
-    shouldUseNarrowLayout?: boolean | undefined;
-    shouldShowTooltip: boolean;
-}) {
+function DescriptionCell({description, shouldShowTooltip, shouldUseNarrowLayout}: {description: string; shouldUseNarrowLayout?: boolean | undefined; shouldShowTooltip: boolean}) {
     const styles = useThemeStyles();
 
     return (

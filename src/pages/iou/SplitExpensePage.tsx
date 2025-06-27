@@ -1,6 +1,6 @@
 import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -15,7 +15,7 @@ import type {SectionListDataType, SplitListItemType} from '@components/Selection
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addSplitExpenseField, initDraftSplitExpenseDataForEdit, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
+import {addSplitExpenseField, saveSplitTransactions, updateSplitExpenseAmountField} from '@libs/actions/IOU';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -81,6 +81,97 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
 
         saveSplitTransactions(draftTransaction, currentSearchHash);
+    }, [currentSearchHash, draftTransaction, isCard, isPerDiem, sumOfSplitExpenses, transactionDetailsAmount, transactionDetails?.currency, translate]);
+
+    const onSaveSplitExpenseByCategory = useCallback(() => {
+        if (sumOfSplitExpenses > Math.abs(transactionDetailsAmount)) {
+            const difference = sumOfSplitExpenses - Math.abs(transactionDetailsAmount);
+            setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
+            return;
+        }
+        if (sumOfSplitExpenses < Math.abs(transactionDetailsAmount) && (isPerDiem || isCard)) {
+            const difference = Math.abs(transactionDetailsAmount) - sumOfSplitExpenses;
+            setErrorMessage(translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(difference, transactionDetails?.currency)}));
+            return;
+        }
+
+        if ((draftTransaction?.comment?.splitExpenses ?? []).find((item) => item.amount === 0)) {
+            setErrorMessage(translate('iou.splitExpenseZeroAmount'));
+            return;
+        }
+
+        if (!draftTransaction?.comment?.splitExpenses) {
+            return;
+        }
+
+        // Group expenses by category and create one split per category
+        type CategoryGroup = {
+            category: string;
+            total: number;
+            expenses: Array<NonNullable<typeof draftTransaction.comment.splitExpenses>[0]>;
+            created: string;
+            description: string;
+            tags?: string[];
+        };
+
+        const expensesGroupedByCategory: Record<string, CategoryGroup> = {};
+        for (const expense of draftTransaction?.comment?.splitExpenses ?? []) {
+            const category = expense.category ?? CONST.POLICY.DEFAULT_CATEGORIES.OTHER;
+            if (!(category in expensesGroupedByCategory)) {
+                expensesGroupedByCategory[category] = {
+                    category,
+                    total: 0,
+                    expenses: [],
+                    created: expense.created ?? '',
+                    description: '',
+                    tags: expense.tags,
+                };
+            }
+
+            // Keep a running total for each category
+            expensesGroupedByCategory[category].total += Number(expense.amount);
+            expensesGroupedByCategory[category].expenses.push(expense);
+
+            // Use the earliest date for the category
+            const expenseCreated = expense.created ?? '';
+            if (expenseCreated && expenseCreated < expensesGroupedByCategory[category].created) {
+                expensesGroupedByCategory[category].created = expenseCreated;
+            }
+
+            // Combine descriptions
+            if (expense.description) {
+                if (expensesGroupedByCategory[category].description) {
+                    expensesGroupedByCategory[category].description = `${expensesGroupedByCategory[category].description}, ${expense.description}`;
+                } else {
+                    expensesGroupedByCategory[category].description = expense.description;
+                }
+            }
+        }
+
+        // Create a new draft transaction with category-based splits
+        const categoryBasedSplitExpenses = Object.values(expensesGroupedByCategory).map((categoryGroup) => ({
+            amount: categoryGroup.total,
+            category: categoryGroup.category,
+            created: categoryGroup.created,
+            description: categoryGroup.description,
+            tags: categoryGroup.tags,
+            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+        }));
+
+        if (!draftTransaction) {
+            return;
+        }
+
+        const categoryBasedDraftTransaction = {
+            ...draftTransaction,
+            amount: draftTransaction.amount ?? 0,
+            comment: {
+                ...draftTransaction.comment,
+                splitExpenses: categoryBasedSplitExpenses,
+            },
+        };
+
+        saveSplitTransactions(categoryBasedDraftTransaction, currentSearchHash);
     }, [currentSearchHash, draftTransaction, isCard, isPerDiem, sumOfSplitExpenses, transactionDetailsAmount, transactionDetails?.currency, translate]);
 
     const onSplitExpenseAmountChange = useCallback(
@@ -183,17 +274,25 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     />
                 )}
                 <Button
+                    large
+                    style={[styles.w100, styles.mb3]}
+                    text={translate('iou.splitByItem')}
+                    onPress={onSaveSplitExpense}
+                    pressOnEnter
+                    enterKeyEventListenerPriority={1}
+                />
+                <Button
                     success
                     large
                     style={[styles.w100]}
-                    text={translate('common.save')}
-                    onPress={onSaveSplitExpense}
+                    text={translate('iou.splitByCategory')}
+                    onPress={onSaveSplitExpenseByCategory}
                     pressOnEnter
                     enterKeyEventListenerPriority={1}
                 />
             </>
         );
-    }, [onSaveSplitExpense, styles.mb2, styles.ph1, styles.w100, translate, errorMessage]);
+    }, [onSaveSplitExpense, onSaveSplitExpenseByCategory, styles.mb2, styles.mb3, styles.ph1, styles.w100, translate, errorMessage]);
 
     return (
         <ScreenWrapper

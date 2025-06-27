@@ -11403,11 +11403,13 @@ function getSearchOnyxUpdate({
 }
 
 function dismissConciergeSplitOptionsAction(reportID: string, reportActionID: string) {
-    const optimisticData = [{
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: {[reportActionID]: null},
-    }] as OnyxUpdate[];
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {[reportActionID]: null},
+        },
+    ] as OnyxUpdate[];
 
     const reportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID];
     const failureData = [
