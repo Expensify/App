@@ -33,6 +33,60 @@ abstract class Translator {
     private trimForLogs(text: string) {
         return `${text.slice(0, 80)}${text.length > 80 ? '...' : ''}`;
     }
+
+    /**
+     * Validate that placeholders are all present and unchanged before and after translation.
+     */
+    public validateTemplatePlaceholders(original: string, translated: string): boolean {
+        const extractPlaceholders = (s: string) =>
+            Array.from(s.matchAll(/\$\{[^}]*}/g))
+                .map((m) => m[0])
+                .sort();
+        const originalSpans = extractPlaceholders(original);
+        const translatedSpans = extractPlaceholders(translated);
+        return JSON.stringify(originalSpans) === JSON.stringify(translatedSpans);
+    }
+
+    /**
+     * Validate that the HTML structure is the same before and after translation.
+     */
+    public validateTemplateHTML(original: string, translated: string): boolean {
+        // Attributes that are allowed to be translated
+        const TRANSLATABLE_ATTRIBUTES = ['alt', 'title', 'placeholder', 'aria-label', 'aria-describedby', 'aria-labelledby', 'value'];
+
+        const parseHTMLStructure = (s: string) => {
+            const tags = Array.from(s.matchAll(/<([^>]+)>/g));
+            return tags.map((match) => {
+                const tagContent = match[1];
+                const tagName = tagContent.split(/\s/).at(0)?.toLowerCase();
+
+                // Extract attributes, excluding translatable ones
+                const attributes: string[] = [];
+                const attrMatches = Array.from(tagContent.matchAll(/(\w+)(?:=["']([^"']*)["'])?/g));
+
+                for (const attrMatch of attrMatches) {
+                    const attrName = attrMatch[1].toLowerCase();
+                    const attrValue = attrMatch[2] || '';
+
+                    // Only include non-translatable attributes in comparison
+                    if (!TRANSLATABLE_ATTRIBUTES.includes(attrName)) {
+                        attributes.push(`${attrName}="${attrValue}"`);
+                    }
+                }
+
+                return {
+                    tagName,
+                    attributes: attributes.sort(),
+                };
+            });
+        };
+
+        const originalStructure = parseHTMLStructure(original);
+        const translatedStructure = parseHTMLStructure(translated);
+
+        // Compare structures (tag names and non-translatable attributes)
+        return JSON.stringify(originalStructure) === JSON.stringify(translatedStructure);
+    }
 }
 
 export default Translator;
