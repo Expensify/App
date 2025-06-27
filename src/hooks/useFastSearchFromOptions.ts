@@ -1,5 +1,6 @@
 import deburr from 'lodash/deburr';
 import {useCallback, useEffect, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import Timing from '@libs/actions/Timing';
 import FastSearch from '@libs/FastSearch';
 import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@libs/OptionsListUtils';
@@ -9,8 +10,6 @@ import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 
-type AllOrSelectiveOptions = ReportAndPersonalDetailOptions | OptionsListType;
-
 type Options = {
     includeUserToInvite: boolean;
 };
@@ -18,6 +17,8 @@ type Options = {
 const emptyResult = {
     personalDetails: [],
     recentReports: [],
+    userToInvite: null,
+    currentUserOption: undefined,
 };
 
 const personalDetailToSearchString = (option: OptionData) => {
@@ -48,9 +49,18 @@ const getRecentReportUniqueId = (option: OptionData) => {
 };
 
 // You can either use this to search within report and personal details options
-function useFastSearchFromOptions(options: ReportAndPersonalDetailOptions, config?: {includeUserToInvite: false}): (searchInput: string) => ReportAndPersonalDetailOptions;
+function useFastSearchFromOptions(
+    options: ReportAndPersonalDetailOptions,
+    config?: {includeUserToInvite: false},
+): {search: (searchInput: string) => ReportAndPersonalDetailOptions; isInitialized: boolean};
 // Or you can use this to include the user invite option. This will require passing all options
-function useFastSearchFromOptions(options: OptionsListType, config?: {includeUserToInvite: true}): (searchInput: string) => OptionsListType;
+function useFastSearchFromOptions(
+    options: OptionsListType,
+    config?: {includeUserToInvite: true},
+): {
+    search: (searchInput: string) => OptionsListType;
+    isInitialized: boolean;
+};
 
 /**
  * Hook for making options from OptionsListUtils searchable with FastSearch.
@@ -64,43 +74,49 @@ function useFastSearchFromOptions(options: OptionsListType, config?: {includeUse
 function useFastSearchFromOptions(
     options: ReportAndPersonalDetailOptions | OptionsListType,
     {includeUserToInvite}: Options = {includeUserToInvite: false},
-): (searchInput: string) => AllOrSelectiveOptions {
+): {search: (searchInput: string) => OptionsListType; isInitialized: boolean} {
     const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
+    const [isInitialized, setIsInitialized] = useState(false);
     const prevOptionsRef = useRef<typeof options | null>(null);
     const prevFastSearchRef = useRef<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
 
     useEffect(() => {
+        let newFastSearch: ReturnType<typeof FastSearch.createFastSearch<OptionData>>;
         const prevOptions = prevOptionsRef.current;
         if (prevOptions && shallowCompareOptions(prevOptions, options)) {
             return;
         }
+        InteractionManager.runAfterInteractions(() => {
+            prevOptionsRef.current = options;
+            prevFastSearchRef.current?.dispose();
+            newFastSearch = FastSearch.createFastSearch(
+                [
+                    {
+                        data: options.personalDetails,
+                        toSearchableString: personalDetailToSearchString,
+                        uniqueId: getPersonalDetailUniqueId,
+                    },
+                    {
+                        data: options.recentReports,
+                        toSearchableString: recentReportToSearchString,
+                        uniqueId: getRecentReportUniqueId,
+                    },
+                ],
 
-        prevOptionsRef.current = options;
-        prevFastSearchRef.current?.dispose();
+                {shouldStoreSearchableStrings: true},
+            );
+            setFastSearch(newFastSearch);
+            prevFastSearchRef.current = newFastSearch;
+            setIsInitialized(true);
+        });
 
-        const newFastSearch = FastSearch.createFastSearch(
-            [
-                {
-                    data: options.personalDetails,
-                    toSearchableString: personalDetailToSearchString,
-                    uniqueId: getPersonalDetailUniqueId,
-                },
-                {
-                    data: options.recentReports,
-                    toSearchableString: recentReportToSearchString,
-                    uniqueId: getRecentReportUniqueId,
-                },
-            ],
-            {shouldStoreSearchableStrings: true},
-        );
-        setFastSearch(newFastSearch);
-        prevFastSearchRef.current = newFastSearch;
+        return () => newFastSearch?.dispose();
     }, [options]);
 
     useEffect(() => () => prevFastSearchRef.current?.dispose(), []);
 
     const findInSearchTree = useCallback(
-        (searchInput: string): AllOrSelectiveOptions => {
+        (searchInput: string): OptionsListType => {
             if (!fastSearch) {
                 return emptyResult;
             }
@@ -150,12 +166,14 @@ function useFastSearchFromOptions(
             return {
                 personalDetails,
                 recentReports,
+                userToInvite: null,
+                currentUserOption: undefined,
             };
         },
         [includeUserToInvite, options, fastSearch],
     );
 
-    return findInSearchTree;
+    return {search: findInSearchTree, isInitialized};
 }
 
 /**
