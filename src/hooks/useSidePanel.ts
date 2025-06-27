@@ -86,10 +86,9 @@ function useSidePanel() {
             }),
         ]).start(() => setIsSidePanelTransitionEnded(true));
 
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // sidePanelWidth dependency caused the help panel content to slide in on window resize
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldHideSidePanel, shouldApplySidePanelOffset]);
-    // sidePanelWidth dependency caused the help panel content to slide in on window resize
 
     const openSidePanel = useCallback(() => {
         setIsSidePanelTransitionEnded(false);
