@@ -151,7 +151,6 @@ function PaymentCardForm({
 
         let value = newValue.replace(CONST.REGEX.NON_NUMERIC, '');
 
-
         if (value.length === 1) {
             const firstDigit = value.charAt(0);
             if (parseInt(firstDigit, 10) > 1) {
@@ -167,17 +166,17 @@ function PaymentCardForm({
             }
         }
 
+        const prevValue = previousvalueRef.current?.replace(CONST.REGEX.NON_NUMERIC, '') ?? '';
+
         let formattedValue = value;
 
-        const prevValue = previousvalueRef.current.replace(CONST.REGEX.NON_NUMERIC, '');
-
-        if ((value.length === 2 && prevValue.length < 2)) {
+        if (value.length === 2 && prevValue.length < 2) {
             formattedValue = `${value}/`;
         } else if (value.length > 2) {
             formattedValue = `${value.slice(0, 2)}/${value.slice(2, 4)}`;
         }
 
-        previousvalueRef.current = newValue;
+        previousvalueRef.current = formattedValue;
 
         setExpirationDate(formattedValue);
     }, []);
