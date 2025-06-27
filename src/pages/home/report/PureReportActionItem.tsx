@@ -153,11 +153,12 @@ import {
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
+import {AccountingContextProvider} from '@pages/workspace/accounting/AccountingContext';
 import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
-import {expandURLPreview, resolveConciergeCategoryOptions} from '@userActions/Report';
+import {addComment, expandURLPreview, resolveConciergeCategoryOptions} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
@@ -185,7 +186,6 @@ import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
 import TripSummary from './TripSummary';
-import {addComment} from '@userActions/Report';
 
 type PureReportActionItemProps = {
     /** Report for this action */
@@ -1224,16 +1224,18 @@ function PureReportActionItem({
             const questionText = (originalMessage && originalMessage['html']) || "Do you want to enable attendee tracking?";
 
             children = (
-                <View>
-                    <ReportActionItemBasicMessage message={questionText} />
-                    {actionableItemButtons.length > 0 && (
-                        <ActionableItemButtons
-                            items={actionableItemButtons}
-                            shouldUseLocalization={false}
-                            layout="horizontal"
-                        />
-                    )}
-                </View>
+                <AccountingContextProvider policy={policy}>
+                    <View>
+                        <ReportActionItemBasicMessage message={questionText} />
+                        {actionableItemButtons.length > 0 && (
+                            <ActionableItemButtons
+                                items={actionableItemButtons}
+                                shouldUseLocalization={false}
+                                layout="horizontal"
+                            />
+                        )}
+                    </View>
+                </AccountingContextProvider>
             );
         } else {
             const hasBeenFlagged =
