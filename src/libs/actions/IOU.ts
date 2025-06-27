@@ -3320,7 +3320,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             ? buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency, undefined, undefined, optimisticIOUReportID)
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticIOUReportID);
     } else if (isPolicyExpenseChat) {
-        // Splitting doesn’t affect the amount, so no adjustment is needed
+        // Splitting doesn't affect the amount, so no adjustment is needed
         // The amount remains constant after the split
         if (!isSplitExpense) {
             iouReport = {...iouReport};
@@ -4780,7 +4780,7 @@ function updateMoneyRequestDescription(
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    policyCategories: OnyxTypes.PolicyCategories,
 ) {
     const parsedComment = getParsedComment(comment);
     const transactionChanges: TransactionChanges = {
@@ -4806,7 +4806,7 @@ function updateMoneyRequestDistanceRate(
     rateID: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    policyCategories: OnyxTypes.PolicyCategories,
     updatedTaxAmount?: number,
     updatedTaxCode?: string,
 ) {
@@ -6680,15 +6680,6 @@ function startSplitBill({
         });
     }
 
-    const redundantParticipants: Record<number, null> = {};
-    if (!existingSplitChatReport) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
-            value: {pendingFields: {createChat: null}, participants: redundantParticipants},
-        });
-    }
-
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6756,6 +6747,7 @@ function startSplitBill({
     }
 
     const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID}];
+    const redundantParticipants: Record<number, null> = {};
 
     participants.forEach((participant) => {
         // Disabling this line since participant.login can be an empty string
@@ -9249,17 +9241,18 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         // eslint-disable-next-line deprecation/deprecation
         const policy = getPolicy(iouReport?.policyID);
-        const currentUserCanPay = canIOUBePaid(iouReport, chatReport, policy);
-        const currentUserCanApprove = canApproveIOU(iouReport, policy);
 
-        const isCurrentUserExpenseOwner = iouReport?.ownerAccountID === getCurrentUserAccountID();
-        const isCurrentUserManager = iouReport?.managerID === getCurrentUserAccountID();
-        const adjustedCanPay = isCurrentUserExpenseOwner && !isCurrentUserManager ? false : currentUserCanPay;
+        const canPay = canIOUBePaid(iouReport, chatReport, policy);
+        const canApprove = canApproveIOU(iouReport, policy);
 
-        // For submitted expense reports, only show settlement button if user can approve (approval comes first)
-        // For other states, show if user can pay or approve
+        // Don't show settlement button if user is expense owner but not manager
+        const isExpenseOwner = iouReport?.ownerAccountID === getCurrentUserAccountID();
+        const isManager = iouReport?.managerID === getCurrentUserAccountID();
+        const canUserPay = isExpenseOwner && !isManager ? false : canPay;
+
+        // For submitted expense reports, prioritize approval workflow
         const isSubmittedExpenseReport = isExpenseReport(iouReport) && iouReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
-        const shouldShowSettlementButton = isSubmittedExpenseReport ? currentUserCanApprove : adjustedCanPay || currentUserCanApprove;
+        const shouldShowSettlementButton = isSubmittedExpenseReport ? canApprove : canUserPay || canApprove;
 
         return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton;
     });
@@ -11543,7 +11536,7 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
 }
 
 /**
- * Append a new split expense entry to the draft transaction’s splitExpenses array
+ * Append a new split expense entry to the draft transaction's splitExpenses array
  */
 function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, draftTransaction: OnyxEntry<OnyxTypes.Transaction>) {
     if (!transaction || !draftTransaction) {
