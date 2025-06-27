@@ -37128,6 +37128,11 @@ const core_1 = __nccwpck_require__(5850);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const OpenAIUtils_1 = __importDefault(__nccwpck_require__(3956));
+// Duplicated from proposalPoliceComment.ts for now!
+// type AssistantResponse = {
+//     action: typeof CONST.NO_ACTION | typeof CONST.ACTION_REQUIRED;
+//     message: string;
+// };
 async function run() {
     try {
         // Get the GitHub URL input
@@ -37142,7 +37147,7 @@ async function run() {
             throw new Error(`Could not extract issue/PR number from URL: ${githubUrl}`);
         }
         // Make chatGPT request
-        promptAssistant(issueNumber);
+        await promptAssistant(issueNumber);
     }
     catch (error) {
         core.setFailed(error instanceof Error ? error.message : String(error));
@@ -37152,15 +37157,40 @@ async function promptAssistant(issueNumber) {
     const apiKey = (0, core_1.getInput)('TESTRAIL_TRYHARD_OPENAI_API_KEY', { required: true });
     const assistantID = 'asst_7ZKVOjvodqEzb1wkzWlLYpVf';
     const openAI = new OpenAIUtils_1.default(apiKey);
-    const prompt = `aslkdjfalksdjfalksdjfaldj`; // TODO @BEN
-    core.info(`Prompt: ${prompt}`);
-    const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
+    // Fetch the PR diff data
+    const ghDiff = await getPullRequestDiff(issueNumber);
+    core.info(`Prompt: ${ghDiff}`);
+    const assistantResponse = await openAI.promptAssistant(assistantID, ghDiff);
     console.log(' ...parsing ');
     console.log('assistantResponse: ', assistantResponse);
-    // const parsedAssistantResponse = JSON.parse(sanitizeJSONStringValues(assistantResponse)) as AssistantResponse;
-    // console.log('parsedAssistantResponse: ', parsedAssistantResponse);
     // TODO: Later on we will comment response on the PR
     await commentOnGithubPR(issueNumber, assistantResponse);
+}
+async function getPullRequestDiff(pullRequestNumber) {
+    try {
+        // Fetch the list of files changed in the PR with their diffs
+        const filesResponse = await GithubUtils_1.default.octokit.pulls.listFiles({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            pull_number: pullRequestNumber,
+        });
+        // Combine all file patches into a single diff string
+        let combinedDiff = '';
+        for (const file of filesResponse.data) {
+            if (file.patch) {
+                combinedDiff += `--- a/${file.filename}\n`;
+                combinedDiff += `+++ b/${file.filename}\n`;
+                combinedDiff += file.patch;
+                combinedDiff += '\n\n';
+            }
+        }
+        return combinedDiff;
+    }
+    catch (error) {
+        core.warning(`Failed to fetch PR diff: ${error instanceof Error ? error.message : String(error)}`);
+        return '';
+    }
 }
 async function commentOnGithubPR(issueNumber, comment) {
     await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, issueNumber, comment);
