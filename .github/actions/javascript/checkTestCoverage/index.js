@@ -37157,17 +37157,25 @@ async function promptAssistant(issueNumber) {
     const apiKey = (0, core_1.getInput)('TESTRAIL_TRYHARD_OPENAI_API_KEY', { required: true });
     const assistantID = 'asst_7ZKVOjvodqEzb1wkzWlLYpVf';
     const openAI = new OpenAIUtils_1.default(apiKey);
-    // Fetch the PR diff data
-    const ghDiff = await getPullRequestDiff(issueNumber);
-    core.info(`Prompt: ${ghDiff}`);
-    const assistantResponse = await openAI.promptAssistant(assistantID, ghDiff);
+    // Fetch the comprehensive PR data
+    const prData = await getPullRequestData(issueNumber);
+    const prDataString = JSON.stringify(prData, null, 2);
+    core.info(`Prompt: ${prDataString}`);
+    const assistantResponse = await openAI.promptAssistant(assistantID, prDataString);
     console.log(' ...parsing ');
     console.log('assistantResponse: ', assistantResponse);
     // TODO: Later on we will comment response on the PR
     await commentOnGithubPR(issueNumber, assistantResponse);
 }
-async function getPullRequestDiff(pullRequestNumber) {
+async function getPullRequestData(pullRequestNumber) {
     try {
+        // Fetch the PR details (title and description)
+        const prResponse = await GithubUtils_1.default.octokit.pulls.get({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            pull_number: pullRequestNumber,
+        });
         // Fetch the list of files changed in the PR with their diffs
         const filesResponse = await GithubUtils_1.default.octokit.pulls.listFiles({
             owner: CONST_1.default.GITHUB_OWNER,
@@ -37185,11 +37193,19 @@ async function getPullRequestDiff(pullRequestNumber) {
                 combinedDiff += '\n\n';
             }
         }
-        return combinedDiff;
+        return {
+            title: prResponse.data.title,
+            description: prResponse.data.body,
+            diff: combinedDiff,
+        };
     }
     catch (error) {
-        core.warning(`Failed to fetch PR diff: ${error instanceof Error ? error.message : String(error)}`);
-        return '';
+        core.warning(`Failed to fetch PR data: ${error instanceof Error ? error.message : String(error)}`);
+        return {
+            title: '',
+            description: null,
+            diff: '',
+        };
     }
 }
 async function commentOnGithubPR(issueNumber, comment) {

@@ -39,11 +39,12 @@ async function promptAssistant(issueNumber: number): Promise<void> {
     const assistantID = 'asst_7ZKVOjvodqEzb1wkzWlLYpVf';
     const openAI = new OpenAIUtils(apiKey);
 
-    // Fetch the PR diff data
-    const ghDiff = await getPullRequestDiff(issueNumber);
-    core.info(`Prompt: ${ghDiff}`);
+    // Fetch the comprehensive PR data
+    const prData = await getPullRequestData(issueNumber);
+    const prDataString = JSON.stringify(prData, null, 2);
+    core.info(`Prompt: ${prDataString}`);
 
-    const assistantResponse = await openAI.promptAssistant(assistantID, ghDiff);
+    const assistantResponse = await openAI.promptAssistant(assistantID, prDataString);
     console.log(' ...parsing ');
     console.log('assistantResponse: ', assistantResponse);
 
@@ -51,8 +52,20 @@ async function promptAssistant(issueNumber: number): Promise<void> {
     await commentOnGithubPR(issueNumber, assistantResponse);
 }
 
-async function getPullRequestDiff(pullRequestNumber: number): Promise<string> {
+async function getPullRequestData(pullRequestNumber: number): Promise<{
+    title: string;
+    description: string | null;
+    diff: string;
+}> {
     try {
+        // Fetch the PR details (title and description)
+        const prResponse = await GithubUtils.octokit.pulls.get({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            pull_number: pullRequestNumber,
+        });
+
         // Fetch the list of files changed in the PR with their diffs
         const filesResponse = await GithubUtils.octokit.pulls.listFiles({
             owner: CONST.GITHUB_OWNER,
@@ -73,10 +86,18 @@ async function getPullRequestDiff(pullRequestNumber: number): Promise<string> {
             }
         }
 
-        return combinedDiff;
+        return {
+            title: prResponse.data.title,
+            description: prResponse.data.body,
+            diff: combinedDiff,
+        };
     } catch (error) {
-        core.warning(`Failed to fetch PR diff: ${error instanceof Error ? error.message : String(error)}`);
-        return '';
+        core.warning(`Failed to fetch PR data: ${error instanceof Error ? error.message : String(error)}`);
+        return {
+            title: '',
+            description: null,
+            diff: '',
+        };
     }
 }
 
