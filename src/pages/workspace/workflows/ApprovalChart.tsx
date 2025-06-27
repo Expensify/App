@@ -1,52 +1,90 @@
 import mermaid from 'mermaid';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {Platform, View} from 'react-native';
+import {OnyxEntry} from 'react-native-onyx';
 import WebView from 'react-native-webview';
 import {ReactZoomPanPinchContentRef, TransformComponent, TransformWrapper} from 'react-zoom-pan-pinch';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {F1Car, Minus, Plus} from '@components/Icon/Expensicons';
 import colors from '@styles/theme/colors';
+import {Policy, PolicyEmployee} from '@src/types/onyx';
+import Racecar from './Racecar';
+
+type ChartedEmployee = PolicyEmployee & {
+    id?: string;
+    skipped?: boolean;
+};
 
 interface ApprovalChartProps {
+    policy: OnyxEntry<Policy>;
     goBack: () => void;
 }
 
-export default function ApprovalChart({goBack}: ApprovalChartProps) {
-    const [loading, setLoading] = useState(false);
+export default function ApprovalChart({policy, goBack}: ApprovalChartProps) {
+    const chart = useMemo(() => {
+        const employeeList = policy?.employeeList ?? {};
+        const employees = Object.values(employeeList);
 
-    const chart = `
-    graph TD
+        const getNode = (employee: ChartedEmployee, nodeLevel: number) => {
+            const targetEmail = nodeLevel === 0 ? employee?.submitsTo : employee?.forwardsTo;
+            const target = employees.find((e) => e.email === targetEmail);
+            return target ? {...target, id: Math.random().toString(36).slice(2, 8)} : null;
+        };
 
-%% Level 1: submitsTo only
-AmeliaAveo["Amelia Aveo"]:::rounded -->|"submits to"| CarolConvertible_L2["Carol Convertible"]:::rounded
-CarolConvertible_L1["Carol Convertible"]:::rounded -->|"submits to"| ChrisCavalier_L2a["Chris Cavalier"]:::rounded
-ChrisCavalier_L1["Chris Cavalier"]:::rounded -->|"submits to"| LoganDacia_L2a["Logan Dacia"]:::rounded
-ConradCobalt_L1["Conrad Cobalt"]:::rounded -->|"submits to"| DorianDelorean_L2a["Dorian Delorean"]:::rounded
-DorianDelorean_L1["Dorian Delorean"]:::rounded -->|"submits to"| ChrisCavalier_L2b["Chris Cavalier"]:::rounded
-EloiseElantra["Eloise Elantra"]:::rounded -->|"submits to"| ChrisCavalier_L2c["Chris Cavalier"]:::rounded
-JudyJetta["Judy Jetta"]:::rounded -->|"submits to"| RichardReliant_L2a["Richard Reliant"]:::rounded
-LebronJames_L1["Lebron James"]:::rounded -->|"submits to"| RichardReliant_L2b["Richard Reliant"]:::rounded
-LoganDacia_L1["Logan Dacia"]:::rounded -->|"submits to"| RichardReliant_L2c["Richard Reliant"]:::rounded
-MarkMalibu["Mark Malibu"]:::rounded -->|"submits to"| LebronJames_L2a["Lebron James"]:::rounded
-NormanNeon["Norman Neon"]:::rounded -->|"submits to"| LebronJames_L2b["Lebron James"]:::rounded
-PeterPinto["Peter Pinto"]:::rounded -->|"submits to"| VictorVersa_L2["Victor Versa"]:::rounded
-RichardReliant_L1["Richard Reliant"]:::rounded -->|"submits to"| LoganDacia_L2d["Logan Dacia"]:::rounded
-VictorVersa_L1["Victor Versa"]:::rounded -->|"submits to"| LebronJames_L2c["Lebron James"]:::rounded
+        const getNameByEmail = (email: string) => {
+            const name = email.split('@')[0].split('.');
 
-%% Level 2+: forwardsTo only
-CarolConvertible_L2 -.->|"forwards to"| ConradCobalt_L3["Conrad Cobalt"]:::rounded
-ConradCobalt_L3 -.->|"forwards to"| DorianDelorean_L4["Dorian Delorean"]:::rounded
-DorianDelorean_L4 -.->|"forwards to"| ChrisCavalier_L5["Chris Cavalier"]:::rounded
+            let firstName = name[0] ?? '';
+            let lastName = name[1] ?? '';
 
-LebronJames_L2a -.->|"forwards to"| VictorVersa_L3a["Victor Versa"]:::rounded
-VictorVersa_L3a -.->|"forwards to"| AshtonAztek_L4["Ashton Aztek"]:::rounded
-AshtonAztek_L4 -.->|"forwards to"| ChrisCavalier_L5b["Chris Cavalier"]:::rounded
+            firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+            lastName = lastName.charAt(0).toUpperCase() + lastName.slice(1);
 
-RichardReliant_L2b -.->|"forwards to"| LebronJames_L3["Lebron James"]:::rounded
-LoganDacia_L2a -.->|"forwards to"| DorianDelorean_L3a["Dorian Delorean"]:::rounded
-    classDef rounded rx:27,stroke:transparent;
-    `;
+            return {firstName, lastName};
+        };
+
+        let workflows: ChartedEmployee[][] = [];
+
+        for (const employee of employees) {
+            const workflow = [{...employee, skipped: false}];
+            let level = 0;
+            let next = getNode(employee, level);
+
+            while (next && workflow.length < 10) {
+                const isDup = workflow.some((e) => e.email === next?.email);
+                workflow.push({...next, skipped: isDup});
+                level++;
+                next = getNode(next, level);
+            }
+
+            workflows.push(workflow);
+        }
+
+        let chart = `graph TD\nclassDef rounded rx:27,stroke:transparent\nclassDef skipped fill:${colors.white},color:${colors.green},stroke:${colors.green},stroke-width:1px`;
+
+        for (let i = 0; i < workflows.length; i++) {
+            const workflow = workflows[i];
+
+            for (let j = 0; j < workflow.length - 1; j++) {
+                const from = workflow[j];
+                const to = workflow[j + 1];
+
+                if (!to) continue;
+
+                const fromName = getNameByEmail(from.email ?? '');
+                const toName = getNameByEmail(to?.email ?? '');
+
+                const action = j === 0 ? 'submits to' : 'forwards to';
+                const skipped = from.skipped ? '(skipped)' : '';
+                const className = from.skipped ? 'skipped' : 'rounded';
+
+                chart += `\n${from.id}["${fromName.firstName} ${fromName.lastName} ${skipped}"]:::${className} -->|"${action}"| ${to.id}["${toName.firstName} ${toName.lastName}"]:::rounded`;
+            }
+        }
+
+        return chart;
+    }, [policy?.employeeList]);
 
     return (
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', position: 'relative'}}>
@@ -56,9 +94,8 @@ LoganDacia_L2a -.->|"forwards to"| DorianDelorean_L3a["Dorian Delorean"]:::round
                 style={{zIndex: 50}}
             />
 
-            {loading && <LoadingState />}
-            {!loading && Platform.OS === 'web' && <ApprovalChartWeb chart={chart} />}
-            {!loading && Platform.OS !== 'web' && <ApprovalChartMobile chart={chart} />}
+            {Platform.OS === 'web' && <ApprovalChartWeb chart={chart} />}
+            {Platform.OS !== 'web' && <ApprovalChartMobile chart={chart} />}
         </View>
     );
 }
@@ -177,7 +214,7 @@ function ApprovalChartMobile({chart}: ChartViewProps) {
 function LoadingState() {
     return (
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-            <F1Car />
+            <Racecar />
         </View>
     );
 }

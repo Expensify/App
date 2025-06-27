@@ -390,7 +390,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
-            {viewingApprovalChart && <ApprovalChart goBack={() => setViewingApprovalChart(false)} />}
+            {viewingApprovalChart && (
+                <ApprovalChart
+                    policy={policy}
+                    goBack={() => setViewingApprovalChart(false)}
+                />
+            )}
 
             {!viewingApprovalChart && (
                 <WorkspacePageWithSections
