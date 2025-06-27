@@ -80,9 +80,6 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** Precomputed violations */
     violations?: TransactionViolation[];
-
-    /** Used to initiate payment from search page */
-    hash?: number;
 };
 
 type TransactionItemRowProps = {
@@ -280,9 +277,6 @@ function TransactionItemRow({
                             parentAction={transactionItem.parentTransactionID}
                             goToItem={onButtonPress}
                             isLoading={isActionLoading}
-                            reportID={transactionItem.reportID}
-                            hash={transactionItem.hash}
-                            amount={transactionItem.amount}
                         />
                     )}
                 </View>

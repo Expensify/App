@@ -1,11 +1,10 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {LastPaymentMethod, LastPaymentMethodType, OnyxInputOrEntry, PersonalDetails, Report} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, Report} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
@@ -19,12 +18,6 @@ let lastLocationPermissionPrompt: string;
 Onyx.connect({
     key: ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT,
     callback: (val) => (lastLocationPermissionPrompt = val ?? ''),
-});
-
-let lastUsedPaymentMethods: OnyxEntry<LastPaymentMethod>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-    callback: (value) => (lastUsedPaymentMethods = value),
 });
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
@@ -223,14 +216,6 @@ function shouldStartLocationPermissionFlow() {
     );
 }
 
-function getLastUsedPaymentMethod(policyID?: string): LastPaymentMethodType | undefined {
-    if (!policyID) {
-        return;
-    }
-
-    return lastUsedPaymentMethods?.[policyID] as LastPaymentMethodType;
-}
-
 export {
     calculateAmount,
     insertTagIntoTransactionTagsString,
@@ -243,5 +228,4 @@ export {
     formatCurrentUserToAttendee,
     shouldStartLocationPermissionFlow,
     navigateToParticipantPage,
-    getLastUsedPaymentMethod,
 };

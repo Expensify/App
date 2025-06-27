@@ -50,8 +50,6 @@ function ButtonWithDropdownMenu<IValueType>({
     testID,
     secondLineText = '',
     icon,
-    shouldPopoverUseScrollView = false,
-    containerStyles,
     shouldUseModalPaddingStyle = true,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
@@ -74,10 +72,6 @@ function ButtonWithDropdownMenu<IValueType>({
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
     const nullCheckRef = (ref: RefObject<View | null>) => ref ?? null;
-
-    useEffect(() => {
-        setSelectedItemIndex(defaultSelectedIndex);
-    }, [defaultSelectedIndex]);
 
     useEffect(() => {
         if (!dropdownAnchor.current) {
@@ -238,27 +232,18 @@ function ButtonWithDropdownMenu<IValueType>({
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     // eslint-disable-next-line react-compiler/react-compiler
                     anchorRef={nullCheckRef(dropdownAnchor)}
+                    withoutOverlay
+                    shouldUseScrollView
                     scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && styles.pv4}
-                    anchorAlignment={anchorAlignment}
                     shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
+                    anchorAlignment={anchorAlignment}
                     headerText={menuHeaderText}
-                    shouldUseScrollView={shouldPopoverUseScrollView}
-                    containerStyles={containerStyles}
                     menuItems={options.map((item, index) => ({
                         ...item,
                         onSelected: item.onSelected
-                            ? () => {
-                                  item.onSelected?.();
-                                  if (item.shouldUpdateSelectedIndex) {
-                                      setSelectedItemIndex(index);
-                                  }
-                              }
+                            ? () => item.onSelected?.()
                             : () => {
                                   onOptionSelected?.(item);
-                                  if (!item.shouldUpdateSelectedIndex && typeof item.shouldUpdateSelectedIndex === 'boolean') {
-                                      return;
-                                  }
-
                                   setSelectedItemIndex(index);
                               },
                         shouldCallAfterModalHide: true,
