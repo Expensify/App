@@ -108,6 +108,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList() {
                                     title={selectedCustomDate?.toString()}
                                     description={translate('workspace.companyCards.customCloseDate')}
                                     onPress={() => setIsChoosingCustomDate(true)}
+                                    viewMode={CONST.OPTION_MODE.COMPACT}
                                 />
                             )}
                         </View>
