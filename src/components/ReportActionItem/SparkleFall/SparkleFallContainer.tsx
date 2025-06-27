@@ -7,13 +7,13 @@ import FallingSparkle, {FallingSparkleProps} from './FallingSparkle';
 
 interface SparkleFallContainerProps {}
 
-const VX_SPREAD = 1;
-const VY_SPREAD = 100;
-const DELAY_SPREAD = 4;
-const DELAY_MULTIPLIER = 5;
-const X0_SPREAD = 100;
-const SCREEN_HEIGHT_DENOMINATOR = 5;
-const SPARKLE_COUNT = 100;
+const VX_SPREAD = 3;
+const VY_SPREAD = 50;
+const DELAY_SPREAD = 500;
+const DELAY_MULTIPLIER = 0.1;
+const X0_SPREAD = 0;
+const SCREEN_HEIGHT_DENOMINATOR = 4;
+const SPARKLE_COUNT = 70;
 const createSparkles = (count: number) => {
     const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
 
@@ -29,11 +29,9 @@ const createSparkles = (count: number) => {
     }));
 };
 
-const COLORS = [colors.tangerine500, colors.pink500, colors.ice500];
+const COLORS = [colors.pink300, colors.pink400, colors.pink500]
 
 function SparkleFallContainer({}: SparkleFallContainerProps) {
-    const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
-
     const [sparkles, setSparkles] = useState<FallingSparkleProps[]>([]);
     const [animKey, setAnimKey] = useState(0);
 
@@ -45,7 +43,6 @@ function SparkleFallContainer({}: SparkleFallContainerProps) {
     return (
         <View style={{position: 'absolute', top: 100, left: 0}}>
             <Button
-                id="chuck"
                 success
                 onPress={onStart}
             >

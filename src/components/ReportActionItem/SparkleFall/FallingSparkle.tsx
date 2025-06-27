@@ -1,7 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react';
 import Animated, {SensorType, useAnimatedSensor, useAnimatedStyle, useFrameCallback, useSharedValue} from 'react-native-reanimated';
 import Icon from '@components/Icon';
-import {Star} from '@components/Icon/Expensicons';
+import {Star, Sparkle} from '@components/Icon/Expensicons';
+import {Text} from 'react-native';
 
 export interface FallingSparkleProps {
     id: number;
@@ -52,11 +53,11 @@ function FallingSparkle({initialPosition, initialVelocity, color, delay, id}: Fa
 
     return (
         <Animated.View style={[style, {position: 'absolute'}]}>
-            {isActive && (
+            {(
                 <Icon
                     fill={color}
-                    src={Star}
-                    small
+                    src={Sparkle}
+                    large
                 />
             )}
         </Animated.View>
