@@ -83,8 +83,13 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             return;
         }
 
+        if (!onboardingValues?.isMergeAccountStepSkipped) {
+            Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+            return;
+        }
+
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-    }, [onboardingValues?.shouldValidate, isVsb, isSmb, isFocused, onboardingValues?.isMergeAccountStepCompleted]);
+    }, [onboardingValues?.shouldValidate, isVsb, isSmb, isFocused, onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.isMergeAccountStepSkipped]);
 
     const submitWorkEmail = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL]);
@@ -165,20 +170,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                                 onPress={() => {
                                     setOnboardingErrorMessage('');
 
-                                    setOnboardingMergeAccountStepValue(true);
-                                    // Once we skip the private email step, we need to force replace the screen
-                                    // so that we don't navigate back on back button press
-                                    if (isVsb) {
-                                        Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
-                                        return;
-                                    }
-
-                                    if (isSmb) {
-                                        Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
-                                        return;
-                                    }
-
-                                    Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+                                    setOnboardingMergeAccountStepValue(true, true);
                                 }}
                             />
                         </OfflineWithFeedback>
