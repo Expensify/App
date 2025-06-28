@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text, View} from 'react-native';
@@ -31,6 +31,7 @@ import {
     getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
+    getLeaveRoomMessage,
     getMemberChangeMessageFragment,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
@@ -46,6 +47,8 @@ import {
     getReopenedMessage,
     getReportActionMessageText,
     getTagListNameUpdatedMessage,
+    getTagListUpdatedMessage,
+    getTagListUpdatedRequiredMessage,
     getTravelUpdateMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
@@ -159,7 +162,7 @@ type ShouldShow = (args: {
     reportAction: OnyxEntry<ReportAction>;
     isArchivedRoom: boolean;
     betas: OnyxEntry<Beta[]>;
-    menuTarget: MutableRefObject<ContextMenuAnchor> | undefined;
+    menuTarget: RefObject<ContextMenuAnchor> | undefined;
     isChronosReport: boolean;
     reportID?: string;
     isPinnedChat: boolean;
@@ -184,12 +187,12 @@ type ContextMenuActionPayload = {
     transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
-    anchor?: MutableRefObject<HTMLDivElement | View | Text | null>;
+    anchor?: RefObject<HTMLDivElement | View | Text | null>;
     checkIfContextMenuActive?: () => void;
-    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => void;
+    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>) => void;
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
     setIsEmojiPickerActive?: (state: boolean) => void;
-    anchorRef?: MutableRefObject<View | null>;
+    anchorRef?: RefObject<View | null>;
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
 };
@@ -534,8 +537,16 @@ const ContextMenuActions: ContextMenuAction[] = [
                     reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME
                 ) {
                     Clipboard.setString(getWorkspaceCategoryUpdateMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_TAGS) {
+                    Clipboard.setString(translateLocal('workspaceActions.importTags'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_ALL_TAGS) {
+                    Clipboard.setString(translateLocal('workspaceActions.deletedAllTags'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME) {
                     Clipboard.setString(getCleanedTagName(getTagListNameUpdatedMessage(reportAction)));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST) {
+                    Clipboard.setString(getCleanedTagName(getTagListUpdatedMessage(reportAction)));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED) {
+                    Clipboard.setString(getCleanedTagName(getTagListUpdatedRequiredMessage(reportAction)));
                 } else if (isTagModificationAction(reportAction.actionName)) {
                     Clipboard.setString(getCleanedTagName(getWorkspaceTagUpdateMessage(reportAction)));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT) {
@@ -663,6 +674,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionableJoinRequest(reportAction)) {
                     const displayMessage = getJoinRequestMessage(reportAction);
                     Clipboard.setString(displayMessage);
+                } else if (
+                    reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM ||
+                    reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM
+                ) {
+                    Clipboard.setString(getLeaveRoomMessage());
                 } else if (content) {
                     setClipboardMessage(
                         content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
