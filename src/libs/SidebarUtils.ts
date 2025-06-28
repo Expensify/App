@@ -205,7 +205,6 @@ function shouldDisplayReportInLHN(
     currentReportId: string | undefined,
     isInFocusMode: boolean,
     betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<PartialPolicyForSidebar>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
@@ -259,7 +258,6 @@ function shouldDisplayReportInLHN(
         currentReportId,
         isInFocusMode,
         betas,
-        policies: policies as OnyxCollection<Policy>,
         excludeEmptyChats: true,
         doesReportHaveViolations,
         includeSelfDM: true,
@@ -294,7 +292,6 @@ function getReportsToDisplayInLHN(
             currentReportId,
             isInFocusMode,
             betas,
-            policies,
             transactionViolations,
             reportNameValuePairs,
             reportAttributes,
@@ -333,7 +330,6 @@ function updateReportsToDisplayInLHN(
             currentReportId,
             isInFocusMode,
             betas,
-            policies,
             transactionViolations,
             reportNameValuePairs,
             reportAttributes,
@@ -395,7 +391,7 @@ function sortReportsToDisplayInLHN(
             errorReports.push(miniReport);
         } else if (hasValidDraftComment(report?.reportID)) {
             draftReports.push(miniReport);
-        } else if (isArchivedNonExpenseReport(report, rNVPs)) {
+        } else if (isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived)) {
             archivedReports.push(miniReport);
         } else {
             nonArchivedReports.push(miniReport);
