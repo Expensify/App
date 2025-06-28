@@ -10,7 +10,6 @@ import {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type {CompanyCardStatementCloseDate} from '@src/types/onyx/CardFeeds';
 import CustomCloseDateSelectionList from './CustomCloseDateSelectionList';
@@ -22,9 +21,10 @@ type StatementCloseDateListItem = ListItem & {
 type WorkspaceCompanyCardStatementCloseDateSelectionListProps = {
     confirmText: string;
     onSubmit: (statementCloseDate: CompanyCardStatementCloseDate, statementCustomCloseDate: number | undefined) => void;
+    onBackButtonPress: () => void;
 };
 
-function WorkspaceCompanyCardStatementCloseDateSelectionList({confirmText, onSubmit}: WorkspaceCompanyCardStatementCloseDateSelectionListProps) {
+function WorkspaceCompanyCardStatementCloseDateSelectionList({confirmText, onSubmit, onBackButtonPress}: WorkspaceCompanyCardStatementCloseDateSelectionListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -45,8 +45,8 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({confirmText, onSub
             return;
         }
 
-        Navigation.goBack();
-    }, [isChoosingCustomDate]);
+        onBackButtonPress();
+    }, [isChoosingCustomDate, onBackButtonPress]);
 
     const selectDateAndClearError = useCallback((item: StatementCloseDateListItem) => {
         setSelectedDate(item.value);

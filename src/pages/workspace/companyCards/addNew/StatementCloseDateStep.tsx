@@ -2,8 +2,9 @@ import React, {useCallback} from 'react';
 import useOnyx from 'react-native-onyx/dist/useOnyx';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
-import {addNewCompanyCardsFeed} from '@libs/actions/CompanyCards';
+import {addNewCompanyCardsFeed, setAddNewCompanyCardStepAndData} from '@libs/actions/CompanyCards';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {CompanyCardStatementCloseDate} from '@src/types/onyx/CardFeeds';
@@ -36,10 +37,15 @@ function StatementCloseDateStep({policyID}: StatementCloseDateStepProps) {
         [policyID, addNewCard, cardFeeds, lastSelectedFeed],
     );
 
+    const goBack = useCallback(() => {
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_DETAILS});
+    }, []);
+
     return (
         <WorkspaceCompanyCardStatementCloseDateSelectionList
             confirmText={translate('common.submit')}
             onSubmit={submit}
+            onBackButtonPress={goBack}
         />
     );
 }

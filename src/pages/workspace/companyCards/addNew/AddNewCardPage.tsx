@@ -84,9 +84,9 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             return <AmexCustomFeed />;
         case CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION:
             return <PlaidConnectionStep />;
-        default:
-            // s77rt test
+        case CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE:
             return <StatementCloseDateStep policyID={policyID} />;
+        default:
             return isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
     }
 }

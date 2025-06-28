@@ -3404,6 +3404,7 @@ const CONST = {
             AMEX_CUSTOM_FEED: 'AmexCustomFeed',
             SELECT_COUNTRY: 'SelectCountry',
             PLAID_CONNECTION: 'PlaidConnection',
+            SELECT_STATEMENT_CLOSE_DATE: 'SelectStatementCloseDate',
         },
         CARD_TYPE: {
             AMEX: 'amex',
