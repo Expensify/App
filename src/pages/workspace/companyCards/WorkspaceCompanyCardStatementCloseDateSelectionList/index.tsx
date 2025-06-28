@@ -95,6 +95,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({confirmText, onSub
                         <View>
                             {Object.values(CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE)?.map((option) => (
                                 <SingleSelectListItem
+                                    wrapperStyle={[styles.flexReset]}
                                     key={option}
                                     showTooltip
                                     item={{
