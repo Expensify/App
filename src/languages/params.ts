@@ -142,6 +142,10 @@ type BusinessBankAccountParams = {
     last4Digits: string;
 };
 
+type PhoneErrorRouteParams = {
+    phoneErrorMethodsRoute: string;
+};
+
 type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
@@ -1063,5 +1067,6 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    PhoneErrorRouteParams,
     BusinessTaxIDParams,
 };
