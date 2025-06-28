@@ -3349,7 +3349,7 @@ describe('ReportUtils', () => {
             expect(result).toBe("Ragnar Lothbrok's expenses");
         });
 
-        it('should return the report name if present when the chat type is self dm', async () => {
+        it('should return the report name if present when the chat type is self dm', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
