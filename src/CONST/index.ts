@@ -621,7 +621,7 @@ const CONST = {
     },
     BETAS: {
         ALL: 'all',
-        AUTO_SUBMIT: 'autoSubmit',
+        ASAP_SUBMIT: 'asapSubmit',
         DEFAULT_ROOMS: 'defaultRooms',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
