@@ -18083,10 +18083,20 @@ index 0000000..b49950e
 +]
 \ No newline at end of file
 diff --git a/node_modules/@expensify/react-native-live-markdown/android/build.gradle b/node_modules/@expensify/react-native-live-markdown/android/build.gradle
-index 01824d2..f96cc6a 100644
+index 01824d2..a425124 100644
 --- a/node_modules/@expensify/react-native-live-markdown/android/build.gradle
 +++ b/node_modules/@expensify/react-native-live-markdown/android/build.gradle
-@@ -162,6 +162,10 @@ android {
+@@ -93,7 +93,8 @@ android {
+       cmake {
+         arguments "-DANDROID_STL=c++_shared",
+           "-DANDROID_TOOLCHAIN=clang",
+-          "-DREACT_NATIVE_MINOR_VERSION=${REACT_NATIVE_MINOR_VERSION}"
++          "-DREACT_NATIVE_MINOR_VERSION=${REACT_NATIVE_MINOR_VERSION}",
++          "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+         abiFilters (*reactNativeArchitectures())
+       }
+     }
+@@ -162,6 +163,10 @@ android {
        "**/libreact_render*.so",
        "**/librrc_root.so",
      ]
