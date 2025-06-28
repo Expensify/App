@@ -41,7 +41,7 @@ function init() {
                     };
                     derivedValue = compute(dependencyValues, initialContext);
                     dependencyValues = values;
-                    Onyx.set(key, derivedValue ?? null);
+                    Onyx.set(key, derivedValue ?? null, {skipNullValuesCheck: true});
                 });
             }
 
@@ -82,7 +82,7 @@ function init() {
                 const newDerivedValue = compute(dependencyValues, context);
                 Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
                 derivedValue = newDerivedValue;
-                Onyx.set(key, derivedValue ?? null);
+                Onyx.set(key, derivedValue ?? null, {skipNullValuesCheck: false});
             };
 
             for (let i = 0; i < dependencies.length; i++) {
