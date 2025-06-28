@@ -4,11 +4,11 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import {addNewCompanyCardsFeed, setAddNewCompanyCardStepAndData} from '@libs/actions/CompanyCards';
 import Navigation from '@libs/Navigation/Navigation';
+import WorkspaceCompanyCardStatementCloseDateSelectionList from '@pages/workspace/companyCards/WorkspaceCompanyCardStatementCloseDateSelectionList';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {CompanyCardStatementCloseDate} from '@src/types/onyx/CardFeeds';
-import WorkspaceCompanyCardStatementCloseDateSelectionList from '../WorkspaceCompanyCardStatementCloseDateSelectionList';
+import type {CompanyCardStatementCloseDate} from '@src/types/onyx/CardFeeds';
 
 type StatementCloseDateStepProps = {
     /** ID of the current policy */
@@ -27,7 +27,7 @@ function StatementCloseDateStep({policyID}: StatementCloseDateStepProps) {
         // s77rt make use of statementCloseDate / statementCustomCloseDate and remove disable lint rule
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         (statementCloseDate: CompanyCardStatementCloseDate, statementCustomCloseDate: number | undefined) => {
-            if (!addNewCard?.data) {
+            if (!addNewCard?.data.feedDetails) {
                 return;
             }
 

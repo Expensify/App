@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
-import {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -69,7 +69,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({confirmText, onSub
         }
 
         onSubmit(selectedDate, selectedDate === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH ? selectedCustomDate : undefined);
-    }, [selectedDate, selectedCustomDate, onSubmit]);
+    }, [selectedDate, selectedCustomDate, onSubmit, translate]);
 
     return (
         <ScreenWrapper
