@@ -4070,6 +4070,11 @@ const translations = {
                     pleaseSelectFeedType: 'Selecteer een feedtype voordat u doorgaat.',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Laatste dag van de maand',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Laatste werkdag van de maand',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Aangepaste dag van de maand',
+            },
             assignCard: 'Kaart toewijzen',
             findCard: 'Kaart vinden',
             cardNumber: 'Kaartnummer',
@@ -4086,6 +4091,7 @@ const translations = {
             startDateDescription: 'We importeren alle transacties vanaf deze datum. Als er geen datum is opgegeven, gaan we zo ver terug als uw bank toestaat.',
             fromTheBeginning: 'Vanaf het begin',
             customStartDate: 'Aangepaste startdatum',
+            customCloseDate: 'Aangepaste sluitingsdatum',
             letsDoubleCheck: 'Laten we dubbel controleren of alles er goed uitziet.',
             confirmationDescription: 'We beginnen onmiddellijk met het importeren van transacties.',
             cardholder: 'Kaart houder',
@@ -4310,6 +4316,7 @@ const translations = {
                 removeCardFeedDescription: 'Weet je zeker dat je deze kaartfeed wilt verwijderen? Dit zal alle kaarten deactiveren.',
                 error: {
                     feedNameRequired: 'Naam van de kaartfeed is vereist',
+                    statementCloseDateRequired: 'Selecteer een datum waarop het afschrift moet worden gesloten.',
                 },
                 corporate: 'Beperk het verwijderen van transacties',
                 personal: 'Verwijderen van transacties toestaan',
@@ -4334,6 +4341,8 @@ const translations = {
                 expensifyCardBannerTitle: 'Verkrijg de Expensify Card',
                 expensifyCardBannerSubtitle: 'Geniet van cashback op elke aankoop in de VS, tot 50% korting op je Expensify-rekening, onbeperkte virtuele kaarten en nog veel meer.',
                 expensifyCardBannerLearnMoreButton: 'Meer informatie',
+                statementCloseDateTitle: 'Datum waarop rekeningafschrift wordt gesloten',
+                statementCloseDateDescription: 'Laat ons weten wanneer je rekeningafschrift wordt gesloten, dan maken we een bijpassend rekeningafschrift in Expensify.',
             },
             workflows: {
                 title: 'Workflows',

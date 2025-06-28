@@ -4071,6 +4071,11 @@ const translations = {
                     pleaseSelectFeedType: 'Si prega di selezionare un tipo di feed prima di continuare',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Ultimo giorno del mese',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Ultimo giorno lavorativo del mese',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Giorno del mese personalizzato',
+            },
             assignCard: 'Assegna carta',
             findCard: 'Trova carta',
             cardNumber: 'Numero di carta',
@@ -4088,6 +4093,7 @@ const translations = {
                 'Importeremo tutte le transazioni da questa data in poi. Se non viene specificata alcuna data, risaliremo indietro fino a quanto consentito dalla tua banca.',
             fromTheBeginning: "Dall'inizio",
             customStartDate: 'Data di inizio personalizzata',
+            customCloseDate: 'Data di chiusura personalizzata',
             letsDoubleCheck: 'Verifichiamo che tutto sia corretto.',
             confirmationDescription: 'Inizieremo immediatamente a importare le transazioni.',
             cardholder: 'Titolare della carta',
@@ -4311,6 +4317,7 @@ const translations = {
                 removeCardFeedDescription: 'Sei sicuro di voler rimuovere questo feed di carte? Questo disassegnerà tutte le carte.',
                 error: {
                     feedNameRequired: 'Il nome del feed della carta è obbligatorio',
+                    statementCloseDateRequired: "Selezionare una data di chiusura dell'estratto conto",
                 },
                 corporate: "Limita l'eliminazione delle transazioni",
                 personal: "Consenti l'eliminazione delle transazioni",
@@ -4337,6 +4344,8 @@ const translations = {
                 expensifyCardBannerSubtitle:
                     'Goditi il cashback su ogni acquisto negli Stati Uniti, fino al 50% di sconto sulla tua fattura Expensify, carte virtuali illimitate e molto altro ancora.',
                 expensifyCardBannerLearnMoreButton: 'Scopri di più',
+                statementCloseDateTitle: "Data di chiusura dell'estratto conto",
+                statementCloseDateDescription: "Comunicateci la data di chiusura dell'estratto conto della vostra carta e creeremo un estratto conto corrispondente in Expensify",
             },
             workflows: {
                 title: 'Flussi di lavoro',

@@ -4057,6 +4057,11 @@ const translations = {
                     pleaseSelectFeedType: 'Proszę wybrać typ kanału przed kontynuowaniem.',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Último dia do mês',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Último dia útil do mês',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Dia personalizado do mês',
+            },
             assignCard: 'Przypisz kartę',
             findCard: 'Znajdź kartę',
             cardNumber: 'Numer karty',
@@ -4073,6 +4078,7 @@ const translations = {
             startDateDescription: 'Zaimportujemy wszystkie transakcje od tej daty. Jeśli nie określono daty, sięgniemy tak daleko wstecz, jak pozwala na to Twój bank.',
             fromTheBeginning: 'Od początku',
             customStartDate: 'Niestandardowa data rozpoczęcia',
+            customCloseDate: 'Data de fecho personalizada',
             letsDoubleCheck: 'Sprawdźmy jeszcze raz, czy wszystko wygląda dobrze.',
             confirmationDescription: 'Natychmiast rozpoczniemy importowanie transakcji.',
             cardholder: 'Posiadacz karty',
@@ -4296,6 +4302,7 @@ const translations = {
                 removeCardFeedDescription: 'Czy na pewno chcesz usunąć ten kanał kart? Spowoduje to odłączenie wszystkich kart.',
                 error: {
                     feedNameRequired: 'Nazwa kanału karty jest wymagana',
+                    statementCloseDateRequired: 'Por favor, selecione uma data de fecho do extrato',
                 },
                 corporate: 'Ogranicz usuwanie transakcji',
                 personal: 'Zezwól na usuwanie transakcji',
@@ -4322,6 +4329,8 @@ const translations = {
                 expensifyCardBannerSubtitle:
                     'Ciesz się zwrotem gotówki przy każdym zakupie w USA, do 50% zniżki na rachunek Expensify, nielimitowanymi kartami wirtualnymi i wieloma innymi korzyściami.',
                 expensifyCardBannerLearnMoreButton: 'Dowiedz się więcej',
+                statementCloseDateTitle: 'Data de fecho do extrato',
+                statementCloseDateDescription: 'Informe-nos quando o extrato do seu cartão fecha e criaremos um extrato correspondente na Expensify',
             },
             workflows: {
                 title: 'Przepływy pracy',

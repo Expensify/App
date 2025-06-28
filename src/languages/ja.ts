@@ -4040,6 +4040,11 @@ const translations = {
                     pleaseSelectFeedType: '続行する前にフィードタイプを選択してください',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '月の最終日',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: '月の最終営業日',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'カスタム月日',
+            },
             assignCard: 'カードを割り当てる',
             findCard: 'カードを探す',
             cardNumber: 'カード番号',
@@ -4056,6 +4061,7 @@ const translations = {
             startDateDescription: 'この日付以降のすべての取引をインポートします。日付が指定されていない場合は、銀行が許可する限り遡ります。',
             fromTheBeginning: '最初から',
             customStartDate: 'カスタム開始日',
+            customCloseDate: 'カスタムクローズ日',
             letsDoubleCheck: 'すべてが正しいかどうかをもう一度確認しましょう。',
             confirmationDescription: 'すぐに取引のインポートを開始します。',
             cardholder: 'カードホルダー',
@@ -4278,6 +4284,7 @@ const translations = {
                 removeCardFeedDescription: 'このカードフィードを削除してもよろしいですか？これにより、すべてのカードの割り当てが解除されます。',
                 error: {
                     feedNameRequired: 'カードフィード名は必須です',
+                    statementCloseDateRequired: '明細書の締め日を選択してください。',
                 },
                 corporate: '取引の削除を制限する',
                 personal: '取引の削除を許可',
@@ -4302,6 +4309,8 @@ const translations = {
                 expensifyCardBannerTitle: 'Expensifyカードを取得する',
                 expensifyCardBannerSubtitle: 'すべての米国での購入でキャッシュバックを楽しみ、Expensifyの請求書が最大50%オフ、無制限のバーチャルカードなど、さらに多くの特典があります。',
                 expensifyCardBannerLearnMoreButton: '詳細を確認',
+                statementCloseDateTitle: '利用明細書の締め日',
+                statementCloseDateDescription: 'カード利用明細書の締め日をお知らせいただければ、Expensifyで一致する明細書を作成します。',
             },
             workflows: {
                 title: 'ワークフロー',
