@@ -20,6 +20,30 @@ type CardFeedProvider =
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
 
+/** Card feed details */
+type CardFeedDetails = {
+    /** Card title */
+    cardTitle?: string;
+
+    /** Processor ID */
+    processorID?: string;
+
+    /** Financial institution (bank) ID */
+    bankID?: string;
+
+    /** Financial institution (bank) name */
+    bankName?: string;
+
+    /** Company ID */
+    companyID?: string;
+
+    /** Distribution ID */
+    distributionID?: string;
+
+    /** Delivery file name */
+    deliveryFileName: string;
+};
+
 /** Custom card feed data */
 type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether any actions are pending */
@@ -106,8 +130,8 @@ type AddNewCardFeedData = {
     /** Card feed provider */
     feedType: CardFeedProvider;
 
-    /** Stringified card feed details */
-    feedDetails: string;
+    /** Card feed details */
+    feedDetails: CardFeedDetails;
 
     /** Name of the card */
     cardTitle: string;
@@ -164,6 +188,7 @@ export type {
     AddNewCompanyCardFeed,
     AddNewCardFeedData,
     CompanyCardFeed,
+    CardFeedDetails,
     DirectCardFeedData,
     CardFeedProvider,
     CardFeedData,

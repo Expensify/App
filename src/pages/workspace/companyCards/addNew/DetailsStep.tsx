@@ -56,12 +56,10 @@ function DetailsStep({policyID}: DetailsStepProps) {
             return;
         }
 
-        const feedDetails = Object.entries({
+        const feedDetails = {
             ...values,
             bankName: addNewCard.data.bankName ?? 'Amex',
-        })
-            .map(([key, value]) => `${key}: ${value}`)
-            .join(', ');
+        };
 
         if (shouldSelectStatementCloseDate) {
             setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE, data: {feedDetails}});
