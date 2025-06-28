@@ -577,7 +577,7 @@ function SettlementButton({
                     style={style}
                     shouldPopoverUseScrollView={paymentButtonOptions.length > 5}
                     containerStyles={paymentButtonOptions.length > 5 ? styles.settlementButtonListContainer : {}}
-                    wrapperStyle={[wrapperStyle, shouldUseShortForm && shouldUseSplitButton ? {minWidth: 100} : {}]}
+                    wrapperStyle={[wrapperStyle, shouldUseShortForm && shouldUseSplitButton ? {minWidth: 90} : {}]}
                     disabledStyle={disabledStyle}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
