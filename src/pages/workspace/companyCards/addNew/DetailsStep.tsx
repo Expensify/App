@@ -215,7 +215,6 @@ function DetailsStep({policyID}: DetailsStepProps) {
                 onSubmit={submit}
                 validate={validate}
                 style={[styles.mh5, styles.flexGrow1]}
-                enabledWhenOffline
                 shouldHideFixErrorsAlert={feedProvider !== CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}
                 addBottomSafeAreaPadding
             >

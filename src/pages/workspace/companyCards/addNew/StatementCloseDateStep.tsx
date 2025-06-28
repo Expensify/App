@@ -46,6 +46,7 @@ function StatementCloseDateStep({policyID}: StatementCloseDateStepProps) {
             confirmText={translate('common.submit')}
             onSubmit={submit}
             onBackButtonPress={goBack}
+            enabledWhenOffline={false}
         />
     );
 }

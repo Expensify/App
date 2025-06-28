@@ -22,9 +22,10 @@ type WorkspaceCompanyCardStatementCloseDateSelectionListProps = {
     confirmText: string;
     onSubmit: (statementCloseDate: CompanyCardStatementCloseDate, statementCustomCloseDate: number | undefined) => void;
     onBackButtonPress: () => void;
+    enabledWhenOffline: boolean;
 };
 
-function WorkspaceCompanyCardStatementCloseDateSelectionList({confirmText, onSubmit, onBackButtonPress}: WorkspaceCompanyCardStatementCloseDateSelectionListProps) {
+function WorkspaceCompanyCardStatementCloseDateSelectionList({confirmText, onSubmit, onBackButtonPress, enabledWhenOffline}: WorkspaceCompanyCardStatementCloseDateSelectionListProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -126,7 +127,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({confirmText, onSub
                         <FormAlertWithSubmitButton
                             buttonText={confirmText}
                             onSubmit={submit}
-                            enabledWhenOffline
+                            enabledWhenOffline={enabledWhenOffline}
                         />
                     </View>
                 </>
