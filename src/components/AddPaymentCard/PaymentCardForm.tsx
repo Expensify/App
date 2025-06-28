@@ -198,7 +198,10 @@ function PaymentCardForm({
             errors.cardNumber = translate(label.error.cardNumber);
         }
 
-        if (values.expirationDate && !isValidExpirationDate(values.expirationDate)) {
+        // When user pastes 5 digit value without slash, trim it to the first 4 digits before validation.
+        const normalizedExpirationDate = values.expirationDate?.length === 5 && !values.expirationDate.includes('/') ? values.expirationDate.slice(0, 4) : values.expirationDate;
+
+        if (normalizedExpirationDate && !isValidExpirationDate(normalizedExpirationDate)) {
             errors.expirationDate = translate(label.error.expirationDate);
         }
 
