@@ -601,7 +601,10 @@ function MoneyRequestReportActionsList({
                             report={report}
                             policy={policy}
                         />
-                        <SearchMoneyRequestReportEmptyState />
+                        <SearchMoneyRequestReportEmptyState
+                            reportId={report.reportID}
+                            policy={policy}
+                        />
                     </>
                 ) : (
                     <FlatList
@@ -630,6 +633,7 @@ function MoneyRequestReportActionsList({
                                     hasComments={reportHasComments}
                                     isLoadingInitialReportActions={showReportActionsLoadingState}
                                     scrollToNewTransaction={scrollToNewTransaction}
+                                    policy={policy}
                                 />
                             </>
                         }
