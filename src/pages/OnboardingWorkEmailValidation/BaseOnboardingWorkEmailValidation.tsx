@@ -40,6 +40,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, {canBeMissing: true});
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
     const isFocused = useIsFocused();
+    const backTo = Navigation.getActiveRoute();
 
     useEffect(() => {
         if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
@@ -53,7 +54,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         // Once we verify that shouldValidate is false, we need to force replace the screen
         // so that we don't navigate back on back button press
         if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(backTo), {forceReplace: true});
             return;
         }
 
@@ -111,7 +112,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                         onPress={() => {
                             setOnboardingErrorMessage('');
                             if (isVsb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(backTo));
                                 return;
                             }
                             Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
@@ -135,7 +136,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                             // Once we skip the private email step, we need to force replace the screen
                             // so that we don't navigate back on back button press
                             if (isVsb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
+                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(backTo), {forceReplace: true});
                                 return;
                             }
 

@@ -56,6 +56,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const ICON_SIZE = 48;
     const operatingSystem = getOperatingSystem();
     const isFocused = useIsFocused();
+    const backTo = Navigation.getActiveRoute();
 
     useEffect(() => {
         setOnboardingErrorMessage('');
@@ -74,7 +75,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         // Once we verify that shouldValidate is false, we need to force replace the screen
         // so that we don't navigate back on back button press
         if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(backTo), {forceReplace: true});
             return;
         }
 
@@ -169,7 +170,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                                     // Once we skip the private email step, we need to force replace the screen
                                     // so that we don't navigate back on back button press
                                     if (isVsb) {
-                                        Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
+                                        Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(backTo), {forceReplace: true});
                                         return;
                                     }
 
