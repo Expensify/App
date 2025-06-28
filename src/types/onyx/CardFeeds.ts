@@ -22,9 +22,6 @@ type CardFeedProvider =
 
 /** Card feed details */
 type CardFeedDetails = {
-    /** Card title */
-    cardTitle?: string;
-
     /** Processor ID */
     processorID?: string;
 
@@ -131,7 +128,7 @@ type AddNewCardFeedData = {
     feedType: CardFeedProvider;
 
     /** Card feed details */
-    feedDetails: CardFeedDetails;
+    feedDetails?: CardFeedDetails;
 
     /** Name of the card */
     cardTitle: string;
