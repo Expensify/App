@@ -161,8 +161,8 @@ function PaymentCardForm({
         if (value.length >= 2) {
             const month = parseInt(value.slice(0, 2), 10);
 
-            if (value.length === 2 && value === '00') {
-                return;
+            if (value.charAt(0) === '0' && value.charAt(1) === '0') {
+                value = '0';
             }
 
             if (month > 12) {
