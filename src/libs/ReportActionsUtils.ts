@@ -13,7 +13,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Card, Locale, OnyxInputOrEntry, OriginalMessageIOU, Policy, PrivatePersonalDetails} from '@src/types/onyx';
-import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration, PolicyBudgetFrequency, PolicyBudgetFrequencyValues} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -2820,6 +2820,18 @@ function getUpdatedManualApprovalThresholdMessage(reportAction: OnyxEntry<Report
     return translateLocal('workspaceActions.updatedManualApprovalThreshold', {oldLimit: convertToDisplayString(oldLimit, currency), newLimit: convertToDisplayString(newLimit, currency)});
 }
 
+function getAddedBudgetMessage(reportAction: OnyxEntry<ReportAction>, policy: Policy) {
+    const {newValue, categoryName, entityType} = getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET>) ?? {};
+    const value = newValue as PolicyBudgetFrequency;
+
+    if (newValue && value?.frequency && value?.shared !== undefined && categoryName && entityType) {
+        const amount = convertToShortDisplayString(value?.shared, policy?.outputCurrency ?? CONST.CURRENCY.USD);
+        const frequency = translateLocal(`workspace.common.budgetFrequency.${value.frequency}` as TranslationPaths);
+        return translateLocal('workspaceActions.addBudget', {frequency, amount, categoryName, entityType});
+    }
+    return getReportActionText(reportAction);
+}
+
 function isCardIssuedAction(
     reportAction: OnyxEntry<ReportAction>,
 ): reportAction is ReportAction<
@@ -3109,6 +3121,7 @@ export {
     getWorkspaceReportFieldDeleteMessage,
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
+    getAddedBudgetMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
     getAddedConnectionMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,

@@ -389,6 +389,8 @@ type AccountOwnerParams = {accountOwnerEmail: string};
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
+type AddBudgetParams = {frequency: string; amount: string; entityType: string; categoryName: string};
+
 type IntegrationsMessageParams = {
     label: string;
     result: {
@@ -1070,4 +1072,5 @@ export type {
     RailTicketParams,
     TravelTypeParams,
     BusinessTaxIDParams,
+    AddBudgetParams,
 };

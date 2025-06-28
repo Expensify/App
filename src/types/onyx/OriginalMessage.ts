@@ -252,6 +252,18 @@ type OriginalMessageReportPreview = {
     whisperedTo?: number[];
 };
 
+/** Possible values of policy budget frequency */
+type PolicyBudgetFrequencyValues = 'yearly' | 'monthly';
+
+/** Model of policy budget frequency action data */
+type PolicyBudgetFrequency = {
+    /** Values of policy budget frequency */
+    frequency: PolicyBudgetFrequencyValues;
+
+    /** Shared value policy budget */
+    shared: number;
+};
+
 /** Model of change log */
 type OriginalMessageChangeLog = {
     /** Account IDs of users that either got invited or removed from the room */
@@ -432,10 +444,13 @@ type OriginalMessagePolicyChangeLog = {
     updateType?: string;
 
     /** New role of user or new value of the category/tag field */
-    newValue?: boolean | string;
+    newValue?: boolean | string | PolicyBudgetFrequency;
 
     /** Old role of user or old value of the category/tag field */
-    oldValue?: boolean | string;
+    oldValue?: boolean | string | PolicyBudgetFrequency;
+
+    /** category/tag field */
+    entityType?: string;
 
     /** Old approval audit rate */
     oldAuditRate?: number;
@@ -970,4 +985,6 @@ export type {
     OriginalMessageChangePolicy,
     OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
+    PolicyBudgetFrequencyValues,
+    PolicyBudgetFrequency,
 };

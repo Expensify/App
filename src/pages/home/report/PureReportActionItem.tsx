@@ -58,6 +58,7 @@ import {getCleanedTagName} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
     getAddedApprovalRuleMessage,
+    getAddedBudgetMessage,
     getAddedConnectionMessage,
     getDeletedApprovalRuleMessage,
     getDemotedFromWorkspaceMessage,
@@ -1191,6 +1192,10 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE)) {
             children = <ReportActionItemBasicMessage message={getUpdatedAuditRateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
+            children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET)) {
+            children = <ReportActionItemBasicMessage message={getAddedBudgetMessage(action, policy)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET)) {
             children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
         } else {
             const hasBeenFlagged =
