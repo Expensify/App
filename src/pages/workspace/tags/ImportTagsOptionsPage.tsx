@@ -74,7 +74,6 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         if (hasVisibleTags) {
             setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
         } else {
-            cleanPolicyTags(policyID);
             Navigation.navigate(
                 isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
             );
@@ -124,7 +123,6 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                             if (hasVisibleTags) {
                                 setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
                             } else {
-                                cleanPolicyTags(policyID);
                                 Navigation.navigate(
                                     isQuickSettingsFlow
                                         ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))

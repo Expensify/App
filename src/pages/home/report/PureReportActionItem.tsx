@@ -194,9 +194,6 @@ type PureReportActionItemProps = {
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
 
-    /** All transactions grouped by reportID */
-    transactionsAndViolationsByReport?: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
-
     /** Array of report actions for the report for this action */
     // eslint-disable-next-line react/no-unused-prop-types
     reportActions: OnyxTypes.ReportAction[];
@@ -379,7 +376,6 @@ function PureReportActionItem({
     report,
     policy,
     transactionThreadReport,
-    transactionsAndViolationsByReport = {},
     linkedReportActionID,
     displayAsGroup,
     index,
@@ -911,7 +907,6 @@ function PureReportActionItem({
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
-                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
@@ -932,7 +927,6 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
                     shouldShowBorder={shouldShowBorder}
-                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                 />
             );
         } else if (isTaskAction(action)) {
@@ -1236,7 +1230,8 @@ function PureReportActionItem({
                                     index={index}
                                     ref={composerTextInputRef}
                                     shouldDisableEmojiPicker={
-                                        (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, reportNameValuePairs)
+                                        (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) ||
+                                        isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived)
                                     }
                                     isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
                                 />
@@ -1367,12 +1362,7 @@ function PureReportActionItem({
     }
 
     if (isTripPreview(action) && isThreadReportParentAction) {
-        return (
-            <TripSummary
-                reportID={getOriginalMessage(action)?.linkedReportID}
-                transactionsAndViolationsByReport={transactionsAndViolationsByReport}
-            />
-        );
+        return <TripSummary reportID={getOriginalMessage(action)?.linkedReportID} />;
     }
 
     if (isChronosOOOListAction(action)) {
