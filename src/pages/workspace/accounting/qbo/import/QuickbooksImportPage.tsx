@@ -4,8 +4,8 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/QuickbooksOnline';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import {shouldSwitchLocationsToReportFields} from '@pages/workspace/accounting/qbo/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -23,17 +23,17 @@ type QBOSectionType = {
 function QuickbooksImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {syncClasses, syncCustomers, syncLocations, syncTax, pendingFields, errorFields} = qboConfig ?? {};
 
     // If we previously selected tags but now we have the line items restriction for locations, we need to switch to report fields
     useEffect(() => {
-        if (!shouldSwitchLocationsToReportFields(qboConfig)) {
+        if (!shouldSwitchLocationsToReportFields(qboConfig) || !policy) {
             return;
         }
-        QuickbooksOnline.updateQuickbooksOnlineSyncLocations(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncLocations);
-    }, [qboConfig, policyID]);
+        updateQuickbooksOnlineSyncLocations(policy, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncLocations);
+    }, [qboConfig, policy]);
 
     const sections: QBOSectionType[] = [
         {
@@ -86,14 +86,14 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             {sections.map((section) => (
                 <OfflineWithFeedback
                     key={section.description}
-                    pendingAction={PolicyUtils.settingsPendingAction(section.subscribedSettings, pendingFields)}
+                    pendingAction={settingsPendingAction(section.subscribedSettings, pendingFields)}
                 >
                     <MenuItemWithTopDescription
                         title={section.title}
                         description={section.description}
                         shouldShowRightIcon
                         onPress={section.action}
-                        brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(section.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={areSettingsInErrorFields(section.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </OfflineWithFeedback>
             ))}
