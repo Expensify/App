@@ -1,0 +1,15 @@
+diff --git a/node_modules/react-native-safe-area-context/android/build.gradle b/node_modules/react-native-safe-area-context/android/build.gradle
+index f324b9a..d35b98f 100644
+--- a/node_modules/react-native-safe-area-context/android/build.gradle
++++ b/node_modules/react-native-safe-area-context/android/build.gradle
+@@ -80,6 +80,10 @@ android {
+         // only the ones that make the build fail (ideally we should only include libsafeareacontext_modules but we
+         // are only allowed to specify exclude patterns)
+         exclude "**/libreact_render*.so"
++
++        jniLibs {
++            useLegacyPackaging true
++        }
+     }
+     sourceSets.main {
+         java {
