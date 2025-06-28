@@ -153,7 +153,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             const value = [selected].flat();
 
             const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
-                const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : CONST.SEARCH.STATUS.EXPENSE.ALL;
+                const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : '';
                 updateFilterForm({status: newStatus});
             };
 

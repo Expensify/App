@@ -39,7 +39,7 @@ describe('useSearchHighlightAndScroll', () => {
                 hasMoreResults: false,
                 hasResults: true,
                 offset: 0,
-                status: 'all',
+                status: '',
                 type: 'expense',
                 isLoading: false,
             },
@@ -50,7 +50,7 @@ describe('useSearchHighlightAndScroll', () => {
         previousReportActions: {},
         queryJSON: {
             type: 'expense',
-            status: 'all',
+            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {operator: 'and', left: 'tag', right: ''},
