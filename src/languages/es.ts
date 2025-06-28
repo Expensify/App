@@ -7452,10 +7452,7 @@ const translations = {
             part1: 'Filtra los gastos\nque ',
             part2: 'necesitan aprobación',
         },
-        scanTestDriveTooltip: {
-            part1: '¡Envía este recibo para\n',
-            part2: 'completar la prueba!',
-        },
+        scanTestDriveTooltip: '¡Envía este recibo para<br /> <strong>completar la prueba!</strong>',
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',
