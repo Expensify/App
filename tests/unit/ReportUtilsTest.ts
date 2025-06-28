@@ -60,7 +60,6 @@ import {
 } from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
-import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import type {OnboardingTaskLinks} from '@src/CONST';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -256,7 +255,6 @@ const policy: Policy = {
 describe('ReportUtils', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
-        initOnyxDerivedValues();
 
         const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
         Onyx.multiSet({
@@ -3235,9 +3233,17 @@ describe('ReportUtils', () => {
     describe('getMoneyReportPreviewName', () => {
         beforeAll(async () => {
             await Onyx.clear();
-            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {}});
+            await Onyx.multiSet({
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+            });
         });
-        it('should return the report name if present', () => {
+
+        afterAll(async () => {
+            await Onyx.clear();
+        });
+
+        it('should return the report name if present when the chat type is policy room', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -3248,6 +3254,130 @@ describe('ReportUtils', () => {
             };
             const result = getMoneyReportPreviewName(action, report);
             expect(result).toBe(report.reportName);
+        });
+
+        it('should return the report name if present when the chat type is domain all', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            expect(result).toBe(report.reportName);
+        });
+
+        it('should return the report name if present when the chat type is group', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            expect(result).toBe(report.reportName);
+        });
+
+        it('should return unavailable workspace if present when the chat type is invoice', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            expect(result).toBe('Unavailable workspace');
+        });
+
+        it('should return the report name if present when the chat type is policy admins', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            expect(result).toBe(report.reportName);
+        });
+
+        it('should return the report name if present when the chat type is policy announce', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            expect(result).toBe(report.reportName);
+        });
+
+        it('should return the report name if present when the chat type is policy expense chat', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            expect(result).toBe("Ragnar Lothbrok's expenses");
+        });
+
+        it('should return the report name if present when the chat type is self dm', async () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            expect(result).toBe('Lagertha Lothbrok (you)');
+        });
+
+        it('should return the report name if present when the chat type is system', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
+                participants: {
+                    1: {notificationPreference: 'hidden'},
+                },
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            expect(result).toBe('Ragnar Lothbrok');
+        });
+
+        it('should return the report name if present when the chat type is trip room', () => {
+            const action: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const report: Report = {
+                ...createRandomReport(1),
+                participants: {
+                    1: {notificationPreference: 'hidden'},
+                    2: {notificationPreference: 'always'},
+                },
+                chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
+            };
+            const result = getMoneyReportPreviewName(action, report);
+            expect(result).toBe('Ragnar, floki@vikings.net');
         });
 
         it('should return the child report name if the report name is not present', () => {
