@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -118,19 +119,21 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({confirmText, onSub
                             )}
                         </View>
                     </View>
-                    <View style={[styles.p5, styles.gap3]}>
-                        {!!error && (
-                            <FormHelpMessage
-                                isError
-                                message={error}
+                    <FixedFooter addBottomSafeAreaPadding>
+                        <View style={[styles.gap3]}>
+                            {!!error && (
+                                <FormHelpMessage
+                                    isError
+                                    message={error}
+                                />
+                            )}
+                            <FormAlertWithSubmitButton
+                                buttonText={confirmText}
+                                onSubmit={submit}
+                                enabledWhenOffline={enabledWhenOffline}
                             />
-                        )}
-                        <FormAlertWithSubmitButton
-                            buttonText={confirmText}
-                            onSubmit={submit}
-                            enabledWhenOffline={enabledWhenOffline}
-                        />
-                    </View>
+                        </View>
+                    </FixedFooter>
                 </>
             )}
         </ScreenWrapper>
