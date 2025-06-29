@@ -30,7 +30,7 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
             if (!Browser.isMobileChrome() || !Visibility.isVisible() || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
                 return;
             }
-            textInputRef.current.blur();
+            // textInputRef.current.blur();
             textInputRef.current.focus();
         });
 
@@ -42,6 +42,21 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
+
+    useFocusEffect(() => {
+        // in focus
+        console.log('TextInput in focus');
+
+        return () => {
+            // out of focus
+            console.log('TextInput out of focus');
+        };
+    });
+
+    const onBlur = () => {
+        console.log(`TextInput onBlur - ${props.name}`);
+        props.onBlur?.();
+    };
 
     const isLabeledMultiline = !!props.label?.length && props.multiline;
     const labelAnimationStyle = {
@@ -57,6 +72,7 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
         <BaseTextInput
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            onBlur={onBlur}
             ref={(element) => {
                 textInputRef.current = element as HTMLFormElement;
 

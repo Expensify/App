@@ -90,6 +90,9 @@ type AddressSearchProps = {
 
     /** If true, caret is hidden. The default value is false. */
     caretHidden?: boolean;
+
+    /** If true, the input is focused on mount. The default value is true. */
+    autoFocus?: boolean;
 };
 
 type IsCurrentTargetInsideContainerType = (event: FocusEvent | NativeSyntheticEvent<TextInputFocusEventData>, containerRef: RefObject<View | HTMLElement>) => boolean;

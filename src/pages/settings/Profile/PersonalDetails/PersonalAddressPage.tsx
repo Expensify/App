@@ -9,7 +9,7 @@ import {updateAddress as updateAddressPersonalDetails} from '@src/libs/actions/P
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
- * Submit form to update user's first and last legal name
+ * Submit form to update user's personal address
  * @param values - form input values
  */
 function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) {

@@ -562,7 +562,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     textInputIconLeft?: IconAsset;
 
     /** Whether text input should be focused */
-    textInputAutoFocus?: boolean;
+    autoFocus?: boolean;
 
     /** Callback to fire when the text input changes */
     onChangeText?: (text: string) => void;

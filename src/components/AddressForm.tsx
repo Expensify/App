@@ -194,6 +194,7 @@ function AddressForm({
                 defaultValue={street2}
                 spellCheck={false}
                 shouldSaveDraft={shouldSaveDraft}
+                autoFocus={false}
             />
             <View style={styles.formSpaceVertical} />
             <View style={styles.mhn5}>
@@ -227,6 +228,7 @@ function AddressForm({
                     spellCheck={false}
                     onValueChange={onAddressChanged}
                     shouldSaveDraft={shouldSaveDraft}
+                    autoFocus={false}
                 />
             )}
             <View style={styles.formSpaceVertical} />
@@ -240,6 +242,7 @@ function AddressForm({
                 spellCheck={false}
                 onValueChange={onAddressChanged}
                 shouldSaveDraft={shouldSaveDraft}
+                autoFocus={false}
             />
             <View style={styles.formSpaceVertical} />
             <InputWrapper
@@ -253,6 +256,7 @@ function AddressForm({
                 hint={zipFormat}
                 onValueChange={onAddressChanged}
                 shouldSaveDraft={shouldSaveDraft}
+                autoFocus={false}
             />
         </FormProvider>
     );
