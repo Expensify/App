@@ -4343,7 +4343,7 @@ const translations = {
                 removeCardFeedDescription: 'Êtes-vous sûr de vouloir supprimer ce flux de cartes ? Cela désassignera toutes les cartes.',
                 error: {
                     feedNameRequired: 'Le nom du flux de carte est requis',
-                    statementCloseDateRequired: 'Veuillez sélectionner une date de clôture du relevé',
+                    statementCloseDateRequired: 'Veuillez sélectionner une date de clôture du relevé.',
                 },
                 corporate: 'Restreindre la suppression des transactions',
                 personal: 'Autoriser la suppression des transactions',
@@ -4372,7 +4372,7 @@ const translations = {
                     "Profitez de remises en argent sur chaque achat aux États-Unis, jusqu'à 50 % de réduction sur votre facture Expensify, des cartes virtuelles illimitées, et bien plus encore.",
                 expensifyCardBannerLearnMoreButton: 'En savoir plus',
                 statementCloseDateTitle: 'Date de clôture du relevé',
-                statementCloseDateDescription: 'Indiquez-nous la date de clôture de votre relevé de carte et nous créerons un relevé correspondant dans Expensify',
+                statementCloseDateDescription: 'Indiquez-nous la date de clôture de votre relevé de carte et nous créerons un relevé correspondant dans Expensify.',
             },
             workflows: {
                 title: 'Workflows',

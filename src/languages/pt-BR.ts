@@ -4308,7 +4308,7 @@ const translations = {
                 removeCardFeedDescription: 'Tem certeza de que deseja remover este feed de cartão? Isso desatribuirá todos os cartões.',
                 error: {
                     feedNameRequired: 'O nome do feed do cartão é obrigatório',
-                    statementCloseDateRequired: 'Favor selecionar uma data de fechamento do extrato',
+                    statementCloseDateRequired: 'Favor selecionar uma data de fechamento do extrato.',
                 },
                 corporate: 'Restringir a exclusão de transações',
                 personal: 'Permitir excluir transações',
@@ -4335,7 +4335,7 @@ const translations = {
                 expensifyCardBannerSubtitle: 'Aproveite o cashback em todas as compras nos EUA, até 50% de desconto na sua fatura do Expensify, cartões virtuais ilimitados e muito mais.',
                 expensifyCardBannerLearnMoreButton: 'Saiba mais',
                 statementCloseDateTitle: 'Statement close date',
-                statementCloseDateDescription: 'Informe-nos quando o extrato do seu cartão for encerrado e criaremos um extrato correspondente na Expensify',
+                statementCloseDateDescription: 'Informe-nos quando o extrato do seu cartão for encerrado e criaremos um extrato correspondente na Expensify.',
             },
             workflows: {
                 title: 'Fluxos de Trabalho',

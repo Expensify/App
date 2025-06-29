@@ -4237,7 +4237,7 @@ const translations = {
                 removeCardFeedDescription: '您确定要移除此卡片源吗？这将取消分配所有卡片。',
                 error: {
                     feedNameRequired: '卡片摘要名称是必需的',
-                    statementCloseDateRequired: '请选择报表关闭日期',
+                    statementCloseDateRequired: '请选择报表关闭日期。',
                 },
                 corporate: '限制删除交易',
                 personal: '允许删除交易',
@@ -4263,7 +4263,7 @@ const translations = {
                 expensifyCardBannerSubtitle: '享受每笔美国消费的现金返还，Expensify账单最高可享50%折扣，无限虚拟卡等更多优惠。',
                 expensifyCardBannerLearnMoreButton: '了解更多',
                 statementCloseDateTitle: '对账单关闭日期',
-                statementCloseDateDescription: '让我们知道您的银行卡对账单何时关闭，我们将在 Expensify 中创建匹配的对账单',
+                statementCloseDateDescription: '让我们知道您的银行卡对账单何时关闭，我们将在 Expensify 中创建匹配的对账单。',
             },
             workflows: {
                 title: '工作流程',
