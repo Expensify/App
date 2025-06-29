@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {CompanyCardStatementCloseDate} from '@src/types/onyx/CardFeeds';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardStatementCloseDateSelectionList from './WorkspaceCompanyCardStatementCloseDateSelectionList';
 
@@ -30,7 +31,7 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const submit = useCallback(
         // s77rt make use of statementCloseDate / statementCustomCloseDate and remove disable lint rule
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        () => {
+        (statementCloseDate: CompanyCardStatementCloseDate, statementCustomCloseDate: number | undefined) => {
             if (selectedFeed) {
                 // s77rt call API command
             }
