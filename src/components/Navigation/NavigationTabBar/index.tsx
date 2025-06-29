@@ -311,7 +311,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                 {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
                             </View>
                             <Text
-                                numberOfLines={preferredLocale === 'de' || preferredLocale === 'nl' ? 1 : 2}
+                                numberOfLines={preferredLocale === CONST.LOCALES.DE || preferredLocale === CONST.LOCALES.NL ? 1 : 2}
                                 style={[
                                     styles.textSmall,
                                     styles.textAlignCenter,
