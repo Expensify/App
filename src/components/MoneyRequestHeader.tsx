@@ -60,11 +60,14 @@ type MoneyRequestHeaderProps = {
     /** The report action the transaction is tied to from the parent report */
     parentReportAction: OnyxEntry<ReportAction>;
 
+    /** The report ID to navigate back to */
+    backTo?: string;
+
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
 };
 
-function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPress}: MoneyRequestHeaderProps) {
+function MoneyRequestHeader({report, parentReportAction, policy, backTo, onBackButtonPress}: MoneyRequestHeaderProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -283,7 +286,13 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                         )}
                     </View>
                 )}
-                {shouldDisplayTransactionNavigation && <MoneyRequestReportTransactionsNavigation currentReportID={reportID} />}
+                {shouldDisplayTransactionNavigation && (
+                    <MoneyRequestReportTransactionsNavigation
+                        currentReportID={reportID}
+                        parentReportID={report?.parentReportID}
+                        backTo={backTo}
+                    />
+                )}
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
