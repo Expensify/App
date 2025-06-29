@@ -7,6 +7,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
+import useHandleBackButton from '@hooks/useHandleBackButton/index.android';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,7 +19,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
-import useHandleBackButton from '@hooks/useHandleBackButton/index.android';
 
 type TransactionStartDateStepProps = {
     policyID: string | undefined;
@@ -53,10 +53,10 @@ function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDate
         setDateOptionSelected(dateOption);
     };
 
-        useHandleBackButton(() => {
-            handleBackButtonPress();
-            return true;
-        });
+    useHandleBackButton(() => {
+        handleBackButtonPress();
+        return true;
+    });
 
     const submit = () => {
         const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);

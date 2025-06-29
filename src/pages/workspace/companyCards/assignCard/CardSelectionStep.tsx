@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import useHandleBackButton from '@hooks/useHandleBackButton/index.android';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -26,7 +27,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeed} from '@src/types/onyx';
-import useHandleBackButton from '@hooks/useHandleBackButton/index.android';
 
 type CardSelectionStepProps = {
     /** Selected feed */
@@ -95,7 +95,6 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         handleBackButtonPress();
         return true;
     });
-
 
     const handleSelectCard = (cardNumber: string) => {
         setCardSelected(cardNumber);

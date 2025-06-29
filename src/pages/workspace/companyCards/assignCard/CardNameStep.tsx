@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useHandleBackButton from '@hooks/useHandleBackButton/index.android';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +18,6 @@ import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
-import useHandleBackButton from '@hooks/useHandleBackButton/index.android';
 
 type CardNameStepProps = {
     /** Current policy id */
@@ -41,15 +41,14 @@ function CardNameStep({policyID}: CardNameStepProps) {
             isEditing: false,
         });
     };
-      const handleBackButtonPress = () => {
-
+    const handleBackButtonPress = () => {
         setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION, isEditing: false});
-        };
+    };
 
-        useHandleBackButton(() => {
-            handleBackButtonPress();
-            return true;
-        });
+    useHandleBackButton(() => {
+        handleBackButtonPress();
+        return true;
+    });
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM> => {
         const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME]);

@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useHandleBackButton from '@hooks/useHandleBackButton/index.android';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -26,7 +27,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
-import useHandleBackButton from '@hooks/useHandleBackButton/index.android';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
@@ -108,9 +108,9 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     };
 
     useHandleBackButton(() => {
-            handleBackButtonPress();
-            return true;
-        });
+        handleBackButtonPress();
+        return true;
+    });
 
     const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
     const textInputLabel = shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined;
