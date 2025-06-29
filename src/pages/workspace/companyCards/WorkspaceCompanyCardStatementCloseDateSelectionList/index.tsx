@@ -6,6 +6,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -91,7 +92,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({confirmText, onSub
                 />
             ) : (
                 <>
-                    <View style={[styles.gap7, styles.flexGrow1]}>
+                    <ScrollView contentContainerStyle={[styles.gap7, styles.flexGrow1]}>
                         <Text style={[styles.ph5]}>{translate('workspace.moreFeatures.companyCards.statementCloseDateDescription')}</Text>
                         <View>
                             {Object.values(CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE)?.map((option) => (
@@ -118,7 +119,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({confirmText, onSub
                                 />
                             )}
                         </View>
-                    </View>
+                    </ScrollView>
                     <FixedFooter addBottomSafeAreaPadding>
                         <View style={[styles.gap3]}>
                             {!!error && (
