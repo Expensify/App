@@ -568,8 +568,8 @@ function getSecondaryExportReportActions(
     policy?: Policy,
     reportActions?: ReportAction[],
     integrationsExportTemplates?: IntegrationServerExportTemplate[],
-): Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS> | string> {
-    const options: Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS> | string> = [];
+): Array<ValueOf<string>> {
+    const options: Array<ValueOf<string>> = [];
     if (isExportAction(report, policy, reportActions)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
