@@ -20,18 +20,20 @@ import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup'
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {close} from '@libs/actions/Modal';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
+import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, isFilterSupported} from '@libs/SearchQueryUtils';
+import {getGroupByOptions, getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -50,13 +52,14 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isDevelopment} = useEnvironment();
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption, shouldShowFiltersBarLoading} = useSearchContext();
 
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.email});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -65,16 +68,16 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true});
+    const [searchResultsErrors] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: (data) => data?.errors});
 
     const taxRates = getAllTaxRates();
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
 
-    const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
+    const hasErrors = Object.keys(searchResultsErrors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || (!!selectionMode && selectionMode.isEnabled));
 
-    const typeOptions = useMemo(() => getTypeOptions(allPolicies, session?.email), [allPolicies, session?.email]);
+    const typeOptions = useMemo(() => getTypeOptions(allPolicies, email), [allPolicies, email]);
 
     const filterFormValues = useMemo(() => {
         return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
@@ -96,7 +99,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             const searchQueryJSON = buildSearchQueryJSON(filterString);
             const queryString = buildSearchQueryString(searchQueryJSON);
 
-            Navigation.setParams({q: queryString});
+            close(() => {
+                Navigation.setParams({q: queryString});
+            });
         },
         [filterFormValues],
     );
@@ -121,6 +126,24 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             );
         },
         [translate, type, typeOptions, updateFilterForm],
+    );
+
+    const groupByComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            const items = getGroupByOptions();
+            const value = items.find((option) => option.value === groupBy) ?? null;
+
+            return (
+                <SingleSelectPopup
+                    label={translate('search.groupBy')}
+                    items={items}
+                    value={value}
+                    closeOverlay={closeOverlay}
+                    onChange={(item) => updateFilterForm({groupBy: item?.value})}
+                />
+            );
+        },
+        [translate, groupBy, updateFilterForm],
     );
 
     const statusComponent = useCallback(
@@ -209,23 +232,38 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 label: translate('common.type'),
                 PopoverComponent: typeComponent,
                 value: translate(`common.${type}`),
+                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
             },
+            // s77rt remove DEV lock
+            ...(isDevelopment
+                ? [
+                      {
+                          label: translate('search.groupBy'),
+                          PopoverComponent: groupByComponent,
+                          value: groupBy ? translate(`search.filters.groupBy.${groupBy}`) : null,
+                          keyForList: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+                      },
+                  ]
+                : []),
             {
                 label: translate('common.status'),
                 PopoverComponent: statusComponent,
                 value: statusValue.map((option) => translate(option.translation)),
+                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             },
             {
                 label: translate('common.date'),
                 PopoverComponent: datePickerComponent,
                 value: dateValue,
+                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             },
             {
                 label: translate('common.from'),
                 PopoverComponent: userPickerComponent,
                 value: fromValue,
+                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             },
-        ];
+        ].filter((filterItem) => isFilterSupported(filterItem.keyForList, type));
 
         return filterList;
     }, [
@@ -237,11 +275,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         filterFormValues.from,
         translate,
         typeComponent,
+        groupByComponent,
         statusComponent,
         datePickerComponent,
         userPickerComponent,
         status,
         personalDetails,
+        isDevelopment,
     ]);
 
     if (hasErrors) {

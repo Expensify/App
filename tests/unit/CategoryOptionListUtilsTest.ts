@@ -2,13 +2,15 @@
 import {getCategoryListSections, getCategoryOptionTree, sortCategories} from '@libs/CategoryOptionListUtils';
 import type {Category, CategoryTreeSection} from '@libs/CategoryOptionListUtils';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import type {PolicyCategories} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('CategoryOptionListUtils', () => {
     beforeAll(() => {
-        TranslationStore.load(CONST.LOCALES.DEFAULT);
+        IntlStore.load(CONST.LOCALES.DEFAULT);
+        return waitForBatchedUpdates();
     });
     it('getCategoryListSections()', () => {
         const search = 'Food';
