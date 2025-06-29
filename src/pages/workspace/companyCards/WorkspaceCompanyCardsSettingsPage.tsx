@@ -11,6 +11,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,6 +35,7 @@ function WorkspaceCompanyCardsSettingsPage({
         params: {policyID},
     },
 }: WorkspaceCompanyCardsSettingsPageProps) {
+    const {isDevelopment} = useEnvironment();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
@@ -53,8 +55,19 @@ function WorkspaceCompanyCardsSettingsPage({
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
 
+    // s77rt remove DEV lock
+    // s77rt should limit to custom / commercial feed only?
+    const shouldShowStatementCloseDate = isDevelopment;
+
+    // s77rt use selectedFeedData.statementPeriodEndDay
+    const statementPeriodEndDay = undefined;
+
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));
+    };
+
+    const navigateToChangeStatementCloseDate = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.getRoute(policyID));
     };
 
     const deleteCompanyCardFeed = () => {
@@ -108,6 +121,16 @@ function WorkspaceCompanyCardsSettingsPage({
                             titleStyle={styles.flex1}
                             onPress={navigateToChangeFeedName}
                         />
+                        {shouldShowStatementCloseDate && (
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={statementPeriodEndDay}
+                                description={translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')}
+                                style={[styles.moneyRequestMenuItem]}
+                                titleStyle={styles.flex1}
+                                onPress={navigateToChangeStatementCloseDate}
+                            />
+                        )}
                         <View style={[styles.mv3, styles.mh5]}>
                             <ToggleSettingOptionRow
                                 title={translate('workspace.moreFeatures.companyCards.personal')}
