@@ -67,7 +67,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
+    const [allCards, hasCardFeed] = useMemo(() => {
+        const mergedCards = mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList);
+        return [mergedCards, Object.keys(mergedCards).length > 0];
+    }, [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
     const {clearSelectedTransactions} = useSearchContext();
     const initialSearchKeys = useRef<string[]>([]);
@@ -77,7 +80,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     }, [translate, workspaceCardFeeds]);
 
     const typeMenuSections: SearchTypeMenuSection[] = useMemo(() => {
-        const sections = createTypeMenuSections(session, allPolicies);
+        const sections = createTypeMenuSections(session, hasCardFeed, allPolicies);
 
         // The first time we render all of the sections the user can see, we need to mark these as 'rendered', such that we dont animate them in
         // We only animate in items that a user gains access to later on
@@ -86,7 +89,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         }
 
         return sections;
-    }, [session, allPolicies]);
+    }, [session, hasCardFeed, allPolicies]);
 
     const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
     const createSavedSearchMenuItem = useCallback(
@@ -249,9 +252,11 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                             const isInitialItem = initialSearchKeys.current.includes(item.translationPath);
 
                             return (
-                                <Animated.View entering={!isInitialItem ? FadeIn : undefined}>
+                                <Animated.View
+                                    key={item.translationPath}
+                                    entering={!isInitialItem ? FadeIn : undefined}
+                                >
                                     <MenuItem
-                                        key={item.translationPath}
                                         disabled={false}
                                         interactive
                                         title={translate(item.translationPath)}
