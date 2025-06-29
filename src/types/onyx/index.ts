@@ -33,6 +33,7 @@ import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
+import type IntegrationServerExportTemplate from './IntegrationServerExportTemplate';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -120,7 +121,6 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
-import type IntegrationServerExportTemplate from './IntegrationServerExportTemplate';
 
 export type {
     TryNewDot,

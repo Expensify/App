@@ -563,7 +563,12 @@ function getSecondaryReportActions({
     return options;
 }
 
-function getSecondaryExportReportActions(report: Report, policy?: Policy, reportActions?: ReportAction[], integrationsExportTemplates?: IntegrationServerExportTemplate[]): Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS> | string> {
+function getSecondaryExportReportActions(
+    report: Report,
+    policy?: Policy,
+    reportActions?: ReportAction[],
+    integrationsExportTemplates?: IntegrationServerExportTemplate[],
+): Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS> | string> {
     const options: Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS> | string> = [];
     if (isExportAction(report, policy, reportActions)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
@@ -580,7 +585,6 @@ function getSecondaryExportReportActions(report: Report, policy?: Policy, report
             options.push(template.name);
         }
     }
-
 
     return options;
 }

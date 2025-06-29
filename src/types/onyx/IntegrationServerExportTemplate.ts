@@ -4,7 +4,6 @@ import type * as OnyxCommon from './OnyxCommon';
 type IntegrationServerExportTemplate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of the template */
     name: string;
-
 }>;
 
 export default IntegrationServerExportTemplate;

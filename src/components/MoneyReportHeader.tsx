@@ -528,7 +528,7 @@ function MoneyReportHeader({
 
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {initialValue: [], canBeMissing: false});
     const exportSubmenuOptions = useMemo(() => {
-    const options: Record<string, DropdownOption<string>> = {
+        const options: Record<string, DropdownOption<string>> = {
             [CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV]: {
                 text: translate('export.basicExport'),
                 icon: Expensicons.Table,
