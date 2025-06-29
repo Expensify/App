@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {OnfidoDataWithApplicantID} from '@components/Onfido/types';
@@ -28,7 +29,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {InternationalBankAccountForm, PersonalBankAccountForm} from '@src/types/form';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountForm, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
-import type {LastPaymentMethod, LastPaymentMethodType} from '@src/types/onyx';
+import type {BankAccountList, LastPaymentMethod, LastPaymentMethodType} from '@src/types/onyx';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -50,6 +51,13 @@ export {openPlaidBankAccountSelector, openPlaidBankLogin} from './Plaid';
 export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTerms} from './Wallet';
 
 type AccountFormValues = typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM;
+
+let bankAccountList: OnyxEntry<BankAccountList>;
+
+Onyx.connect({
+    key: ONYXKEYS.BANK_ACCOUNT_LIST,
+    callback: (value) => (bankAccountList = value),
+});
 
 function clearPlaid(): Promise<void | void[]> {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
@@ -330,6 +338,13 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
 
 function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?: LastPaymentMethod) {
     const parameters: DeletePaymentBankAccountParams = {bankAccountID};
+    const bankAccount = bankAccountList ? bankAccountList[bankAccountID] : undefined;
+
+    const bankAccountFailureData = {
+        ...bankAccount,
+        errors: getMicroSecondOnyxErrorWithTranslationKey('bankAccount.error.deletePaymentBankAccount'),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    };
 
     const personalPolicy = getPersonalPolicy();
 
@@ -349,6 +364,16 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
                 value: {[bankAccountID]: null},
+            },
+        ],
+
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.BANK_ACCOUNT_LIST}`,
+                value: {
+                    [bankAccountID]: bankAccountFailureData,
+                },
             },
         ],
     };
