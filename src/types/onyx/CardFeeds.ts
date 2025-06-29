@@ -38,7 +38,7 @@ type CardFeedDetails = {
     distributionID?: string;
 
     /** Delivery file name */
-    deliveryFileName: string;
+    deliveryFileName?: string;
 };
 
 /** Custom card feed data */
