@@ -6,6 +6,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 
 type CustomCloseDateListItem = ListItem & {
     value: number;
@@ -25,8 +26,7 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
     const [error, setError] = useState<string | undefined>(undefined);
 
     const sections = useMemo(() => {
-        const data = [...Array(28).keys()].reduce<CustomCloseDateListItem[]>((days, key) => {
-            const dayValue = key + 1;
+        const data = CONST.DATE.MONTH_DAYS.reduce<CustomCloseDateListItem[]>((days, dayValue) => {
             const day = {
                 value: dayValue,
                 text: dayValue.toString(),

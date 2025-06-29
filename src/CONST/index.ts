@@ -20,6 +20,8 @@ import {LOCALES} from './LOCALES';
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 
+const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
+
 const DEFAULT_NUMBER_ID = 0;
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
@@ -651,6 +653,7 @@ const CONST = {
         ORDINAL_DAY_OF_MONTH: 'do',
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
         SECONDS_PER_DAY: 24 * 60 * 60,
+        MONTH_DAYS,
     },
     SMS: {
         DOMAIN: '@expensify.sms',
