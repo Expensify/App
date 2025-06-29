@@ -120,20 +120,21 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({confirmText, onSub
                             )}
                         </View>
                     </ScrollView>
-                    <FixedFooter addBottomSafeAreaPadding>
-                        <View style={[styles.gap3]}>
-                            {!!error && (
-                                <FormHelpMessage
-                                    isError
-                                    message={error}
-                                />
-                            )}
-                            <FormAlertWithSubmitButton
-                                buttonText={confirmText}
-                                onSubmit={submit}
-                                enabledWhenOffline={enabledWhenOffline}
+                    <FixedFooter
+                        style={styles.gap3}
+                        addBottomSafeAreaPadding
+                    >
+                        {!!error && (
+                            <FormHelpMessage
+                                isError
+                                message={error}
                             />
-                        </View>
+                        )}
+                        <FormAlertWithSubmitButton
+                            buttonText={confirmText}
+                            onSubmit={submit}
+                            enabledWhenOffline={enabledWhenOffline}
+                        />
                     </FixedFooter>
                 </>
             )}
