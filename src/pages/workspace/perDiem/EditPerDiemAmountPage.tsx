@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import AmountWithoutCurrencyForm from '@components/AmountWithoutCurrencyForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -22,6 +21,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspacePerDiemForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 
 type EditPerDiemAmountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_EDIT_AMOUNT>;
 
@@ -98,7 +98,7 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
                 >
                     <InputWrapper
                         ref={inputCallbackRef}
-                        InputComponent={AmountWithoutCurrencyForm}
+                        InputComponent={AmountWithoutCurrencyInput}
                         defaultValue={defaultAmount}
                         label={translate('workspace.perDiem.amount')}
                         accessibilityLabel={translate('workspace.perDiem.amount')}
