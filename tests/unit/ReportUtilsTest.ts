@@ -3672,39 +3672,6 @@ describe('ReportUtils', () => {
             });
         });
 
-        describe('Action from Concierge', () => {
-            let chatReport: Report;
-            const actionFromConcierge: ReportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
-            };
-
-            beforeAll(async () => {
-                chatReport = {
-                    ...createRandomReport(60000),
-                    type: CONST.REPORT.TYPE.CHAT,
-                };
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
-            });
-
-            afterAll(async () => {
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
-            });
-
-            it('should return false for an archived report', () => {
-                // It will be false here because it's a chat report with an action from Concierge
-                // so it doesn't matter if the report is archived or not, it will always be false.
-                expect(shouldShowFlagComment(actionFromConcierge, chatReport, true)).toBe(false);
-            });
-
-            it('should return false for a non-archived report', () => {
-                // It will be false here because it's a chat report with an action from Concierge
-                // so it doesn't matter if the report is archived or not, it will always be false.
-                expect(shouldShowFlagComment(actionFromConcierge, chatReport, false)).toBe(false);
-            });
-        });
-
         describe('Chat with Chronos', () => {
             let chatReport: Report;
 
@@ -3762,6 +3729,39 @@ describe('ReportUtils', () => {
                 // It will be false here because it's a chat report with Concierge and therefore
                 // it doesn't matter if the report is archived or not, it will always be false.
                 expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
+            });
+        });
+
+        describe('Action from Concierge', () => {
+            let chatReport: Report;
+            const actionFromConcierge: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            };
+
+            beforeAll(async () => {
+                chatReport = {
+                    ...createRandomReport(60000),
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
+            });
+
+            it('should return false for an archived report', () => {
+                // It will be false here because it's a chat report with an action from Concierge
+                // so it doesn't matter if the report is archived or not, it will always be false.
+                expect(shouldShowFlagComment(actionFromConcierge, chatReport, true)).toBe(false);
+            });
+
+            it('should return false for a non-archived report', () => {
+                // It will be false here because it's a chat report with an action from Concierge
+                // so it doesn't matter if the report is archived or not, it will always be false.
+                expect(shouldShowFlagComment(actionFromConcierge, chatReport, false)).toBe(false);
             });
         });
     });
