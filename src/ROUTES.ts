@@ -910,6 +910,11 @@ const ROUTES = {
             `create/${iouType as string}/start/${transactionID}/${reportID}/per-diem/${backToReport ?? ''}` as const,
     },
 
+    MONEY_REQUEST_RECEIPT_VIEW_MODAL: {
+        route: 'receipt-view-modal/:transactionID',
+        getRoute: (transactionID: string, backTo: string) => getUrlWithBackToParam(`receipt-view-modal/${transactionID}`, backTo),
+    } as const,
+
     MONEY_REQUEST_STATE_SELECTOR: {
         route: 'submit/state',
 
