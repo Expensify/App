@@ -8,6 +8,7 @@ import type {
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchFilterKey,
+    SearchGroupBy,
     SearchQueryJSON,
     SearchQueryString,
     SearchStatus,
@@ -298,7 +299,11 @@ function isSearchDatePreset(date: string | undefined): date is SearchDatePreset 
 /**
  * Returns whether a given search filter is supported in a given search data type
  */
-function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTypes) {
+function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
+    if (filter === FILTER_KEYS.FEED && groupBy !== CONST.SEARCH.GROUP_BY.CARDS) {
+        return false;
+    }
+
     return ALLOWED_TYPE_FILTERS[type].some((supportedFilter) => supportedFilter === filter);
 }
 
@@ -380,7 +385,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     // only available for the previous type. Remove all filters that are not allowed for the new type
     const providedFilterKeys = Object.keys(supportedFilterValues) as SearchAdvancedFiltersKey[];
     providedFilterKeys.forEach((filter) => {
-        if (isFilterSupported(filter, supportedFilterValues.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE)) {
+        if (isFilterSupported(filter, supportedFilterValues.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE, supportedFilterValues.groupBy)) {
             return;
         }
 
