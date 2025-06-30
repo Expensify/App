@@ -178,7 +178,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 />
             );
         },
-        [groupBy, statusOptions, status, translate, updateFilterForm],
+        [statusOptions, status, translate, updateFilterForm],
     );
 
     const datePickerComponent = useCallback(
@@ -273,7 +273,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 value: fromValue,
                 keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             },
-        ].filter((filterItem) => isFilterSupported(filterItem.keyForList, type ? type.value : CONST.SEARCH.DATA_TYPES.EXPENSE));
+        ].filter((filterItem) => isFilterSupported(filterItem.keyForList, type?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE));
 
         return filterList;
     }, [
