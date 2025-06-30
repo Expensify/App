@@ -34,6 +34,7 @@ You can create an expense by scanning a receipt, entering details manually, or t
 6. Click **Create expense**.
 
 💡 **Note:** You can also forward receipts to `receipts@expensify.com` using a verified email address.
+💡 **Note:** Upload your receipt via SMS by texting the photo of your receipt to 47777. To start sending your receipts add your phone number to your account from **Account > Profile > Phone Number**.
 
 ---
 
