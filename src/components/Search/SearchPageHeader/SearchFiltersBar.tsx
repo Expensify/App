@@ -49,7 +49,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const scrollRef = useRef<RNScrollView>(null);
 
     // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
-    const {hash, type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus} = queryJSON;
+    const {hash, type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, flatFilters} = queryJSON;
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -91,6 +91,15 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         const value = options.find((option) => option.value === unsafeGroupBy) ?? null;
         return [options, value];
     }, [unsafeGroupBy]);
+
+    const [feedOptions, feed] = useMemo(() => {
+        const feedFilterValue = flatFilters
+            .find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)
+            ?.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)?.value;
+        const options = getFeedOptions(allFeeds);
+        const value = options.find((option) => option.value === feedFilterValue) ?? null;
+        return [options, value];
+    }, [flatFilters, allFeeds]);
 
     const [statusOptions, status] = useMemo(() => {
         const options = type ? getStatusOptions(type.value, groupBy?.value) : [];
@@ -164,20 +173,17 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
     const feedComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
-            const items = getFeedOptions(allFeeds);
-            const value = items.find((option) => option.value === groupBy) ?? null; // s77rt
-
             return (
                 <SingleSelectPopup
-                    label={translate('search.groupBy')} // s77rt
-                    items={items}
-                    value={value}
+                    label={translate('search.filters.feed')}
+                    items={feedOptions}
+                    value={feed}
                     closeOverlay={closeOverlay}
-                    onChange={(item) => updateFilterForm({groupBy: item?.value})} // s77rt
+                    onChange={(item) => updateFilterForm({feed: item ? [item.value] : undefined})}
                 />
             );
         },
-        [translate, allFeeds, groupBy, updateFilterForm],
+        [translate, feedOptions, feed, updateFilterForm],
     );
 
     const statusComponent = useCallback(
@@ -260,7 +266,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             {
                 label: translate('common.type'),
                 PopoverComponent: typeComponent,
-                value: type ? translate(type.translation) : null,
+                value: type ? (type.text ?? translate(type.translation)) : null,
                 keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
             },
             // s77rt remove DEV lock
@@ -269,14 +275,14 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                       {
                           label: translate('search.groupBy'),
                           PopoverComponent: groupByComponent,
-                          value: groupBy ? translate(groupBy.translation) : null,
+                          value: groupBy ? (groupBy.text ?? translate(groupBy.translation)) : null,
                           keyForList: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
                       },
                       {
-                          label: translate('search.groupBy'),
+                          label: translate('search.filters.feed'),
                           PopoverComponent: feedComponent,
-                          value: groupBy ? translate(`search.filters.groupBy.${groupBy}`) : null,
-                          keyForList: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+                          value: feed ? (feed.text ?? translate(feed.translation)) : null,
+                          keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
                       },
                   ]
                 : []),

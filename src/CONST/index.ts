@@ -6382,6 +6382,7 @@ const CONST = {
                     this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
                     this.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
                     this.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.FEED,
                 ],
                 [
                     this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
@@ -6441,6 +6442,7 @@ const CONST = {
                     this.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                     this.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
                     this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+                    this.SEARCH.SYNTAX_FILTER_KEYS.FEED,
                 ],
                 [
                     this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
