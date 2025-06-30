@@ -382,6 +382,7 @@ function FeatureTrainingModal({
                 }
                 onHelp();
             }}
+            shouldUseReanimatedModal
         >
             <Wrapper
                 style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width)]}
