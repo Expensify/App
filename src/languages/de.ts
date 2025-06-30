@@ -6637,9 +6637,7 @@ const translations = {
             authenticatePayment: 'Zahlung authentifizieren',
             requestRefund: 'Rückerstattung anfordern',
             requestRefundModal: {
-                phrase1: 'Eine Rückerstattung zu erhalten ist einfach: Downgraden Sie einfach Ihr Konto vor Ihrem nächsten Abrechnungsdatum und Sie erhalten eine Rückerstattung.',
-                phrase2:
-                    'Achtung: Wenn Sie Ihr Konto herabstufen, werden Ihre Arbeitsbereiche gelöscht. Diese Aktion kann nicht rückgängig gemacht werden, aber Sie können jederzeit einen neuen Arbeitsbereich erstellen, wenn Sie Ihre Meinung ändern.',
+                full: 'Eine Rückerstattung zu erhalten ist einfach: Downgraden Sie einfach Ihr Konto vor Ihrem nächsten Abrechnungsdatum und Sie erhalten eine Rückerstattung. <br /> <br /> Achtung: Wenn Sie Ihr Konto herabstufen, werden Ihre Arbeitsbereiche gelöscht. Diese Aktion kann nicht rückgängig gemacht werden, aber Sie können jederzeit einen neuen Arbeitsbereich erstellen, wenn Sie Ihre Meinung ändern.',
                 confirm: 'Arbeitsbereich(e) löschen und herabstufen',
             },
             viewPaymentHistory: 'Zahlungsverlauf anzeigen',

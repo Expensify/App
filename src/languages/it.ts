@@ -6647,9 +6647,7 @@ const translations = {
             authenticatePayment: 'Autentica pagamento',
             requestRefund: 'Richiedi rimborso',
             requestRefundModal: {
-                phrase1: 'Ottenere un rimborso è facile, basta declassare il tuo account prima della prossima data di fatturazione e riceverai un rimborso.',
-                phrase2:
-                    "Attenzione: il downgrade del tuo account comporta l'eliminazione del/dei tuo/i spazio/i di lavoro. Questa azione non può essere annullata, ma puoi sempre creare un nuovo spazio di lavoro se cambi idea.",
+                full: "Ottenere un rimborso è facile, basta declassare il tuo account prima della prossima data di fatturazione e riceverai un rimborso. <br /> <br /> Attenzione: il downgrade del tuo account comporta l'eliminazione del/dei tuo/i spazio/i di lavoro. Questa azione non può essere annullata, ma puoi sempre creare un nuovo spazio di lavoro se cambi idea.",
                 confirm: 'Elimina workspace e declassa',
             },
             viewPaymentHistory: 'Visualizza cronologia dei pagamenti',

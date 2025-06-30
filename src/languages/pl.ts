@@ -6622,9 +6622,7 @@ const translations = {
             authenticatePayment: 'Uwierzytelnij płatność',
             requestRefund: 'Poproś o zwrot pieniędzy',
             requestRefundModal: {
-                phrase1: 'Otrzymanie zwrotu jest proste, wystarczy obniżyć poziom konta przed następną datą rozliczenia, a otrzymasz zwrot.',
-                phrase2:
-                    'Uwaga: Obniżenie poziomu konta oznacza, że Twoje przestrzenie robocze zostaną usunięte. Tej akcji nie można cofnąć, ale zawsze możesz utworzyć nową przestrzeń roboczą, jeśli zmienisz zdanie.',
+                full: 'Otrzymanie zwrotu jest proste, wystarczy obniżyć poziom konta przed następną datą rozliczenia, a otrzymasz zwrot. <br /> <br /> Uwaga: Obniżenie poziomu konta oznacza, że Twoje przestrzenie robocze zostaną usunięte. Tej akcji nie można cofnąć, ale zawsze możesz utworzyć nową przestrzeń roboczą, jeśli zmienisz zdanie.',
                 confirm: 'Usuń przestrzeń(e) roboczą i obniż plan',
             },
             viewPaymentHistory: 'Wyświetl historię płatności',

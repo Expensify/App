@@ -6644,9 +6644,7 @@ const translations = {
             authenticatePayment: 'Authentifier le paiement',
             requestRefund: 'Demander un remboursement',
             requestRefundModal: {
-                phrase1: 'Obtenir un remboursement est facile, il suffit de rétrograder votre compte avant votre prochaine date de facturation et vous recevrez un remboursement.',
-                phrase2:
-                    "Attention : La rétrogradation de votre compte entraînera la suppression de votre/vos espace(s) de travail. Cette action est irréversible, mais vous pouvez toujours créer un nouvel espace de travail si vous changez d'avis.",
+                full: "Obtenir un remboursement est facile, il suffit de rétrograder votre compte avant votre prochaine date de facturation et vous recevrez un remboursement. <br /> <br /> Attention : La rétrogradation de votre compte entraînera la suppression de votre/vos espace(s) de travail. Cette action est irréversible, mais vous pouvez toujours créer un nouvel espace de travail si vous changez d'avis.",
                 confirm: 'Supprimer le(s) espace(s) de travail et rétrograder',
             },
             viewPaymentHistory: "Voir l'historique des paiements",

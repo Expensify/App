@@ -6637,9 +6637,7 @@ const translations = {
             authenticatePayment: 'Authenticeer betaling',
             requestRefund: 'Terugbetaling aanvragen',
             requestRefundModal: {
-                phrase1: 'Een terugbetaling krijgen is eenvoudig, verlaag gewoon uw account voordat uw volgende factuurdatum en u ontvangt een terugbetaling.',
-                phrase2:
-                    'Let op: Als je je account downgrade, worden je werkruimtes verwijderd. Deze actie kan niet ongedaan worden gemaakt, maar je kunt altijd een nieuwe werkruimte aanmaken als je van gedachten verandert.',
+                full: 'Een terugbetaling krijgen is eenvoudig, verlaag gewoon uw account voordat uw volgende factuurdatum en u ontvangt een terugbetaling. <br /> <br /> Let op: Als je je account downgrade, worden je werkruimtes verwijderd. Deze actie kan niet ongedaan worden gemaakt, maar je kunt altijd een nieuwe werkruimte aanmaken als je van gedachten verandert.',
                 confirm: 'Werkruimte(s) verwijderen en downgraden',
             },
             viewPaymentHistory: 'Bekijk betalingsgeschiedenis',
