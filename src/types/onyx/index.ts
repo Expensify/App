@@ -1,4 +1,4 @@
-import type {OnboardingPurpose} from '@src/CONST';
+import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
@@ -111,7 +111,6 @@ import type TryNewDot from './TryNewDot';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
-import type VacationDelegate from './VacationDelegate';
 import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
 import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
@@ -264,5 +263,4 @@ export type {
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
-    VacationDelegate,
 };
