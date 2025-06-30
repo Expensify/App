@@ -732,10 +732,10 @@ const transactionReportGroupListItems = [
         stateNum: 0,
         statusNum: 0,
         to: {
-            accountID: 18439984,
-            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-            displayName: 'Admin',
-            login: adminEmail,
+            accountID: 0,
+            avatar: '',
+            displayName: undefined,
+            login: undefined,
         },
         total: -5000,
         transactions: [
