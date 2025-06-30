@@ -293,8 +293,6 @@ function TransactionItemRow({
                     )}
                 </View>
             ) : null,
-            // Only show the description column separately if we have both the merchant and the description
-            // If we're not in narrow layout, merchantOrDescriptionName should alwyas have the merchant and never the description
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: description ? (
                 <View
                     key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION}
