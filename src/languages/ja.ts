@@ -2584,7 +2584,6 @@ const translations = {
         goBackHome: 'ホームページに戻る',
         commentYouLookingForCannotBeFound: 'お探しのコメントが見つかりません。チャットに戻ってください',
         contactConcierge: 'ご不明な点がありましたら、concierge@expensify.com までご連絡ください',
-
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `おっと... ${isBreakLine ? '\n' : ''}何かがうまくいきませんでした。`,

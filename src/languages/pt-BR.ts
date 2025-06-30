@@ -2581,7 +2581,6 @@ const translations = {
         goBackHome: 'Voltar para a página inicial',
         commentYouLookingForCannotBeFound: 'O comentário que você está procurando não foi encontrado. Volte para o chat',
         contactConcierge: 'Se tiver alguma dúvida, entre em contato com concierge@expensify.com',
-
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Ops... ${isBreakLine ? '\n' : ''}Algo deu errado`,
