@@ -103,6 +103,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true});
     const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
         [policy, policyTags],
@@ -159,16 +161,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
-            setWorkspaceTagEnabled(policyID, {[tagName]: {name: tagName, enabled: value}}, 0);
+            setWorkspaceTagEnabled(policyID, {[tagName]: {name: tagName, enabled: value}}, 0, policyCategories, allTransactionViolations);
         },
-        [policyID],
+        [policyID, policyCategories, allTransactionViolations],
     );
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean, orderWeight: number) => {
-            setPolicyTagsRequired(policyID, value, orderWeight);
+            setPolicyTagsRequired(policyID, value, orderWeight, policyTags, policyCategories, allTransactionViolations);
         },
-        [policyID],
+        [policyID, policyTags, policyCategories, allTransactionViolations],
     );
 
     const tagList = useMemo<TagListItem[]>(() => {
@@ -328,7 +330,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const deleteTags = () => {
-        deletePolicyTags(policyID, selectedTags);
+        deletePolicyTags(policyID, selectedTags, policyCategories, allTransactionViolations);
         setIsDeleteTagsConfirmModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
@@ -483,7 +485,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyID, tagsToDisable, 0);
+                    setWorkspaceTagEnabled(policyID, tagsToDisable, 0, policyCategories, allTransactionViolations);
                 },
             });
         }
@@ -495,7 +497,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyID, tagsToEnable, 0);
+                    setWorkspaceTagEnabled(policyID, tagsToEnable, 0, policyCategories, allTransactionViolations);
                 },
             });
         }
@@ -527,7 +529,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    setWorkspaceTagRequired(policyID, tagListIndexesToMarkOptional, false, policyTags);
+                    setWorkspaceTagRequired(policyID, tagListIndexesToMarkOptional, false, policyTags, policyCategories, allTransactionViolations);
                 },
             });
         }
@@ -539,7 +541,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.NOT_REQUIRED,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagRequired(policyID, tagListIndexesToMarkRequired, true, policyTags);
+                    setWorkspaceTagRequired(policyID, tagListIndexesToMarkRequired, true, policyTags, policyCategories, allTransactionViolations);
                 },
             });
         }

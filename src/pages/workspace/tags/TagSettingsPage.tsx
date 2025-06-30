@@ -50,6 +50,8 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const policyTag = useMemo(() => getTagList(policyTags, orderWeight), [policyTags, orderWeight]);
     const policy = usePolicy(policyID);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true});
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
     const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS;
@@ -78,7 +80,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     }
 
     const deleteTagAndHideModal = () => {
-        deletePolicyTags(policyID, [currentPolicyTag.name]);
+        deletePolicyTags(policyID, [currentPolicyTag.name], policyCategories, allTransactionViolations);
         setIsDeleteTagModalOpen(false);
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
     };
