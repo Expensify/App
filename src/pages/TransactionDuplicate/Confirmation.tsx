@@ -72,7 +72,7 @@ function Confirmation() {
             report,
             checkIfContextMenuActive: () => {},
             onShowContextMenu: () => {},
-            isReportArchived: undefined,
+            isReportArchived: false,
             anchor: null,
             isDisabled: false,
         }),

@@ -12,7 +12,7 @@ import type {Report, ReportAction} from '@src/types/onyx';
 type ShowContextMenuContextProps = {
     anchor: ContextMenuAnchor;
     report: OnyxEntry<Report>;
-    isReportArchived?: boolean;
+    isReportArchived: boolean;
     action: OnyxEntry<ReportAction>;
     transactionThreadReport?: OnyxEntry<Report>;
     checkIfContextMenuActive: () => void;
@@ -25,7 +25,7 @@ const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
     anchor: null,
     onShowContextMenu: (callback) => callback(),
     report: undefined,
-    isReportArchived: undefined,
+    isReportArchived: false,
     action: undefined,
     transactionThreadReport: undefined,
     checkIfContextMenuActive: () => {},

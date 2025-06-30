@@ -338,7 +338,7 @@ function MoneyRequestConfirmationListFooter({
         () => ({
             anchor: null,
             report: undefined,
-            isReportArchived: undefined,
+            isReportArchived: false,
             action: undefined,
             checkIfContextMenuActive: () => {},
             onShowContextMenu: () => {},
