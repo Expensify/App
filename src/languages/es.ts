@@ -5873,7 +5873,7 @@ const translations = {
             },
             emptyExpenseResults: {
                 title: 'Aún no has creado ningún gasto',
-                subtitle: 'Crea un gasto o haz una proba por Expensify para aprender más.',
+                subtitle: 'Crea un gasto o haz una prueba por Expensify para aprender más.',
                 subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para crear un gasto.',
             },
             emptyReportResults: {
@@ -5883,7 +5883,7 @@ const translations = {
             },
             emptyInvoiceResults: {
                 title: 'Aún no has creado \nninguna factura',
-                subtitle: 'Envía una factura o haz una proba por Expensify para aprender más.',
+                subtitle: 'Envía una factura o haz una prueba por Expensify para aprender más.',
                 subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para enviar una factura.',
             },
             emptyTripResults: {
@@ -7394,7 +7394,7 @@ const translations = {
         },
     },
     emptySearchView: {
-        takeATestDrive: 'Haz una proba',
+        takeATestDrive: 'Haz una prueba',
     },
     migratedUserWelcomeModal: {
         title: 'Viajes y gastos, a la velocidad del chat',
@@ -7501,7 +7501,7 @@ const translations = {
     },
     testDrive: {
         quickAction: {
-            takeATwoMinuteTestDrive: 'Haz una proba de 2 minutos',
+            takeATwoMinuteTestDrive: 'Haz una prueba de 2 minutos',
         },
         modal: {
             title: 'Haz una prueba con nosotros',
