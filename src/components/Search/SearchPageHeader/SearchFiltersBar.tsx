@@ -38,6 +38,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
 type SearchFiltersBarProps = {
@@ -267,7 +268,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 label: translate('common.type'),
                 PopoverComponent: typeComponent,
                 value: type ? (type.text ?? translate(type.translation)) : null,
-                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                filterKey: FILTER_KEYS.TYPE,
             },
             // s77rt remove DEV lock
             ...(isDevelopment
@@ -276,13 +277,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                           label: translate('search.groupBy'),
                           PopoverComponent: groupByComponent,
                           value: groupBy ? (groupBy.text ?? translate(groupBy.translation)) : null,
-                          keyForList: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+                          filterKey: FILTER_KEYS.GROUP_BY,
                       },
                       {
                           label: translate('search.filters.feed'),
                           PopoverComponent: feedComponent,
                           value: feed ? (feed.text ?? translate(feed.translation)) : null,
-                          keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+                          filterKey: FILTER_KEYS.FEED,
                       },
                   ]
                 : []),
@@ -290,21 +291,21 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 label: translate('common.status'),
                 PopoverComponent: statusComponent,
                 value: status.map((option) => translate(option.translation)),
-                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                filterKey: FILTER_KEYS.STATUS,
             },
             {
                 label: translate('common.date'),
                 PopoverComponent: datePickerComponent,
                 value: dateValue,
-                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                filterKey: FILTER_KEYS.DATE_ON,
             },
             {
                 label: translate('common.from'),
                 PopoverComponent: userPickerComponent,
                 value: fromValue,
-                keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterKey: FILTER_KEYS.FROM,
             },
-        ].filter((filterItem) => isFilterSupported(filterItem.keyForList, type?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE));
+        ].filter((filterItem) => isFilterSupported(filterItem.filterKey, type?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE));
 
         return filterList;
     }, [

@@ -205,7 +205,9 @@ const ALLOWED_TYPE_FILTERS = {
     ],
 };
 
-type InputID = ValueOf<typeof FILTER_KEYS>;
+type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS>;
+
+type InputID = SearchAdvancedFiltersKey;
 
 type SearchAdvancedFiltersForm = Form<
     InputID,
@@ -257,6 +259,6 @@ type SearchAdvancedFiltersForm = Form<
     }
 >;
 
-export type {SearchAdvancedFiltersForm};
+export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey};
 export default FILTER_KEYS;
 export {DATE_FILTER_KEYS, ALLOWED_TYPE_FILTERS, FILTER_KEYS};

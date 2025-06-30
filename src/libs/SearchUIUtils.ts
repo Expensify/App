@@ -1679,6 +1679,8 @@ function getGroupByOptions() {
 }
 
 function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>) {
+    // s77rt Add Expensify Card when applicable
+
     const options: Array<SingleSelectItem<OnyxTypes.CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK>> = [];
 
     Object.values(allCardFeeds ?? {}).forEach((cardFeeds) => {
