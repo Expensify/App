@@ -6,9 +6,11 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {TestToolsModalModalNavigatorParamList} from '@navigation/types';
+import toggleTestToolsModal from '@userActions/TestTool';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -62,7 +64,11 @@ function TestToolsModalPage() {
                                         small
                                         text={translate('initialSettingsPage.debugConsole.viewConsole')}
                                         onPress={() => {
-                                            Navigation.goBack(consoleRoute);
+                                            // Close the test tools modal first, then navigate to console page
+                                            toggleTestToolsModal();
+                                            navigateAfterInteraction(() => {
+                                                Navigation.navigate(consoleRoute);
+                                            });
                                         }}
                                     />
                                 </TestToolRow>
