@@ -33,7 +33,7 @@ function IOURequestStepPerDiemWorkspace({
 }: IOURequestStepPerDiemWorkspaceProps) {
     const {translate} = useLocalize();
     const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     const selectedWorkspace = useMemo(() => transaction?.participants?.[0], [transaction]);
 
@@ -41,7 +41,13 @@ function IOURequestStepPerDiemWorkspace({
         const availableWorkspaces = getActivePolicies(allPolicies, currentUserLogin).filter((policy) => canSubmitPerDiemExpenseFromWorkspace(policy));
 
         return availableWorkspaces
-            .sort((policy1, policy2) => sortWorkspacesBySelected({policyID: policy1.id, name: policy1.name}, {policyID: policy2.id, name: policy2.name}, selectedWorkspace?.policyID))
+            .sort((policy1, policy2) =>
+                sortWorkspacesBySelected(
+                    {policyID: policy1.id, name: policy1.name},
+                    {policyID: policy2.id, name: policy2.name},
+                    selectedWorkspace?.policyID ? [selectedWorkspace?.policyID] : [],
+                ),
+            )
             .map((policy) => ({
                 text: policy.name,
                 value: policy.id,
