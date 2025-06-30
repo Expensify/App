@@ -3616,6 +3616,51 @@ describe('ReportUtils', () => {
             actorAccountID: 123456,
         };
 
+        describe('can flag report action', () => {
+            let expenseReport: Report;
+            const reportActionFromConcierge: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            };
+
+            beforeAll(async () => {
+                expenseReport = {
+                    ...createRandomReport(60000),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, null);
+            });
+
+            it('should return true for an archived expense report with an action that can be flagged', () => {
+                // It will be true here because the report action can be flagged  since it was a whisper from someone that is not Concierge
+                // It doesn't matter if the expense report is archived or not
+                expect(shouldShowFlagComment(validReportAction, expenseReport, true)).toBe(true);
+            });
+
+            it('should return true for a non-archived expense report with an action that can be flagged', () => {
+                // It will be true here because the report action can be flagged  since it was a whisper from someone that is not Concierge
+                // It doesn't matter if the expense report is archived or not
+                expect(shouldShowFlagComment(validReportAction, expenseReport, false)).toBe(true);
+            });
+
+            it('should return false for an archived expense report with an action that cannot be flagged', () => {
+                // It will be false here because the report action cannot be flagged since it was a whisper from Concierge
+                // It doesn't matter if the expense report is archived or not
+                expect(shouldShowFlagComment(reportActionFromConcierge, expenseReport, true)).toBe(false);
+            });
+
+            it('should return false for a non-archived expense report with an action that cannot be flagged', () => {
+                // It will be false here because the report action cannot be flagged since it was a whisper from Concierge
+                // It doesn't matter if the expense report is archived or not
+                expect(shouldShowFlagComment(reportActionFromConcierge, expenseReport, false)).toBe(false);
+            });
+        });
+
         describe('chat reports', () => {
             let chatReport: Report;
 
@@ -3659,13 +3704,13 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, null);
             });
 
-            it('should return true for an archived report', () => {
+            it('should return true for an archived expense report', () => {
                 // It will always be true here because it's an expense report and not a chat report
                 // so isArchivedNonExpenseReport(report, true) will always be false
                 expect(shouldShowFlagComment(validReportAction, expenseReport, true)).toBe(true);
             });
 
-            it('should return true for a non-archived report', () => {
+            it('should return true for a non-archived expense report', () => {
                 // It will always be true here because it's an expense report and not a chat report
                 // so isArchivedNonExpenseReport(report, false) will always be false
                 expect(shouldShowFlagComment(validReportAction, expenseReport, false)).toBe(true);
@@ -3688,13 +3733,13 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
             });
 
-            it('should return false for an archived report', () => {
+            it('should return false for an archived chat report', () => {
                 // It will be false here because it's a chat report with Chronos and therefore
                 // it doesn't matter if the report is archived or not, it will always be false.
                 expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
             });
 
-            it('should return false for a non-archived report', () => {
+            it('should return false for a non-archived chat report', () => {
                 // It will be false here because it's a chat report with Chronos and therefore
                 // it doesn't matter if the report is archived or not, it will always be false.
                 expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
@@ -3719,13 +3764,13 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, null);
             });
 
-            it('should return false for an archived report', () => {
+            it('should return false for an archived chat report', () => {
                 // It will be false here because it's a chat report with Concierge and therefore
                 // it doesn't matter if the report is archived or not, it will always be false.
                 expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
             });
 
-            it('should return false for a non-archived report', () => {
+            it('should return false for a non-archived chat report', () => {
                 // It will be false here because it's a chat report with Concierge and therefore
                 // it doesn't matter if the report is archived or not, it will always be false.
                 expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
@@ -3752,13 +3797,13 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
             });
 
-            it('should return false for an archived report', () => {
+            it('should return false for an archived chatreport', () => {
                 // It will be false here because it's a chat report with an action from Concierge
                 // so it doesn't matter if the report is archived or not, it will always be false.
                 expect(shouldShowFlagComment(actionFromConcierge, chatReport, true)).toBe(false);
             });
 
-            it('should return false for a non-archived report', () => {
+            it('should return false for a non-archived chat report', () => {
                 // It will be false here because it's a chat report with an action from Concierge
                 // so it doesn't matter if the report is archived or not, it will always be false.
                 expect(shouldShowFlagComment(actionFromConcierge, chatReport, false)).toBe(false);
