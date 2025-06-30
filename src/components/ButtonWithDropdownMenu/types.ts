@@ -150,6 +150,8 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether to use modal padding style for the popover menu */
     shouldUseModalPaddingStyle?: boolean;
+
+    shouldUseCustomText: boolean;
 };
 
 export type {

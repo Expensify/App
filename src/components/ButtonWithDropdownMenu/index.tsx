@@ -1,7 +1,7 @@
-import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
+import type { RefObject } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -14,8 +14,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import mergeRefs from '@libs/mergeRefs';
 import CONST from '@src/CONST';
-import type {AnchorPosition} from '@src/styles';
-import type {ButtonWithDropdownMenuProps} from './types';
+import type { AnchorPosition } from '@src/styles';
+import type { ButtonWithDropdownMenuProps } from './types';
+
 
 function ButtonWithDropdownMenu<IValueType>({
     success = true,
@@ -53,6 +54,7 @@ function ButtonWithDropdownMenu<IValueType>({
     shouldPopoverUseScrollView = false,
     containerStyles,
     shouldUseModalPaddingStyle = true,
+    shouldUseCustomText = false,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -208,7 +210,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     style={[styles.w100, style]}
                     disabledStyle={disabledStyle}
                     isLoading={isLoading}
-                    text={customText ?? selectedItem?.text ?? ''}
+                    text={shouldUseCustomText ? customText : selectedItem?.text ?? ''}
                     onPress={(event) => {
                         const option = options.at(0);
                         return option ? onPress(event, option.value) : undefined;

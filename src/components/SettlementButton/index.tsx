@@ -583,6 +583,7 @@ function SettlementButton({
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     useKeyboardShortcuts={useKeyboardShortcuts}
+                    shouldUseCustomText={shouldUseShortForm}
                 />
             )}
         </KYCWall>
