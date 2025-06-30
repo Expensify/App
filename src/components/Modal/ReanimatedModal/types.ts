@@ -3,6 +3,7 @@ import type {NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-
 import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 
 type GestureProps = {
     /** Height of the device (used for positioning) */
@@ -14,7 +15,7 @@ type GestureProps = {
 
 type AnimationOut = ValueOf<Pick<ReactNativeModalProps, 'animationOut'>>;
 
-type ModalProps = ViewProps &
+type ReanimatedModalProps = ViewProps &
     GestureProps & {
         /** Content inside the modal */
         children: ReactNode;
@@ -115,6 +116,9 @@ type ModalProps = ViewProps &
         supportedOrientations?: Array<'portrait' | 'portrait-upside-down' | 'landscape' | 'landscape-left' | 'landscape-right'>;
 
         navigationBarTranslucent?: boolean;
+
+        /** Modal type */
+        type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
     };
 
 type BackdropProps = {
@@ -154,5 +158,5 @@ type ContainerProps = {
     panPosition?: {translateX: SharedValue<number>; translateY: SharedValue<number>};
 };
 
-export default ModalProps;
+export default ReanimatedModalProps;
 export type {BackdropProps, ContainerProps, AnimationOut};
