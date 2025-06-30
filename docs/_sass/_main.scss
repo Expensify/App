@@ -1125,16 +1125,20 @@ button {
     line-height: 16px;
 }
 
-#platform-tabs > .badge{
+.badge{
     border-style: solid;
     border-width: 1px;
-    border-color: var(--color-borders); 
+    border-color: var(--color-borders);
     background-color: transparent;
-    border-radius: 4px;
+    border-radius: 4px !important;
     text-align: center;
     cursor: unset;
     padding: 8px 12px;
     color: var(--color-text);
+    font-size: 13px;
+    box-sizing: border-box;
+    line-height: 16px;
+    height: 36px;
 }
 
 #platform-tabs > .active {

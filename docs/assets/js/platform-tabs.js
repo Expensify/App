@@ -26,8 +26,6 @@ if (path.length >= 3 && path[2] == 'new-expensify') {
     showNewExpensifyBadge = true;
 }
 
-console.log(newExpensifyContent, expensifyClassicContent);
-
 if (newExpensifyContent || showNewExpensifyBadge) {
     const tab = document.createElement('div');
     tab.innerHTML = 'New Expensify';
