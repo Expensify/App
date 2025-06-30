@@ -17,7 +17,6 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
