@@ -987,9 +987,9 @@ function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm
         country: data.bankCountry,
         currency: data.bankCurrency,
     };
-  
+
     const parameters = {
-        isWithdrawal: false, 
+        isWithdrawal: false,
         isSavings: true,
         inputs: JSON.stringify(inputData),
     };

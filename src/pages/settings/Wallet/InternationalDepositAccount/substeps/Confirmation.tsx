@@ -60,12 +60,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     };
 
     const getDataAndGoToNextStep = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>) => {
-        createCorpayBankAccountForWalletFlow(
-            {...formValues, ...values},
-            corpayFields?.classification ?? '',
-            corpayFields?.destinationCountry ?? '',
-            corpayFields?.preferredMethod ?? '',
-        );
+        createCorpayBankAccountForWalletFlow({...formValues, ...values}, corpayFields?.classification ?? '', corpayFields?.destinationCountry ?? '', corpayFields?.preferredMethod ?? '');
     };
 
     useEffect(() => {
