@@ -34,6 +34,7 @@ type NavigationRoot = NavigationHelpers<RootNavigatorParamList>;
 type GoBackAction = Extract<CommonActions.Action, {type: 'GO_BACK'}>;
 type ResetAction = Extract<CommonActions.Action, {type: 'RESET'}>;
 type SetParamsAction = Extract<CommonActions.Action, {type: 'SET_PARAMS'}>;
+type NavigateDeprecatedAction = Extract<CommonActions.Action, {type: 'NAVIGATE_DEPRECATED'}>;
 
 type ActionNavigate = {
     type: ValueOf<typeof CONST.NAVIGATION.ACTION_TYPE>;
@@ -49,7 +50,7 @@ type ActionNavigate = {
     target?: string;
 };
 
-type StackNavigationAction = GoBackAction | ResetAction | SetParamsAction | ActionNavigate | undefined;
+type StackNavigationAction = GoBackAction | ResetAction | SetParamsAction | ActionNavigate | NavigateDeprecatedAction | undefined;
 
 type NavigationStateRoute = NavigationState['routes'][number];
 type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<Route<TRouteName>>;
@@ -168,7 +169,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
-    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.ADDRESS]: {
         policyID: string;
@@ -1718,10 +1718,6 @@ type RightModalNavigatorParamList = {
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
-    [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: {
-        token: string;
-        isTestAccount?: boolean;
-    };
     [SCREENS.TRAVEL.TRIP_SUMMARY]: {
         reportID: string;
         transactionID: string;
@@ -1730,7 +1726,8 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.TRIP_DETAILS]: {
         reportID: string;
         transactionID: string;
-        reservationIndex: number;
+        sequenceIndex: number;
+        pnr: string;
         backTo?: string;
     };
     [SCREENS.TRAVEL.TCS]: {
@@ -2011,6 +2008,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE_AVATAR]: {
         policyID: string;
