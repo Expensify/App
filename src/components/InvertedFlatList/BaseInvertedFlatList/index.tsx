@@ -1,9 +1,8 @@
 import type {LegendListProps, LegendListRef, LegendListRenderItemProps} from '@legendapp/list';
 import {LegendList} from '@legendapp/list';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import getInitialPaginationSize from './getInitialPaginationSize';
-import RenderTaskQueue from './RenderTaskQueue';
 
 type LegendListType = typeof LegendList;
 
@@ -62,35 +61,23 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 
     const firstDisplayedItemIndex = useMemo(() => displayedData.length - 1, [displayedData.length]);
 
-    // Queue up updates to the displayed data to avoid adding too many at once and cause jumps in the list.
-    const renderQueue = useMemo(() => new RenderTaskQueue(), []);
-    useEffect(() => {
-        return () => {
-            renderQueue.cancel();
-        };
-    }, [renderQueue]);
-
-    renderQueue.setHandler((info) => {
-        if (!isLoadingData) {
-            onEndReached?.({distanceFromEnd: info.distanceFromStart});
-        }
-        setIsInitialData(false);
-        // Get the first item in reversed displayedData (which is the oldest item we're currently showing)
-        const firstDisplayedItem = displayedData.at(firstDisplayedItemIndex);
-        if (firstDisplayedItem) {
-            // Find this item's original index in the data array
-            const originalIndex = data.findIndex((item) => keyExtractor(item, 0) === keyExtractor(firstDisplayedItem, 0));
-            setCurrentDataId(keyExtractor(firstDisplayedItem, originalIndex));
-        } else {
-            setCurrentDataId('');
-        }
-    });
-
     const handleStartReached = useCallback(
         (info: {distanceFromStart: number}) => {
-            renderQueue.add(info);
+            if (!isLoadingData) {
+                onEndReached?.({distanceFromEnd: info.distanceFromStart});
+            }
+            setIsInitialData(false);
+            // Get the first item in reversed displayedData (which is the oldest item we're currently showing)
+            const firstDisplayedItem = displayedData.at(firstDisplayedItemIndex);
+            if (firstDisplayedItem) {
+                // Find this item's original index in the data array
+                const originalIndex = data.findIndex((item) => keyExtractor(item, 0) === keyExtractor(firstDisplayedItem, 0));
+                setCurrentDataId(keyExtractor(firstDisplayedItem, originalIndex));
+            } else {
+                setCurrentDataId('');
+            }
         },
-        [renderQueue],
+        [isLoadingData, onEndReached, displayedData, firstDisplayedItemIndex, data, keyExtractor],
     );
 
     const handleRenderItem = useCallback(
