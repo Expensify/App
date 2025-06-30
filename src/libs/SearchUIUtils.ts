@@ -17,6 +17,7 @@ import type {
     ReportActionListItemType,
     SearchListItem,
     TaskListItemType,
+    TransactionCardGroupListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionMemberGroupListItemType,
@@ -305,14 +306,21 @@ function isTransactionGroupListItemType(item: ListItem): item is TransactionGrou
  * Type guard that checks if something is a TransactionReportGroupListItemType
  */
 function isTransactionReportGroupListItemType(item: ListItem): item is TransactionReportGroupListItemType {
-    return isTransactionGroupListItemType(item) && 'reportID' in item;
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.REPORTS;
 }
 
 /**
  * Type guard that checks if something is a TransactionMemberGroupListItemType
  */
 function isTransactionMemberGroupListItemType(item: ListItem): item is TransactionMemberGroupListItemType {
-    return isTransactionGroupListItemType(item) && 'accountID' in item;
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.MEMBERS;
+}
+
+/**
+ * Type guard that checks if something is a TransactionCardGroupListItemType
+ */
+function isTransactionCardGroupListItemType(item: ListItem): item is TransactionCardGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.CARDS;
 }
 
 /**
@@ -525,10 +533,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         // Use Map.get() for faster lookups with default values
         const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
         const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
-        // const isPolicyExpenseChat = !!reports.find((rp) => rp.policyID === transactionItem.policyID && rp.isPolicyExpenseChat);
 
-        // console.log({reports})
-        // console.log({isPolicyExpenseChat});
         const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
         const transactionSection: TransactionListItemType = {
@@ -549,7 +554,6 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             isAmountColumnWide: shouldShowAmountInWideColumn,
             isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
             violations: transactionViolations,
-            // isPolicyExpenseChat,
 
             // Manually copying all the properties from transactionItem
             transactionID: transactionItem.transactionID,
@@ -912,6 +916,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
             reportIDToTransactions[reportKey] = {
                 ...reportItem,
+                groupedBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 action: getAction(data, allViolations, key),
                 keyForList: reportItem.reportID,
                 from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
@@ -933,7 +938,6 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
             const to = transactionItem.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
-            // const isPolicyExpenseChat = !!reports.find((rp) => rp.policyID === transactionItem.policyID && rp.isPolicyExpenseChat);
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
@@ -956,7 +960,6 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 violations: transactionViolations,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
-                // isPolicyExpenseChat,
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
@@ -976,6 +979,16 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
  * Do not use directly, use only via `getSections()` facade.
  */
 function getMemberSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionMemberGroupListItemType[] {
+    return data && metadata ? [] : []; // s77rt TODO
+}
+
+/**
+ * @private
+ * Organizes data into List Sections grouped by card for display, for the TransactionGroupListItemType of Search Results.
+ *
+ * Do not use directly, use only via `getSections()` facade.
+ */
+function getCardSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionCardGroupListItemType[] {
     return data && metadata ? [] : []; // s77rt TODO
 }
 
@@ -1005,11 +1018,18 @@ function getSections(type: SearchDataTypes, status: SearchStatus, data: OnyxType
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return getTaskSections(data);
     }
-    if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
-        return getReportSections(data, metadata);
-    }
-    if (groupBy === CONST.SEARCH.GROUP_BY.MEMBERS) {
-        return getMemberSections(data, metadata);
+
+    if (groupBy) {
+        // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+        // eslint-disable-next-line default-case
+        switch (groupBy) {
+            case CONST.SEARCH.GROUP_BY.REPORTS:
+                return getReportSections(data, metadata);
+            case CONST.SEARCH.GROUP_BY.MEMBERS:
+                return getMemberSections(data, metadata);
+            case CONST.SEARCH.GROUP_BY.CARDS:
+                return getCardSections(data, metadata);
+        }
     }
 
     return getTransactionsSections(data, metadata);
@@ -1032,12 +1052,20 @@ function getSortedSections(
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return getSortedTaskData(data as TaskListItemType[], sortBy, sortOrder);
     }
-    if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
-        return getSortedReportData(data as TransactionReportGroupListItemType[]);
+
+    if (groupBy) {
+        // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+        // eslint-disable-next-line default-case
+        switch (groupBy) {
+            case CONST.SEARCH.GROUP_BY.REPORTS:
+                return getSortedReportData(data as TransactionReportGroupListItemType[]);
+            case CONST.SEARCH.GROUP_BY.MEMBERS:
+                return getSortedMemberData(data as TransactionMemberGroupListItemType[]);
+            case CONST.SEARCH.GROUP_BY.CARDS:
+                return getSortedCardData(data as TransactionCardGroupListItemType[]);
+        }
     }
-    if (groupBy === CONST.SEARCH.GROUP_BY.MEMBERS) {
-        return getSortedMemberData(data as TransactionMemberGroupListItemType[]);
-    }
+
     return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
 }
 
@@ -1132,6 +1160,14 @@ function getSortedReportData(data: TransactionReportGroupListItemType[]) {
  * Sorts report sections based on a specified column and sort order.
  */
 function getSortedMemberData(data: TransactionMemberGroupListItemType[]) {
+    return data ? [] : []; // s77rt TODO
+}
+
+/**
+ * @private
+ * Sorts report sections based on a specified column and sort order.
+ */
+function getSortedCardData(data: TransactionCardGroupListItemType[]) {
     return data ? [] : []; // s77rt TODO
 }
 
@@ -1649,6 +1685,7 @@ export {
     isTransactionGroupListItemType,
     isTransactionReportGroupListItemType,
     isTransactionMemberGroupListItemType,
+    isTransactionCardGroupListItemType,
     isSearchResultsEmpty,
     isTransactionListItemType,
     isReportActionListItemType,
