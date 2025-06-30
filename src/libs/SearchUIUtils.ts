@@ -45,6 +45,7 @@ import type {
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport} from './actions/Report';
+import {getCompanyFeeds, getCustomOrFormattedFeedName} from './CardUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
@@ -1677,6 +1678,18 @@ function getGroupByOptions() {
     return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({translation: `search.filters.groupBy.${value}`, value}));
 }
 
+function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>) {
+    const options: Array<SingleSelectItem<OnyxTypes.CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK>> = [];
+
+    Object.values(allCardFeeds ?? {}).forEach((cardFeeds) => {
+        Object.keys(getCompanyFeeds(cardFeeds, true, true)).forEach((feed) => {
+            options.push({text: getCustomOrFormattedFeedName(feed as OnyxTypes.CompanyCardFeed, cardFeeds?.settings?.companyCardNicknames) ?? '', value: feed as OnyxTypes.CompanyCardFeed});
+        });
+    });
+
+    return options;
+}
+
 export {
     getListItem,
     getSections,
@@ -1704,6 +1717,7 @@ export {
     getStatusOptions,
     getTypeOptions,
     getGroupByOptions,
+    getFeedOptions,
     getWideAmountIndicators,
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
