@@ -55,16 +55,6 @@ allprojects {
         }
     }
     repositories {
-        if (!patchedArtifactsConfig.buildFromSource) {
-            maven {
-                url "https://maven.pkg.github.com/Expensify/App"
-                
-                credentials {
-                    username = patchedArtifactsConfig.githubUsername
-                    password = patchedArtifactsConfig.githubToken
-                }
-            } 
-        }
         maven {
             // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
             url("$rootDir/../node_modules/react-native/android")
@@ -85,6 +75,15 @@ allprojects {
                 // Example gradle.properties entry:
                 // MAPBOX_DOWNLOADS_TOKEN=YOUR_SECRET_TOKEN_HERE
                 password = project.properties['MAPBOX_DOWNLOADS_TOKEN'] ?: ""
+            }
+        }
+        if (!patchedArtifactsConfig.buildFromSource) {
+            maven {
+                url getProperty('patchedArtifacts.mavenRepositoryUrl')
+                // We don't want gradle to search for other artifacts in our patched artifacts repository
+                content {
+                    includeGroup("com.expensify.react-standalone")
+                }
             }
         }
     }
