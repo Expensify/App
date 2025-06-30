@@ -73,11 +73,14 @@ const getTabNames = (children: React.ReactNode): string[] => {
     const result: string[] = [];
 
     React.Children.forEach(children, (child) => {
-        if (React.isValidElement(child)) {
-            const element = child as React.ReactElement<{name?: string}>;
-            if (typeof element.props.name === 'string') {
-                result.push(element.props.name);
-            }
+        if (!React.isValidElement(child)) {
+            return;
+        }
+
+        const element = child as React.ReactElement<{name?: string}>;
+
+        if (typeof element.props.name === 'string') {
+            result.push(element.props.name);
         }
     });
 
