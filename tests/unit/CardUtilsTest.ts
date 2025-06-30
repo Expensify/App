@@ -1,4 +1,5 @@
 import type {OnyxCollection} from 'react-native-onyx';
+import {translateLocal} from '@libs/Localize';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
@@ -449,21 +450,21 @@ describe('CardUtils', () => {
         it('Should return custom name if exists', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
             const companyCardNicknames = cardFeedsCollection.FAKE_ID_1?.settings?.companyCardNicknames;
-            const feedName = getCustomOrFormattedFeedName(feed, companyCardNicknames);
+            const feedName = getCustomOrFormattedFeedName(translateLocal, feed, companyCardNicknames);
             expect(feedName).toBe(customFeedName);
         });
 
         it('Should return formatted name if there is no custom name', () => {
             const feed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
             const companyCardNicknames = cardFeedsCollection.FAKE_ID_3?.settings?.companyCardNicknames;
-            const feedName = getCustomOrFormattedFeedName(feed, companyCardNicknames);
+            const feedName = getCustomOrFormattedFeedName(translateLocal, feed, companyCardNicknames);
             expect(feedName).toBe('Visa cards');
         });
 
         it('Should return undefined if no feed provided', () => {
             const feed = undefined;
             const companyCardNicknames = cardFeedsCollection.FAKE_ID_1?.settings?.companyCardNicknames;
-            const feedName = getCustomOrFormattedFeedName(feed, companyCardNicknames);
+            const feedName = getCustomOrFormattedFeedName(translateLocal, feed, companyCardNicknames);
             expect(feedName).toBe(undefined);
         });
     });

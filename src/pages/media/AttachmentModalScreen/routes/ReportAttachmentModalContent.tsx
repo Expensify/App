@@ -3,10 +3,10 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {Attachment} from '@components/Attachments/types';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import {openReport} from '@libs/actions/Report';
 import validateAttachmentFile from '@libs/AttachmentUtils';
-import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -49,6 +49,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
 
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState<TranslationPaths | null>(null);
@@ -108,10 +109,10 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
      */
     const getModalType = useCallback(
         (sourceURL: string, fileObject: FileObject) =>
-            sourceURL && (Str.isPDF(sourceURL) || (fileObject && Str.isPDF(fileObject.name ?? translateLocal('attachmentView.unknownFilename'))))
+            sourceURL && (Str.isPDF(sourceURL) || (fileObject && Str.isPDF(fileObject.name ?? translate('attachmentView.unknownFilename'))))
                 ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
                 : CONST.MODAL.MODAL_TYPE.CENTERED,
-        [],
+        [translate],
     );
 
     // Validates the attachment file and renders the appropriate modal type or errors
