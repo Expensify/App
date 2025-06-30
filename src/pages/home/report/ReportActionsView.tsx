@@ -229,7 +229,6 @@ function ReportActionsView({
 
     const {loadOlderChats, loadNewerChats} = useLoadReportActions({
         reportID,
-        reportActionID,
         reportActions,
         allReportActionIDs,
         transactionThreadReport,
@@ -305,6 +304,7 @@ function ReportActionsView({
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
+                hasNewerActions={hasNewerActions}
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
             />
