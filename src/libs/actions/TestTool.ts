@@ -1,9 +1,23 @@
 import throttle from 'lodash/throttle';
 import {getBrowser, isChromeIOS} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {close} from './Modal';
+
+/**
+ * Get the backTo parameter from the current test tools modal route
+ */
+function getBackToParam(): Route | undefined {
+    const route = navigationRef.current?.getCurrentRoute();
+    if (route?.name === SCREENS.TEST_TOOLS_MODAL.ROOT && route.params) {
+        return (route.params as {backTo?: Route}).backTo;
+    }
+    return undefined;
+}
 
 /**
  * Toggle the test tools modal open or closed.
@@ -12,8 +26,14 @@ import {close} from './Modal';
 const throttledToggle = throttle(
     () => {
         const currentRoute = Navigation.getActiveRoute();
+        const backTo = getBackToParam();
+
         if (currentRoute.includes(ROUTES.TEST_TOOLS_MODAL.route)) {
-            Navigation.goBack();
+            if (backTo) {
+                Navigation.goBack(backTo);
+            } else {
+                Navigation.goBack();
+            }
             return;
         }
         const openTestToolsModal = () => {
