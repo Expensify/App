@@ -3631,11 +3631,15 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
             });
 
-            it('should return true for an archived report', () => {
-                expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(true);
+            it('should return false for an archived chat report', () => {
+                // It will be false here because it's a chat report and therefore, it depends on if the report is archived or not
+                // so isArchivedNonExpenseReport(report, true) will be true, and shouldShowFlagComment checks for false.
+                expect(shouldShowFlagComment(validReportAction, chatReport, true)).toBe(false);
             });
 
-            it('should return true for a non-archived report', () => {
+            it('should return true for a non-archived chat report', () => {
+                // It will be true here because it's a chat report and therefore, it depends on if the report is archived or not
+                // so isArchivedNonExpenseReport(report, false) will be false, and shouldShowFlagComment checks for false.
                 expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(true);
             });
         });
@@ -3656,10 +3660,14 @@ describe('ReportUtils', () => {
             });
 
             it('should return true for an archived report', () => {
-                expect(shouldShowFlagComment(validReportAction, expenseReport, false)).toBe(true);
+                // It will always be true here because it's an expense report and not a chat report
+                // so isArchivedNonExpenseReport(report, true) will always be false
+                expect(shouldShowFlagComment(validReportAction, expenseReport, true)).toBe(true);
             });
 
             it('should return true for a non-archived report', () => {
+                // It will always be true here because it's an expense report and not a chat report
+                // so isArchivedNonExpenseReport(report, false) will always be false
                 expect(shouldShowFlagComment(validReportAction, expenseReport, false)).toBe(true);
             });
         });
@@ -3685,22 +3693,26 @@ describe('ReportUtils', () => {
             });
 
             it('should return false for an archived report', () => {
-                expect(shouldShowFlagComment(actionFromConcierge, chatReport, false)).toBe(false);
+                // It will be false here because it's a chat report with an action from Concierge
+                // so it doesn't matter if the report is archived or not, it will always be false.
+                expect(shouldShowFlagComment(actionFromConcierge, chatReport, true)).toBe(false);
             });
 
             it('should return false for a non-archived report', () => {
+                // It will be false here because it's a chat report with an action from Concierge
+                // so it doesn't matter if the report is archived or not, it will always be false.
                 expect(shouldShowFlagComment(actionFromConcierge, chatReport, false)).toBe(false);
             });
         });
 
-        describe('Action from Concierge', () => {
+        describe('Chat with Chronos', () => {
             let chatReport: Report;
 
             beforeAll(async () => {
                 chatReport = {
                     ...createRandomReport(60000),
                     type: CONST.REPORT.TYPE.CHAT,
-                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CHRONOS]),
                 };
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
             });
@@ -3710,10 +3722,45 @@ describe('ReportUtils', () => {
             });
 
             it('should return false for an archived report', () => {
+                // It will be false here because it's a chat report with Chronos and therefore
+                // it doesn't matter if the report is archived or not, it will always be false.
                 expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
             });
 
             it('should return false for a non-archived report', () => {
+                // It will be false here because it's a chat report with Chronos and therefore
+                // it doesn't matter if the report is archived or not, it will always be false.
+                expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
+            });
+        });
+
+        describe('Chat with Concierge', () => {
+            let chatReport: Report;
+
+            beforeAll(async () => {
+                chatReport = {
+                    ...createRandomReport(60000),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+                await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, chatReport.reportID);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
+                await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, null);
+            });
+
+            it('should return false for an archived report', () => {
+                // It will be false here because it's a chat report with Concierge and therefore
+                // it doesn't matter if the report is archived or not, it will always be false.
+                expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
+            });
+
+            it('should return false for a non-archived report', () => {
+                // It will be false here because it's a chat report with Concierge and therefore
+                // it doesn't matter if the report is archived or not, it will always be false.
                 expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
             });
         });
