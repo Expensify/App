@@ -213,8 +213,6 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
             alignItemsAtEnd
             waitForInitialLayout
             maintainScrollAtEnd={!isLoadingData}
-            drawDistance={400}
-            initialContainerPoolRatio={3}
             style={style}
             contentContainerStyle={contentContainerStyle}
         />
