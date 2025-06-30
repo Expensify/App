@@ -58,8 +58,8 @@ import {
     shouldDisableRename,
     shouldDisableThread,
     shouldReportBeInOptionList,
-    shouldShowFlagComment,
     shouldReportShowSubscript,
+    shouldShowFlagComment,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
