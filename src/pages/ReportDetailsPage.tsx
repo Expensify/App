@@ -212,7 +212,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const isSystemChat = useMemo(() => isSystemChatUtil(report), [report]);
     const isGroupChat = useMemo(() => isGroupChatUtil(report), [report]);
-    const isRootGroupChat = useMemo(() => isRootGroupChatUtil(report), [report]);
+    const isRootGroupChat = useMemo(() => isRootGroupChatUtil(report, !!reportNameValuePairs?.private_isArchived), [report, reportNameValuePairs]);
     const isThread = useMemo(() => isThreadUtil(report), [report]);
     const shouldOpenRoomMembersPage = isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin);
     const participants = useMemo(() => {
@@ -307,7 +307,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         });
     }, [isPolicyEmployee, isPolicyExpenseChat, isRootGroupChat, report.reportID, report.visibility]);
 
-    const shouldShowLeaveButton = canLeaveChat(report, policy);
+    const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, session?.email) && !policy?.isJoinRequestPending;
 
     const reportName = Parser.htmlToText(getReportName(report));
@@ -605,7 +605,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         );
     }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
 
-    const canJoin = canJoinChat(report, parentReportAction, policy, reportNameValuePairs);
+    const canJoin = canJoinChat(report, parentReportAction, policy, !!reportNameValuePairs?.private_isArchived);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
