@@ -51,6 +51,13 @@ export default function () {
             },
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
+        fullyMergedSnapshotKeys: [
+            ONYXKEYS.COLLECTION.TRANSACTION,
+            ONYXKEYS.COLLECTION.REPORT,
+            ONYXKEYS.COLLECTION.POLICY,
+            ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+            ONYXKEYS.PERSONAL_DETAILS_LIST,
+        ],
     });
 
     // Init locale early to avoid rendering translations keys instead of real translations
