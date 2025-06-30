@@ -16,6 +16,8 @@ function ReanimatedModal({
     animationInDelay,
     animationInTiming = 300,
     animationOutTiming = 300,
+    animationIn = 'fadeIn',
+    animationOut = 'fadeOut',
     avoidKeyboard = false,
     coverScreen = true,
     children,
@@ -141,6 +143,8 @@ function ReanimatedModal({
             animationInDelay={animationInDelay}
             onOpenCallBack={onOpenCallBack}
             onCloseCallBack={onCloseCallBack}
+            animationIn={animationIn}
+            animationOut={animationOut}
             style={style}
             type={type}
         >
