@@ -38,12 +38,12 @@ function CurrencySymbolButton({onCurrencyButtonPress, currencySymbol, isCurrency
                     src={Expensicons.DownArrow}
                     fill={theme.icon}
                 />
-                <Text style={styles.iouAmountText}>{currencySymbol}</Text>
+                <Text style={[styles.iouAmountText, styles.lineHeightUndefined]}>{currencySymbol}</Text>
             </PressableWithoutFeedback>
         </Tooltip>
     ) : (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-            <Text style={styles.iouAmountText}>{currencySymbol}</Text>
+            <Text style={[styles.iouAmountText, styles.lineHeightUndefined]}>{currencySymbol}</Text>
         </View>
     );
 }
