@@ -11,6 +11,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,7 +38,8 @@ function RoomNamePage({report}: RoomNamePageProps) {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const reportID = report?.reportID;
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const goBack = useCallback(() => {
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, route.params.backTo)));
@@ -87,7 +89,7 @@ function RoomNamePage({report}: RoomNamePageProps) {
             includeSafeAreaPaddingBottom
             testID={RoomNamePage.displayName}
         >
-            <FullPageNotFoundView shouldShow={shouldDisableRename(report)}>
+            <FullPageNotFoundView shouldShow={shouldDisableRename(report, isReportArchived)}>
                 <HeaderWithBackButton
                     title={translate('newRoomPage.roomName')}
                     onBackButtonPress={goBack}

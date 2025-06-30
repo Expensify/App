@@ -43,6 +43,7 @@ import {
     canShowReportRecipientLocalTime,
     chatIncludesChronos,
     chatIncludesConcierge,
+    getParentReport,
     getReportRecipientAccountIDs,
     isAdminRoom,
     isAnnounceRoom,
@@ -51,6 +52,7 @@ import {
     isGroupChat,
     isInvoiceReport,
     isReportTransactionThread,
+    isSettled,
     isUserCreatedPolicyRoom,
 } from '@libs/ReportUtils';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
@@ -219,6 +221,7 @@ function ReportActionCompose({
     const includesConcierge = useMemo(() => chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
+    const parentReport = useMemo(() => getParentReport(report), [report]);
     const shouldDisplayDualDropZone = useMemo(
         () =>
             !isChatRoom(report) &&
@@ -227,8 +230,10 @@ function ReportActionCompose({
             !isAdminRoom(report) &&
             !isConciergeChatReport(report) &&
             !isInvoiceReport(report) &&
-            !isGroupChat(report),
-        [report],
+            !isGroupChat(report) &&
+            !isSettled(parentReport) &&
+            !isSettled(report),
+        [report, parentReport],
     );
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const transactionID = useMemo(() => getTransactionID(reportID), [reportID]);
@@ -710,8 +715,8 @@ function ReportActionCompose({
                         ]}
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                        <ReportTypingIndicator reportID={reportID} />
                         <AgentZeroProcessingRequestIndicator reportID={reportID} />
+                        <ReportTypingIndicator reportID={reportID} />
                         {!!exceededMaxLength && (
                             <ExceededCommentLength
                                 maxCommentLength={exceededMaxLength}

@@ -32,6 +32,7 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
             {...props}
             ref={ref}
             inputStyle={[styles.baseTextInput, props.inputStyle]}
+            textInputContainerStyles={[props.textInputContainerStyles]}
         />
     );
 }
