@@ -212,9 +212,6 @@ type ListItem<K extends string | number = string> = {
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
-
-    /** Used to initiate payment from search page */
-    hash?: number;
 };
 
 type TransactionListItemType = ListItem &
@@ -266,9 +263,6 @@ type TransactionListItemType = ListItem &
 
         /** Attendees in the transaction */
         attendees?: Attendee[];
-
-        /** IOUs report */
-        iouReportID?: string | undefined;
 
         /** Precomputed violations */
         violations?: TransactionViolation[];
@@ -716,7 +710,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     alternateTextNumberOfLines?: number;
 
     /** Ref for textInput */
-    // eslint-disable-next-line deprecation/deprecation
     textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
 
     /** Styles for the section title */
