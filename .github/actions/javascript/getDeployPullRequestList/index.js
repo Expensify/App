@@ -1,9 +1,6 @@
 /**
  * NOTE: This is a compiled file. DO NOT directly edit this file.
  */
-/**
- * NOTE: This is a compiled file. DO NOT directly edit this file.
- */
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
@@ -34834,24 +34831,47 @@ class GithubUtils {
     static async getCommitHistoryBetweenTags(fromTag, toTag) {
         console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
         try {
-            const commits = await this.paginate(this.octokit.repos.compareCommits, {
+            const response = await this.octokit.repos.compareCommits({
                 owner: CONST_1.default.GITHUB_OWNER,
                 repo: CONST_1.default.APP_REPO,
                 base: fromTag,
                 head: toTag,
-                per_page: 250,
-            }, (response) => response.data.commits);
-            // Map API response to our CommitType object
-            return commits.map((commit) => ({
-                commit: commit.sha,
-                subject: commit.commit.message,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                authorName: commit.commit.author?.name || 'Unknown',
-            }));
+                per_page: 100,
+            });
+            // Check if we got a proper response with commits
+            if (response.data && response.data.commits && Array.isArray(response.data.commits)) {
+                console.log(`✅ compareCommits API returned ${response.data.commits.length} commits`);
+                // If we got the max per_page, there might be more commits, so use pagination
+                if (response.data.commits.length === 100) {
+                    console.log('📄 Using pagination to get all commits...');
+                    const allCommits = await this.paginate(this.octokit.repos.compareCommits, {
+                        owner: CONST_1.default.GITHUB_OWNER,
+                        repo: CONST_1.default.APP_REPO,
+                        base: fromTag,
+                        head: toTag,
+                        per_page: 100,
+                    }, (response) => response.data.commits);
+                    return allCommits.map((commit) => ({
+                        commit: commit.sha,
+                        subject: commit.commit.message,
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        authorName: commit.commit.author?.name || 'Unknown',
+                    }));
+                }
+                // Single page response
+                return response.data.commits.map((commit) => ({
+                    commit: commit.sha,
+                    subject: commit.commit.message,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    authorName: commit.commit.author?.name || 'Unknown',
+                }));
+            }
+            console.warn('⚠️ GitHub API returned unexpected response format');
+            return [];
         }
         catch (error) {
             if (error instanceof request_error_1.RequestError && error.status === 404) {
-                console.error(`❓❓ Failed to compare commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`);
+                console.error(`❓❓ Failed to get commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`);
             }
             throw error;
         }
