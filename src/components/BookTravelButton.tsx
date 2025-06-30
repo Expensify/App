@@ -147,7 +147,9 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
             navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
         } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             setVerificationModalVisibility(true);
-            requestTravelAccess();
+            if (!travelSettings?.lastTravelSignupRequestTime) {
+                requestTravelAccess();
+            }
         }
         // Determine the domain to associate with the workspace during provisioning in Spotnana.
         // - If all admins share the same private domain, the workspace is tied to it automatically.
