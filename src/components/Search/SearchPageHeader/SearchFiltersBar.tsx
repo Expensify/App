@@ -26,6 +26,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {close} from '@libs/actions/Modal';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
@@ -45,8 +46,10 @@ type SearchFiltersBarProps = {
 };
 
 function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarProps) {
-    const {hash, type, groupBy, status} = queryJSON;
     const scrollRef = useRef<RNScrollView>(null);
+
+    // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
+    const {hash, type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus} = queryJSON;
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -58,7 +61,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption, shouldShowFiltersBarLoading} = useSearchContext();
 
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.email});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -67,16 +70,34 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true});
+    const [searchResultsErrors] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: (data) => data?.errors});
 
     const taxRates = getAllTaxRates();
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
 
-    const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
+    const hasErrors = Object.keys(searchResultsErrors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || (!!selectionMode && selectionMode.isEnabled));
 
-    const typeOptions = useMemo(() => getTypeOptions(allPolicies, session?.email), [allPolicies, session?.email]);
+    const [typeOptions, type] = useMemo(() => {
+        const options = getTypeOptions(allPolicies, email);
+        const value = options.find((option) => option.value === unsafeType) ?? null;
+        return [options, value];
+    }, [allPolicies, email, unsafeType]);
+
+    const [groupByOptions, groupBy] = useMemo(() => {
+        const options = getGroupByOptions();
+        const value = options.find((option) => option.value === unsafeGroupBy) ?? null;
+        return [options, value];
+    }, [unsafeGroupBy]);
+
+    const [statusOptions, status] = useMemo(() => {
+        const options = type ? getStatusOptions(type.value, groupBy?.value) : [];
+        const value = [
+            Array.isArray(unsafeStatus) ? options.filter((option) => unsafeStatus.includes(option.value)) : (options.find((option) => option.value === unsafeStatus) ?? []),
+        ].flat();
+        return [options, value];
+    }, [unsafeStatus, type, groupBy]);
 
     const filterFormValues = useMemo(() => {
         return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
@@ -98,7 +119,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             const searchQueryJSON = buildSearchQueryJSON(filterString);
             const queryString = buildSearchQueryString(searchQueryJSON);
 
-            Navigation.setParams({q: queryString});
+            close(() => {
+                Navigation.setParams({q: queryString});
+            });
         },
         [filterFormValues],
     );
@@ -110,45 +133,36 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
-            const value = typeOptions.find((option) => option.value === type) ?? null;
-
             return (
                 <SingleSelectPopup
                     label={translate('common.type')}
-                    value={value}
+                    value={type}
                     items={typeOptions}
                     closeOverlay={closeOverlay}
                     onChange={(item) => updateFilterForm({type: item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE})}
                 />
             );
         },
-        [translate, type, typeOptions, updateFilterForm],
+        [translate, typeOptions, type, updateFilterForm],
     );
 
     const groupByComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
-            const items = getGroupByOptions();
-            const value = items.find((option) => option.value === groupBy) ?? null;
-
             return (
                 <SingleSelectPopup
                     label={translate('search.groupBy')}
-                    items={items}
-                    value={value}
+                    items={groupByOptions}
+                    value={groupBy}
                     closeOverlay={closeOverlay}
                     onChange={(item) => updateFilterForm({groupBy: item?.value})}
                 />
             );
         },
-        [translate, groupBy, updateFilterForm],
+        [translate, groupByOptions, groupBy, updateFilterForm],
     );
 
     const statusComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
-            const items = getStatusOptions(type, groupBy);
-            const selected = Array.isArray(status) ? items.filter((option) => status.includes(option.value)) : (items.find((option) => option.value === status) ?? []);
-            const value = [selected].flat();
-
             const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
                 const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : CONST.SEARCH.STATUS.EXPENSE.ALL;
                 updateFilterForm({status: newStatus});
@@ -157,14 +171,14 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             return (
                 <MultiSelectPopup
                     label={translate('common.status')}
-                    items={items}
-                    value={value}
+                    items={statusOptions}
+                    value={status}
                     closeOverlay={closeOverlay}
                     onChange={onChange}
                 />
             );
         },
-        [groupBy, status, translate, type, updateFilterForm],
+        [statusOptions, status, translate, updateFilterForm],
     );
 
     const datePickerComponent = useCallback(
@@ -216,7 +230,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
      * filter bar
      */
     const filters = useMemo(() => {
-        const statusValue = getStatusOptions(type, groupBy).filter((option) => status.includes(option.value));
         const dateValue = [
             filterFormValues.dateAfter ? `${translate('common.after')} ${DateUtils.formatToReadableString(filterFormValues.dateAfter)}` : null,
             filterFormValues.dateBefore ? `${translate('common.before')} ${DateUtils.formatToReadableString(filterFormValues.dateBefore)}` : null,
@@ -228,7 +241,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             {
                 label: translate('common.type'),
                 PopoverComponent: typeComponent,
-                value: translate(`common.${type}`),
+                value: type ? translate(type.translation) : null,
                 keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
             },
             // s77rt remove DEV lock
@@ -237,7 +250,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                       {
                           label: translate('search.groupBy'),
                           PopoverComponent: groupByComponent,
-                          value: groupBy ? translate(`search.filters.groupBy.${groupBy}`) : null,
+                          value: groupBy ? translate(groupBy.translation) : null,
                           keyForList: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
                       },
                   ]
@@ -245,7 +258,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             {
                 label: translate('common.status'),
                 PopoverComponent: statusComponent,
-                value: statusValue.map((option) => translate(option.translation)),
+                value: status.map((option) => translate(option.translation)),
                 keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             },
             {
@@ -260,7 +273,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 value: fromValue,
                 keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
             },
-        ].filter((filterItem) => isFilterSupported(filterItem.keyForList, type));
+        ].filter((filterItem) => isFilterSupported(filterItem.keyForList, type?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE));
 
         return filterList;
     }, [
