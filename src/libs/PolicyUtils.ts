@@ -57,7 +57,7 @@ type ConnectionWithLastSyncData = {
 
 let allPolicies: OnyxCollection<Policy>;
 let activePolicyId: OnyxEntry<string>;
-let isLoadingReportData = true;
+let hasLoadedApp = false;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -71,9 +71,8 @@ Onyx.connect({
 });
 
 Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    initWithStoredValues: false,
-    callback: (value) => (isLoadingReportData = value ?? false),
+    key: ONYXKEYS.HAS_LOADED_APP,
+    callback: (value) => (hasLoadedApp = value ?? false),
 });
 
 /**
@@ -1300,7 +1299,7 @@ function shouldDisplayPolicyNotFoundPage(policyID: string): boolean {
         return false;
     }
 
-    return !isPolicyAccessible(policy) && !isLoadingReportData;
+    return !isPolicyAccessible(policy) && hasLoadedApp;
 }
 
 function hasOtherControlWorkspaces(currentPolicyID: string) {

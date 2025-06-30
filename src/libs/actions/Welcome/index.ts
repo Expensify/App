@@ -18,7 +18,6 @@ import type {OnboardingCompanySize} from './OnboardingFlow';
 
 type OnboardingData = Onboarding | undefined;
 
-let isLoadingReportData = true;
 let tryNewDotData: TryNewDot | undefined;
 let onboarding: OnboardingData;
 
@@ -63,17 +62,6 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted, onCanceled}: Ha
 }
 
 /**
- * Check if report data are loaded
- */
-function checkServerDataReady() {
-    if (isLoadingReportData) {
-        return;
-    }
-
-    resolveIsReadyPromise?.();
-}
-
-/**
  * Check if user completed HybridApp onboarding
  */
 function checkTryNewDotDataReady() {
@@ -93,6 +81,7 @@ function checkOnboardingDataReady() {
     }
 
     resolveOnboardingFlowStatus();
+    resolveIsReadyPromise?.();
 }
 
 function setOnboardingPurposeSelected(value: OnboardingPurpose) {
@@ -170,15 +159,6 @@ Onyx.connect({
 });
 
 Onyx.connect({
-    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    initWithStoredValues: false,
-    callback: (value) => {
-        isLoadingReportData = value ?? false;
-        checkServerDataReady();
-    },
-});
-
-Onyx.connect({
     key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (value) => {
         tryNewDotData = value;
@@ -193,7 +173,6 @@ function resetAllChecks() {
     isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
         resolveOnboardingFlowStatus = resolve;
     });
-    isLoadingReportData = true;
     isOnboardingInProgress = false;
     clearInitialPath();
 }

@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useReportDataLoading from '@hooks/useReportDataLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {navigateToConciergeChat} from '@libs/actions/Report';
@@ -23,7 +24,7 @@ function ConciergePage() {
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true, canBeMissing: true});
+    const isLoadingReportData = useReportDataLoading();
     const route = useRoute();
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
@@ -35,7 +36,7 @@ function ConciergePage() {
             if (session && 'authToken' in session) {
                 confirmReadyToOpenApp();
                 Navigation.isNavigationReady().then(() => {
-                    if (isUnmounted.current || isLoadingReportData === undefined || !!isLoadingReportData) {
+                    if (isUnmounted.current || isLoadingReportData) {
                         return;
                     }
 
