@@ -404,7 +404,7 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
 
             cardFeedsForDisplay[feed] = {
                 feed,
-                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames) ?? feed,
+                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames, false) ?? feed,
             };
         });
     });
