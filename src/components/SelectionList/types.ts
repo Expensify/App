@@ -240,6 +240,9 @@ type TransactionListItemType = ListItem &
         /** Whether we should show the merchant column */
         shouldShowMerchant: boolean;
 
+        /** Whether the description column should be shown */
+        shouldShowDescription: boolean;
+
         /** Whether we should show the category column */
         shouldShowCategory: boolean;
 

@@ -514,6 +514,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
     const shouldShowTax = metadata?.columnsToShow?.shouldShowTaxColumn;
     const shouldShowTo = metadata?.columnsToShow?.shouldShowToColumn;
     const shouldShowFrom = metadata?.columnsToShow?.shouldShowFromColumn;
+    const shouldShowDescription = metadata?.columnsToShow?.shouldShowDescriptionColumn;
 
     // Pre-filter transaction keys to avoid repeated checks
     const transactionKeys = Object.keys(data).filter(isTransactionEntry);
@@ -553,6 +554,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             shouldShowTax,
             shouldShowTo,
             shouldShowFrom,
+            shouldShowDescription,
             keyForList: transactionItem.transactionID,
             shouldShowYear: doesDataContainAPastYearTransaction,
             isAmountColumnWide: shouldShowAmountInWideColumn,

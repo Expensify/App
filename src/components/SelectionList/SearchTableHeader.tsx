@@ -22,7 +22,7 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.DATE]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: (data: OnyxTypes.SearchResults['data']) => getShouldShowMerchant(data),
-    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: (data: OnyxTypes.SearchResults['data']) => !getShouldShowMerchant(data),
+    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: (data, metadata) => metadata?.columnsToShow?.shouldShowDescriptionColumn ?? false,
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: (data, metadata) => metadata?.columnsToShow?.shouldShowFromColumn ?? false,
     [CONST.SEARCH.TABLE_COLUMNS.TO]: (data, metadata) => metadata?.columnsToShow?.shouldShowToColumn ?? false,
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: (data, metadata) => metadata?.columnsToShow?.shouldShowCategoryColumn ?? false,

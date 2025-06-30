@@ -106,19 +106,20 @@ type TransactionItemRowProps = {
 /** If merchant name is empty or (none), then it falls back to description if screen is narrow */
 function getMerchantNameWithFallback(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string, shouldUseNarrowLayout?: boolean | undefined) {
     const shouldShowMerchant = transactionItem.shouldShowMerchant ?? true;
-    const description = getDescription(transactionItem);
-    let merchantOrDescriptionToDisplay = transactionItem?.formattedMerchant ?? getMerchant(transactionItem);
-    const merchantNameEmpty = !merchantOrDescriptionToDisplay || merchantOrDescriptionToDisplay === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-    if (merchantNameEmpty && shouldUseNarrowLayout) {
-        merchantOrDescriptionToDisplay = Parser.htmlToText(description);
-    }
-    let merchant = shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(description);
+    let description = getDescription(transactionItem);
 
-    if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem) && shouldShowMerchant) {
-        merchant = translate('iou.receiptStatusTitle');
+    const merchant = transactionItem?.formattedMerchant ?? getMerchant(transactionItem);
+    const merchantNameEmpty = !merchant || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    if (merchantNameEmpty && shouldUseNarrowLayout) {
+        description = Parser.htmlToText(description);
     }
-    const merchantName = StringUtils.getFirstLine(merchant);
-    return merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchantName : '';
+
+    let merchantToDisplay = shouldShowMerchant && !shouldUseNarrowLayout ? merchant : Parser.htmlToText(description);
+    if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem) && shouldShowMerchant) {
+        merchantToDisplay = translate('iou.receiptStatusTitle');
+    }
+    const merchantName = StringUtils.getFirstLine(merchantToDisplay);
+    return merchantToDisplay !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchantName : '';
 }
 
 function TransactionItemRow({
@@ -175,6 +176,7 @@ function TransactionItemRow({
     }, [hovered, isParentHovered, isSelected, styles.activeComponentBG, styles.hoveredComponentBG]);
 
     const merchantOrDescriptionName = useMemo(() => getMerchantNameWithFallback(transactionItem, translate, shouldUseNarrowLayout), [shouldUseNarrowLayout, transactionItem, translate]);
+    const description = getDescription(transactionItem);
     const missingFieldError = useMemo(() => {
         const hasFieldErrors = hasMissingSmartscanFields(transactionItem);
         if (hasFieldErrors) {
@@ -295,6 +297,20 @@ function TransactionItemRow({
                     )}
                 </View>
             ),
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: (
+                <View
+                    key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}
+                >
+                    {!!description && (
+                        <MerchantOrDescriptionCell
+                            merchantOrDescription={description}
+                            shouldShowTooltip={shouldShowTooltip}
+                            shouldUseNarrowLayout={false}
+                        />
+                    )}
+                </View>
+            ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]: (
                 <View
                     key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO}
@@ -372,6 +388,7 @@ function TransactionItemRow({
             onButtonPress,
             shouldShowTooltip,
             shouldUseNarrowLayout,
+            description,
             transactionItem,
         ],
     );

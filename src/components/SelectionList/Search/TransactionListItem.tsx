@@ -72,6 +72,7 @@ function TransactionListItem<TItem extends ListItem>({
                 CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE,
                 CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE,
                 CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
+                ...(transactionItem?.shouldShowDescription ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION] : []),
                 ...(transactionItem?.shouldShowFrom ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM] : []),
                 ...(transactionItem?.shouldShowTo ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO] : []),
                 ...(transactionItem?.shouldShowCategory ? [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] : []),
@@ -80,7 +81,14 @@ function TransactionListItem<TItem extends ListItem>({
                 CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
                 CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION,
             ] satisfies Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>,
-        [transactionItem?.shouldShowCategory, transactionItem?.shouldShowTag, transactionItem?.shouldShowTax, transactionItem?.shouldShowTo, transactionItem?.shouldShowFrom],
+        [
+            transactionItem?.shouldShowCategory,
+            transactionItem?.shouldShowTag,
+            transactionItem?.shouldShowTax,
+            transactionItem?.shouldShowTo,
+            transactionItem?.shouldShowFrom,
+            transactionItem?.shouldShowDescription,
+        ],
     );
     return (
         <BaseListItem
