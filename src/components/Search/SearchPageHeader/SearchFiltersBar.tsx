@@ -33,7 +33,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, isFilterSupported} from '@libs/SearchQueryUtils';
-import {getGroupByOptions, getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
+import {getFeedOptions, getGroupByOptions, getStatusOptions, getTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -69,6 +69,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const [searchResultsErrors] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: (data) => data?.errors});
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
 
     const taxRates = getAllTaxRates();
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
@@ -144,6 +145,24 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             );
         },
         [translate, groupBy, updateFilterForm],
+    );
+
+    const feedComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            const items = getFeedOptions(allFeeds);
+            const value = items.find((option) => option.value === groupBy) ?? null; // s77rt
+
+            return (
+                <SingleSelectPopup
+                    label={translate('search.groupBy')} // s77rt
+                    items={items}
+                    value={value}
+                    closeOverlay={closeOverlay}
+                    onChange={(item) => updateFilterForm({groupBy: item?.value})} // s77rt
+                />
+            );
+        },
+        [translate, allFeeds, groupBy, updateFilterForm],
     );
 
     const statusComponent = useCallback(
@@ -240,6 +259,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                       {
                           label: translate('search.groupBy'),
                           PopoverComponent: groupByComponent,
+                          value: groupBy ? translate(`search.filters.groupBy.${groupBy}`) : null,
+                          keyForList: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
+                      },
+                      {
+                          label: translate('search.groupBy'),
+                          PopoverComponent: feedComponent,
                           value: groupBy ? translate(`search.filters.groupBy.${groupBy}`) : null,
                           keyForList: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
                       },
