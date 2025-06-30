@@ -11011,7 +11011,7 @@ function bulkHold(
         });
 
         // Skip the snapshot update when the search hash is recently initialized
-        if (searchHash !== -1) {
+        if (searchHash === -1) {
             return;
         }
 
