@@ -1,6 +1,7 @@
 import deburr from 'lodash/deburr';
 import {isSafari} from '@libs/Browser';
 import CONST from '@src/CONST';
+import decodeUnicode from './decodeUnicode';
 import dedent from './dedent';
 import hash from './hash';
 
@@ -139,6 +140,22 @@ function removePreCodeBlock(text = '') {
     return text.replace(/<pre[^>]*>|<\/pre>/g, '');
 }
 
+/**
+ * Returns the number of bytes required to encode a string in UTF-8.
+ */
+function getUTF8ByteLength(str: string) {
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(str);
+    return bytes.length;
+}
+
+/**
+ * Remove white spaces length from the string
+ */
+function countWhiteSpaces(str: string): number {
+    return (str.match(/\s/g) ?? []).length;
+}
+
 export default {
     sanitizeString,
     isEmptyString,
@@ -153,4 +170,7 @@ export default {
     sortStringArrayByLength,
     dedent,
     hash,
+    getUTF8ByteLength,
+    decodeUnicode,
+    countWhiteSpaces,
 };

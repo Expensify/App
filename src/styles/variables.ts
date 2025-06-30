@@ -99,6 +99,7 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
+    uploadViewMargin: 20,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
     pdfPageMaxWidth: 992,
@@ -124,7 +125,7 @@ export default {
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
     communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
     alternateTextHeight: getValueUsingPixelRatio(20, 24),
-    INACTIVE_LABEL_TRANSLATE_Y: getValueUsingPixelRatio(16, 21),
+    INACTIVE_LABEL_TRANSLATE_Y: getValueUsingPixelRatio(17, 22),
     sliderBarHeight: 8,
     sliderKnobSize: 26,
     checkboxLabelActiveOpacity: 0.7,
@@ -257,6 +258,9 @@ export default {
     cardMiniatureWidth: 20,
     cardMiniatureHeight: 13,
     cardMiniatureBorderRadius: 2,
+
+    cardAvatarWidth: 20,
+    cardAvatarHeight: 13,
 
     cardNameWidth: 156,
     updateAnimationW: 390,

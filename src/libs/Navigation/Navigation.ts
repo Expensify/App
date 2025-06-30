@@ -205,7 +205,7 @@ function navigate(route: Route, options?: LinkToOptions) {
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
  * these parameters shouldn't be included in the comparison.
  */
-const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'policyID'];
+const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'policyID', 'pop'];
 
 /**
  * @private
@@ -303,6 +303,15 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
     if (minimalAction.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || !targetState) {
         Log.hmmm('[Navigation] Unable to go up. Minimal action type is wrong.');
         return;
+    }
+
+    /**
+     * In react-navigation 7 the behavior of the `navigate` function has slightly changed.
+     * If it detects that a screen that we want to navigate to is already in the stack, it doesn't go back anymore.
+     * More: https://reactnavigation.org/docs/upgrading-from-6.x#the-navigate-method-no-longer-goes-back-use-popto-instead
+     */
+    if (minimalAction.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
+        minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.NAVIGATE_DEPRECATED;
     }
 
     const indexOfBackToRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams));
