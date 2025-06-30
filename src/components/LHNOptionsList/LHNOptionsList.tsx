@@ -210,7 +210,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
-            // Just to trigger action
             return (
                 <OptionRowLHNData
                     reportID={reportID}
