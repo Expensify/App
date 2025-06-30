@@ -2709,6 +2709,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
             linkedReportID: reportID,
         },
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: accountID,
     };
 
     const optimisticNextStep = buildNextStep(optimisticReportData, CONST.REPORT.STATUS_NUM.OPEN);
