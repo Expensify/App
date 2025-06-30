@@ -3608,7 +3608,7 @@ describe('ReportUtils', () => {
     });
 
     describe('shouldShowFlagComment', () => {
-        let validReportAction: ReportAction = {
+        const validReportAction: ReportAction = {
             ...createRandomReportAction(1),
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
 
@@ -3635,8 +3635,8 @@ describe('ReportUtils', () => {
                 expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(true);
             });
 
-            it('should return false for a non-archived report', () => {
-                expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
+            it('should return true for a non-archived report', () => {
+                expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(true);
             });
         });
 
@@ -3659,14 +3659,14 @@ describe('ReportUtils', () => {
                 expect(shouldShowFlagComment(validReportAction, expenseReport, false)).toBe(true);
             });
 
-            it('should return false for a non-archived report', () => {
-                expect(shouldShowFlagComment(validReportAction, expenseReport, false)).toBe(false);
+            it('should return true for a non-archived report', () => {
+                expect(shouldShowFlagComment(validReportAction, expenseReport, false)).toBe(true);
             });
         });
 
         describe('Action from Concierge', () => {
             let chatReport: Report;
-            let actionFromConcierge: ReportAction = {
+            const actionFromConcierge: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
@@ -3684,8 +3684,8 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
             });
 
-            it('should return true for an archived report', () => {
-                expect(shouldShowFlagComment(actionFromConcierge, chatReport, false)).toBe(true);
+            it('should return false for an archived report', () => {
+                expect(shouldShowFlagComment(actionFromConcierge, chatReport, false)).toBe(false);
             });
 
             it('should return false for a non-archived report', () => {
@@ -3709,7 +3709,7 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
             });
 
-            it('should return true for an archived report', () => {
+            it('should return false for an archived report', () => {
                 expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
             });
 
