@@ -23,6 +23,7 @@ import {
     canDeleteReportAction,
     canDeleteTransaction,
     canEditReportDescription,
+    canEditRoomVisibility,
     canEditWriteCapability,
     canHoldUnholdReportAction,
     findLastAccessedReport,
@@ -2564,6 +2565,20 @@ describe('ReportUtils', () => {
             const invoiceRoom = {...createRandomReport(13), chatType: CONST.REPORT.CHAT_TYPE.INVOICE};
 
             expect(canEditWriteCapability(invoiceRoom, adminPolicy, false)).toBe(false);
+        });
+    });
+
+    describe('canEditRoomVisibility', () => {
+        it('should return true for policy rooms that are not archived and the user is an admin', () => {
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.ADMIN}, false)).toBeTruthy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.AUDITOR}, false)).toBeFalsy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.USER}, false)).toBeFalsy();
+        });
+
+        it('should return false for policy rooms that are archived regardless of the policy role', () => {
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.ADMIN}, true)).toBeFalsy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.AUDITOR}, true)).toBeFalsy();
+            expect(canEditRoomVisibility({...policy, role: CONST.POLICY.ROLE.USER}, true)).toBeFalsy();
         });
     });
 

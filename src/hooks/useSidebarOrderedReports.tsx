@@ -69,6 +69,7 @@ function SidebarOrderedReportsContextProvider({
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
+    const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
 
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
     const prevBetas = usePrevious(betas);
@@ -107,6 +108,11 @@ function SidebarOrderedReportsContextProvider({
                 .map(([key]) => key);
         }
 
+        // Make sure the previous and current reports are always included in the updates when we switch reports.
+        if (prevDerivedCurrentReportID !== derivedCurrentReportID) {
+            reportsToUpdate.push(`${ONYXKEYS.COLLECTION.REPORT}${prevDerivedCurrentReportID}`, `${ONYXKEYS.COLLECTION.REPORT}${derivedCurrentReportID}`);
+        }
+
         return reportsToUpdate;
     }, [
         reportUpdates,
@@ -121,6 +127,8 @@ function SidebarOrderedReportsContextProvider({
         priorityMode,
         prevBetas,
         prevPriorityMode,
+        prevDerivedCurrentReportID,
+        derivedCurrentReportID,
     ]);
 
     const reportsToDisplayInLHN = useMemo(() => {

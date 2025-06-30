@@ -632,7 +632,6 @@ const CONST = {
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         CUSTOM_RULES: 'customRules',
-        WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         MULTI_LEVEL_TAGS: 'multiLevelTags',
@@ -1488,6 +1487,7 @@ const CONST = {
         PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
         SKELETON_ANIMATION_SPEED: 3,
         SEARCH_OPTIONS_COMPARISON: 'search_options_comparison',
+        SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1571,7 +1571,6 @@ const CONST = {
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
         INCORRECT_MAGIC_CODE: 451,
-        POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles
@@ -5048,12 +5047,15 @@ const CONST = {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
+            NAVIGATE_DEPRECATED: 'NAVIGATE_DEPRECATED',
             SET_PARAMS: 'SET_PARAMS',
 
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
             SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
+            REPLACE_PARAMS: 'REPLACE_PARAMS',
+            PRELOAD: 'PRELOAD',
         },
     },
     TIME_PERIOD: {
