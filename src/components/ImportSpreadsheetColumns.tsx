@@ -116,6 +116,7 @@ function ImportSpreadsheetColumns({
                         onPress={importFunction}
                         isLoading={isButtonLoading}
                         isDisabled={isOffline}
+                        pressOnEnter
                         success
                         large
                     />

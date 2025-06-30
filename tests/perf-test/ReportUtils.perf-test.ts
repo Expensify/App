@@ -161,12 +161,9 @@ describe('ReportUtils', () => {
         const currentReportId = '2';
         const isInFocusMode = true;
         const betas = [CONST.BETAS.DEFAULT_ROOMS];
-        const policies = getMockedPolicies();
 
         await waitForBatchedUpdates();
-        await measureFunction(() =>
-            shouldReportBeInOptionList({report, chatReport, currentReportId, isInFocusMode, betas, policies, doesReportHaveViolations: false, excludeEmptyChats: false}),
-        );
+        await measureFunction(() => shouldReportBeInOptionList({report, chatReport, currentReportId, isInFocusMode, betas, doesReportHaveViolations: false, excludeEmptyChats: false}));
     });
 
     test('[ReportUtils] getWorkspaceIcon on 1k policies', async () => {
