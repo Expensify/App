@@ -2661,15 +2661,6 @@ const styles = (theme: ThemeColors) =>
             marginRight: variables.avatarChatSpacing - 4,
         },
 
-        subscriptIcon: {
-            position: 'absolute',
-            bottom: -4,
-            right: -4,
-            width: 20,
-            height: 20,
-            backgroundColor: theme.buttonDefaultBG,
-        },
-
         borderTop: {
             borderTopWidth: variables.borderTopWidth,
             borderColor: theme.border,
