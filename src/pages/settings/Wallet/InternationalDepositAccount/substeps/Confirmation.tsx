@@ -13,7 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
-import {createCorpayBankAccountForWalletFlow} from '@userActions/BankAccounts';
+import {clearReimbursementAccountBankCreation, createCorpayBankAccountForWalletFlow} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -70,6 +70,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
 
         if (reimbursementAccount?.isSuccess === true) {
             onNext();
+            clearReimbursementAccountBankCreation();
         }
     }, [reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess, reimbursementAccount?.errors, onNext]);
 
