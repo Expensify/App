@@ -28,7 +28,6 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const inputRef = useRef<MagicCodeInputHandle | null>(null);
     const shouldClearData = account?.needsTwoFactorAuthSetup ?? false;
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     /**
      * Handle text input and clear formError upon text change
@@ -81,15 +80,20 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
             }
             inputRef.current.focus();
         },
+        focusLastSelected() {
+            if (!inputRef.current) {
+                return;
+            }
+            setTimeout(() => {
+                inputRef.current?.focusLastSelected();
+            }, CONST.ANIMATED_TRANSITION);
+        },
     }));
 
     useFocusEffect(
         useCallback(() => {
             if (!inputRef.current) {
                 return;
-            }
-            if (focusTimeoutRef.current) {
-                clearTimeout(focusTimeoutRef.current);
             }
             // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
             if (!isMobileSafari()) {
@@ -99,12 +103,6 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
             } else {
                 inputRef.current?.focusLastSelected();
             }
-            return () => {
-                if (!focusTimeoutRef.current) {
-                    return;
-                }
-                clearTimeout(focusTimeoutRef.current);
-            };
         }, []),
     );
 
