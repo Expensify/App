@@ -29,6 +29,10 @@ const HybridAppModule: HybridAppModuleType = {
     clearOldDotAfterSignOut() {
         ReactNativeHybridApp.clearOldDotAfterSignOut();
     },
+
+    getHybridAppSettings() {
+        return ReactNativeHybridApp.getHybridAppSettings();
+    },
 };
 
 export default HybridAppModule;
