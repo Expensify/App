@@ -48,7 +48,7 @@ type SearchFiltersBarProps = {
 function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarProps) {
     const scrollRef = useRef<RNScrollView>(null);
 
-    // type, groupBy and status types are not guaranteed to respect the ts type as they come from user input
+    // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
     const {hash, type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus} = queryJSON;
 
     const theme = useTheme();
