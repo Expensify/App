@@ -18,7 +18,7 @@ function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlow
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setIsWebViewOpen] = useState(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const authToken = session?.authToken ?? null;
 

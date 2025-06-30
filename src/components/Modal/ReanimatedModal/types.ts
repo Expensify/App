@@ -168,4 +168,4 @@ type ContainerProps = {
 };
 
 export default ReanimatedModalProps;
-export type {BackdropProps, ContainerProps, AnimationOut};
+export type {BackdropProps, ContainerProps, AnimationOut, AnimationInType, AnimationOutType};
