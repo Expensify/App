@@ -7,6 +7,8 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useOptionsList} from '@components/OptionListContextProvider';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
@@ -80,8 +82,10 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
+    const {areOptionsInitialized} = useOptionsList();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-
+    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
+    const shouldShowList = isRecentSearchesDataLoaded && areOptionsInitialized;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
 
@@ -316,7 +320,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     });
 
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
-    const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
     return (
         <View
@@ -333,46 +336,51 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     shouldDisplayHelpButton={false}
                 />
             )}
-            {isRecentSearchesDataLoaded && (
-                <>
-                    <SearchInputSelectionWrapper
-                        value={textInputValue}
-                        isFullWidth={shouldUseNarrowLayout}
-                        onSearchQueryChange={onSearchQueryChange}
-                        onSubmit={() => {
-                            const focusedOption = listRef.current?.getFocusedOption();
+            <SearchInputSelectionWrapper
+                value={textInputValue}
+                isFullWidth={shouldUseNarrowLayout}
+                onSearchQueryChange={onSearchQueryChange}
+                onSubmit={() => {
+                    const focusedOption = listRef.current?.getFocusedOption();
 
-                            if (!focusedOption) {
-                                submitSearch(textInputValue);
-                                return;
-                            }
+                    if (!focusedOption) {
+                        submitSearch(textInputValue);
+                        return;
+                    }
 
-                            onListItemPress(focusedOption);
-                        }}
-                        caretHidden={shouldHideInputCaret}
-                        autocompleteListRef={listRef}
-                        shouldShowOfflineMessage
-                        wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
-                        outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
-                        wrapperFocusedStyle={styles.borderColorFocus}
-                        isSearchingForReports={isSearchingForReports}
-                        selection={selection}
-                        substitutionMap={autocompleteSubstitutions}
-                        ref={textInputRef}
-                    />
-                    <SearchAutocompleteList
-                        autocompleteQueryValue={autocompleteQueryValue || textInputValue}
-                        handleSearch={searchInServer}
-                        searchQueryItem={searchQueryItem}
-                        getAdditionalSections={getAdditionalSections}
-                        onListItemPress={onListItemPress}
-                        setTextQuery={setTextAndUpdateSelection}
-                        updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                        onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
-                        ref={listRef}
-                        textInputRef={textInputRef}
-                    />
-                </>
+                    onListItemPress(focusedOption);
+                }}
+                caretHidden={shouldHideInputCaret}
+                autocompleteListRef={listRef}
+                shouldShowOfflineMessage
+                wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
+                outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
+                wrapperFocusedStyle={styles.borderColorFocus}
+                isSearchingForReports={isSearchingForReports}
+                selection={selection}
+                substitutionMap={autocompleteSubstitutions}
+                ref={textInputRef}
+            />
+            {shouldShowList && (
+                <SearchAutocompleteList
+                    autocompleteQueryValue={autocompleteQueryValue || textInputValue}
+                    handleSearch={searchInServer}
+                    searchQueryItem={searchQueryItem}
+                    getAdditionalSections={getAdditionalSections}
+                    onListItemPress={onListItemPress}
+                    setTextQuery={setTextAndUpdateSelection}
+                    updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                    onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
+                    ref={listRef}
+                    textInputRef={textInputRef}
+                />
+            )}
+            {!shouldShowList && (
+                <OptionsListSkeletonView
+                    fixedNumItems={4}
+                    shouldStyleAsTable
+                    speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                />
             )}
         </View>
     );
