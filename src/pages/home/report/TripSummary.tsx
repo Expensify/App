@@ -15,14 +15,14 @@ function TripSummary({reportID}: TripSummaryProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? CONST.DEFAULT_NUMBER_ID}`);
     const tripTransactions = useTripTransactions(reportID);
 
-    if (!reportID) {
+    if (!reportID || tripTransactions.length === 0) {
         return null;
     }
 
     return (
         <OfflineWithFeedback pendingAction={report?.pendingAction}>
             <TripDetailsView
-                tripRoomReport={report}
+                tripRoomReportID={reportID}
                 tripTransactions={tripTransactions}
                 shouldShowHorizontalRule={false}
             />
