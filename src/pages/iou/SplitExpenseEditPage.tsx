@@ -9,6 +9,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -19,8 +20,8 @@ import Parser from '@libs/Parser';
 import {getPolicy, getTagLists} from '@libs/PolicyUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
-import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getTag} from '@libs/TransactionUtils';
+import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
+import {getTag, getTagForDisplay} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -54,11 +55,23 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const currentAmount = transactionDetailsAmount >= 0 ? Math.abs(Number(splitExpenseDraftTransactionDetails?.amount)) : Number(splitExpenseDraftTransactionDetails?.amount);
     const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
 
+    const shouldShowCategory = !!policy?.areCategoriesEnabled && !!policyCategories;
+
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
-    const shouldShowTag = !!policy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
-    const shouldShowCategory = !!policy?.areCategoriesEnabled && !!policyCategories;
+    const shouldShowTags = !!policy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
+    const tagVisibility = useMemo(
+        () =>
+            getTagVisibility({
+                shouldShowTags,
+                policy,
+                policyTags,
+                transaction: splitExpenseDraftTransaction,
+            }),
+        [shouldShowTags, policy, policyTags, splitExpenseDraftTransaction],
+    );
+    const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
     return (
         <ScreenWrapper testID={SplitExpenseEditPage.displayName}>
@@ -115,29 +128,39 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 titleStyle={styles.flex1}
                             />
                         )}
-                        {shouldShowTag && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                key={translate('workspace.common.tags')}
-                                description={translate('workspace.common.tags')}
-                                title={transactionTag}
-                                numberOfLinesTitle={2}
-                                onPress={() => {
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                            CONST.IOU.ACTION.EDIT,
-                                            CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                            0,
-                                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                            reportID,
-                                            Navigation.getActiveRoute(),
-                                        ),
-                                    );
-                                }}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                            />
-                        )}
+                        {shouldShowTags &&
+                            policyTagLists.map(({name}, index) => {
+                                const tagVisibilityItem = tagVisibility.at(index);
+                                const shouldShow = tagVisibilityItem?.shouldShow ?? false;
+                                const prevShouldShow = previousTagsVisibility.at(index) ?? false;
+
+                                return (
+                                    <MenuItemWithTopDescription
+                                        shouldShowRightIcon
+                                        highlighted={shouldShow && !getTagForDisplay(splitExpenseDraftTransaction, index) && !prevShouldShow}
+                                        key={name}
+                                        title={getTagForDisplay(splitExpenseDraftTransaction, index)}
+                                        description={name}
+                                        shouldShowBasicTitle
+                                        shouldShowDescriptionOnTop
+                                        numberOfLinesTitle={2}
+                                        onPress={() => {
+                                            Navigation.navigate(
+                                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                                    CONST.IOU.ACTION.EDIT,
+                                                    CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                                    index,
+                                                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                                    reportID,
+                                                    Navigation.getActiveRoute(),
+                                                ),
+                                            );
+                                        }}
+                                        style={[styles.moneyRequestMenuItem]}
+                                        titleStyle={styles.flex1}
+                                    />
+                                );
+                            })}
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
                             key={translate('common.date')}
