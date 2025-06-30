@@ -1,7 +1,7 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, RefObject} from 'react';
-import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, lazy, Suspense} from 'react';
 import type {
     LayoutChangeEvent,
     MeasureInWindowOnSuccessCallback,
@@ -19,7 +19,6 @@ import {useOnyx} from 'react-native-onyx';
 import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
-import Composer from '@components/Composer';
 import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
@@ -48,7 +47,6 @@ import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorP
 import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollPosition';
 import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
-import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
@@ -188,6 +186,9 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
 // prevent auto focus for mobile device
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+
+const SuggestionsLazy = lazy(() => import('@pages/home/report/ReportActionCompose/Suggestions'));
+const ComposerLazy = lazy(() => import('@components/Composer'));
 
 /**
  * This component holds the value and selection state.
@@ -784,14 +785,14 @@ function ComposerWithSuggestions(
     );
 
     return (
-        <>
+        <Suspense fallback={null}>
             <View
                 style={[containerComposeStyles, styles.textInputComposeBorder]}
                 onTouchEndCapture={() => {
                     isTouchEndedRef.current = true;
                 }}
             >
-                <Composer
+                <ComposerLazy
                     checkComposerVisibility={checkComposerVisibility}
                     autoFocus={!!shouldAutoFocus}
                     multiline
@@ -830,7 +831,7 @@ function ComposerWithSuggestions(
                 />
             </View>
 
-            <Suggestions
+            <SuggestionsLazy
                 ref={suggestionsRef}
                 isComposerFocused={textInputRef.current?.isFocused()}
                 updateComment={updateComment}
@@ -856,7 +857,7 @@ function ComposerWithSuggestions(
 
             {/* Only used for testing so far */}
             {children}
-        </>
+        </Suspense>
     );
 }
 
