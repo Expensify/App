@@ -172,9 +172,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     subtitle={policyName}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(route.params.backTo);
-                    }}
+                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
