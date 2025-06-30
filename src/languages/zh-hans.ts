@@ -549,7 +549,6 @@ const translations = {
         userID: '用户 ID',
         disable: '禁用',
         export: '导出',
-        basicExport: '基本导出',
         initialValue: '初始值',
         currentDate: '当前日期',
         value: '值',
