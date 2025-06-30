@@ -293,9 +293,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         navigateToAndOpenReport(item.login ? [item.login] : [], false);
                     }
                 });
-                InteractionManager.runAfterInteractions(() => {
-                    onRouterClose();
-                });
+                onRouterClose();
             }
         },
         [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue],
