@@ -22,7 +22,7 @@ describe('useNewTransactions with empty cache', () => {
     ];
     const newTransaction = {transactionID: '1', amount: 100, created: '2023-10-01T00:00:00Z', currency: 'USD', reportID: 'report1', merchant: ''};
 
-    it("doesn't return new transactions when no transactions are added", async () => {
+    it("doesn't return new transactions when no transactions are added", () => {
         // 1. Report and transactions data is not loaded yet
         const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; hasOnceLoadedReportActions: boolean}>(
             (props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions),
@@ -33,7 +33,6 @@ describe('useNewTransactions with empty cache', () => {
                 },
             },
         );
-        await delay(10); // We need to wait to ensure that usePrevious hook updates correctly
 
         // 2. Report is loaded and it has no transactions so there are no further rerenders
         rerender({
@@ -43,7 +42,7 @@ describe('useNewTransactions with empty cache', () => {
         expect(result.current).toEqual([]);
     });
 
-    it('returns no new transactions when transactions come from initial Report load', async () => {
+    it('returns no new transactions when transactions come from initial Report load', () => {
         // 1. Report and transactions data is not loaded yet
         const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; hasOnceLoadedReportActions: boolean}>(
             (props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions),
@@ -54,7 +53,6 @@ describe('useNewTransactions with empty cache', () => {
                 },
             },
         );
-        await delay(10); // We need to wait to ensure that usePrevious hook updates correctly
         expect(result.current).toEqual([]);
 
         // 2. Report is loaded and transactions data is not loaded yet
@@ -62,7 +60,6 @@ describe('useNewTransactions with empty cache', () => {
             hasOnceLoadedReportActions: true,
             transactions: [],
         });
-        await delay(10);
         expect(result.current).toEqual([]);
 
         // 3. Report is loaded and transactions data is loaded
@@ -74,7 +71,7 @@ describe('useNewTransactions with empty cache', () => {
         expect(result.current).toEqual([]);
     });
 
-    it('returns new transactions when transactions are added after initial load', async () => {
+    it('returns new transactions when transactions are added after initial load', () => {
         // 1. Report and transactions data is not loaded yet
         const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; hasOnceLoadedReportActions: boolean}>(
             (props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions),
@@ -85,7 +82,6 @@ describe('useNewTransactions with empty cache', () => {
                 },
             },
         );
-        await delay(10); // We need to wait to ensure that usePrevious hook updates correctly
         expect(result.current).toEqual([]);
 
         // 2. Report is loaded and transactions data is not loaded yet
@@ -93,7 +89,6 @@ describe('useNewTransactions with empty cache', () => {
             hasOnceLoadedReportActions: true,
             transactions: [],
         });
-        await delay(10);
         expect(result.current).toEqual([]);
 
         // 3. Report is loaded and transactions data is loaded
@@ -101,7 +96,6 @@ describe('useNewTransactions with empty cache', () => {
             hasOnceLoadedReportActions: true,
             transactions: transactionsAlreadyInReport,
         });
-        await delay(10);
         expect(result.current).toEqual([]);
 
         // 4. User added new transaction
@@ -123,7 +117,6 @@ describe('useNewTransactions with empty cache', () => {
                 },
             },
         );
-        await delay(10); // We need to wait to ensure that usePrevious hook updates correctly
 
         // 2. Report is loaded and it has no transactions so there are no further rerenders
         rerender({
@@ -141,7 +134,7 @@ describe('useNewTransactions with empty cache', () => {
         expect(result.current).toEqual([newTransaction]);
     });
 
-    it('returns no new transactions when transactions are removed', async () => {
+    it('returns no new transactions when transactions are removed', () => {
         // 1. Report and transactions data is not loaded yet
         const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; hasOnceLoadedReportActions: boolean}>(
             (props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions),
@@ -152,7 +145,6 @@ describe('useNewTransactions with empty cache', () => {
                 },
             },
         );
-        await delay(10); // We need to wait to ensure that usePrevious hook updates correctly
         expect(result.current).toEqual([]);
 
         // 2. Report is loaded and transactions data is not loaded yet
@@ -160,7 +152,6 @@ describe('useNewTransactions with empty cache', () => {
             hasOnceLoadedReportActions: true,
             transactions: [],
         });
-        await delay(10);
         expect(result.current).toEqual([]);
 
         // 3. Report is loaded and transactions data is loaded
@@ -168,7 +159,6 @@ describe('useNewTransactions with empty cache', () => {
             hasOnceLoadedReportActions: true,
             transactions: transactionsAlreadyInReport,
         });
-        await delay(10);
         expect(result.current).toEqual([]);
 
         // 4. User removes a transaction
@@ -176,7 +166,6 @@ describe('useNewTransactions with empty cache', () => {
             hasOnceLoadedReportActions: true,
             transactions: transactionsAlreadyInReport.slice(1),
         });
-        await delay(10);
         expect(result.current).toEqual([]);
     });
 });
@@ -188,7 +177,7 @@ describe('useNewTransactions with transactions in cache', () => {
     ];
     const newTransaction = {transactionID: '1', amount: 100, created: '2023-10-01T00:00:00Z', currency: 'USD', reportID: 'report1', merchant: ''};
 
-    it("doesn't return new transactions when no transactions are added", async () => {
+    it("doesn't return new transactions when no transactions are added", () => {
         // 1. Report and transactions data is loaded from Onyx
         const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]; hasOnceLoadedReportActions: boolean}>(
             (props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions),
@@ -199,7 +188,6 @@ describe('useNewTransactions with transactions in cache', () => {
                 },
             },
         );
-        await delay(10); // We need to wait to ensure that usePrevious hook updates correctly
 
         // 2. Report is loaded and transactions data is loaded, but there were no new transactions
         rerender({
@@ -209,7 +197,7 @@ describe('useNewTransactions with transactions in cache', () => {
         expect(result.current).toEqual([]);
     });
 
-    it('returns new transactions when newly added transactions come from initial Report load', async () => {
+    it('returns new transactions when newly added transactions come from initial Report load', () => {
         // 1. Report and transactions data is loaded from Onyx
         const {rerender, result} = renderHook((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions), {
             initialProps: {
@@ -217,7 +205,6 @@ describe('useNewTransactions with transactions in cache', () => {
                 transactions: transactionsAlreadyInReport,
             },
         });
-        await delay(10); // We need to wait to ensure that usePrevious hook updates correctly
         expect(result.current).toEqual([]);
 
         // 2. New transaction comes in when report is loaded
@@ -228,7 +215,7 @@ describe('useNewTransactions with transactions in cache', () => {
         expect(result.current).toEqual([newTransaction]);
     });
 
-    it('returns new transactions when transactions are added after initial load', async () => {
+    it('returns new transactions when transactions are added after initial load', () => {
         // 1. Report and transactions data is loaded from Onyx
         const {rerender, result} = renderHook((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions), {
             initialProps: {
@@ -236,7 +223,6 @@ describe('useNewTransactions with transactions in cache', () => {
                 transactions: transactionsAlreadyInReport,
             },
         });
-        await delay(10); // We need to wait to ensure that usePrevious hook updates correctly
         expect(result.current).toEqual([]);
 
         // 2. Report is loaded and transactions data is loaded, but there were no new transactions
@@ -244,7 +230,6 @@ describe('useNewTransactions with transactions in cache', () => {
             hasOnceLoadedReportActions: true,
             transactions: transactionsAlreadyInReport,
         });
-        await delay(10);
         expect(result.current).toEqual([]);
 
         // 3. User added new transaction
@@ -266,7 +251,6 @@ describe('useNewTransactions with transactions in cache', () => {
                 },
             },
         );
-        await delay(10); // We need to wait to ensure that usePrevious hook updates correctly
 
         // 2. Report is loaded and it has no transactions, so there are no further rerenders
         rerender({
@@ -284,7 +268,7 @@ describe('useNewTransactions with transactions in cache', () => {
         expect(result.current).toEqual([newTransaction]);
     });
 
-    it('returns no new transactions when transactions are removed', async () => {
+    it('returns no new transactions when transactions are removed', () => {
         // 1. Report and transactions data is loaded from Onyx
         const {rerender, result} = renderHook((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions), {
             initialProps: {
@@ -292,7 +276,6 @@ describe('useNewTransactions with transactions in cache', () => {
                 transactions: transactionsAlreadyInReport,
             },
         });
-        await delay(10); // We need to wait to ensure that usePrevious hook updates correctly
         expect(result.current).toEqual([]);
 
         // 2. Report is loaded and transactions data is loaded, but there were no new transactions
@@ -300,7 +283,6 @@ describe('useNewTransactions with transactions in cache', () => {
             hasOnceLoadedReportActions: true,
             transactions: transactionsAlreadyInReport,
         });
-        await delay(10);
         expect(result.current).toEqual([]);
 
         // 3. User removes a transaction
@@ -308,7 +290,6 @@ describe('useNewTransactions with transactions in cache', () => {
             hasOnceLoadedReportActions: true,
             transactions: transactionsAlreadyInReport.slice(1),
         });
-        await delay(10);
         expect(result.current).toEqual([]);
     });
 });
