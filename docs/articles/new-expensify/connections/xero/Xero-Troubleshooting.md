@@ -1,37 +1,46 @@
 ---
 title: Xero Troubleshooting
-description: More to Come Soon
+description: Learn how to resolve common errors that prevent reports from exporting to Xero.
+keywords: [New Expensify, Xero errors, export failure, troubleshoot Xero, manual export]
 ---
 
-## Report won’t automatically export to Xero
+<div id="new-expensify" markdown="1">
 
-If an error occurs during an automatic export to Xero:
+If your expense reports aren’t exporting to Xero, this guide covers common causes and how to fix them.
 
-- You'll receive an email detailing the error. 
-- The error will appear in the related Expense Chat, indicated by a red dot next to the report. 
-- For auto-sync errors, a message will be posted in the related #admins room. The message contains a link to the workspace's accounting settings where an explanation for the error appears next to the connection.
+# Report didn’t export automatically to Xero
 
-An error on a report will prevent it from automatically exporting. 
+When an error occurs during an auto-export:
 
-## How to resolve
+- You'll receive an email with details about the error
+- The report will show a red dot in the related **Chat** thread
+- A message will post in the Workspace’s **#admins** chat, linking to the **Accounting** settings with the error reason
 
-Open the expense and make the required changes. Then an admin must manually export the report to Xero by clicking the heading at the top of the expense and selecting Export. Then they'll select Xero. 
+These errors prevent automatic exports. You’ll need to correct the issue and export the report manually.
 
-![App screenshot: Danny's Donuts owes $200, with export option highlighted]({{site.url}}/assets/images/Xero_help_02.png){:width="100%"}
+## How to resolve it
 
-![App screenshot: Export options showing Xero integration and manual entry, with the Xero integration option highlighted]({{site.url}}/assets/images/Xero_help_03.png){:width="100%"}
+1. Open the expense and fix any required details.
+2. From the top of the report, select **Export**.
+3. Choose **Xero** to manually export the report.
 
-## Unable to manually export a report
+---
 
-To export a report, it must be in the Approved, Closed, or Reimbursed state. If it is in the Open state, clicking Export will lead to a notification that the data is not yet available for export. 
+# Can't manually export a report
 
-![App screenshot: Export blocked due to draft or unpaid expenses]({{site.url}}/assets/images/Xero_help_04.png){:width="100%"}
+You can only export reports that are in one of these states:
 
-## How to resolve
+- **Approved**
+- **Closed**
+- **Reimbursed**
 
-Open the report and make the required changes:
+If a report is still **Open**, you’ll see a message indicating the data isn’t ready for export.
 
-- If the report is in the Open status, ensure that it is submitted.
-- If the report is in the Processing status, an admin or approver will need to approve it.
+## How to resolve it
 
-Once complete, an admin must manually export the report to Xero by clicking the heading at the top of the expense and selecting Export. Then they'll select Xero. 
+1. Open the report and review its status.
+2. If the report is **Open**, submit it.
+3. If the report is **Processing**, it must be approved by an admin or approver.
+4. Once approved, go to the top of the report, select **Export**, and choose **Xero**.
+
+</div>

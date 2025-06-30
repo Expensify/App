@@ -21,7 +21,6 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,6 +28,7 @@ import {startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
 import {completeTestDriveTask} from '@libs/actions/Task';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
@@ -82,14 +82,19 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const contextMenuAnchor = useRef<RNText>(null);
-    const {isBetaEnabled} = usePermissions();
     const [modalVisible, setModalVisible] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const hasCardFeed = useMemo(() => Object.keys(mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList)).length > 0, [userCardList, workspaceCardFeeds]);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        canBeMissing: true,
+    });
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
@@ -98,10 +103,10 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     }, [allPolicies]);
 
     const typeMenuItems = useMemo(() => {
-        return createTypeMenuSections(session, allPolicies)
+        return createTypeMenuSections(session, hasCardFeed, allPolicies)
             .map((section) => section.menuItems)
             .flat();
-    }, [session, allPolicies]);
+    }, [session, hasCardFeed, allPolicies]);
 
     const tripViewChildren = useMemo(() => {
         const onLongPress = (event: GestureResponderEvent | MouseEvent) => {
@@ -201,7 +206,11 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
 
         const startTestDrive = () => {
             InteractionManager.runAfterInteractions(() => {
-                if (introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER) {
+                if (
+                    introSelected?.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER ||
+                    introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE
+                ) {
                     completeTestDriveTask(viewTourReport, viewTourReportID);
                     Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
                 } else {
@@ -233,7 +242,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                               },
                           ]
                         : []),
-                    ...(isBetaEnabled(CONST.BETAS.TABLE_REPORT_VIEW) && groupPoliciesWithChatEnabled.length > 0
+                    ...(groupPoliciesWithChatEnabled.length > 0
                         ? [
                               {
                                   buttonText: translate('quickAction.createReport'),
@@ -286,7 +295,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                if (!hasResults) {
+                if (!hasResults || Object.values(transactions ?? {}).length === 0) {
                     return {
                         ...defaultViewItemHeader,
                         title: translate('search.searchResults.emptyExpenseResults.title'),
@@ -373,7 +382,6 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         hasResults,
         defaultViewItemHeader,
         hasSeenTour,
-        isBetaEnabled,
         groupPoliciesWithChatEnabled,
         activePolicy,
         activePolicyID,
@@ -382,6 +390,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         shouldRedirectToExpensifyClassic,
         viewTourReport,
         viewTourReportID,
+        transactions,
     ]);
 
     return (

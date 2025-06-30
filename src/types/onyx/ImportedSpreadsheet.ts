@@ -32,6 +32,12 @@ type ImportedSpreadsheet = {
 
     /** The imported file URI */
     fileURI?: string;
+
+    /** The file type of the imported file */
+    fileType?: string;
+
+    /** The file name of the imported file */
+    fileName?: string;
 };
 
 export default ImportedSpreadsheet;

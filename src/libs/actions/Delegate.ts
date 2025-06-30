@@ -64,6 +64,7 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
     ONYXKEYS.NVP_PREFERRED_LOCALE,
+    ONYXKEYS.ARE_TRANSLATIONS_LOADING,
     ONYXKEYS.SESSION,
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.IS_LOADING_APP,
@@ -73,6 +74,7 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     // We need to preserve the sidebar loaded state since we never unmount the sidebar when connecting as a delegate
     // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
     ONYXKEYS.IS_SIDEBAR_LOADED,
+    ONYXKEYS.NETWORK,
 ];
 
 /**

@@ -54,6 +54,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD.route,
+                [SCREENS.AUTO_SUBMIT_ROOT]: ROUTES.AUTO_SUBMIT_MODAL_ROOT,
                 [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: ROUTES.CHANGE_POLICY_EDUCATIONAL.route,
             },
         },
@@ -138,6 +139,22 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.ONBOARDING_WORKSPACES.route,
                     exact: true,
                 },
+                [SCREENS.ONBOARDING.WORKSPACE_OPTIONAL]: {
+                    path: ROUTES.ONBOARDING_WORKSPACE.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORKSPACE_CONFIRMATION]: {
+                    path: ROUTES.ONBOARDING_WORKSPACE_CONFIRMATION.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORKSPACE_CURRENCY]: {
+                    path: ROUTES.ONBOARDING_WORKSPACE_CURRENCY.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORKSPACE_INVITE]: {
+                    path: ROUTES.ONBOARDING_WORKSPACE_INVITE.route,
+                    exact: true,
+                },
             },
         },
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: {
@@ -195,6 +212,18 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             parse: {
                                 login: (login: string) => decodeURIComponent(login),
                             },
+                        },
+                        [SCREENS.SETTINGS.LOCK.LOCK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_LOCK_ACCOUNT,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.LOCK.UNLOCK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_UNLOCK_ACCOUNT,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.LOCK.FAILED_TO_LOCK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_FAILED_TO_LOCK_ACCOUNT,
+                            exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
                             path: ROUTES.SETTINGS_WALLET_DOMAIN_CARD.route,
@@ -1331,6 +1360,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: ROUTES.MONEY_REQUEST_STEP_MERCHANT.route,
                         [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.route,
                         [SCREENS.MONEY_REQUEST.STEP_SCAN]: ROUTES.MONEY_REQUEST_STEP_SCAN.route,
+                        [SCREENS.MONEY_REQUEST.RECEIPT_VIEW_MODAL]: ROUTES.MONEY_REQUEST_RECEIPT_VIEW_MODAL.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAG]: ROUTES.MONEY_REQUEST_STEP_TAG.route,
                         [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: ROUTES.MONEY_REQUEST_STEP_WAYPOINT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.route,
@@ -1482,6 +1512,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: {
                     screens: {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_TYPE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TYPE,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_GROUP_BY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_GROUP_BY,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_STATUS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_STATUS,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_DATE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_DATE,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_SUBMITTED_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_SUBMITTED,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_APPROVED_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_APPROVED,
@@ -1766,6 +1799,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.SHARE.SHARE_DETAILS]: {path: ROUTES.SHARE_DETAILS.route},
                 [SCREENS.SHARE.SUBMIT_DETAILS]: {path: ROUTES.SHARE_SUBMIT_DETAILS.route},
+            },
+        },
+        [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.TEST_TOOLS_MODAL.ROOT]: {
+                    path: ROUTES.TEST_TOOLS_MODAL,
+                    exact: true,
+                },
             },
         },
     },

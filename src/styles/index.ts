@@ -405,12 +405,19 @@ const styles = (theme: ThemeColors) =>
         verticalAlignTop: {
             verticalAlign: 'top',
         },
+
+        lineHeightUndefined: {
+            lineHeight: undefined,
+        },
+
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
+
         lineHeightXLarge: {
             lineHeight: variables.lineHeightXLarge,
         },
+
         label: {
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightLarge,
@@ -1087,11 +1094,13 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.danger,
         },
 
-        textInputDisabled: {
+        textInputDisabledContainer: {
             // Adding disabled color theme to indicate user that the field is not editable.
             backgroundColor: theme.highlightBG,
-            borderBottomWidth: 2,
             borderColor: theme.borderLighter,
+        },
+
+        textInputDisabled: {
             // Adding browser specific style to bring consistency between Safari and other platforms.
             // Applying the Webkit styles only to browsers as it is not available in native.
             ...(getBrowser()
@@ -1109,9 +1118,9 @@ const styles = (theme: ThemeColors) =>
                 borderWidth: isSmallScreenWidth ? 0 : 2,
                 borderColor: theme.borderFocus,
                 borderStyle: 'dotted',
-                marginBottom: 20,
-                marginLeft: 20,
-                marginRight: 20,
+                marginBottom: variables.uploadViewMargin,
+                marginLeft: variables.uploadViewMargin,
+                marginRight: variables.uploadViewMargin,
                 justifyContent: 'center',
                 alignItems: 'center',
                 paddingVertical: 40,
@@ -1293,7 +1302,10 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
             backgroundColor: 'transparent',
             overflow: 'hidden',
-            borderBottomWidth: 2,
+            borderWidth: 1,
+            padding: 8,
+            paddingBottom: 0,
+            borderRadius: 8,
             borderColor: theme.border,
         },
 
@@ -1307,16 +1319,20 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'right',
         },
 
-        textInputLabel: {
+        textInputLabelContainer: {
             position: 'absolute',
-            left: 0,
+            left: 8,
+            paddingRight: 16,
             top: 0,
-            fontSize: variables.fontSizeNormal,
-            color: theme.textSupporting,
-            ...FontUtils.fontFamily.platform.EXP_NEUE,
             width: '100%',
             zIndex: 1,
             transformOrigin: 'left center',
+        },
+
+        textInputLabel: {
+            fontSize: variables.fontSizeNormal,
+            color: theme.textSupporting,
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
         },
 
         textInputLabelBackground: {
@@ -1327,8 +1343,14 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.componentBG,
         },
 
-        textInputLabelTransformation: (translateY: SharedValue<number>, scale: SharedValue<number>) => {
+        textInputLabelTransformation: (translateY: SharedValue<number>, scale: SharedValue<number>, isForTextComponent?: boolean) => {
             'worklet';
+
+            if (isForTextComponent) {
+                return {
+                    fontSize: interpolate(scale.get(), [0, ACTIVE_LABEL_SCALE], [0, variables.fontSizeLabel]),
+                } satisfies TextStyle;
+            }
 
             return {
                 transform: [{translateY: translateY.get()}],
@@ -1341,7 +1363,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
             color: theme.text,
-            paddingTop: 23,
+            paddingTop: 15,
             paddingBottom: 8,
             paddingLeft: 0,
             borderWidth: 0,
@@ -1353,7 +1375,7 @@ const styles = (theme: ThemeColors) =>
 
         textInputMultilineContainer: {
             height: '100%',
-            paddingTop: 23,
+            paddingTop: 15,
         },
 
         textInputAndIconContainer: (isMarkdownEnabled: boolean) => {
@@ -1368,11 +1390,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         textInputDesktop: addOutlineWidth(theme, {}, 0),
-
-        textInputIconContainer: {
-            paddingHorizontal: 11,
-            justifyContent: 'center',
-        },
 
         textInputLeftIconContainer: {
             justifyContent: 'center',
@@ -1404,23 +1421,22 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             left: 0,
             top: 0,
-            height: variables.inputHeight,
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 23,
+            paddingTop: 15,
             paddingBottom: 8,
+            height: '100%',
         },
 
         textInputSuffixWrapper: {
             position: 'absolute',
             right: 0,
             top: 0,
-            height: variables.inputHeight,
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 23,
+            paddingTop: 15,
             paddingBottom: 8,
         },
 
@@ -2645,15 +2661,6 @@ const styles = (theme: ThemeColors) =>
             marginRight: variables.avatarChatSpacing - 4,
         },
 
-        subscriptIcon: {
-            position: 'absolute',
-            bottom: -4,
-            right: -4,
-            width: 20,
-            height: 20,
-            backgroundColor: theme.buttonDefaultBG,
-        },
-
         borderTop: {
             borderTopWidth: variables.borderTopWidth,
             borderColor: theme.border,
@@ -3331,7 +3338,7 @@ const styles = (theme: ThemeColors) =>
         magicCodeInputContainer: {
             flexDirection: 'row',
             justifyContent: 'space-between',
-            minHeight: variables.inputHeight,
+            height: variables.inputHeight,
         },
 
         magicCodeInput: {
@@ -3818,15 +3825,13 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchAutocompleteInputResults: {
-            backgroundColor: theme.sidebarHover,
             borderWidth: 1,
-            borderColor: theme.sidebarHover,
+            borderColor: theme.border,
         },
 
         searchAutocompleteInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
-            backgroundColor: theme.appBG,
         },
 
         searchTableHeaderActive: {
@@ -3975,12 +3980,10 @@ const styles = (theme: ThemeColors) =>
 
         dropWrapper: {
             zIndex: 2,
-            backgroundColor: theme.dropWrapperBG,
         },
 
         dropInnerWrapper: {
             borderWidth: 2,
-            flex: 1,
             borderStyle: 'dashed',
         },
 
@@ -3993,30 +3996,33 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.fileDropUIBG,
         },
 
-        attachmentDropOverlay: {
-            backgroundColor: theme.attachmentDropUIBG,
-        },
+        attachmentDropOverlay: (isActive?: boolean) => ({
+            backgroundColor: isActive ? theme.attachmentDropUIBGActive : theme.attachmentDropUIBG,
+            transition: 'background-color 0.2s ease-in',
+        }),
 
         attachmentDropText: {
             color: theme.textAttachmentDropZone,
         },
 
-        attachmentDropInnerWrapper: {
-            borderColor: theme.attachmentDropBorderColor,
-        },
+        attachmentDropInnerWrapper: (isActive?: boolean) => ({
+            borderColor: isActive ? theme.attachmentDropBorderColorActive : theme.attachmentDropBorderColor,
+            transition: '0.2s ease-in',
+        }),
 
-        receiptDropOverlay: {
-            backgroundColor: theme.receiptDropUIBG,
-            zIndex: 2,
-        },
+        receiptDropOverlay: (isActive?: boolean) => ({
+            backgroundColor: isActive ? theme.receiptDropUIBGActive : theme.receiptDropUIBG,
+            transition: 'background-color 0.2s ease-in',
+        }),
 
         receiptDropText: {
             color: theme.textReceiptDropZone,
         },
 
-        receiptDropInnerWrapper: {
-            borderColor: theme.receiptDropBorderColor,
-        },
+        receiptDropInnerWrapper: (isActive?: boolean) => ({
+            borderColor: isActive ? theme.receiptDropBorderColorActive : theme.receiptDropBorderColor,
+            transition: '0.2s ease-in',
+        }),
 
         flashButtonContainer: {
             position: 'absolute',
@@ -4063,7 +4069,7 @@ const styles = (theme: ThemeColors) =>
             marginRight: 8,
             width: variables.w44,
             borderRadius: variables.componentBorderRadiusSmall,
-            backgroundColor: colors.productLight300,
+            backgroundColor: theme.hoverComponentBG,
         },
 
         isDraggingOver: {
@@ -4242,6 +4248,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLabel,
             color: theme.textReversed,
             lineHeight: variables.lineHeightLarge,
+            flexShrink: 1,
         },
 
         quickReactionsContainer: {
@@ -4899,6 +4906,12 @@ const styles = (theme: ThemeColors) =>
         justSignedInModalAnimation: (is2FARequired: boolean) => ({
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
+
+        settlementButtonListContainer: {
+            maxHeight: 500,
+            paddingBottom: 0,
+            paddingTop: 0,
+        },
 
         moneyRequestViewImage: {
             ...spacing.mh5,
@@ -5623,6 +5636,20 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        tripReservationRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            maxWidth: '50%',
+            flexShrink: 1,
+        },
+
+        iconWrapper: {
+            justifyContent: 'center',
+            alignItems: 'center',
+            alignSelf: 'flex-start', // Keeps icon from dropping below
+            paddingTop: 2, // Adjust slightly for vertical centering
+        },
+
         textLineThrough: {
             textDecorationLine: 'line-through',
         },
@@ -5881,10 +5908,6 @@ const styles = (theme: ThemeColors) =>
             borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
 
-        unreportedExpenseCreateExpenseButton: {
-            ...flex.alignSelfStart,
-        },
-
         testDriveBannerGap: {
             height: CONST.DESKTOP_HEADER_PADDING * 2,
         },
@@ -5902,6 +5925,38 @@ const styles = (theme: ThemeColors) =>
 
         thumbnailImageContainerHighlight: {
             backgroundColor: theme.highlightBG,
+        },
+
+        multiScanEducationalPopupImage: {
+            backgroundColor: colors.pink700,
+            overflow: 'hidden',
+            paddingHorizontal: 0,
+            aspectRatio: 1.7,
+        },
+
+        topBarWrapper: {
+            zIndex: 15,
+        },
+
+        getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
+            flex: 1,
+            justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
+            alignItems: 'center',
+        }),
+
+        getTestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
+            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
+            const defaultHeight = shouldUseNarrowLayout ? '78%' : '75%';
+            const height = isAuthenticated ? defaultHeight : '55%';
+
+            return {
+                width: shouldUseNarrowLayout ? '100%' : '91%',
+                height,
+                borderRadius: variables.componentBorderRadiusLarge,
+                borderBottomRightRadius: borderBottomRadius,
+                borderBottomLeftRadius: borderBottomRadius,
+                overflow: 'hidden',
+            };
         },
     }) satisfies Styles;
 

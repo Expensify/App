@@ -6,7 +6,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
-import {initializeOpenAIRealtime, stopConnection} from '@libs/actions/OpenAI';
 import {cancelBooking, clearBookingDraft, rescheduleBooking} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption, OnboardingHelpType} from './ButtonWithDropdownMenu/types';
-import {CalendarSolid, Close, Monitor, Phone} from './Icon/Expensicons';
+import {CalendarSolid, Close, Monitor} from './Icon/Expensicons';
 import * as Illustrations from './Icon/Illustrations';
 
 type OnboardingHelpButtonProps = {
@@ -25,9 +24,6 @@ type OnboardingHelpButtonProps = {
 
     /** Whether we should display the Onboarding help button as in narrow layout */
     shouldUseNarrowLayout: boolean;
-
-    /** Should show Talk to sales option */
-    shouldShowTalkToSales: boolean;
 
     /** Should show Register for webinar option */
     shouldShowRegisterForWebinar: boolean;
@@ -39,16 +35,8 @@ type OnboardingHelpButtonProps = {
     hasActiveScheduledCall: boolean | undefined;
 };
 
-function OnboardingHelpDropdownButton({
-    reportID,
-    shouldUseNarrowLayout,
-    shouldShowTalkToSales,
-    shouldShowRegisterForWebinar,
-    shouldShowGuideBooking,
-    hasActiveScheduledCall,
-}: OnboardingHelpButtonProps) {
+function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowRegisterForWebinar, shouldShowGuideBooking, hasActiveScheduledCall}: OnboardingHelpButtonProps) {
     const {translate} = useLocalize();
-    const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES, {canBeMissing: false});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: false});
     const [latestScheduledCall] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
         selector: (reportNameValuePairs) => reportNameValuePairs?.calendlyCalls?.at(-1),
@@ -58,21 +46,6 @@ function OnboardingHelpDropdownButton({
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
-
-    const talkToSalesOption = React.useMemo(() => {
-        if (!accountID || !shouldShowTalkToSales) {
-            return undefined;
-        }
-
-        const availableCTAs = [translate('aiSales.getHelp'), translate('aiSales.talkToSales'), translate('aiSales.talkToConcierge')];
-        const abTestCtaText = availableCTAs.at(accountID % availableCTAs.length) ?? translate('aiSales.talkToSales');
-
-        return {
-            talkToSaleText: talkToAISales?.isTalkingToAISales ? translate('aiSales.hangUp') : abTestCtaText,
-            talkToSalesIcon: talkToAISales?.isTalkingToAISales ? Close : Phone,
-            abTestCtaText,
-        };
-    }, [accountID, shouldShowTalkToSales, talkToAISales?.isTalkingToAISales, translate]);
 
     if (!reportID || !accountID) {
         return null;
@@ -129,21 +102,6 @@ function OnboardingHelpDropdownButton({
         });
     }
 
-    if (talkToSalesOption) {
-        options.push({
-            text: talkToSalesOption.talkToSaleText,
-            icon: talkToSalesOption.talkToSalesIcon,
-            value: CONST.ONBOARDING_HELP.TALK_TO_SALES,
-            onSelected: () => {
-                if (talkToAISales?.isTalkingToAISales) {
-                    stopConnection();
-                } else {
-                    initializeOpenAIRealtime(Number(reportID), talkToSalesOption.abTestCtaText);
-                }
-            },
-        });
-    }
-
     if (shouldShowRegisterForWebinar) {
         options.push({
             text: translate('getAssistancePage.registerForWebinar'),
@@ -169,7 +127,6 @@ function OnboardingHelpDropdownButton({
             options={options}
             isSplitButton={false}
             customText={hasActiveScheduledCall ? translate('scheduledCall.callScheduled') : translate('getAssistancePage.onboardingHelp')}
-            isLoading={talkToAISales?.isLoading}
             wrapperStyle={shouldUseNarrowLayout && styles.earlyDiscountButton}
         />
     );

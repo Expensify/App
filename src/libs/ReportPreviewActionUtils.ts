@@ -2,7 +2,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
-import {isApprover as isApproverMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
     arePaymentsEnabled,
@@ -21,6 +20,7 @@ import {
     hasExportError as hasExportErrorUtil,
     hasMissingSmartscanFields,
     hasNoticeTypeViolations,
+    hasReportBeenReopened,
     hasViolations,
     hasWarningTypeViolations,
     isClosedReport,
@@ -40,13 +40,26 @@ import {
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
-function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[]) {
+function canSubmit(
+    report: Report,
+    violations: OnyxCollection<TransactionViolation[]>,
+    reportActions?: OnyxEntry<ReportActions> | ReportAction[],
+    policy?: Policy,
+    transactions?: Transaction[],
+    isReportArchived = false,
+) {
+    if (isReportArchived) {
+        return false;
+    }
+
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isOpen = isOpenReport(report);
     const isManager = report.managerID === getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const hasBeenReopened = hasReportBeenReopened(reportActions);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
+
     const hasAnyViolations =
         hasMissingSmartscanFields(report.reportID, transactions) ||
         hasViolations(report.reportID, violations) ||
@@ -60,13 +73,19 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
         return false;
     }
 
-    return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && isManualSubmitEnabled && !hasAnyViolations && !isAnyReceiptBeingScanned;
+    const baseCanSubmit = isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !hasAnyViolations && !isAnyReceiptBeingScanned;
+
+    // If a report has been reopened, we allow submission regardless of the auto reporting frequency.
+    if (baseCanSubmit && hasBeenReopened) {
+        return true;
+    }
+
+    return baseCanSubmit && isManualSubmitEnabled;
 }
 
 function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[], shouldConsiderViolations = true) {
     const currentUserID = getCurrentUserAccountID();
     const isExpense = isExpenseReport(report);
-    const isApprover = isApproverMember(policy, currentUserID);
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
@@ -90,7 +109,7 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
         return false;
     }
 
-    return isExpense && isApprover && isProcessing && !!isApprovalEnabled && (!hasAnyViolations || !shouldConsiderViolations) && reportTransactions.length > 0 && isCurrentUserManager;
+    return isExpense && isProcessing && !!isApprovalEnabled && (!hasAnyViolations || !shouldConsiderViolations) && reportTransactions.length > 0 && isCurrentUserManager;
 }
 
 function canPay(
@@ -229,10 +248,10 @@ function getReportPreviewAction(
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
-    if (isAddExpenseAction(report, transactions ?? [])) {
+    if (isAddExpenseAction(report, transactions ?? [], isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
-    if (canSubmit(report, violations, policy, transactions)) {
+    if (canSubmit(report, violations, reportActions, policy, transactions, isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, violations, policy, transactions)) {
@@ -251,4 +270,4 @@ function getReportPreviewAction(
     return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
 }
 
-export default getReportPreviewAction;
+export {canReview, getReportPreviewAction};

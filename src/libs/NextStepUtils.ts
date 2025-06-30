@@ -8,11 +8,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep, TransactionViolations} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {getNextApproverAccountID} from './actions/IOU';
 import EmailUtils from './EmailUtils';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
-import {getDisplayNameForParticipant, getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils, isExpenseReport, isInvoiceReport, isPayer} from './ReportUtils';
+import {
+    getDisplayNameForParticipant,
+    getNextApproverAccountID,
+    getPersonalDetailsForAccountID,
+    hasViolations as hasViolationsReportUtils,
+    isExpenseReport,
+    isInvoiceReport,
+    isPayer,
+} from './ReportUtils';
 
 let currentUserAccountID = -1;
 let currentUserEmail = '';

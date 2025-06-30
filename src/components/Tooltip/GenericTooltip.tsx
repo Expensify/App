@@ -20,7 +20,7 @@ import type {GenericTooltipProps} from './types';
 function GenericTooltip({
     children,
     numberOfLines = CONST.TOOLTIP_MAX_LINES,
-    maxWidth = variables.sideBarWidth,
+    maxWidth = variables.sideBarWidth - 2 * variables.uploadViewMargin,
     text = '',
     renderTooltipContent,
     renderTooltipContentKey = [],
@@ -37,7 +37,7 @@ function GenericTooltip({
     shouldTeleportPortalToModalLayer,
     shouldRender = true,
     isEducationTooltip = false,
-    onTooltipPress = () => {},
+    onTooltipPress,
     computeHorizontalShiftForNative = false,
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
