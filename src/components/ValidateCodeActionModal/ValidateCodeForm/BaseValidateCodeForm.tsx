@@ -118,6 +118,7 @@ function BaseValidateCodeForm({
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
@@ -174,6 +175,9 @@ function BaseValidateCodeForm({
             if (!inputValidateCodeRef.current) {
                 return;
             }
+            if (focusTimeoutRef.current) {
+                clearTimeout(focusTimeoutRef.current);
+            }
             // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
             if (!isMobileSafari()) {
                 setTimeout(() => {
@@ -182,6 +186,12 @@ function BaseValidateCodeForm({
             } else {
                 inputValidateCodeRef.current?.focusLastSelected();
             }
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
         }, []),
     );
 

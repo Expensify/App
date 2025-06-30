@@ -1,12 +1,15 @@
+import {useFocusEffect} from '@react-navigation/native';
 import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
 import useLocalize from '@hooks/useLocalize';
+import {isMobileSafari} from '@libs/Browser';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidTwoFactorCode} from '@libs/ValidationUtils';
 import {clearAccountMessages, toggleTwoFactorAuth, validateTwoFactorAuth} from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BaseTwoFactorAuthFormRef} from './types';
 
@@ -25,6 +28,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const inputRef = useRef<MagicCodeInputHandle | null>(null);
     const shouldClearData = account?.needsTwoFactorAuthSetup ?? false;
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     /**
      * Handle text input and clear formError upon text change
@@ -78,6 +82,31 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
             inputRef.current.focus();
         },
     }));
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!inputRef.current) {
+                return;
+            }
+            if (focusTimeoutRef.current) {
+                clearTimeout(focusTimeoutRef.current);
+            }
+            // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
+            if (!isMobileSafari()) {
+                setTimeout(() => {
+                    inputRef.current?.focusLastSelected();
+                }, CONST.ANIMATED_TRANSITION);
+            } else {
+                inputRef.current?.focusLastSelected();
+            }
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
+        }, []),
+    );
 
     return (
         <MagicCodeInput
