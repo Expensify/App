@@ -34508,7 +34508,7 @@ class GithubUtils {
      */
     static async getCommitHistoryBetweenTags(fromTag, toTag) {
         console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
-        core.startGroup('[api] Parsed PRs:');
+        core.startGroup('Fetching paginated commits:');
         try {
             let allCommits = [];
             let page = 1;
@@ -34522,21 +34522,18 @@ class GithubUtils {
                     base: fromTag,
                     head: toTag,
                     per_page: perPage,
-                    page: page,
+                    page,
                 });
                 // Check if we got a proper response with commits
                 if (response.data && response.data.commits && Array.isArray(response.data.commits)) {
                     if (page === 1) {
-                        core.info(`📊 Total commits: ${response.data.total_commits || 'unknown'}`);
+                        core.info(`📊 Total commits: ${response.data.total_commits ?? 'unknown'}`);
                     }
                     core.info(`✅ compareCommits API returned ${response.data.commits.length} commits for page ${page}`);
                     allCommits = allCommits.concat(response.data.commits);
-                    // Check if there are more pages
-                    // GitHub's compareCommits endpoint may not have explicit pagination info in headers
-                    // so we check if we got fewer commits than requested or if we've reached the total
+                    // Check if we got fewer commits than requested or if we've reached the total
                     const totalCommits = response.data.total_commits;
-                    if (response.data.commits.length < perPage ||
-                        (totalCommits && allCommits.length >= totalCommits)) {
+                    if (response.data.commits.length < perPage || (totalCommits && allCommits.length >= totalCommits)) {
                         hasMorePages = false;
                     }
                     else {
@@ -34553,8 +34550,7 @@ class GithubUtils {
             return allCommits.map((commit) => ({
                 commit: commit.sha,
                 subject: commit.commit.message,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                authorName: commit.commit.author?.name || 'Unknown',
+                authorName: commit.commit.author?.name ?? 'Unknown',
             }));
         }
         catch (error) {

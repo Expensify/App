@@ -619,11 +619,13 @@ class GithubUtils {
 
             core.info(`🎉 Successfully fetched ${allCommits.length} total commits`);
             core.endGroup();
-            return allCommits.map((commit): CommitType => ({
-                commit: commit.sha,
-                subject: commit.commit.message,
-                authorName: commit.commit.author?.name ?? 'Unknown',
-            }));
+            return allCommits.map(
+                (commit): CommitType => ({
+                    commit: commit.sha,
+                    subject: commit.commit.message,
+                    authorName: commit.commit.author?.name ?? 'Unknown',
+                }),
+            );
         } catch (error) {
             if (error instanceof RequestError && error.status === 404) {
                 console.error(
