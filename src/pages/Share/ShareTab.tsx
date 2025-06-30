@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getOptimisticChatReport, saveReportDraft, searchInServer} from '@libs/actions/Report';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
-import {combineOrderingOfReportsAndPersonalDetails, getHeaderMessage, getSearchOptions} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, getHeaderMessage, getSearchOptions, optionsOrderBy, recentReportComparator} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
@@ -48,11 +48,11 @@ function ShareTab() {
         return getSearchOptions(options, betas ?? [], false, false);
     }, [areOptionsInitialized, betas, options]);
 
-    const filterOptions = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
+    const {search: filterOptions} = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {
-            return searchOptions.recentReports.slice(0, 20);
+            return optionsOrderBy(searchOptions.recentReports, 20, recentReportComparator);
         }
         const filteredOptions = filterOptions(textInputValue);
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filteredOptions, textInputValue, {
