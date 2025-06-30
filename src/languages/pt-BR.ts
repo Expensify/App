@@ -6137,7 +6137,8 @@ const translations = {
                 unshare: ({to}: UnshareParams) => `membro removido ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `pago ${currency}${amount}`,
                 takeControl: `assumiu o controle`,
-                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `falha ao sincronizar com ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
+                integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
+                    `Ocorreu um problema ao sincronizar com ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Corrija o problema nas <a href="${workspaceAccountingLink}">configurações do workspace</a>.`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `adicionado ${email} como ${role === 'member' ? 'a' : 'um/uma'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `atualizou o papel de ${email} para ${newRole} (anteriormente ${currentRole})`,
                 updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
