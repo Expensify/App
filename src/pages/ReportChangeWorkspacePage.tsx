@@ -19,7 +19,6 @@ import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
 import {isExpenseReport, isIOUReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
@@ -27,7 +26,7 @@ import withReportOrNotFound from './home/report/withReportOrNotFound';
 
 type ReportChangeWorkspacePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.ROOT>;
 
-function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
+function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePageProps) {
     const reportID = report?.reportID;
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -45,7 +44,8 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
             if (!policyID) {
                 return;
             }
-            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+            const {backTo} = route.params;
+            Navigation.goBack(backTo);
             // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
             // eslint-disable-next-line deprecation/deprecation
             if (isIOUReport(reportID) && isPolicyAdmin(getPolicy(policyID)) && report.ownerAccountID && !isPolicyMember(getLoginByAccountID(report.ownerAccountID), policyID)) {
@@ -61,7 +61,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                 changeReportPolicy(report, policyID, reportNextStep);
             }
         },
-        [session?.email, report, reportID, reportNextStep, policies],
+        [session?.email, route.params, report, reportID, reportNextStep, policies],
     );
 
     const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
@@ -87,7 +87,10 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
                 <>
                     <HeaderWithBackButton
                         title={translate('iou.changeWorkspace')}
-                        onBackButtonPress={Navigation.goBack}
+                        onBackButtonPress={() => {
+                            const {backTo} = route.params;
+                            Navigation.goBack(backTo);
+                        }}
                     />
                     {shouldShowLoadingIndicator ? (
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
