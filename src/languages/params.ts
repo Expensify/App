@@ -124,6 +124,12 @@ type DeleteTransactionParams = {
     merchant: string;
 };
 
+type MovedReportParams = {
+    movedReportURL: string;
+    newParentReportURL: string;
+    toPolicyName?: string;
+};
+
 type MovedTransactionParams = {
     reportUrl: string;
     reportName?: string;
@@ -1064,4 +1070,5 @@ export type {
     RailTicketParams,
     TravelTypeParams,
     BusinessTaxIDParams,
+    MovedReportParams,
 };

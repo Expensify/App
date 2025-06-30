@@ -11,7 +11,7 @@ import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense, OriginalMessageMovedTransaction} from 'src/types/onyx/OriginalMessage';
+import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense, OriginalMessageMoved, OriginalMessageMovedTransaction} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import {FallbackAvatar, IntacctSquare, NetSuiteExport, NetSuiteSquare, QBDSquare, QBOExport, QBOSquare, SageIntacctExport, XeroExport, XeroSquare} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
@@ -6137,6 +6137,18 @@ function getMovedTransactionMessage(action: ReportAction) {
     return message;
 }
 
+function getMovedReportMessage(action: ReportAction) {
+    const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED>) ?? {};
+    const {movedReportID, newParentReportID, toPolicyID} = movedTransactionOriginalMessage as OriginalMessageMoved;
+    const movedReportURL = getReportDetails(movedReportID)?.reportUrl;
+    const newParentReportURL = getReportDetails(newParentReportID)?.reportUrl;
+    const message = translateLocal('iou.movedReport', {
+        movedReportURL,
+        newParentReportURL,
+        toPolicyName: getPolicyNameByID(toPolicyID),
+    });
+    return message;
+}
 function getPolicyChangeMessage(action: ReportAction) {
     const PolicyChangeOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY>) ?? {};
     const {fromPolicy: fromPolicyID, toPolicy: toPolicyID} = PolicyChangeOriginalMessage as OriginalMessageChangePolicy;
@@ -11461,6 +11473,7 @@ export {
     getFieldViolationTranslation,
     getFieldViolation,
     getReportViolations,
+    getMovedReportMessage,
     findPolicyExpenseChatByPolicyID,
     getIntegrationIcon,
     getIntegrationExportIcon,
