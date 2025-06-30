@@ -91,16 +91,17 @@ const createErrorReportAction = () =>
     });
 
 describe('TransactionItemRowRBRWithOnyx', () => {
-    beforeAll(() =>
+    beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        }),
-    );
+        });
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT);
+    });
 
     beforeEach(() => {
         jest.clearAllMocks();
-        return Onyx.clear().then(waitForBatchedUpdates);
+        return Onyx.clear([ONYXKEYS.NVP_PREFERRED_LOCALE]).then(waitForBatchedUpdates);
     });
 
     it('should display RBR message for transaction with single violation', async () => {

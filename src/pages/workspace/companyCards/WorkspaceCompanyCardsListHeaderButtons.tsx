@@ -137,7 +137,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                         customText={translate('common.more')}
                         options={secondaryActions}
                         isSplitButton={false}
-                        wrapperStyle={styles.flexGrow0}
+                        wrapperStyle={shouldShowAssignCardButton ? styles.flexGrow0 : styles.flex1}
                     />
                 </View>
             </View>

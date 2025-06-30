@@ -127,6 +127,7 @@ describe('SidebarLinksData', () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         // Initialize the network key for OfflineWithFeedback
         Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         signUpWithTestUser();
     });
 
@@ -231,6 +232,7 @@ describe('SidebarLinksData', () => {
                 ...createReport(false, undefined, undefined, undefined, TEST_POLICY_ID),
                 ownerAccountID: TEST_USER_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: report.reportID,
             };
             const transaction = LHNTestUtils.getFakeTransaction(expenseReport.reportID);
             const transactionViolation = createFakeTransactionViolation();

@@ -110,6 +110,12 @@ describe('generateTranslations', () => {
                         }
                     }
                 }
+                const strings = {
+                    [\`hello\`]: 'world',
+                };
+                const moreStrings = {
+                    [\`key\${strings.hello}\`]: 'more',
+                };
             `),
             'utf8',
         );
@@ -139,6 +145,12 @@ describe('generateTranslations', () => {
                         }
                     }
                 }
+                const strings = {
+                    [\`hello\`]: '[it] world',
+                };
+                const moreStrings = {
+                    [\`key\${strings.hello}\`]: '[it] more',
+                };
             `)}`,
         );
     });
@@ -403,6 +415,33 @@ describe('generateTranslations', () => {
 
                 const strings = {
                     myFunc: ({brand}: {brand: 'Apple' | 'Google'}) => \`[it] \${brand} Phone\`,
+                };
+                export default strings;
+            `)}`,
+        );
+    });
+
+    it('unescapes unicode', async () => {
+        fs.writeFileSync(
+            EN_PATH,
+            dedent(`
+                const strings = {
+                    hello: 'こんにちは',
+                    world: 'world',
+                };
+                export default strings;
+            `),
+            'utf8',
+        );
+        await generateTranslations();
+        const itContent = fs.readFileSync(IT_PATH, 'utf8');
+        expect(itContent).toStrictEqual(
+            `${GENERATED_FILE_PREFIX}${dedent(`
+                import type en from './en';
+
+                const strings = {
+                    hello: '[it] こんにちは',
+                    world: '[it] world',
                 };
                 export default strings;
             `)}`,

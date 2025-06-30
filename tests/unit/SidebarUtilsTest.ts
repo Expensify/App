@@ -9,6 +9,7 @@ import {getAllReportErrors} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
@@ -26,8 +27,9 @@ describe('SidebarUtils', () => {
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
-        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+        IntlStore.load(CONST.LOCALES.EN);
         initOnyxDerivedValues();
+        return waitForBatchedUpdates();
     });
 
     afterAll(async () => {
