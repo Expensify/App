@@ -303,6 +303,7 @@ function PaymentCardForm({
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.EXPIRATION_DATE}
                             label={translate(label.defaults.expiration)}
+                            testID={label.defaults.expiration}
                             aria-label={translate(label.defaults.expiration)}
                             role={CONST.ROLE.PRESENTATION}
                             placeholder={translate(label.defaults.expirationDate)}
