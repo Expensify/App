@@ -2420,7 +2420,7 @@ const translations = {
             onboardingChatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             onboardingAdminMessage: "Learn how to manage your team's workspace as an admin and submit your own expenses.",
             onboardingLookingAroundMessage:
-                "Expensify is best known for expenses, travel, and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
+                "We're best known for managing expenses, travel, and corporate cards, but there's much more I can do to simplify your life. ✨ For example, I can effortlessly import your receipts directly from Google Drive, Dropbox, email, and more.\n\n*Ready to see how easy it is? Just reply “Yes” and I'll help you start by importing expenses from Google Drive.*",
             onboardingTestDriveReceiverMessage: "*You've got 3 months free! Get started below.*",
         },
         workspace: {
