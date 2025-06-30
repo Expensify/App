@@ -35186,13 +35186,14 @@ class GithubUtils {
      */
     static async getCommitHistoryBetweenTags(fromTag, toTag) {
         console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+        core.startGroup('[api] Parsed PRs:');
         try {
             let allCommits = [];
             let page = 1;
-            const perPage = 250; // GitHub's max per_page
+            const perPage = 250;
             let hasMorePages = true;
             while (hasMorePages) {
-                console.log(`📄 Fetching page ${page} of commits...`);
+                core.info(`📄 Fetching page ${page} of commits...`);
                 const response = await this.octokit.repos.compareCommits({
                     owner: CONST_1.default.GITHUB_OWNER,
                     repo: CONST_1.default.APP_REPO,
@@ -35203,10 +35204,10 @@ class GithubUtils {
                 });
                 // Check if we got a proper response with commits
                 if (response.data && response.data.commits && Array.isArray(response.data.commits)) {
-                    console.log(`✅ compareCommits API returned ${response.data.commits.length} commits for page ${page}`);
                     if (page === 1) {
-                        console.log(`📊 Total commits: ${response.data.total_commits || 'unknown'}`);
+                        core.info(`📊 Total commits: ${response.data.total_commits || 'unknown'}`);
                     }
+                    core.info(`✅ compareCommits API returned ${response.data.commits.length} commits for page ${page}`);
                     allCommits = allCommits.concat(response.data.commits);
                     // Check if there are more pages
                     // GitHub's compareCommits endpoint may not have explicit pagination info in headers
@@ -35221,11 +35222,12 @@ class GithubUtils {
                     }
                 }
                 else {
-                    console.warn('⚠️ GitHub API returned unexpected response format');
+                    core.warning('⚠️ GitHub API returned unexpected response format');
                     hasMorePages = false;
                 }
             }
-            console.log(`🎉 Successfully fetched ${allCommits.length} total commits`);
+            core.info(`🎉 Successfully fetched ${allCommits.length} total commits`);
+            core.endGroup();
             return allCommits.map((commit) => ({
                 commit: commit.sha,
                 subject: commit.commit.message,
@@ -35237,6 +35239,7 @@ class GithubUtils {
             if (error instanceof request_error_1.RequestError && error.status === 404) {
                 console.error(`❓❓ Failed to get commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`);
             }
+            core.endGroup();
             throw error;
         }
     }
