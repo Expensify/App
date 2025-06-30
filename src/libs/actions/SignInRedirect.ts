@@ -34,11 +34,20 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
         keysToPreserve.push(ONYXKEYS.NETWORK);
     }
 
+    // Preserve troubleshooting flags
+    keysToPreserve.push(ONYXKEYS.APP_PROFILING_IN_PROGRESS);
+    keysToPreserve.push(ONYXKEYS.SHOULD_STORE_LOGS);
+    keysToPreserve.push(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
+
+    // Preserve account settings (staging server, debug mode, etc.) across logout
+    keysToPreserve.push(ONYXKEYS.ACCOUNT);
+
     return Onyx.clear(keysToPreserve).then(() => {
         if (CONFIG.IS_HYBRID_APP) {
             resetSignInFlow();
         }
         clearAllPolicies();
+
         if (!errorMessage) {
             return;
         }
