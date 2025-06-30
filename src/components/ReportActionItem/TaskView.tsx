@@ -62,6 +62,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const isOpen = isOpenTaskReport(report);
     const isCompleted = isCompletedTaskReport(report);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
     const isTaskActionable = canActionTask(report, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
 
@@ -73,7 +74,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
         () => ({
             anchor: null,
             report,
-            reportNameValuePairs: undefined,
+            isReportArchived,
             action,
             transactionThreadReport: undefined,
             checkIfContextMenuActive: () => {},
@@ -81,7 +82,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
             onShowContextMenu: (callback: () => void) => callback(),
             shouldDisplayContextMenu: false,
         }),
-        [report, action],
+        [report, action, isReportArchived],
     );
 
     const attachmentContextValue = useMemo(() => ({type: CONST.ATTACHMENT_TYPE.ONBOARDING, accountID}), [accountID]);

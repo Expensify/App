@@ -101,7 +101,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         thumbnailImageComponent
     ) : (
         <ShowContextMenuContext.Consumer>
-            {({onShowContextMenu, anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
+            {({onShowContextMenu, anchor, report, isReportArchived, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                 <AttachmentContext.Consumer>
                     {({reportID, accountID, type}) => (
                         <PressableWithoutFocus
@@ -129,14 +129,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                     return;
                                 }
                                 return onShowContextMenu(() =>
-                                    showContextMenuForReport(
-                                        event,
-                                        anchor,
-                                        report?.reportID,
-                                        action,
-                                        checkIfContextMenuActive,
-                                        isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived),
-                                    ),
+                                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived)),
                                 );
                             }}
                             isNested

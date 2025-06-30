@@ -37,7 +37,7 @@ jest.mock('@components/VideoPlayerPreview', () => {
 const mockShowContextMenuValue = {
     anchor: null,
     report: undefined,
-    reportNameValuePairs: undefined,
+    isReportArchived: undefined,
     action: undefined,
     transactionThreadReport: undefined,
     checkIfContextMenuActive: () => {},

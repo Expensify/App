@@ -15,6 +15,7 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReviewDuplicatesNavigation from '@hooks/useReviewDuplicatesNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -48,6 +49,7 @@ function Confirmation() {
     const reportAction = Object.values(reportActions ?? {}).find(
         (action) => ReportActionsUtils.isMoneyRequestAction(action) && ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID === reviewDuplicates?.transactionID,
     );
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const transactionsMergeParams = useMemo(() => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, transaction), [reviewDuplicates, transaction]);
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
@@ -72,11 +74,11 @@ function Confirmation() {
             report,
             checkIfContextMenuActive: () => {},
             onShowContextMenu: () => {},
-            reportNameValuePairs: undefined,
+            isReportArchived,
             anchor: null,
             isDisabled: false,
         }),
-        [report, reportAction],
+        [report, reportAction, isReportArchived],
     );
 
     const reportTransactionID = report?.reportID ? getTransactionID(report.reportID) : undefined;
