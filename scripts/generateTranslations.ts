@@ -8,10 +8,11 @@ import fs from 'fs';
 import path from 'path';
 import type {TemplateExpression} from 'typescript';
 import ts from 'typescript';
+import decodeUnicode from '@libs/StringUtils/decodeUnicode';
 import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
-import {LANGUAGES, UPCOMING_LANGUAGES} from '@src/CONST/LOCALES';
-import type {TranslationTargetLanguage} from '@src/CONST/LOCALES';
+import {isTranslationTargetLocale, LOCALES, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
+import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import CLI from './utils/CLI';
 import Prettier from './utils/Prettier';
 import PromisePool from './utils/PromisePool';
@@ -59,7 +60,7 @@ class TranslationGenerator {
     /**
      * The languages to generate translations for.
      */
-    private readonly targetLanguages: TranslationTargetLanguage[];
+    private readonly targetLanguages: TranslationTargetLocale[];
 
     /**
      * The directory where translations are stored.
@@ -76,7 +77,7 @@ class TranslationGenerator {
      */
     private readonly translator: Translator;
 
-    constructor(config: {targetLanguages: TranslationTargetLanguage[]; languagesDir: string; sourceFile: string; translator: Translator}) {
+    constructor(config: {targetLanguages: TranslationTargetLocale[]; languagesDir: string; sourceFile: string; translator: Translator}) {
         this.targetLanguages = config.targetLanguages;
         this.languagesDir = config.languagesDir;
         const sourceCode = fs.readFileSync(config.sourceFile, 'utf8');
@@ -112,7 +113,7 @@ class TranslationGenerator {
 
             // Generate translated TypeScript code
             const printer = ts.createPrinter();
-            const translatedCode = printer.printFile(transformedSourceFile);
+            const translatedCode = decodeUnicode(printer.printFile(transformedSourceFile));
 
             // Write to file
             const outputPath = path.join(this.languagesDir, `${targetLanguage}.ts`);
@@ -182,9 +183,15 @@ class TranslationGenerator {
             return false;
         }
 
-        // Only translate string literals if they contain alphabet characters
+        // Don't translate object keys
+        if (ts.isComputedPropertyName(node.parent)) {
+            return false;
+        }
+
+        // Only translate string literals if they contain at least one real letter
         if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-            return /[a-zA-Z]/.test(node.text);
+            // \p{L} matches a-z, à-ö, Α-Ω, Ж, 文, …  – but NOT digits, emoji, punctuation, etc.
+            return /\p{L}/u.test(node.text);
         }
 
         // Only translate a template expression if it contains alphabet characters outside the spans
@@ -426,10 +433,6 @@ class TranslationGenerator {
     }
 }
 
-function isTranslationTargetLanguage(str: string): str is TranslationTargetLanguage {
-    return (LANGUAGES as readonly string[]).includes(str) || (UPCOMING_LANGUAGES as readonly string[]).includes(str);
-}
-
 /**
  * The main function mostly contains CLI and file I/O logic, while TS parsing and translation logic is encapsulated in TranslationGenerator.
  */
@@ -445,12 +448,12 @@ async function main(): Promise<void> {
             // By default, generate translations for all supported languages. Can be overridden with the --locales flag
             locales: {
                 description: 'Locales to generate translations for.',
-                default: UPCOMING_LANGUAGES as unknown as TranslationTargetLanguage[],
-                parse: (val: string): TranslationTargetLanguage[] => {
+                default: Object.values(TRANSLATION_TARGET_LOCALES).filter((locale) => locale !== LOCALES.ES),
+                parse: (val: string): TranslationTargetLocale[] => {
                     const rawLocales = val.split(',');
-                    const validatedLocales: TranslationTargetLanguage[] = [];
+                    const validatedLocales: TranslationTargetLocale[] = [];
                     for (const locale of rawLocales) {
-                        if (!isTranslationTargetLanguage(locale)) {
+                        if (!isTranslationTargetLocale(locale)) {
                             throw new Error(`Invalid locale ${String(locale)}`);
                         }
                         validatedLocales.push(locale);
@@ -477,7 +480,7 @@ async function main(): Promise<void> {
         translator = new ChatGPTTranslator(process.env.OPENAI_API_KEY);
     }
 
-    const languagesDir = process.env.LANGUAGES_DIR || path.join(__dirname, '../src/languages');
+    const languagesDir = process.env.LANGUAGES_DIR ?? path.join(__dirname, '../src/languages');
     const enSourceFile = path.join(languagesDir, 'en.ts');
 
     const generator = new TranslationGenerator({

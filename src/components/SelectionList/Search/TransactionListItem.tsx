@@ -30,7 +30,7 @@ function TransactionListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
 
-    const {isLargeScreenWidth} = useResponsiveLayout();
+    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {currentSearchHash} = useSearchContext();
 
     const listItemPressableStyle = [
@@ -108,7 +108,7 @@ function TransactionListItem<TItem extends ListItem>({
                         <UserInfoAndActionButtonRow
                             item={transactionItem}
                             handleActionButtonPress={() => {
-                                handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
+                                handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item), shouldUseNarrowLayout && !!canSelectMultiple);
                             }}
                             shouldShowUserInfo={!!transactionItem?.from}
                         />
@@ -117,7 +117,7 @@ function TransactionListItem<TItem extends ListItem>({
                         transactionItem={transactionItem}
                         shouldShowTooltip={showTooltip}
                         onButtonPress={() => {
-                            handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item));
+                            handleActionButtonPress(currentSearchHash, transactionItem, () => onSelectRow(item), shouldUseNarrowLayout && !!canSelectMultiple);
                         }}
                         onCheckboxPress={() => onCheckboxPress?.(item)}
                         shouldUseNarrowLayout={!isLargeScreenWidth}

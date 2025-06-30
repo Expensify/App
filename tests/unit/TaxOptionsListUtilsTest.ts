@@ -1,8 +1,14 @@
 import type {Section} from '@libs/OptionsListUtils';
 import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
+import IntlStore from '@src/languages/IntlStore';
 import type {Policy, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('TaxOptionsListUtils', () => {
+    beforeAll(() => {
+        IntlStore.load('en');
+        return waitForBatchedUpdates();
+    });
     it('getTaxRatesSection()', () => {
         const search = 'rate';
         const emptySearch = '';

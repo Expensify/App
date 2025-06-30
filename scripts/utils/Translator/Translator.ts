@@ -1,4 +1,4 @@
-import type {TranslationTargetLanguage} from '@src/CONST/LOCALES';
+import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 
 /**
  * Base Translator class standardizes interface for translators and implements common logging.
@@ -8,7 +8,7 @@ abstract class Translator {
      * Translate a string to the given locale.
      * Implements common logging logic, while concrete subclasses handle actual translations.
      */
-    public async translate(targetLang: TranslationTargetLanguage, text: string, context?: string): Promise<string> {
+    public async translate(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string> {
         const isEmpty = !text || text.trim().length === 0;
         if (isEmpty) {
             return '';
@@ -25,7 +25,7 @@ abstract class Translator {
     /**
      * Translate a string to the given locale.
      */
-    protected abstract performTranslation(targetLang: TranslationTargetLanguage, text: string, context?: string): Promise<string>;
+    protected abstract performTranslation(targetLang: TranslationTargetLocale, text: string, context?: string): Promise<string>;
 
     /**
      * Trim a string to keep logs readable.

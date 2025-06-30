@@ -5,7 +5,7 @@ import {Dimensions, View} from 'react-native';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
@@ -80,9 +80,7 @@ function SecuritySettingsPage() {
     });
 
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate || false;
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-
+    const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
@@ -109,9 +107,6 @@ function SecuritySettingsPage() {
         setSelectedEmail(delegate.email);
     };
 
-    const showDelegateNoAccessMenu = () => {
-        setIsNoDelegateAccessMenuVisible(true);
-    };
     useLayoutEffect(() => {
         const popoverPositionListener = Dimensions.addEventListener('change', () => {
             debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
@@ -132,7 +127,7 @@ function SecuritySettingsPage() {
                 icon: Expensicons.Shield,
                 action: () => {
                     if (isActingAsDelegate) {
-                        showDelegateNoAccessMenu();
+                        showDelegateNoAccessModal();
                         return;
                     }
                     if (isAccountLocked) {
@@ -150,7 +145,7 @@ function SecuritySettingsPage() {
                 icon: Expensicons.ArrowCollapse,
                 action: () => {
                     if (isActingAsDelegate) {
-                        showDelegateNoAccessMenu();
+                        showDelegateNoAccessModal();
                         return;
                     }
                     if (isAccountLocked) {
@@ -170,7 +165,7 @@ function SecuritySettingsPage() {
             });
         } else {
             baseMenuItems.push({
-                translationKey: 'lockAccountPage.lockAccount',
+                translationKey: 'lockAccountPage.reportSuspiciousActivity',
                 icon: Expensicons.UserLock,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
             });
@@ -181,7 +176,7 @@ function SecuritySettingsPage() {
             icon: Expensicons.ClosedSign,
             action: () => {
                 if (isActingAsDelegate) {
-                    showDelegateNoAccessMenu();
+                    showDelegateNoAccessModal();
                     return;
                 }
 
@@ -201,7 +196,7 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles, isActingAsDelegate, isBetaEnabled, isAccountLocked, showLockedAccountModal]);
+    }, [translate, waitForNavigate, styles, isActingAsDelegate, showDelegateNoAccessModal, isBetaEnabled, isAccountLocked, showLockedAccountModal]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>
@@ -281,7 +276,7 @@ function SecuritySettingsPage() {
             icon: Expensicons.Pencil,
             onPress: () => {
                 if (isActingAsDelegate) {
-                    modalClose(() => setIsNoDelegateAccessMenuVisible(true));
+                    modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
                 if (isAccountLocked) {
@@ -299,7 +294,7 @@ function SecuritySettingsPage() {
             icon: Expensicons.Trashcan,
             onPress: () => {
                 if (isActingAsDelegate) {
-                    modalClose(() => setIsNoDelegateAccessMenuVisible(true));
+                    modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
                 if (isAccountLocked) {
@@ -406,7 +401,7 @@ function SecuritySettingsPage() {
                             </View>
                             <PopoverMenu
                                 isVisible={shouldShowDelegatePopoverMenu}
-                                anchorRef={delegateButtonRef as RefObject<View>}
+                                anchorRef={delegateButtonRef as RefObject<View | null>}
                                 anchorPosition={{
                                     horizontal: anchorPosition.horizontal,
                                     vertical: anchorPosition.vertical,
@@ -441,10 +436,6 @@ function SecuritySettingsPage() {
                             />
                         </View>
                     </ScrollView>
-                    <DelegateNoAccessModal
-                        isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                        onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                    />
                 </>
             )}
         </ScreenWrapper>
