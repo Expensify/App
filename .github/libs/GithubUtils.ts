@@ -575,53 +575,57 @@ class GithubUtils {
         console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
 
         try {
-            const response = await this.octokit.repos.compareCommits({
-                owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
-                base: fromTag,
-                head: toTag,
-                per_page: 100,
-            });
+            let allCommits: any[] = [];
+            let page = 1;
+            const perPage = 250; // GitHub's max per_page
+            let hasMorePages = true;
 
-            // Check if we got a proper response with commits
-            if (response.data && response.data.commits && Array.isArray(response.data.commits)) {
-                console.log(`✅ compareCommits API returned ${response.data.commits.length} commits`);
-                console.log('Full response data:', JSON.stringify(response.data, null, 2));
+            while (hasMorePages) {
+                console.log(`📄 Fetching page ${page} of commits...`);
                 
-                // If we got the max per_page, there might be more commits, so use pagination
-                if (response.data.commits.length === 100) {
-                    console.log('📄 Using pagination to get all commits...');
-                    const allCommits = await this.paginate(
-                        this.octokit.repos.compareCommits,
-                        {
-                            owner: CONST.GITHUB_OWNER,
-                            repo: CONST.APP_REPO,
-                            base: fromTag,
-                            head: toTag,
-                            per_page: 100,
-                        },
-                        (response) => response.data.commits
-                    );
+                const response = await this.octokit.repos.compareCommits({
+                    owner: CONST.GITHUB_OWNER,
+                    repo: CONST.APP_REPO,
+                    base: fromTag,
+                    head: toTag,
+                    per_page: perPage,
+                    page: page,
+                });
 
-                    return allCommits.map((commit) => ({
-                        commit: commit.sha,
-                        subject: commit.commit.message,
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        authorName: commit.commit.author?.name || 'Unknown',
-                    }));
+                // Check if we got a proper response with commits
+                if (response.data && response.data.commits && Array.isArray(response.data.commits)) {
+                    console.log(`✅ compareCommits API returned ${response.data.commits.length} commits for page ${page}`);
+                    
+                    if (page === 1) {
+                        console.log(`📊 Total commits: ${response.data.total_commits || 'unknown'}`);
+                    }
+                    
+                    allCommits = allCommits.concat(response.data.commits);
+                    
+                    // Check if there are more pages
+                    // GitHub's compareCommits endpoint may not have explicit pagination info in headers
+                    // so we check if we got fewer commits than requested or if we've reached the total
+                    const totalCommits = response.data.total_commits;
+                    if (response.data.commits.length < perPage || 
+                        (totalCommits && allCommits.length >= totalCommits)) {
+                        hasMorePages = false;
+                    } else {
+                        page++;
+                    }
+                } else {
+                    console.warn('⚠️ GitHub API returned unexpected response format');
+                    hasMorePages = false;
                 }
-
-                // Single page response
-                return response.data.commits.map((commit) => ({
-                    commit: commit.sha,
-                    subject: commit.commit.message,
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    authorName: commit.commit.author?.name || 'Unknown',
-                }));
             }
 
-            console.warn('⚠️ GitHub API returned unexpected response format');
-            return [];
+            console.log(`🎉 Successfully fetched ${allCommits.length} total commits`);
+
+            return allCommits.map((commit) => ({
+                commit: commit.sha,
+                subject: commit.commit.message,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                authorName: commit.commit.author?.name || 'Unknown',
+            }));
 
         } catch (error) {
             if (error instanceof RequestError && error.status === 404) {
