@@ -1095,14 +1095,14 @@ button {
 .title-platform-tabs {
     display: flex;
     justify-content: space-between;
-    padding-bottom: 12px;
+    padding-bottom: 20px;
     h1 {
         padding: 0;
     }
 
     @include maxBreakpoint($breakpoint-tablet) {
         flex-direction: column;
-        gap: 12px;
+        gap: 8px;
     }
 }
 
