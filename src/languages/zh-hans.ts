@@ -6030,7 +6030,8 @@ const translations = {
                 unshare: ({to}: UnshareParams) => `已移除成员${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `支付了 ${currency}${amount}`,
                 takeControl: `控制了`,
-                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `无法与${label}${errorMessage ? ` ("${errorMessage}")` : ''}同步`,
+                integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
+                    `与 ${label} 同步时出现问题${errorMessage ? `（"${errorMessage}"）` : ''}。请在<a href="${workspaceAccountingLink}">工作区设置</a>中解决该问题。`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `已将${email}添加为${role === 'member' ? 'a' : '一个'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `将 ${email} 的角色更新为 ${newRole}（之前是 ${currentRole}）`,
                 updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
@@ -6330,10 +6331,10 @@ const translations = {
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: '需要审核',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
-            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return '';
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
+                return '由于银行连接中断，无法自动匹配收据。';
             }
-            if (brokenBankConnection) {
+            if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin ? `由于银行连接中断，无法自动匹配收据，需要${email}进行修复。` : '由于需要修复的银行连接中断，无法自动匹配收据。';
             }
             if (!isTransactionOlderThan7Days) {

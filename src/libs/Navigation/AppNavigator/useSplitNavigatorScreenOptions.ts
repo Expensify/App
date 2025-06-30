@@ -51,7 +51,7 @@ const useSplitNavigatorScreenOptions = () => {
             ...hideKeyboardOnSwipe,
             headerShown: false,
             title: CONFIG.SITE_TITLE,
-            animation: shouldUseNarrowLayout ? undefined : Animations.NONE,
+            animation: shouldUseNarrowLayout ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
             animationTypeForReplace: 'pop',
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePanel: true}),
