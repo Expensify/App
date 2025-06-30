@@ -327,8 +327,8 @@ const getOnboardingMessages = (locale?: Locale) => {
     };
 
     const onboardingMangeTeamMessage: OnboardingMessage = {
-        message: ({onboardingCompanySize}) => translate(resolvedLocale, 'onboarding.messages.onboardingMangeTeamMessage', {onboardingCompanySize}),
-        tasks: [createWorkspaceTask, testDriveAdminTask, addAccountingIntegrationTask, connectCorporateCardTask, inviteTeamTask, setupCategoriesAndTags, setupCategoriesTask, setupTagsTask],
+        message: ({onboardingCompanySize}) => translate(resolvedLocale, 'onboarding.messages.letMeKnowIfYouHaveAnyQuestions', {onboardingCompanySize}),
+        tasks: [],
     };
 
     const onboardingTrackWorkspaceMessage: OnboardingMessage = {

@@ -4,6 +4,7 @@ import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useSta
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
@@ -152,22 +153,25 @@ import {
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
+import {AccountingContextProvider} from '@pages/workspace/accounting/AccountingContext';
 import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
-import {expandURLPreview, resolveConciergeCategoryOptions} from '@userActions/Report';
+import {addComment, expandURLPreview, resolveConciergeCategoryOptions} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import RenderCommentHTML from './comment/RenderCommentHTML';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
@@ -722,6 +726,37 @@ function PureReportActionItem({
                 },
             }));
         }
+        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT_WITH_OPTIONS) {
+            const originalMessage = getOriginalMessage(action) as any;
+            const options = originalMessage?.options || ['common.yes', 'common.no'];
+
+            // Check if this action has already been resolved
+            if (originalMessage?.selectedOption) {
+                return [];
+            }
+
+            return options.map((option: string) => ({
+                text: option,
+                key: `${action.reportActionID}-addCommentWithOptions-${option.toLowerCase().replace(/\./g, '-')}`,
+                onPress: () => {
+                    if (!reportID) {
+                        return;
+                    }
+                    // Check if it's a translation key (contains a dot) or plain text
+                    const translatedResponse = option.includes('.') ? translate(option as any) : option;
+                    addComment(reportID, translatedResponse);
+                    // Mark the action as resolved by updating the originalMessage
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                        [action.reportActionID]: {
+                            originalMessage: {
+                                ...originalMessage,
+                                selectedOption: option,
+                            },
+                        },
+                    } as Partial<OnyxTypes.ReportActions>);
+                },
+            }));
+        }
 
         if (!isActionableWhisper && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
             return [];
@@ -1179,6 +1214,32 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedAuditRateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
             children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT_WITH_OPTIONS) {
+            const originalMessage = getOriginalMessage(action) as any;
+            const questionText = (originalMessage && originalMessage['html']) || 'Do you want to enable attendee tracking?';
+
+            children = (
+                <AccountingContextProvider policy={policy}>
+                    <View>
+                        <View>
+                            {!!questionText && (
+                                <RenderCommentHTML
+                                    containsOnlyEmojis={false}
+                                    source=""
+                                    html={questionText}
+                                />
+                            )}
+                        </View>
+                        {actionableItemButtons.length > 0 && (
+                            <ActionableItemButtons
+                                items={actionableItemButtons}
+                                shouldUseLocalization={false}
+                                layout="horizontal"
+                            />
+                        )}
+                    </View>
+                </AccountingContextProvider>
+            );
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action);
@@ -1217,7 +1278,7 @@ function PureReportActionItem({
                                         <ActionableItemButtons
                                             items={actionableItemButtons}
                                             layout={isActionableTrackExpense(action) || isConciergeCategoryOptions(action) ? 'vertical' : 'horizontal'}
-                                            shouldUseLocalization={!isConciergeCategoryOptions(action)}
+                                            shouldUseLocalization={!isConciergeCategoryOptions(action) && action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT_WITH_OPTIONS}
                                         />
                                     )}
                                 </View>

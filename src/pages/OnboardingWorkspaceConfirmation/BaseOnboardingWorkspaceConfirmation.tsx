@@ -47,6 +47,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
 
     const defaultWorkspaceName = draftValues?.name ?? generateDefaultWorkspaceName(session?.email);
     const defaultCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
+    const [onboardingUserReportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, {canBeMissing: true});
 
     useEffect(() => {
         setOnboardingErrorMessage('');
@@ -60,10 +61,11 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
             const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
             const name = values.name.trim();
             const currency = values[INPUT_IDS.CURRENCY];
+
             // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
             // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
             const {adminsChatReportID, policyID} = shouldCreateWorkspace
-                ? createWorkspace(undefined, true, name, generatePolicyID(), CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE, currency, undefined, false)
+                ? createWorkspace(undefined, true, name, generatePolicyID(), CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE, currency, undefined, false, undefined, true, onboardingUserReportedIntegration)
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
             if (shouldCreateWorkspace) {
@@ -73,7 +75,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
             clearWorkspaceDetailsDraft();
             Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE_INVITE.getRoute());
         },
-        [onboardingPurposeSelected, onboardingPolicyID, paidGroupPolicy, onboardingAdminsChatReportID],
+        [onboardingPurposeSelected, onboardingPolicyID, paidGroupPolicy, onboardingAdminsChatReportID, onboardingUserReportedIntegration],
     );
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM>) => {

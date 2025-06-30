@@ -2126,6 +2126,7 @@ const translations = {
     onboarding: {
         welcome: 'Welcome!',
         welcomeSignOffTitleManageTeam: 'Once you finish the tasks above, we can explore more functionality like approval workflows and rules!',
+        welcomeSignOffTitleManageTeamEmpty: 'Just type them here and I\'ll help you out!',
         welcomeSignOffTitle: "It's great to meet you!",
         explanationModal: {
             title: 'Welcome to Expensify',
@@ -2415,6 +2416,7 @@ const translations = {
             onboardingPersonalSpendMessage: 'Here’s how to track your spend in a few clicks.',
             onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
                 `Here is a task list I’d recommend for a company of your size${onboardingCompanySize ? ` with ${onboardingCompanySize} submitters` : ':'}`,
+            letMeKnowIfYouHaveAnyQuestions: 'Let me know if you have any questions.',
             onboardingTrackWorkspaceMessage:
                 '# Let’s get you set up\n👋 I’m here to help! To get you started, I’ve tailored your workspace settings for sole proprietors and similar businesses. You can adjust your workspace by clicking the link below!\n\nHere’s how to track your spend in a few clicks:',
             onboardingChatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
