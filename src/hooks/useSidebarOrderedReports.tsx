@@ -229,7 +229,6 @@ function SidebarOrderedReportsContextProvider({
     const prevAccountID = usePrevious(accountID);
     const prevChatReports = usePrevious(chatReports);
     const prevCurrentReportsToDisplay = usePrevious(currentReportsToDisplay);
-    const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
     const prevOrderedReportIDs = usePrevious(orderedReportIDs);
     const prevOrderedReports = usePrevious(orderedReports);
     const prevPolicies = usePrevious(policies);
