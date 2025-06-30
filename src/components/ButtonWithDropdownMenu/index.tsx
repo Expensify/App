@@ -208,7 +208,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     style={[styles.w100, style]}
                     disabledStyle={disabledStyle}
                     isLoading={isLoading}
-                    text={selectedItem?.text}
+                    text={customText ?? selectedItem?.text ?? ''}
                     onPress={(event) => {
                         const option = options.at(0);
                         return option ? onPress(event, option.value) : undefined;

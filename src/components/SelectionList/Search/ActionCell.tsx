@@ -134,7 +134,9 @@ function ActionCell({
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
                 onPress={confirmPayment}
+                isDisabled={isOffline}
                 style={[styles.w100]}
+                wrapperStyle={[styles.w100]}
                 shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
             />
         );

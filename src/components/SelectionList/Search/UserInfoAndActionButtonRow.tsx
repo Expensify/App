@@ -25,6 +25,7 @@ function UserInfoAndActionButtonRow({
     const participantFromDisplayName = item?.from?.displayName ?? item?.from?.login ?? translate('common.hidden');
     const participantToDisplayName = item?.to?.displayName ?? item?.to?.login ?? translate('common.hidden');
     const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
+    const amount = (item as TransactionListItemType).amount;
 
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, shouldShowUserInfo ? styles.justifyContentBetween : styles.justifyContentEnd, styles.gap2, styles.ph3]}>
@@ -51,6 +52,8 @@ function UserInfoAndActionButtonRow({
                     isLoading={item.isActionLoading}
                     policyID={item.policyID}
                     reportID={item.reportID}
+                    hash={item.hash}
+                    amount={amount}
                 />
             </View>
         </View>
