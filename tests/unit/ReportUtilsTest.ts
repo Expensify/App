@@ -58,6 +58,7 @@ import {
     shouldDisableRename,
     shouldDisableThread,
     shouldReportBeInOptionList,
+    shouldShowFlagComment,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -2241,7 +2242,7 @@ describe('ReportUtils', () => {
             ).toBeFalsy();
         });
 
-        it('should return false when the user’s email is domain-based and the includeDomainEmail is false', () => {
+        it('should return false when the users email is domain-based and the includeDomainEmail is false', () => {
             const report = LHNTestUtils.getFakeReport();
             const currentReportId = '';
             const isInFocusMode = false;
@@ -3603,6 +3604,118 @@ describe('ReportUtils', () => {
 
             // Then it should return false (since this is a 1:1 DM and not a group chat, and none of the other conditions are met)
             expect(result).toBe(false);
+        });
+    });
+
+    describe('shouldShowFlagComment', () => {
+        let validReportAction: ReportAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+
+            // Actor is not the current user or Concierge
+            actorAccountID: 123456,
+        };
+
+        describe('chat reports', () => {
+            let chatReport: Report;
+
+            beforeAll(async () => {
+                chatReport = {
+                    ...createRandomReport(60000),
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
+            });
+
+            it('should return true for an archived report', () => {
+                expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(true);
+            });
+
+            it('should return false for a non-archived report', () => {
+                expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
+            });
+        });
+
+        describe('expense reports', () => {
+            let expenseReport: Report;
+
+            beforeAll(async () => {
+                expenseReport = {
+                    ...createRandomReport(60000),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, null);
+            });
+
+            it('should return true for an archived report', () => {
+                expect(shouldShowFlagComment(validReportAction, expenseReport, false)).toBe(true);
+            });
+
+            it('should return false for a non-archived report', () => {
+                expect(shouldShowFlagComment(validReportAction, expenseReport, false)).toBe(false);
+            });
+        });
+
+        describe('Action from Concierge', () => {
+            let chatReport: Report;
+            let actionFromConcierge: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            };
+
+            beforeAll(async () => {
+                chatReport = {
+                    ...createRandomReport(60000),
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
+            });
+
+            it('should return true for an archived report', () => {
+                expect(shouldShowFlagComment(actionFromConcierge, chatReport, false)).toBe(true);
+            });
+
+            it('should return false for a non-archived report', () => {
+                expect(shouldShowFlagComment(actionFromConcierge, chatReport, false)).toBe(false);
+            });
+        });
+
+        describe('Action from Concierge', () => {
+            let chatReport: Report;
+
+            beforeAll(async () => {
+                chatReport = {
+                    ...createRandomReport(60000),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
+            });
+
+            it('should return true for an archived report', () => {
+                expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
+            });
+
+            it('should return false for a non-archived report', () => {
+                expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
+            });
         });
     });
 });
