@@ -98,10 +98,10 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         const feedFilterValue = flatFilters
             .find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)
             ?.filters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)?.value;
-        const options = getFeedOptions(allFeeds);
+        const options = getFeedOptions(allFeeds, allCards);
         const value = options.find((option) => option.value === feedFilterValue) ?? null;
         return [options, value];
-    }, [flatFilters, allFeeds]);
+    }, [flatFilters, allFeeds, allCards]);
 
     const [statusOptions, status] = useMemo(() => {
         const options = type ? getStatusOptions(type.value, groupBy?.value) : [];

@@ -45,6 +45,7 @@ import type {
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport} from './actions/Report';
+import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCompanyFeeds, getCustomOrFormattedFeedName} from './CardUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -1678,18 +1679,11 @@ function getGroupByOptions() {
     return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({translation: `search.filters.groupBy.${value}`, value}));
 }
 
-function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>) {
-    // s77rt Add Expensify Card when applicable
-
-    const options: Array<SingleSelectItem<OnyxTypes.CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK>> = [];
-
-    Object.values(allCardFeeds ?? {}).forEach((cardFeeds) => {
-        Object.keys(getCompanyFeeds(cardFeeds, true, true)).forEach((feed) => {
-            options.push({text: getCustomOrFormattedFeedName(feed as OnyxTypes.CompanyCardFeed, cardFeeds?.settings?.companyCardNicknames) ?? '', value: feed as OnyxTypes.CompanyCardFeed});
-        });
-    });
-
-    return options;
+function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList) {
+    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards)).map<SingleSelectItem<OnyxTypes.CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK>>((cardFeed) => ({
+        text: cardFeed.name,
+        value: cardFeed.feed,
+    }));
 }
 
 export {
