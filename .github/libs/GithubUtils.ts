@@ -575,6 +575,7 @@ class GithubUtils {
         console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
 
         try {
+            // First, try the direct compareCommits approach
             const response = await this.octokit.repos.compareCommits({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
@@ -587,30 +588,40 @@ class GithubUtils {
             if (response.data && response.data.commits && Array.isArray(response.data.commits)) {
                 console.log(`✅ compareCommits API returned ${response.data.commits.length} commits`);
                 
-                // If we got the max per_page, there might be more commits, so use pagination
+                // If we got exactly 100 commits, there might be more - try pagination
                 if (response.data.commits.length === 100) {
-                    console.log('📄 Using pagination to get all commits...');
-                    const allCommits = await this.paginate(
-                        this.octokit.repos.compareCommits,
-                        {
-                            owner: CONST.GITHUB_OWNER,
-                            repo: CONST.APP_REPO,
-                            base: fromTag,
-                            head: toTag,
-                            per_page: 100,
-                        },
-                        (response) => response.data.commits
-                    );
+                    console.log('📄 Attempting pagination to get all commits...');
+                    
+                    try {
+                        // Try using the built-in paginate function
+                        const allCommits = await this.paginate(
+                            this.octokit.repos.compareCommits,
+                            {
+                                owner: CONST.GITHUB_OWNER,
+                                repo: CONST.APP_REPO,
+                                base: fromTag,
+                                head: toTag,
+                                per_page: 100,
+                            },
+                            (response) => response.data.commits
+                        );
 
-                    return allCommits.map((commit) => ({
-                        commit: commit.sha,
-                        subject: commit.commit.message,
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        authorName: commit.commit.author?.name || 'Unknown',
-                    }));
+                        console.log(`✅ Pagination successful - got ${allCommits.length} total commits`);
+                        return allCommits.map((commit) => ({
+                            commit: commit.sha,
+                            subject: commit.commit.message,
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            authorName: commit.commit.author?.name || 'Unknown',
+                        }));
+                    } catch (paginationError) {
+                        console.warn('⚠️ Pagination failed (likely due to GitHub redirect), using manual approach...', paginationError);
+                        
+                        // Fallback: Use commits API to get commits from both ends and merge
+                        return await this.getCommitsManuallyBetweenTags(fromTag, toTag);
+                    }
                 }
 
-                // Single page response
+                // Single page response - return the commits we got
                 return response.data.commits.map((commit) => ({
                     commit: commit.sha,
                     subject: commit.commit.message,
@@ -619,8 +630,8 @@ class GithubUtils {
                 }));
             }
 
-            console.warn('⚠️ GitHub API returned unexpected response format');
-            return [];
+            console.warn('⚠️ GitHub API returned unexpected response format, trying manual approach...');
+            return await this.getCommitsManuallyBetweenTags(fromTag, toTag);
 
         } catch (error) {
             if (error instanceof RequestError && error.status === 404) {
@@ -628,7 +639,60 @@ class GithubUtils {
                     `❓❓ Failed to get commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`,
                 );
             }
-            throw error;
+            console.error('❌ Error in getCommitHistoryBetweenTags, trying manual approach...', error);
+            return await this.getCommitsManuallyBetweenTags(fromTag, toTag);
+        }
+    }
+
+    /**
+     * Fallback method to get commits between tags using the commits API
+     */
+    static async getCommitsManuallyBetweenTags(fromTag: string, toTag: string): Promise<CommitType[]> {
+        console.log('🔄 Using manual commits API approach...');
+        
+        try {
+            // Get commits from the head tag (toTag)
+            const commits = await this.paginate(
+                this.octokit.repos.listCommits,
+                {
+                    owner: CONST.GITHUB_OWNER,
+                    repo: CONST.APP_REPO,
+                    sha: toTag,
+                    per_page: 100,
+                },
+                (response) => response.data
+            );
+
+            // Get the SHA of the fromTag commit
+            const fromTagCommit = await this.octokit.repos.getCommit({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                ref: fromTag,
+            });
+
+            const fromSha = fromTagCommit.data.sha;
+            
+            // Find commits that are after the fromTag
+            const commitsAfterFrom = [];
+            for (const commit of commits) {
+                if (commit.sha === fromSha) {
+                    break; // We've reached the fromTag, stop here
+                }
+                commitsAfterFrom.push(commit);
+            }
+
+            console.log(`✅ Manual approach found ${commitsAfterFrom.length} commits between tags`);
+            
+            return commitsAfterFrom.map((commit) => ({
+                commit: commit.sha,
+                subject: commit.commit.message,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                authorName: commit.commit.author?.name || 'Unknown',
+            }));
+
+        } catch (manualError) {
+            console.error('❌ Manual approach also failed:', manualError);
+            return [];
         }
     }
 }
