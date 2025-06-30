@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text, View} from 'react-native';
@@ -159,7 +159,7 @@ type ShouldShow = (args: {
     reportAction: OnyxEntry<ReportAction>;
     isArchivedRoom: boolean;
     betas: OnyxEntry<Beta[]>;
-    menuTarget: MutableRefObject<ContextMenuAnchor> | undefined;
+    menuTarget: RefObject<ContextMenuAnchor> | undefined;
     isChronosReport: boolean;
     reportID?: string;
     isPinnedChat: boolean;
@@ -184,12 +184,12 @@ type ContextMenuActionPayload = {
     transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
     openContextMenu: () => void;
     interceptAnonymousUser: (callback: () => void, isAnonymousAction?: boolean) => void;
-    anchor?: MutableRefObject<HTMLDivElement | View | Text | null>;
+    anchor?: RefObject<HTMLDivElement | View | Text | null>;
     checkIfContextMenuActive?: () => void;
-    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => void;
+    openOverflowMenu: (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<View | null>) => void;
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
     setIsEmojiPickerActive?: (state: boolean) => void;
-    anchorRef?: MutableRefObject<View | null>;
+    anchorRef?: RefObject<View | null>;
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
 };
