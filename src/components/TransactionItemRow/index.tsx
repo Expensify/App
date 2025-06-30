@@ -25,10 +25,9 @@ import {
     getCreated as getTransactionCreated,
     getTransactionPendingAction,
     hasMissingSmartscanFields,
-    hasReceipt,
     isAmountMissing,
     isMerchantMissing,
-    isReceiptBeingScanned,
+    isScanning,
     isTransactionPendingDelete,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -114,9 +113,10 @@ function getMerchantNameWithFallback(transactionItem: TransactionWithOptionalSea
     }
     let merchant = shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(description);
 
-    if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem) && shouldShowMerchant) {
+    if (isScanning(transactionItem) && shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
     }
+
     const merchantName = StringUtils.getFirstLine(merchant);
     return merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchantName : '';
 }
