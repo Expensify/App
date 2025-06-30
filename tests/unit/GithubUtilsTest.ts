@@ -762,7 +762,11 @@ describe('GithubUtils', () => {
             mockCompareCommits.mockRejectedValue(requestError);
 
             await expect(GithubUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1')).rejects.toThrow(requestError);
-            expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('❓❓ Failed to get commits with the GitHub API. The base tag (\'1.0.0\') or head tag (\'1.0.1\') likely doesn\'t exist on the remote repository. If this is the case, create or push them.'));
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                expect.stringContaining(
+                    "❓❓ Failed to get commits with the GitHub API. The base tag ('1.0.0') or head tag ('1.0.1') likely doesn't exist on the remote repository. If this is the case, create or push them.",
+                ),
+            );
         });
 
         test('should handle generic API errors gracefully', async () => {
