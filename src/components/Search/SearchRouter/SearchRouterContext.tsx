@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
@@ -39,99 +39,97 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
     const searchRouterDisplayedRef = useRef(false);
     const searchPageInputRef = useRef<AnimatedTextInputRef | undefined>(undefined);
 
-    /**
-     * Handle browser back/forward navigation
-     * When user clicks back/forward, we check the history state:
-     * - If state has isSearchModalOpen=true, we show the modal
-     * - If state has isSearchModalOpen=false or no state, we hide the modal
-     * This creates a proper browser history integration where modal state
-     * is part of the navigation history
-     */
-    const handlePopState = useCallback((event: PopStateEvent) => {
-        const state = event.state as HistoryState | null;
-        if (state?.isSearchModalOpen) {
-            setIsSearchRouterDisplayed(true);
-            searchRouterDisplayedRef.current = true;
-        } else {
-            setIsSearchRouterDisplayed(false);
-            searchRouterDisplayedRef.current = false;
-        }
-    }, []);
-
     useEffect(() => {
         if (!canListenPopState) {
             return;
         }
 
-        window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
-    }, [handlePopState]);
-
-    const openSearchRouter = useCallback(() => {
-        if (isBrowserWithHistory) {
-            window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '');
-        }
-        close(
-            () => {
+        /**
+         * Handle browser back/forward navigation
+         * When user clicks back/forward, we check the history state:
+         * - If state has isSearchModalOpen=true, we show the modal
+         * - If state has isSearchModalOpen=false or no state, we hide the modal
+         * This creates a proper browser history integration where modal state
+         * is part of the navigation history
+         */
+        const handlePopState = (event: PopStateEvent) => {
+            const state = event.state as HistoryState | null;
+            if (state?.isSearchModalOpen) {
                 setIsSearchRouterDisplayed(true);
                 searchRouterDisplayedRef.current = true;
-            },
-            false,
-            true,
-        );
-    }, []);
-
-    const closeSearchRouter = useCallback(() => {
-        setIsSearchRouterDisplayed(false);
-        searchRouterDisplayedRef.current = false;
-        if (isBrowserWithHistory) {
-            const state = window.history.state as HistoryState | null;
-            if (state?.isSearchModalOpen) {
-                window.history.replaceState({isSearchModalOpen: false} satisfies HistoryState, '');
-            }
-        }
-    }, []);
-
-    // There are callbacks that live outside of React render-loop and interact with SearchRouter
-    // So we need a function that is based on ref to correctly open/close it
-    // When user is on `/search` page we focus the Input instead of showing router
-    const toggleSearch = useCallback(() => {
-        const searchFullScreenRoutes = navigationRef.getRootState()?.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-        const lastRoute = searchFullScreenRoutes?.state?.routes?.at(-1);
-        const isUserOnSearchPage = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.ROOT;
-
-        if (isUserOnSearchPage && searchPageInputRef.current) {
-            if (searchPageInputRef.current.isFocused()) {
-                searchPageInputRef.current.blur();
             } else {
-                searchPageInputRef.current.focus();
+                setIsSearchRouterDisplayed(false);
+                searchRouterDisplayedRef.current = false;
             }
-        } else if (searchRouterDisplayedRef.current) {
-            closeSearchRouter();
-        } else {
-            openSearchRouter();
-        }
-    }, [closeSearchRouter, openSearchRouter]);
+        };
 
-    const registerSearchPageInput = useCallback((ref: AnimatedTextInputRef) => {
-        searchPageInputRef.current = ref;
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
     }, []);
 
-    const unregisterSearchPageInput = useCallback(() => {
-        searchPageInputRef.current = undefined;
-    }, []);
+    const routerContext = useMemo(() => {
+        const openSearchRouter = () => {
+            if (isBrowserWithHistory) {
+                window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '');
+            }
+            close(
+                () => {
+                    setIsSearchRouterDisplayed(true);
+                    searchRouterDisplayedRef.current = true;
+                },
+                false,
+                true,
+            );
+        };
+        const closeSearchRouter = () => {
+            setIsSearchRouterDisplayed(false);
+            searchRouterDisplayedRef.current = false;
+            if (isBrowserWithHistory) {
+                const state = window.history.state as HistoryState | null;
+                if (state?.isSearchModalOpen) {
+                    window.history.replaceState({isSearchModalOpen: false} satisfies HistoryState, '');
+                }
+            }
+        };
 
-    const routerContext = useMemo(
-        () => ({
+        // There are callbacks that live outside of React render-loop and interact with SearchRouter
+        // So we need a function that is based on ref to correctly open/close it
+        // When user is on `/search` page we focus the Input instead of showing router
+        const toggleSearch = () => {
+            const searchFullScreenRoutes = navigationRef.getRootState()?.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+            const lastRoute = searchFullScreenRoutes?.state?.routes?.at(-1);
+            const isUserOnSearchPage = isSearchTopmostFullScreenRoute() && lastRoute?.name === SCREENS.SEARCH.ROOT;
+
+            if (isUserOnSearchPage && searchPageInputRef.current) {
+                if (searchPageInputRef.current.isFocused()) {
+                    searchPageInputRef.current.blur();
+                } else {
+                    searchPageInputRef.current.focus();
+                }
+            } else if (searchRouterDisplayedRef.current) {
+                closeSearchRouter();
+            } else {
+                openSearchRouter();
+            }
+        };
+
+        const registerSearchPageInput = (ref: AnimatedTextInputRef) => {
+            searchPageInputRef.current = ref;
+        };
+
+        const unregisterSearchPageInput = () => {
+            searchPageInputRef.current = undefined;
+        };
+
+        return {
             isSearchRouterDisplayed,
             openSearchRouter,
             closeSearchRouter,
             toggleSearch,
             registerSearchPageInput,
             unregisterSearchPageInput,
-        }),
-        [isSearchRouterDisplayed, openSearchRouter, closeSearchRouter, toggleSearch, registerSearchPageInput, unregisterSearchPageInput],
-    );
+        };
+    }, [isSearchRouterDisplayed, setIsSearchRouterDisplayed]);
 
     return <Context.Provider value={routerContext}>{children}</Context.Provider>;
 }
