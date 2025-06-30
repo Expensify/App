@@ -551,7 +551,6 @@ const translations = {
         userID: 'Gebruikers-ID',
         disable: 'Uitschakelen',
         export: 'Exporteren',
-        basicExport: 'Basis export',
         initialValue: 'Initiële waarde',
         currentDate: "I'm unable to provide real-time information, including the current date. Please check your device or calendar for the current date.",
         value: 'Waarde',
@@ -7059,6 +7058,13 @@ const translations = {
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} heeft je uitgenodigd om Expensify uit te proberen\nHey! Ik heb ons net *3 maanden gratis* gekregen om Expensify uit te proberen, de snelste manier om onkosten te beheren.\n\nHier is een *testbon* om je te laten zien hoe het werkt:`,
+    },
+    export: {
+        basicExport: 'Basis export',
+        reportLevelExport: 'Alle gegevens - rapportniveau',
+        expenseLevelExport: 'Alle gegevens - uitgavenniveau',
+        exportInProgress: 'Bezig met exporteren',
+        conciergeWillSend: 'Concierge stuurt je het bestand binnenkort.',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
