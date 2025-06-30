@@ -596,7 +596,7 @@ class GithubUtils {
                 });
 
                 // Check if we got a proper response with commits
-                if (response.data && response.data.commits && Array.isArray(response.data.commits)) {
+                if (response.data?.commits && Array.isArray(response.data.commits)) {
                     if (page === 1) {
                         core.info(`📊 Total commits: ${response.data.total_commits ?? 'unknown'}`);
                     }
