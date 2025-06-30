@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -43,7 +43,7 @@ import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import {getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getPolicy, getPolicyBrickRoadIndicatorStatus, isDeleteWorkspaceAnnualSubscriptionError, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
@@ -123,6 +123,7 @@ function WorkspacesListPage() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
+    const [isDeleteWorkspaceAnnualSubscriptionErrorModalOpen, setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen] = useState(false);
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
 
     const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
@@ -153,6 +154,14 @@ function WorkspacesListPage() {
     const hideSupportalModal = () => {
         setIsSupportalActionRestrictedModalOpen(false);
     };
+    const hideDeleteWorkspaceAnnualSubscriptionErrorModal = () => {
+        setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(false);
+
+        if (!policyIDToDelete) {
+            return;
+        }
+        clearDeleteWorkspaceError(policyIDToDelete);
+    };
     const confirmDeleteAndHideModal = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
             return;
@@ -167,6 +176,14 @@ function WorkspacesListPage() {
     const resetLoadingSpinnerIconIndex = useCallback(() => {
         setLoadingSpinnerIconIndex(null);
     }, []);
+
+    useEffect(() => {
+        if (isDeleteWorkspaceAnnualSubscriptionErrorModalOpen || !Object.values(policies ?? {}).some(isDeleteWorkspaceAnnualSubscriptionError)) {
+            return;
+        }
+
+        setIsDeleteWorkspaceAnnualSubscriptionErrorModalOpen(true);
+    }, [isDeleteWorkspaceAnnualSubscriptionErrorModalOpen, policies]);
 
     /**
      * Gets the menu item for each workspace
@@ -500,6 +517,16 @@ function WorkspacesListPage() {
             <SupportalActionRestrictedModal
                 isModalOpen={isSupportalActionRestrictedModalOpen}
                 hideSupportalModal={hideSupportalModal}
+            />
+            <ConfirmModal
+                title={translate('workspace.common.delete')}
+                isVisible={!!isDeleteWorkspaceAnnualSubscriptionErrorModalOpen}
+                onConfirm={hideDeleteWorkspaceAnnualSubscriptionErrorModal}
+                onCancel={hideDeleteWorkspaceAnnualSubscriptionErrorModal}
+                confirmText={translate('common.buttonConfirm')}
+                prompt={translate('workspace.common.cannotDeleteWorkspaceAnnualSubscriptionError')}
+                shouldShowCancelButton={false}
+                success={false}
             />
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
         </ScreenWrapper>
