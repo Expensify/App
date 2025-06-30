@@ -710,6 +710,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     alternateTextNumberOfLines?: number;
 
     /** Ref for textInput */
+    // eslint-disable-next-line deprecation/deprecation
     textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
 
     /** Styles for the section title */
