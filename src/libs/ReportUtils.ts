@@ -8401,14 +8401,6 @@ function canFlagReportAction(reportAction: OnyxInputOrEntry<ReportAction>, repor
  * Whether flag comment page should show
  */
 function shouldShowFlagComment(reportAction: OnyxInputOrEntry<ReportAction>, report: OnyxInputOrEntry<Report>, isReportArchived = false): boolean {
-    console.log(`
-        canFlagReportAction: ${canFlagReportAction(reportAction, report?.reportID)}
-        isArchivedNonExpenseReport: ${isArchivedNonExpenseReport(report, isReportArchived)}
-        chatIncludesChronos: ${chatIncludesChronos(report)}
-        isConciergeChatReport: ${isConciergeChatReport(report)}
-        reportAction?.actorAccountID: ${reportAction?.actorAccountID}
-        Concierge: ${CONST.ACCOUNT_ID.CONCIERGE}
-    `);
     return (
         canFlagReportAction(reportAction, report?.reportID) &&
         !isArchivedNonExpenseReport(report, isReportArchived) &&
