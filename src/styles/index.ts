@@ -2661,15 +2661,6 @@ const styles = (theme: ThemeColors) =>
             marginRight: variables.avatarChatSpacing - 4,
         },
 
-        subscriptIcon: {
-            position: 'absolute',
-            bottom: -4,
-            right: -4,
-            width: 20,
-            height: 20,
-            backgroundColor: theme.buttonDefaultBG,
-        },
-
         borderTop: {
             borderTopWidth: variables.borderTopWidth,
             borderColor: theme.border,
@@ -5941,6 +5932,10 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             paddingHorizontal: 0,
             aspectRatio: 1.7,
+        },
+
+        topBarWrapper: {
+            zIndex: 15,
         },
 
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({

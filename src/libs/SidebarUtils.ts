@@ -390,7 +390,7 @@ function sortReportsToDisplayInLHN(
             errorReports.push(miniReport);
         } else if (hasValidDraftComment(report?.reportID)) {
             draftReports.push(miniReport);
-        } else if (isArchivedNonExpenseReport(report, rNVPs)) {
+        } else if (isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived)) {
             archivedReports.push(miniReport);
         } else {
             nonArchivedReports.push(miniReport);
