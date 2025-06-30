@@ -125,10 +125,12 @@ function MoneyRequestReportActionsList({
     const isFocused = useIsFocused();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportTransactionIDs = transactions.map((transaction) => transaction.transactionID);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {canBeMissing: true});
 
     const reportID = report?.reportID;
     const linkedReportActionID = route?.params?.reportActionID;
 
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
         canBeMissing: true,
@@ -137,7 +139,7 @@ function MoneyRequestReportActionsList({
 
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
-    const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], false, reportTransactionIDs);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], false, reportTransactionIDs);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
@@ -467,6 +469,7 @@ function MoneyRequestReportActionsList({
 
             return (
                 <ReportActionsListItemRenderer
+                    allReports={allReports}
                     reportAction={reportAction}
                     reportActions={reportActions}
                     parentReportAction={parentReportAction}
@@ -494,6 +497,7 @@ function MoneyRequestReportActionsList({
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
+            allReports,
         ],
     );
 
@@ -528,6 +532,8 @@ function MoneyRequestReportActionsList({
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 
+    const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
+
     return (
         <View
             style={[styles.flex1]}
@@ -546,7 +552,7 @@ function MoneyRequestReportActionsList({
                     <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8]}>
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={selectedTransactionIDs.length === transactionsWithoutPendingDelete.length}
+                            isChecked={isSelectAllChecked}
                             isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
                             onPress={() => {
                                 if (selectedTransactionIDs.length !== 0) {
@@ -559,7 +565,7 @@ function MoneyRequestReportActionsList({
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={() => {
-                                if (selectedTransactionIDs.length === transactions.length) {
+                                if (isSelectAllChecked) {
                                     clearSelectedTransactions(true);
                                 } else {
                                     setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
@@ -567,7 +573,7 @@ function MoneyRequestReportActionsList({
                             }}
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             role="button"
-                            accessibilityState={{checked: selectedTransactionIDs.length === transactions.length}}
+                            accessibilityState={{checked: isSelectAllChecked}}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>

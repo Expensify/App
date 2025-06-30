@@ -1,6 +1,6 @@
 import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
-import type {FileObject} from '@components/AttachmentModal';
 import {verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {HeicConverterFunction} from './types';
 

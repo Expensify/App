@@ -16,7 +16,6 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,11 +36,14 @@ type TaskViewProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
+    /** The parent report */
+    parentReport: OnyxEntry<Report>;
+
     /** The task report action */
     action: OnyxEntry<ReportAction>;
 };
 
-function TaskView({report, action}: TaskViewProps) {
+function TaskView({report, parentReport, action}: TaskViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -59,7 +61,6 @@ function TaskView({report, action}: TaskViewProps) {
 
     const isOpen = isOpenTaskReport(report);
     const isCompleted = isCompletedTaskReport(report);
-    const parentReport = useParentReport(report?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
     const isTaskActionable = canActionTask(report, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);

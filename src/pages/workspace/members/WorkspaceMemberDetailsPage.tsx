@@ -31,6 +31,7 @@ import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, getPlaidInsti
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
@@ -360,22 +361,26 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 shouldShowRightIcon
                                 onPress={openRoleSelectionModal}
                             />
-                            <OfflineWithFeedback pendingAction={member?.pendingFields?.employeeUserID}>
-                                <MenuItemWithTopDescription
-                                    description={translate('workspace.common.customField1')}
-                                    title={member?.employeeUserID}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1'))}
-                                />
-                            </OfflineWithFeedback>
-                            <OfflineWithFeedback pendingAction={member?.pendingFields?.employeePayrollID}>
-                                <MenuItemWithTopDescription
-                                    description={translate('workspace.common.customField2')}
-                                    title={member?.employeePayrollID}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2'))}
-                                />
-                            </OfflineWithFeedback>
+                            {isControlPolicy(policy) && (
+                                <>
+                                    <OfflineWithFeedback pendingAction={member?.pendingFields?.employeeUserID}>
+                                        <MenuItemWithTopDescription
+                                            description={translate('workspace.common.customField1')}
+                                            title={member?.employeeUserID}
+                                            shouldShowRightIcon
+                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField1'))}
+                                        />
+                                    </OfflineWithFeedback>
+                                    <OfflineWithFeedback pendingAction={member?.pendingFields?.employeePayrollID}>
+                                        <MenuItemWithTopDescription
+                                            description={translate('workspace.common.customField2')}
+                                            title={member?.employeePayrollID}
+                                            shouldShowRightIcon
+                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CUSTOM_FIELDS.getRoute(policyID, accountID, 'customField2'))}
+                                        />
+                                    </OfflineWithFeedback>
+                                </>
+                            )}
                             <MenuItem
                                 style={styles.mb5}
                                 title={translate('common.profile')}

@@ -259,7 +259,7 @@ type Reservation = {
     numPassengers?: number;
 
     /** In flight reservations, this represents the flight duration in seconds */
-    duration: number;
+    duration?: number;
 
     /** In hotel reservations, this represents the number of rooms reserved */
     numberOfRooms?: number;
@@ -291,11 +291,11 @@ type Reservation = {
     /** Payment type of the reservation */
     paymentType?: string;
 
+    /** Departure gate details */
+    departureGate?: Gate;
+
     /** Arrival gate details */
-    arrivalGate?: {
-        /** Arrival terminal number */
-        terminal: string;
-    };
+    arrivalGate?: Gate;
 
     /** Coach number for rail */
     coachNumber?: string;
@@ -305,6 +305,18 @@ type Reservation = {
 
     /** This represents the details of the traveler */
     travelerPersonalInfo?: TravelerPersonalDetails;
+
+    /** Type or category of purchased fare */
+    fareType?: string;
+};
+
+/** Model of gate for flight reservation */
+type Gate = {
+    /** Terminal number */
+    terminal: string;
+
+    /** Specific gate number */
+    gate: string;
 };
 
 /** Model of trip reservation time details */

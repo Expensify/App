@@ -41,7 +41,7 @@ import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
-import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
+import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {Route} from './ROUTES';
 import './setup/backgroundTask';
 import './setup/hybridApp';
@@ -79,6 +79,7 @@ function App({url, hybridAppSettings}: AppProps) {
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
                 <InitialURLContextProvider url={url}>
+                    <HybridAppHandler hybridAppSettings={hybridAppSettings} />
                     <GestureHandlerRootView style={fill}>
                         <ComposeProviders
                             components={[
@@ -94,7 +95,7 @@ function App({url, hybridAppSettings}: AppProps) {
                                 PopoverContextProvider,
                                 CurrentReportIDContextProvider,
                                 ScrollOffsetContextProvider,
-                                ReportAttachmentsProvider,
+                                AttachmentModalContextProvider,
                                 PickerStateProvider,
                                 EnvironmentProvider,
                                 CustomStatusBarAndBackgroundContextProvider,
@@ -115,7 +116,6 @@ function App({url, hybridAppSettings}: AppProps) {
                         >
                             <CustomStatusBarAndBackground />
                             <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                                <HybridAppHandler hybridAppSettings={hybridAppSettings} />
                                 <ColorSchemeWrapper>
                                     <Expensify />
                                 </ColorSchemeWrapper>

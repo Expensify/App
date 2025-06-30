@@ -93,13 +93,15 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                             shouldShowBackButton={shouldUseNarrowLayout}
                             onBackButtonPress={Navigation.goBack}
                         >
-                            <MoneyRequestReportView
-                                report={report}
-                                reportMetadata={reportMetadata}
-                                policy={policy}
-                                shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
-                                backToRoute={route.params.backTo}
-                            />
+                            <DragAndDropProvider isDisabled={isEditingDisabled}>
+                                <MoneyRequestReportView
+                                    report={report}
+                                    reportMetadata={reportMetadata}
+                                    policy={policy}
+                                    shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                    backToRoute={route.params.backTo}
+                                />
+                            </DragAndDropProvider>
                         </FullPageNotFoundView>
                     </ScreenWrapper>
                 </ReactionListWrapper>

@@ -180,6 +180,8 @@ function isActiveRoute(routePath: Route): boolean {
 /**
  * Navigates to a specified route.
  * Main navigation method for redirecting to a route.
+ * For detailed information about moving between screens,
+ * see the NAVIGATION.md documentation.
  *
  * @param route - The route to navigate to.
  * @param options - Optional navigation options.
@@ -203,7 +205,7 @@ function navigate(route: Route, options?: LinkToOptions) {
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
  * these parameters shouldn't be included in the comparison.
  */
-const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'policyID'];
+const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'policyID', 'pop'];
 
 /**
  * @private
@@ -303,6 +305,15 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
         return;
     }
 
+    /**
+     * In react-navigation 7 the behavior of the `navigate` function has slightly changed.
+     * If it detects that a screen that we want to navigate to is already in the stack, it doesn't go back anymore.
+     * More: https://reactnavigation.org/docs/upgrading-from-6.x#the-navigate-method-no-longer-goes-back-use-popto-instead
+     */
+    if (minimalAction.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
+        minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.NAVIGATE_DEPRECATED;
+    }
+
     const indexOfBackToRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams));
     const distanceToPop = targetState.routes.length - indexOfBackToRoute - 1;
 
@@ -326,6 +337,9 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
 }
 
 /**
+ * Navigate back to the previous screen or a specified route.
+ * For detailed information about navigation patterns and best practices,
+ * see the NAVIGATION.md documentation.
  * @param backToRoute - Fallback route if pop/goBack action should, but is not possible within RHP
  * @param options - Optional configuration that affects navigation logic
  */
@@ -347,6 +361,11 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
     navigationRef.current?.goBack();
 }
 
+/**
+ * Navigate back to the sidebar screen in SplitNavigator and pop all central screens from the navigator at the same time.
+ * For detailed information about moving between screens,
+ * see the NAVIGATION.md documentation.
+ */
 function popToSidebar() {
     setShouldPopToSidebar(false);
 
@@ -537,6 +556,8 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
 
 /**
  * Closes the modal navigator (RHP, onboarding).
+ * For detailed information about dismissing modals,
+ * see the NAVIGATION.md documentation.
  */
 const dismissModal = (ref = navigationRef) => {
     isNavigationReady().then(() => {
@@ -546,6 +567,8 @@ const dismissModal = (ref = navigationRef) => {
 
 /**
  * Dismisses the modal and opens the given report.
+ * For detailed information about dismissing modals,
+ * see the NAVIGATION.md documentation.
  */
 const dismissModalWithReport = (
     {reportID, reportActionID, referrer, moneyRequestReportActionID, transactionID, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],

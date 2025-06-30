@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -103,7 +103,7 @@ type PopoverMenuProps = Partial<PopoverModalProps> & {
     anchorPosition: AnchorPosition;
 
     /** Ref of the anchor */
-    anchorRef: RefObject<View | HTMLDivElement>;
+    anchorRef: RefObject<View | HTMLDivElement | null>;
 
     /** Where the popover should be positioned relative to the anchor points. */
     anchorAlignment?: AnchorAlignment;
@@ -312,13 +312,10 @@ function PopoverMenu({
                         }
                         setFocusedIndex(menuIndex);
                     }}
-                    wrapperStyle={StyleUtils.getItemBackgroundColorStyle(
-                        !!item.isSelected,
-                        focusedIndex === menuIndex,
-                        item.disabled ?? false,
-                        theme.activeComponentBG,
-                        theme.hoverComponentBG,
-                    )}
+                    wrapperStyle={[
+                        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
+                        shouldUseScrollView && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
+                    ]}
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
                     // Spread other props dynamically
@@ -443,13 +440,13 @@ PopoverMenu.displayName = 'PopoverMenu';
 export default React.memo(
     PopoverMenu,
     (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.menuItems, nextProps.menuItems) &&
+        deepEqual(prevProps.menuItems, nextProps.menuItems) &&
         prevProps.isVisible === nextProps.isVisible &&
-        lodashIsEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
+        deepEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
         prevProps.anchorRef === nextProps.anchorRef &&
         prevProps.headerText === nextProps.headerText &&
         prevProps.fromSidebarMediumScreen === nextProps.fromSidebarMediumScreen &&
-        lodashIsEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
+        deepEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
         prevProps.animationIn === nextProps.animationIn &&
         prevProps.animationOut === nextProps.animationOut &&
         prevProps.animationInTiming === nextProps.animationInTiming &&

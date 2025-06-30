@@ -102,7 +102,9 @@ function AnimatedSettlementButton({
         <Animated.View style={[containerStyles, wrapperStyle, {minWidth}]}>
             {isAnimationRunning && canShow && (
                 <Animated.View
-                    ref={(el) => (viewRef.current = el as HTMLElement | null)}
+                    ref={(el) => {
+                        viewRef.current = el as HTMLElement | null;
+                    }}
                     exiting={buttonAnimation}
                 >
                     <Button

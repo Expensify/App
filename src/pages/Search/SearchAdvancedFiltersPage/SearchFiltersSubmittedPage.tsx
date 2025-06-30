@@ -1,10 +1,10 @@
 import React from 'react';
-import SearchDateFilterBase from '@components/Search/SearchDateFilterBase';
+import SearchDatePresetFilterBase from '@components/Search/SearchDatePresetFilterBase';
 import CONST from '@src/CONST';
 
 function SearchFiltersSubmittedPage() {
     return (
-        <SearchDateFilterBase
+        <SearchDatePresetFilterBase
             dateKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED}
             titleKey="search.filters.submitted"
         />
