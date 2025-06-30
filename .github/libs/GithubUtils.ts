@@ -629,7 +629,7 @@ class GithubUtils {
         } catch (error) {
             if (error instanceof RequestError && error.status === 404) {
                 console.error(
-                    `❓❓ Failed to get commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`,
+                    `❓❓ Failed to get commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them.`,
                 );
             }
             core.endGroup();
