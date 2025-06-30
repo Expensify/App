@@ -632,7 +632,6 @@ const CONST = {
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         CUSTOM_RULES: 'customRules',
-        WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         MULTI_LEVEL_TAGS: 'multiLevelTags',
@@ -1038,7 +1037,10 @@ const CONST = {
             APPROVE: 'approve',
             UNAPPROVE: 'unapprove',
             CANCEL_PAYMENT: 'cancelPayment',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
+            MARK_AS_EXPORTED: 'markAsExported',
             HOLD: 'hold',
+            DOWNLOAD_CSV: 'downloadCSV',
             DOWNLOAD_PDF: 'downloadPDF',
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
@@ -1047,7 +1049,6 @@ const CONST = {
             ADD_EXPENSE: 'addExpense',
             SPLIT: 'split',
             REOPEN: 'reopen',
-            EXPORT: 'export',
             PAY: 'pay',
         },
         PRIMARY_ACTIONS: {
@@ -1391,7 +1392,6 @@ const CONST = {
         EXPORT_OPTIONS: {
             EXPORT_TO_INTEGRATION: 'exportToIntegration',
             MARK_AS_EXPORTED: 'markAsExported',
-            DOWNLOAD_CSV: 'downloadCSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -1488,6 +1488,7 @@ const CONST = {
         PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
         SKELETON_ANIMATION_SPEED: 3,
         SEARCH_OPTIONS_COMPARISON: 'search_options_comparison',
+        SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1571,7 +1572,6 @@ const CONST = {
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
         INCORRECT_MAGIC_CODE: 451,
-        POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
         // When Cloudflare throttles
@@ -3417,6 +3417,7 @@ const CONST = {
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
         EMPTY_COMMENT: /^(\s)*$/,
+        SPECIAL_CHAR_MENTION_BREAKER: /[,/?"{}[\]()&^%;`$=<>!*]/g,
         SPECIAL_CHAR: /[,/?"{}[\]()&^%;`$=#<>!*]/g,
         FIRST_SPACE: /.+?(?=\s)/,
 
@@ -3431,7 +3432,8 @@ const CONST = {
         // Define the regular expression pattern to find a potential end of a mention suggestion:
         // It might be a space, a newline character, an emoji, or a special character (excluding underscores & tildes, which might be used in usernames)
         get MENTION_BREAKER() {
-            return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR.source}|${this.EMOJI.source}`, 'gu');
+            // currently breaks on newline **or** whitespace **or** punctuation/emojis
+            return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR_MENTION_BREAKER.source}|${this.EMOJI.source}`, 'gu');
         },
 
         get ALL_EMOJIS() {
@@ -5046,12 +5048,15 @@ const CONST = {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
+            NAVIGATE_DEPRECATED: 'NAVIGATE_DEPRECATED',
             SET_PARAMS: 'SET_PARAMS',
 
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
             SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
+            REPLACE_PARAMS: 'REPLACE_PARAMS',
+            PRELOAD: 'PRELOAD',
         },
     },
     TIME_PERIOD: {
@@ -6911,9 +6916,9 @@ const CONST = {
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
-        IOU: 'iou',
-        EXPENSE: 'expense',
-        INVOICE: 'invoice',
+        IOU: 'Iou',
+        EXPENSE: 'Expense',
+        INVOICE: 'Invoice',
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
