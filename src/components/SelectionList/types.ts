@@ -212,9 +212,6 @@ type ListItem<K extends string | number = string> = {
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
-
-    /** Used to initiate payment from search page */
-    hash?: number;
 };
 
 type TransactionListItemType = ListItem &
