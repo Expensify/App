@@ -126,18 +126,45 @@ function BaseValidateCodeForm({
     const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
     const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
+    /**
+     * Check that all the form fields are valid, then trigger the submit callback
+     */
+    const validateAndSubmitForm = useCallback(() => {
+        // Clear flow specific error
+        clearError();
+
+        // Clear "incorrect magic" code error
+        clearValidateCodeActionError(validateCodeActionErrorField);
+        setCanShowError(true);
+        if (!validateCode.trim()) {
+            setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
+            return;
+        }
+
+        if (!isValidValidateCode(validateCode)) {
+            setFormError({validateCode: 'validateCodeForm.error.incorrectMagicCode'});
+            return;
+        }
+
+        setFormError({});
+        handleSubmitForm(validateCode);
+    }, [validateCode, handleSubmitForm, validateCodeActionErrorField, clearError]);
+
     useImperativeHandle(innerRef, () => ({
+        validateAndSubmitForm() {
+            validateAndSubmitForm();
+        },
         focus() {
-            inputValidateCodeRef.current?.focus();
+            if (!inputValidateCodeRef.current) {
+                return;
+            }
+            inputValidateCodeRef.current.focus();
         },
         focusLastSelected() {
             if (!inputValidateCodeRef.current) {
                 return;
             }
-            if (focusTimeoutRef.current) {
-                clearTimeout(focusTimeoutRef.current);
-            }
-            focusTimeoutRef.current = setTimeout(() => {
+            setTimeout(() => {
                 inputValidateCodeRef.current?.focusLastSelected();
             }, CONST.ANIMATED_TRANSITION);
         },
@@ -151,16 +178,14 @@ function BaseValidateCodeForm({
             if (focusTimeoutRef.current) {
                 clearTimeout(focusTimeoutRef.current);
             }
-
             // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
             if (!isMobileSafari()) {
-                focusTimeoutRef.current = setTimeout(() => {
+                setTimeout(() => {
                     inputValidateCodeRef.current?.focusLastSelected();
                 }, CONST.ANIMATED_TRANSITION);
             } else {
                 inputValidateCodeRef.current?.focusLastSelected();
             }
-
             return () => {
                 if (!focusTimeoutRef.current) {
                     return;
@@ -215,30 +240,6 @@ function BaseValidateCodeForm({
         },
         [validateError, clearError, latestValidateCodeError, validateCodeActionErrorField],
     );
-
-    /**
-     * Check that all the form fields are valid, then trigger the submit callback
-     */
-    const validateAndSubmitForm = useCallback(() => {
-        // Clear flow specific error
-        clearError();
-
-        // Clear "incorrect magic" code error
-        clearValidateCodeActionError(validateCodeActionErrorField);
-        setCanShowError(true);
-        if (!validateCode.trim()) {
-            setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
-            return;
-        }
-
-        if (!isValidValidateCode(validateCode)) {
-            setFormError({validateCode: 'validateCodeForm.error.incorrectMagicCode'});
-            return;
-        }
-
-        setFormError({});
-        handleSubmitForm(validateCode);
-    }, [validateCode, handleSubmitForm, validateCodeActionErrorField, clearError]);
 
     const errorText = useMemo(() => {
         if (!canShowError) {
