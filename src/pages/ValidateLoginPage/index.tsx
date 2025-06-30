@@ -14,7 +14,7 @@ function ValidateLoginPage({
         params: {accountID, validateCode, exitTo},
     },
 }: ValidateLoginPageProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
     useEffect(() => {
         // Wait till navigation becomes available
