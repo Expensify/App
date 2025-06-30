@@ -535,13 +535,13 @@ We need to change the `getRoute()` `policyID` argument type to allow `undefined`
 
 ```diff
 WORKSPACE_PROFILE_ADDRESS: {
-    route: 'settings/workspaces/:policyID/profile/address',
--   getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo),
+    route: 'workspaces/:policyID/profile/address',
+-   getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/profile/address` as const, backTo),
 +   getRoute: (policyID: string | undefined, backTo?: string) => {
 +       if (!policyID) {
 +           Log.warn("Invalid policyID is used to build the WORKSPACE_PROFILE_ADDRESS route")
 +       }
-+       return getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo);
++       return getUrlWithBackToParam(`workspaces/${policyID}/profile/address` as const, backTo);
 +   },
 },
 ```
