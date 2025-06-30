@@ -1488,12 +1488,8 @@ const CONST = {
         SKELETON_ANIMATION_SPEED: 3,
         SEARCH_OPTIONS_COMPARISON: 'search_options_comparison',
         SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
-        SEARCH_QUERY_CHANGE: 'search_query_change',
         DEBOUNCE_HANDLE_SEARCH: 'debounce_handle_search',
-        LIST_ITEM_PRESS: 'list_item_press',
         FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
-        PAGE_SEARCH_QUERY_CHANGE: 'page_search_query_change',
-        PAGE_LIST_ITEM_PRESS: 'page_list_item_press',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',

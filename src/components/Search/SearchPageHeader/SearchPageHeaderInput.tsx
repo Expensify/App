@@ -30,7 +30,6 @@ import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import Performance from '@libs/Performance';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
@@ -154,7 +153,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             const actionId = `page_search_query_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
             const startTime = Date.now();
 
-            Performance.markStart(CONST.TIMING.PAGE_SEARCH_QUERY_CHANGE);
             Log.info('[CMD_K_DEBUG] Page search query change started', false, {
                 actionId,
                 inputLength: userQuery.length,
@@ -180,7 +178,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 }
 
                 const endTime = Date.now();
-                Performance.markEnd(CONST.TIMING.PAGE_SEARCH_QUERY_CHANGE);
                 Log.info('[CMD_K_DEBUG] Page search query change completed', false, {
                     actionId,
                     duration: endTime - startTime,
@@ -190,7 +187,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 });
             } catch (error) {
                 const endTime = Date.now();
-                Performance.markEnd(CONST.TIMING.PAGE_SEARCH_QUERY_CHANGE);
                 Log.alert('[CMD_K_FREEZE] Page search query change failed', {
                     actionId,
                     error: String(error),
@@ -230,7 +226,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             const actionId = `page_list_item_press_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
             const startTime = Date.now();
 
-            Performance.markStart(CONST.TIMING.PAGE_LIST_ITEM_PRESS);
             Log.info('[CMD_K_DEBUG] Page list item press started', false, {
                 actionId,
                 itemType: isSearchQueryItem(item) ? 'SearchQueryItem' : 'OptionData',
@@ -264,7 +259,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         }
 
                         const endTime = Date.now();
-                        Performance.markEnd(CONST.TIMING.PAGE_LIST_ITEM_PRESS);
                         Log.info('[CMD_K_DEBUG] Page autocomplete suggestion handled', false, {
                             actionId,
                             duration: endTime - startTime,
@@ -277,7 +271,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         submitSearch(item.searchQuery);
 
                         const endTime = Date.now();
-                        Performance.markEnd(CONST.TIMING.PAGE_LIST_ITEM_PRESS);
                         Log.info('[CMD_K_DEBUG] Page search submitted', false, {
                             actionId,
                             duration: endTime - startTime,
@@ -289,7 +282,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
 
                     const endTime = Date.now();
-                    Performance.markEnd(CONST.TIMING.PAGE_LIST_ITEM_PRESS);
                     Log.info('[CMD_K_DEBUG] Page report navigation handled', false, {
                         actionId,
                         duration: endTime - startTime,
@@ -300,7 +292,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                     navigateToAndOpenReport(item.login ? [item.login] : [], false);
 
                     const endTime = Date.now();
-                    Performance.markEnd(CONST.TIMING.PAGE_LIST_ITEM_PRESS);
                     Log.info('[CMD_K_DEBUG] Page user navigation handled', false, {
                         actionId,
                         duration: endTime - startTime,
@@ -310,7 +301,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 }
             } catch (error) {
                 const endTime = Date.now();
-                Performance.markEnd(CONST.TIMING.PAGE_LIST_ITEM_PRESS);
                 Log.alert('[CMD_K_FREEZE] Page list item press failed', {
                     actionId,
                     error: String(error),

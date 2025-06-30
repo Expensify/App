@@ -24,7 +24,6 @@ import {scrollToRight} from '@libs/InputUtils';
 import Log from '@libs/Log';
 import backHistory from '@libs/Navigation/helpers/backHistory';
 import type {SearchOption} from '@libs/OptionsListUtils';
-import Performance from '@libs/Performance';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
 import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
@@ -194,7 +193,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             const actionId = `search_query_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
             const startTime = Date.now();
 
-            Performance.markStart(CONST.TIMING.SEARCH_QUERY_CHANGE);
             Log.info('[CMD_K_DEBUG] Search query change started', false, {
                 actionId,
                 inputLength: userQuery.length,
@@ -224,7 +222,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 }
 
                 const endTime = Date.now();
-                Performance.markEnd(CONST.TIMING.SEARCH_QUERY_CHANGE);
                 Log.info('[CMD_K_DEBUG] Search query change completed', false, {
                     actionId,
                     duration: endTime - startTime,
@@ -234,7 +231,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 });
             } catch (error) {
                 const endTime = Date.now();
-                Performance.markEnd(CONST.TIMING.SEARCH_QUERY_CHANGE);
                 Log.alert('[CMD_K_FREEZE] Search query change failed', {
                     actionId,
                     error: String(error),
@@ -281,7 +277,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             const actionId = `list_item_press_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
             const startTime = Date.now();
 
-            Performance.markStart(CONST.TIMING.LIST_ITEM_PRESS);
             Log.info('[CMD_K_DEBUG] List item press started', false, {
                 actionId,
                 itemType: isSearchQueryItem(item) ? 'SearchQueryItem' : 'OptionData',
@@ -339,7 +334,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         setFocusAndScrollToRight();
 
                         const endTime = Date.now();
-                        Performance.markEnd(CONST.TIMING.LIST_ITEM_PRESS);
                         Log.info('[CMD_K_DEBUG] Contextual suggestion handled', false, {
                             actionId,
                             duration: endTime - startTime,
@@ -360,7 +354,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         setFocusAndScrollToRight();
 
                         const endTime = Date.now();
-                        Performance.markEnd(CONST.TIMING.LIST_ITEM_PRESS);
                         Log.info('[CMD_K_DEBUG] Autocomplete suggestion handled', false, {
                             actionId,
                             duration: endTime - startTime,
@@ -373,7 +366,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         submitSearch(item.searchQuery);
 
                         const endTime = Date.now();
-                        Performance.markEnd(CONST.TIMING.LIST_ITEM_PRESS);
                         Log.info('[CMD_K_DEBUG] Search submitted', false, {
                             actionId,
                             duration: endTime - startTime,
@@ -392,11 +384,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     });
 
                     const endTime = Date.now();
-                    Performance.markEnd(CONST.TIMING.LIST_ITEM_PRESS);
                     Log.info('[CMD_K_DEBUG] Navigation item handled', false, {
                         actionId,
                         duration: endTime - startTime,
-                        navigationType: item?.reportID ? 'report' : 'login' in item ? 'user' : 'unknown',
                         reportID: item?.reportID,
                         hasLogin: 'login' in item ? !!item.login : false,
                         timestamp: endTime,
@@ -404,7 +394,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 }
             } catch (error) {
                 const endTime = Date.now();
-                Performance.markEnd(CONST.TIMING.LIST_ITEM_PRESS);
                 Log.alert('[CMD_K_FREEZE] List item press failed', {
                     actionId,
                     error: String(error),
