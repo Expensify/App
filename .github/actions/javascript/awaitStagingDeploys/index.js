@@ -35197,6 +35197,7 @@ class GithubUtils {
             // Check if we got a proper response with commits
             if (response.data && response.data.commits && Array.isArray(response.data.commits)) {
                 console.log(`✅ compareCommits API returned ${response.data.commits.length} commits`);
+                console.log('Full response data:', JSON.stringify(response.data, null, 2));
                 // If we got the max per_page, there might be more commits, so use pagination
                 if (response.data.commits.length === 100) {
                     console.log('📄 Using pagination to get all commits...');
