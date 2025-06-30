@@ -283,6 +283,7 @@ function TransactionItemRow({
                             reportID={transactionItem.reportID}
                             hash={transactionItem.hash}
                             amount={transactionItem.amount}
+                            isDisabled={isPendingDelete}
                         />
                     )}
                 </View>
