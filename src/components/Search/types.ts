@@ -1,5 +1,4 @@
 import type {ValueOf} from 'type-fest';
-import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
@@ -52,7 +51,7 @@ type SelectedReports = {
 type PaymentData = {
     reportID: string;
     amount: number;
-    paymentType: PaymentMethodType;
+    paymentType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
 };
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;

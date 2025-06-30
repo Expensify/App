@@ -28,7 +28,7 @@ describe('actions/Report', () => {
 // import type * as OnyxTypes from '@src/types/onyx';
 // import createCollection from '../utils/collections/createCollection';
 // import createRandomReportAction from '../utils/collections/reportActions';
-// import createRandomReport from '../utils/collections/reports';
+// import {createRandomReport} from '../utils/collections/reports';
 // import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 // import PusherHelper from '../utils/PusherHelper';
 // import * as TestHelper from '../utils/TestHelper';
@@ -1551,6 +1551,7 @@ describe('actions/Report', () => {
 //             });
 //         });
 //         expect(getOriginalMessage(reportPreviewAction)?.linkedReportID).toBe(reportID);
+//         expect(reportPreviewAction?.actorAccountID).toBe(accountID);
 
 //         await new Promise<void>((resolve) => {
 //             const connection = Onyx.connect({
