@@ -24,10 +24,8 @@ function VisibilityPage({report}: VisibilityProps) {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.VISIBILITY>>();
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const shouldGoBackToDetailsPage = useRef(false);
-
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldDisableVisibility = isArchivedNonExpenseReport(report, isReportArchived);
-
     const {translate} = useLocalize();
 
     const visibilityOptions = useMemo(

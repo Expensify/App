@@ -9,18 +9,11 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {
-    getReportNotificationPreference,
-    goBackToDetailsPage,
-    isArchivedNonExpenseReport,
-    isHiddenForCurrentUser,
-    isMoneyRequestReport as isMoneyRequestReportUtils,
-    isSelfDM,
-} from '@libs/ReportUtils';
+import {getReportNotificationPreference, goBackToDetailsPage, isArchivedNonExpenseReport, isHiddenForCurrentUser, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
-import {updateNotificationPreference as updateNotificationPreferenceReportActionUtils} from '@userActions/Report';
+import {updateNotificationPreference} from '@userActions/Report';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
@@ -29,11 +22,11 @@ type NotificationPreferencePageProps = WithReportOrNotFoundProps & PlatformStack
 function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>>();
     const {translate} = useLocalize();
-    const isMoneyRequestReport = isMoneyRequestReportUtils(report);
-    const currentNotificationPreference = getReportNotificationPreference(report);
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const isMoneyRequest = isMoneyRequestReport(report);
+    const currentNotificationPreference = getReportNotificationPreference(report);
     const shouldDisableNotificationPreferences =
-        isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report) || (!isMoneyRequestReport && isHiddenForCurrentUser(currentNotificationPreference));
+        isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report) || (!isMoneyRequest && isHiddenForCurrentUser(currentNotificationPreference));
     const notificationPreferenceOptions = Object.values(CONST.REPORT.NOTIFICATION_PREFERENCE)
         .filter((pref) => !isHiddenForCurrentUser(pref))
         .map((preference) => ({
@@ -47,9 +40,9 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
         goBackToDetailsPage(report, route.params.backTo);
     }, [report, route.params.backTo]);
 
-    const updateNotificationPreference = useCallback(
+    const updateNotificationPreferenceForReportAction = useCallback(
         (value: ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>) => {
-            updateNotificationPreferenceReportActionUtils(report.reportID, currentNotificationPreference, value, undefined, undefined);
+            updateNotificationPreference(report.reportID, currentNotificationPreference, value, undefined, undefined);
             goBack();
         },
         [report.reportID, currentNotificationPreference, goBack],
@@ -68,7 +61,7 @@ function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
                 <SelectionList
                     sections={[{data: notificationPreferenceOptions}]}
                     ListItem={RadioListItem}
-                    onSelectRow={(option) => updateNotificationPreference(option.value)}
+                    onSelectRow={(option) => updateNotificationPreferenceForReportAction(option.value)}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedOptionKey={notificationPreferenceOptions.find((locale) => locale.isSelected)?.keyForList}
                 />
