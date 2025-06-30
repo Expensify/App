@@ -1,45 +1,85 @@
 import {useNavigation} from '@react-navigation/native';
 import {useCallback, useEffect, useRef} from 'react';
-import Navigation from '@navigation/Navigation';
-import ROUTES from '@src/ROUTES';
+import Navigation, {navigationRef} from '@navigation/Navigation';
+import SCREENS from '@src/SCREENS';
+import useResponsiveLayout from './useResponsiveLayout';
 
 /**
- * Hook that returns a function to check if the currently active route remains the same as the last known route.
- * The last known route reference is updated every time the component experiences a 'blur' event,
+ * Hook that returns a function to check if the currently active route remains the same as the route on which the component was initially rendered.
+ * The `isFocused` is set to `false` every time the component experiences a 'blur' event,
  * except when opening an attachments modal, which is treated as an exception and does not trigger a reference update.
  *
- * @return Function that checks if the last known route matches the currently active route.
+ * @return Function that checks if the route where the component was rendered matches the currently active route.
  */
-function useCheckIfRouteHasRemainedUnchanged(): () => boolean {
-    const lastKnownRouteRef = useRef<string | undefined>(undefined);
+function useCheckIfRouteHasRemainedUnchanged(videoUrl: string) {
+    // Ref stores a value determining whether the component is still rendered on the route.
+    // If the value is false, it immediately returns false; if true, it checks whether it is in the attachment modal.
+    const hasOnRenderedRouteRef = useRef<boolean | undefined>(undefined);
     const navigation = useNavigation();
+    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
 
-    // Function to compare the last known route with the current active route
     const hasRouteRemainedUnchanged = useCallback(() => {
-        return lastKnownRouteRef.current === Navigation.getActiveRouteWithoutParams();
-    }, []);
+        if (navigation.isFocused()) {
+            return true;
+        }
 
-    // Initialize the initial route when navigation is ready
+        // If navigating outside the rendered route and attachment modal route
+        if (!hasOnRenderedRouteRef.current) {
+            return false;
+        }
+
+        // If on AttachmentModal, only play when the source parameters match videoUrl
+        const currentRoute = navigationRef.getCurrentRoute();
+        if (
+            currentRoute?.name === SCREENS.ATTACHMENTS &&
+            currentRoute?.params &&
+            'source' in currentRoute.params &&
+            currentRoute.params.source === videoUrl &&
+            // Because the video player is shared only on desktop
+            // Allow in RHP
+            (!shouldUseNarrowLayout || isInNarrowPaneModal)
+        ) {
+            return true;
+        }
+
+        return false;
+    }, [shouldUseNarrowLayout, isInNarrowPaneModal, videoUrl, navigation]);
+
+    // Initialize and check if starting with the attachment modal
     useEffect(() => {
         Navigation.isNavigationReady().then(() => {
-            if (lastKnownRouteRef.current !== undefined) {
+            if (hasOnRenderedRouteRef.current !== undefined) {
                 return;
             }
 
-            lastKnownRouteRef.current = Navigation.getActiveRouteWithoutParams();
+            const route = navigationRef.getCurrentRoute();
+            // If the app is opened via the attachment route, it will always remain on the report screen.
+            // Thus, it can be considered as still being on the rendered route.
+            hasOnRenderedRouteRef.current = route?.name === SCREENS.ATTACHMENTS;
         });
     }, []);
 
     // Update the route reference on 'blur' events, except when opening attachments modal
     useEffect(() => {
-        return navigation.addListener('blur', () => {
-            const currentRoute = Navigation.getActiveRouteWithoutParams();
-            if (currentRoute === `/${ROUTES.ATTACHMENTS.route}`) {
+        const unsubscribeFocus = navigation.addListener('focus', () => {
+            hasOnRenderedRouteRef.current = true;
+        });
+
+        const unsubscribeBlur = navigation.addListener('blur', () => {
+            const route = navigationRef.getCurrentRoute();
+
+            if (route?.name === SCREENS.ATTACHMENTS) {
                 // Skip route update when attachment modal is opened
                 return;
             }
-            lastKnownRouteRef.current = currentRoute;
+
+            hasOnRenderedRouteRef.current = false;
         });
+
+        return () => {
+            unsubscribeFocus();
+            unsubscribeBlur();
+        };
     }, [navigation]);
 
     return hasRouteRemainedUnchanged;
