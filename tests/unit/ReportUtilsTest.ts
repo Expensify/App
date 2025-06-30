@@ -2638,6 +2638,50 @@ describe('ReportUtils', () => {
                 expect(canDeleteReportAction(moneyRequestAction, currentReportId)).toBe(false);
             });
         });
+
+        it('should return true for demo transaction', () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                comment: {
+                    isDemoTransaction: true,
+                },
+            };
+
+            const report = LHNTestUtils.getFakeReport();
+            const parentReportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'hey',
+                        text: 'hey',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        moderationDecision: {
+                            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+                        },
+                    },
+                ],
+                childReportID: report.reportID,
+            };
+            const moneyRequestAction = {
+                ...parentReportAction,
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: '1',
+                    IOUTransactionID: '1',
+                    amount: 100,
+                    participantAccountID: 1,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                },
+            };
+
+            expect(canDeleteReportAction(moneyRequestAction, '1', [transaction])).toBe(true);
+        });
     });
 
     describe('getPolicyExpenseChat', () => {
