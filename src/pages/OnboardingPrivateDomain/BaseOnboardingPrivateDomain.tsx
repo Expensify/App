@@ -13,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingPrivateDomainProps} from './types';
@@ -35,6 +36,10 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const domain = email.split('@').at(1) ?? '';
 
     const isValidated = isCurrentUserValidated(loginList);
+
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
+    const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+    const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
 
     const sendValidateCode = useCallback(() => {
         if (!email) {
@@ -92,7 +97,18 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                         validateError={getAccessiblePoliciesAction?.errors}
                         hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                         shouldShowSkipButton
-                        handleSkipButtonPress={() => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo))}
+                        handleSkipButtonPress={() => {
+                            if (isVsb) {
+                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+                                return;
+                            }
+
+                            if (isSmb) {
+                                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+                        }}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd]}
                         isLoading={getAccessiblePoliciesAction?.loading}
                     />
