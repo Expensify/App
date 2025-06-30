@@ -158,6 +158,7 @@ import type {
     PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
     RailTicketParams,
+    ReadTheTermsAndPrivacyRouteParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -1516,12 +1517,8 @@ const translations = {
         restoreStashed: '恢复暂存的登录信息',
         signOutConfirmationText: '如果您退出登录，任何离线更改都将丢失。',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: '阅读该内容',
-            phrase2: '服务条款',
-            phrase3: '和',
-            phrase4: '隐私',
-        },
+        readTheTermsAndPrivacy: ({termsURL, privacyURL}: ReadTheTermsAndPrivacyRouteParams) =>
+            `<muted-text>阅读该内容 <a href="${termsURL}">服务条款</a> 和 <a href="${privacyURL}">隐私</a>.</muted-text>`,
         help: '帮助',
         accountSettings: '账户设置',
         account: '账户',

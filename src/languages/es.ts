@@ -145,6 +145,7 @@ import type {
     PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
     RailTicketParams,
+    ReadTheTermsAndPrivacyRouteParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -1514,12 +1515,8 @@ const translations = {
         signOut: 'Desconectar',
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: 'Leer los',
-            phrase2: 'Términos de Servicio',
-            phrase3: 'y',
-            phrase4: 'Privacidad',
-        },
+        readTheTermsAndPrivacy: ({termsURL, privacyURL}: ReadTheTermsAndPrivacyRouteParams) =>
+            `<muted-text>Leer los <a href="${termsURL}">Términos de Servicio</a> y <a href="${privacyURL}">Privacidad</a>.</muted-text>`,
         help: 'Ayuda',
         accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',

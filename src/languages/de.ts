@@ -158,6 +158,7 @@ import type {
     PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
     RailTicketParams,
+    ReadTheTermsAndPrivacyRouteParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -1540,12 +1541,8 @@ const translations = {
         restoreStashed: 'Wiederherstellen des zwischengespeicherten Logins',
         signOutConfirmationText: 'Sie verlieren alle Offline-Änderungen, wenn Sie sich abmelden.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: 'Lesen Sie die',
-            phrase2: 'Nutzungsbedingungen',
-            phrase3: 'und',
-            phrase4: 'Datenschutz',
-        },
+        readTheTermsAndPrivacy: ({termsURL, privacyURL}: ReadTheTermsAndPrivacyRouteParams) =>
+            `<muted-text>Lesen Sie die <a href="${termsURL}">Nutzungsbedingungen</a> und <a href="${privacyURL}">Datenschutz</a>.</muted-text>`,
         help: 'Hilfe',
         accountSettings: 'Kontoeinstellungen',
         account: 'Konto',
