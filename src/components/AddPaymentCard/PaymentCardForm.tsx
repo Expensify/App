@@ -166,7 +166,7 @@ function PaymentCardForm({
             }
 
             if (month > 12) {
-                value = `0${value.charAt(0)}${value.charAt(1)}`;
+                value = `0${value.charAt(0)}${value.charAt(1)}${value.charAt(2)}`;
             }
         }
 
