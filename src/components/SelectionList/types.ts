@@ -25,7 +25,7 @@ import type CONST from '@src/CONST';
 import type {Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type {Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchCard, SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -270,9 +270,6 @@ type TransactionListItemType = ListItem &
         /** IOUs report */
         iouReportID?: string | undefined;
 
-        /** Whether the report is policyExpenseChat */
-        isPolicyExpenseChat?: boolean;
-
         /** Precomputed violations */
         violations?: TransactionViolation[];
     };
@@ -330,8 +327,7 @@ type TransactionGroupListItemType = ListItem & {
     transactions: TransactionListItemType[];
 };
 
-type TransactionReportGroupListItemType = TransactionGroupListItemType &
-    SearchReport & {
+type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.REPORTS} & SearchReport & {
         /** The personal details of the user requesting money */
         from: SearchPersonalDetails;
 
@@ -339,7 +335,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType &
         to: SearchPersonalDetails;
     };
 
-type TransactionMemberGroupListItemType = TransactionGroupListItemType & SearchPersonalDetails;
+type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MEMBERS} & SearchPersonalDetails;
+
+type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARDS} & SearchPersonalDetails & SearchCard;
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
@@ -880,6 +878,7 @@ export type {
     TransactionGroupListItemType,
     TransactionReportGroupListItemType,
     TransactionMemberGroupListItemType,
+    TransactionCardGroupListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,

@@ -874,8 +874,8 @@ function PureReportActionItem({
                                 shouldDisplayContextMenu={shouldDisplayContextMenu}
                                 isBillSplit={isSplitBillActionReportActionsUtils(action)}
                                 transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
-                                containerStyles={[shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle, styles.mt1]}
-                                transactionPreviewWidth={shouldUseNarrowLayout ? styles.w100.width : reportPreviewStyles.transactionPreviewStyle.width}
+                                containerStyles={[reportPreviewStyles.transactionPreviewStandaloneStyle, styles.mt1]}
+                                transactionPreviewWidth={reportPreviewStyles.transactionPreviewStandaloneStyle.width}
                                 onPreviewPressed={() => {
                                     if (shouldShowSplitPreview) {
                                         Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
@@ -1230,7 +1230,8 @@ function PureReportActionItem({
                                     index={index}
                                     ref={composerTextInputRef}
                                     shouldDisableEmojiPicker={
-                                        (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, reportNameValuePairs)
+                                        (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) ||
+                                        isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived)
                                     }
                                     isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
                                 />
