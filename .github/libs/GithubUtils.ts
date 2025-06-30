@@ -575,116 +575,38 @@ class GithubUtils {
         console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
 
         try {
-            // First, try the compareCommits API for smaller ranges
-            try {
-                const response = await this.octokit.repos.compareCommits({
-                    owner: CONST.GITHUB_OWNER,
-                    repo: CONST.APP_REPO,
-                    base: fromTag,
-                    head: toTag,
-                    per_page: 100,
-                });
-
-                // Check if we got a proper response with commits
-                if (response.data && response.data.commits && Array.isArray(response.data.commits)) {
-                    console.log(`✅ compareCommits API returned ${response.data.commits.length} commits`);
-                    
-                    // If we got the max per_page, there might be more commits, so use pagination
-                    if (response.data.commits.length === 100) {
-                        console.log('📄 Using pagination to get all commits...');
-                        const allCommits = await this.paginate(
-                            this.octokit.repos.compareCommits,
-                            {
-                                owner: CONST.GITHUB_OWNER,
-                                repo: CONST.APP_REPO,
-                                base: fromTag,
-                                head: toTag,
-                                per_page: 100,
-                            },
-                            (response) => response.data.commits
-                        );
-
-                        return allCommits.map((commit) => ({
-                            commit: commit.sha,
-                            subject: commit.commit.message,
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            authorName: commit.commit.author?.name || 'Unknown',
-                        }));
-                    }
-
-                    // Single page response
-                    return response.data.commits.map((commit) => ({
-                        commit: commit.sha,
-                        subject: commit.commit.message,
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        authorName: commit.commit.author?.name || 'Unknown',
-                    }));
-                }
-            } catch (compareError) {
-                console.log('⚠️ compareCommits API failed, trying alternative approach...');
-                // Continue to alternative approach below
-            }
-
-            // Alternative approach: Get commits from head tag and filter to base tag
-            console.log('🔄 Using commits API to get commits from head tag...');
-            
-            // Get the SHA of the base tag to know where to stop
-            const baseTagResponse = await this.octokit.git.getRef({
+            // Use the compareCommits API directly without paginate to avoid the redirect issue
+            const response = await this.octokit.repos.compareCommits({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
-                ref: `tags/${fromTag}`,
+                base: fromTag,
+                head: toTag,
+                per_page: 100,
             });
-            const baseSha = baseTagResponse.data.object.sha;
-            console.log(`Base tag ${fromTag} SHA: ${baseSha}`);
 
-            // Get commits from the head tag until we reach the base tag
-            const commits: CommitType[] = [];
-            let hasMorePages = true;
-            let page = 1;
-            let foundBaseSha = false;
-
-            while (hasMorePages && !foundBaseSha && page <= 20) { // Limit to 20 pages to prevent infinite loops
-                console.log(`📄 Fetching commits page ${page}...`);
+            // Check if we got a proper response with commits
+            if (response.data && response.data.commits && Array.isArray(response.data.commits)) {
+                console.log(`✅ compareCommits API returned ${response.data.commits.length} commits`);
                 
-                const commitsResponse = await this.octokit.repos.listCommits({
-                    owner: CONST.GITHUB_OWNER,
-                    repo: CONST.APP_REPO,
-                    sha: toTag,
-                    per_page: 100,
-                    page: page,
-                });
-
-                for (const commit of commitsResponse.data) {
-                    // Stop if we reach the base commit
-                    if (commit.sha === baseSha) {
-                        foundBaseSha = true;
-                        break;
-                    }
-
-                    commits.push({
-                        commit: commit.sha,
-                        subject: commit.commit.message,
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        authorName: commit.commit.author?.name || 'Unknown',
-                    });
-                }
-
-                hasMorePages = commitsResponse.data.length === 100;
-                page++;
+                // Map API response to our CommitType object
+                return response.data.commits.map((commit) => ({
+                    commit: commit.sha,
+                    subject: commit.commit.message,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    authorName: commit.commit.author?.name || 'Unknown',
+                }));
             }
 
-            if (!foundBaseSha && commits.length > 0) {
-                console.warn(`⚠️ Reached page limit without finding base SHA. Found ${commits.length} commits.`);
-            }
-
-            console.log(`✅ Found ${commits.length} commits between ${fromTag} and ${toTag}`);
-            return commits;
+            console.warn('⚠️ GitHub API returned unexpected response format');
+            return [];
 
         } catch (error) {
             if (error instanceof RequestError && error.status === 404) {
                 console.error(
                     `❓❓ Failed to get commits with the GitHub API. The base tag ('${fromTag}') or head tag ('${toTag}') likely doesn't exist on the remote repository. If this is the case, create or push them. 💡💡`,
                 );
+            } else {
+                console.error('Error fetching commits:', error);
             }
             throw error;
         }
