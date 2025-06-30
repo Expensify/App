@@ -270,9 +270,6 @@ type PureReportActionItemProps = {
     /** Linked transaction route error */
     linkedTransactionRouteError?: Errors;
 
-    /** Optional property for report name-value pairs */
-    reportNameValuePairs?: OnyxTypes.ReportNameValuePairs;
-
     /** Optional property to indicate if the user is validated */
     isUserValidated?: boolean;
 
@@ -398,7 +395,6 @@ function PureReportActionItem({
     iouReportOfLinkedReport,
     emojiReactions,
     linkedTransactionRouteError,
-    reportNameValuePairs,
     isUserValidated,
     parentReport,
     personalDetails,
@@ -1232,8 +1228,7 @@ function PureReportActionItem({
                                     index={index}
                                     ref={composerTextInputRef}
                                     shouldDisableEmojiPicker={
-                                        (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) ||
-                                        isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived)
+                                        (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isReportArchived)
                                     }
                                     isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
                                 />
@@ -1590,7 +1585,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.iouReport?.reportID === nextProps.iouReport?.reportID &&
         deepEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
         deepEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
-        deepEqual(prevProps.reportNameValuePairs, nextProps.reportNameValuePairs) &&
         prevProps.isUserValidated === nextProps.isUserValidated &&
         prevProps.parentReport?.reportID === nextProps.parentReport?.reportID &&
         deepEqual(prevProps.personalDetails, nextProps.personalDetails) &&
