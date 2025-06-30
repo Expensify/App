@@ -15,6 +15,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
 import {getDevicePreferredLocale} from '@libs/Localize';
+import Timing from '@libs/actions/Timing';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
@@ -183,7 +184,11 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
 
-    useEffect(() => Performance.measureTTI(), []);
+  useEffect(() => {
+    Timing.end(CONST.TIMING.OPEN_APP);
+    Performance.measureTTI();
+  }, []);
+
     useEffect(() => {
         if (preferredLocale) {
             return;
