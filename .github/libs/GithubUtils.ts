@@ -23,6 +23,8 @@ type OctokitIssueItem = OctokitComponents['schemas']['issue'];
 
 type ListForRepoMethod = RestEndpointMethods['issues']['listForRepo'];
 
+type OctokitCommit = OctokitComponents['schemas']['commit'];
+
 type CommitType = {
     commit: string;
     subject: string;
@@ -573,41 +575,38 @@ class GithubUtils {
      */
     static async getCommitHistoryBetweenTags(fromTag: string, toTag: string): Promise<CommitType[]> {
         console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
-        core.startGroup('[api] Parsed PRs:');
+        core.startGroup('Fetching paginated commits:');
 
         try {
-            let allCommits: any[] = [];
+            let allCommits: OctokitCommit[] = [];
             let page = 1;
             const perPage = 250;
             let hasMorePages = true;
 
             while (hasMorePages) {
                 core.info(`📄 Fetching page ${page} of commits...`);
-                
+
                 const response = await this.octokit.repos.compareCommits({
                     owner: CONST.GITHUB_OWNER,
                     repo: CONST.APP_REPO,
                     base: fromTag,
                     head: toTag,
                     per_page: perPage,
-                    page: page,
+                    page,
                 });
 
                 // Check if we got a proper response with commits
                 if (response.data && response.data.commits && Array.isArray(response.data.commits)) {
                     if (page === 1) {
-                        core.info(`📊 Total commits: ${response.data.total_commits || 'unknown'}`);
+                        core.info(`📊 Total commits: ${response.data.total_commits ?? 'unknown'}`);
                     }
                     core.info(`✅ compareCommits API returned ${response.data.commits.length} commits for page ${page}`);
 
                     allCommits = allCommits.concat(response.data.commits);
-                    
-                    // Check if there are more pages
-                    // GitHub's compareCommits endpoint may not have explicit pagination info in headers
-                    // so we check if we got fewer commits than requested or if we've reached the total
+
+                    // Check if we got fewer commits than requested or if we've reached the total
                     const totalCommits = response.data.total_commits;
-                    if (response.data.commits.length < perPage || 
-                        (totalCommits && allCommits.length >= totalCommits)) {
+                    if (response.data.commits.length < perPage || (totalCommits && allCommits.length >= totalCommits)) {
                         hasMorePages = false;
                     } else {
                         page++;
@@ -620,13 +619,11 @@ class GithubUtils {
 
             core.info(`🎉 Successfully fetched ${allCommits.length} total commits`);
             core.endGroup();
-            return allCommits.map((commit) => ({
+            return allCommits.map((commit): CommitType => ({
                 commit: commit.sha,
                 subject: commit.commit.message,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                authorName: commit.commit.author?.name || 'Unknown',
+                authorName: commit.commit.author?.name ?? 'Unknown',
             }));
-
         } catch (error) {
             if (error instanceof RequestError && error.status === 404) {
                 console.error(
