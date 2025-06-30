@@ -1,0 +1,30 @@
+diff --git a/node_modules/@react-native-firebase/crashlytics/android/build.gradle b/node_modules/@react-native-firebase/crashlytics/android/build.gradle
+index 9b89ae7..36cc020 100644
+--- a/node_modules/@react-native-firebase/crashlytics/android/build.gradle
++++ b/node_modules/@react-native-firebase/crashlytics/android/build.gradle
+@@ -67,6 +67,12 @@ project.ext {
+ android {
+   defaultConfig {
+     multiDexEnabled true
++
++    externalNativeBuild {
++      cmake {
++        arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
++      }
++    }
+   }
+   lintOptions {
+     disable 'GradleCompatible'
+@@ -76,6 +82,12 @@ android {
+     sourceCompatibility JavaVersion.VERSION_1_8
+     targetCompatibility JavaVersion.VERSION_1_8
+   }
++
++  packagingOptions {
++    jniLibs {
++      useLegacyPackaging true
++    }
++  }
+ }
+ 
+ repositories {
