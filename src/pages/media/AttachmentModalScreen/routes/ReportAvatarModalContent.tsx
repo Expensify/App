@@ -6,7 +6,6 @@ import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModal
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProps) {
     const {reportID, policyID} = route.params;
@@ -37,11 +36,10 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         () =>
             ({
                 ...attachment,
-                fallbackRoute: ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID),
                 shouldShowNotFoundPage: !report?.reportID && !isLoadingApp,
                 isLoading: (!report?.reportID || !policy?.id) && !!isLoadingApp,
             }) satisfies Partial<AttachmentModalBaseContentProps>,
-        [attachment, isLoadingApp, policy?.id, report?.reportID, reportID],
+        [attachment, isLoadingApp, policy?.id, report?.reportID],
     );
 
     return (
