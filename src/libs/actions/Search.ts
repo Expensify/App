@@ -18,7 +18,8 @@ import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/S
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -434,10 +435,20 @@ function clearAllFilters() {
 }
 
 function clearAdvancedFilters() {
-    const values: Partial<Record<ValueOf<typeof FILTER_KEYS>, null>> = {};
+    const values: Partial<Nullable<SearchAdvancedFiltersForm>> = {};
     Object.values(FILTER_KEYS)
-        .filter((key) => !([FILTER_KEYS.TYPE, FILTER_KEYS.STATUS, FILTER_KEYS.GROUP_BY] as string[]).includes(key))
+        .filter((key) => key !== FILTER_KEYS.GROUP_BY)
         .forEach((key) => {
+            if (key === FILTER_KEYS.TYPE) {
+                values[key] = CONST.SEARCH.DATA_TYPES.EXPENSE;
+                return;
+            }
+
+            if (key === FILTER_KEYS.STATUS) {
+                values[key] = CONST.SEARCH.STATUS.EXPENSE.ALL;
+                return;
+            }
+
             values[key] = null;
         });
 
