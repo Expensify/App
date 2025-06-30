@@ -2550,6 +2550,8 @@ const translations = {
         pageNotFound: '抱歉，无法找到此页面。',
         noAccess: '此聊天或费用可能已被删除，或者您无权访问。\n\n如有任何疑问，请联系 concierge@expensify.com',
         goBackHome: '返回主页',
+        commentYouLookingForCannotBeFound: '找不到您要查找的评论。返回聊天',
+        contactConcierge: '如有任何疑问，请联系 concierge@expensify.com',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `抱歉... ${isBreakLine ? '\n' : ''}出现了问题`,

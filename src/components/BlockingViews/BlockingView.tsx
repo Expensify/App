@@ -31,6 +31,9 @@ type BaseBlockingViewProps = {
     /** Link message below the subtitle */
     linkKey?: TranslationPaths;
 
+    /** Message below the link message */
+    subtitleKeyBelowLink?: TranslationPaths | '';
+
     /** Whether we should show a link to navigate elsewhere */
     shouldShowLink?: boolean;
 
@@ -98,6 +101,7 @@ function BlockingView({
     subtitle = '',
     subtitleStyle,
     linkKey = 'notFound.goBackHome',
+    subtitleKeyBelowLink,
     shouldShowLink = false,
     iconWidth = variables.iconSizeSuperLarge,
     iconHeight = variables.iconSizeSuperLarge,
@@ -128,14 +132,20 @@ function BlockingView({
                 {shouldShowLink ? (
                     <TextLink
                         onPress={onLinkPress}
-                        style={[styles.link, styles.mt2]}
+                        style={[styles.link, styles.mt2, !!subtitleKeyBelowLink && styles.textAlignCenter]}
                     >
                         {translate(linkKey)}
                     </TextLink>
                 ) : null}
+                {!!subtitleKeyBelowLink && (
+                    <AutoEmailLink
+                        style={[styles.textAlignCenter, subtitleStyle, styles.mt2]}
+                        text={translate(subtitleKeyBelowLink)}
+                    />
+                )}
             </>
         ),
-        [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate, subtitleStyle],
+        [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate, subtitleStyle, subtitleKeyBelowLink],
     );
 
     const subtitleContent = useMemo(() => {

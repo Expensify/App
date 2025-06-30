@@ -2558,6 +2558,7 @@ const translations = {
         noAccess: 'This chat or expense may have been deleted or you do not have access to it.\n\nFor any questions please contact concierge@expensify.com',
         goBackHome: 'Go back to home page',
         commentYouLookingForCannotBeFound: 'The comment you are looking for cannot be found. Go back to the chat',
+        contactConcierge: 'For any questions please contact concierge@expensify.com',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oops... ${isBreakLine ? '\n' : ''}Something went wrong`,
