@@ -42,6 +42,7 @@ function NumberWithUnitForm({
         <MoneyRequestAmountForm
             amount={amount}
             decimals={decimals}
+            unit={unit}
             hideCurrencySymbol
             iouType={iouType}
             policyID={policyID}

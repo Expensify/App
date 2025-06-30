@@ -22,6 +22,9 @@ function Template(props: NumberWithUnitFormProps) {
 const Default: NumberWithUnitFormStory = Template.bind({});
 Default.args = {
     unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+    onSubmitButtonPress: (currentMoney) => {
+        alert(`Submitted ${currentMoney.amount} ${currentMoney.currency}`);
+    },
 };
 
 export default story;

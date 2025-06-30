@@ -39,6 +39,9 @@ type MoneyRequestAmountFormProps = {
     /** Currency chosen by user or saved in Onyx */
     currency?: string;
 
+    /** Unit of the amount. E.g. 'km', 'mi' */
+    unit?: string;
+
     /** The decimals of the currency/unit. If not provided, it will be inferred from the currency */
     decimals?: number;
 
@@ -105,6 +108,7 @@ function MoneyRequestAmountForm(
         decimals,
         extraSymbol,
         hideCurrencySymbol = false,
+        unit,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -239,9 +243,9 @@ function MoneyRequestAmountForm(
                 return;
             }
 
-            onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
+            onSubmitButtonPress({amount: currentAmount, currency: unit ?? currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount],
+        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount, unit],
     );
 
     const buttonText: string = useMemo(() => {
