@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import textRef from '@src/types/utils/textRef';
 import type TextInputLabelProps from './types';
 
-function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale}: TextInputLabelProps) {
+function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale, isMultiline}: TextInputLabelProps) {
     const styles = useThemeStyles();
     const labelRef = useRef<Text | HTMLFormElement>(null);
 
@@ -23,6 +23,8 @@ function TextInputLabel({for: inputId = '', label, labelTranslateY, labelScale}:
 
     return (
         <Animated.Text
+            numberOfLines={!isMultiline ? 1 : undefined}
+            ellipsizeMode={!isMultiline ? 'tail' : undefined}
             // eslint-disable-next-line react-compiler/react-compiler
             ref={textRef(labelRef)}
             role={CONST.ROLE.PRESENTATION}
