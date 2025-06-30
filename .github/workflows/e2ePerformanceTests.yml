@@ -223,7 +223,7 @@ jobs:
         run: |
           if ls "./Host_Machine_Files/\$WORKING_DIRECTORY"/output2.md 1> /dev/null 2>&1; then
             # Print all the split files
-            for file in "./Host_Machine_Files/\$WORKING_DIRECTORY/output"*; do
+            for file in $(ls "./Host_Machine_Files/\$WORKING_DIRECTORY/output"* | sort -V); do
               if [ -f "$file" ]; then
                 cat "$file"
               fi
@@ -244,7 +244,7 @@ jobs:
             # Check if there are any split files
             if ls "./Host_Machine_Files/\$WORKING_DIRECTORY"/output2.md 1> /dev/null 2>&1; then
               # Post each split file as a separate comment
-              for file in "./Host_Machine_Files/\$WORKING_DIRECTORY/output"*; do
+              for file in $(ls "./Host_Machine_Files/\$WORKING_DIRECTORY/output"* | sort -V); do
                 if [ -f "$file" ]; then
                   gh pr comment ${{ inputs.PR_NUMBER }} -F "$file"
                 fi
