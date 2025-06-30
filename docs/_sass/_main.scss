@@ -1125,6 +1125,18 @@ button {
     line-height: 16px;
 }
 
+#platform-tabs > .badge{
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--color-borders); 
+    background-color: transparent;
+    border-radius: 4px;
+    text-align: center;
+    cursor: unset;
+    padding: 8px 12px;
+    color: var(--color-text);
+}
+
 #platform-tabs > .active {
     color: var(--color-text);
     background-color: var(--color-button-background);
