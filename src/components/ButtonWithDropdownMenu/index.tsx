@@ -217,7 +217,7 @@ function ButtonWithDropdownMenu<IValueType>({
                 />
             )}
             {(shouldAlwaysShowDropdownMenu || options.length > 1) && !!popoverAnchorPosition && (
-                but
+                <PopoverMenu
                     isVisible={isMenuVisible}
                     onClose={() => {
                         setIsMenuVisible(false);
