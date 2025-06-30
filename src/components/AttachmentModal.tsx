@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import type {Direction} from 'react-native-modal';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
@@ -143,6 +144,9 @@ type AttachmentModalProps = {
     /** The iou type of the expense creation flow of which we are displaying the receipt for. */
     iouType?: IOUType;
 
+    /** In which direction modal will swipe */
+    swipeDirection?: Direction | undefined;
+
     /** The id of the draft transaction linked to the receipt. */
     draftTransactionID?: string;
 
@@ -192,6 +196,7 @@ function AttachmentModal({
     iouType: iouTypeProp,
     attachmentLink = '',
     shouldHandleNavigationBack,
+    swipeDirection,
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
@@ -520,6 +525,7 @@ function AttachmentModal({
             <Modal
                 type={modalType}
                 onClose={isOverlayModalVisible ? closeConfirmModal : closeModal}
+                swipeDirection={swipeDirection}
                 isVisible={isModalOpen}
                 onModalShow={() => {
                     onModalShow();
