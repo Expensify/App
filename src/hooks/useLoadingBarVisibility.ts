@@ -20,7 +20,7 @@ export default function useLoadingBarVisibility(): boolean {
         return false;
     }
 
-    const hasPersistedRequests = !!(persistedRequests?.some((request) => RELEVANT_COMMANDS.has(request.command) && !request.initiatedOffline)) ?? false;
+    const hasPersistedRequests = !!persistedRequests?.some((request) => RELEVANT_COMMANDS.has(request.command) && !request.initiatedOffline) ?? false;
     const hasOngoingRequests = !!ongoingRequests && RELEVANT_COMMANDS.has(ongoingRequests?.command);
 
     return hasPersistedRequests || hasOngoingRequests;
