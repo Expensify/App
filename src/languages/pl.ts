@@ -133,6 +133,7 @@ import type {
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
+    MovedReportParams,
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
@@ -1036,6 +1037,8 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `usunął wydatek w tym raporcie, ${merchant} - ${amount}`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `przeniósł wydatek${reportName ? `z ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `przeniesiono ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedReport: ({movedReportURL, newParentReportURL, toPolicyName}: MovedReportParams) =>
+            `przeniósł ten <a href="${movedReportURL}">raport</a> do przestrzeni roboczej <a href="${newParentReportURL}">${toPolicyName}</a>`,
         unreportedTransaction: 'przeniósł ten wydatek do twojej przestrzeni osobistej',
         pendingMatchWithCreditCard: 'Paragon oczekuje na dopasowanie z transakcją kartą',
         pendingMatch: 'Oczekujące dopasowanie',
