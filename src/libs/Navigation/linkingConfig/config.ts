@@ -1325,15 +1325,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             screens: {
                                 distance: {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.route,
-                                    exact: true,
                                 },
                                 manual: {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.route,
-                                    exact: true,
                                 },
                                 scan: {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route,
-                                    exact: true,
                                 },
                                 // eslint-disable-next-line @typescript-eslint/naming-convention
                                 'per-diem': {
