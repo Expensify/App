@@ -1,4 +1,6 @@
 import Log from '@libs/Log';
+import Timing from '@libs/actions/Timing';
+import CONST from '@src/CONST';
 
 function resolveAfter(delay: number): Promise<void> {
     return new Promise<void>((resolve) => {
@@ -14,6 +16,8 @@ function hide(): Promise<void> {
         if (splash) {
             splash.style.opacity = '0';
         }
+
+        Timing.end(CONST.TIMING.SPLASH_SCREEN);
 
         return resolveAfter(250).then(() => {
             if (!splash?.parentNode) {

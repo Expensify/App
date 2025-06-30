@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
+import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
@@ -185,8 +186,10 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
 
   useEffect(() => {
-    Timing.end(CONST.TIMING.OPEN_APP);
-    Performance.measureTTI();
+    InteractionManager.runAfterInteractions(() => {
+      Timing.end(CONST.TIMING.OPEN_APP);
+      Performance.measureTTI();
+    });
   }, []);
 
     useEffect(() => {
