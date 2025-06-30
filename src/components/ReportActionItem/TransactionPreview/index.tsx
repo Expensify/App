@@ -41,9 +41,9 @@ function TransactionPreview(props: TransactionPreviewProps) {
         contextAction,
     } = props;
 
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: true});
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: true});
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
@@ -75,14 +75,18 @@ function TransactionPreview(props: TransactionPreviewProps) {
     }, [chatReportID]);
 
     const navigateToReviewFields = useCallback(() => {
-        Navigation.navigate(getReviewNavigationRoute(route, report, transaction, duplicates));
-    }, [duplicates, report, route, transaction]);
+        Navigation.navigate(getReviewNavigationRoute(route, transactionThreadReport, transaction, duplicates));
+    }, [duplicates, transactionThreadReport, route, transaction]);
 
     const transactionPreview = transaction;
 
     const {originalTransaction, isBillSplit} = getOriginalTransactionWithSplitInfo(transaction);
 
     const iouAction = action;
+
+    // See description of `transactionRawAmount` prop for more context
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const transactionRawAmount = (transaction?.modifiedAmount || transaction?.amount) ?? 0;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isTransactionMadeWithCard = isCardTransaction(transaction);
@@ -108,7 +112,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     chatReport={chatReport}
                     personalDetails={personalDetails}
                     transaction={transactionPreview}
-                    iouReport={iouReport}
+                    transactionRawAmount={transactionRawAmount}
+                    report={report}
                     violations={violations}
                     offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
                     navigateToReviewFields={navigateToReviewFields}
@@ -131,7 +136,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
             chatReport={chatReport}
             personalDetails={personalDetails}
             transaction={originalTransaction}
-            iouReport={iouReport}
+            transactionRawAmount={transactionRawAmount}
+            report={report}
             violations={violations}
             offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
             navigateToReviewFields={navigateToReviewFields}
