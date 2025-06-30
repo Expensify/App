@@ -10888,6 +10888,10 @@ function isWorkspaceEligibleForReportChange(newPolicy: OnyxEntry<Policy>, report
         return false;
     }
 
+    if (!newPolicy?.isPolicyExpenseChatEnabled) {
+        return false;
+    }
+
     // We can only move the iou report to the workspace if the manager is the payer of the new policy
     if (isIOUReport(report)) {
         return isPaidGroupPolicyPolicyUtils(newPolicy) && isWorkspacePayer(managerLogin ?? '', newPolicy);
