@@ -19,6 +19,8 @@ type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTI
 
 type ReportExportType = DeepValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
 
+type OnboardingHelpType = DeepValueOf<typeof CONST.ONBOARDING_HELP>;
+
 type DropdownOption<TValueType> = {
     value: TValueType;
     text: string;
@@ -38,6 +40,8 @@ type DropdownOption<TValueType> = {
     descriptionTextStyle?: StyleProp<TextStyle>;
     wrapperStyle?: StyleProp<ViewStyle>;
     displayInDefaultIconColor?: boolean;
+    /** Whether the selected index should be updated when the option is selected even if we have onSelected callback */
+    shouldUpdateSelectedIndex?: boolean;
     subMenuItems?: PopoverMenuItem[];
     backButtonText?: string;
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
@@ -97,7 +101,7 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     popoverHorizontalOffsetType?: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
 
     /* ref for the button */
-    buttonRef?: RefObject<View>;
+    buttonRef?: RefObject<View | null>;
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
@@ -137,6 +141,15 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Icon for main button */
     icon?: IconAsset;
+
+    /** Whether the popover content should be scrollable */
+    shouldPopoverUseScrollView?: boolean;
+
+    /** Container style to be applied to the popover of the dropdown menu */
+    containerStyles?: StyleProp<ViewStyle>;
+
+    /** Whether to use modal padding style for the popover menu */
+    shouldUseModalPaddingStyle?: boolean;
 };
 
 export type {
@@ -148,4 +161,5 @@ export type {
     ButtonWithDropdownMenuProps,
     WorkspaceTaxRatesBulkActionType,
     ReportExportType,
+    OnboardingHelpType,
 };

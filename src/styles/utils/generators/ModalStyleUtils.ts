@@ -41,11 +41,12 @@ type GetModalStylesStyleUtil = {
         popoverAnchorPosition?: ViewStyle,
         innerContainerStyle?: ViewStyle,
         outerStyle?: ViewStyle,
+        shouldUseModalPaddingStyle?: boolean,
     ) => GetModalStyles;
 };
 
 const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({theme, styles}) => ({
-    getModalStyles: (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}): GetModalStyles => {
+    getModalStyles: (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}, shouldUseModalPaddingStyle = true): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
         let modalStyle: GetModalStyles['modalStyle'] = {
@@ -212,12 +213,15 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     width: '100%',
                     borderTopLeftRadius: variables.componentBorderRadiusLarge,
                     borderTopRightRadius: variables.componentBorderRadiusLarge,
-                    paddingTop: variables.componentBorderRadiusLarge,
-                    paddingBottom: variables.componentBorderRadiusLarge,
                     justifyContent: 'center',
                     overflow: 'hidden',
                     boxShadow: theme.shadow,
                 };
+
+                if (shouldUseModalPaddingStyle) {
+                    modalContainerStyle.paddingTop = variables.componentBorderRadiusLarge;
+                    modalContainerStyle.paddingBottom = variables.componentBorderRadiusLarge;
+                }
 
                 shouldAddBottomSafeAreaPadding = true;
                 swipeDirection = undefined;

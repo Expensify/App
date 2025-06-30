@@ -7,9 +7,10 @@ import {canActionTask, canModifyTask, completeTestDriveTask, getFinishOnboarding
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
+import {translateLocal} from '@libs/Localize';
 import Parser from '@libs/Parser';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
-import CONST, {getTestDriveTaskName} from '@src/CONST';
+import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -191,7 +192,7 @@ describe('actions/Task', () => {
         const testDriveTaskAction: ReportAction = {
             ...LHNTestUtils.getFakeReportAction(),
             childType: CONST.REPORT.TYPE.TASK,
-            childReportName: Parser.replace(getTestDriveTaskName(`${CONST.STAGING_NEW_EXPENSIFY_URL}/${ROUTES.TEST_DRIVE_DEMO_ROOT}`)),
+            childReportName: Parser.replace(translateLocal('onboarding.testDrive.name', {testDriveURL: `${CONST.STAGING_NEW_EXPENSIFY_URL}/${ROUTES.TEST_DRIVE_DEMO_ROOT}`})),
             childReportID: testDriveTaskReport.reportID,
         };
 
@@ -224,7 +225,7 @@ describe('actions/Task', () => {
         it('Completes test drive task', () => {
             const writeSpy = jest.spyOn(API, 'write');
 
-            completeTestDriveTask();
+            completeTestDriveTask(testDriveTaskReport, testDriveTaskReport.reportID);
 
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.COMPLETE_TASK, expect.anything(), expect.anything());
         });

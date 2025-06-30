@@ -13,24 +13,27 @@ import type {CorpayFieldsMap} from '@src/types/onyx/CorpayFields';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function getFieldsMap(corpayFields: OnyxEntry<CorpayFields>): Record<ValueOf<typeof CONST.CORPAY_FIELDS.STEPS_NAME>, CorpayFieldsMap> {
-    return (corpayFields?.formFields ?? []).reduce((acc, field) => {
-        if (!field.id) {
+    return (corpayFields?.formFields ?? []).reduce(
+        (acc, field) => {
+            if (!field.id) {
+                return acc;
+            }
+            if (field.id === CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY) {
+                acc[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE] = {[field.id]: field};
+            } else if (CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.includes(field.id)) {
+                acc[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION] = acc[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION] ?? {};
+                acc[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION][field.id] = field;
+            } else if (CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.includes(field.id)) {
+                acc[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION] = acc[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION] ?? {};
+                acc[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION][field.id] = field;
+            } else {
+                acc[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] = acc[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {};
+                acc[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS][field.id] = field;
+            }
             return acc;
-        }
-        if (field.id === CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY) {
-            acc[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE] = {[field.id]: field};
-        } else if (CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.includes(field.id)) {
-            acc[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION] = acc[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION] ?? {};
-            acc[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION][field.id] = field;
-        } else if (CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.includes(field.id)) {
-            acc[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION] = acc[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION] ?? {};
-            acc[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION][field.id] = field;
-        } else {
-            acc[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] = acc[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {};
-            acc[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS][field.id] = field;
-        }
-        return acc;
-    }, {} as Record<ValueOf<typeof CONST.CORPAY_FIELDS.STEPS_NAME>, CorpayFieldsMap>);
+        },
+        {} as Record<ValueOf<typeof CONST.CORPAY_FIELDS.STEPS_NAME>, CorpayFieldsMap>,
+    );
 }
 
 function getLatestCreatedBankAccount(bankAccountList: OnyxEntry<BankAccountList>): BankAccount | undefined {
@@ -57,16 +60,16 @@ function getSubstepValues(
         ...internationalBankAccountDraft,
         bankCountry: internationalBankAccountDraft?.bankCountry ?? corpayFields?.bankCountry ?? address?.country ?? latestBankAccount?.bankCountry ?? country ?? '',
         bankCurrency: internationalBankAccountDraft?.bankCurrency ?? corpayFields?.bankCurrency,
-        accountHolderName: !isEmptyObject(personalDetailsFieldMap?.accountHolderName) ? internationalBankAccountDraft?.accountHolderName ?? fullName : undefined,
-        accountHolderAddress1: !isEmptyObject(personalDetailsFieldMap?.accountHolderAddress1) ? internationalBankAccountDraft?.accountHolderAddress1 ?? street1 : undefined,
-        accountHolderAddress2: !isEmptyObject(personalDetailsFieldMap?.accountHolderAddress2) ? internationalBankAccountDraft?.accountHolderAddress2 ?? street2 : undefined,
-        accountHolderCity: !isEmptyObject(personalDetailsFieldMap?.accountHolderCity) ? internationalBankAccountDraft?.accountHolderCity ?? address?.city : undefined,
+        accountHolderName: !isEmptyObject(personalDetailsFieldMap?.accountHolderName) ? (internationalBankAccountDraft?.accountHolderName ?? fullName) : undefined,
+        accountHolderAddress1: !isEmptyObject(personalDetailsFieldMap?.accountHolderAddress1) ? (internationalBankAccountDraft?.accountHolderAddress1 ?? street1) : undefined,
+        accountHolderAddress2: !isEmptyObject(personalDetailsFieldMap?.accountHolderAddress2) ? (internationalBankAccountDraft?.accountHolderAddress2 ?? street2) : undefined,
+        accountHolderCity: !isEmptyObject(personalDetailsFieldMap?.accountHolderCity) ? (internationalBankAccountDraft?.accountHolderCity ?? address?.city) : undefined,
         accountHolderCountry: !isEmptyObject(personalDetailsFieldMap?.accountHolderCountry)
-            ? internationalBankAccountDraft?.accountHolderCountry ?? corpayFields?.bankCountry ?? address?.country ?? latestBankAccount?.bankCountry ?? country ?? ''
+            ? (internationalBankAccountDraft?.accountHolderCountry ?? corpayFields?.bankCountry ?? address?.country ?? latestBankAccount?.bankCountry ?? country ?? '')
             : undefined,
-        accountHolderPostal: !isEmptyObject(personalDetailsFieldMap?.accountHolderPostal) ? internationalBankAccountDraft?.accountHolderPostal ?? address?.zip : undefined,
+        accountHolderPostal: !isEmptyObject(personalDetailsFieldMap?.accountHolderPostal) ? (internationalBankAccountDraft?.accountHolderPostal ?? address?.zip) : undefined,
         accountHolderPhoneNumber: !isEmptyObject(personalDetailsFieldMap?.accountHolderPhoneNumber)
-            ? internationalBankAccountDraft?.accountHolderPhoneNumber ?? privatePersonalDetails?.phoneNumber
+            ? (internationalBankAccountDraft?.accountHolderPhoneNumber ?? privatePersonalDetails?.phoneNumber)
             : undefined,
     } as unknown as InternationalBankAccountForm;
 }

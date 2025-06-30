@@ -51,7 +51,7 @@ type ReportActionItemMessageProps = {
 function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHidden = false}: ReportActionItemMessageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getLinkedTransactionID(action)}`, {canBeMissing: true});
 
     const fragments = getReportActionMessageFragments(action);
@@ -119,7 +119,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
         const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? getOriginalMessage(action) : null;
         const iouReportID = originalMessage?.IOUReportID;
         if (iouReportID) {
-            iouMessage = getIOUReportActionDisplayMessage(action, transaction);
+            iouMessage = getIOUReportActionDisplayMessage(action, transaction, report);
         }
     }
 

@@ -20,7 +20,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {getCardFeedIcon, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getPlaidInstitutionIconUrl, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
@@ -123,6 +123,7 @@ type PaymentMethodItem = PaymentMethod & {
     iconRight?: React.FC<SvgProps>;
     isMethodActive?: boolean;
     cardID?: number;
+    plaidUrl?: string;
 } & BankIcon;
 
 function dismissError(item: PaymentMethodItem) {
@@ -211,7 +212,7 @@ function PaymentMethodList({
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
-            const assignedCards = Object.values(isLoadingCardList ? {} : cardList ?? {})
+            const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
                 // Filter by active cards associated with a domain
                 .filter((card) => !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
             const assignedCardsSorted = lodashSortBy(assignedCards, (card) => !isExpensifyCard(card.cardID));
@@ -224,8 +225,10 @@ function PaymentMethodList({
                 if (!isExpensifyCard(card.cardID)) {
                     const pressHandler = onPress as CardPressHandler;
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
+                    const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
+                        plaidUrl,
                         title: maskCardNumber(card.cardName, card.bank),
                         description: lastFourPAN
                             ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
@@ -315,7 +318,7 @@ function PaymentMethodList({
         // const paymentCardList = fundList ?? {};
         // const filteredCardList = Object.values(paymentCardList).filter((card) => !!card.accountData?.additionalData?.isP2PDebitCard);
         const filteredCardList = {};
-        let combinedPaymentMethods = formatPaymentMethods(isLoadingBankAccountList ? {} : bankAccountList ?? {}, filteredCardList, styles);
+        let combinedPaymentMethods = formatPaymentMethods(isLoadingBankAccountList ? {} : (bankAccountList ?? {}), filteredCardList, styles);
 
         if (filterType !== '') {
             combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterType);
@@ -427,7 +430,9 @@ function PaymentMethodList({
                     title={item.title}
                     description={item.description}
                     icon={item.icon}
+                    plaidUrl={item.plaidUrl}
                     disabled={item.disabled}
+                    iconType={item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON}
                     displayInDefaultIconColor
                     iconHeight={item.iconHeight ?? item.iconSize}
                     iconWidth={item.iconWidth ?? item.iconSize}

@@ -18,6 +18,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -99,6 +100,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {onboardingMessages} = useOnboardingMessages();
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
@@ -109,7 +111,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: true});
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
-    const {canUseDefaultRooms} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(undefined);
@@ -218,7 +220,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
         completeOnboarding({
             engagementChoice: onboardingPurposeSelected,
-            onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+            onboardingMessage: onboardingMessages[onboardingPurposeSelected],
             adminsChatReportID,
             onboardingPolicyID: policyID,
             companySize: onboardingCompanySize,
@@ -242,7 +244,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             navigateAfterOnboarding(
                 isSmallScreenWidth,
-                canUseDefaultRooms,
+                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                 policyID,
                 adminsChatReportID,
                 // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
@@ -251,10 +253,11 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             );
         });
     }, [
-        canUseDefaultRooms,
+        isBetaEnabled,
         isSmallScreenWidth,
         onboardingAdminsChatReportID,
         onboardingCompanySize,
+        onboardingMessages,
         onboardingPolicyID,
         onboardingPurposeSelected,
         paidGroupPolicy,
@@ -275,7 +278,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                 onPress={() => handleIntegrationSelect(item.keyForList)}
                 accessibilityLabel={item.text}
                 accessible={false}
-                style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100]}
+                hoverStyle={!item.isSelected ? styles.hoveredComponentBG : undefined}
+                style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100, item.isSelected && styles.activeComponentBG]}
             >
                 <RadioButtonWithLabel
                     isChecked={!!item.isSelected}
@@ -288,6 +292,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                             <Text style={styles.textStrong}>{item.text}</Text>
                         </View>
                     }
+                    shouldBlendOpacity
                 />
             </PressableWithoutFeedback>
         ),
@@ -301,6 +306,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             styles.ml0,
             styles.onboardingAccountingItem,
             styles.textStrong,
+            styles.hoveredComponentBG,
+            styles.activeComponentBG,
         ],
     );
 

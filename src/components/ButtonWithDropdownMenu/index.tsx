@@ -1,4 +1,4 @@
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
@@ -7,6 +7,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -49,6 +50,9 @@ function ButtonWithDropdownMenu<IValueType>({
     testID,
     secondLineText = '',
     icon,
+    shouldPopoverUseScrollView = false,
+    containerStyles,
+    shouldUseModalPaddingStyle = true,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -60,13 +64,20 @@ function ButtonWithDropdownMenu<IValueType>({
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(defaultPopoverAnchorPosition);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const dropdownAnchor = useRef<View | null>(null);
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     // eslint-disable-next-line react-compiler/react-compiler
     const dropdownButtonRef = isSplitButton ? buttonRef : mergeRefs(buttonRef, dropdownAnchor);
     const selectedItem = options.at(selectedItemIndex) ?? options.at(0);
     const areAllOptionsDisabled = options.every((option) => option.disabled);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
-    const nullCheckRef = (ref: MutableRefObject<View | null>) => ref ?? null;
+    const nullCheckRef = (ref: RefObject<View | null>) => ref ?? null;
+
+    useEffect(() => {
+        setSelectedItemIndex(defaultSelectedIndex);
+    }, [defaultSelectedIndex]);
 
     useEffect(() => {
         if (!dropdownAnchor.current) {
@@ -227,15 +238,27 @@ function ButtonWithDropdownMenu<IValueType>({
                     shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
                     // eslint-disable-next-line react-compiler/react-compiler
                     anchorRef={nullCheckRef(dropdownAnchor)}
-                    withoutOverlay
+                    scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && styles.pv4}
                     anchorAlignment={anchorAlignment}
+                    shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
                     headerText={menuHeaderText}
+                    shouldUseScrollView={shouldPopoverUseScrollView}
+                    containerStyles={containerStyles}
                     menuItems={options.map((item, index) => ({
                         ...item,
                         onSelected: item.onSelected
-                            ? () => item.onSelected?.()
+                            ? () => {
+                                  item.onSelected?.();
+                                  if (item.shouldUpdateSelectedIndex) {
+                                      setSelectedItemIndex(index);
+                                  }
+                              }
                             : () => {
                                   onOptionSelected?.(item);
+                                  if (!item.shouldUpdateSelectedIndex && typeof item.shouldUpdateSelectedIndex === 'boolean') {
+                                      return;
+                                  }
+
                                   setSelectedItemIndex(index);
                               },
                         shouldCallAfterModalHide: true,

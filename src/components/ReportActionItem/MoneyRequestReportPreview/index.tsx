@@ -2,7 +2,6 @@ import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
-import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -27,7 +26,6 @@ function MoneyRequestReportPreview({
     policyID,
     chatReportID,
     action,
-    containerStyles,
     contextMenuAnchor,
     isHovered = false,
     isWhisper = false,
@@ -55,17 +53,16 @@ function MoneyRequestReportPreview({
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
-    const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
-    const [currentWidth, setCurrentWidth] = useState(256);
-    const [currentWrapperWidth, setCurrentWrapperWidth] = useState(256);
+    const [currentWidth, setCurrentWidth] = useState<number>(0);
+    const [currentWrapperWidth, setCurrentWrapperWidth] = useState<number>(0);
     const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, currentWidth, currentWrapperWidth, transactions.length === 1),
+        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, currentWidth, currentWrapperWidth),
         [StyleUtils, currentWidth, currentWrapperWidth, shouldUseNarrowLayout, transactions.length],
     );
 
-    const shouldShowIOUData = useMemo(() => {
+    const shouldShowPayerAndReceiver = useMemo(() => {
         if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
             return false;
         }
@@ -96,13 +93,13 @@ function MoneyRequestReportPreview({
             isWhisper={isWhisper}
             isHovered={isHovered}
             iouReportID={iouReportID}
-            containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewStyle, containerStyles]}
+            containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle]}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
-            transactionPreviewWidth={reportPreviewStyles.transactionPreviewStyle.width}
+            transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
             transactionID={item.transactionID}
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
-            shouldShowIOUData={shouldShowIOUData}
+            shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
         />
     );
 
@@ -113,7 +110,7 @@ function MoneyRequestReportPreview({
             iouReport={iouReport}
             chatReport={chatReport}
             action={action}
-            containerStyles={[reportPreviewStyles.componentStyle, containerStyles]}
+            containerStyles={[reportPreviewStyles.componentStyle]}
             contextMenuAnchor={contextMenuAnchor}
             isHovered={isHovered}
             isWhisper={isWhisper}
@@ -126,13 +123,12 @@ function MoneyRequestReportPreview({
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             invoiceReceiverPolicy={invoiceReceiverPolicy}
             lastTransactionViolations={lastTransactionViolations}
-            isDelegateAccessRestricted={isDelegateAccessRestricted}
             renderTransactionItem={renderItem}
             onCarouselLayout={(e: LayoutChangeEvent) => {
-                setCurrentWidth(e.nativeEvent.layout.width ?? 255);
+                setCurrentWidth(e.nativeEvent.layout.width);
             }}
             onWrapperLayout={(e: LayoutChangeEvent) => {
-                setCurrentWrapperWidth(e.nativeEvent.layout.width ?? 255);
+                setCurrentWrapperWidth(e.nativeEvent.layout.width);
             }}
             currentWidth={currentWidth}
             reportPreviewStyles={reportPreviewStyles}

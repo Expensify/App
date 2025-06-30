@@ -92,7 +92,7 @@ function IOURequestStepDestination({
 
         if (backTo) {
             navigateBack();
-        } else if (explicitPolicyID) {
+        } else if (explicitPolicyID && transaction?.isFromGlobalCreate) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, policyExpenseReport?.reportID ?? reportID));
         } else {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, reportID));
@@ -144,7 +144,7 @@ function IOURequestStepDestination({
                                 style={[styles.w100]}
                                 onPress={() => {
                                     InteractionManager.runAfterInteractions(() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id));
+                                        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
                                     });
                                 }}
                                 text={translate('workspace.perDiem.editPerDiemRates')}

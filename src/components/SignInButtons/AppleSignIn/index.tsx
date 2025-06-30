@@ -2,12 +2,13 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
-import getUserLanguage from '@components/SignInButtons/GetUserLanguage';
 import {beginAppleSignIn} from '@libs/actions/Session';
+import {getDevicePreferredLocale} from '@libs/Localize';
 import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {AppleIDSignInOnFailureEvent, AppleIDSignInOnSuccessEvent} from '@src/types/modules/dom';
+import MAP_EXFY_LOCALE_TO_APPLE_LOCALE from './AppleSignInLocales';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
 // add a trim() call to lodashGet here to prevent headaches.
@@ -127,7 +128,7 @@ function AppleSignIn({isDesktopFlow = false, onPointerDown}: AppleSignInProps) {
             return;
         }
 
-        const localeCode = getUserLanguage();
+        const localeCode = MAP_EXFY_LOCALE_TO_APPLE_LOCALE[getDevicePreferredLocale()];
         const script = document.createElement('script');
         script.src = `https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1//${localeCode}/appleid.auth.js`;
         script.async = true;

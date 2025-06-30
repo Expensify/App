@@ -17,10 +17,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {togglePlatformMute, updateNewsletterSubscription} from '@libs/actions/User';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import getPlatform from '@libs/getPlatform';
-import LocaleUtils from '@libs/LocaleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import {isFullySupportedLocale, LOCALE_TO_LANGUAGE_STRING} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -32,12 +32,13 @@ function PreferencesPage() {
     const isPlatformMuted = mutedPlatforms[platform];
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME, {canBeMissing: true});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const personalPolicy = usePolicy(getPersonalPolicy()?.id);
 
     const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
@@ -97,10 +98,11 @@ function PreferencesPage() {
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={translate(`languagePage.languages.${LocaleUtils.getLanguageFromLocale(preferredLocale)}.label`)}
+                                title={preferredLocale ? LOCALE_TO_LANGUAGE_STRING[preferredLocale] : undefined}
                                 description={translate('languagePage.language')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
+                                hintText={!preferredLocale || !isFullySupportedLocale(preferredLocale) ? translate('languagePage.aiGenerated') : ''}
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon

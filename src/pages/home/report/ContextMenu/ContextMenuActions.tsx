@@ -23,7 +23,10 @@ import {getCleanedTagName} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {
     getActionableMentionWhisperMessage,
+    getAddedApprovalRuleMessage,
+    getAddedConnectionMessage,
     getCardIssuedMessage,
+    getDeletedApprovalRuleMessage,
     getExportIntegrationMessageHTML,
     getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
@@ -42,10 +45,18 @@ import {
     getRenamedAction,
     getReopenedMessage,
     getReportActionMessageText,
+    getTagListNameUpdatedMessage,
+    getTravelUpdateMessage,
+    getUpdatedApprovalRuleMessage,
+    getUpdatedAuditRateMessage,
+    getUpdatedManualApprovalThresholdMessage,
     getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
+    getWorkspaceCustomUnitRateDeletedMessage,
+    getWorkspaceCustomUnitRateUpdatedMessage,
+    getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReportFieldAddMessage,
@@ -86,14 +97,12 @@ import {
     getChildReportNotificationPreference as getChildReportNotificationPreferenceReportUtils,
     getDeletedTransactionMessage,
     getDowngradeWorkspaceMessage,
-    getIOUForwardedMessage,
     getIOUReportActionDisplayMessage,
     getOriginalReportID,
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
-    getReportAutomaticallyForwardedMessage,
     getReportName,
     getReportPreviewMessage,
     getUpgradeWorkspaceMessage,
@@ -126,7 +135,7 @@ import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
-    const message = Array.isArray(reportAction?.message) ? reportAction?.message?.at(-1) ?? null : reportAction?.message ?? null;
+    const message = Array.isArray(reportAction?.message) ? (reportAction?.message?.at(-1) ?? null) : (reportAction?.message ?? null);
     return message?.html ?? '';
 }
 
@@ -271,11 +280,11 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.replyInThread',
         icon: Expensicons.ChatBubbleReply,
-        shouldShow: ({type, reportAction, reportID, isThreadReportParentAction}) => {
+        shouldShow: ({type, reportAction, reportID, isThreadReportParentAction, isArchivedRoom}) => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !reportID) {
                 return false;
             }
-            return !shouldDisableThread(reportAction, reportID, isThreadReportParentAction);
+            return !shouldDisableThread(reportAction, reportID, isThreadReportParentAction, isArchivedRoom);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -525,10 +534,18 @@ const ContextMenuActions: ContextMenuAction[] = [
                     reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME
                 ) {
                     Clipboard.setString(getWorkspaceCategoryUpdateMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME) {
+                    Clipboard.setString(getCleanedTagName(getTagListNameUpdatedMessage(reportAction)));
                 } else if (isTagModificationAction(reportAction.actionName)) {
                     Clipboard.setString(getCleanedTagName(getWorkspaceTagUpdateMessage(reportAction)));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT) {
+                    Clipboard.setString(getWorkspaceCustomUnitUpdatedMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE) {
                     Clipboard.setString(getWorkspaceCustomUnitRateAddedMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE) {
+                    Clipboard.setString(getWorkspaceCustomUnitRateUpdatedMessage(reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
+                    Clipboard.setString(getWorkspaceCustomUnitRateDeletedMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD) {
                     Clipboard.setString(getWorkspaceReportFieldAddMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD) {
@@ -559,7 +576,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
                     isMarkAsClosedAction(reportAction)
                 ) {
-                    const harvesting = !isMarkAsClosedAction(reportAction) ? getOriginalMessage(reportAction)?.harvesting ?? false : false;
+                    const harvesting = !isMarkAsClosedAction(reportAction) ? (getOriginalMessage(reportAction)?.harvesting ?? false) : false;
                     if (harvesting) {
                         setClipboardMessage(translateLocal('iou.automaticallySubmitted'));
                     } else {
@@ -577,9 +594,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
                     const {automaticAction} = getOriginalMessage(reportAction) ?? {};
                     if (automaticAction) {
-                        setClipboardMessage(getReportAutomaticallyForwardedMessage(reportAction, reportID));
+                        setClipboardMessage(translateLocal('iou.automaticallyForwarded'));
                     } else {
-                        Clipboard.setString(getIOUForwardedMessage(reportAction, reportID));
+                        Clipboard.setString(translateLocal('iou.forwarded'));
                     }
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
                     const displayMessage = getRejectedReportMessage();
@@ -624,8 +641,22 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getIntegrationSyncFailedMessage(reportAction));
                 } else if (isCardIssuedAction(reportAction)) {
                     setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, card}));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION)) {
+                    setClipboardMessage(getAddedConnectionMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
                     setClipboardMessage(getRemovedConnectionMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
+                    setClipboardMessage(getTravelUpdateMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE)) {
+                    setClipboardMessage(getUpdatedAuditRateMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE)) {
+                    setClipboardMessage(getAddedApprovalRuleMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_APPROVER_RULE)) {
+                    setClipboardMessage(getDeletedApprovalRuleMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE)) {
+                    setClipboardMessage(getUpdatedApprovalRuleMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
+                    setClipboardMessage(getUpdatedManualApprovalThresholdMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
                     const displayMessage = getPolicyChangeMessage(reportAction);
                     Clipboard.setString(displayMessage);

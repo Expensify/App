@@ -19,9 +19,9 @@ import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getMCardNumberString, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
-import {translateLocal} from '@libs/Localize';
+import Navigation from '@libs/Navigation/Navigation';
 import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
-import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit, continueSetup} from '@userActions/PaymentMethods';
+import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,8 +29,8 @@ import ROUTES from '@src/ROUTES';
 function AddPaymentCard() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID});
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: false});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID, canBeMissing: false});
 
     const subscriptionPlan = useSubscriptionPlan();
     const subscriptionPrice = useSubscriptionPrice();
@@ -42,7 +42,7 @@ function AddPaymentCard() {
 
     const subscriptionPricingInfo =
         hasTeam2025Pricing && isCollect
-            ? translateLocal('subscription.yourPlan.pricePerMemberPerMonth', {price: convertToShortDisplayString(subscriptionPrice, preferredCurrency)})
+            ? translate('subscription.yourPlan.pricePerMemberPerMonth', {price: convertToShortDisplayString(subscriptionPrice, preferredCurrency)})
             : translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
                   lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
                   upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
@@ -72,7 +72,7 @@ function AddPaymentCard() {
         [accountID],
     );
 
-    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {canBeMissing: true});
     const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
 
     useEffect(() => {
@@ -80,7 +80,7 @@ function AddPaymentCard() {
             return;
         }
 
-        continueSetup();
+        Navigation.goBack();
     }, [prevFormDataSetupComplete, formData?.setupComplete]);
 
     return (
