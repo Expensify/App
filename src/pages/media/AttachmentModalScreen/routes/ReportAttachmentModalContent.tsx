@@ -6,6 +6,7 @@ import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import {openReport} from '@libs/actions/Report';
 import validateAttachmentFile from '@libs/AttachmentUtils';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
@@ -87,21 +88,26 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
-            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute(
+            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute({
                 reportID,
-                attachment.attachmentID,
+                attachmentID: attachment.attachmentID,
                 type,
-                String(attachment.source),
+                source: String(attachment.source),
                 accountID,
-                attachment?.isAuthTokenRequired,
-                attachment?.file?.name,
-                attachment?.attachmentLink,
+                isAuthTokenRequired: attachment?.isAuthTokenRequired,
+                originalFileName: attachment?.file?.name,
+                attachmentLink: attachment?.attachmentLink,
                 hashKey,
-            );
+            });
             Navigation.navigate(routeToNavigate);
         },
         [reportID, type, accountID, hashKey],
     );
+
+    const onClose = useCallback(() => {
+        // This enables Composer refocus when the attachments modal is closed by the browser navigation
+        ComposerFocusManager.setReadyToFocus();
+    }, []);
 
     /**
      * If our attachment is a PDF, return the unswipeable Modal type.
@@ -230,6 +236,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             contentProps={contentProps}
             modalType={modalType}
             onShow={onShow}
+            onClose={onClose}
         />
     );
 }
