@@ -1,8 +1,11 @@
 import {useMemo} from 'react';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import {filterAndOrderOptions, getMemberInviteOptions} from '@libs/OptionsListUtils';
+import {appendCountryCode} from '@libs/LoginUtils';
+import {filterAndOrderOptions, getHeaderMessage, getMemberInviteOptions} from '@libs/OptionsListUtils';
+import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import CONST from '@src/CONST';
 import type {Beta} from '@src/types/onyx';
+import useLocalize from './useLocalize';
 
 type UseMemberInviteSearchConfig = {
     shouldInitialize: boolean;
@@ -11,6 +14,7 @@ type UseMemberInviteSearchConfig = {
     includeSelectedOptions?: boolean;
     includeRecentReports?: boolean;
     searchTerm?: string;
+    policyName?: string;
 };
 
 /**
@@ -24,10 +28,12 @@ function useMemberInviteSearch({
     includeSelectedOptions = true,
     includeRecentReports = false,
     searchTerm = '',
+    policyName = '',
 }: UseMemberInviteSearchConfig) {
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize,
     });
+    const {translate} = useLocalize();
 
     const excludedUsers = useMemo(() => {
         return {
@@ -54,10 +60,24 @@ function useMemberInviteSearch({
         return filterAndOrderOptions(defaultOptions, searchTerm, {excludeLogins: excludedUsers});
     }, [searchTerm, defaultOptions, excludedUsers]);
 
+    const headerMessage = useMemo(() => {
+        const searchValue = searchTerm.trim().toLowerCase();
+        if (!filteredOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+            return translate('messages.errorMessageInvalidEmail');
+        }
+        if (
+            !filteredOptions.userToInvite &&
+            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
+        ) {
+            return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
+        }
+        return getHeaderMessage(filteredOptions.personalDetails.length !== 0, !!filteredOptions.userToInvite, searchValue);
+    }, [excludedUsers, translate, searchTerm, policyName, filteredOptions.userToInvite, filteredOptions.personalDetails.length]);
+
     return {
         options: filteredOptions,
         areOptionsInitialized,
-        excludedUsers,
+        headerMessage: headerMessage ?? '',
     };
 }
 
