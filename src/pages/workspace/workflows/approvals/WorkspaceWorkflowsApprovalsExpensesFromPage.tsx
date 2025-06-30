@@ -22,12 +22,10 @@ import {setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {searchInServer} from '@libs/actions/Report';
 import {setApprovalWorkflowMembers} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
-import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
+import {formatMemberForList, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -74,12 +72,13 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const {
         options: inviteOptions,
         areOptionsInitialized,
-        excludedUsers,
+        headerMessage,
     } = useMemberInviteSearch({
         shouldInitialize: true,
         searchTerm: debouncedSearchTerm,
         betas: betas ?? [],
         includeRecentReports: false,
+        policyName: policy?.name ?? '',
     });
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -89,6 +88,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
 
     const personalDetailLogins = useDeepCompareRef(Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])));
+
+    const stablePersonalDetails = useDeepCompareRef(inviteOptions.personalDetails);
+    const stableUserToInvite = useDeepCompareRef(inviteOptions.userToInvite);
 
     useEffect(() => {
         if (!approvalWorkflow?.members) {
@@ -100,33 +102,13 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
                 let accountID = Number(policyMemberEmailsToAccountIDs[member.email]);
 
-                // If no accountID found in workspace members, check invite options (for new users)
                 if (!accountID) {
-                    const personalDetail = inviteOptions.personalDetails.find((detail) => detail.login === member.email);
-                    const userToInvite = inviteOptions.userToInvite?.login === member.email ? inviteOptions.userToInvite : null;
+                    const personalDetail = stablePersonalDetails?.find((detail) => detail.login === member.email);
+                    const userToInvite = stableUserToInvite?.login === member.email ? stableUserToInvite : null;
                     accountID = personalDetail?.accountID ?? userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 }
 
                 const login = personalDetailLogins?.[accountID];
-                const isWorkspaceMember = !!policyMemberEmailsToAccountIDs[member.email];
-                const isAdmin = policy?.employeeList?.[member.email]?.role === CONST.REPORT.ROLE.ADMIN;
-
-                // Determine right element based on member type
-                let rightElement: React.ReactNode;
-                if (isWorkspaceMember) {
-                    rightElement = (
-                        <MemberRightIcon
-                            role={policy?.employeeList?.[member.email]?.role}
-                            owner={policy?.owner}
-                            login={login}
-                        />
-                    );
-                } else if (isAdmin) {
-                    // For external users (invited), show admin badge if they're admin
-                    rightElement = <Badge text={translate('common.admin')} />;
-                } else {
-                    rightElement = undefined;
-                }
 
                 return {
                     text: member.displayName,
@@ -135,7 +117,13 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     isSelected: true,
                     login: member.email,
                     icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}],
-                    rightElement,
+                    rightElement: (
+                        <MemberRightIcon
+                            role={policy?.employeeList?.[member.email]?.role}
+                            owner={policy?.owner}
+                            login={login}
+                        />
+                    ),
                     accountID,
                 };
             });
@@ -145,7 +133,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
             return [...workflowMembers, ...preservedSelectedMembers];
         });
-    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate, inviteOptions.personalDetails, inviteOptions.userToInvite]);
+    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate, stablePersonalDetails, stableUserToInvite]);
 
     const approversEmail = useMemo(() => approvalWorkflow?.approvers.map((member) => member?.email), [approvalWorkflow?.approvers]);
 
@@ -245,11 +233,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     }, [isInitialCreationFlow, route.params.policyID, firstApprover, approvalWorkflow?.action]);
 
     const nextStep = useCallback(() => {
-        const members: Member[] = selectedMembers.map((member) => ({
-            displayName: member.text,
-            avatar: typeof member.icons?.at(0)?.source === 'string' ? member.icons.at(0)?.source : undefined,
-            email: member.login,
-        }));
+        const members: Member[] = selectedMembers.map((member) => ({displayName: member.text, avatar: member.icons?.[0]?.source, email: member.login}));
         setApprovalWorkflowMembers(members);
 
         const existingMemberEmails = new Set(Object.keys(policy?.employeeList ?? {}));
@@ -301,29 +285,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const toggleMember = (member: SelectionListMember) => {
         const isAlreadySelected = selectedMembers.some((selectedOption) => selectedOption.login === member.login);
 
-        if (isAlreadySelected) {
-            const newSelectedMembers = selectedMembers.filter((selectedOption) => selectedOption.login !== member.login);
-            setSelectedMembers(newSelectedMembers);
-        } else {
-            const memberToAdd = {...member, isSelected: true};
-            const newSelectedMembers = [...selectedMembers, memberToAdd];
-            setSelectedMembers(newSelectedMembers);
-        }
+        setSelectedMembers(isAlreadySelected ? selectedMembers.filter((selectedOption) => selectedOption.login !== member.login) : [...selectedMembers, {...member, isSelected: true}]);
     };
-
-    const headerMessage = useMemo(() => {
-        const searchValue = debouncedSearchTerm.trim().toLowerCase();
-        if (!inviteOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
-            return translate('messages.errorMessageInvalidEmail');
-        }
-        if (
-            !inviteOptions.userToInvite &&
-            excludedUsers[parsePhoneNumber(appendCountryCode(searchValue)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue)) : searchValue]
-        ) {
-            return translate('messages.userIsAlreadyMember', {login: searchValue, name: policy?.name ?? ''});
-        }
-        return getHeaderMessage(inviteOptions.personalDetails.length !== 0, !!inviteOptions.userToInvite, searchValue);
-    }, [excludedUsers, translate, debouncedSearchTerm, policy?.name, inviteOptions.userToInvite, inviteOptions.personalDetails.length]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm);
