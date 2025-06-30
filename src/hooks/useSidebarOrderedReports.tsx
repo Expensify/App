@@ -284,9 +284,38 @@ function SidebarOrderedReportsContextProvider({
             });
         }
         contextHadValue.current = contextValue.orderedReports.length > 0;
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [contextValue]);
+    }, [
+        accountID,
+        betas,
+        chatReports,
+        contextValue,
+        currentReportsToDisplay,
+        derivedCurrentReportID,
+        orderedReportIDs,
+        orderedReports,
+        policies,
+        prevAccountID,
+        prevBetas,
+        prevChatReports,
+        prevContextValue,
+        prevCurrentReportsToDisplay,
+        prevDerivedCurrentReportID,
+        prevOrderedReportIDs,
+        prevOrderedReports,
+        prevPolicies,
+        prevPriorityMode,
+        prevReportAttributes,
+        prevReportNameValuePairs,
+        prevReportsToDisplayInLHN,
+        prevShouldUseNarrowLayout,
+        prevTransactionViolations,
+        priorityMode,
+        reportAttributes,
+        reportNameValuePairs,
+        reportsToDisplayInLHN,
+        shouldUseNarrowLayout,
+        transactionViolations,
+    ]);
 
     return <SidebarOrderedReportsContext.Provider value={contextValue}>{children}</SidebarOrderedReportsContext.Provider>;
 }
