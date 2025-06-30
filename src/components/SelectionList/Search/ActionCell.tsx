@@ -122,6 +122,7 @@ function ActionCell({
                 iconHoverFill={theme.dangerHover}
                 isNested
                 isDisabled={isDisabled}
+                disabledStyle={[styles.opacity1]}
             />
         ) : null;
     }
