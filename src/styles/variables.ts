@@ -259,6 +259,9 @@ export default {
     cardMiniatureHeight: 13,
     cardMiniatureBorderRadius: 2,
 
+    cardAvatarWidth: 20,
+    cardAvatarHeight: 13,
+
     cardNameWidth: 156,
     updateAnimationW: 390,
     updateAnimationH: 240,
