@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
 import {StyleSheet} from 'react-native';
@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {hideContextMenu, showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -31,10 +32,12 @@ function BaseAnchorForCommentsOnly({
     wrapperStyle,
     ...rest
 }: BaseAnchorForCommentsOnlyProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const linkRef = useRef<RNText>(null);
     const flattenStyle = StyleSheet.flatten(style);
+    const [isHovered, setIsHovered] = useState(false);
 
     useEffect(
         () => () => {
@@ -52,6 +55,7 @@ function BaseAnchorForCommentsOnly({
         linkProps.href = href;
     }
     const defaultTextStyle = canUseTouchScreen() || shouldUseNarrowLayout ? {} : {...styles.userSelectText, ...styles.cursorPointer};
+    const hoverStyle = isHovered ? StyleUtils.getColorStyle(theme.linkHover) : {};
     const isEmail = Str.isValidEmail(href.replace(/mailto:/i, ''));
     const linkHref = !linkHasImage ? href : undefined;
     const isFocused = useIsFocused();
@@ -79,6 +83,8 @@ function BaseAnchorForCommentsOnly({
             }}
             onPressIn={onPressIn}
             onPressOut={onPressOut}
+            onHoverIn={() => setIsHovered(true)}
+            onHoverOut={() => setIsHovered(false)}
             role={CONST.ROLE.LINK}
             accessibilityLabel={href}
             wrapperStyle={wrapperStyle}
@@ -89,7 +95,7 @@ function BaseAnchorForCommentsOnly({
             >
                 <Text
                     ref={linkRef}
-                    style={StyleSheet.flatten([style, defaultTextStyle])}
+                    style={StyleSheet.flatten([style, defaultTextStyle, hoverStyle])}
                     role={CONST.ROLE.LINK}
                     hrefAttrs={{
                         rel,
