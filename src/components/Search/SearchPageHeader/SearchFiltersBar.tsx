@@ -325,6 +325,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         status,
         personalDetails,
         isDevelopment,
+        feed,
+        feedComponent,
     ]);
 
     if (hasErrors) {
