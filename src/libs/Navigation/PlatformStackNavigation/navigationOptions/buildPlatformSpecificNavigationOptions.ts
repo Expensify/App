@@ -5,7 +5,7 @@ const getCommonNavigationOptions = (screenOptions: PlatformStackNavigationOption
     screenOptions === undefined ? {} : (({animation, keyboardHandlingEnabled, web, native, ...rest}: PlatformStackNavigationOptions) => rest)(screenOptions);
 
 const buildPlatformSpecificNavigationOptions = <NavigationOptions extends PlatformSpecificNavigationOptions>(screenOptions: PlatformStackNavigationOptions): NavigationOptions => ({
-    keyboardHandlingEnabled: screenOptions.keyboardHandlingEnabled,
+    keyboardHandlingEnabled: false, // screenOptions.keyboardHandlingEnabled,
     ...withAnimation<NavigationOptions>(screenOptions),
     ...getCommonNavigationOptions(screenOptions),
 });
