@@ -41,13 +41,13 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.accountID});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [selectedOptions, setSelectedOptions] = useState<Option[]>(() => {
-        return value.reduce<OptionData[]>((acc, id) => {
-            const participant = personalDetails?.[id];
+        return value.reduce<OptionData[]>((acc, accountID) => {
+            const participant = personalDetails?.[accountID];
             if (!participant) {
                 return acc;
             }
@@ -90,17 +90,17 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             }))
             .sort((a, b) => {
                 // Put the current user at the top of the list
-                if (a.accountID === accountID) {
+                if (a.accountID === session?.accountID) {
                     return -1;
                 }
-                if (b.accountID === accountID) {
+                if (b.accountID === session?.accountID) {
                     return 1;
                 }
                 return 0;
             });
 
         return [...(personalDetailList ?? []), ...(recentReports ?? [])];
-    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, accountID]);
+    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, session?.accountID]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
