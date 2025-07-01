@@ -345,7 +345,7 @@ function BaseTextInput(
                                 </View>
                             )}
                             {!!prefixCharacter && (
-                                <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
+                                <View style={[styles.textInputPrefixWrapper, prefixContainerStyle, shouldApplyHeight && {height}]}>
                                     <Text
                                         onLayout={(event) => {
                                             if (event.nativeEvent.layout.width === 0 && event.nativeEvent.layout.height === 0) {
@@ -357,6 +357,7 @@ function BaseTextInput(
                                         tabIndex={-1}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                        shouldUseDefaultLineHeight={!Object.keys(StyleSheet.flatten(prefixStyle)).includes('lineHeight') && !shouldApplyHeight}
                                     >
                                         {prefixCharacter}
                                     </Text>
@@ -423,6 +424,7 @@ function BaseTextInput(
                                         tabIndex={-1}
                                         style={[styles.textInputSuffix, !hasLabel && styles.pv0, styles.pointerEventsNone, suffixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                        shouldUseDefaultLineHeight={!Object.keys(StyleSheet.flatten(suffixStyle)).includes('lineHeight') && !shouldApplyHeight}
                                     >
                                         {suffixCharacter}
                                     </Text>
