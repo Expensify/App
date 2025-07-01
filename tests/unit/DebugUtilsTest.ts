@@ -14,7 +14,7 @@ import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction'
 import {chatReportR14932} from '../../__mocks__/reportData/reports';
 import type ReportActionName from '../../src/types/onyx/ReportActionName';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 
 const MOCK_REPORT: Report = {
