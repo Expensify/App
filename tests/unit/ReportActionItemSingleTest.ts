@@ -1,16 +1,20 @@
 import {renderHook, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
+import * as PersonalDetailsUtils from '@src/libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DO_NOT_USE__EXPORT_FOR_TESTS__useIDOfReportPreviewSender as useIDOfReportPreviewSender} from '@src/pages/home/report/ReportActionItemSingle';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';
-import {iouReportR14932} from '../../__mocks__/reportData/reports';
+import personalDetails from '../../__mocks__/reportData/personalDetails';
+import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
 import {transactionR14932} from '../../__mocks__/reportData/transactions';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+
+import PropertyKeysOf = jest.PropertyKeysOf;
 
 describe('ReportActionItemSingle', () => {
     beforeAll(() =>
@@ -100,10 +104,16 @@ const validAction = {
 };
 
 describe('useIDOfReportPreviewSender', () => {
+    const mockedEmailToID: Record<string, PropertyKeysOf<typeof personalDetails>> = {
+        [personalDetails[15593135].login]: 15593135,
+        [personalDetails[51760358].login]: 51760358,
+    };
+
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockImplementation((email) => personalDetails[mockedEmailToID[email]]);
     });
 
     beforeEach(() => {
@@ -124,6 +134,7 @@ describe('useIDOfReportPreviewSender', () => {
             useIDOfReportPreviewSender({
                 action: actionR14932,
                 iouReport: iouReportR14932,
+                report: chatReportR14932,
             }),
         );
         expect(result.current).toBeUndefined();
@@ -134,6 +145,7 @@ describe('useIDOfReportPreviewSender', () => {
             useIDOfReportPreviewSender({
                 action: {...validAction, childMoneyRequestCount: 0},
                 iouReport: iouReportR14932,
+                report: chatReportR14932,
             }),
         );
         expect(result.current).toBe(iouReportR14932.managerID);
@@ -143,19 +155,20 @@ describe('useIDOfReportPreviewSender', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}`, {
             ...transactionR14932,
             comment: {
-                attendees: [{email: 'test@test.com', displayName: 'Test One', avatarUrl: 'https://none.com/none'}],
+                attendees: [{email: personalDetails[15593135].login, displayName: 'Test One', avatarUrl: 'https://none.com/none'}],
             },
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}2`, {
             ...transactionR14932,
             comment: {
-                attendees: [{email: 'test2@test.com', displayName: 'Test Two', avatarUrl: 'https://none.com/none2'}],
+                attendees: [{email: personalDetails[51760358].login, displayName: 'Test Two', avatarUrl: 'https://none.com/none2'}],
             },
         });
         const {result} = renderHook(() =>
             useIDOfReportPreviewSender({
                 action: validAction,
                 iouReport: iouReportR14932,
+                report: chatReportR14932,
             }),
         );
         expect(result.current).toBeUndefined();
@@ -174,6 +187,7 @@ describe('useIDOfReportPreviewSender', () => {
             useIDOfReportPreviewSender({
                 action: validAction,
                 iouReport: iouReportR14932,
+                report: chatReportR14932,
             }),
         );
         expect(result.current).toBeUndefined();
@@ -184,6 +198,7 @@ describe('useIDOfReportPreviewSender', () => {
             useIDOfReportPreviewSender({
                 action: validAction,
                 iouReport: iouReportR14932,
+                report: chatReportR14932,
             }),
         );
         expect(result.current).toBe(iouReportR14932.ownerAccountID);

@@ -151,7 +151,9 @@ function useIDOfReportPreviewSender({action, iouReport, report}: {action: OnyxEn
 
     const attendeesIDs = transactions
         // If the transaction is a split, then attendees are not present so we need to use a helper function.
-        ?.flatMap<number | undefined>((tr) => tr.comment?.attendees?.map((att) => getPersonalDetailByEmail(att.email)?.accountID) ?? getSplitAuthor(tr, splits))
+        ?.flatMap<number | undefined>((tr) =>
+            tr.comment?.attendees?.map((att) => (tr.comment?.source === CONST.IOU.TYPE.SPLIT ? getSplitAuthor(tr, splits) : getPersonalDetailByEmail(att.email)?.accountID)),
+        )
         // We filter out empty ID's
         .filter((accountID) => !!accountID);
 
@@ -201,7 +203,7 @@ function ReportActionItemSingle({
         report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? activePolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
 
     let displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails});
-    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[accountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
+    const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[accountID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
