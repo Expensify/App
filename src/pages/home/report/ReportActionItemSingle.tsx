@@ -41,7 +41,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
@@ -90,6 +90,22 @@ const showWorkspaceDetails = (reportID: string | undefined) => {
     Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
 };
 
+function getSplitAuthor(transaction: Transaction, splits?: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>) {
+    const {originalTransactionID, source} = transaction.comment ?? {};
+
+    if (source !== CONST.IOU.TYPE.SPLIT || originalTransactionID === undefined) {
+        return undefined;
+    }
+
+    const splitAction = splits?.find((split) => getOriginalMessage(split)?.IOUTransactionID === originalTransactionID);
+
+    if (!splitAction) {
+        return undefined;
+    }
+
+    return splitAction.actorAccountID;
+}
+
 /**
  * This hook is used to determine the ID of the sender for the report preview action.
  * There are few fallbacks to determine the sender ID.
@@ -99,7 +115,7 @@ const showWorkspaceDetails = (reportID: string | undefined) => {
  *
  * For a reason why it is here, see https://github.com/Expensify/App/pull/64802 discussion
  */
-function useIDOfReportPreviewSender({action, iouReport}: {action: OnyxEntry<ReportAction>; iouReport?: OnyxEntry<Report>}) {
+function useIDOfReportPreviewSender({action, iouReport, report}: {action: OnyxEntry<ReportAction>; iouReport: OnyxEntry<Report>; report: OnyxEntry<Report>}) {
     const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`, {
         canBeMissing: true,
         selector: (actions) => Object.values(actions ?? {}).filter(isMoneyRequestAction),
@@ -108,6 +124,14 @@ function useIDOfReportPreviewSender({action, iouReport}: {action: OnyxEntry<Repo
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         canBeMissing: true,
         selector: (allTransactions) => selectAllTransactionsForReport(allTransactions, action?.childReportID, iouActions ?? []),
+    });
+
+    const [splits] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
+        canBeMissing: true,
+        selector: (actions) =>
+            Object.values(actions ?? {})
+                .filter(isMoneyRequestAction)
+                .filter((act) => getOriginalMessage(act)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT),
     });
 
     if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
@@ -125,17 +149,17 @@ function useIDOfReportPreviewSender({action, iouReport}: {action: OnyxEntry<Repo
     // See: https://github.com/Expensify/App/pull/64802#issuecomment-3008944401
     const areAmountsSignsTheSame = new Set(transactions?.map((tr) => Math.sign(tr.amount))).size < 2;
 
-    // 3. If there is only one attendee - we check that by counting unique emails in the attendees list.
+    // 3. If there is only one attendee - we check that by counting unique emails converted to account IDs in the attendees list.
     // This has to be done as there are cases when transaction amounts signs are the same until report is opened.
     // See: https://github.com/Expensify/App/pull/64802#issuecomment-3007906310
-    const isThereOnlyOneAttendee =
-        new Set(
-            transactions
-                // If the transaction is a split, then it had to be created by someone even though the attendees are not present.
-                ?.flatMap<string | boolean>((tr) => tr.comment?.attendees?.map((att) => att.email) ?? tr.comment?.source === 'split')
-                // We filter out the concierge email and empty emails.
-                .filter((email) => !!email && email !== CONST.EMAIL.CONCIERGE),
-        ).size <= 1;
+
+    const attendeesIDs = transactions
+        // If the transaction is a split, then attendees are not present so we need to use a helper function.
+        ?.flatMap<number | undefined>((tr) => tr.comment?.attendees?.map((att) => getPersonalDetailByEmail(att.email)?.accountID) ?? getSplitAuthor(tr, splits))
+        // We filter out empty ID's
+        .filter((accountID) => !!accountID);
+
+    const isThereOnlyOneAttendee = new Set(attendeesIDs).size <= 1;
 
     // If the action is a 'Send Money' flow, it will only have one transaction, but the person who sent the money is the child manager account, not the child owner account.
     const isSendMoneyFlow = action?.childMoneyRequestCount === 0 && transactions?.length === 1;
@@ -177,7 +201,7 @@ function ReportActionItemSingle({
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
-    const reportPreviewSenderID = useIDOfReportPreviewSender({action, iouReport});
+    const reportPreviewSenderID = useIDOfReportPreviewSender({action, iouReport, report});
     const accountID = reportPreviewSenderID ?? actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const invoiceReceiverPolicy =
