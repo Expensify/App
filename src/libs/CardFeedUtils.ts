@@ -410,6 +410,8 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
     });
 
     if (hasExpensifyCard) {
+        // s77rt check if the value that we should send to the backend is "Expensify Card" (same as displayed text)
+        // And if so update buildSubstitutionsMap to handle highlighting
         cardFeedsForDisplay[CONST.EXPENSIFY_CARD.BANK] = {
             feed: CONST.EXPENSIFY_CARD.BANK,
             name: CONST.EXPENSIFY_CARD.BANK,
