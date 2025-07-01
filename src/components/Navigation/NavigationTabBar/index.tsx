@@ -56,7 +56,7 @@ type NavigationTabBarProps = {
 function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar = false}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {orderedReports} = useSidebarOrderedReports();
     const subscriptionPlan = useSubscriptionPlan();
@@ -255,6 +255,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                     )}
                                 </View>
                                 <Text
+                                    numberOfLines={2}
                                     style={[
                                         styles.textSmall,
                                         styles.textAlignCenter,
@@ -282,6 +283,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                 />
                             </View>
                             <Text
+                                numberOfLines={2}
                                 style={[
                                     styles.textSmall,
                                     styles.textAlignCenter,
@@ -309,6 +311,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                 {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
                             </View>
                             <Text
+                                numberOfLines={preferredLocale === CONST.LOCALES.DE || preferredLocale === CONST.LOCALES.NL ? 1 : 2}
                                 style={[
                                     styles.textSmall,
                                     styles.textAlignCenter,
@@ -374,6 +377,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                             )}
                         </View>
                         <Text
+                            numberOfLines={1}
                             style={[
                                 styles.textSmall,
                                 styles.textAlignCenter,
@@ -402,6 +406,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                         />
                     </View>
                     <Text
+                        numberOfLines={1}
                         style={[
                             styles.textSmall,
                             styles.textAlignCenter,
@@ -433,6 +438,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                         {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
                     </View>
                     <Text
+                        numberOfLines={1}
                         style={[
                             styles.textSmall,
                             styles.textAlignCenter,

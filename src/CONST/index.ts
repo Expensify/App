@@ -250,6 +250,8 @@ const CONST = {
 
         // Allowed extensions for receipts
         ALLOWED_RECEIPT_EXTENSIONS: ['heif', 'heic', 'jpg', 'jpeg', 'gif', 'png', 'pdf', 'htm', 'html', 'text', 'rtf', 'doc', 'tif', 'tiff', 'msword', 'zip', 'xml', 'message'],
+
+        MAX_FILE_LIMIT: 30,
     },
 
     // Allowed extensions for spreadsheets import
@@ -1037,7 +1039,10 @@ const CONST = {
             APPROVE: 'approve',
             UNAPPROVE: 'unapprove',
             CANCEL_PAYMENT: 'cancelPayment',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
+            MARK_AS_EXPORTED: 'markAsExported',
             HOLD: 'hold',
+            DOWNLOAD_CSV: 'downloadCSV',
             DOWNLOAD_PDF: 'downloadPDF',
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
@@ -1046,7 +1051,6 @@ const CONST = {
             ADD_EXPENSE: 'addExpense',
             SPLIT: 'split',
             REOPEN: 'reopen',
-            EXPORT: 'export',
             PAY: 'pay',
         },
         PRIMARY_ACTIONS: {
@@ -1390,7 +1394,6 @@ const CONST = {
         EXPORT_OPTIONS: {
             EXPORT_TO_INTEGRATION: 'exportToIntegration',
             MARK_AS_EXPORTED: 'markAsExported',
-            DOWNLOAD_CSV: 'downloadCSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -1487,6 +1490,7 @@ const CONST = {
         PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
         SKELETON_ANIMATION_SPEED: 3,
         SEARCH_OPTIONS_COMPARISON: 'search_options_comparison',
+        SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1872,6 +1876,19 @@ const CONST = {
         // Video MimeTypes allowed by iOS photos app.
         VIDEO: /\.(mov|mp4)$/,
     },
+
+    FILE_VALIDATION_ERRORS: {
+        WRONG_FILE_TYPE: 'wrongFileType',
+        WRONG_FILE_TYPE_MULTIPLE: 'wrongFileTypeMultiple',
+        FILE_TOO_LARGE: 'fileTooLarge',
+        FILE_TOO_LARGE_MULTIPLE: 'fileTooLargeMultiple',
+        FILE_TOO_SMALL: 'fileTooSmall',
+        FILE_CORRUPTED: 'fileCorrupted',
+        FOLDER_NOT_ALLOWED: 'folderNotAllowed',
+        MAX_FILE_LIMIT_EXCEEDED: 'fileLimitExceeded',
+        PROTECTED_FILE: 'protectedFile',
+    },
+
     IOS_CAMERA_ROLL_ACCESS_ERROR: 'Access to photo library was denied',
     ADD_PAYMENT_MENU_POSITION_Y: 226,
     ADD_PAYMENT_MENU_POSITION_X: 356,
@@ -5046,12 +5063,15 @@ const CONST = {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
+            NAVIGATE_DEPRECATED: 'NAVIGATE_DEPRECATED',
             SET_PARAMS: 'SET_PARAMS',
 
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
             SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
+            REPLACE_PARAMS: 'REPLACE_PARAMS',
+            PRELOAD: 'PRELOAD',
         },
     },
     TIME_PERIOD: {
@@ -6911,9 +6931,9 @@ const CONST = {
     },
     LAST_PAYMENT_METHOD: {
         LAST_USED: 'lastUsed',
-        IOU: 'iou',
-        EXPENSE: 'expense',
-        INVOICE: 'invoice',
+        IOU: 'Iou',
+        EXPENSE: 'Expense',
+        INVOICE: 'Invoice',
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
