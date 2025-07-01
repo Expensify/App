@@ -3268,7 +3268,8 @@ const translations = {
         tripSummary: '行程总结',
         departs: '出发',
         errorMessage: '出现问题。请稍后再试。',
-        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) => `<rbr>请 <a href="${phoneErrorMethodsRoute}">添加工作邮箱作为您的主要登录邮箱</a> 预订旅行。</rbr>`,
+        phoneError: ({phoneErrorMethodsRoute}: PhoneErrorRouteParams) =>
+            `<comment><rbr>请 <a href="${phoneErrorMethodsRoute}">添加工作邮箱作为您的主要登录邮箱</a> 预订旅行。</rbr></comment>`,
         domainSelector: {
             title: '域名',
             subtitle: '为 Expensify Travel 设置选择一个域名。',
