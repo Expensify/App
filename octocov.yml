@@ -1,0 +1,36 @@
+coverage:
+  paths:
+    - coverage/lcov.info
+  acceptable: 70%
+  exclude:
+    - "tests/**/*"
+    - "**/*.test.js"
+    - "node_modules/**/*"
+
+codeToTestRatio:
+  code:
+    - "src/**/*.{js,jsx,ts,tsx}"
+  test:
+    - "tests/**/*.{js,ts,test.js,test.ts,spec.js,spec.ts}"
+  acceptable: "1:0.3"
+
+comment:
+  if: is_pull_request
+  deletePrevious: true
+
+diff:
+  paths:
+    - coverage/lcov.info
+  datastores:
+    - github://ikevin127/expensify-app-mock/coverage
+  acceptable: 5%
+
+report:
+  paths:
+    - coverage/lcov.info
+  datastores:
+    - github://ikevin127/expensify-app-mock/coverage
+
+push:
+  datastores:
+    - github://ikevin127/expensify-app-mock/coverage

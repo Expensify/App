@@ -1,0 +1,48 @@
+name: Code Coverage w/ Octocov
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: write
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Needed for octocov to compare with base branch
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: |
+          echo "Running tests with coverage..."
+          npm run test -- --coverage --ci --coverageReporters=lcov --watchAll=false --passWithNoTests
+          echo "Coverage files generated:"
+          ls -la coverage/ || echo "No coverage directory found"
+          if [ -f "coverage/lcov.info" ]; then
+            echo "lcov.info found, size: $(wc -l < coverage/lcov.info) lines"
+            head -20 coverage/lcov.info
+          else
+            echo "❌ lcov.info not found!"
+          fi
+        env:
+          CI: true
+
+      - name: Run octocov
+        uses: k1LoW/octocov-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          config: .octocov.yml
