@@ -74,6 +74,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** information about whether to show merchant, that is provided on Reports page */
     shouldShowMerchant?: boolean;
 
+    /** information about whether to show the description, that is provided on Reports page */
+    shouldShowDescription?: boolean;
+
     /** Type of transaction */
     transactionType?: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
@@ -280,7 +283,7 @@ function TransactionItemRow({
                     )}
                 </View>
             ),
-            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: merchant ? (
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: transactionItem.shouldShowMerchant ? (
                 <View
                     key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}
@@ -294,16 +297,18 @@ function TransactionItemRow({
                     )}
                 </View>
             ) : null,
-            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: description ? (
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: transactionItem.shouldShowDescription ? (
                 <View
                     key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}
                 >
-                    <MerchantOrDescriptionCell
-                        merchantOrDescription={description}
-                        shouldShowTooltip={shouldShowTooltip}
-                        shouldUseNarrowLayout={false}
-                    />
+                    {!!description && (
+                        <MerchantOrDescriptionCell
+                            merchantOrDescription={description}
+                            shouldShowTooltip={shouldShowTooltip}
+                            shouldUseNarrowLayout={false}
+                        />
+                    )}
                 </View>
             ) : null,
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]: (
