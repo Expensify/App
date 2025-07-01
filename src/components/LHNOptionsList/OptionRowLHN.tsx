@@ -165,6 +165,7 @@ function OptionRowLHN({
             callbacks: {
                 onHide: () => setIsContextMenuActive(false),
             },
+            withoutOverlay: false,
         });
     };
 

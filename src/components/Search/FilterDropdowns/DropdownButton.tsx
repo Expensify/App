@@ -1,5 +1,7 @@
+import type {ReactNode} from 'react';
 import React, {useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -10,6 +12,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type PopoverComponentProps = {
     closeOverlay: () => void;
@@ -26,7 +29,7 @@ type DropdownButtonProps = {
     viewportOffsetTop: number;
 
     /** The component to render in the popover */
-    PopoverComponent: React.FC<PopoverComponentProps>;
+    PopoverComponent: (props: PopoverComponentProps) => ReactNode;
 };
 
 const PADDING_MODAL = 8;
@@ -51,6 +54,8 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
         vertical: 0,
     });
 
+    const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.willAlertModalBecomeVisible, canBeMissing: true});
+
     const onTriggerLayout = () => {
         triggerRef.current?.measureInWindow((x, y, _, height) => {
             setPopoverTriggerPosition({
@@ -65,7 +70,13 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
      * position of the trigger
      */
     const toggleOverlay = () => {
-        setIsOverlayVisible((previousValue) => !previousValue);
+        setIsOverlayVisible((previousValue) => {
+            if (!previousValue && willAlertModalBecomeVisible) {
+                return false;
+            }
+
+            return !previousValue;
+        });
     };
 
     /**
