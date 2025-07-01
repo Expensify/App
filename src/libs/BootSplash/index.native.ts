@@ -1,6 +1,6 @@
 import {InteractionManager, NativeModules} from 'react-native';
-import Log from '@libs/Log';
 import Timing from '@libs/actions/Timing';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
 const BootSplash = NativeModules.BootSplash;
@@ -10,7 +10,7 @@ function hide(): Promise<void> {
 
     return BootSplash.hide().finally(() => {
         InteractionManager.runAfterInteractions(() => {
-          Timing.end(CONST.TIMING.SPLASH_SCREEN);
+            Timing.end(CONST.TIMING.SPLASH_SCREEN);
         });
     });
 }

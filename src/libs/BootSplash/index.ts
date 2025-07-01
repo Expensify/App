@@ -1,7 +1,7 @@
-import Log from '@libs/Log';
+import {InteractionManager} from 'react-native';
 import Timing from '@libs/actions/Timing';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
-import { InteractionManager } from 'react-native';
 
 function resolveAfter(delay: number): Promise<void> {
     return new Promise<void>((resolve) => {
@@ -19,7 +19,7 @@ function hide(): Promise<void> {
         }
 
         InteractionManager.runAfterInteractions(() => {
-          Timing.end(CONST.TIMING.SPLASH_SCREEN);
+            Timing.end(CONST.TIMING.SPLASH_SCREEN);
         });
 
         return resolveAfter(250).then(() => {

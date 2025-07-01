@@ -35,7 +35,6 @@ import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
 import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import {isAnonymousUser} from './Session';
-import Timing from './Timing';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];

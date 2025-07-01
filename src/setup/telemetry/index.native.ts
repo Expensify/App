@@ -6,10 +6,10 @@ export default function () {
     Timing.start(CONST.TIMING.SPLASH_SCREEN);
 
     AppState.addEventListener('change', (state) => {
-      if (state === 'active') {
-        return;
-      }
+        if (state === 'active') {
+            return;
+        }
 
-      Timing.clearData();
+        Timing.clearData();
     });
 }
