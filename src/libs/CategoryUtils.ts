@@ -93,6 +93,15 @@ function getEnabledCategoriesCount(policyCategories: PolicyCategories | undefine
     return Object.values(policyCategories).filter((policyCategory) => policyCategory.enabled).length;
 }
 
+function isCategoryMissing(category: string | undefined): boolean {
+    if (!category) {
+        return true;
+    }
+    const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
+
+    return emptyCategories.includes(category ?? '');
+}
+
 export {
     formatDefaultTaxRateText,
     formatRequireReceiptsOverText,
@@ -101,4 +110,5 @@ export {
     getCategoryDefaultTaxRate,
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
+    isCategoryMissing,
 };
