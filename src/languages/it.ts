@@ -666,7 +666,7 @@ const translations = {
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Puoi caricare solo fino a ${fileLimit} file alla volta.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `I file superano ${maxUploadSizeInMB} MB. Per favore riprova.`,
         someFilesCantBeUploaded: 'Alcuni file non possono essere caricati',
-        sizeLimitExceeded: 'I file devono essere inferiori a 10 MB. I file più grandi non verranno caricati.',
+        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `I file devono essere inferiori a ${maxUploadSizeInMB} MB. I file più grandi non verranno caricati.`,
         maxFileLimitExceeded: 'Puoi caricare fino a 30 ricevute alla volta. Quelle in eccesso non verranno caricate.',
         unsupportedFileType: ({fileType}: FileTypeParams) => `I file ${fileType} non sono supportati. Verranno caricati solo i tipi di file supportati.`,
         learnMoreAboutSupportedFiles: 'Scopri di più sui formati supportati.',

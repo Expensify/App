@@ -235,13 +235,6 @@ function AttachmentModal({
         setFile(originalFileName ? {name: originalFileName} : undefined);
     }, [originalFileName]);
 
-    useEffect(() => {
-        if (!fileError) {
-            return;
-        }
-        setIsFileErrorModalVisible(true);
-    }, [fileError]);
-
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
      */
@@ -309,7 +302,6 @@ function AttachmentModal({
         if (onConfirm) {
             if (validFilesToUpload.length) {
                 onConfirm(validFilesToUpload);
-                setValidFilesToUpload([]);
             } else {
                 onConfirm(Object.assign(file ?? {}, {source: sourceState} as FileObject));
             }
@@ -325,9 +317,6 @@ function AttachmentModal({
     const closeConfirmModal = useCallback(() => {
         setIsFileErrorModalVisible(false);
         setIsDeleteReceiptConfirmModalVisible(false);
-        InteractionManager.runAfterInteractions(() => {
-            setFileError(null);
-        });
     }, []);
 
     /**
@@ -346,12 +335,14 @@ function AttachmentModal({
                     const error = validateAttachment(fileObject, isCheckingMultipleFiles);
                     if (error) {
                         setFileError(error);
+                        setIsFileErrorModalVisible(true);
                         return false;
                     }
                     return true;
                 })
                 .catch(() => {
                     setFileError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED);
+                    setIsFileErrorModalVisible(true);
                     return false;
                 }),
         [],
@@ -360,6 +351,7 @@ function AttachmentModal({
     const isDirectoryCheck = useCallback((data: FileObject) => {
         if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
             setFileError(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
+            setIsFileErrorModalVisible(true);
             return false;
         }
         return true;
@@ -376,6 +368,23 @@ function AttachmentModal({
         [getModalType, setSourceState, setFile, setModalType],
     );
 
+    useEffect(() => {
+        if (!validFilesToUpload.length) {
+            return;
+        }
+
+        if (validFilesToUpload.length > 0) {
+            if (fileError) {
+                return;
+            }
+            const fileToDisplay = validFilesToUpload.at(0);
+            if (fileToDisplay) {
+                const inputSource = fileToDisplay.uri ?? '';
+                handleOpenModal(inputSource, fileToDisplay);
+            }
+        }
+    }, [fileError, handleOpenModal, validFilesToUpload]);
+
     const validateFiles = useCallback(
         (data: FileObject[]) => {
             let validFiles: FileObject[] = [];
@@ -383,25 +392,19 @@ function AttachmentModal({
             Promise.all(data.map((fileToUpload) => isValidFile(fileToUpload, true).then((isValid) => (isValid ? fileToUpload : null)))).then((results) => {
                 validFiles = results.filter((validFile): validFile is FileObject => validFile !== null);
                 setValidFilesToUpload(validFiles);
-
-                if (validFiles.length > 0) {
-                    const fileToDisplay = validFiles.at(0);
-                    if (fileToDisplay) {
-                        handleOpenModal(fileToDisplay.uri ?? '', fileToDisplay);
-                    }
-                }
             });
         },
-        [isValidFile, handleOpenModal],
+        [isValidFile],
     );
 
     const confirmAndContinue = () => {
         if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
             validateFiles(validFilesToUpload);
-        } else {
-            setValidFilesToUpload([]);
         }
         setIsFileErrorModalVisible(false);
+        InteractionManager.runAfterInteractions(() => {
+            setFileError(null);
+        });
     };
 
     const validateAndDisplayMultipleFilesToUpload = useCallback(
@@ -413,6 +416,7 @@ function AttachmentModal({
                 const validFiles = data.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
                 setValidFilesToUpload(validFiles);
                 setFileError(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
+                setIsFileErrorModalVisible(true);
                 return;
             }
             validateFiles(data);
@@ -486,6 +490,7 @@ function AttachmentModal({
         closeConfirmModal();
         closeModal();
         InteractionManager.runAfterInteractions(() => {
+            setFileError(null);
             setValidFilesToUpload([]);
         });
     }, [closeConfirmModal, closeModal]);
@@ -588,8 +593,10 @@ function AttachmentModal({
                     }
                     setShouldLoadAttachment(false);
                     clearAttachmentErrors();
+                    setValidFilesToUpload([]);
                     if (isPDFLoadError.current) {
                         setFileError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED);
+                        setIsFileErrorModalVisible(true);
                         return;
                     }
 

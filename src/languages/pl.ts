@@ -666,7 +666,7 @@ const translations = {
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Możesz przesłać jednocześnie maksymalnie ${fileLimit} plików.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Plik przekracza ${maxUploadSizeInMB} MB. Proszę spróbować ponownie.`,
         someFilesCantBeUploaded: 'Niektóre pliki nie mogą zostać przesłane',
-        sizeLimitExceeded: 'Pliki muszą mieć mniej niż 10 MB. Większe pliki nie zostaną przesłane.',
+        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Pliki muszą mieć mniej niż ${maxUploadSizeInMB} MB. Większe pliki nie zostaną przesłane.`,
         maxFileLimitExceeded: 'Możesz przesłać maksymalnie 30 paragonów naraz. Dodatkowe nie zostaną przesłane.',
         unsupportedFileType: ({fileType}: FileTypeParams) => `Pliki ${fileType} nie są obsługiwane. Tylko obsługiwane typy plików zostaną przesłane.`,
         learnMoreAboutSupportedFiles: 'Dowiedz się więcej o obsługiwanych formatach.',

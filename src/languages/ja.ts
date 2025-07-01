@@ -666,7 +666,7 @@ const translations = {
         tooManyFiles: ({fileLimit}: FileLimitParams) => `一度にアップロードできるファイルは${fileLimit}個までです。`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `ファイルが ${maxUploadSizeInMB} MB を超えています。もう一度お試しください。`,
         someFilesCantBeUploaded: '一部のファイルはアップロードできません',
-        sizeLimitExceeded: 'ファイルは10MB未満である必要があります。それより大きいファイルはアップロードされません。',
+        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `ファイルは${maxUploadSizeInMB}MB未満である必要があります。それより大きいファイルはアップロードされません。`,
         maxFileLimitExceeded: '一度に最大30枚の領収書をアップロードできます。超過分はアップロードされません。',
         unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType}ファイルはサポートされていません。サポートされているファイルタイプのみがアップロードされます。`,
         learnMoreAboutSupportedFiles: 'サポートされているフォーマットについて詳しく知る。',

@@ -665,7 +665,7 @@ const translations = {
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Você pode enviar até ${fileLimit} arquivos de uma vez.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Os arquivos excedem ${maxUploadSizeInMB} MB. Por favor, tente novamente.`,
         someFilesCantBeUploaded: 'Alguns arquivos não podem ser enviados',
-        sizeLimitExceeded: 'Os arquivos devem ter menos de 10 MB. Arquivos maiores não serão enviados.',
+        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Os arquivos devem ter menos de ${maxUploadSizeInMB} MB. Arquivos maiores não serão enviados.`,
         maxFileLimitExceeded: 'Você pode enviar até 30 recibos por vez. Os extras não serão enviados.',
         unsupportedFileType: ({fileType}: FileTypeParams) => `Arquivos ${fileType} não são suportados. Apenas os tipos de arquivo suportados serão enviados.`,
         learnMoreAboutSupportedFiles: 'Saiba mais sobre formatos suportados.',

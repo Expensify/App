@@ -666,7 +666,8 @@ const translations = {
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Vous pouvez télécharger jusqu'à ${fileLimit} fichiers à la fois.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Les fichiers dépassent ${maxUploadSizeInMB} MB. Veuillez réessayer.`,
         someFilesCantBeUploaded: 'Certains fichiers ne peuvent pas être téléchargés',
-        sizeLimitExceeded: 'Les fichiers doivent faire moins de 10 MB. Les fichiers plus volumineux ne seront pas téléchargés.',
+        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) =>
+            `Les fichiers doivent faire moins de ${maxUploadSizeInMB} MB. Les fichiers plus volumineux ne seront pas téléchargés.`,
         maxFileLimitExceeded: "Vous pouvez télécharger jusqu'à 30 reçus à la fois. Les fichiers supplémentaires ne seront pas téléchargés.",
         unsupportedFileType: ({fileType}: FileTypeParams) => `Les fichiers ${fileType} ne sont pas pris en charge. Seuls les types de fichiers pris en charge seront téléchargés.`,
         learnMoreAboutSupportedFiles: 'En savoir plus sur les formats pris en charge.',

@@ -665,7 +665,7 @@ const translations = {
         tooManyFiles: ({fileLimit}: FileLimitParams) => `您一次最多只能上传 ${fileLimit} 个文件。`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `文件超过 ${maxUploadSizeInMB} MB。请重试。`,
         someFilesCantBeUploaded: '有些文件无法上传',
-        sizeLimitExceeded: '文件必须小于10 MB。较大的文件将不会被上传。',
+        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `文件必须小于${maxUploadSizeInMB} MB。较大的文件将不会被上传。`,
         maxFileLimitExceeded: '您一次最多可上传30张收据。额外的将不会被上传。',
         unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType} 文件不受支持。只有受支持的文件类型才会被上传。`,
         learnMoreAboutSupportedFiles: '了解更多关于支持的格式。',

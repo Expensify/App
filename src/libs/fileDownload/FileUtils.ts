@@ -331,7 +331,15 @@ const resizeImageIfNeeded = (file: FileObject) => {
     if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
         return Promise.resolve(file);
     }
-    return getImageDimensionsAfterResize(file).then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}));
+    return getImageDimensionsAfterResize(file).then(({width, height}) =>
+        getImageManipulator({
+            fileUri: file.uri ?? '',
+            width,
+            height,
+            fileName: file.name ?? '',
+            type: file.type,
+        }),
+    );
 };
 
 const createFile = (file: File): FileObject => {
@@ -394,7 +402,8 @@ const isHeicOrHeifImage = (file: FileObject) => {
 };
 
 const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
-    if (!Str.isImage(file.name ?? '') && !isHeicOrHeifImage(file) && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
+    const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
+    if (!Str.isImage(file.name ?? '') && !isHeicOrHeifImage(file) && (file?.size ?? 0) > maxFileSize) {
         return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
 
@@ -446,7 +455,9 @@ const getFileValidationErrorText = (
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE:
             return {
                 title: translateLocal('attachmentPicker.someFilesCantBeUploaded'),
-                reason: translateLocal('attachmentPicker.sizeLimitExceeded'),
+                reason: translateLocal('attachmentPicker.sizeLimitExceeded', {
+                    maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE / 1024 / 1024,
+                }),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:
             return {
