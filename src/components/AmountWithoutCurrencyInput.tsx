@@ -45,8 +45,12 @@ function AmountWithoutCurrencyInput(
         [onInputChange],
     );
 
+    // Add custom notation for using '-' character in the mask.
+    // If we only use '-' for characterSet instead of '0123456789.-' 
+    // then the first character has to be '-' optionally, but we also want to allow a digit in first position if the value is positive.
+    // More info: https://github.com/IvanIhnatsiuk/react-native-advanced-input-mask?tab=readme-ov-file#custom-notations
     const customNotationForMask = [{
-        character: '@',
+        character: '~',
         characterSet: '0123456789.-',
         isOptional: true,
     }];
@@ -63,7 +67,7 @@ function AmountWithoutCurrencyInput(
             ref={ref}
             keyboardType={!shouldAllowNegative ? CONST.KEYBOARD_TYPE.DECIMAL_PAD : undefined}
             type="mask"
-            mask={shouldAllowNegative ? `[@][99999999]${separator}[09]`: `[09999999]${separator}[09]`}
+            mask={shouldAllowNegative ? `[~][99999999]${separator}[09]`: `[09999999]${separator}[09]`}
             customNotations={customNotationForMask}
             allowedKeys="0123456789.,-"
             validationRegex={'^-?(?!.*[.,].*[.,])\\d{0,8}(?:[.,]\\d{0,2})?$'}
