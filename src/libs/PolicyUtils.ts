@@ -1184,7 +1184,7 @@ function isValidConnectedIntegration(policy: OnyxEntry<Policy>, connectionName: 
 
 function getValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find(
-        (integration) => !!policy?.connections?.[integration] && !isValidConnectedIntegration(policy, integration),
+        (integration) => !!policy?.connections?.[integration] && isValidConnectedIntegration(policy, integration),
     );
 }
 
