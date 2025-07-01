@@ -28,7 +28,7 @@ function SearchFiltersTypePage() {
 
     const listData: Array<ListItem<SearchDataTypes>> = useMemo(() => {
         return getTypeOptions(allPolicies, session?.email).map((typeOption) => ({
-            text: translate(typeOption.translation),
+            text: typeOption.text ?? translate(typeOption.translation),
             keyForList: typeOption.value,
             isSelected: selectedItem === typeOption.value,
         }));
