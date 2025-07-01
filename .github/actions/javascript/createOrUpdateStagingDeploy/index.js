@@ -11914,27 +11914,16 @@ function getValidMergedPRs(commits) {
 }
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
- *
- * This function is being refactored to use the GitHub API instead of the git log command, but for now the
- * issues retrieved from the GitHub API are just being logged for testing: https://github.com/Expensify/App/issues/58775
  */
 async function getPullRequestsDeployedBetween(fromTag, toTag) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
-    const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
-    console.log(`[git log] Found ${gitCommitList.length} commits.`);
-    core.startGroup('[git log] Parsed PRs:');
-    core.info(JSON.stringify(gitLogPullRequestNumbers));
-    core.endGroup();
-    // Test the new GitHub API method
-    // eslint-disable-next-line deprecation/deprecation
     const apiCommitList = await GithubUtils_1.default.getCommitHistoryBetweenTags(fromTag, toTag);
     const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
     console.log(`[api] Found ${apiCommitList.length} commits.`);
     core.startGroup('[api] Parsed PRs:');
     core.info(JSON.stringify(apiPullRequestNumbers));
     core.endGroup();
-    return gitLogPullRequestNumbers;
+    return apiPullRequestNumbers;
 }
 exports["default"] = {
     getPreviousExistingTag,
