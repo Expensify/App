@@ -489,6 +489,10 @@ function AttachmentModal({
     const closeAndResetModal = useCallback(() => {
         closeConfirmModal();
         closeModal();
+        InteractionManager.runAfterInteractions(() => {
+            setFileError(null);
+            setValidFilesToUpload([]);
+        });
     }, [closeConfirmModal, closeModal]);
 
     /**
@@ -754,7 +758,6 @@ function AttachmentModal({
                         }
                         isPDFLoadError.current = false;
                         onModalHide?.();
-                        setFileError(null);
                     }}
                 />
             )}
