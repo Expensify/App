@@ -1,5 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {memo, useCallback} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -14,7 +14,7 @@ import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useChatTabBrickRoad from '@hooks/useChatTabBrickRoad';
+import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
@@ -33,6 +33,7 @@ import {
 } from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {isFullScreenName, isWorkspacesTabScreenName} from '@navigation/helpers/isNavigatorName';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
@@ -58,10 +59,12 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
-    const chatTabBrickRoad = useChatTabBrickRoad();
+    const {orderedReports} = useSidebarOrderedReports();
     const subscriptionPlan = useSubscriptionPlan();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const {
@@ -74,6 +77,12 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
 
     // On a wide layout DebugTabView should be rendered only within the navigation tab bar displayed directly on screens.
     const shouldRenderDebugTabViewOnWideLayout = !!account?.isDebugModeEnabled && !isTopLevelBar;
+
+    useEffect(() => {
+        setChatTabBrickRoad(getChatTabBrickRoad(orderedReports));
+        // We need to get a new brick road state when report attributes are updated, otherwise we'll be showing an outdated brick road.
+        // That's why reportAttributes is added as a dependency here
+    }, [orderedReports, reportAttributes]);
 
     const navigateToChats = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.HOME) {
