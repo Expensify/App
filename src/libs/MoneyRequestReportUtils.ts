@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
@@ -71,8 +71,8 @@ function getReportIDForTransaction(transactionItem: TransactionListItemType) {
 /**
  * Filters all available transactions and returns the ones that belong to not removed parent action.
  */
-function getAllNonDeletedTransactions(transactions: Transaction[], reportActions: ReportAction[]) {
-    return transactions.filter((transaction): transaction is Transaction => {
+function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[]) {
+    return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
         if (!transaction) {
             return false;
         }
