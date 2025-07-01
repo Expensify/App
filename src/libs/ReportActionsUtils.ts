@@ -2930,33 +2930,10 @@ function getReportActionFromExpensifyCard(cardID: number) {
         });
 }
 
-function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>): string {
+function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>, policyID?: string): string {
     const {label, errorMessage} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED>) ?? {label: '', errorMessage: ''};
-    return translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage});
-}
-
-function getManagerOnVacation(action: OnyxEntry<ReportAction>): string | undefined {
-    if (!isApprovedAction(action)) {
-        return;
-    }
-
-    return getOriginalMessage(action)?.managerOnVacation;
-}
-
-function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
-    if (!isSubmittedAction(action)) {
-        return;
-    }
-
-    return getOriginalMessage(action)?.vacationer;
-}
-
-function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
-    if (!isSubmittedAction(action)) {
-        return;
-    }
-
-    return getOriginalMessage(action)?.to;
+    const workspaceAccountingLink = `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`;
+    return translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage, workspaceAccountingLink});
 }
 
 export {
@@ -3124,9 +3101,6 @@ export {
     getReportActionFromExpensifyCard,
     isReopenedAction,
     getIntegrationSyncFailedMessage,
-    getManagerOnVacation,
-    getVacationer,
-    getSubmittedTo,
     getReceiptScanFailedMessage,
 };
 
