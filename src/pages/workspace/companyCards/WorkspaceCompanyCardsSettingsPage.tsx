@@ -54,13 +54,10 @@ function WorkspaceCompanyCardsSettingsPage({
     const liabilityType = selectedFeedData?.liabilityType;
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
+    const statementPeriodEndDay = selectedFeedData?.statementPeriodEndDay;
 
     // s77rt remove DEV lock
-    // s77rt should limit to custom / commercial feed only?
     const shouldShowStatementCloseDate = isDevelopment;
-
-    // s77rt use selectedFeedData.statementPeriodEndDay
-    const statementPeriodEndDay = undefined;
 
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));
