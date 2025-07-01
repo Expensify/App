@@ -74,7 +74,7 @@ To book travel from the Expensify app, follow these steps:
 
 The traveler is emailed an itinerary of the booking. Additionally,
 - Their travel details are added to a Trip chat room under their primary workspace.
-- Travel expenses are automatically added to expense reports following your workspace's scheduled submit rules.
+- An expense report for the trip is created.
 - If booked with an Expensify Card, the trip is automatically reconciled.
 
 ### [Submit Travel Request] How do I submit a travel request for approval?
@@ -162,9 +162,6 @@ It is recommended to have multiple approvers set up for travel, as there is no d
 
 ### Can travelers upload a document when submitting a trip for approval?
 Travelers cannot upload a document at the time of trip submission, but companies can use a 'reason code' in the Out of Policy rules, which travelers complete at checkout. Documents can then be added to the expense report during submission in Expensify.
-
-### How are travel expenses handled after booking?
-Travel expenses from bookings are automatically added to your regular expense reports following your workspace's scheduled submit rules, rather than being grouped in trip-specific reports. Your trip itinerary remains accurate and up-to-date regardless of how individual expenses are managed or moved between reports.
 
 ### [Expense Integration] How do I use Expensify Travel with Expensify Expense?
 Expensify Travel works seamlessly with Expensify Expense to automate the handling of travel expenses:
