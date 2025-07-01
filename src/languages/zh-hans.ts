@@ -1507,7 +1507,7 @@ const translations = {
         signOutConfirmationText: '如果您退出登录，任何离线更改都将丢失。',
         versionLetter: 'v',
         readTheTermsAndPrivacy: ({termsURL, privacyURL}: ReadTheTermsAndPrivacyRouteParams) =>
-            `<comment><mtm issmall>阅读该内容 <a href="${termsURL}">服务条款</a> 和 <a href="${privacyURL}">隐私</a>.</mtm></comment>`,
+            `<comment center><mtm issmall>阅读该内容 <a href="${termsURL}">服务条款</a> 和 <a href="${privacyURL}">隐私</a>.</mtm></comment>`,
         help: '帮助',
         accountSettings: '账户设置',
         account: '账户',
