@@ -30,7 +30,6 @@ import type ReanimatedModalProps from './ReanimatedModal/types';
 import type BaseModalProps from './types';
 
 const REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED, CONST.MODAL.MODAL_TYPE.FULLSCREEN];
-const PARTIAL_REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE];
 
 type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
     type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
@@ -38,7 +37,8 @@ type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
 };
 
 function ModalComponent({type, shouldUseReanimatedModal, ...props}: ModalComponentProps) {
-    if (type && REANIMATED_MODAL_TYPES.includes(type)) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if ((type && REANIMATED_MODAL_TYPES.includes(type)) || shouldUseReanimatedModal) {
         return (
             <ReanimatedModal
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -47,15 +47,7 @@ function ModalComponent({type, shouldUseReanimatedModal, ...props}: ModalCompone
             />
         );
     }
-    if (type && PARTIAL_REANIMATED_MODAL_TYPES.includes(type) && shouldUseReanimatedModal) {
-        return (
-            <ReanimatedModal
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(props as ReanimatedModalProps)}
-                type={type}
-            />
-        );
-    }
+
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ReactNativeModal {...(props as ReactNativeModalProps)} />;
 }
