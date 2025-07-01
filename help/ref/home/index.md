@@ -33,7 +33,7 @@ Every expense, report, or workspace has an associated chat for collaboration:
 - **Images & Documents** via copy/paste, drag/drop, or attach button
 - **Expenses** to track and submit for reimbursement  
 - **Tasks** to assign and manage work items
-- **@Mentions** to invite anyone by email or phone number
+- **Mentions** to invite anyone by email or phone number
 
 ## Reports Section
 
