@@ -1168,15 +1168,15 @@ function getConnectedIntegration(policy: Policy | undefined, accountingIntegrati
 function isValidConnectedIntegration(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName) {
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
-            return !policy?.connections?.xero?.data?.tenants;
+            return !!policy?.connections?.xero?.data?.tenants;
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-            return !policy?.connections?.netsuite?.options?.config?.subsidiary;
+            return !!policy?.connections?.netsuite?.options?.config?.subsidiary;
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
             const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
-            return !sageIntacctEntityList.length;
+            return !!sageIntacctEntityList.length;
         }
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
-            return !policy?.connections?.quickbooksOnline?.config?.companyName;
+            return !!policy?.connections?.quickbooksOnline?.config?.companyName;
         default:
             return true;
     }
@@ -1184,7 +1184,7 @@ function isValidConnectedIntegration(policy: OnyxEntry<Policy>, connectionName: 
 
 function getValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find(
-        (integration) => !!policy?.connections?.[integration] && !!isValidConnectedIntegration(policy, integration),
+        (integration) => !!policy?.connections?.[integration] && !isValidConnectedIntegration(policy, integration),
     );
 }
 
