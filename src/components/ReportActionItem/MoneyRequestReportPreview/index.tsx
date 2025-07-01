@@ -60,7 +60,8 @@ function MoneyRequestReportPreview({
         () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, currentWidth, currentWrapperWidth),
         [StyleUtils, currentWidth, currentWrapperWidth, shouldUseNarrowLayout, transactions.length],
     );
-    const shouldShowIOUData = useMemo(() => {
+
+    const shouldShowPayerAndReceiver = useMemo(() => {
         if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
             return false;
         }
@@ -92,13 +93,13 @@ function MoneyRequestReportPreview({
             isWhisper={isWhisper}
             isHovered={isHovered}
             iouReportID={iouReportID}
-            containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewStyle]}
+            containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle]}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
-            transactionPreviewWidth={reportPreviewStyles.transactionPreviewStyle.width}
+            transactionPreviewWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
             transactionID={item.transactionID}
             reportPreviewAction={action}
             onPreviewPressed={openReportFromPreview}
-            shouldShowIOUData={shouldShowIOUData}
+            shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
         />
     );
 

@@ -535,6 +535,8 @@ function MoneyRequestReportActionsList({
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 
+    const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
+
     return (
         <View
             style={[styles.flex1]}
@@ -553,7 +555,7 @@ function MoneyRequestReportActionsList({
                     <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8]}>
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={selectedTransactionIDs.length === transactionsWithoutPendingDelete.length}
+                            isChecked={isSelectAllChecked}
                             isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
                             onPress={() => {
                                 if (selectedTransactionIDs.length !== 0) {
@@ -566,7 +568,7 @@ function MoneyRequestReportActionsList({
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={() => {
-                                if (selectedTransactionIDs.length === transactions.length) {
+                                if (isSelectAllChecked) {
                                     clearSelectedTransactions(true);
                                 } else {
                                     setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
@@ -574,7 +576,7 @@ function MoneyRequestReportActionsList({
                             }}
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             role="button"
-                            accessibilityState={{checked: selectedTransactionIDs.length === transactions.length}}
+                            accessibilityState={{checked: isSelectAllChecked}}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>

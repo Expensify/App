@@ -12,7 +12,7 @@ import {
     getOriginalReportID,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getTransactionsWithReceipts,
-    isArchivedNonExpenseReportWithID,
+    isArchivedNonExpenseReport,
     isChatThread,
     isClosedExpenseReportWithNoExpenses,
     isCurrentUserTheOnlyParticipant,
@@ -111,7 +111,7 @@ function ReportActionItem({allReports, policies, action, report, transactions, s
             blockedFromConcierge={blockedFromConcierge}
             originalReportID={originalReportID}
             deleteReportActionDraft={deleteReportActionDraft}
-            isArchivedRoom={isArchivedNonExpenseReportWithID(originalReport, isOriginalReportArchived)}
+            isArchivedRoom={isArchivedNonExpenseReport(originalReport, isOriginalReportArchived)}
             isChronosReport={chatIncludesChronosWithID(originalReportID)}
             toggleEmojiReaction={toggleEmojiReaction}
             createDraftTransactionAndNavigateToParticipantSelector={createDraftTransactionAndNavigateToParticipantSelector}

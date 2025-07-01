@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isCategoryMissing} from '@libs/CategoryUtils';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
 import {
@@ -80,9 +81,6 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** Precomputed violations */
     violations?: TransactionViolation[];
-
-    /** Used to initiate payment from search page */
-    hash?: number;
 };
 
 type TransactionItemRowProps = {
@@ -152,7 +150,7 @@ function TransactionItemRow({
     const isPendingDelete = isTransactionPendingDelete(transactionItem);
     const viewRef = useRef<View>(null);
 
-    const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
+    const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -280,9 +278,6 @@ function TransactionItemRow({
                             parentAction={transactionItem.parentTransactionID}
                             goToItem={onButtonPress}
                             isLoading={isActionLoading}
-                            reportID={transactionItem.reportID}
-                            hash={transactionItem.hash}
-                            amount={transactionItem.amount}
                         />
                     )}
                 </View>
