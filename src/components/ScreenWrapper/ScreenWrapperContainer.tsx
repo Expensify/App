@@ -1,5 +1,5 @@
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import React, {forwardRef, useContext, useEffect, useMemo, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
@@ -18,9 +18,6 @@ import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 
 type ScreenWrapperContainerProps = React.PropsWithChildren<{
-    /** Ref for the screen wrapper container */
-    forwardedRef?: ForwardedRef<View>;
-
     /** A unique ID to find the screen wrapper in tests */
     testID: string;
 
@@ -87,7 +84,6 @@ type ScreenWrapperContainerProps = React.PropsWithChildren<{
 }>;
 
 function ScreenWrapperContainer({
-    forwardedRef,
     children,
     style,
     testID,
@@ -107,7 +103,7 @@ function ScreenWrapperContainer({
     includePaddingTop = true,
     includeSafeAreaPaddingBottom = false,
     isFocused = true,
-}: ScreenWrapperContainerProps) {
+}: ScreenWrapperContainerProps, ref: ForwardedRef<View>) {
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
@@ -199,7 +195,7 @@ function ScreenWrapperContainer({
 
     return (
         <View
-            ref={forwardedRef}
+            ref={ref}
             style={[styles.flex1, {minHeight}]}
             // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
             {...panResponder.panHandlers}
@@ -234,5 +230,5 @@ function ScreenWrapperContainer({
 }
 ScreenWrapperContainer.displayName = 'ScreenWrapperContainer';
 
-export default React.memo(ScreenWrapperContainer);
+export default React.memo(forwardRef(ScreenWrapperContainer));
 export type {ScreenWrapperContainerProps};
