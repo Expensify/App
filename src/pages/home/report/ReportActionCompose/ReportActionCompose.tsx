@@ -39,6 +39,7 @@ import {getDraftComment} from '@libs/DraftCommentUtils';
 import {getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
 import getModalState from '@libs/getModalState';
 import Performance from '@libs/Performance';
+import {getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canShowReportRecipientLocalTime,
     chatIncludesChronos,
@@ -49,8 +50,11 @@ import {
     isAnnounceRoom,
     isChatRoom,
     isConciergeChatReport,
+    isExpenseReport,
     isGroupChat,
     isInvoiceReport,
+    isIOUReport,
+    isReportApproved,
     isReportTransactionThread,
     isSettled,
     isUserCreatedPolicyRoom,
@@ -230,12 +234,24 @@ function ReportActionCompose({
             !isConciergeChatReport(report) &&
             !isInvoiceReport(report) &&
             !isGroupChat(report) &&
+            !isReportApproved({report: parentReport}) &&
+            !isReportApproved({report}) &&
             !isSettled(parentReport) &&
             !isSettled(report),
         [report, parentReport],
     );
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
-    const transactionID = useMemo(() => getTransactionID(reportID), [reportID]);
+
+    const shouldAddOrReplaceReceipt = isTransactionThreadView || isIOUReport(report) || isExpenseReport(report);
+
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
+        canEvict: false,
+        canBeMissing: true,
+    });
+
+    const iouAction = reportActions ? Object.values(reportActions).find((action) => isMoneyRequestAction(action)) : null;
+    const linkedTransactionID = iouAction ? getLinkedTransactionID(iouAction) : undefined;
+    const transactionID = useMemo(() => getTransactionID(reportID) ?? linkedTransactionID, [reportID, linkedTransactionID]);
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
 
@@ -489,7 +505,7 @@ function ReportActionCompose({
     const saveFileAndInitMoneyRequest = (file: FileObject) => {
         const source = URL.createObjectURL(file as Blob);
 
-        if (isTransactionThreadView && transactionID) {
+        if (shouldAddOrReplaceReceipt && transactionID) {
             replaceReceipt({transactionID, file: file as File, source});
         } else {
             initMoneyRequest({reportID, newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
@@ -648,7 +664,7 @@ function ReportActionCompose({
                                         {/* TODO: remove beta check after the feature is enabled */}
                                         {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && shouldDisplayDualDropZone && (
                                             <DualDropZone
-                                                isEditing={isTransactionThreadView && hasReceipt}
+                                                isEditing={shouldAddOrReplaceReceipt && hasReceipt}
                                                 onAttachmentDrop={handleAttachmentDrop}
                                                 onReceiptDrop={handleAddingReceipt}
                                             />
