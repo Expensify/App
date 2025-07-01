@@ -111,6 +111,7 @@ function getMerchantNameWithFallback(transactionItem: TransactionWithOptionalSea
     if (merchantNameEmpty && shouldUseNarrowLayout) {
         merchantOrDescriptionToDisplay = Parser.htmlToText(description);
     }
+
     let merchant = shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(description);
 
     if (isScanning(transactionItem) && shouldShowMerchant) {
