@@ -23,7 +23,6 @@ import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorSta
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Performance from '@libs/Performance';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import {
     getLastVisitedTabPath,
