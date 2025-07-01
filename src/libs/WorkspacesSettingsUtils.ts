@@ -104,9 +104,32 @@ function getChatTabBrickRoadReport(orderedReports: Array<OnyxEntry<Report>> = []
     return undefined;
 }
 
+// Memoization cache for getChatTabBrickRoad to avoid recomputing with same input
+const chatTabBrickRoadCache = new Map<string, BrickRoad | undefined>();
+
 function getChatTabBrickRoad(orderedReports: Array<OnyxEntry<Report>>): BrickRoad | undefined {
+    // Create a cache key based on report IDs and their brick road status
+    const cacheKey = orderedReports
+        .filter(Boolean)
+        .map((report) => `${report?.reportID}:${reportAttributes?.[report?.reportID ?? '']?.brickRoadStatus ?? 'none'}`)
+        .join('|');
+    
+    // Check cache first
+    if (chatTabBrickRoadCache.has(cacheKey)) {
+        return chatTabBrickRoadCache.get(cacheKey);
+    }
+    
+    // Compute the result
     const report = getChatTabBrickRoadReport(orderedReports);
-    return report ? getBrickRoadForPolicy(report) : undefined;
+    const result = report ? getBrickRoadForPolicy(report) : undefined;
+    
+    // Cache the result (limit cache size to prevent memory leaks)
+    if (chatTabBrickRoadCache.size > 100) {
+        chatTabBrickRoadCache.clear();
+    }
+    chatTabBrickRoadCache.set(cacheKey, result);
+    
+    return result;
 }
 
 /**
