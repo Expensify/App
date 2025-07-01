@@ -3107,7 +3107,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return false for regular task report (non-workspace)', () => {
-            const report = createRegularTaskReport(1, currentUserAccountID);
+            const report = {...createRegularTaskReport(1, currentUserAccountID), chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM};
             expect(shouldReportShowSubscript(report)).toBe(false);
         });
     });
