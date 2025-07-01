@@ -41,10 +41,15 @@ function SearchContextProvider({children}: ChildrenProps) {
     const areTransactionsEmpty = useRef(true);
 
     const setCurrentSearchHash = useCallback((searchHash: number) => {
-        setSearchContextData((prevState) => ({
-            ...prevState,
-            currentSearchHash: searchHash,
-        }));
+        setSearchContextData((prevState) => {
+            if (searchHash === prevState.currentSearchHash) {
+                return prevState;
+            }
+            return {
+                ...prevState,
+                currentSearchHash: searchHash,
+            };
+        });
     }, []);
 
     const setSelectedTransactions: SearchContext['setSelectedTransactions'] = useCallback((selectedTransactions, data = []) => {

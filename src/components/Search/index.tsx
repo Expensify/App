@@ -468,83 +468,43 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         [shouldShowLoadingState],
     );
 
-    if (shouldShowLoadingState) {
-        return (
-            <SearchRowSkeleton
-                shouldAnimate
-                containerStyle={shouldUseNarrowLayout && styles.searchListContentContainerStyles}
-            />
-        );
-    }
-
-    if (searchResults === undefined) {
-        Log.alert('[Search] Undefined search type');
-        return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
-    }
-
-    const ListItem = getListItem(type, status, groupBy);
-    const sortedData = getSortedSections(type, status, data, sortBy, sortOrder, groupBy);
-
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || selectionMode?.isEnabled === true);
+    const ListItem = getListItem(type, status, groupBy);
+    const sortedSelectedData = useMemo(
+        () =>
+            getSortedSections(type, status, data, sortBy, sortOrder, groupBy).map((item) => {
+                const baseKey = isChat
+                    ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
+                    : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
+                // Check if the base key matches the newSearchResultKey (TransactionListItemType)
+                const isBaseKeyMatch = baseKey === newSearchResultKey;
+                // Check if any transaction within the transactions array (TransactionGroupListItemType) matches the newSearchResultKey
+                const isAnyTransactionMatch =
+                    !isChat &&
+                    (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
+                        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
+                        return transactionKey === newSearchResultKey;
+                    });
+                // Determine if either the base key or any transaction key matches
+                const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
-    const sortedSelectedData = sortedData.map((item) => {
-        const baseKey = isChat
-            ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
-            : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
-        // Check if the base key matches the newSearchResultKey (TransactionListItemType)
-        const isBaseKeyMatch = baseKey === newSearchResultKey;
-        // Check if any transaction within the transactions array (TransactionGroupListItemType) matches the newSearchResultKey
-        const isAnyTransactionMatch =
-            !isChat &&
-            (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
-                const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
-                return transactionKey === newSearchResultKey;
-            });
-        // Determine if either the base key or any transaction key matches
-        const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
-
-        return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
-    });
+                return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
+            }),
+        [type, status, data, sortBy, sortOrder, groupBy, isChat, newSearchResultKey, selectedTransactions, canSelectMultiple],
+    );
 
     const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
 
-    if (hasErrors) {
-        return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
-                <FullPageErrorView
-                    shouldShow
-                    subtitleStyle={styles.textSupporting}
-                    title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
-                    subtitle={translate('errorPage.subtitle')}
-                />
-            </View>
-        );
-    }
-
-    const visibleDataLength = data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
-    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults.search.type)) {
-        return (
-            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
-                <EmptySearchView
-                    hash={hash}
-                    type={type}
-                    groupBy={groupBy}
-                    hasResults={searchResults.search.hasResults}
-                />
-            </View>
-        );
-    }
-
-    const fetchMoreResults = () => {
+    const fetchMoreResults = useCallback(() => {
         if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
         }
         setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
-    };
+    }, [offset, searchResults?.search?.hasMoreResults, shouldShowLoadingMoreItems, shouldShowLoadingState]);
 
-    const toggleAllTransactions = () => {
+    const toggleAllTransactions = useCallback(() => {
         const areItemsGrouped = !!groupBy;
         const totalSelected = Object.keys(selectedTransactions).length;
 
@@ -574,7 +534,50 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             ),
             data,
         );
-    };
+    }, [clearSelectedTransactions, data, groupBy, reportActionsArray, selectedTransactions, setSelectedTransactions]);
+
+    const onLayout = useCallback(() => handleSelectionListScroll(sortedSelectedData, searchListRef.current), [handleSelectionListScroll, sortedSelectedData]);
+
+    if (shouldShowLoadingState) {
+        return (
+            <SearchRowSkeleton
+                shouldAnimate
+                containerStyle={shouldUseNarrowLayout && styles.searchListContentContainerStyles}
+            />
+        );
+    }
+
+    if (searchResults === undefined) {
+        Log.alert('[Search] Undefined search type');
+        return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
+    }
+
+    if (hasErrors) {
+        return (
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+                <FullPageErrorView
+                    shouldShow
+                    subtitleStyle={styles.textSupporting}
+                    title={translate('errorPage.title', {isBreakLine: shouldUseNarrowLayout})}
+                    subtitle={translate('errorPage.subtitle')}
+                />
+            </View>
+        );
+    }
+
+    const visibleDataLength = data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length;
+    if (shouldShowEmptyState(isDataLoaded, visibleDataLength, searchResults.search.type)) {
+        return (
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+                <EmptySearchView
+                    hash={hash}
+                    type={type}
+                    groupBy={groupBy}
+                    hasResults={searchResults.search.hasResults}
+                />
+            </View>
+        );
+    }
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
@@ -629,7 +632,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 }
                 queryJSON={queryJSON}
                 onViewableItemsChanged={onViewableItemsChanged}
-                onLayout={() => handleSelectionListScroll(sortedSelectedData, searchListRef.current)}
+                onLayout={onLayout}
             />
         </SearchScopeProvider>
     );

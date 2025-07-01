@@ -363,6 +363,10 @@ function SearchList(
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedTransactionWithoutPendingDelete.length;
 
+    const keyExtractor = useCallback((item: SearchListItem, index: number) => {
+        return item.keyForList ?? `${index}`;
+    }, []);
+
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {tableHeaderVisible && (
@@ -399,7 +403,7 @@ function SearchList(
             <Animated.FlatList
                 data={data}
                 renderItem={renderItem}
-                keyExtractor={(item, index) => item.keyForList ?? `${index}`}
+                keyExtractor={keyExtractor}
                 onScroll={onScroll}
                 contentContainerStyle={contentContainerStyle}
                 showsVerticalScrollIndicator={false}
