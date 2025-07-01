@@ -83,27 +83,30 @@ type ScreenWrapperContainerProps = React.PropsWithChildren<{
     isFocused?: boolean;
 }>;
 
-function ScreenWrapperContainer({
-    children,
-    style,
-    testID,
-    bottomContent,
-    bottomContentStyle: bottomContentStyleProp,
-    keyboardAvoidingViewBehavior = 'padding',
-    keyboardVerticalOffset,
-    shouldEnableKeyboardAvoidingView = true,
-    shouldEnableMaxHeight = false,
-    shouldEnableMinHeight = false,
-    shouldEnablePickerAvoiding = true,
-    shouldDismissKeyboardBeforeClose = true,
-    shouldAvoidScrollOnVirtualViewport = true,
-    shouldUseCachedViewportHeight = false,
-    shouldKeyboardOffsetBottomSafeAreaPadding: shouldKeyboardOffsetBottomSafeAreaPaddingProp,
-    enableEdgeToEdgeBottomSafeAreaPadding,
-    includePaddingTop = true,
-    includeSafeAreaPaddingBottom = false,
-    isFocused = true,
-}: ScreenWrapperContainerProps, ref: ForwardedRef<View>) {
+function ScreenWrapperContainer(
+    {
+        children,
+        style,
+        testID,
+        bottomContent,
+        bottomContentStyle: bottomContentStyleProp,
+        keyboardAvoidingViewBehavior = 'padding',
+        keyboardVerticalOffset,
+        shouldEnableKeyboardAvoidingView = true,
+        shouldEnableMaxHeight = false,
+        shouldEnableMinHeight = false,
+        shouldEnablePickerAvoiding = true,
+        shouldDismissKeyboardBeforeClose = true,
+        shouldAvoidScrollOnVirtualViewport = true,
+        shouldUseCachedViewportHeight = false,
+        shouldKeyboardOffsetBottomSafeAreaPadding: shouldKeyboardOffsetBottomSafeAreaPaddingProp,
+        enableEdgeToEdgeBottomSafeAreaPadding,
+        includePaddingTop = true,
+        includeSafeAreaPaddingBottom = false,
+        isFocused = true,
+    }: ScreenWrapperContainerProps,
+    ref: ForwardedRef<View>,
+) {
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
