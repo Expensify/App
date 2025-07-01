@@ -958,6 +958,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
+                shouldShowDescription: metadata?.columnsToShow.shouldShowDescriptionColumn,
                 shouldShowFrom: metadata?.columnsToShow.shouldShowFromColumn,
                 shouldShowTo: metadata?.columnsToShow.shouldShowToColumn,
                 shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,

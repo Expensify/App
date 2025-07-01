@@ -104,6 +104,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
         COLUMNS.TYPE,
         COLUMNS.DATE,
         COLUMNS.MERCHANT,
+        ...(sampleTransaction?.shouldShowDescription ? [COLUMNS.DESCRIPTION] : []),
         ...(sampleTransaction?.shouldShowFrom ? [COLUMNS.FROM] : []),
         ...(sampleTransaction?.shouldShowTo ? [COLUMNS.TO] : []),
         ...(sampleTransaction?.shouldShowCategory ? [COLUMNS.CATEGORY] : []),
