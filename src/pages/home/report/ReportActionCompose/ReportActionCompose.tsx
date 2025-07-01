@@ -8,7 +8,7 @@ import {useOnyx} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
-import AttachmentModal from '@components/AttachmentModal';
+import AttachmentComposerModal from '@components/AttachmentComposerModal';
 import ConfirmModal from '@components/ConfirmModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -553,7 +553,7 @@ function ReportActionCompose({
                         ]}
                     >
                         {PDFThumbnailView}
-                        <AttachmentModal
+                        <AttachmentComposerModal
                             headerTitle={translate('reportActionCompose.sendAttachment')}
                             onConfirm={addAttachment}
                             onModalShow={() => setIsAttachmentPreviewActive(true)}
@@ -681,7 +681,7 @@ function ReportActionCompose({
                                     </>
                                 );
                             }}
-                        </AttachmentModal>
+                        </AttachmentComposerModal>
                         {canUseTouchScreen() && isMediumScreenWidth ? null : (
                             <EmojiPickerButton
                                 isDisabled={isBlockedFromConcierge || disabled}
