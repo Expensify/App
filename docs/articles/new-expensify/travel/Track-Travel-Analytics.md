@@ -8,9 +8,11 @@ keywords: [New Expensify, travel analytics, duty of care, ESG report, travel spe
 
 Expensify Travel gives Workspace Admins real-time analytics for company travel. In one place, you can monitor employee safety, analyze spending trends, and ensure travel policy compliance.
 
+Travel analytics is accessible within the Expensify Travel platform. 
+
 **To access your travel analytics:**
 
-1. From the left-hand menu, select **Reports > Trips**.
+1. From the left-hand menu, select **Reports > Trips** to access Expensify Travel
 2. Click the **Analytics** tab at the top of the screen.
 
 You’ll see a variety of reports, including Duty of Care, Spend, and ESG metrics.
