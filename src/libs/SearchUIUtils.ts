@@ -1550,6 +1550,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
+                        // s77rt this should be update to use the default feed
                         feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
                         status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                     });
@@ -1591,6 +1592,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                 const queryString = buildQueryStringFromFilterFormValues({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
+                    // s77rt this should be update to use the default feed
                     feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
                     status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                 });
