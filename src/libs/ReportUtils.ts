@@ -9975,6 +9975,16 @@ function getOutstandingReportsForUser(
         .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0);
 }
 
+function sortOutstandingReportsBySelected(report1: OnyxEntry<Report>, report2: OnyxEntry<Report>, selectedReportID: string | undefined): number {
+    if (report1?.reportID === selectedReportID) {
+        return -1;
+    }
+    if (report2?.reportID === selectedReportID) {
+        return 1;
+    }
+    return report1?.reportName?.localeCompare(report2?.reportName?.toLowerCase() ?? '') ?? 0;
+}
+
 /**
  * @returns the object to update `report.hasOutstandingChildRequest`
  */
@@ -11366,6 +11376,7 @@ export {
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
     shouldShowFlagComment,
+    sortOutstandingReportsBySelected,
     getReportActionWithMissingSmartscanFields,
     shouldShowRBRForMissingSmartscanFields,
     shouldUseFullTitleToDisplay,
