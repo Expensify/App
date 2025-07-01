@@ -934,7 +934,6 @@ function MoneyReportHeader({
                     isSplitButton={false}
                     wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && styles.flex1]}
                     shouldUseModalPaddingStyle={false}
-                    shouldPopoverUseScrollView={applicableSecondaryActions.length > 5}
                 />
             )}
         </KYCWall>
