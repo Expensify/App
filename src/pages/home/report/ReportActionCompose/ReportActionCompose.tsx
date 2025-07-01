@@ -503,7 +503,7 @@ function ReportActionCompose({
                               currentUserPersonalDetails,
                               reportID,
                           });
-                const newTransactionID = newTransaction?.transactionID;
+                const newTransactionID = newTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
                 setMoneyRequestReceipt(newTransactionID, source, file.name ?? '', true);
                 setMoneyRequestParticipantsFromReport(newTransactionID, report);
             });
