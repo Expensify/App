@@ -532,7 +532,7 @@ function IOURequestStepScan({
 
         files.forEach((file, index) => {
             const transaction =
-                index === 0 && transactions.length === 1
+                index === 0 && transactions.length === 1 && !initialTransaction?.receipt
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
