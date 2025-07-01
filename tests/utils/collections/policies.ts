@@ -7,7 +7,7 @@ export default function createRandomPolicy(index: number, type?: ValueOf<typeof 
     return {
         id: index.toString(),
         name: name ?? randWord(),
-        type: type ?? (rand(Object.values(CONST.POLICY.TYPE)) as Policy['type']),
+        type: type ?? rand(Object.values(CONST.POLICY.TYPE)),
         autoReporting: randBoolean(),
         isPolicyExpenseChatEnabled: randBoolean(),
         autoReportingFrequency: rand(
@@ -15,24 +15,24 @@ export default function createRandomPolicy(index: number, type?: ValueOf<typeof 
                 (frequency): frequency is Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL> =>
                     frequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL,
             ),
-        ) as Policy['autoReportingFrequency'],
+        ),
         harvesting: {
             enabled: randBoolean(),
         },
         autoReportingOffset: 1,
         preventSelfApproval: randBoolean(),
         outputCurrency: randCurrencyCode(),
-        role: rand(Object.values(CONST.POLICY.ROLE)) as Policy['role'],
+        role: rand(Object.values(CONST.POLICY.ROLE)),
         owner: randEmail(),
         ownerAccountID: index,
         avatarURL: randAvatar(),
         isFromFullPolicy: randBoolean(),
         lastModified: randPastDate().toISOString(),
-        pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)) as Policy['pendingAction'],
+        pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
         errors: {},
         customUnits: {},
         errorFields: {},
-        approvalMode: rand(Object.values(CONST.POLICY.APPROVAL_MODE)) as Policy['approvalMode'],
+        approvalMode: rand(Object.values(CONST.POLICY.APPROVAL_MODE)),
     };
 }
 

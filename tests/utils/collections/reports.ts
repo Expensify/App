@@ -9,7 +9,7 @@ import type {Report} from '@src/types/onyx';
 function createRandomReport(index: number): Report {
     return {
         reportID: index.toString(),
-        chatType: rand(Object.values(CONST.REPORT.CHAT_TYPE)) as Report['chatType'],
+        chatType: rand(Object.values(CONST.REPORT.CHAT_TYPE)),
         currency: randCurrencyCode(),
         ownerAccountID: index,
         isPinned: randBoolean(),
