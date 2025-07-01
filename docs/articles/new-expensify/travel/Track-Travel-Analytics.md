@@ -3,7 +3,7 @@ title: Track Travel Analytics
 description: Get insight into company travel bookings to ensure real-time duty of care reporting and travel policy compliance. 
 ---
 
-Expensify Travel provides insights into company travel bookings to ensure real-time duty of care reporting and travel policy compliance. These analytics help Workspace Admins:
+Expensify Travel provides comprehensive insights into company travel bookings to ensure real-time duty of care reporting and travel policy compliance. Analytics are based on complete trip-level data that remains accurate regardless of individual expense handling. These analytics help Workspace Admins:
 
 - See global employee locations with a real-time employee location map
 - Analyze travel spend based on details such as trip, traveler, or carrier
