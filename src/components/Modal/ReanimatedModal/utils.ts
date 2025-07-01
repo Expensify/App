@@ -23,7 +23,6 @@ function getModalInAnimation(animationType: AnimationInType): ValidKeyframeProps
                 },
             };
         case 'fadeIn':
-        default:
             return {
                 from: {opacity: 0},
                 to: {
@@ -31,6 +30,8 @@ function getModalInAnimation(animationType: AnimationInType): ValidKeyframeProps
                     easing,
                 },
             };
+        default:
+            throw new Error('Unknown animation type');
     }
 }
 
@@ -53,7 +54,6 @@ function getModalOutAnimation(animationType: AnimationOutType): ValidKeyframePro
                 },
             };
         case 'fadeOut':
-        default:
             return {
                 from: {opacity: 0.72},
                 to: {
@@ -61,6 +61,8 @@ function getModalOutAnimation(animationType: AnimationOutType): ValidKeyframePro
                     easing,
                 },
             };
+        default:
+            throw new Error('Unknown animation type');
     }
 }
 
