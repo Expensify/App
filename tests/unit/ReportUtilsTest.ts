@@ -3798,9 +3798,16 @@ describe('ReportUtils', () => {
 
         describe('can flag report action', () => {
             let expenseReport: Report;
-            const reportActionFromConcierge: ReportAction = {
+            const reportActionThatCanBeFlagged: ReportAction = {
+                ...validReportAction,
+            };
+
+            // eslint-disable-next-line rulesdir/no-negated-variables
+            const reportActionThatCannotBeFlagged: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+
+                // If the actor is Concierge, the report action cannot be flagged
                 actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
             };
 
@@ -3817,19 +3824,19 @@ describe('ReportUtils', () => {
             });
 
             it('should return true for an archived expense report with an action that can be flagged', () => {
-                expect(shouldShowFlagComment(validReportAction, expenseReport, true)).toBe(true);
+                expect(shouldShowFlagComment(reportActionThatCanBeFlagged, expenseReport, true)).toBe(true);
             });
 
             it('should return true for a non-archived expense report with an action that can be flagged', () => {
-                expect(shouldShowFlagComment(validReportAction, expenseReport, false)).toBe(true);
+                expect(shouldShowFlagComment(reportActionThatCanBeFlagged, expenseReport, false)).toBe(true);
             });
 
             it('should return false for an archived expense report with an action that cannot be flagged', () => {
-                expect(shouldShowFlagComment(reportActionFromConcierge, expenseReport, true)).toBe(false);
+                expect(shouldShowFlagComment(reportActionThatCannotBeFlagged, expenseReport, true)).toBe(false);
             });
 
             it('should return false for a non-archived expense report with an action that cannot be flagged', () => {
-                expect(shouldShowFlagComment(reportActionFromConcierge, expenseReport, false)).toBe(false);
+                expect(shouldShowFlagComment(reportActionThatCannotBeFlagged, expenseReport, false)).toBe(false);
             });
         });
 
