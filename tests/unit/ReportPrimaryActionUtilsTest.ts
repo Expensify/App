@@ -1,7 +1,8 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import type * as PolicyUtils from '@libs/PolicyUtils';
+import {getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getReportPrimaryAction, getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -205,7 +206,7 @@ describe('getPrimaryAction', () => {
             reportID: `${REPORT_ID}`,
         } as unknown as Transaction;
 
-        (PolicyUtils.getValidConnectedIntegration as jest.Mock).mockReturnValue('netsuite');
+        (getValidConnectedIntegration as jest.Mock).mockReturnValue('netsuite');
 
         expect(getReportPrimaryAction({report, chatReport, reportTransactions: [transaction], violations: {}, policy: policy as Policy})).toBe(
             CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING,
