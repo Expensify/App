@@ -16,6 +16,7 @@ import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
     compareDuplicateTransactionFields,
+    getAmount,
     getFormattedCreated,
     getOriginalTransactionWithSplitInfo,
     hasMissingSmartscanFields,
@@ -253,7 +254,7 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    const amount = isBillSplit ? getOriginalTransactionWithSplitInfo(transaction).originalTransaction?.amount : requestAmount;
+    const amount = isBillSplit ? getAmount(getOriginalTransactionWithSplitInfo(transaction).originalTransaction) : requestAmount;
     let displayAmountText: TranslationPathOrText = isTransactionScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
