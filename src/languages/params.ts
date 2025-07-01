@@ -141,11 +141,6 @@ type WorkspaceRouteParams = {
     workspaceRoute: string;
 };
 
-type BusinessBankAccountParams = {
-    amount: string;
-    last4Digits: string;
-};
-
 type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
