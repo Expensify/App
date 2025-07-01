@@ -1,15 +1,15 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
-import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
@@ -32,6 +32,7 @@ import {
     getBankAccountRoute,
     getIntegrationIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
+    getNextApproverAccountID,
     getNonHeldAndFullAmount,
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
@@ -67,7 +68,6 @@ import {
     canIOUBePaid as canIOUBePaidAction,
     deleteMoneyRequest,
     getNavigationUrlOnMoneyRequestDelete,
-    getNextApproverAccountID,
     initSplitExpense,
     payInvoice,
     payMoneyRequest,
@@ -79,7 +79,6 @@ import {
 } from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
-import useDelegateUserDetails from '@src/hooks/useDelegateUserDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -94,7 +93,7 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
-import DelegateNoAccessModal from './DelegateNoAccessModal';
+import {DelegateNoAccessContext} from './DelegateNoAccessModalProvider';
 import Header from './Header';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -178,6 +177,10 @@ function MoneyReportHeader({
     });
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
+    const [invoiceReceiverPolicy] = useOnyx(
+        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
+        {canBeMissing: true},
+    );
 
     const isExported = isExportedUtils(reportActions);
     const integrationNameFromExportMessage = isExported ? getIntegrationNameFromExportMessageUtils(reportActions) : null;
@@ -295,9 +298,8 @@ function MoneyReportHeader({
     const bankAccountRoute = getBankAccountRoute(chatReport);
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
-    const {isDelegateAccessRestricted} = useDelegateUserDetails();
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const shouldShowLoadingBar = useLoadingBarVisibility();
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
@@ -310,7 +312,7 @@ function MoneyReportHeader({
             setPaymentType(type);
             setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
             if (isDelegateAccessRestricted) {
-                setIsNoDelegateAccessMenuVisible(true);
+                showDelegateNoAccessModal();
             } else if (isAnyTransactionOnHold) {
                 InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
             } else if (isInvoiceReport) {
@@ -321,13 +323,13 @@ function MoneyReportHeader({
                 payMoneyRequest(type, chatReport, moneyRequestReport, true);
             }
         },
-        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, isInvoiceReport, moneyRequestReport, startAnimation],
+        [chatReport, isAnyTransactionOnHold, isDelegateAccessRestricted, showDelegateNoAccessModal, isInvoiceReport, moneyRequestReport, startAnimation],
     );
 
     const confirmApproval = () => {
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
         if (isDelegateAccessRestricted) {
-            setIsNoDelegateAccessMenuVisible(true);
+            showDelegateNoAccessModal();
         } else if (isAnyTransactionOnHold) {
             setIsHoldMenuVisible(true);
         } else {
@@ -435,8 +437,9 @@ function MoneyReportHeader({
             reportNameValuePairs,
             reportActions,
             isChatReportArchived,
+            invoiceReceiverPolicy,
         });
-    }, [isPaidAnimationRunning, moneyRequestReport, reportNameValuePairs, policy, transactions, violations, reportActions, isChatReportArchived, chatReport]);
+    }, [isPaidAnimationRunning, moneyRequestReport, reportNameValuePairs, policy, transactions, violations, reportActions, isChatReportArchived, chatReport, invoiceReceiverPolicy]);
 
     const confirmExport = useCallback(() => {
         setExportModalStatus(null);
@@ -617,7 +620,6 @@ function MoneyReportHeader({
     };
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
-    const {isBetaEnabled} = usePermissions();
 
     const beginPDFExport = (reportID: string) => {
         setIsPDFModalVisible(true);
@@ -637,10 +639,9 @@ function MoneyReportHeader({
             reportNameValuePairs,
             reportActions,
             policies,
-            canUseRetractNewDot: isBetaEnabled(CONST.BETAS.RETRACT_NEWDOT),
             isChatReportArchived,
         });
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, isBetaEnabled, chatReport, isChatReportArchived]);
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, chatReport, isChatReportArchived]);
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
@@ -705,7 +706,7 @@ function MoneyReportHeader({
             value: CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE,
             onSelected: () => {
                 if (isDelegateAccessRestricted) {
-                    setIsNoDelegateAccessMenuVisible(true);
+                    showDelegateNoAccessModal();
                     return;
                 }
 
@@ -999,7 +1000,7 @@ function MoneyReportHeader({
                     )}
                 </View>
             )}
-            <LoadingBar shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false} />
+            <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
@@ -1020,10 +1021,6 @@ function MoneyReportHeader({
                     transactionCount={transactionIDs?.length ?? 0}
                 />
             )}
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
                 prompt={translate('common.downloadFailedDescription')}
@@ -1094,8 +1091,10 @@ function MoneyReportHeader({
                 onConfirm={() => {
                     setIsDeleteReportModalVisible(false);
 
-                    deleteAppReport(moneyRequestReport?.reportID);
                     Navigation.goBack();
+                    InteractionManager.runAfterInteractions(() => {
+                        deleteAppReport(moneyRequestReport?.reportID);
+                    });
                 }}
                 onCancel={() => setIsDeleteReportModalVisible(false)}
                 prompt={translate('iou.deleteReportConfirmation')}

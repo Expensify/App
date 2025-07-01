@@ -1,5 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -14,6 +15,7 @@ import {
     isMoneyRequestReport,
     isReportTransactionThread,
 } from './ReportUtils';
+import {isTransactionPendingDelete} from './TransactionUtils';
 
 /**
  * In MoneyRequestReport we filter out some IOU action types, because expense/transaction data is displayed in a separate list
@@ -45,10 +47,25 @@ function isActionVisibleOnMoneyRequestReport(action: ReportAction) {
 function getThreadReportIDsForTransactions(reportActions: ReportAction[], transactions: Transaction[]) {
     return transactions
         .map((transaction) => {
+            if (isTransactionPendingDelete(transaction)) {
+                return;
+            }
+
             const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
             return action?.childReportID;
         })
         .filter((reportID): reportID is string => !!reportID);
+}
+
+/**
+ * Returns a correct reportID for a given TransactionListItemType for navigation/displaying purposes.
+ */
+function getReportIDForTransaction(transactionItem: TransactionListItemType) {
+    const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+    return (!transactionItem.isFromOneTransactionReport || isFromSelfDM) && transactionItem.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
+        ? transactionItem.transactionThreadReportID
+        : transactionItem.reportID;
 }
 
 /**
@@ -145,6 +162,7 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
 export {
     isActionVisibleOnMoneyRequestReport,
     getThreadReportIDsForTransactions,
+    getReportIDForTransaction,
     getTotalAmountForIOUReportPreviewButton,
     selectAllTransactionsForReport,
     isSingleTransactionReport,

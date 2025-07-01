@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolations} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -91,16 +91,17 @@ const createErrorReportAction = () =>
     });
 
 describe('TransactionItemRowRBRWithOnyx', () => {
-    beforeAll(() =>
+    beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        }),
-    );
+        });
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT);
+    });
 
     beforeEach(() => {
         jest.clearAllMocks();
-        return Onyx.clear().then(waitForBatchedUpdates);
+        return Onyx.clear([ONYXKEYS.NVP_PREFERRED_LOCALE]).then(waitForBatchedUpdates);
     });
 
     it('should display RBR message for transaction with single violation', async () => {

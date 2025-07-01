@@ -27,6 +27,7 @@ type ShouldShowConditionProps = {
     isUserPolicyEmployee: boolean;
     isUserPolicyAdmin: boolean;
     hasBeenAddedToNudgeMigration: boolean;
+    isUserInPaidPolicy: boolean;
 };
 
 type TooltipData = {
@@ -132,13 +133,13 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [SCAN_TEST_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.scanTestTooltip.part1', isBold: false},
-            {text: 'productTrainingTooltip.scanTestTooltip.part2', isBold: true},
+            {text: 'productTrainingTooltip.scanTestTooltip.part1', isBold: true},
+            {text: 'productTrainingTooltip.scanTestTooltip.part2', isBold: false},
         ],
         onHideTooltip: () => dismissProductTraining(SCAN_TEST_TOOLTIP),
         name: SCAN_TEST_TOOLTIP,
         priority: 900,
-        shouldShow: () => true,
+        shouldShow: ({isUserInPaidPolicy, hasBeenAddedToNudgeMigration}) => !isUserInPaidPolicy && !hasBeenAddedToNudgeMigration,
         shouldRenderActionButtons: true,
     },
     [SCAN_TEST_TOOLTIP_MANAGER]: {
@@ -150,7 +151,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_TOOLTIP_MANAGER, isDismissedUsingCloseButton),
         name: SCAN_TEST_TOOLTIP_MANAGER,
         priority: 1000,
-        shouldShow: () => true,
+        shouldShow: ({hasBeenAddedToNudgeMigration}) => !hasBeenAddedToNudgeMigration,
     },
     [SCAN_TEST_CONFIRMATION]: {
         content: [
@@ -161,7 +162,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_CONFIRMATION, isDismissedUsingCloseButton),
         name: SCAN_TEST_CONFIRMATION,
         priority: 1100,
-        shouldShow: () => true,
+        shouldShow: ({hasBeenAddedToNudgeMigration}) => !hasBeenAddedToNudgeMigration,
     },
     [OUTSTANDING_FILTER]: {
         content: [

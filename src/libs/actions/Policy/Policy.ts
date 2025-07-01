@@ -81,7 +81,9 @@ import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPo
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
-import type {OnboardingCompanySize, OnboardingPurpose} from '@src/CONST';
+import {buildTaskData} from '@userActions/Task';
+import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
+import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -90,6 +92,7 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyCategory,
+    PolicyEmployee,
     ReimbursementAccount,
     Report,
     ReportAction,
@@ -585,6 +588,17 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
+    const updatedEmployeeList: Record<string, PolicyEmployee> = {};
+
+    if (approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
+        Object.keys(policy?.employeeList ?? {}).forEach((employee) => {
+            updatedEmployeeList[employee] = {
+                ...policy?.employeeList?.[employee],
+                submitsTo: approver,
+                forwardsTo: '',
+            };
+        });
+    }
 
     const value = {
         approver,
@@ -598,6 +612,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             value: {
                 ...value,
                 pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                employeeList: approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? updatedEmployeeList : policy?.employeeList,
             },
         },
     ];
@@ -611,6 +626,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
                 approvalMode: policy?.approvalMode,
                 pendingFields: {approvalMode: null},
                 errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsApproverPage.genericErrorMessage')},
+                employeeList: policy?.employeeList,
             },
         },
     ];
@@ -646,6 +662,7 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                reimburser: reimburserEmail,
                 achAccount: {reimburser: reimburserEmail},
                 errorFields: {reimburser: null},
                 pendingFields: {reimburser: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -765,6 +782,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             value: {
                 reimbursementChoice,
                 isLoadingWorkspaceReimbursement: true,
+                reimburser: reimburserEmail,
                 achAccount: {reimburser: reimburserEmail},
                 errorFields: {reimbursementChoice: null},
                 pendingFields: {reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -986,7 +1004,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
         },
     ];
 
-    if (currency === CONST.PAYMENT_CARD_CURRENCY.GBP) {
+    if (CONST.SCA_CURRENCIES.has(currency)) {
         const params: AddPaymentCardParams = {
             cardNumber,
             cardYear,
@@ -994,10 +1012,10 @@ function addBillingCardAndRequestPolicyOwnerChange(
             cardCVV,
             addressName,
             addressZip,
-            currency,
+            currency: currency as ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>,
             isP2PDebitCard: false,
         };
-        PaymentMethods.addPaymentCardGBP(params);
+        PaymentMethods.addPaymentCardSCA(params);
     } else {
         const params: AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
             policyID,
@@ -1007,7 +1025,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
             cardCVV,
             addressName,
             addressZip,
-            currency,
+            currency: currency as ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>,
         };
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
         API.write(WRITE_COMMANDS.ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
@@ -1128,7 +1146,16 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             policyID,
             ownerAccountID: cleanAccountID,
+            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         });
+
+        // Set correct notification preferences: visible for the submitter, hidden for others until there's activity
+        if (optimisticReport.participants) {
+            optimisticReport.participants[cleanAccountID] = {
+                ...optimisticReport.participants[cleanAccountID],
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            };
+        }
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(login);
 
         workspaceMembersChats.reportCreationData[login] = {
@@ -1660,19 +1687,22 @@ function generateDefaultWorkspaceName(email = ''): string {
         displayNameForWorkspace = userDetails?.phoneNumber ?? '';
     }
 
-    if (`@${domain}` === CONST.SMS.DOMAIN) {
-        return translateLocal('workspace.new.myGroupWorkspace');
+    const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
+    if (isSMSDomain) {
+        displayNameForWorkspace = translateLocal('workspace.new.myGroupWorkspace', {});
     }
 
     if (isEmptyObject(allPolicies)) {
-        return translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace});
+        return isSMSDomain ? translateLocal('workspace.new.myGroupWorkspace', {}) : translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace});
     }
 
     // find default named workspaces and increment the last number
     const escapedName = escapeRegExp(displayNameForWorkspace);
-    const workspaceTranslations = CONST.LANGUAGES.map((lang) => translate(lang, 'workspace.common.workspace')).join('|');
+    const workspaceTranslations = Object.values(CONST.LOCALES)
+        .map((lang) => translate(lang, 'workspace.common.workspace'))
+        .join('|');
 
-    const workspaceRegex = new RegExp(`^(?=.*${escapedName})(?:.*(?:${workspaceTranslations})\\s*(\\d+)?)`, 'i');
+    const workspaceRegex = isSMSDomain ? new RegExp(`^${escapedName}\\s*(\\d+)?$`, 'i') : new RegExp(`^(?=.*${escapedName})(?:.*(?:${workspaceTranslations})\\s*(\\d+)?)`, 'i');
 
     const workspaceNumbers = Object.values(allPolicies)
         .map((policy) => workspaceRegex.exec(policy?.name ?? ''))
@@ -1680,6 +1710,9 @@ function generateDefaultWorkspaceName(email = ''): string {
         .map((match) => Number(match?.[1] ?? '0'));
     const lastWorkspaceNumber = workspaceNumbers.length > 0 ? Math.max(...workspaceNumbers) : undefined;
 
+    if (isSMSDomain) {
+        return translateLocal('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
+    }
     return translateLocal('workspace.new.workspaceName', {userName: displayNameForWorkspace, workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
 }
 
@@ -2141,7 +2174,8 @@ function buildPolicyData(
         engagementChoice &&
         shouldAddOnboardingTasks
     ) {
-        const onboardingData = ReportUtils.prepareOnboardingOnyxData(introSelected, engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
+        const {onboardingMessages} = getOnboardingMessages();
+        const onboardingData = ReportUtils.prepareOnboardingOnyxData(introSelected, engagementChoice, onboardingMessages[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
         }
@@ -2153,6 +2187,20 @@ function buildPolicyData(
         optimisticData.push(...taskOptimisticData);
         successData.push(...taskSuccessData);
         failureData.push(...taskFailureData);
+    }
+
+    // For test drive receivers, we want to complete the createWorkspace task in concierge, instead of #admin room
+    if (introSelected?.choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER && introSelected.createWorkspace) {
+        const createWorkspaceTaskReport = {reportID: introSelected.createWorkspace};
+        const {
+            optimisticData: optimisticCreateWorkspaceTaskData,
+            successData: successCreateWorkspaceTaskData,
+            failureData: failureCreateWorkspaceTaskData,
+        } = buildTaskData(createWorkspaceTaskReport, introSelected.createWorkspace);
+
+        optimisticData.push(...optimisticCreateWorkspaceTaskData);
+        successData.push(...successCreateWorkspaceTaskData);
+        failureData.push(...failureCreateWorkspaceTaskData);
     }
 
     return {successData, optimisticData, failureData, params};
@@ -2181,6 +2229,7 @@ function createWorkspace(
         shouldAddOnboardingTasks,
         companySize,
     );
+
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
     // Publish a workspace created event if this is their first policy
@@ -2920,7 +2969,33 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     }
 
     // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
-    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID, policyID, memberData.workspaceChatReportID, iouReportID, workspaceName);
+    const movedReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID, policyID, memberData.workspaceChatReportID, iouReportID, workspaceName, true);
+
+    const movedIouReportAction = ReportUtils.buildOptimisticMovedReportAction(oldPersonalPolicyID, policyID, memberData.workspaceChatReportID, iouReportID, workspaceName);
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+        value: {[movedIouReportAction.reportActionID]: movedIouReportAction},
+    });
+
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+        value: {
+            [movedIouReportAction.reportActionID]: {
+                ...movedIouReportAction,
+                pendingAction: null,
+            },
+        },
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+        value: {[movedIouReportAction.reportActionID]: null},
+    });
+
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
@@ -2977,6 +3052,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         iouReportID,
         memberData: JSON.stringify(memberData),
         reportActionID: movedReportAction.reportActionID,
+        expenseMovedReportActionID: movedIouReportAction.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT, params, {optimisticData, successData, failureData});
@@ -4066,22 +4142,29 @@ function setPolicyMaxExpenseAmount(policyID: string, maxExpenseAmount: string) {
 /**
  *
  * @param policyID
- * @param prohibitedExpenses
+ * @param prohibitedExpense
  */
-function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: ProhibitedExpenses) {
+function setPolicyProhibitedExpense(policyID: string, prohibitedExpense: keyof ProhibitedExpenses) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     const originalProhibitedExpenses = policy?.prohibitedExpenses;
+    const prohibitedExpenses = {
+        ...originalProhibitedExpenses,
+        [prohibitedExpense]: !originalProhibitedExpenses?.[prohibitedExpense],
+    };
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    prohibitedExpenses,
-                    pendingFields: {
-                        prohibitedExpenses: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    prohibitedExpenses: {
+                        ...prohibitedExpenses,
+                        pendingFields: {
+                            [prohibitedExpense]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
                     },
                 },
             },
@@ -4091,7 +4174,11 @@ function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: Prohi
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    pendingFields: {prohibitedExpenses: null},
+                    prohibitedExpenses: {
+                        pendingFields: {
+                            [prohibitedExpense]: null,
+                        },
+                    },
                     errorFields: null,
                 },
             },
@@ -4102,16 +4189,17 @@ function setPolicyProhibitedExpenses(policyID: string, prohibitedExpenses: Prohi
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     prohibitedExpenses: originalProhibitedExpenses,
-                    pendingFields: {prohibitedExpenses: null},
                     errorFields: {prohibitedExpenses: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 },
             },
         ],
     };
 
+    // Remove pendingFields before sending to the API
+    const {pendingFields, ...prohibitedExpensesWithoutPendingFields} = prohibitedExpenses;
     const parameters: SetPolicyProhibitedExpensesParams = {
         policyID,
-        prohibitedExpenses: JSON.stringify(prohibitedExpenses),
+        prohibitedExpenses: JSON.stringify(prohibitedExpensesWithoutPendingFields),
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES, parameters, onyxData);
@@ -5416,7 +5504,7 @@ export {
     setPolicyMaxExpenseAmount,
     setPolicyMaxExpenseAge,
     updateCustomRules,
-    setPolicyProhibitedExpenses,
+    setPolicyProhibitedExpense,
     setPolicyBillableMode,
     disableWorkspaceBillableExpenses,
     setWorkspaceEReceiptsEnabled,

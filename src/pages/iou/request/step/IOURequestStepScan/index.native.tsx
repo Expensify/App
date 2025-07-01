@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/core';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, StyleSheet, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -29,6 +29,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,7 +42,7 @@ import getCurrentPosition from '@libs/getCurrentPosition';
 import getPlatform from '@libs/getPlatform';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import HapticFeedback from '@libs/HapticFeedback';
-import {navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
+import {formatCurrentUserToAttendee, navigateToParticipantPage, shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -88,7 +89,6 @@ function IOURequestStepScan({
     transaction: initialTransaction,
     currentUserPersonalDetails,
     onLayout,
-    setTabSwipeDisabled,
     isMultiScanEnabled = false,
     setIsMultiScanEnabled,
 }: IOURequestStepScanProps) {
@@ -103,9 +103,8 @@ function IOURequestStepScan({
     const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
-    // TODO: use correct canUseMultiScan value when all multi-scan functionality is implemented
-    // const canUseMultiScan = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_SCAN) && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT;
-    const canUseMultiScan = false;
+    const {isBetaEnabled} = usePermissions();
+    const canUseMultiScan = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_SCAN) && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT && !backTo && !backToReport;
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
@@ -121,6 +120,7 @@ function IOURequestStepScan({
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
+    const [cameraKey, setCameraKey] = useState(0);
 
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
@@ -235,6 +235,7 @@ function IOURequestStepScan({
                     return;
                 }
 
+                setCameraKey((prev) => prev + 1);
                 refreshCameraPermissionStatus();
             });
 
@@ -247,6 +248,13 @@ function IOURequestStepScan({
             };
         }, [isLoaderVisible, setIsLoaderVisible]),
     );
+
+    useEffect(() => {
+        if (isMultiScanEnabled) {
+            return;
+        }
+        setReceiptFiles([]);
+    }, [isMultiScanEnabled]);
 
     const validateReceipt = (file: FileObject) => {
         const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
@@ -307,7 +315,7 @@ function IOURequestStepScan({
         (files: ReceiptFile[], participant: Participant, gpsPoints?: GpsPoint, policyParams?: {policy: OnyxEntry<Policy>}, billable?: boolean) => {
             files.forEach((receiptFile: ReceiptFile, index) => {
                 const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
-                const receipt: Receipt = receiptFile.file;
+                const receipt: Receipt = receiptFile.file ?? {};
                 receipt.source = receiptFile.source;
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
                 if (iouType === CONST.IOU.TYPE.TRACK && report) {
@@ -360,13 +368,12 @@ function IOURequestStepScan({
 
     const buildOptimisticTransaction = useCallback((): Transaction => {
         const newTransactionID = generateTransactionID();
-        const {comment, currency, category, iouRequestType, isFromGlobalCreate, splitPayerAccountIDs} = initialTransaction ?? {};
+        const {currency, iouRequestType, isFromGlobalCreate, splitPayerAccountIDs} = initialTransaction ?? {};
         const newTransaction = {
             amount: 0,
-            comment,
             created: format(new Date(), 'yyyy-MM-dd'),
             currency,
-            category,
+            comment: {attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID)},
             iouRequestType,
             reportID,
             transactionID: newTransactionID,
@@ -376,7 +383,7 @@ function IOURequestStepScan({
         } as Transaction;
         createDraftTransaction(newTransaction);
         return newTransaction;
-    }, [initialTransaction, reportID]);
+    }, [currentUserPersonalDetails, initialTransaction, reportID]);
 
     const navigateToConfirmationStep = useCallback(
         (files: ReceiptFile[], locationPermissionGranted = false, isTestTransaction = false) => {
@@ -413,7 +420,7 @@ function IOURequestStepScan({
                 if (shouldSkipConfirmation) {
                     const firstReceiptFile = files.at(0);
                     if (iouType === CONST.IOU.TYPE.SPLIT && firstReceiptFile) {
-                        const splitReceipt: Receipt = firstReceiptFile.file;
+                        const splitReceipt: Receipt = firstReceiptFile.file ?? {};
                         splitReceipt.source = firstReceiptFile.source;
                         splitReceipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
                         startSplitBill({
@@ -685,7 +692,7 @@ function IOURequestStepScan({
                     .then((photo: PhotoFile) => {
                         // Store the receipt on the transaction object in Onyx
                         const source = getPhotoSource(photo.path);
-                        const transaction = isMultiScanEnabled && initialTransaction?.receipt ? buildOptimisticTransaction() : initialTransaction;
+                        const transaction = isMultiScanEnabled && initialTransaction?.receipt?.source ? buildOptimisticTransaction() : initialTransaction;
                         const transactionID = transaction?.transactionID ?? initialTransactionID;
 
                         setMoneyRequestReceipt(transactionID, source, photo.path, !isEditing);
@@ -745,9 +752,9 @@ function IOURequestStepScan({
             setShouldShowMultiScanEducationalPopup(true);
         }
         if (isMultiScanEnabled) {
-            removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactions(true);
         }
+        removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
         setIsMultiScanEnabled?.(!isMultiScanEnabled);
     };
 
@@ -829,6 +836,7 @@ function IOURequestStepScan({
                             <GestureDetector gesture={tapGesture}>
                                 <View style={styles.flex1}>
                                     <NavigationAwareCamera
+                                        key={cameraKey}
                                         ref={camera}
                                         device={device}
                                         style={styles.flex1}
@@ -849,7 +857,7 @@ function IOURequestStepScan({
                                                     height={16}
                                                     width={16}
                                                     src={Expensicons.Bolt}
-                                                    fill={theme.white}
+                                                    fill={flash ? theme.white : theme.icon}
                                                 />
                                             </PressableWithFeedback>
                                         </View>
@@ -875,6 +883,7 @@ function IOURequestStepScan({
                         titleStyles={styles.mb2}
                         confirmText={translate('common.buttonConfirm')}
                         description={translate('iou.scanMultipleReceiptsDescription')}
+                        contentInnerContainerStyles={styles.mb6}
                         shouldGoBack={false}
                     />
                 )}
@@ -951,11 +960,12 @@ function IOURequestStepScan({
                     )}
                 </View>
 
-                <ReceiptPreviews
-                    isMultiScanEnabled={isMultiScanEnabled}
-                    submit={submitReceipts}
-                    setTabSwipeDisabled={setTabSwipeDisabled}
-                />
+                {canUseMultiScan && (
+                    <ReceiptPreviews
+                        isMultiScanEnabled={isMultiScanEnabled}
+                        submit={submitReceipts}
+                    />
+                )}
 
                 {startLocationPermissionFlow && !!receiptFiles.length && (
                     <LocationPermissionModal

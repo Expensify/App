@@ -21,6 +21,7 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
     // flashes of unwanted default state.
     const keysToPreserve: OnyxKey[] = [];
     keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    keysToPreserve.push(ONYXKEYS.ARE_TRANSLATIONS_LOADING);
     keysToPreserve.push(ONYXKEYS.PREFERRED_THEME);
     keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
     keysToPreserve.push(ONYXKEYS.DEVICE_ID);
@@ -31,8 +32,17 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
         keysToPreserve.push(ONYXKEYS.NETWORK);
     }
 
+    // Preserve troubleshooting flags
+    keysToPreserve.push(ONYXKEYS.APP_PROFILING_IN_PROGRESS);
+    keysToPreserve.push(ONYXKEYS.SHOULD_STORE_LOGS);
+    keysToPreserve.push(ONYXKEYS.SHOULD_MASK_ONYX_STATE);
+
+    // Preserve account settings (staging server, debug mode, etc.) across logout
+    keysToPreserve.push(ONYXKEYS.ACCOUNT);
+
     return Onyx.clear(keysToPreserve).then(() => {
         clearAllPolicies();
+
         if (!errorMessage) {
             return;
         }

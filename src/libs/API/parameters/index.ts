@@ -102,6 +102,7 @@ export type {default as VerifyIdentityForBankAccountParams} from './VerifyIdenti
 export type {default as AnswerQuestionsForWalletParams} from './AnswerQuestionsForWalletParams';
 export type {default as AddCommentOrAttachmentParams} from './AddCommentOrAttachmentParams';
 export type {default as ReadNewestActionParams} from './ReadNewestActionParams';
+export type {default as ImportPlaidAccountsParams} from './ImportPlaidAccountsParams';
 export type {default as MarkAllMessagesAsReadParams} from './MarkAllMessagesAsReadParams';
 export type {default as MarkAsUnreadParams} from './MarkAsUnreadParams';
 export type {default as TogglePinnedChatParams} from './TogglePinnedChatParams';
@@ -393,6 +394,7 @@ export type {default as SaveCorpayOnboardingDirectorInformationParams} from './S
 export type {default as MoveIOUReportToPolicyAndInviteSubmitterParams} from './MoveIOUReportToPolicyAndInviteSubmitterParams';
 export type {default as MoveIOUReportToExistingPolicyParams} from './MoveIOUReportToExistingPolicyParams';
 export type {default as ChangeReportPolicyParams} from './ChangeReportPolicyParams';
+export type {default as ChangeReportPolicyAndInviteSubmitterParams} from './ChangeReportPolicyAndInviteSubmitterParams';
 export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './ChangeTransactionsReportParams';
 export type {default as ResetBankAccountSetupParams} from './ResetBankAccountSetupParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
