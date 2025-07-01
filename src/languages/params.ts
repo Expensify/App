@@ -206,8 +206,6 @@ type TransferParams = {amount: string};
 
 type InstantSummaryParams = {rate: string; minAmount: string};
 
-type BankAccountLastFourParams = {lastFour: string};
-
 type NotYouParams = {user: string};
 
 type DateShouldBeBeforeParams = {dateString: string};
@@ -450,7 +448,7 @@ type ExportAgainModalDescriptionParams = {
     connectionName: ConnectionName;
 };
 
-type IntegrationSyncFailedParams = {label: string; errorMessage: string; linkText?: string; linkURL?: string};
+type IntegrationSyncFailedParams = {label: string; errorMessage: string; linkText?: string; linkURL?: string; workspaceAccountingLink?: string};
 
 type AddEmployeeParams = {email: string; role: string};
 
@@ -1044,7 +1042,6 @@ export type {
     SettlementDateParams,
     PolicyExpenseChatNameParams,
     YourPlanPriceValueParams,
-    BusinessBankAccountParams,
     NeedCategoryForExportToIntegrationParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
@@ -1058,7 +1055,6 @@ export type {
     UpdatedPolicyCategoryExpenseLimitTypeParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     SubscriptionSettingsSummaryParams,
-    BankAccountLastFourParams,
     ReviewParams,
     CreateExpensesParams,
     CurrencyInputDisabledTextParams,

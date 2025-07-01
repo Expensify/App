@@ -11,6 +11,7 @@ import type {SearchQueryItem, SearchQueryListItemProps} from '@components/Select
 import SearchQueryListItem, {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SectionListDataType, SelectionListHandle, UserListItemProps} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useDebounce from '@hooks/useDebounce';
 import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,7 +20,7 @@ import {getCardFeedKey, getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import memoize from '@libs/memoize';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
-import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidPersonalDetailOptions} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidPersonalDetailOptions, optionsOrderBy, recentReportComparator} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -353,9 +354,8 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
-                const filteredChats = searchOptions.recentReports
-                    .filter((chat) => chat.text?.toLowerCase()?.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(chat.text.toLowerCase()))
-                    .slice(0, 10);
+                const filterChats = (chat: OptionData) => chat.text?.toLowerCase()?.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(chat.text.toLowerCase());
+                const filteredChats = optionsOrderBy(searchOptions.recentReports, 10, recentReportComparator, filterChats);
 
                 return filteredChats.map((chat) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
@@ -494,35 +494,43 @@ function SearchAutocompleteList(
     /**
      * Builds a suffix tree and returns a function to search in it.
      */
-    const filterOptions = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
+    const {search: filterOptions, isInitialized: isFastSearchInitialized} = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
 
     const recentReportsOptions = useMemo(() => {
-        if (autocompleteQueryValue.trim() === '') {
-            return searchOptions.recentReports.slice(0, 20);
+        Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+        if (autocompleteQueryValue.trim() === '' || !isFastSearchInitialized) {
+            const orderedReportOptions = optionsOrderBy(searchOptions.recentReports, 20, recentReportComparator);
+            Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+            return orderedReportOptions;
         }
 
-        Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
         const filteredOptions = filterOptions(autocompleteQueryValue);
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filteredOptions, autocompleteQueryValue, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
         });
-        Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
 
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
         if (filteredOptions.userToInvite) {
             reportOptions.push(filteredOptions.userToInvite);
         }
+        Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, filterOptions, searchOptions]);
+    }, [autocompleteQueryValue, filterOptions, searchOptions, isFastSearchInitialized]);
+
+    const debounceHandleSearch = useDebounce(
+        useCallback(() => {
+            if (!handleSearch || !autocompleteQueryWithoutFilters) {
+                return;
+            }
+            handleSearch(autocompleteQueryWithoutFilters);
+        }, [handleSearch, autocompleteQueryWithoutFilters]),
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+    );
 
     useEffect(() => {
-        if (!handleSearch) {
-            return;
-        }
-
-        handleSearch(autocompleteQueryWithoutFilters);
-    }, [autocompleteQueryWithoutFilters, handleSearch]);
+        debounceHandleSearch();
+    }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
 
     /* Sections generation */
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];
@@ -622,6 +630,7 @@ function SearchAutocompleteList(
                 shouldScrollToFocusedIndex={!isInitialRender}
                 shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
                 disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
+                addBottomSafeAreaPadding
             />
         )
     );
