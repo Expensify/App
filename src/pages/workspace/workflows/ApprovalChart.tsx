@@ -456,6 +456,8 @@ function ApprovalChartWeb({chart}: ChartViewProps) {
                         // Subgraph styling
                         clusterBkg: 'transparent',
                         clusterBorder: '#666666',
+                        titleColor: colors.green700,
+                        primaryTextColor: colors.green700,
                         altBackground: 'transparent',
                     },
                     flowchart: {
@@ -575,6 +577,8 @@ function ApprovalChartMobile({chart}: ChartViewProps) {
                     lineColor: '${colors.green700}',
                     clusterBkg: 'transparent',
                     clusterBorder: '#666666',
+                    titleColor: '${colors.green700}',
+                    primaryTextColor: '${colors.green700}',
                     altBackground: 'transparent'
                 },
             });

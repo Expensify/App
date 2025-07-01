@@ -50,67 +50,67 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
 
     // Extract category and tag from the transaction
     // Find the specific transaction for this report
-    const reportTransaction = transaction && typeof transaction === 'object' ? 
-        Object.values(transaction).find((t: any) => t?.reportID === reportID) : 
+    const reportTransaction = transaction && typeof transaction === 'object' ?
+        Object.values(transaction).find((t: any) => t?.reportID === reportID) :
         transaction;
-        
+
     const reportCategory = (reportTransaction as any)?.category;
     const reportTag = (reportTransaction as any)?.tag;
 
     // Get category and tag approvers if they exist
-    const categoryApprover = reportCategory ? 
-        CategoryUtils.getCategoryApproverRule(policy?.rules?.approvalRules ?? [], reportCategory)?.approver : 
+    const categoryApprover = reportCategory ?
+        CategoryUtils.getCategoryApproverRule(policy?.rules?.approvalRules ?? [], reportCategory)?.approver :
         null;
-    const tagApprover = reportTag ? 
-        PolicyUtils.getTagApproverRule(policy, reportTag)?.approver : 
+    const tagApprover = reportTag ?
+        PolicyUtils.getTagApproverRule(policy, reportTag)?.approver :
         null;
 
     // Get the next approver using our own workflow logic
     const nextApproverAccountID = useMemo(() => {
         if (!report || !policy?.employeeList || !personalDetails) return null;
-        
+
         const employeeList = policy.employeeList;
         const employees = Object.values(employeeList);
-        
+
         // Build the workflow chain starting from the report submitter
         if (!report.ownerAccountID) return null;
-        
+
         const submitterPersonalDetails = personalDetails[report.ownerAccountID];
         const submitterEmail = submitterPersonalDetails?.login || '';
         const submitter = employees.find((employee) => employee.email === submitterEmail);
-        
+
         if (!submitter) return null;
-        
+
         // Handle self-submission case
         if (submitter.submitsTo === submitter.email) {
             return null;
         }
-        
+
         const getNode = (employee: PolicyEmployee, nodeLevel: number) => {
             const targetEmail = nodeLevel === 0 ? employee?.submitsTo : employee?.forwardsTo;
             const target = employees.find((e) => e.email === targetEmail);
             return target ? {...target, id: Math.random().toString(36).slice(2, 8)} : null;
         };
-        
+
         // Build complete workflow chain including category and tag approvers
         const workflow = [{...submitter, id: Math.random().toString(36).slice(2, 8), skipped: false}];
-        
+
         // First, build the standard workflow chain (L4+) to check for duplicates
         const standardWorkflow = [];
         let level = 0;
         let next = getNode(submitter, level);
-        
+
         while (next && standardWorkflow.length < 10) {
             standardWorkflow.push(next);
             level++;
             next = getNode(next, level);
         }
-        
+
         // Check if category/tag approvers should be skipped based on CORRECT business rules
         const isCategoryApproverSubmitter = categoryApprover && submitter.email === categoryApprover;
         const isTagApproverSubmitter = tagApprover && submitter.email === tagApprover;
         const isSamePersonForBoth = categoryApprover && tagApprover && categoryApprover === tagApprover;
-        
+
         // Add category approver (L2) if exists - ONLY skip if they're the submitter
         if (categoryApprover) {
             const categoryNode = {
@@ -120,7 +120,7 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
             };
             workflow.push(categoryNode);
         }
-        
+
         // Add tag approver (L3) if exists and not same as category - ONLY skip if they're submitter or same as category
         if (tagApprover && !isSamePersonForBoth) {
             const tagNode = {
@@ -130,21 +130,21 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
             };
             workflow.push(tagNode);
         }
-        
+
         // Add standard workflow chain (L4+) - mark as skipped if they already appear in the complete workflow
         for (const standardNode of standardWorkflow) {
             const isDup = workflow.some((e) => e.email === standardNode.email);
             workflow.push({...standardNode, skipped: isDup});
         }
-        
+
         function getUserInfo(email: string) {
-            // First try to get personal details by email  
+            // First try to get personal details by email
             const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-            
+
             if (personalDetail && personalDetail.displayName) {
                 return {
                     firstName: personalDetail.firstName || '',
-                    lastName: personalDetail.lastName || '', 
+                    lastName: personalDetail.lastName || '',
                     displayName: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail) || email,
                     avatar: personalDetail.avatar || UserUtils.getDefaultAvatarURL(personalDetail.accountID),
                     accountID: personalDetail.accountID
@@ -154,11 +154,11 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
             // Try to find by searching through all personal details
             const allPersonalDetailsArray = Object.values(personalDetails || {});
             const foundDetail = allPersonalDetailsArray.find(detail => detail?.login?.toLowerCase() === email.toLowerCase());
-            
+
             if (foundDetail && foundDetail.displayName) {
                 return {
                     firstName: foundDetail.firstName || '',
-                    lastName: foundDetail.lastName || '', 
+                    lastName: foundDetail.lastName || '',
                     displayName: PersonalDetailsUtils.getDisplayNameOrDefault(foundDetail) || email,
                     avatar: foundDetail.avatar || UserUtils.getDefaultAvatarURL(foundDetail.accountID),
                     accountID: foundDetail.accountID
@@ -181,23 +181,23 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
                 accountID: -1
             };
         }
-        
+
         // Find who has already acted by looking at report actions
         let lastActorIndex = 0; // Start with submitter (position 0)
-        
+
         if (reportActions) {
             const sortedReportActions = ReportActionsUtils.getSortedReportActions(Object.values(reportActions));
-            
+
             // Look through report actions to find the last person in our workflow who acted
             for (let i = sortedReportActions.length - 1; i >= 0; i--) {
                 const action = sortedReportActions[i];
                 if (action && action.actorAccountID) {
                     // Check for various approval/submission action types
-                    const isRelevantAction = ReportActionsUtils.isApprovedOrSubmittedReportAction(action) || 
+                    const isRelevantAction = ReportActionsUtils.isApprovedOrSubmittedReportAction(action) ||
                                            action.actionName === 'APPROVED' ||
                                            action.actionName === 'SUBMITTED' ||
                                            action.actionName === 'FORWARDED';
-                    
+
                     if (isRelevantAction) {
                         // Find this actor in our workflow
                         for (let j = 0; j < workflow.length; j++) {
@@ -215,7 +215,7 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
                 }
             }
         }
-        
+
         // Find the next non-skipped person after the last actor
         for (let i = lastActorIndex + 1; i < workflow.length; i++) {
             const workflowNode = workflow[i];
@@ -224,7 +224,7 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
                 return userInfo.accountID;
             }
         }
-        
+
         return -1; // No next approver found
     }, [report, policy?.employeeList, personalDetails, reportActions, categoryApprover, tagApprover]);
 
@@ -235,7 +235,7 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
 
         const employeeList = policy.employeeList;
         const employees = Object.values(employeeList);
-        
+
         // Find the report submitter
         const submitterPersonalDetails = personalDetails[report.ownerAccountID];
         const submitterEmail = submitterPersonalDetails?.login || '';
@@ -257,13 +257,13 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
         };
 
         const getUserInfo = (email: string) => {
-            // First try to get personal details by email  
+            // First try to get personal details by email
             const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-            
+
             if (personalDetail && personalDetail.displayName) {
                 return {
                     firstName: personalDetail.firstName || '',
-                    lastName: personalDetail.lastName || '', 
+                    lastName: personalDetail.lastName || '',
                     displayName: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail) || email,
                     avatar: personalDetail.avatar || UserUtils.getDefaultAvatarURL(personalDetail.accountID),
                     accountID: personalDetail.accountID
@@ -273,11 +273,11 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
             // Try to find by searching through all personal details
             const allPersonalDetailsArray = Object.values(personalDetails || {});
             const foundDetail = allPersonalDetailsArray.find(detail => detail?.login?.toLowerCase() === email.toLowerCase());
-            
+
             if (foundDetail && foundDetail.displayName) {
                 return {
                     firstName: foundDetail.firstName || '',
-                    lastName: foundDetail.lastName || '', 
+                    lastName: foundDetail.lastName || '',
                     displayName: PersonalDetailsUtils.getDisplayNameOrDefault(foundDetail) || email,
                     avatar: foundDetail.avatar || UserUtils.getDefaultAvatarURL(foundDetail.accountID),
                     accountID: foundDetail.accountID
@@ -303,23 +303,23 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
 
         // Build the SAME complete workflow structure as used in nextApproverAccountID calculation
         const workflow: ChartedEmployee[] = [{...submitter, id: Math.random().toString(36).slice(2, 8), skipped: false}];
-        
+
         // First, build the standard workflow chain (L4+) to check for duplicates
         const standardWorkflow: ChartedEmployee[] = [];
         let level = 0;
         let next = getNode(submitter, level);
-        
+
         while (next && standardWorkflow.length < 10) {
             standardWorkflow.push({...next, id: Math.random().toString(36).slice(2, 8)});
             level++;
             next = getNode(next, level);
         }
-        
+
         // Check if category/tag approvers should be skipped based on CORRECT business rules
         const isCategoryAppreverSubmitter = categoryApprover && submitter.email === categoryApprover;
         const isTagApproverSubmitter = tagApprover && submitter.email === tagApprover;
         const isSamePersonForBoth = categoryApprover && tagApprover && categoryApprover === tagApprover;
-        
+
         // Add category approver (L2) if exists - ONLY skip if they're the submitter
         if (categoryApprover) {
             const categoryNode: ChartedEmployee = {
@@ -330,7 +330,7 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
             };
             workflow.push(categoryNode);
         }
-        
+
         // Add tag approver (L3) if exists and not same as category - ONLY skip if they're submitter or same as category
         if (tagApprover && !isSamePersonForBoth) {
             const tagNode: ChartedEmployee = {
@@ -341,7 +341,7 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
             };
             workflow.push(tagNode);
         }
-        
+
         // Add standard workflow chain (L4+) - mark as skipped if they already appear in the complete workflow
         for (const standardNode of standardWorkflow) {
             const isDup = workflow.some((e) => e.email === standardNode.email);
@@ -360,13 +360,13 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
             const toInfo = getUserInfo(to?.email ?? '');
 
             const action = j === 0 ? 'submits to' : 'forwards to';
-            
+
             // Check if users are the current user or the next approver
             const isCurrentUser = fromInfo.accountID === session?.accountID;
             const isToCurrentUser = toInfo.accountID === session?.accountID;
             const isNextApprover = fromInfo.accountID === nextApproverAccountID;
             const isToNextApprover = toInfo.accountID === nextApproverAccountID;
-            
+
             const className = from.skipped ? 'skipped' : (isNextApprover ? 'nextApprover' : 'rounded');
 
             // Sanitize display names to prevent Mermaid markdown parsing issues
@@ -376,43 +376,43 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
                     .trim()
                     .replace(/\s+/g, ' '); // Replace multiple spaces with single space
             };
-            
-            const fromDisplayName = isCurrentUser 
+
+            const fromDisplayName = isCurrentUser
                 ? `${sanitizeText(fromInfo.displayName) || 'User'} (you${from.skipped ? ' - skipped' : ''})`
                 : isNextApprover
                 ? `${sanitizeText(fromInfo.displayName) || 'User'} (awaiting approval${from.skipped ? ' - skipped' : ''})`
                 : (sanitizeText(fromInfo.displayName) || 'User');
-            const toDisplayName = isToCurrentUser 
+            const toDisplayName = isToCurrentUser
                 ? `${sanitizeText(toInfo.displayName) || 'User'} (you${to.skipped ? ' - skipped' : ''})`
                 : isToNextApprover
                 ? `${sanitizeText(toInfo.displayName) || 'User'} (awaiting approval${to.skipped ? ' - skipped' : ''})`
                 : (sanitizeText(toInfo.displayName) || 'User');
             const skippedText = (from.skipped && !isCurrentUser && !isNextApprover) ? ' (skipped)' : '';
             const toSkippedText = (to.skipped && !isToCurrentUser && !isToNextApprover) ? ' (skipped)' : '';
-            
+
             const toClassName = to.skipped ? 'skipped' : (isToNextApprover ? 'nextApprover' : 'rounded');
-            
+
             // Determine if we should use subgraphs for category/tag approvers
             if (from.isCategoryApprover === true) {
                 const categorySubgraphId = `categoryApprover`;
                 chart += `\nsubgraph ${categorySubgraphId} ["Category Approver"]\n    ${from.id}("${fromDisplayName}${skippedText}"):::${className}\nend`;
             }
-            
+
             if (from.isTagApprover === true) {
-                const tagSubgraphId = `tagApprover`;  
+                const tagSubgraphId = `tagApprover`;
                 chart += `\nsubgraph ${tagSubgraphId} ["Tag Approver"]\n    ${from.id}("${fromDisplayName}${skippedText}"):::${className}\nend`;
             }
-            
+
             if (to.isCategoryApprover === true) {
                 const categorySubgraphId = `categoryApprover`;
                 chart += `\nsubgraph ${categorySubgraphId} ["Category Approver"]\n    ${to.id}("${toDisplayName}${toSkippedText}"):::${toClassName}\nend`;
             }
-            
+
             if (to.isTagApprover === true) {
                 const tagSubgraphId = `tagApprover`;
                 chart += `\nsubgraph ${tagSubgraphId} ["Tag Approver"]\n    ${to.id}("${toDisplayName}${toSkippedText}"):::${toClassName}\nend`;
             }
-            
+
             // Add the regular nodes if they're not category/tag approvers
             if (from.isCategoryApprover !== true && from.isTagApprover !== true) {
                 chart += `\n${from.id}("${fromDisplayName}${skippedText}"):::${className}`;
@@ -420,12 +420,14 @@ function ReportDetailsApprovalWorkflowPage({route}: ReportDetailsApprovalWorkflo
             if (to.isCategoryApprover !== true && to.isTagApprover !== true) {
                 chart += `\n${to.id}("${toDisplayName}${toSkippedText}"):::${toClassName}`;
             }
-            
+
             chart += `\n${from.id} -->|"${action}"| ${to.id}`;
         }
 
         return chart;
     }, [policy?.employeeList, report?.ownerAccountID, personalDetails, session?.accountID, nextApproverAccountID, categoryApprover, tagApprover]);
+
+    console.log(chart);
 
     if (!report || !policy) {
         return (
@@ -514,6 +516,8 @@ function ApprovalChartWeb({chart, styles}: ChartViewProps) {
                     // Subgraph styling
                     clusterBkg: 'transparent',
                     clusterBorder: '#666666',
+                    titleColor: colors.green700,
+                    primaryTextColor: colors.green700,
                     altBackground: 'transparent',
                 },
                 flowchart: {
@@ -616,6 +620,8 @@ function ApprovalChartMobile({chart}: ChartViewProps) {
                     fontWeight: 'bold',
                     clusterBkg: 'transparent',
                     clusterBorder: '#666666',
+                    titleColor: '${colors.green700}',
+                    primaryTextColor: '${colors.green700}',
                     altBackground: 'transparent',
                 },
                 flowchart: {
@@ -644,4 +650,4 @@ function ApprovalChartMobile({chart}: ChartViewProps) {
 
 ReportDetailsApprovalWorkflowPage.displayName = 'ReportDetailsApprovalWorkflowPage';
 
-export default ReportDetailsApprovalWorkflowPage; 
+export default ReportDetailsApprovalWorkflowPage;
