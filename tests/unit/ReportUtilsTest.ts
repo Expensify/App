@@ -3975,7 +3975,7 @@ describe('ReportUtils', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
             });
 
-            it('should return false for an archived chatreport', () => {
+            it('should return false for an archived chat report', () => {
                 // It will be false here because it's a chat report with an action from Concierge
                 // so it doesn't matter if the report is archived or not, it will always be false.
                 expect(shouldShowFlagComment(actionFromConcierge, chatReport, true)).toBe(false);
