@@ -152,6 +152,7 @@ import {
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
+import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
@@ -181,7 +182,6 @@ import ReportActionItemMessage from './ReportActionItemMessage';
 import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
-import ReportAttachmentsContext from './ReportAttachmentsContext';
 import TripSummary from './TripSummary';
 
 type PureReportActionItemProps = {
@@ -193,9 +193,6 @@ type PureReportActionItemProps = {
 
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
-
-    /** All transactions grouped by reportID */
-    transactionsAndViolationsByReport?: OnyxTypes.ReportTransactionsAndViolationsDerivedValue;
 
     /** Array of report actions for the report for this action */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -379,7 +376,6 @@ function PureReportActionItem({
     report,
     policy,
     transactionThreadReport,
-    transactionsAndViolationsByReport = {},
     linkedReportActionID,
     displayAsGroup,
     index,
@@ -442,7 +438,7 @@ function PureReportActionItem({
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
-    const {updateHiddenAttachments} = useContext(ReportAttachmentsContext);
+    const {updateHiddenAttachments} = useContext(AttachmentModalContext);
     const composerTextInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
     const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
@@ -878,8 +874,8 @@ function PureReportActionItem({
                                 shouldDisplayContextMenu={shouldDisplayContextMenu}
                                 isBillSplit={isSplitBillActionReportActionsUtils(action)}
                                 transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
-                                containerStyles={[shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle, styles.mt1]}
-                                transactionPreviewWidth={shouldUseNarrowLayout ? styles.w100.width : reportPreviewStyles.transactionPreviewStyle.width}
+                                containerStyles={[reportPreviewStyles.transactionPreviewStandaloneStyle, styles.mt1]}
+                                transactionPreviewWidth={reportPreviewStyles.transactionPreviewStandaloneStyle.width}
                                 onPreviewPressed={() => {
                                     if (shouldShowSplitPreview) {
                                         Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
@@ -911,7 +907,6 @@ function PureReportActionItem({
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
-                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
@@ -932,7 +927,6 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
                     shouldShowBorder={shouldShowBorder}
-                    transactionsAndViolationsByReport={transactionsAndViolationsByReport}
                 />
             );
         } else if (isTaskAction(action)) {
@@ -1072,9 +1066,10 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={getDeletedTransactionMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
+            const movedIOUReport = isExpenseReport(parentReport) ? parentReport : report;
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(parentReportAction, movedIOUReport)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
@@ -1176,7 +1171,11 @@ function PureReportActionItem({
             const message = getRenamedAction(action, isExpenseReport(report));
             children = <ReportActionItemBasicMessage message={message} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
-            children = <ReportActionItemBasicMessage message={getIntegrationSyncFailedMessage(action)} />;
+            children = (
+                <ReportActionItemBasicMessage message="">
+                    <RenderHTML html={`<comment><muted-text>${getIntegrationSyncFailedMessage(action, report?.policyID)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION)) {
             children = <ReportActionItemBasicMessage message={getAddedConnectionMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
@@ -1236,7 +1235,7 @@ function PureReportActionItem({
                                     index={index}
                                     ref={composerTextInputRef}
                                     shouldDisableEmojiPicker={
-                                        (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, reportNameValuePairs)
+                                        (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)
                                     }
                                     isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
                                 />
@@ -1367,12 +1366,7 @@ function PureReportActionItem({
     }
 
     if (isTripPreview(action) && isThreadReportParentAction) {
-        return (
-            <TripSummary
-                reportID={getOriginalMessage(action)?.linkedReportID}
-                transactionsAndViolationsByReport={transactionsAndViolationsByReport}
-            />
-        );
+        return <TripSummary reportID={getOriginalMessage(action)?.linkedReportID} />;
     }
 
     if (isChronosOOOListAction(action)) {
