@@ -264,6 +264,11 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         ].filter(Boolean) as string[];
         const fromValue = filterFormValues.from?.map((accountID) => personalDetails?.[accountID]?.displayName ?? accountID) ?? [];
 
+        // s77rt remove DEV lock
+        const shouldDisplayGroupByFilter = isDevelopment;
+        // s77rt remove DEV lock
+        const shouldDisplayFeedFilter = isDevelopment && feedOptions.length > 1;
+
         const filterList = [
             {
                 label: translate('common.type'),
@@ -271,8 +276,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                 value: type ? (type.text ?? translate(type.translation)) : null,
                 filterKey: FILTER_KEYS.TYPE,
             },
-            // s77rt remove DEV lock
-            ...(isDevelopment
+            ...(shouldDisplayGroupByFilter
                 ? [
                       {
                           label: translate('search.groupBy'),
@@ -280,6 +284,10 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                           value: groupBy ? (groupBy.text ?? translate(groupBy.translation)) : null,
                           filterKey: FILTER_KEYS.GROUP_BY,
                       },
+                  ]
+                : []),
+            ...(shouldDisplayFeedFilter
+                ? [
                       {
                           label: translate('search.filters.feed'),
                           PopoverComponent: feedComponent,
@@ -327,6 +335,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         isDevelopment,
         feed,
         feedComponent,
+        feedOptions.length,
     ]);
 
     if (hasErrors) {
