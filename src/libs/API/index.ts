@@ -1,6 +1,8 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SetRequired} from 'type-fest';
+import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@libs/actions/RequestConflictUtils';
+import type {EnablePolicyFeatureCommand, RequestMatcher} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
 import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx} from '@libs/Middleware';
 import {isOffline} from '@libs/Network/NetworkStore';
@@ -158,6 +160,60 @@ function write<TCommand extends WriteCommand>(
 }
 
 /**
+ * This function is used to write data to the API while ensuring that there are no duplicate requests in the queue.
+ * If a duplicate request is found, it resolves the conflict by replacing the duplicated request with the new one.
+ *
+ * @param command - Name of API command to call.
+ * @param apiCommandParameters - Parameters to send to the API.
+ * @param onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
+ *                             into Onyx before and after a request is made. Each nested object will be formatted in
+ *                             the same way as an API response.
+ * @param [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
+ * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
+ * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
+ * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
+ * @param requestMatcher - Custom request matcher function for resolveDuplicationConflictAction.
+ */
+function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand>(
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData: OnyxData = {},
+    requestMatcher: RequestMatcher = (request) => request.command === command,
+): Promise<void | Response> {
+    const conflictResolver = {
+        checkAndFixConflictingRequest: (persistedRequests: OnyxRequest[]) => resolveDuplicationConflictAction(persistedRequests, requestMatcher),
+    };
+
+    return write(command, apiCommandParameters, onyxData, conflictResolver);
+}
+
+/**
+ * This function is used to write data to the API while ensuring that there are no conflicts with enabling policy features.
+ * If a conflict is found, it resolves the conflict by deleting the duplicated request.
+ *
+ * @param command - Name of API command to call.
+ * @param apiCommandParameters - Parameters to send to the API.
+ * @param onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
+ *                             into Onyx before and after a request is made. Each nested object will be formatted in
+ *                             the same way as an API response.
+ * @param [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
+ * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
+ * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
+ * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
+ */
+function writeWithNoDuplicatesEnableFeatureConflicts<TCommand extends EnablePolicyFeatureCommand>(
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData: OnyxData = {},
+): Promise<void | Response> {
+    const conflictResolver = {
+        checkAndFixConflictingRequest: (persistedRequests: OnyxRequest[]) => resolveEnableFeatureConflicts(command, persistedRequests, apiCommandParameters),
+    };
+
+    return write(command, apiCommandParameters, onyxData, conflictResolver);
+}
+
+/**
  * For commands where the network response must be accessed directly or when there is functionality that can only
  * happen once the request is finished (eg. calling third-party services like Onfido and Plaid, redirecting a user
  * depending on the response data, etc.).
@@ -281,4 +337,4 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
     }
 }
 
-export {write, makeRequestWithSideEffects, read, paginate};
+export {write, makeRequestWithSideEffects, read, paginate, writeWithNoDuplicatesConflictAction, writeWithNoDuplicatesEnableFeatureConflicts};
