@@ -64,7 +64,7 @@ function createCardFilterItem(card: Card, personalDetailsList: PersonalDetailsLi
     const personalDetails = personalDetailsList[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isSelected = selectedCards.includes(card.cardID.toString());
     const icon = getCardFeedIcon(card?.bank as CompanyCardFeed, illustrations);
-    const cardName = card?.nameValuePairs?.cardTitle ?? card?.cardName;
+    const cardName = card?.nameValuePairs?.cardTitle;
     const text = personalDetails?.displayName ?? cardName;
     const plaidUrl = getPlaidInstitutionIconUrl(card?.bank);
 
