@@ -109,7 +109,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     };
 
     const confirmUpgrade = useCallback(() => {
-        if (!policyID) {
+        if (!policyID || !policy) {
             return;
         }
         if (!feature) {
@@ -128,7 +128,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         updateQuickbooksOnlineSyncCustomers(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncCustomers);
                         break;
                     case CONST.REPORT_FIELDS_FEATURE.qbo.locations:
-                        updateQuickbooksOnlineSyncLocations(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncLocations);
+                        updateQuickbooksOnlineSyncLocations(policy, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncLocations);
                         break;
                     case CONST.REPORT_FIELDS_FEATURE.xero.mapping: {
                         const {trackingCategories} = policy?.connections?.xero?.data ?? {};
@@ -162,14 +162,13 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         categoryId,
         feature,
         perDiemCustomUnit?.customUnitID,
-        policy?.connections?.xero?.config,
-        policy?.connections?.xero?.data,
         policyID,
         qboConfig?.syncClasses,
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
-        route.params?.featureName,
+        route.params.featureName,
         featureNameAlias,
+        policy,
     ]);
 
     useFocusEffect(
