@@ -138,6 +138,8 @@ function IOURequestStepScan({
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
 
+    const canUseMultiDragAndDrop = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP);
+
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
         opacity: blinkOpacity.get(),
@@ -854,7 +856,7 @@ function IOURequestStepScan({
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <AttachmentPicker
                     acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}
-                    allowMultiple={isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}
+                    allowMultiple={canUseMultiDragAndDrop}
                 >
                     {({openPicker}) => (
                         <PressableWithFeedback
@@ -961,18 +963,20 @@ function IOURequestStepScan({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
-                <Text style={[styles.textFileUpload]}>{translate('receipt.upload')}</Text>
+                <Text style={[styles.textFileUpload]}>{translate(canUseMultiDragAndDrop ? 'receipt.uploadMultiple' : 'receipt.upload')}</Text>
                 <Text style={[styles.subTextFileUpload]}>
-                    {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
+                    {isSmallScreenWidth
+                        ? translate(canUseMultiDragAndDrop ? 'receipt.chooseReceipts' : 'receipt.chooseReceipt')
+                        : translate(canUseMultiDragAndDrop ? 'receipt.dragReceiptsBeforeEmail' : 'receipt.dragReceiptBeforeEmail')}
                     <CopyTextToClipboard
                         text={CONST.EMAIL.RECEIPTS}
                         textStyles={[styles.textBlue]}
                     />
-                    {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
+                    {isSmallScreenWidth ? null : translate(canUseMultiDragAndDrop ? 'receipt.dragReceiptsAfterEmail' : 'receipt.dragReceiptAfterEmail')}
                 </Text>
             </View>
 
-            <AttachmentPicker allowMultiple={isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP)}>
+            <AttachmentPicker allowMultiple={canUseMultiDragAndDrop}>
                 {({openPicker}) => (
                     <Button
                         success
@@ -1011,7 +1015,7 @@ function IOURequestStepScan({
                         {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
                     </View>
                     {/* TODO: remove beta check after the feature is enabled */}
-                    {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? (
+                    {canUseMultiDragAndDrop ? (
                         <DragAndDropConsumer onDrop={handleDropReceipt}>
                             <DropZoneUI
                                 icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}

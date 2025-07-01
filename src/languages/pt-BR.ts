@@ -957,9 +957,13 @@ const translations = {
     },
     receipt: {
         upload: 'Fazer upload de recibo',
+        uploadMultiple: 'Fazer upload de recibos',
         dragReceiptBeforeEmail: 'Arraste um recibo para esta página, encaminhe um recibo para',
+        dragReceiptsBeforeEmail: 'Arraste recibos para esta página, encaminhe recibos para',
         dragReceiptAfterEmail: 'ou escolha um arquivo para enviar abaixo.',
+        dragReceiptsAfterEmail: 'ou escolha arquivos para enviar abaixo.',
         chooseReceipt: 'Escolha um recibo para enviar ou encaminhe um recibo para',
+        chooseReceipts: 'Escolha recibos para enviar ou encaminhe recibos para',
         takePhoto: 'Tire uma foto',
         cameraAccess: 'O acesso à câmera é necessário para tirar fotos dos recibos.',
         deniedCameraAccess: 'O acesso à câmera ainda não foi concedido, por favor siga',
