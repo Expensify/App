@@ -55,8 +55,9 @@ import isFileUploadable from '@libs/isFileUploadable';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
+import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {buildNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -841,9 +842,18 @@ Onyx.connect({
 /**
  * @private
  * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
+ * If the action is done from the report RHP, then we just want to dismiss the money request flow screens.
  * It is a helper function used only in this file.
  */
 function dismissModalAndOpenReportInInboxTab(reportID?: string) {
+    const rootState = navigationRef.getRootState();
+    if (isReportOpenInRHP(rootState)) {
+        const rhpKey = rootState.routes.at(-1)?.state?.key;
+        if (rhpKey) {
+            Navigation.pop(rhpKey);
+            return;
+        }
+    }
     if (isSearchTopmostFullScreenRoute() || !reportID) {
         Navigation.dismissModal();
         return;

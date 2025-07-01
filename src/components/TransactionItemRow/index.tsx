@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isCategoryMissing} from '@libs/CategoryUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
@@ -24,10 +25,9 @@ import {
     getCreated as getTransactionCreated,
     getTransactionPendingAction,
     hasMissingSmartscanFields,
-    hasReceipt,
     isAmountMissing,
     isMerchantMissing,
-    isReceiptBeingScanned,
+    isScanning,
     isTransactionPendingDelete,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -107,9 +107,10 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
 
     let merchant = transactionItem?.formattedMerchant ?? getMerchant(transactionItem);
 
-    if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem) && shouldShowMerchant) {
+    if (isScanning(transactionItem) && shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
     }
+
     const merchantName = StringUtils.getFirstLine(merchant);
     return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchantName : '';
 }
@@ -142,7 +143,7 @@ function TransactionItemRow({
     const isPendingDelete = isTransactionPendingDelete(transactionItem);
     const viewRef = useRef<View>(null);
 
-    const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
+    const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -379,10 +380,10 @@ function TransactionItemRow({
             isInSingleTransactionReport,
             isSelected,
             merchant,
+            description,
             onButtonPress,
             shouldShowTooltip,
             shouldUseNarrowLayout,
-            description,
             transactionItem,
         ],
     );
