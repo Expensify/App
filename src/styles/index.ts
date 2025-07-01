@@ -5923,6 +5923,26 @@ const styles = (theme: ThemeColors) =>
             aspectRatio: 1.7,
         },
 
+        receiptPreview: {
+            position: 'absolute',
+            left: 60,
+            top: 100,
+            width: 400,
+            height: 600,
+            borderRadius: 24,
+            overflow: 'hidden',
+        },
+
+        receiptPreviewImageWrapper: {
+            width: '100%',
+            height: '100%',
+        },
+
+        receiptPreviewImage: {
+            width: '100%',
+            height: '100%',
+        },
+
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             flex: 1,
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',

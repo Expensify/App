@@ -1,31 +1,20 @@
 import React, {useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
-import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withSequence, withTiming} from 'react-native-reanimated';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import Image from '@components/Image';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 function ReceiptPreview({source, hovered}: {source: string; hovered: boolean}) {
     const [shouldShow, setShouldShow] = useState(false);
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
     const body = document.querySelector('body');
-
-    const translateX = useSharedValue(0);
-
-    useEffect(() => {
-        if (!shouldShow) {
-            return;
-        }
-        translateX.set(withSequence(withTiming(-20, {duration: 100}), withTiming(20, {duration: 100}), withTiming(0, {duration: 100})));
-    }, [shouldShow, translateX]);
-
-    const animatedStyles = useAnimatedStyle(() => ({
-        transform: [{translateX: translateX.get()}],
-    }));
+    const styles = useThemeStyles();
 
     useEffect(() => {
         if (hovered) {
             debounceTimeout.current = setTimeout(() => {
                 setShouldShow(true);
-            }, 150);
+            }, 333);
         } else {
             if (debounceTimeout.current) {
                 clearTimeout(debounceTimeout.current);
@@ -51,20 +40,12 @@ function ReceiptPreview({source, hovered}: {source: string; hovered: boolean}) {
         <Animated.View
             entering={FadeIn.duration(200)}
             exiting={FadeOut.duration(200)}
-            style={{
-                position: 'absolute',
-                left: 60,
-                top: 100,
-                width: 400,
-                height: 600,
-                borderRadius: 24,
-                overflow: 'hidden',
-            }}
+            style={styles.receiptPreview}
         >
-            <Animated.View style={[animatedStyles, {width: '100%', height: '100%'}]}>
+            <Animated.View style={styles.receiptPreviewImageWrapper}>
                 <Image
                     source={{uri: source}}
-                    style={{width: '100%', height: '100%'}}
+                    style={styles.receiptPreviewImage}
                 />
             </Animated.View>
         </Animated.View>,
