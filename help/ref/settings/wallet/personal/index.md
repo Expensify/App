@@ -1,60 +1,25 @@
 ---
 layout: product
-title: Expensify Chat
+title: Personal Bank Account
 ---
 
 # Personal Bank Accounts
 
-Connect your personal bank account to receive reimbursements and payments directly. Expensify supports bank accounts from over 190 countries.
+Add your personal bank account to get reimbursed or paid — no paper checks, no waiting around. Expensify supports banks in over 190 countries.
 
-# Adding a Bank Account
+## Adding a Personal Bank Account
 
-# U.S. Bank Accounts
-For U.S. accounts, Expensify uses **Plaid** for secure verification:
-
-**To connect a U.S. bank account:**
 1. Go to **Settings > Wallet > Bank Accounts**
 2. Click **Add Bank Account**
-3. Select **United States** as your country
-4. Follow the **Plaid** connection flow
-5. Choose your bank and enter login credentials
+3. Select your **country** from the dropdown
+4. Connect with **Plaid** (for banks located in the U.S.) or enter your details manually
 
-# International Bank Accounts
-Non-U.S. accounts are added manually:
+## What You Can Do
 
-**To connect an international bank account:**
-1. Go to **Settings > Wallet > Bank Accounts**
-2. Click **Add Bank Account**
-3. Select your **country** from the list
-4. Enter your bank account details (account number, routing/SWIFT code)
-5. Add bank name, address, and personal details
-6. Accept Terms of Service and click **Confirm**
-
-# Account Management
-
-- Add multiple personal bank accounts as needed
-- Only one account can be set as the default for reimbursements
-- Use the three-dot menu to manage or delete accounts
-- No fees for adding or using personal bank accounts
-
-# Supported Features
-
-**Reimbursements** - Receive expense report reimbursements directly
-**Invoice payments** - Get paid for invoices you send
-**Multi-currency support** - Receive payments in your local currency
-
-# Troubleshooting
-
-If you haven't received a reimbursement:
-- Check the estimated deposit date on your expense report
-- Verify your bank account is set as the default
-- Contact your bank to confirm no holds on incoming transfers
-
-For connection issues:
-- U.S. accounts: Try reconnecting through Plaid
-- International accounts: Verify all bank details are accurate
-- Contact Concierge if problems persist
+- **Get reimbursed** for expense reports
+- **Receive invoice payments**
+- **Use multi-currency support** to get paid in your local currency
 
 ---
 
-**Note:** Personal bank accounts are for receiving payments only. To send payments or issue Expensify Cards, you'll need to connect a verified business bank account. 
+**Heads up:** Personal accounts are for receiving funds only. If you want to send payments or issue Expensify Cards, you’ll need to connect a verified business bank account.
