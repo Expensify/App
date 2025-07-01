@@ -55,6 +55,7 @@ import {getAccountIDsByLogins, getDisplayNameOrDefault, getPersonalDetailsByIDs}
 import {getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import {getOptimisticAvatarURL} from '@libs/UserUtils';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import {close} from '@userActions/Modal';
 import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
@@ -449,7 +450,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 ),
                 icons: [
                     {
-                        source: details.avatar ?? FallbackAvatar,
+                        source: getOptimisticAvatarURL(details?.login, accountID, details?.avatar) ?? FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,

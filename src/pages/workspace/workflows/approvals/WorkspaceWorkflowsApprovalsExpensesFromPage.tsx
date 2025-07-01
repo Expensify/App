@@ -24,6 +24,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import {getOptimisticAvatarURL} from '@libs/UserUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -88,7 +89,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     keyForList: member.email,
                     isSelected: true,
                     login: member.email,
-                    icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}],
+                    icons: [
+                        {source: getOptimisticAvatarURL(member.email, accountID, member.avatar) ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID},
+                    ],
                     rightElement: (
                         <MemberRightIcon
                             role={policy?.employeeList?.[member.email]?.role}
@@ -118,7 +121,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         keyForList: member.email,
                         isSelected: false,
                         login: member.email,
-                        icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}],
+                        icons: [
+                            {source: getOptimisticAvatarURL(member.email, accountID, member.avatar) ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID},
+                        ],
                         rightElement: (
                             <MemberRightIcon
                                 role={policy?.employeeList?.[member.email]?.role}

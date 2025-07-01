@@ -19,6 +19,7 @@ import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isExpensifyTeam, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import {getOptimisticAvatarURL} from '@libs/UserUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -88,7 +89,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 rightElement: roleBadge,
                 icons: [
                     {
-                        source: details.avatar ?? FallbackAvatar,
+                        source: getOptimisticAvatarURL(details?.login, accountID, details.avatar) ?? FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
