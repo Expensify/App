@@ -16,7 +16,7 @@ import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedKey, getCardFeedNamesWithType} from '@libs/CardFeedUtils';
+import {getCardFeedKey, getCardFeedNamesWithType, getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import memoize from '@libs/memoize';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
@@ -198,10 +198,7 @@ function SearchAutocompleteList(
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const cardAutocompleteList = Object.values(allCards);
-    const cardFeedNamesWithType = useMemo(() => {
-        return getCardFeedNamesWithType({workspaceCardFeeds, translate});
-    }, [translate, workspaceCardFeeds]);
-    const feedAutoCompleteList = useMemo(() => Object.entries(cardFeedNamesWithType).map(([cardFeedKey, cardFeedName]) => ({cardFeedKey, cardFeedName})), [cardFeedNamesWithType]);
+    const feedAutoCompleteList = useMemo(() => Object.values(getCardFeedsForDisplay(allFeeds, allCards)), [allFeeds, allCards]);
 
     const getParticipantsAutocompleteList = useMemo(
         () =>
@@ -398,15 +395,13 @@ function SearchAutocompleteList(
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED: {
                 const filteredFeeds = feedAutoCompleteList
-                    .filter(
-                        (feed) => feed.cardFeedName.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(feed.cardFeedName.name.toLowerCase()),
-                    )
+                    .filter((feed) => feed.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(feed.name.toLowerCase()))
                     .sort()
                     .slice(0, 10);
                 return filteredFeeds.map((feed) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.FEED,
-                    text: feed.cardFeedName.name,
-                    autocompleteID: feed.cardFeedName.type === 'domain' ? feed.cardFeedKey : getCardFeedKey(workspaceCardFeeds, feed.cardFeedKey),
+                    text: feed.name,
+                    autocompleteID: feed.feed,
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
                 }));
             }
