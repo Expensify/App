@@ -18,6 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import Log from '@libs/Log';
 import memoize from '@libs/memoize';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidPersonalDetailOptions, optionsOrderBy, recentReportComparator} from '@libs/OptionsListUtils';
@@ -449,6 +450,12 @@ function SearchAutocompleteList(
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION: {
+                return Object.values(CONST.SEARCH.ACTION_FILTERS).map((status) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ACTION,
+                    text: status,
+                }));
+            }
             default: {
                 return [];
             }
@@ -496,33 +503,124 @@ function SearchAutocompleteList(
     const {search: filterOptions, isInitialized: isFastSearchInitialized} = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
 
     const recentReportsOptions = useMemo(() => {
-        Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-        if (autocompleteQueryValue.trim() === '' || !isFastSearchInitialized) {
-            const orderedReportOptions = optionsOrderBy(searchOptions.recentReports, 20, recentReportComparator);
-            Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-            return orderedReportOptions;
-        }
+        const actionId = `filter_options_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        const startTime = Date.now();
 
-        const filteredOptions = filterOptions(autocompleteQueryValue);
-        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filteredOptions, autocompleteQueryValue, {
-            sortByReportTypeInSearch: true,
-            preferChatRoomsOverThreads: true,
+        Timing.start(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+        Performance.markStart(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+        Log.info('[CMD_K_DEBUG] Filter options started', false, {
+            actionId,
+            queryLength: autocompleteQueryValue.length,
+            queryTrimmed: autocompleteQueryValue.trim(),
+            isFastSearchInitialized,
+            recentReportsCount: searchOptions.recentReports.length,
+            timestamp: startTime,
         });
 
-        const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
-        if (filteredOptions.userToInvite) {
-            reportOptions.push(filteredOptions.userToInvite);
+        try {
+            if (autocompleteQueryValue.trim() === '' || !isFastSearchInitialized) {
+                const orderedReportOptions = optionsOrderBy(searchOptions.recentReports, 20, recentReportComparator);
+
+                const endTime = Date.now();
+                Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+                Performance.markEnd(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+                Log.info('[CMD_K_DEBUG] Filter options completed (empty query path)', false, {
+                    actionId,
+                    duration: endTime - startTime,
+                    resultCount: orderedReportOptions.length,
+                    timestamp: endTime,
+                });
+
+                return orderedReportOptions;
+            }
+
+            const filteredOptions = filterOptions(autocompleteQueryValue);
+            const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filteredOptions, autocompleteQueryValue, {
+                sortByReportTypeInSearch: true,
+                preferChatRoomsOverThreads: true,
+            });
+
+            const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
+            if (filteredOptions.userToInvite) {
+                reportOptions.push(filteredOptions.userToInvite);
+            }
+
+            const finalOptions = reportOptions.slice(0, 20);
+            const endTime = Date.now();
+            Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+            Performance.markEnd(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+            Log.info('[CMD_K_DEBUG] Filter options completed (search path)', false, {
+                actionId,
+                duration: endTime - startTime,
+                recentReportsFiltered: orderedOptions.recentReports.length,
+                personalDetailsFiltered: orderedOptions.personalDetails.length,
+                hasUserToInvite: !!filteredOptions.userToInvite,
+                finalResultCount: finalOptions.length,
+                timestamp: endTime,
+            });
+
+            return finalOptions;
+        } catch (error) {
+            const endTime = Date.now();
+            Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+            Performance.markEnd(CONST.TIMING.SEARCH_FILTER_OPTIONS);
+            Log.alert('[CMD_K_FREEZE] Filter options failed', {
+                actionId,
+                error: String(error),
+                duration: endTime - startTime,
+                queryLength: autocompleteQueryValue.length,
+                timestamp: endTime,
+            });
+            throw error;
         }
-        Timing.end(CONST.TIMING.SEARCH_FILTER_OPTIONS);
-        return reportOptions.slice(0, 20);
     }, [autocompleteQueryValue, filterOptions, searchOptions, isFastSearchInitialized]);
 
     const debounceHandleSearch = useDebounce(
         useCallback(() => {
-            if (!handleSearch || !autocompleteQueryWithoutFilters) {
-                return;
+            const actionId = `debounce_search_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+            const startTime = Date.now();
+
+            Performance.markStart(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
+            Log.info('[CMD_K_DEBUG] Debounced search started', false, {
+                actionId,
+                queryLength: autocompleteQueryWithoutFilters?.length ?? 0,
+                hasHandleSearch: !!handleSearch,
+                timestamp: startTime,
+            });
+
+            try {
+                if (!handleSearch || !autocompleteQueryWithoutFilters) {
+                    Log.info('[CMD_K_DEBUG] Debounced search skipped - missing dependencies', false, {
+                        actionId,
+                        hasHandleSearch: !!handleSearch,
+                        hasQuery: !!autocompleteQueryWithoutFilters,
+                        timestamp: Date.now(),
+                    });
+                    return;
+                }
+
+                handleSearch(autocompleteQueryWithoutFilters);
+
+                const endTime = Date.now();
+                Performance.markEnd(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
+                Log.info('[CMD_K_DEBUG] Debounced search completed', false, {
+                    actionId,
+                    duration: endTime - startTime,
+                    queryLength: autocompleteQueryWithoutFilters.length,
+                    timestamp: endTime,
+                });
+            } catch (error) {
+                const endTime = Date.now();
+                Performance.markEnd(CONST.TIMING.DEBOUNCE_HANDLE_SEARCH);
+                Log.alert('[CMD_K_FREEZE] Debounced search failed', {
+                    actionId,
+                    error: String(error),
+                    duration: endTime - startTime,
+                    queryLength: autocompleteQueryWithoutFilters?.length ?? 0,
+                    timestamp: endTime,
+                });
+                throw error;
             }
-            handleSearch(autocompleteQueryWithoutFilters);
         }, [handleSearch, autocompleteQueryWithoutFilters]),
         CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
     );

@@ -99,6 +99,7 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
+    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -663,6 +664,12 @@ const translations = {
         attachmentImageTooLarge: 'Esta imagem é muito grande para pré-visualizar antes de fazer o upload.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Você pode enviar até ${fileLimit} arquivos de uma vez.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Os arquivos excedem ${maxUploadSizeInMB} MB. Por favor, tente novamente.`,
+        someFilesCantBeUploaded: 'Alguns arquivos não podem ser enviados',
+        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Os arquivos devem ter menos de ${maxUploadSizeInMB} MB. Arquivos maiores não serão enviados.`,
+        maxFileLimitExceeded: 'Você pode enviar até 30 recibos por vez. Os extras não serão enviados.',
+        unsupportedFileType: ({fileType}: FileTypeParams) => `Arquivos ${fileType} não são suportados. Apenas os tipos de arquivo suportados serão enviados.`,
+        learnMoreAboutSupportedFiles: 'Saiba mais sobre formatos suportados.',
+        passwordProtected: 'PDFs protegidos por senha não são suportados. Apenas arquivos suportados serão enviados.',
     },
     dropzone: {
         addAttachments: 'Adicionar anexos',
@@ -6635,9 +6642,7 @@ const translations = {
             authenticatePayment: 'Autenticar pagamento',
             requestRefund: 'Solicitar reembolso',
             requestRefundModal: {
-                phrase1: 'Obter um reembolso é fácil, basta rebaixar sua conta antes da próxima data de cobrança e você receberá um reembolso.',
-                phrase2:
-                    'Atenção: Rebaixar sua conta significa que seu(s) espaço(s) de trabalho será(ão) excluído(s). Esta ação não pode ser desfeita, mas você sempre pode criar um novo espaço de trabalho se mudar de ideia.',
+                full: 'Obter um reembolso é fácil, basta rebaixar sua conta antes da próxima data de cobrança e você receberá um reembolso. <br /> <br /> Atenção: Rebaixar sua conta significa que seu(s) espaço(s) de trabalho será(ão) excluído(s). Esta ação não pode ser desfeita, mas você sempre pode criar um novo espaço de trabalho se mudar de ideia.',
                 confirm: 'Excluir espaço(s) de trabalho e rebaixar',
             },
             viewPaymentHistory: 'Ver histórico de pagamentos',

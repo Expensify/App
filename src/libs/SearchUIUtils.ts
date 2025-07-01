@@ -1297,46 +1297,48 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
     // Begin adding conditional sections, based on the policies the user has access to
     const showSubmitSuggestion = Object.values(policies).filter((p) => isPaidGroupPolicy(p)).length > 0;
 
-    const showApproveSuggestion =
-        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
-            if (!policy || !email || !isPaidGroupPolicy(policy)) {
-                return false;
-            }
-
-            const isPolicyApprover = policy.approver === email;
-            const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-                return employee.submitsTo === email || employee.forwardsTo === email;
-            });
-
-            return isPolicyApprover || isSubmittedTo;
-        }).length > 0;
-
-    const showPaySuggestion =
-        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
-            if (!policy || !isPaidGroupPolicy(policy)) {
-                return false;
-            }
-
-            const reimburser = policy.reimburser;
-            const isReimburser = reimburser === email;
-            const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-
-            if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-                return reimburser ? isReimburser : isAdmin;
-            }
-
-            if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
-                return isAdmin;
-            }
-
+    const showPaySuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
+        if (!policy || !isPaidGroupPolicy(policy)) {
             return false;
-        }).length > 0;
+        }
+
+        const reimburser = policy.reimburser;
+        const isReimburser = reimburser === email;
+        const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+
+        if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+            return reimburser ? isReimburser : isAdmin;
+        }
+
+        if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+            return isAdmin;
+        }
+
+        return false;
+    });
+
+    const showApproveSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
+        if (!policy || !email || !isPaidGroupPolicy(policy)) {
+            return false;
+        }
+
+        if (policy.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
+            return false;
+        }
+
+        const isPolicyApprover = policy.approver === email;
+        const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
+            return employee.submitsTo === email || employee.forwardsTo === email;
+        });
+
+        return isPolicyApprover || isSubmittedTo;
+    });
 
     // TODO: This option will be enabled soon (removing the && false). We are waiting on changes to support this
     // feature fully, but lets keep the code here for simplicity
     // https://github.com/Expensify/Expensify/issues/505933
     const showExportSuggestion =
-        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
+        Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
             if (!policy || !email) {
                 return false;
             }
@@ -1348,7 +1350,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
             const isXeroExporter = policy.connections?.xero?.config?.export?.exporter === email;
 
             return isIntacctExporter || isNetSuiteExporter || isQuickbooksDesktopExporter || isQuickbooksOnlineExporter || isXeroExporter;
-        }).length > 0 && false;
+        }) && false;
 
     // We suggest specific filters for users based on their access in specific policies. Show the todo section
     // only if any of these items are available
@@ -1451,7 +1453,8 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.DONE],
+                        action: CONST.SEARCH.ACTION_FILTERS.PAY,
+                        reimbursable: CONST.SEARCH.BOOLEAN.YES,
                         payer: session.accountID?.toString(),
                     });
                     return queryString;
@@ -1472,8 +1475,8 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                        action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
                         exporter: [`${session.accountID}`],
-                        status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.PAID, CONST.SEARCH.STATUS.EXPENSE.DONE],
                         exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
                     });
                     return queryString;

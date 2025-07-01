@@ -99,6 +99,7 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
+    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -664,6 +665,12 @@ const translations = {
         attachmentImageTooLarge: 'Ten obraz jest zbyt duży, aby wyświetlić podgląd przed przesłaniem.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Możesz przesłać jednocześnie maksymalnie ${fileLimit} plików.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Plik przekracza ${maxUploadSizeInMB} MB. Proszę spróbować ponownie.`,
+        someFilesCantBeUploaded: 'Niektóre pliki nie mogą zostać przesłane',
+        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Pliki muszą mieć mniej niż ${maxUploadSizeInMB} MB. Większe pliki nie zostaną przesłane.`,
+        maxFileLimitExceeded: 'Możesz przesłać maksymalnie 30 paragonów naraz. Dodatkowe nie zostaną przesłane.',
+        unsupportedFileType: ({fileType}: FileTypeParams) => `Pliki ${fileType} nie są obsługiwane. Tylko obsługiwane typy plików zostaną przesłane.`,
+        learnMoreAboutSupportedFiles: 'Dowiedz się więcej o obsługiwanych formatach.',
+        passwordProtected: 'Pliki PDF chronione hasłem nie są obsługiwane. Tylko obsługiwane pliki zostaną przesłane.',
     },
     dropzone: {
         addAttachments: 'Dodaj załączniki',
@@ -6623,9 +6630,7 @@ const translations = {
             authenticatePayment: 'Uwierzytelnij płatność',
             requestRefund: 'Poproś o zwrot pieniędzy',
             requestRefundModal: {
-                phrase1: 'Otrzymanie zwrotu jest proste, wystarczy obniżyć poziom konta przed następną datą rozliczenia, a otrzymasz zwrot.',
-                phrase2:
-                    'Uwaga: Obniżenie poziomu konta oznacza, że Twoje przestrzenie robocze zostaną usunięte. Tej akcji nie można cofnąć, ale zawsze możesz utworzyć nową przestrzeń roboczą, jeśli zmienisz zdanie.',
+                full: 'Otrzymanie zwrotu jest proste, wystarczy obniżyć poziom konta przed następną datą rozliczenia, a otrzymasz zwrot. <br /> <br /> Uwaga: Obniżenie poziomu konta oznacza, że Twoje przestrzenie robocze zostaną usunięte. Tej akcji nie można cofnąć, ale zawsze możesz utworzyć nową przestrzeń roboczą, jeśli zmienisz zdanie.',
                 confirm: 'Usuń przestrzeń(e) roboczą i obniż plan',
             },
             viewPaymentHistory: 'Wyświetl historię płatności',
