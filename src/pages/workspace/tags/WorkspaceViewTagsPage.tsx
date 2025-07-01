@@ -11,6 +11,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
+import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
@@ -49,12 +50,14 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {PolicyTag} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {TagListItem} from './types';
 
-type WorkspaceViewTagsProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_LIST_VIEW>;
+type WorkspaceViewTagsProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_LIST_VIEW>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAG_LIST_VIEW>;
 
 function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for the small screen selection mode
@@ -63,7 +66,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const dropdownButtonRef = useRef(null);
+    const dropdownButtonRef = useRef<View>(null);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
@@ -72,8 +75,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
     const {selectionMode} = useMobileSelectionMode();
     const currentTagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
+    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const currentPolicyTag = policyTags?.[currentTagListName];
-    const isQuickSettingsFlow = !!backTo;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_LIST_VIEW;
     const [isCannotMakeAllTagsOptionalModalVisible, setIsCannotMakeAllTagsOptionalModalVisible] = useState(false);
     const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
     const fetchTags = useCallback(() => {
@@ -85,7 +89,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const [selectedTags, setSelectedTags] = useFilteredSelection(currentPolicyTag?.tags, filterFunction);
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
-    const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
+    const canSelectMultiple = useMemo(() => {
+        if (hasDependentTags) {
+            return false;
+        }
+        return isSmallScreenWidth ? selectionMode?.isEnabled : true;
+    }, [hasDependentTags, isSmallScreenWidth, selectionMode]);
 
     useEffect(() => {
         if (isFocused) {
@@ -115,14 +124,17 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         () =>
             Object.values(currentPolicyTag?.tags ?? {}).map((tag) => ({
                 value: tag.name,
-                text: getCleanedTagName(tag.name),
-                keyForList: tag.name,
+                text: hasDependentTags ? tag.name : getCleanedTagName(tag.name),
+                keyForList: hasDependentTags ? `${tag.name}-${tag.rules?.parentTagsFilter ?? ''}` : tag.name,
                 isSelected: selectedTags.includes(tag.name) && canSelectMultiple,
                 pendingAction: tag.pendingAction,
+                rules: tag.rules,
                 errors: tag.errors ?? undefined,
                 enabled: tag.enabled,
                 isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                rightElement: (
+                rightElement: hasDependentTags ? (
+                    <ListItemRightCaretWithLabel shouldShowCaret />
+                ) : (
                     <Switch
                         isOn={tag.enabled}
                         disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
@@ -138,7 +150,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     />
                 ),
             })),
-        [selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled, currentPolicyTag],
+        [currentPolicyTag, hasDependentTags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled],
     );
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
@@ -150,8 +162,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const sortTags = useCallback((tags: TagListItem[]) => tags.sort((tagA, tagB) => localeCompare(tagA.value, tagB.value)), []);
     const [inputValue, setInputValue, filteredTagList] = useSearchResults(tagList, filterTag, sortTags);
 
-    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
-
     const tagListKeyedByName = useMemo(
         () =>
             filteredTagList.reduce<Record<string, TagListItem>>((acc, tag) => {
@@ -160,8 +170,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             }, {}),
         [filteredTagList],
     );
-
-    const sections = useMemo(() => [{data: filteredTagList, isDisabled: false}], [filteredTagList]);
 
     if (!currentPolicyTag) {
         return <NotFoundPage />;
@@ -184,11 +192,14 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const getCustomListHeader = () => {
+        if (filteredTagList.length === 0) {
+            return null;
+        }
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
-                rightHeaderText={translate('common.enabled')}
+                rightHeaderText={hasDependentTags ? undefined : translate('common.enabled')}
             />
         );
     };
@@ -197,7 +208,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         Navigation.navigate(
             isQuickSettingsFlow
                 ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, tag.value, backTo)
-                : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, tag.value),
+                : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, tag.value, tag?.rules?.parentTagsFilter ?? undefined),
         );
     };
 
@@ -211,6 +222,16 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const isLoading = !isOffline && policyTags === undefined;
+
+    const listHeaderContent =
+        tagList.length > CONST.SEARCH_ITEM_LIMIT ? (
+            <SearchBar
+                inputValue={inputValue}
+                onChangeText={setInputValue}
+                label={translate('workspace.tags.findTag')}
+                shouldShowEmptyState={filteredTagList.length === 0 && !isLoading}
+            />
+        ) : undefined;
 
     const getHeaderButtons = () => {
         if ((!isSmallScreenWidth && selectedTags.length === 0) || (isSmallScreenWidth && !selectionMode?.isEnabled)) {
@@ -284,7 +305,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 buttonRef={dropdownButtonRef}
                 onPress={() => null}
                 shouldAlwaysShowDropdownMenu
-                pressOnEnter
                 isSplitButton={false}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTags.length})}
@@ -386,27 +406,22 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         color={theme.spinner}
                     />
                 )}
-                {tagList.length > CONST.SEARCH_ITEM_LIMIT && (
-                    <SearchBar
-                        inputValue={inputValue}
-                        onChangeText={setInputValue}
-                        label={translate('workspace.tags.findTag')}
-                        shouldShowEmptyState={filteredTagList.length === 0 && !isLoading}
-                    />
-                )}
-                {filteredTagList.length > 0 && !isLoading && (
+                {tagList.length > 0 && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
+                        turnOnSelectionModeOnLongPress={!hasDependentTags}
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                        sections={sections}
+                        sections={[{data: filteredTagList, isDisabled: false}]}
+                        selectedItems={selectedTags}
                         shouldUseDefaultRightHandSideCheckmark={false}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
-                        onSelectAll={toggleAllTags}
+                        onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
                         showScrollIndicator
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
+                        listHeaderContent={listHeaderContent}
+                        shouldShowListEmptyContent={false}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         addBottomSafeAreaPadding

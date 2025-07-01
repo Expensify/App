@@ -101,7 +101,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         thumbnailImageComponent
     ) : (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
+            {({onShowContextMenu, anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                 <AttachmentContext.Consumer>
                     {({reportID, accountID, type}) => (
                         <PressableWithoutFocus
@@ -112,14 +112,32 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 }
 
                                 const attachmentLink = tnode.parent?.attributes?.href;
-                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID, attachmentID, type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
+                                const route = ROUTES.ATTACHMENTS?.getRoute({
+                                    attachmentID,
+                                    reportID,
+                                    type,
+                                    source,
+                                    accountID,
+                                    isAuthTokenRequired: isAttachmentOrReceipt,
+                                    originalFileName: fileName,
+                                    attachmentLink,
+                                });
                                 Navigation.navigate(route);
                             }}
                             onLongPress={(event) => {
                                 if (isDisabled || !shouldDisplayContextMenu) {
                                     return;
                                 }
-                                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
+                                return onShowContextMenu(() =>
+                                    showContextMenuForReport(
+                                        event,
+                                        anchor,
+                                        report?.reportID,
+                                        action,
+                                        checkIfContextMenuActive,
+                                        isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived),
+                                    ),
+                                );
                             }}
                             isNested
                             shouldUseHapticsOnLongPress

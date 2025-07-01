@@ -80,7 +80,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
         goBack();
     };
 
-    const fieldValue = isReportFieldTitle ? report.reportName ?? '' : reportField.value ?? reportField.defaultValue;
+    const fieldValue = isReportFieldTitle ? (report.reportName ?? '') : (reportField.value ?? reportField.defaultValue);
 
     const menuItems: PopoverMenuItem[] = [];
 

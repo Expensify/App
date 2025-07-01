@@ -17,6 +17,8 @@ module.exports = {
         '@libs/(.*)$',
         '@navigation/(.*)$',
         '@pages/(.*)$',
+        '@prompts/(.*)$',
+        '@scripts/(.*)$',
         '@styles/(.*)$',
         '@userActions/(.*)$',
         '@src/(.*)$',

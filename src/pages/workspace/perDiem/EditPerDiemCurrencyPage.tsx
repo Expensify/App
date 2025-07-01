@@ -8,12 +8,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {editPerDiemRateCurrency} from '@libs/actions/Policy/PerDiem';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as PerDiem from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,7 +28,7 @@ function EditPerDiemCurrencyPage({route}: EditPerDiemCurrencyPageProps) {
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
     const subRateID = route.params.subRateID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
 
     const customUnit = getPerDiemCustomUnit(policy);
 
@@ -38,7 +38,7 @@ function EditPerDiemCurrencyPage({route}: EditPerDiemCurrencyPageProps) {
         (item: CurrencyListItem) => {
             const newCurrency = item.currencyCode;
             if (newCurrency !== selectedRate?.currency) {
-                PerDiem.editPerDiemRateCurrency(policyID, rateID, customUnit, newCurrency);
+                editPerDiemRateCurrency(policyID, rateID, customUnit, newCurrency);
             }
             Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
         },
@@ -53,6 +53,7 @@ function EditPerDiemCurrencyPage({route}: EditPerDiemCurrencyPageProps) {
             shouldBeBlocked={!policyID || !rateID || isEmptyObject(selectedRate)}
         >
             <ScreenWrapper
+                shouldEnableKeyboardAvoidingView={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID={EditPerDiemCurrencyPage.displayName}
             >

@@ -46,6 +46,7 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
             isLoadingApp={false}
             updateAddress={updatePolicyAddress}
             title={translate('common.companyAddress')}
+            backTo={route.params.backTo}
         />
     );
 }

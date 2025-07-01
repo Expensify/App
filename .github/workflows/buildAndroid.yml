@@ -23,10 +23,13 @@ on:
 
     outputs:
       AAB_FILE_NAME:
+        description: Name of the AAB file produced by this workflow.
         value: ${{ jobs.build.outputs.AAB_FILE_NAME }}
       APK_FILE_NAME:
+        description: Name of the APK file produced by this workflow.
         value: ${{ jobs.build.outputs.APK_FILE_NAME }}
       APK_ARTIFACT_NAME:
+        description: Name of the APK artifact.
         value: ${{ jobs.build.outputs.APK_ARTIFACT_NAME }}
 
   workflow_dispatch:

@@ -402,7 +402,7 @@ describe('buildCardFeedsData', () => {
         illustrationsMock as IllustrationsType,
     );
 
-    it('Buids domain card feed properly', () => {
+    it('Build domain card feed properly', () => {
         // Check if external domain feed was built properly
         expect(result.unselected.at(0)).toMatchObject({
             isCardFeed: true,

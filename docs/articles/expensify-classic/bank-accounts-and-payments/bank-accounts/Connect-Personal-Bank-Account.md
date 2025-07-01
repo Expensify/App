@@ -48,4 +48,8 @@ If your bank account has **two-factor authentication (2FA)** or another security
 
 However, if you encounter an error during this process, you can close the pop-up window and select **Connect Manually** to add the account manually.
 
+## Why don’t the account number and routing number in Expensify match what’s on my bank statement?
+
+Some banks, such as Chase, may display masked or tokenized account numbers when connected via Plaid. This is a security feature implemented by the bank and does not indicate any setup error. As long as the connection was successful and you see your account listed in your **Wallet**, reimbursements should process correctly.
+
 </div>

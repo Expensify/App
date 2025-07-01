@@ -201,9 +201,9 @@ function TaskAssigneeSelectorModal() {
     const handleBackButtonPress = useCallback(() => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo), [route.params, backTo]);
 
     const isOpen = isOpenTaskReport(report);
-    const isReportArchived = useReportIsArchived(report?.parentReportID);
-    const canModifyTaskValue = canModifyTask(report, currentUserPersonalDetails.accountID, isReportArchived);
-    const isTaskNonEditable = isTaskReport(report) && (!canModifyTaskValue || !isOpen);
+    const isParentReportArchived = useReportIsArchived(report?.parentReportID);
+    const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
+    const isTaskNonEditable = isTaskReport(report) && (!isTaskModifiable || !isOpen);
 
     useEffect(() => {
         searchInServer(debouncedSearchValue);

@@ -3,13 +3,13 @@ import type {Meta} from '@storybook/react';
 import {ExpensiMark} from 'expensify-common';
 import React, {useState} from 'react';
 import {Image, View} from 'react-native';
-import type {FileObject} from '@components/AttachmentModal';
 import Composer from '@components/Composer';
 import type {ComposerProps, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useStyleUtils from '@hooks/useStyleUtils';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import {defaultStyles} from '@src/styles';

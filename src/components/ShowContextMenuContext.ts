@@ -16,18 +16,20 @@ type ShowContextMenuContextProps = {
     action: OnyxEntry<ReportAction>;
     transactionThreadReport?: OnyxEntry<Report>;
     checkIfContextMenuActive: () => void;
+    onShowContextMenu: (callback: () => void) => void;
     isDisabled: boolean;
     shouldDisplayContextMenu?: boolean;
 };
 
 const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
     anchor: null,
+    onShowContextMenu: (callback) => callback(),
     report: undefined,
     reportNameValuePairs: undefined,
     action: undefined,
     transactionThreadReport: undefined,
     checkIfContextMenuActive: () => {},
-    isDisabled: false,
+    isDisabled: true,
     shouldDisplayContextMenu: true,
 });
 

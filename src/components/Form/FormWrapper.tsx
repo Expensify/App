@@ -61,6 +61,9 @@ type FormWrapperProps = ChildrenProps &
 
         /** Fires at most once per frame during scrolling. */
         onScroll?: () => void;
+
+        /** Prevents the submit button from triggering blur on mouse down. */
+        shouldPreventDefaultFocusOnPressSubmit?: boolean;
     };
 
 function FormWrapper({
@@ -89,6 +92,7 @@ function FormWrapper({
     addOfflineIndicatorBottomSafeAreaPadding,
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
     shouldSubmitButtonBlendOpacity = false,
+    shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
 }: FormWrapperProps) {
     const styles = useThemeStyles();
@@ -100,7 +104,7 @@ function FormWrapper({
     const errorMessage = useMemo(() => (formState ? getLatestErrorMessage(formState) : undefined), [formState]);
 
     const onFixTheErrorsLinkPressed = useCallback(() => {
-        const errorFields = !isEmptyObject(errors) ? errors : formState?.errorFields ?? {};
+        const errorFields = !isEmptyObject(errors) ? errors : (formState?.errorFields ?? {});
         const focusKey = Object.keys(inputRefs.current ?? {}).find((key) => Object.keys(errorFields).includes(key));
 
         if (!focusKey) {
@@ -178,6 +182,7 @@ function FormWrapper({
                     enterKeyEventListenerPriority={1}
                     shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                     shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
+                    shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPressSubmit}
                 />
             ),
         [
@@ -206,6 +211,7 @@ function FormWrapper({
             submitButtonText,
             submitFlexEnabled,
             shouldRenderFooterAboveSubmit,
+            shouldPreventDefaultFocusOnPressSubmit,
         ],
     );
 

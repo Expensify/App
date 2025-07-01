@@ -37,10 +37,13 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
         return corpayFields?.formFields?.filter((field) => !field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX));
     }, [corpayFields]);
 
-    const subStepKeys = bankAccountDetailsFields?.reduce((acc, field) => {
-        acc[field.id as keyof ReimbursementAccountForm] = field.id as keyof ReimbursementAccountForm;
-        return acc;
-    }, {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>);
+    const subStepKeys = bankAccountDetailsFields?.reduce(
+        (acc, field) => {
+            acc[field.id as keyof ReimbursementAccountForm] = field.id as keyof ReimbursementAccountForm;
+            return acc;
+        },
+        {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>,
+    );
 
     const defaultValues = useMemo(
         () => getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount),

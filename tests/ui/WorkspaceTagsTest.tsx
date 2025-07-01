@@ -21,7 +21,6 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 TestHelper.setupGlobalFetchMock();
-jest.mock('@components/ConfirmedRoute.tsx');
 
 jest.unmock('react-native-reanimated');
 
@@ -73,7 +72,10 @@ describe('WorkspaceTags', () => {
         });
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
+        });
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
             isSmallScreenWidth: true,
             shouldUseNarrowLayout: true,

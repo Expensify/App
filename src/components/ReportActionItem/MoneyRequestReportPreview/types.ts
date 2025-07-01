@@ -4,15 +4,20 @@ import type {TransactionPreviewStyleType} from '@components/ReportActionItem/Tra
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
-type TransactionPreviewStyle = {
+type TransactionPreviewCarouselStyle = {
     [key in keyof TransactionPreviewStyleType]: number;
+};
+
+type TransactionPreviewStandaloneStyle = {
+    [key in keyof TransactionPreviewStyleType]: string;
 };
 
 type MoneyRequestReportPreviewStyleType = {
     flatListStyle: StyleProp<ViewStyle>;
     wrapperStyle: ViewStyle;
     contentContainerStyle: ViewStyle;
-    transactionPreviewStyle: TransactionPreviewStyle;
+    transactionPreviewCarouselStyle: TransactionPreviewCarouselStyle;
+    transactionPreviewStandaloneStyle: TransactionPreviewStandaloneStyle;
     componentStyle: StyleProp<ViewStyle>;
     expenseCountVisible: boolean;
 };
@@ -29,9 +34,6 @@ type MoneyRequestReportPreviewProps = {
 
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
-
-    /** Extra styles to pass to View wrapper */
-    containerStyles?: StyleProp<ViewStyle>;
 
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor?: ContextMenuAnchor;
@@ -70,7 +72,6 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     policy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails>;
     lastTransactionViolations: TransactionViolations;
-    isDelegateAccessRestricted: boolean;
 };
 
 type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps &
@@ -80,6 +81,9 @@ type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOny
 
         /** MoneyRequestReportPreview's current width */
         currentWidth: number;
+
+        /** Extra styles to pass to View wrapper */
+        containerStyles?: StyleProp<ViewStyle>;
 
         /** Callback passed to Carousel's onLayout  */
         onCarouselLayout: (e: LayoutChangeEvent) => void;

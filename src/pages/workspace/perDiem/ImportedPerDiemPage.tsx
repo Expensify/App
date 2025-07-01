@@ -39,7 +39,8 @@ function generatePerDiemUnits(perDiemDestination: string[], perDiemSubRate: stri
         perDiemUnits[perDiemDestination[i]].subRates?.push({
             id: generateCustomUnitID(),
             name: perDiemSubRate.at(i) ?? '',
-            rate: (Number(perDiemAmount.at(i)) ?? 0) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
+            // Use Math.round to avoid floating point errors when converting decimal amounts to cents (e.g., 16.4 * 100 = 1639.9999...)
+            rate: Math.round((Number(perDiemAmount.at(i)) ?? 0) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET),
         });
     }
     return Object.values(perDiemUnits);

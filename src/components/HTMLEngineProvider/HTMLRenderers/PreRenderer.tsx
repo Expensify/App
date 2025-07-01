@@ -52,16 +52,25 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
     return (
         <View style={isLast ? styles.mt2 : styles.mv2}>
             <ShowContextMenuContext.Consumer>
-                {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
+                {({onShowContextMenu, anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                     <PressableWithoutFeedback
                         onPress={onPressIn ?? (() => {})}
                         onPressIn={onPressIn}
                         onPressOut={onPressOut}
                         onLongPress={(event) => {
-                            if (isDisabled || !shouldDisplayContextMenu) {
-                                return;
-                            }
-                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
+                            onShowContextMenu(() => {
+                                if (isDisabled || !shouldDisplayContextMenu) {
+                                    return;
+                                }
+                                return showContextMenuForReport(
+                                    event,
+                                    anchor,
+                                    report?.reportID,
+                                    action,
+                                    checkIfContextMenuActive,
+                                    isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived),
+                                );
+                            });
                         }}
                         shouldUseHapticsOnLongPress
                         role={CONST.ROLE.PRESENTATION}
