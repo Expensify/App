@@ -68,7 +68,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import {createFile} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
-import {getLastUsedPaymentMethod} from '@libs/IOUUtils';
 import {translate, translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
@@ -83,7 +82,8 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import {buildTaskData} from '@userActions/Task';
-import type {OnboardingCompanySize, OnboardingPurpose} from '@src/CONST';
+import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
+import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -450,33 +450,6 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 [optimisticClosedReportAction.reportActionID]: null,
             },
         });
-
-        Object.values(allReports ?? {})
-            .filter((iouReport) => iouReport?.type === CONST.REPORT.TYPE.IOU)
-            .forEach((iouReport) => {
-                const lastUsedPaymentMethod = getLastUsedPaymentMethod(iouReport?.policyID);
-
-                if (!lastUsedPaymentMethod || !iouReport?.policyID) {
-                    return;
-                }
-
-                if (lastUsedPaymentMethod?.iou?.name === policyID) {
-                    optimisticData.push({
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-                        value: {
-                            [iouReport?.policyID]: {
-                                iou: {
-                                    name: policyID !== lastUsedPaymentMethod?.iou?.name ? lastUsedPaymentMethod?.iou?.name : '',
-                                },
-                                lastUsed: {
-                                    name: policyID !== lastUsedPaymentMethod?.iou?.name ? lastUsedPaymentMethod?.iou?.name : '',
-                                },
-                            },
-                        },
-                    });
-                }
-            });
 
         if (report?.iouReportID) {
             const reportTransactions = ReportUtils.getReportTransactions(report.iouReportID);
@@ -1173,7 +1146,16 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             policyID,
             ownerAccountID: cleanAccountID,
+            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         });
+
+        // Set correct notification preferences: visible for the submitter, hidden for others until there's activity
+        if (optimisticReport.participants) {
+            optimisticReport.participants[cleanAccountID] = {
+                ...optimisticReport.participants[cleanAccountID],
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            };
+        }
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(login);
 
         workspaceMembersChats.reportCreationData[login] = {
@@ -2165,34 +2147,6 @@ function buildPolicyData(
         successData.push(...optimisticCategoriesData.successData);
     }
 
-    if (getAdminPolicies().length === 0) {
-        Object.values(allReports ?? {})
-            .filter((iouReport) => iouReport?.type === CONST.REPORT.TYPE.IOU)
-            .forEach((iouReport) => {
-                const lastUsedPaymentMethod = getLastUsedPaymentMethod(iouReport?.policyID);
-
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (lastUsedPaymentMethod?.iou?.name || !iouReport?.policyID) {
-                    return;
-                }
-
-                successData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-                    value: {
-                        [iouReport?.policyID]: {
-                            iou: {
-                                name: policyID,
-                            },
-                            lastUsed: {
-                                name: policyID,
-                            },
-                        },
-                    },
-                });
-            });
-    }
-
     // We need to clone the file to prevent non-indexable errors.
     const clonedFile = file ? (createFile(file) as File) : undefined;
 
@@ -2220,7 +2174,8 @@ function buildPolicyData(
         engagementChoice &&
         shouldAddOnboardingTasks
     ) {
-        const onboardingData = ReportUtils.prepareOnboardingOnyxData(introSelected, engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
+        const {onboardingMessages} = getOnboardingMessages();
+        const onboardingData = ReportUtils.prepareOnboardingOnyxData(introSelected, engagementChoice, onboardingMessages[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
         }

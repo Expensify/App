@@ -5,6 +5,7 @@ import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
+import type {AttachmentModalScreenParams} from './pages/media/AttachmentModalScreen/types';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
@@ -150,7 +151,7 @@ const ROUTES = {
     },
     PROFILE_AVATAR: {
         route: 'a/:accountID/avatar',
-        getRoute: (accountID: number) => `a/${accountID}/avatar` as const,
+        getRoute: (accountID: number, backTo?: string) => getUrlWithBackToParam(`a/${accountID}/avatar` as const, backTo),
     },
 
     DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
@@ -347,7 +348,6 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
-    SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
     SETTINGS_CONSOLE: {
         route: 'settings/troubleshoot/console',
@@ -443,28 +443,7 @@ const ROUTES = {
     },
     ATTACHMENTS: {
         route: 'attachment',
-        getRoute: (
-            reportID: string | undefined,
-            attachmentID: string | undefined,
-            type: ValueOf<typeof CONST.ATTACHMENT_TYPE> | undefined,
-            url: string,
-            accountID?: number,
-            isAuthTokenRequired?: boolean,
-            fileName?: string,
-            attachmentLink?: string,
-            hashKey?: number,
-        ) => {
-            const typeParam = type ? `&type=${type}` : '';
-            const reportParam = reportID ? `&reportID=${reportID}` : '';
-            const accountParam = accountID ? `&accountID=${accountID}` : '';
-            const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
-            const fileNameParam = fileName ? `&fileName=${fileName}` : '';
-            const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
-            const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
-            const hashKeyParam = hashKey ? `&hashKey=${hashKey}` : '';
-
-            return `attachment?source=${encodeURIComponent(url)}${typeParam}${reportParam}${attachmentIDParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}${hashKeyParam}` as const;
-        },
+        getRoute: (params?: AttachmentRouteParams) => getAttachmentModalScreenRoute('attachment', params),
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
@@ -484,7 +463,7 @@ const ROUTES = {
     },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
-        getRoute: (reportID: string | undefined, backTo?: string) => {
+        getRoute: (reportID: string | number | undefined, backTo?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID_DETAILS route');
             }
@@ -930,6 +909,11 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `create/${iouType as string}/start/${transactionID}/${reportID}/per-diem/${backToReport ?? ''}` as const,
     },
+
+    MONEY_REQUEST_RECEIPT_VIEW_MODAL: {
+        route: 'receipt-view-modal/:transactionID',
+        getRoute: (transactionID: string, backTo: string) => getUrlWithBackToParam(`receipt-view-modal/${transactionID}`, backTo),
+    } as const,
 
     MONEY_REQUEST_STATE_SELECTOR: {
         route: 'submit/state',
@@ -1958,12 +1942,12 @@ const ROUTES = {
         },
     },
     TRAVEL_TRIP_DETAILS: {
-        route: 'r/:reportID/trip/:transactionID/:reservationIndex',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, reservationIndex: number, backTo?: string) => {
-            if (!reportID || !transactionID) {
-                Log.warn('Invalid reportID or transactionID is used to build the TRAVEL_TRIP_DETAILS route');
+        route: 'r/:reportID/trip/:transactionID/:pnr/:sequenceIndex',
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, pnr: string | undefined, sequenceIndex: number, backTo?: string) => {
+            if (!reportID || !transactionID || !pnr) {
+                Log.warn('Invalid reportID, transactionID or pnr is used to build the TRAVEL_TRIP_DETAILS route');
             }
-            return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${reservationIndex}`, backTo);
+            return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${pnr}/${sequenceIndex}`, backTo);
         },
     },
     TRAVEL_DOMAIN_SELECTOR: {
@@ -2633,6 +2617,30 @@ const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
 
 export {HYBRID_APP_ROUTES, getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS};
 export default ROUTES;
+
+type AttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;
+type ReportAddAttachmentRoute = `r/${string}/attachment/add`;
+type AttachmentRoutes = AttachmentsRoute | ReportAddAttachmentRoute;
+type AttachmentRouteParams = AttachmentModalScreenParams;
+
+function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: AttachmentRouteParams) {
+    if (!params?.source) {
+        return url;
+    }
+
+    const {source, attachmentID, type, reportID, accountID, isAuthTokenRequired, originalFileName, attachmentLink} = params;
+
+    const sourceParam = `?source=${encodeURIComponent(source as string)}`;
+    const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
+    const typeParam = type ? `&type=${type as string}` : '';
+    const reportIDParam = reportID ? `&reportID=${reportID}` : '';
+    const accountIDParam = accountID ? `&accountID=${accountID}` : '';
+    const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
+    const fileNameParam = originalFileName ? `&originalFileName=${originalFileName}` : '';
+    const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
+
+    return `${url}${sourceParam}${typeParam}${reportIDParam}${attachmentIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam} ` as const;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ExtractRouteName<TRoute> = TRoute extends {getRoute: (...args: any[]) => infer TRouteName} ? TRouteName : TRoute;

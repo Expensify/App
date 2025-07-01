@@ -1,11 +1,11 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -100,19 +100,9 @@ function SearchFiltersStatusPage() {
                 />
             </View>
             <FixedFooter style={styles.mtAuto}>
-                <Button
-                    large
-                    style={[styles.mt4]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                />
-                <Button
-                    large
-                    success
-                    pressOnEnter
-                    style={[styles.mt4]}
-                    text={translate('common.save')}
-                    onPress={applyChanges}
+                <SearchFilterPageFooterButtons
+                    resetChanges={resetChanges}
+                    applyChanges={applyChanges}
                 />
             </FixedFooter>
         </ScreenWrapper>
