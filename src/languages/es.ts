@@ -1505,7 +1505,7 @@ const translations = {
         signOutConfirmationText: 'Si cierras sesión perderás los cambios hechos mientras estabas desconectado',
         versionLetter: 'v',
         readTheTermsAndPrivacy: ({termsURL, privacyURL}: ReadTheTermsAndPrivacyRouteParams) =>
-            `<muted-text>Leer los <a href="${termsURL}">Términos de Servicio</a> y <a href="${privacyURL}">Privacidad</a>.</muted-text>`,
+            `<comment><mtm issmall>Leer los <a href="${termsURL}">Términos de Servicio</a> y <a href="${privacyURL}">Privacidad</a>.</mtm></comment>`,
         help: 'Ayuda',
         accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',

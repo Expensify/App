@@ -1522,7 +1522,7 @@ const translations = {
         signOutConfirmationText: 'サインアウトすると、オフラインでの変更が失われます。',
         versionLetter: 'v',
         readTheTermsAndPrivacy: ({termsURL, privacyURL}: ReadTheTermsAndPrivacyRouteParams) =>
-            `<muted-text>読む <a href="${termsURL}">利用規約</a> および <a href="${privacyURL}">プライバシー</a>.</muted-text>`,
+            `<comment><mtm issmall>読む <a href="${termsURL}">利用規約</a> および <a href="${privacyURL}">プライバシー</a>.</mtm></comment>`,
         help: '助けて',
         accountSettings: 'アカウント設定',
         account: 'アカウント',

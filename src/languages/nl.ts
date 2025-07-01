@@ -1524,7 +1524,7 @@ const translations = {
         signOutConfirmationText: 'U verliest alle offline wijzigingen als u zich afmeldt.',
         versionLetter: 'v',
         readTheTermsAndPrivacy: ({termsURL, privacyURL}: ReadTheTermsAndPrivacyRouteParams) =>
-            `<muted-text>Lees de <a href="${termsURL}">Servicevoorwaarden</a> en <a href="${privacyURL}">Privacy</a>.</muted-text>`,
+            `<comment><mtm issmall>Lees de <a href="${termsURL}">Servicevoorwaarden</a> en <a href="${privacyURL}">Privacy</a>.</mtm></comment>`,
         help: 'Help',
         accountSettings: 'Accountinstellingen',
         account: 'Account',
