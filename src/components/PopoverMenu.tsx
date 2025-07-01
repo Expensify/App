@@ -328,7 +328,7 @@ function PopoverMenu({
         if (!headerText || enteredSubMenuIndexes.length !== 0) {
             return;
         }
-        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}>{headerText}</Text>;
+        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pt3, headerStyles]}>{headerText}</Text>;
     };
 
     useKeyboardShortcut(
@@ -391,7 +391,7 @@ function PopoverMenu({
         return styles.createMenuContainer;
     }, [isSmallScreenWidth, shouldEnableMaxHeight, windowHeight, styles.createMenuContainer]);
 
-    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = StyleSheet.flatten(scrollContainerStyle);
+    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
 
     return (
         <PopoverWithMeasuredContent
@@ -418,7 +418,7 @@ function PopoverMenu({
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             useNativeDriver
             restoreFocusType={restoreFocusType}
-            innerContainerStyle={innerContainerStyle}
+            innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             testID={testID}
         >
@@ -428,7 +428,7 @@ function PopoverMenu({
                     style={[menuContainerStyle, containerStyles, styles.pv0]}
                 >
                     {renderHeaderText()}
-                    <View style={[styles.pv4, {paddingTop, paddingBottom, paddingVertical}]}>
+                    <View style={{paddingTop, paddingBottom, paddingVertical}}>
                         {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                         {renderWithConditionalWrapper(shouldUseScrollView, restScrollContainerStyle, renderedMenuItems)}
                     </View>
