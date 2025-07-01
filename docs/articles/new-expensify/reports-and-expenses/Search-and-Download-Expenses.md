@@ -13,17 +13,16 @@ You can quickly find and download your expenses in New Expensify—either as a s
 
 Use filters to quickly locate the expenses you need.
 
-1. Select the **Search** icon in the bottom-left menu.
-2. Choose the **Expenses** tab at the top-left.
-3. Tap **Filters** in the top-right corner.
-4. Filter your results by:
+1. Click **Reports** in the left-hand menu
+2. Select **Expenses**
+3. Use **Filters** to search for expenses by:
    - Credit card
    - Category or tag
    - Date range
    - Keyword
    - Expense amount
    - And more
-5. Select **View Results** to display matching expenses.
+4. Click **View results** to display the list of expenses matching your search parameters
 
 ---
 
@@ -31,8 +30,8 @@ Use filters to quickly locate the expenses you need.
 
 Once you’ve filtered the list:
 
-1. Select the checkbox beside each expense, or choose **Select all** at the top.
-2. Click **Selected** in the top-right and choose **Download**.
+1. Select the checkbox beside each expense, or choose to **select all** above the expense list.
+2. Click **Selected > Download**.
 3. A CSV file will automatically download to your device (prefixed with “Expensify”).
 4. Open it in your spreadsheet tool.
 
@@ -52,23 +51,16 @@ Once you’ve filtered the list:
 
 ---
 
-# Download as PDF
+# Download a Report (PDF or CSV)
 
-## Download a Full Report
-
-1. In the left-hand menu, select **Reports > Expense Reports**
-2. Click to open the report you want
+1. In the left-hand menu, select **Reports**
+2. On the **Reports** tab, click the report you want to download
 3. In the upper-right corner, click **More**
-4. Select **Download as PDF**
+4. Choose either:
+   - **Download as PDF** to generate a printable version
+   - **Download as CSV** to get a spreadsheet version of the report
 
-## Download a Single Expense
-
-1. In the left-hand menu, select **Reports > Expenses**
-2. Click to open the individual expense
-3. Click the **More** button
-4. Choose **Download as PDF**
-
-**Note:** You can only download one report or one expense at a time.
+**Note:** You can only download one report at a time.
 
 ---
 
@@ -78,9 +70,13 @@ Once you’ve filtered the list:
 
 You can export:
 - CSV for raw expense data
-- PDF for full reports or individual receipts  
+- PDF for full reports
 
 XLS format is not supported.
+
+## Is it possible to download individual expenses as a PDF?
+
+No, you can only download a PDF of full reports. 
 
 ## Can I customize the columns in the CSV file?
 
