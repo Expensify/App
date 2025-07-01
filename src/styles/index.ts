@@ -5929,29 +5929,18 @@ const styles = (theme: ThemeColors) =>
             aspectRatio: 1.7,
         },
 
-
         receiptPreview: {
             position: 'absolute',
-            left: 60,
+            left: 70,
             top: 100,
-            width: 400,
+            width: 360,
             height: 600,
-            borderRadius: 24,
+            borderRadius: variables.componentBorderRadiusRounded,
             overflow: 'hidden',
         },
 
-        receiptPreviewImageWrapper: {
-            width: '100%',
-            height: '100%',
-        },
-
-        receiptPreviewImage: {
-            width: '100%',
-            height: '100%',
-
         topBarWrapper: {
             zIndex: 15,
-
         },
 
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
