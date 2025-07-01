@@ -22,15 +22,15 @@ diff:
   paths:
     - coverage/lcov.info
   datastores:
-    - github://ikevin127/expensify-app-mock/coverage
+    - github://Expensify/App/coverage
   acceptable: 5%
 
 report:
   paths:
     - coverage/lcov.info
   datastores:
-    - github://ikevin127/expensify-app-mock/coverage
+    - github://Expensify/App/coverage
 
 push:
   datastores:
-    - github://ikevin127/expensify-app-mock/coverage
+    - github://Expensify/App/coverage
