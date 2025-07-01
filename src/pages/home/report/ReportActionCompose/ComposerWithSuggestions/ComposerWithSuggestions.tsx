@@ -98,8 +98,8 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     /** The placeholder for the input */
     inputPlaceholder: string;
 
-    /** Function to display a file in a modal */
-    displayFileInModal: (file: FileObject) => void;
+    /** Callback when a file is pasted */
+    onFilePasted: (file: FileObject) => void;
 
     /** Whether the user is blocked from concierge */
     isBlockedFromConcierge: boolean;
@@ -214,7 +214,7 @@ function ComposerWithSuggestions(
         setIsFullComposerAvailable,
         isMenuVisible,
         inputPlaceholder,
-        displayFileInModal,
+        onFilePasted: displayFileInModal,
         isBlockedFromConcierge,
         disabled,
         setIsCommentEmpty,
