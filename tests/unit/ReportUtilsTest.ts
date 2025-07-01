@@ -3258,7 +3258,7 @@ describe('ReportUtils', () => {
             await Onyx.clear();
         });
 
-        it('should return the report name if present when the chat type is policy room', () => {
+        it('should return the report name when the chat type is policy room', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -3271,7 +3271,7 @@ describe('ReportUtils', () => {
             expect(result).toBe(report.reportName);
         });
 
-        it('should return the report name if present when the chat type is domain all', () => {
+        it('should return the report name when the chat type is domain all', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -3284,7 +3284,7 @@ describe('ReportUtils', () => {
             expect(result).toBe(report.reportName);
         });
 
-        it('should return the report name if present when the chat type is group', () => {
+        it('should return the report name when the chat type is group', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -3297,7 +3297,7 @@ describe('ReportUtils', () => {
             expect(result).toBe(report.reportName);
         });
 
-        it('should return unavailable workspace if present when the chat type is invoice', () => {
+        it('should return policy name when the chat type is invoice', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -3307,10 +3307,11 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
             };
             const result = getMoneyReportPreviewName(action, report);
+            // Policies are empty, so the policy name is "Unavailable workspace"
             expect(result).toBe('Unavailable workspace');
         });
 
-        it('should return the report name if present when the chat type is policy admins', () => {
+        it('should return the report name when the chat type is policy admins', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -3323,7 +3324,7 @@ describe('ReportUtils', () => {
             expect(result).toBe(report.reportName);
         });
 
-        it('should return the report name if present when the chat type is policy announce', () => {
+        it('should return the report name when the chat type is policy announce', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -3336,7 +3337,7 @@ describe('ReportUtils', () => {
             expect(result).toBe(report.reportName);
         });
 
-        it('should return the report name if present when the chat type is policy expense chat', () => {
+        it('should return the owner name expenses when the chat type is policy expense chat', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -3346,10 +3347,11 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             };
             const result = getMoneyReportPreviewName(action, report);
+            // Report with ownerAccountID: 1 corresponds to "Ragnar Lothbrok"
             expect(result).toBe("Ragnar Lothbrok's expenses");
         });
 
-        it('should return the report name if present when the chat type is self dm', () => {
+        it('should return the display name of the current user when the chat type is self dm', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -3359,10 +3361,11 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
             };
             const result = getMoneyReportPreviewName(action, report);
+            // currentUserAccountID: 5 corresponds to "Lagertha Lothbrok"
             expect(result).toBe('Lagertha Lothbrok (you)');
         });
 
-        it('should return the report name if present when the chat type is system', () => {
+        it('should return the participant name when the chat type is system', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -3375,10 +3378,11 @@ describe('ReportUtils', () => {
                 },
             };
             const result = getMoneyReportPreviewName(action, report);
+            // participant accountID: 1 corresponds to "Ragnar Lothbrok"
             expect(result).toBe('Ragnar Lothbrok');
         });
 
-        it('should return the report name if present when the chat type is trip room', () => {
+        it('should return the participant names when the chat type is trip room', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -3392,10 +3396,11 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
             };
             const result = getMoneyReportPreviewName(action, report);
+            // participant accountID: 1, 2 corresponds to "Ragnar", "floki@vikings.net"
             expect(result).toBe('Ragnar, floki@vikings.net');
         });
 
-        it('should return the child report name if the report name is not present', () => {
+        it('should return the child report name when the report name is not present', () => {
             const action: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
