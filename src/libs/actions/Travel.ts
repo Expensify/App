@@ -55,7 +55,16 @@ function acceptSpotnanaTerms(domain?: string) {
 }
 
 function requestTravelAccess() {
-    API.write(WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST, null);
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
+            value: {
+                lastTravelSignupRequestTime: Date.now(),
+            },
+        },
+    ];
+    API.write(WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST, null, {optimisticData});
 }
 
 function cleanupTravelProvisioningSession() {
