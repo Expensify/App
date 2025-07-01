@@ -196,6 +196,7 @@ function SearchAutocompleteList(
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const cardAutocompleteList = Object.values(allCards);
     const cardFeedNamesWithType = useMemo(() => {
         return getCardFeedNamesWithType({workspaceCardFeeds, translate});
@@ -483,7 +484,7 @@ function SearchAutocompleteList(
     const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
         const searchQueryJSON = buildSearchQueryJSON(query);
         return {
-            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies) : query,
+            text: searchQueryJSON ? buildUserReadableQueryString(searchQueryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies) : query,
             singleIcon: Expensicons.History,
             searchQuery: query,
             keyForList: timestamp,

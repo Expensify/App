@@ -49,8 +49,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         const mergedCards = mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList);
         return [mergedCards, Object.keys(mergedCards).length > 0];
     }, [userCardList, workspaceCardFeeds]);
-
-    const cardFeedNamesWithType = useMemo(() => getCardFeedNamesWithType({workspaceCardFeeds, translate}), [workspaceCardFeeds, translate]);
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
 
     const typeMenuSections = useMemo(() => createTypeMenuSections(session, hasCardFeed, allPolicies), [session, hasCardFeed, allPolicies]);
 
@@ -86,7 +85,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
             if (savedSearchTitle === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies);
+                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies);
             }
 
             const isItemFocused = Number(key) === hash;
@@ -125,7 +124,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             savedSearchesMenuItems: menuItems,
             isSavedSearchActive: savedSearchFocused,
         };
-    }, [savedSearches, hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies]);
+    }, [savedSearches, hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies]);
 
     const activeItemIndex = useMemo(() => {
         // If we have a suggested search, then none of the menu items are active

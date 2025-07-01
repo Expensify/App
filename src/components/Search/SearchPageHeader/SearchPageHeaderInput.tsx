@@ -65,13 +65,11 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
-    const cardFeedNamesWithType = useMemo(() => {
-        return getCardFeedNamesWithType({workspaceCardFeeds, translate});
-    }, [translate, workspaceCardFeeds]);
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {inputQuery: originalInputQuery} = queryJSON;
     const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
     const [shouldUseAnimation, setShouldUseAnimation] = useState(false);
-    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies);
+    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies);
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);
@@ -115,9 +113,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     }, [isDefaultQuery, queryText]);
 
     useEffect(() => {
-        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies);
+        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, allFeeds, policies);
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [cardFeedNamesWithType, allCards, originalInputQuery, personalDetails, reports, taxRates, policies]);
+    }, [allFeeds, allCards, originalInputQuery, personalDetails, reports, taxRates, policies]);
 
     useEffect(() => {
         if (searchRouterListVisible) {

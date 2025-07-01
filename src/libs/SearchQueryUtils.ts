@@ -24,7 +24,7 @@ import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFilte
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {CardFeedNamesWithType} from './CardFeedUtils';
-import {getWorkspaceCardFeedKey} from './CardFeedUtils';
+import {getCardFeedsForDisplay, getWorkspaceCardFeedKey} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import localeCompare from './LocaleCompare';
@@ -314,7 +314,8 @@ function isSearchDatePreset(date: string | undefined): date is SearchDatePreset 
  * Returns whether a given search filter is supported in a given search data type
  */
 function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
-    if (filter === FILTER_KEYS.FEED && groupBy !== CONST.SEARCH.GROUP_BY.CARDS) {
+    // s77rt test remove false
+    if (false && filter === FILTER_KEYS.FEED && groupBy !== CONST.SEARCH.GROUP_BY.CARDS) {
         return false;
     }
 
@@ -679,7 +680,7 @@ function getFilterDisplayValue(
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     reports: OnyxCollection<OnyxTypes.Report>,
     cardList: OnyxTypes.CardList,
-    cardFeedNamesWithType: CardFeedNamesWithType,
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
 ) {
     if (
@@ -711,18 +712,8 @@ function getFilterDisplayValue(
         return getCleanedTagName(filterValue);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-        const workspaceFeedKey = getWorkspaceCardFeedKey(filterValue);
-
-        const workspaceValue = cardFeedNamesWithType[workspaceFeedKey];
-        const domainValue = cardFeedNamesWithType[filterValue];
-
-        if (workspaceValue && workspaceValue.type === 'workspace') {
-            return workspaceValue.name;
-        }
-
-        if (domainValue && domainValue.type === 'domain') {
-            return domainValue.name;
-        }
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList);
+        return cardFeedsForDisplay[filterValue as OnyxTypes.CompanyCardFeed]?.name ?? filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${filterValue}`]?.name ?? filterValue;
@@ -742,7 +733,7 @@ function buildUserReadableQueryString(
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
     cardList: OnyxTypes.CardList,
-    cardFeedNamesWithType: CardFeedNamesWithType,
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
 ) {
     const {type, status, groupBy, policyID} = queryJSON;
@@ -784,7 +775,7 @@ function buildUserReadableQueryString(
         } else {
             displayQueryFilters = queryFilter.map((filter) => ({
                 operator: filter.operator,
-                value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports, cardList, cardFeedNamesWithType, policies),
+                value: getFilterDisplayValue(key, filter.value.toString(), PersonalDetails, reports, cardList, cardFeeds, policies),
             }));
         }
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
