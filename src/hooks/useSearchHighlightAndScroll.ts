@@ -34,6 +34,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
     const [newSearchResultKey, setNewSearchResultKey] = useState<string | null>(null);
     const highlightedIDs = useRef<Set<string>>(new Set());
     const initializedRef = useRef(false);
+    const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
 
     const existingSearchResultIDs = useMemo(() => {
@@ -65,11 +66,13 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         const hasReportActionsIDsChange = !deepEqual(reportActionsIDs, previousReportActionsIDs);
 
         // Check if there is a change in the transactions or report actions list
-        if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {
+        if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange || hasPendingSearchRef.current) {
             // If we're not focused, don't trigger search
             if (!isFocused) {
+                hasPendingSearchRef.current = true;
                 return;
             }
+            hasPendingSearchRef.current = false;
 
             const newIDs = isChat ? reportActionsIDs : transactionsIDs;
             const hasAGenuinelyNewID = newIDs.some((id) => !existingSearchResultIDs.includes(id));

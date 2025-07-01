@@ -6634,9 +6634,7 @@ const translations = {
             authenticatePayment: 'Autenticar pagamento',
             requestRefund: 'Solicitar reembolso',
             requestRefundModal: {
-                phrase1: 'Obter um reembolso é fácil, basta rebaixar sua conta antes da próxima data de cobrança e você receberá um reembolso.',
-                phrase2:
-                    'Atenção: Rebaixar sua conta significa que seu(s) espaço(s) de trabalho será(ão) excluído(s). Esta ação não pode ser desfeita, mas você sempre pode criar um novo espaço de trabalho se mudar de ideia.',
+                full: 'Obter um reembolso é fácil, basta rebaixar sua conta antes da próxima data de cobrança e você receberá um reembolso. <br /> <br /> Atenção: Rebaixar sua conta significa que seu(s) espaço(s) de trabalho será(ão) excluído(s). Esta ação não pode ser desfeita, mas você sempre pode criar um novo espaço de trabalho se mudar de ideia.',
                 confirm: 'Excluir espaço(s) de trabalho e rebaixar',
             },
             viewPaymentHistory: 'Ver histórico de pagamentos',
