@@ -77,25 +77,28 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
         top: topBarOffset.get(),
     }));
 
-    const scrollHandler = useAnimatedScrollHandler({
-        onScroll: (event) => {
-            runOnJS(triggerScrollEvent)();
-            const {contentOffset, layoutMeasurement, contentSize} = event;
-            if (windowHeight > contentSize.height) {
-                return;
-            }
-            const currentOffset = contentOffset.y;
-            const isScrollingDown = currentOffset > scrollOffset.get();
-            const distanceScrolled = currentOffset - scrollOffset.get();
+    const scrollHandler = useAnimatedScrollHandler(
+        {
+            onScroll: (event) => {
+                runOnJS(triggerScrollEvent)();
+                const {contentOffset, layoutMeasurement, contentSize} = event;
+                if (windowHeight > contentSize.height) {
+                    return;
+                }
+                const currentOffset = contentOffset.y;
+                const isScrollingDown = currentOffset > scrollOffset.get();
+                const distanceScrolled = currentOffset - scrollOffset.get();
 
-            if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
-                topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset));
-            } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
-                topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
-            }
-            scrollOffset.set(currentOffset);
+                if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
+                    topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset));
+                } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
+                    topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
+                }
+                scrollOffset.set(currentOffset);
+            },
         },
-    });
+        [],
+    );
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
