@@ -1059,7 +1059,6 @@ const CONST = {
             REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
-            ADD_EXPENSE: 'addExpense',
         },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',
