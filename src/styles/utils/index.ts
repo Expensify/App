@@ -278,6 +278,29 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
 }
 
 /**
+ * Returns the avatar subscript icon container styles
+ */
+function getAvatarSubscriptIconContainerStyle(iconWidth = 16, iconHeight = 16): ViewStyle {
+    const borderWidth = 2;
+
+    // The width of the container is the width of the icon + 2x border width (left and right)
+    const containerWidth = iconWidth + 2 * borderWidth;
+    // The height of the container is the height of the icon + 2x border width (top and bottom)
+    const containerHeight = iconHeight + 2 * borderWidth;
+
+    return {
+        overflow: 'hidden',
+        position: 'absolute',
+        bottom: -4,
+        right: -4,
+        borderWidth,
+        borderRadius: 2 + borderWidth,
+        width: containerWidth,
+        height: containerHeight,
+    };
+}
+
+/**
  * Helper method to return workspace avatar color styles
  */
 function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
@@ -1194,18 +1217,6 @@ function getItemBackgroundColorStyle(isSelected: boolean, isFocused: boolean, is
     return {};
 }
 
-function getOptionMargin(itemIndex: number, itemsLen: number) {
-    if (itemIndex === itemsLen && itemsLen > 5) {
-        return {marginBottom: 16};
-    }
-
-    if (itemIndex === 0 && itemsLen > 5) {
-        return {marginTop: 16};
-    }
-
-    return {};
-}
-
 const staticStyleUtils = {
     positioning,
     searchHeaderDefaultOffset,
@@ -1219,6 +1230,7 @@ const staticStyleUtils = {
     getAvatarExtraFontSizeStyle,
     getAvatarSize,
     getAvatarWidthStyle,
+    getAvatarSubscriptIconContainerStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
@@ -1288,7 +1300,6 @@ const staticStyleUtils = {
     getItemBackgroundColorStyle,
     getNavigationBarType,
     getSuccessReportCardLostIllustrationStyle,
-    getOptionMargin,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
