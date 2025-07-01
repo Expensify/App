@@ -31,12 +31,11 @@ const getWorkspaceNavigationRouteState = () => {
         workspacesTabState = getPreservedNavigatorState(lastWorkspacesTabNavigatorRoute.key);
     }
 
-    return {rootState, lastWorkspacesTabNavigatorRoute, workspacesTabState};
+    return {lastWorkspacesTabNavigatorRoute, workspacesTabState, topmostFullScreenRoute};
 };
 
 const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy}: Params) => {
-    const {rootState, lastWorkspacesTabNavigatorRoute} = getWorkspaceNavigationRouteState();
-    const topmostFullScreenRoute = rootState?.routes.findLast((route) => isFullScreenName(route.name));
+    const {lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute} = getWorkspaceNavigationRouteState();
     if (!topmostFullScreenRoute) {
         return;
     }
