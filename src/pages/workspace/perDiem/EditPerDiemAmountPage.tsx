@@ -105,6 +105,7 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
                         inputID={INPUT_IDS.AMOUNT}
                         role={CONST.ROLE.PRESENTATION}
                         shouldAllowNegative
+                        uncontrolled
                     />
                 </FormProvider>
             </ScreenWrapper>
