@@ -22,6 +22,7 @@ import type {
     NetSuiteCustomSegment,
     NetSuiteTaxAccount,
     NetSuiteVendor,
+    PolicyConnectionName,
     PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
@@ -32,7 +33,7 @@ import type {
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {SearchPolicy} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {hasSynchronizationErrorMessage, isAuthenticationError} from './actions/connections';
+import {hasSynchronizationErrorMessage} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
@@ -1164,9 +1165,26 @@ function getConnectedIntegration(policy: Policy | undefined, accountingIntegrati
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
 }
 
+function isValidConnectedIntegration(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName) {
+    switch (connectionName) {
+        case CONST.POLICY.CONNECTIONS.NAME.XERO:
+            return !policy?.connections?.xero?.data?.tenants;
+        case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+            return !policy?.connections?.netsuite?.options?.config?.subsidiary;
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
+            const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
+            return !sageIntacctEntityList.length;
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.QBO:
+            return !policy?.connections?.quickbooksOnline?.config?.companyName;
+        default:
+            return true;
+    }
+}
+
 function getValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find(
-        (integration) => !!policy?.connections?.[integration] && !isAuthenticationError(policy, integration),
+        (integration) => !!policy?.connections?.[integration] && !isValidConnectedIntegration(policy, integration),
     );
 }
 
