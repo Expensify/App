@@ -6165,6 +6165,10 @@ const CONST = {
             TRIP: 'trip',
             CHAT: 'chat',
         },
+        ACTION_FILTERS: {
+            PAY: 'pay',
+            EXPORT: 'export',
+        },
         ACTION_TYPES: {
             VIEW: 'view',
             REVIEW: 'review',
@@ -6305,6 +6309,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
+            ACTION: 'action',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6347,6 +6352,7 @@ const CONST = {
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            ACTION: 'action',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',

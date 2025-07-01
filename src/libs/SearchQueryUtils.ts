@@ -89,6 +89,7 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     assignee: 'assignee',
     billable: 'billable',
     reimbursable: 'reimbursable',
+    action: 'action',
 };
 /**
  * @private
@@ -442,7 +443,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.REIMBURSABLE ||
                     filterKey === FILTER_KEYS.BILLABLE ||
                     filterKey === FILTER_KEYS.TITLE ||
-                    filterKey === FILTER_KEYS.PAYER) &&
+                    filterKey === FILTER_KEYS.PAYER ||
+                    filterKey === FILTER_KEYS.ACTION) &&
                 filterValue
             ) {
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
@@ -536,7 +538,8 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION
         ) {
             filtersForm[filterKey] = filterValues.at(0);
         }
