@@ -313,7 +313,8 @@ function isSearchDatePreset(date: string | undefined): date is SearchDatePreset 
  * Returns whether a given search filter is supported in a given search data type
  */
 function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTypes, groupBy: SearchGroupBy | undefined) {
-    if (filter === FILTER_KEYS.FEED && groupBy !== CONST.SEARCH.GROUP_BY.CARDS) {
+    // s77rt test remove false
+    if (false && filter === FILTER_KEYS.FEED && groupBy !== CONST.SEARCH.GROUP_BY.CARDS) {
         return false;
     }
 

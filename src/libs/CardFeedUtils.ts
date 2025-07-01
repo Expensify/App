@@ -390,6 +390,11 @@ const generateSelectedCards = (
     return [...new Set([...selectedCards, ...(cards ?? [])])];
 };
 
+/**
+ * Given a collection of card feeds, return formatted card feeds.
+ *
+ * The `allCards` parameter is only used to determine if we should add the "Expensify Card" feed.
+ */
 function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCards: CardList): CardFeedsForDisplay {
     const cardFeedsForDisplay = {} as CardFeedsForDisplay;
     const hasExpensifyCard = Object.values(allCards).some((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);

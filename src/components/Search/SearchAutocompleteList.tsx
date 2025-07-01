@@ -198,7 +198,11 @@ function SearchAutocompleteList(
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const cardAutocompleteList = Object.values(allCards);
-    const feedAutoCompleteList = useMemo(() => Object.values(getCardFeedsForDisplay(allFeeds, allCards)), [allFeeds, allCards]);
+    const feedAutoCompleteList = useMemo(() => {
+        // We don't want to show the "Expensify Card" feed in the autocomplete suggestion list
+        // Thus passing an empty object to the `allCards` parameter.
+        return Object.values(getCardFeedsForDisplay(allFeeds, {}));
+    }, [allFeeds]);
 
     const getParticipantsAutocompleteList = useMemo(
         () =>
