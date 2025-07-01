@@ -180,6 +180,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         isUserValidated,
         groupPaidPolicies.length,
         isBetaEnabled,
+        travelSettings?.lastTravelSignupRequestTime,
     ]);
 
     return (
