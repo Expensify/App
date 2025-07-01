@@ -97,6 +97,14 @@ function getLastPolicyPaymentMethod(
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
 }
 
+function getSnapshotIOUReport(reportID?: string, hash?: number) {
+    if (!reportID || !hash) {
+        return;
+    }
+
+    return allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+}
+
 function getPayActionCallback(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod);
 
@@ -476,4 +484,5 @@ export {
     openSearchPage as openSearch,
     getLastPolicyPaymentMethod,
     getLastPolicyBankAccountID,
+    getSnapshotIOUReport,
 };
