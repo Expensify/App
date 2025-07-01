@@ -81,6 +81,9 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
+
+    /** Whether text input should be focused */
+    textInputAutoFocus?: boolean;
 };
 
 type InputFocusRef = {
@@ -96,6 +99,7 @@ function MoneyRequestParticipantsSelector(
         iouType,
         action,
         isPerDiemRequest = false,
+        textInputAutoFocus: textInputAutoFocusProp = true,
     }: MoneyRequestParticipantsSelectorProps,
     ref: Ref<InputFocusRef>,
 ) {
@@ -599,6 +603,9 @@ function MoneyRequestParticipantsSelector(
                 onGrant={initiateContactImportAndSetState}
                 onDeny={setContactPermissionState}
                 onFocusTextInput={() => {
+                    if (textInputAutoFocusProp) {
+                        return;
+                    }
                     setTextInputAutoFocus(true);
                     selectionListRef.current?.focusTextInput?.();
                 }}
@@ -629,7 +636,7 @@ function MoneyRequestParticipantsSelector(
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}
                 isLoadingNewOptions={!!isSearchingForReports}
                 shouldShowListEmptyContent={shouldShowListEmptyContent}
-                textInputAutoFocus={false}
+                textInputAutoFocus={textInputAutoFocusProp}
                 ref={selectionListRef}
             />
         </>
@@ -640,5 +647,6 @@ MoneyRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequest
 
 export default memo(
     forwardRef(MoneyRequestParticipantsSelector),
-    (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType,
+    (prevProps, nextProps) =>
+        deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType && !!prevProps.textInputAutoFocus === !!nextProps.textInputAutoFocus,
 );
