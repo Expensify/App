@@ -300,7 +300,7 @@ function BaseTextInput(
                                 variables.componentSizeLarge,
                                 typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0,
                             ),
-                        isAutoGrowHeightMarkdown && {minHeight: variables.componentSizeLarge},
+                        isAutoGrowHeightMarkdown && {minHeight: variables.inputHeight},
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
                     ]}
