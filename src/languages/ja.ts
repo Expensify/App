@@ -5932,6 +5932,7 @@ const translations = {
                 members: 'メンバー',
                 cards: 'カード',
             },
+            feed: 'フィード',
         },
         groupBy: 'グループ',
         moneyRequestReport: {

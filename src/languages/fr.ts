@@ -5968,6 +5968,7 @@ const translations = {
                 members: 'Membre',
                 cards: 'Carte',
             },
+            feed: 'Flux',
         },
         groupBy: 'Groupe par',
         moneyRequestReport: {

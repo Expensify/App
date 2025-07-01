@@ -5962,6 +5962,7 @@ const translations = {
                 members: 'Membro',
                 cards: 'Cartão',
             },
+            feed: 'Feed',
         },
         groupBy: 'Agrupar por',
         moneyRequestReport: {

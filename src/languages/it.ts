@@ -5972,6 +5972,7 @@ const translations = {
                 members: 'Membro',
                 cards: 'Carta',
             },
+            feed: 'Feed',
         },
         groupBy: 'Gruppo per',
         moneyRequestReport: {
