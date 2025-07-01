@@ -234,7 +234,7 @@ function ScreenWrapper(
     return (
         <FocusTrapForScreen focusTrapSettings={focusTrapSettings}>
             <ScreenWrapperContainer
-                forwardedRef={ref}
+                ref={ref}
                 style={[styles.flex1, style]}
                 bottomContent={bottomContent}
                 didScreenTransitionEnd={didScreenTransitionEnd}
