@@ -1,6 +1,6 @@
 ---
 layout: product
-title: Personal Bank Account
+title: Personal Bank Accounts
 ---
 
 # Personal Bank Accounts
