@@ -1,6 +1,6 @@
 ---
 layout: product
-title: Expensify Chat
+title: Preferences
 ---
 
 # Preferences
