@@ -30,7 +30,6 @@ import {
     getPolicyName,
     getReportActionActorAccountID,
     getWorkspaceIcon,
-    isActionCreator,
     isIndividualInvoiceRoom,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom,
@@ -140,16 +139,13 @@ function useIDOfReportPreviewSender({action, iouReport, report}: {action: OnyxEn
 
     /* We need to perform the following checks to determine if the report preview is a single avatar: */
 
-    // 1. If all actions are created by one person - either all actions are created by the current user or all actions are created by the user we have opened chat with.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const areActionsCreatedByOnePerson = iouActions?.every(isActionCreator) || !iouActions?.some(isActionCreator);
-
-    // 2. If all amounts have the same sign - either all amounts are positive or all amounts are negative.
+    // 1. If all amounts have the same sign - either all amounts are positive or all amounts are negative.
     // We have to do this because there can be a case when actions are not available
     // See: https://github.com/Expensify/App/pull/64802#issuecomment-3008944401
+
     const areAmountsSignsTheSame = new Set(transactions?.map((tr) => Math.sign(tr.amount))).size < 2;
 
-    // 3. If there is only one attendee - we check that by counting unique emails converted to account IDs in the attendees list.
+    // 2. If there is only one attendee - we check that by counting unique emails converted to account IDs in the attendees list.
     // This has to be done as there are cases when transaction amounts signs are the same until report is opened.
     // See: https://github.com/Expensify/App/pull/64802#issuecomment-3007906310
 
@@ -165,10 +161,7 @@ function useIDOfReportPreviewSender({action, iouReport, report}: {action: OnyxEn
     const isSendMoneyFlow = action?.childMoneyRequestCount === 0 && transactions?.length === 1;
     const singleAvatarAccountID = isSendMoneyFlow ? action.childManagerAccountID : action?.childOwnerAccountID;
 
-    // If we have more than one IOU action, but they are 'Pay' actions, we consider it as a single avatar. The only place where 'Pay' actions are considered valid is in the 'Send Money' flow.
-    const areThereValidIOUActions = !!iouActions?.length && (isSendMoneyFlow || iouActions.some((iouAction) => getOriginalMessage(iouAction)?.type !== CONST.IOU.REPORT_ACTION_TYPE.PAY));
-
-    return (!areThereValidIOUActions || areActionsCreatedByOnePerson) && areAmountsSignsTheSame && isThereOnlyOneAttendee ? singleAvatarAccountID : undefined;
+    return areAmountsSignsTheSame && isThereOnlyOneAttendee ? singleAvatarAccountID : undefined;
 }
 
 function ReportActionItemSingle({
