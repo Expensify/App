@@ -39,6 +39,7 @@ import {
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import Timing from '@libs/actions/Timing';
 import Navigation from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -428,6 +429,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             if (!reportID) {
                 return;
             }
+
+            Timing.start(CONST.TIMING.OPEN_REPORT_SEARCH);
 
             const backTo = Navigation.getActiveRoute();
 

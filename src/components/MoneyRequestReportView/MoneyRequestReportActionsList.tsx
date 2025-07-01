@@ -47,6 +47,8 @@ import {
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isUnread} from '@libs/ReportUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
+import Performance from '@libs/Performance';
+import Timing from '@libs/actions/Timing';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
 import FloatingMessageCounter from '@pages/home/report/FloatingMessageCounter';
 import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListItemRenderer';
@@ -121,6 +123,7 @@ function MoneyRequestReportActionsList({
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const reportScrollManager = useReportScrollManager();
     const lastMessageTime = useRef<string | null>(null);
+    const didLayout = useRef(false);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -532,6 +535,30 @@ function MoneyRequestReportActionsList({
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 
+    /**
+     * Runs when the FlatList finishes laying out
+     */
+    const recordTimeToMeasureItemLayout = useCallback(() => {
+        if (didLayout.current) {
+            return;
+        }
+
+        didLayout.current = true;
+
+        Performance.markEnd(CONST.TIMING.OPEN_REPORT);
+        Timing.end(CONST.TIMING.OPEN_REPORT);
+
+        Performance.markEnd(CONST.TIMING.OPEN_REPORT_THREAD);
+        Timing.end(CONST.TIMING.OPEN_REPORT_THREAD);
+
+        Performance.markEnd(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
+        Timing.end(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
+
+        Performance.markEnd(CONST.TIMING.OPEN_REPORT_SEARCH);
+        Timing.end(CONST.TIMING.OPEN_REPORT_SEARCH);
+    }, []);
+
+
     return (
         <View
             style={[styles.flex1]}
@@ -612,6 +639,7 @@ function MoneyRequestReportActionsList({
                         data={visibleReportActions}
                         renderItem={renderItem}
                         keyExtractor={(item) => item.reportActionID}
+                        onLayout={recordTimeToMeasureItemLayout}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={0.75}
                         onStartReached={onStartReached}

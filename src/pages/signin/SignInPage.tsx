@@ -186,10 +186,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
 
   useEffect(() => {
-    InteractionManager.runAfterInteractions(() => {
-      Timing.end(CONST.TIMING.OPEN_APP);
       Performance.measureTTI();
-    });
   }, []);
 
     useEffect(() => {

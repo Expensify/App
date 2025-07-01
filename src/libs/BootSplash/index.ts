@@ -1,6 +1,7 @@
 import Log from '@libs/Log';
 import Timing from '@libs/actions/Timing';
 import CONST from '@src/CONST';
+import { InteractionManager } from 'react-native';
 
 function resolveAfter(delay: number): Promise<void> {
     return new Promise<void>((resolve) => {
@@ -17,7 +18,9 @@ function hide(): Promise<void> {
             splash.style.opacity = '0';
         }
 
-        Timing.end(CONST.TIMING.SPLASH_SCREEN);
+        InteractionManager.runAfterInteractions(() => {
+          Timing.end(CONST.TIMING.SPLASH_SCREEN);
+        });
 
         return resolveAfter(250).then(() => {
             if (!splash?.parentNode) {

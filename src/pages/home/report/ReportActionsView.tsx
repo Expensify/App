@@ -255,6 +255,9 @@ function ReportActionsView({
 
         Performance.markEnd(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.end(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
+
+        Performance.markEnd(CONST.TIMING.OPEN_REPORT_SEARCH);
+        Timing.end(CONST.TIMING.OPEN_REPORT_SEARCH);
     }, []);
 
     // Check if the first report action in the list is the one we're currently linked to

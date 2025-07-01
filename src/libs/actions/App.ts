@@ -176,12 +176,6 @@ const isReadyToOpenApp = new Promise<void>((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
-isReadyToOpenApp.finally(() => {
-  InteractionManager.runAfterInteractions(() => {
-    Timing.end(CONST.TIMING.OPEN_APP);
-  });
-});
-
 function confirmReadyToOpenApp() {
     resolveIsReadyPromise();
 }

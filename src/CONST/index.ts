@@ -1450,12 +1450,12 @@ const CONST = {
     TIMING: {
         GET_ORDERED_REPORT_IDS: 'get_ordered_report_ids',
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
-        OPEN_APP: 'open_app',
         SPLASH_SCREEN: 'splash_screen',
         OPEN_SEARCH: 'open_search',
         OPEN_REPORT: 'open_report',
         OPEN_REPORT_FROM_PREVIEW: 'open_report_from_preview',
         OPEN_REPORT_THREAD: 'open_report_thread',
+        OPEN_REPORT_SEARCH: 'open_report_search',
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         SEND_MESSAGE: 'send_message',
