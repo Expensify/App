@@ -58,7 +58,7 @@ import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import DateUtils from '@src/libs/DateUtils';
@@ -78,7 +78,7 @@ import * as InvoiceData from '../data/Invoice';
 import type {InvoiceTestData} from '../data/Invoice';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
@@ -100,12 +100,9 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getReportRouteByID: jest.fn(),
     getActiveRouteWithoutParams: jest.fn(),
     getActiveRoute: jest.fn(),
-}));
-
-jest.mock('@src/libs/Navigation/navigationRef', () => ({
-    getRootState: () => ({
-        routes: [],
-    }),
+    navigationRef: {
+        getRootState: jest.fn(),
+    },
 }));
 
 jest.mock('@react-navigation/native');
@@ -154,7 +151,8 @@ describe('actions/IOU', () => {
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
             },
         });
-        TranslationStore.load(CONST.LOCALES.EN);
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
     });
 
     let mockFetch: MockFetch;
