@@ -2058,9 +2058,10 @@ const translations = {
         chooseThemeBelowOrSync: '选择下面的主题，或与您的设备设置同步。',
     },
     termsOfUse: {
-        terms: ({termsURL, privacyURL}: TermsOfUseRouteParams) => `<muted-text>通过登录，您同意 <a href="${termsURL}">服务条款</a> 和 <a href="${privacyURL}">隐私</a>.</muted-text>`,
+        terms: ({termsURL, privacyURL}: TermsOfUseRouteParams) =>
+            `<comment><mtm issmall>通过登录，您同意 <a href="${termsURL}">服务条款</a> 和 <a href="${privacyURL}">隐私</a>.</mtm></comment>`,
         licenses: ({licensesURL}: LicensesParams) =>
-            `<muted-text>资金传输由${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}(NMLS ID:2017010)根据其提供 <a href="${licensesURL}">许可证</a>.</muted-text>`,
+            `<comment><mtm issmall>资金传输由${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}(NMLS ID:2017010)根据其提供 <a href="${licensesURL}">许可证</a>.</mtm></comment>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: '没有收到魔法代码？',
