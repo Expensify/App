@@ -16,7 +16,7 @@ import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedKey, getCardFeedNamesWithType, getCardFeedsForDisplay} from '@libs/CardFeedUtils';
+import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import memoize from '@libs/memoize';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
@@ -465,7 +465,6 @@ function SearchAutocompleteList(
         statusAutocompleteList,
         expenseTypes,
         feedAutoCompleteList,
-        workspaceCardFeeds,
         cardAutocompleteList,
         allCards,
         booleanTypes,
