@@ -44,7 +44,7 @@ The **Reports** tab consolidates filtering and reporting:
 
 ## Quick Actions
 
-Use the **Global Create** button to quickly:
+Use the green **Create** button to quickly:
 - Start a new chat or conversation
 - Create an expense report
 - Add an expense or receipt
