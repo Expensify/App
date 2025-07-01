@@ -103,13 +103,13 @@ function usePaymentOptions({
             [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
                 text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
                 icon: Expensicons.User,
-                value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
                 shouldUpdateSelectedIndex: false,
             },
             [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
                 text: translate('iou.settleBusiness', {formattedAmount: ''}),
                 icon: Expensicons.Building,
-                value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                value: CONST.IOU.PAYMENT_TYPE.VBBA,
                 shouldUpdateSelectedIndex: false,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
