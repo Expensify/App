@@ -11,6 +11,7 @@
  */
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
+import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -34,7 +35,6 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
-    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -45,7 +45,6 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
-    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -67,6 +66,7 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodParams,
     ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
@@ -99,6 +99,7 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
+    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -665,6 +666,12 @@ const translations = {
         attachmentImageTooLarge: 'Dieses Bild ist zu groß, um es vor dem Hochladen in der Vorschau anzuzeigen.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Sie können jeweils nur bis zu ${fileLimit} Dateien hochladen.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Dateien überschreiten ${maxUploadSizeInMB} MB. Bitte versuchen Sie es erneut.`,
+        someFilesCantBeUploaded: 'Einige Dateien können nicht hochgeladen werden',
+        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Dateien müssen unter ${maxUploadSizeInMB} MB sein. Größere Dateien werden nicht hochgeladen.`,
+        maxFileLimitExceeded: 'Sie können bis zu 30 Belege gleichzeitig hochladen. Weitere werden nicht hochgeladen.',
+        unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType} Dateien werden nicht unterstützt. Nur unterstützte Dateitypen werden hochgeladen.`,
+        learnMoreAboutSupportedFiles: 'Erfahren Sie mehr über unterstützte Formate.',
+        passwordProtected: 'Passwortgeschützte PDFs werden nicht unterstützt. Nur unterstützte Dateien werden hochgeladen.',
     },
     dropzone: {
         addAttachments: 'Anhänge hinzufügen',
@@ -1022,6 +1029,7 @@ const translations = {
         share: 'Teilen',
         participants: 'Teilnehmer',
         createExpense: 'Ausgabe erstellen',
+        trackDistance: 'Entfernung verfolgen',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `Erstelle ${expensesNumber} Ausgaben`,
         addExpense: 'Ausgabe hinzufügen',
         chooseRecipient: 'Empfänger auswählen',
@@ -1112,21 +1120,12 @@ const translations = {
         individual: 'Individuum',
         business: 'Geschäft',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Bezahle ${formattedAmount} mit Expensify` : `Mit Expensify bezahlen`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Bezahle ${formattedAmount} als Privatperson` : `Mit Privatkonto bezahlen`),
-        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Bezahle ${formattedAmount} mit Wallet` : `Mit Wallet bezahlen`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Zahlen Sie ${formattedAmount} als Einzelperson` : `Als Einzelperson bezahlen`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Zahlen Sie ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Bezahle ${formattedAmount} als Unternehmen` : `Mit Geschäftskonto bezahlen`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount} als bezahlt markieren` : `Als bezahlt markieren`),
-        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} mit Privatkonto ${last4Digits} bezahlt` : `Mit Privatkonto bezahlt`),
-        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} mit Geschäftskonto ${last4Digits} bezahlt` : `Mit Geschäftskonto bezahlt`),
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `${formattedAmount} über ${policyName} bezahlen` : `Über ${policyName} bezahlen`,
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => `${amount} mit Bankkonto ${last4Digits} bezahlt.`,
-        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Privatkonto • ${lastFour}`,
-        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Geschäftskonto • ${lastFour}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Zahlen Sie ${formattedAmount} als Unternehmen` : `Als Unternehmen bezahlen`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Zahle ${formattedAmount} anderswo` : `Anderswo bezahlen`),
         nextStep: 'Nächste Schritte',
         finished: 'Fertiggestellt',
-        flip: 'Umkehren',
         sendInvoice: ({amount}: RequestAmountParams) => `Sende ${amount} Rechnung`,
         submitAmount: ({amount}: RequestAmountParams) => `Einreichen ${amount}`,
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `für ${comment}` : ''}`,
@@ -1160,8 +1159,8 @@ const translations = {
             `hat die Zahlung von ${amount} storniert, weil ${submitterDisplayName} ihre Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} hat ein Bankkonto hinzugefügt. Die Zahlung von ${amount} wurde geleistet.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}als bezahlt markiert`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}mit Wallet bezahlt`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}woanders bezahlt`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''} mit Expensify bezahlt`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''} mit Expensify über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Arbeitsbereichsregeln</a> bezahlt`,
         noReimbursableExpenses: 'Dieser Bericht hat einen ungültigen Betrag.',
@@ -1499,6 +1498,7 @@ const translations = {
             noLogsToShare: 'Keine Protokolle zum Teilen',
             useProfiling: 'Profiling verwenden',
             profileTrace: 'Profilverlauf',
+            results: 'Ergebnisse',
             releaseOptions: 'Veröffentlichungsoptionen',
             testingPreferences: 'Präferenzen testen',
             useStagingServer: 'Staging-Server verwenden',
@@ -1519,6 +1519,7 @@ const translations = {
             invalidFile: 'Ungültige Datei',
             invalidFileDescription: 'Die Datei, die Sie importieren möchten, ist ungültig. Bitte versuchen Sie es erneut.',
             invalidateWithDelay: 'Mit Verzögerung ungültig machen',
+            recordTroubleshootData: 'Daten zur Fehlerbehebung aufzeichnen',
         },
         debugConsole: {
             saveLog: 'Protokoll speichern',
@@ -1820,7 +1821,6 @@ const translations = {
         enableWallet: 'Wallet aktivieren',
         addBankAccountToSendAndReceive: 'Erhalten Sie eine Rückerstattung für Ausgaben, die Sie an einen Arbeitsbereich einreichen.',
         addBankAccount: 'Bankkonto hinzufügen',
-        addDebitOrCreditCard: 'Debit- oder Kreditkarte hinzufügen',
         assignedCards: 'Zugewiesene Karten',
         assignedCardsDescription: 'Dies sind Karten, die von einem Workspace-Admin zugewiesen wurden, um die Ausgaben des Unternehmens zu verwalten.',
         expensifyCard: 'Expensify Card',
@@ -2034,7 +2034,6 @@ const translations = {
         cardLastFour: 'Karte endet mit',
         addFirstPaymentMethod: 'Fügen Sie eine Zahlungsmethode hinzu, um Zahlungen direkt in der App zu senden und zu empfangen.',
         defaultPaymentMethod: 'Standardmäßig',
-        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Bankkonto • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -2220,6 +2219,204 @@ const translations = {
             title: 'Konnte die Arbeits-E-Mail nicht hinzufügen',
             subtitle: ({workEmail}: WorkEmailMergingBlockedParams) =>
                 `Wir konnten ${workEmail} nicht hinzufügen. Bitte versuchen Sie es später in den Einstellungen erneut oder chatten Sie mit Concierge für Unterstützung.`,
+        },
+        tasks: {
+            testDriveAdminTask: {
+                title: ({testDriveURL}) => `Mache eine [Probefahrt](${testDriveURL})`,
+                description: ({testDriveURL}) => `[Mache eine kurze Produkttour](${testDriveURL}), um zu sehen, warum Expensify der schnellste Weg ist, Ausgaben zu verwalten.`,
+            },
+            testDriveEmployeeTask: {
+                title: ({testDriveURL}) => `Mache eine [Probefahrt](${testDriveURL})`,
+                description: ({testDriveURL}) => `Probiere uns in einer [Probefahrt](${testDriveURL}) aus und sichere deinem Team *3 Monate Expensify gratis!*`,
+            },
+            createTestDriveAdminWorkspaceTask: {
+                title: ({workspaceConfirmationLink}) => `[Erstelle](${workspaceConfirmationLink}) einen Workspace`,
+                description: 'Erstelle einen Workspace und konfiguriere die Einstellungen mit Hilfe deines Einrichtungsspezialisten!',
+            },
+            createWorkspaceTask: {
+                title: ({workspaceSettingsLink}) => `Erstelle einen [Workspace](${workspaceSettingsLink})`,
+                description: ({workspaceSettingsLink}) =>
+                    '*Erstelle einen Workspace*, um Ausgaben zu verfolgen, Belege zu scannen, zu chatten und mehr.\n\n' +
+                    '1. Klicke auf *Workspaces* > *Neuer Workspace*.\n\n' +
+                    `*Dein neuer Workspace ist bereit!* [Schau ihn dir an](${workspaceSettingsLink}).`,
+            },
+            setupCategoriesTask: {
+                title: ({workspaceCategoriesLink}) => `Richte [Kategorien](${workspaceCategoriesLink}) ein`,
+                description: ({workspaceCategoriesLink}) =>
+                    '*Richte Kategorien ein*, damit dein Team Ausgaben einfach zuordnen kann.\n\n' +
+                    '1. Klicke auf *Workspaces*.\n' +
+                    '2. Wähle deinen Workspace.\n' +
+                    '3. Klicke auf *Kategorien*.\n' +
+                    '4. Deaktiviere nicht benötigte Kategorien.\n' +
+                    '5. Füge oben rechts eigene Kategorien hinzu.\n\n' +
+                    `[Zu den Kategorie-Einstellungen](${workspaceCategoriesLink}).\n\n` +
+                    `![Kategorien einrichten](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
+            },
+            combinedTrackSubmitExpenseTask: {
+                title: 'Reiche eine Ausgabe ein',
+                description:
+                    '*Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg scannst.\n\n' +
+                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    '2. Wähle *Ausgabe erstellen*.\n' +
+                    '3. Betrag eingeben oder Beleg scannen.\n' +
+                    `4. Gib die E-Mail oder Telefonnummer deines Chefs ein.\n` +
+                    '5. Klicke auf *Erstellen*.\n\n' +
+                    'Fertig!',
+            },
+            adminSubmitExpenseTask: {
+                title: 'Reiche eine Ausgabe ein',
+                description:
+                    '*Reiche eine Ausgabe ein*, indem du einen Betrag eingibst oder einen Beleg scannst.\n\n' +
+                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    '2. Wähle *Ausgabe erstellen*.\n' +
+                    '3. Betrag eingeben oder Beleg scannen.\n' +
+                    '4. Details bestätigen.\n' +
+                    '5. Klicke auf *Erstellen*.\n\n' +
+                    'Fertig!',
+            },
+            trackExpenseTask: {
+                title: 'Verfolge eine Ausgabe',
+                description:
+                    '*Verfolge eine Ausgabe* in jeder Währung – mit oder ohne Beleg.\n\n' +
+                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    '2. Wähle *Ausgabe erstellen*.\n' +
+                    '3. Betrag eingeben oder Beleg scannen.\n' +
+                    '4. Wähle deinen *persönlichen* Bereich.\n' +
+                    '5. Klicke auf *Erstellen*.\n\n' +
+                    'Fertig! So einfach ist das.',
+            },
+            addAccountingIntegrationTask: {
+                title: ({integrationName, workspaceAccountingLink}) =>
+                    `Verbinde${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' mit'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'deiner' : ''} ${integrationName}](${workspaceAccountingLink})`,
+                description: ({integrationName, workspaceAccountingLink}) =>
+                    `Verbinde ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'deine' : 'mit'} ${integrationName}, um Ausgaben automatisch zuzuordnen und den Monatsabschluss zu vereinfachen.\n` +
+                    '\n' +
+                    '1. Klicke auf *Einstellungen*.\n' +
+                    '2. Gehe zu *Workspaces*.\n' +
+                    '3. Wähle deinen Workspace.\n' +
+                    '4. Klicke auf *Buchhaltung*.\n' +
+                    `5. Finde ${integrationName}.\n` +
+                    '6. Klicke auf *Verbinden*.\n' +
+                    '\n' +
+                    `${
+                        integrationName && CONST.connectionsVideoPaths[integrationName]
+                            ? `[Zu Buchhaltung](${workspaceAccountingLink}).\n\n![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                            : `[Zu Buchhaltung](${workspaceAccountingLink}).`
+                    }`,
+            },
+            connectCorporateCardTask: {
+                title: ({corporateCardLink}) => `Verbinde [deine Firmenkarte](${corporateCardLink})`,
+                description: ({corporateCardLink}) =>
+                    `Verbinde deine Firmenkarte, um Ausgaben automatisch zu importieren und zuzuordnen.\n\n` +
+                    '1. Klicke auf *Workspaces*.\n' +
+                    '2. Wähle deinen Workspace.\n' +
+                    '3. Klicke auf *Firmenkarten*.\n' +
+                    '4. Folge den Anweisungen zur Verbindung.\n\n' +
+                    `[Zur Kartenverbindung](${corporateCardLink}).`,
+            },
+            inviteTeamTask: {
+                title: ({workspaceMembersLink}) => `Lade [dein Team](${workspaceMembersLink}) ein`,
+                description: ({workspaceMembersLink}) =>
+                    '*Lade dein Team* zu Expensify ein, damit es sofort mit dem Verfolgen von Ausgaben beginnen kann.\n\n' +
+                    '1. Klicke auf *Workspaces*.\n' +
+                    '2. Wähle deinen Workspace.\n' +
+                    '3. Klicke auf *Mitglieder* > *Mitglied einladen*.\n' +
+                    '4. Gib E-Mails oder Telefonnummern ein.\n' +
+                    '5. Optional: eigene Einladung hinzufügen.\n\n' +
+                    `[Zu den Mitgliedereinstellungen](${workspaceMembersLink}).\n\n` +
+                    `![Team einladen](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+            },
+            setupCategoriesAndTags: {
+                title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) => `Richte [Kategorien](${workspaceCategoriesLink}) und [Tags](${workspaceMoreFeaturesLink}) ein`,
+                description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
+                    '*Richte Kategorien und Tags ein*, damit dein Team Ausgaben einfach zuordnen kann.\n\n' +
+                    `Importiere sie automatisch durch [Verbindung deiner Buchhaltungssoftware](${workspaceAccountingLink}) oder richte sie manuell in den [Workspace-Einstellungen](${workspaceCategoriesLink}) ein.`,
+            },
+            setupTagsTask: {
+                title: ({workspaceMoreFeaturesLink}) => `Richte [Tags](${workspaceMoreFeaturesLink}) ein`,
+                description: ({workspaceMoreFeaturesLink}) =>
+                    'Verwende Tags, um zusätzliche Ausgabendetails wie Projekte, Kunden, Standorte und Abteilungen hinzuzufügen. Für mehrere Tag-Ebenen kannst du auf den Control-Plan upgraden.\n\n' +
+                    '1. Klicke auf *Workspaces*.\n' +
+                    '2. Wähle deinen Workspace.\n' +
+                    '3. Klicke auf *Weitere Funktionen*.\n' +
+                    '4. Aktiviere *Tags*.\n' +
+                    '5. Navigiere zu *Tags* im Editor.\n' +
+                    '6. Klicke auf *+ Tag hinzufügen*, um eigene zu erstellen.\n\n' +
+                    `[Zu den weiteren Funktionen](${workspaceMoreFeaturesLink}).\n\n` +
+                    `![Tags einrichten](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
+            },
+            inviteAccountantTask: {
+                title: ({workspaceMembersLink}) => `Lade deinen [Buchhalter](${workspaceMembersLink}) ein`,
+                description: ({workspaceMembersLink}) =>
+                    '*Lade deinen Buchhalter ein*, um gemeinsam an deinem Workspace zu arbeiten und Geschäftsausgaben zu verwalten.\n' +
+                    '\n' +
+                    '1. Klicke auf *Workspaces*.\n' +
+                    '2. Wähle deinen Workspace.\n' +
+                    '3. Klicke auf *Mitglieder*.\n' +
+                    '4. Klicke auf *Mitglied einladen*.\n' +
+                    '5. Gib die E-Mail-Adresse deines Buchhalters ein.\n' +
+                    '\n' +
+                    `[Jetzt Buchhalter einladen](${workspaceMembersLink}).`,
+            },
+            startChatTask: {
+                title: 'Starte einen Chat',
+                description:
+                    '*Starte einen Chat* mit jeder Person über E-Mail oder Telefonnummer.\n\n' +
+                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    '2. Wähle *Chat starten*.\n' +
+                    '3. Gib eine E-Mail oder Telefonnummer ein.\n\n' +
+                    'Falls die Person Expensify noch nicht nutzt, wird sie automatisch eingeladen.\n\n' +
+                    'Jeder Chat wird außerdem als E-Mail oder SMS zugestellt.',
+            },
+            splitExpenseTask: {
+                title: 'Teile eine Ausgabe',
+                description:
+                    '*Teile Ausgaben* mit einer oder mehreren Personen.\n\n' +
+                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    '2. Wähle *Chat starten*.\n' +
+                    '3. Gib E-Mail-Adressen oder Telefonnummern ein.\n' +
+                    '4. Klicke im Chat auf den grauen *+*-Button > *Ausgabe teilen*.\n' +
+                    '5. Wähle *Manuell*, *Scan* oder *Entfernung*.\n\n' +
+                    'Du kannst Details hinzufügen oder es direkt abschicken. Zeit, dein Geld zurückzubekommen!',
+            },
+            reviewWorkspaceSettingsTask: {
+                title: ({workspaceSettingsLink}) => `Überprüfe deine [Workspace-Einstellungen](${workspaceSettingsLink})`,
+                description: ({workspaceSettingsLink}) =>
+                    'So überprüfst und aktualisierst du deine Workspace-Einstellungen:\n' +
+                    '1. Klicke auf den Tab *Einstellungen*.\n' +
+                    '2. Klicke auf *Workspaces* > [Dein Workspace].\n' +
+                    `[Zum Workspace](${workspaceSettingsLink}). Wir verfolgen Änderungen im Raum #admins.`,
+            },
+            createReportTask: {
+                title: 'Erstelle deinen ersten Bericht',
+                description:
+                    'So erstellst du einen Bericht:\n\n' +
+                    '1. Klicke auf den grünen *+*-Button.\n' +
+                    '2. Wähle *Bericht erstellen*.\n' +
+                    '3. Klicke auf *Ausgabe hinzufügen*.\n' +
+                    '4. Füge deine erste Ausgabe hinzu.\n\n' +
+                    'Fertig!',
+            },
+        } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
+        testDrive: {
+            name: ({testDriveURL}: {testDriveURL?: string}) => (testDriveURL ? `Mache eine [Probefahrt](${testDriveURL})` : 'Mache eine Probefahrt'),
+            embeddedDemoIframeTitle: 'Probefahrt',
+            employeeFakeReceipt: {
+                description: 'Mein Probefahrt-Beleg!',
+            },
+        },
+        messages: {
+            onboardingEmployerOrSubmitMessage: 'Erstattungen zu erhalten ist so einfach wie eine Nachricht zu senden. Lass uns die Grundlagen durchgehen.',
+            onboardingPersonalSpendMessage: 'So verfolgst du deine Ausgaben mit nur wenigen Klicks.',
+            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
+                `Hier ist eine Aufgabenliste, die ich für ein Unternehmen mit ${onboardingCompanySize} Einreichenden empfehle:`,
+            onboardingTrackWorkspaceMessage:
+                '# Lass uns loslegen\n👋 Ich helfe dir! Ich habe deine Workspace-Einstellungen für Einzelunternehmer und ähnliche Unternehmen angepasst. Du kannst sie über den folgenden Link anpassen!\n\nSo verfolgst du deine Ausgaben mit nur wenigen Klicks:',
+            onboardingChatSplitMessage: 'Rechnungen mit Freunden zu teilen ist so einfach wie eine Nachricht zu senden. So funktioniert’s.',
+            onboardingAdminMessage: 'Lerne, wie du den Workspace deines Teams als Admin verwaltest und eigene Ausgaben einreichst.',
+            onboardingLookingAroundMessage:
+                'Expensify ist vor allem für Ausgaben-, Reise- und Firmenkartenmanagement bekannt – aber wir können noch viel mehr. Sag mir, was dich interessiert, und ich helfe dir beim Einstieg.',
+            onboardingTestDriveReceiverMessage: '*Du hast 3 Monate gratis! Jetzt loslegen.*',
         },
         workspace: {
             title: 'Bleiben Sie mit einem Arbeitsbereich organisiert.',
@@ -2433,11 +2630,8 @@ const translations = {
         toGetStarted: 'Fügen Sie ein Bankkonto hinzu, um Ausgaben zu erstatten, Expensify-Karten auszustellen, Rechnungszahlungen zu sammeln und Rechnungen von einem Ort aus zu bezahlen.',
         plaidBodyCopy: 'Geben Sie Ihren Mitarbeitern eine einfachere Möglichkeit, Unternehmensausgaben zu bezahlen - und zurückerstattet zu werden.',
         checkHelpLine: 'Ihre Bankleitzahl und Kontonummer finden Sie auf einem Scheck für das Konto.',
-        hasPhoneLoginError: {
-            phrase1: 'Um ein Bankkonto zu verbinden, bitte',
-            link: 'Fügen Sie eine E-Mail als Ihren primären Login hinzu',
-            phrase2: 'und versuchen Sie es erneut. Sie können Ihre Telefonnummer als sekundären Login hinzufügen.',
-        },
+        hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
+            `Um ein Bankkonto zu verbinden, bitte <a href="${contactMethodRoute}">Fügen Sie eine E-Mail als Ihren primären Login hinzu</a> und versuchen Sie es erneut. Sie können Ihre Telefonnummer als sekundären Login hinzufügen.`,
         hasBeenThrottledError: 'Beim Hinzufügen Ihres Bankkontos ist ein Fehler aufgetreten. Bitte warten Sie ein paar Minuten und versuchen Sie es erneut.',
         hasCurrencyError: {
             phrase1: 'Ups! Es scheint, dass die Währung Ihres Arbeitsbereichs auf eine andere Währung als USD eingestellt ist. Um fortzufahren, gehen Sie bitte zu',
@@ -5771,6 +5965,7 @@ const translations = {
             groupBy: {
                 reports: 'Bericht',
                 members: 'Mitglied',
+                cards: 'Karte',
             },
         },
         groupBy: 'Gruppe nach',
@@ -5934,7 +6129,8 @@ const translations = {
                 unshare: ({to}: UnshareParams) => `Mitglied ${to} entfernt`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `bezahlt ${currency}${amount}`,
                 takeControl: `übernahm die Kontrolle`,
-                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `Fehler beim Synchronisieren mit ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
+                integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
+                    `Beim Synchronisieren mit ${label} ist ein Problem aufgetreten${errorMessage ? ` ("${errorMessage}")` : ''}. Bitte behebe das Problem in den <a href="${workspaceAccountingLink}">Arbeitsbereichseinstellungen</a>.`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `hinzugefügt ${email} als ${role === 'member' ? 'a' : 'an'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `hat die Rolle von ${email} auf ${newRole} aktualisiert (zuvor ${currentRole})`,
                 updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
@@ -6241,10 +6437,10 @@ const translations = {
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'Überprüfung erforderlich',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
-            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return '';
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
+                return 'Kassenbon kann aufgrund einer unterbrochenen Bankverbindung nicht automatisch zugeordnet werden.';
             }
-            if (brokenBankConnection) {
+            if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `Kassenbon kann aufgrund einer unterbrochenen Bankverbindung, die ${email} beheben muss, nicht automatisch zugeordnet werden.`
                     : 'Konnte Beleg aufgrund einer defekten Bankverbindung, die Sie beheben müssen, nicht automatisch zuordnen.';
@@ -6429,14 +6625,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'Angebot einlösen',
                 noThanks: 'Nein danke',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% Rabatt auf Ihr erstes Jahr!`,
-                    phrase2: `Fügen Sie einfach eine Zahlungsmethode hinzu und beginnen Sie mit einem Jahresabonnement.`,
-                },
-                onboardingChatTitle: {
-                    phrase1: 'Zeitlich begrenztes Angebot:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `${discountType}% Rabatt auf Ihr erstes Jahr!`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>${discountType}% Rabatt auf Ihr erstes Jahr!</strong> Fügen Sie einfach eine Zahlungsmethode hinzu und beginnen Sie mit einem Jahresabonnement.`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Zeitlich begrenztes Angebot: ${discountType}% Rabatt auf Ihr erstes Jahr!`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Einlösen in ${days > 0 ? `${days}d :` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
         },
@@ -6454,9 +6645,7 @@ const translations = {
             authenticatePayment: 'Zahlung authentifizieren',
             requestRefund: 'Rückerstattung anfordern',
             requestRefundModal: {
-                phrase1: 'Eine Rückerstattung zu erhalten ist einfach: Downgraden Sie einfach Ihr Konto vor Ihrem nächsten Abrechnungsdatum und Sie erhalten eine Rückerstattung.',
-                phrase2:
-                    'Achtung: Wenn Sie Ihr Konto herabstufen, werden Ihre Arbeitsbereiche gelöscht. Diese Aktion kann nicht rückgängig gemacht werden, aber Sie können jederzeit einen neuen Arbeitsbereich erstellen, wenn Sie Ihre Meinung ändern.',
+                full: 'Eine Rückerstattung zu erhalten ist einfach: Downgraden Sie einfach Ihr Konto vor Ihrem nächsten Abrechnungsdatum und Sie erhalten eine Rückerstattung. <br /> <br /> Achtung: Wenn Sie Ihr Konto herabstufen, werden Ihre Arbeitsbereiche gelöscht. Diese Aktion kann nicht rückgängig gemacht werden, aber Sie können jederzeit einen neuen Arbeitsbereich erstellen, wenn Sie Ihre Meinung ändern.',
                 confirm: 'Arbeitsbereich(e) löschen und herabstufen',
             },
             viewPaymentHistory: 'Zahlungsverlauf anzeigen',
