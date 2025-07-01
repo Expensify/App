@@ -338,7 +338,6 @@ const styles = (theme: ThemeColors) =>
 
         navigationTabBarLabel: {
             lineHeight: 14,
-            height: 16,
         },
 
         webViewStyles: webViewStyles(theme),
@@ -651,6 +650,7 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+            paddingHorizontal: 4,
         },
 
         leftNavigationTabBarContainer: {
@@ -669,6 +669,7 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+            paddingHorizontal: 4,
         },
 
         button: {
@@ -4906,12 +4907,6 @@ const styles = (theme: ThemeColors) =>
         justSignedInModalAnimation: (is2FARequired: boolean) => ({
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
-
-        settlementButtonListContainer: {
-            maxHeight: 500,
-            paddingBottom: 0,
-            paddingTop: 0,
-        },
 
         moneyRequestViewImage: {
             ...spacing.mh5,
