@@ -10,11 +10,11 @@ Assigning roles in Expensify Travel helps define who can book travel and manage 
 
 ---
 
-# How to Assign or Update a Member’s Travel Role
+# Assign or Update Travel Member Roles
 
 1. From the left-hand menu, click the green **+** button and select **Book travel**
 2. Select **Book or manage travel**
-3. In the travel hub, go to the **Program** tab and choose **Users**
+3. In the Expensify Travel hub, go to the **Program** tab and choose **Users**
 4. Click the name of the member whose role you want to update
 5. Click the **Roles** tab and choose a role:
    - **Traveler** – Can only book travel for themselves
