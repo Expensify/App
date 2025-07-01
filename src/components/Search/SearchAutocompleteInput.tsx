@@ -208,7 +208,7 @@ function SearchAutocompleteInput(
                         onChangeText={onSearchQueryChange}
                         autoFocus={autoFocus}
                         caretHidden={caretHidden}
-                        loadingSpinnerStyle={[styles.mt0, styles.mr2]}
+                        loadingSpinnerStyle={[styles.mt0, styles.mr0, styles.justifyContentCenter]}
                         role={CONST.ROLE.PRESENTATION}
                         placeholder={translate('search.searchPlaceholder')}
                         autoCapitalize="none"
@@ -221,7 +221,7 @@ function SearchAutocompleteInput(
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
                         textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pl3]}
-                        inputStyle={[inputWidth, {lineHeight: undefined}]}
+                        inputStyle={[inputWidth, styles.lineHeightUndefined]}
                         placeholderTextColor={theme.textSupporting}
                         onFocus={() => {
                             onFocus?.();
