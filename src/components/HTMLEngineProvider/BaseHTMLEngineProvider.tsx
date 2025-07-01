@@ -85,7 +85,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                         if (tnode.attributes.center === undefined) {
                             return {whiteSpace: 'pre'};
                         }
-                        return {whiteSpace: 'pre', flex: 1, justifyContent: 'center'};
+                        return {whiteSpace: 'pre', flex: 1, justifyContent: 'center', textDecorationLine: 'none'};
                     }
                     return {whiteSpace: 'pre', ...styles.onlyEmojisText};
                 },
