@@ -1,6 +1,6 @@
 import {useContext, useState} from 'react';
 import HybridAppModule from "@expensify/react-native-hybrid-app/src/index.native";
-import Log from './libs/__mocks__/Log';
+import Log from './libs/Log';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import {signInAfterTransitionFromOldDot} from './libs/actions/Session';
