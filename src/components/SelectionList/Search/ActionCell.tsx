@@ -147,6 +147,7 @@ function ActionCell({
                 onPress={confirmPayment}
                 style={[styles.w100]}
                 shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
+                isDisabled={isOffline}
             />
         );
     }
