@@ -11026,7 +11026,7 @@ function bulkHold(
         if (!searchTransaction) {
             return;
         }
-        
+
         // If we are holding from the search page, we optimistically update the transaction's snapshot that search uses so that it is kept in sync
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
