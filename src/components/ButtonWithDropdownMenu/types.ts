@@ -118,9 +118,6 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** Whether the button should use split style or not */
     isSplitButton?: boolean;
 
-    /** Additional style to add to the split anchor */
-    splitSAnchortyles?: StyleProp<ViewStyle>;
-
     /** Whether to use keyboard shortcuts for confirmation or not */
     useKeyboardShortcuts?: boolean;
 
