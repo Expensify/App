@@ -26,17 +26,17 @@ function Backdrop({
         const FadeIn = new Keyframe({
             from: {opacity: 0},
             to: {
-                opacity: 1,
+                opacity: backdropOpacity,
                 easing,
             },
         });
 
         return FadeIn.duration(animationInTiming);
-    }, [animationInTiming]);
+    }, [animationInTiming, backdropOpacity]);
 
     const Exiting = useMemo(() => {
         const FadeOut = new Keyframe({
-            from: {opacity: 1},
+            from: {opacity: backdropOpacity},
             to: {
                 opacity: 0,
                 easing,
@@ -44,7 +44,7 @@ function Backdrop({
         });
 
         return FadeOut.duration(animationOutTiming);
-    }, [animationOutTiming]);
+    }, [animationOutTiming, backdropOpacity]);
 
     const backdropStyle = useMemo(
         () => ({
