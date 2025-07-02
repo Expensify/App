@@ -101,7 +101,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             const workflowMemberEmails = new Set<string>();
             const workflowMembers = approvalWorkflow.members.map((member) => {
                 workflowMemberEmails.add(member.email);
-                
+
                 const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
                 let accountID = Number(policyMemberEmailsToAccountIDs[member.email]);
 
@@ -131,7 +131,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 };
             });
 
-            const workflowMemberLogins = new Set(workflowMembers.map(member => member.login));
+            const workflowMemberLogins = new Set(workflowMembers.map((member) => member.login));
             const preservedSelectedMembers = prevSelectedMembers.filter((member) => !workflowMemberLogins.has(member.login));
 
             return [...workflowMembers, ...preservedSelectedMembers];
