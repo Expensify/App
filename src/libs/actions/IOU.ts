@@ -10918,8 +10918,8 @@ function bulkHold(
         ).filter((parentActionData): parentActionData is OnyxUpdate => parentActionData !== null);
 
         const violations = transactionViolations?.[`${transactionID}`] ?? [];
-        const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
-        const updatedViolations = [...violations, newViolation];
+        const holdViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
+        const updatedViolations = [...violations, holdViolation];
 
         optimisticData.push(
             ...parentReportActionOptimistic,
@@ -10999,17 +10999,18 @@ function bulkHold(
             },
         });
 
-        // Skip the snapshot update when the search hash is recently initialized
-        if (searchHash === -1) {
+        // Skip when the search hash is still the default value or there is no snapshot data
+        if (searchHash === -1 || !snapshot || !snapshot.data) {
             return;
         }
 
-        const searchTransaction = snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        // Checking if the transaction is in the search snapshot.
+        const searchTransaction = snapshot.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
         if (!searchTransaction) {
             return;
         }
-
+        
         // If we are holding from the search page, we optimistically update the transaction's snapshot that search uses so that it is kept in sync
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
