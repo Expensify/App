@@ -4385,12 +4385,10 @@ function getUpdateMoneyRequestParams(
 }
 
 /**
- * Removes the transactionID from it's duplicates transaction violations data.
- * If the duplicateID has no more duplicates, it removes the violation from the Onyx data.
- * If the duplicateID has other duplicates, it updates the duplicates list in the violation.
- * We need to update the duplicates' violations when a transaction is deleted.
+ * Removes the transactionID from its duplicate violations.
+ * We need to update the duplicate violations when a transaction is deleted.
  * @param transactionID - The ID of the transaction being deleted or updated.
- * @param duplicateI - The ID of the duplicate transaction.
+ * @param duplicateID - The ID of the duplicate transaction.
  * @param optimisticData
  * @param failureData
  */
