@@ -41,20 +41,15 @@
 - PR Updating Patch: [#22678](https://github.com/Expensify/App/pull/22678) [#22437](https://github.com/Expensify/App/pull/22437) [#64155](https://github.com/Expensify/App/pull/64155)
 
 ### [@react-navigation+stack+7.3.3+002+dontDetachScreen.patch](@react-navigation+stack+7.3.3+002+dontDetachScreen.patch)
-- Reason: Makes sure the second screen in stack does't get detatched too early
+- Reason: Makes sure the second screen in stack doesn't get detached too early. Additionally, it's important to add a `zIndex: Platform.OS === 'web' ? 'auto' : undefined` to ensure correct display of the home screen on Safari.
 - Upstream PR/issue: N/A
 - E/App issue: [#22372](https://github.com/Expensify/App/issues/22372)
 - PR Introducing Patch: [#22437](https://github.com/Expensify/App/pull/22437)
-- PR Updating Patch: [#33280](https://github.com/Expensify/App/pull/33280) [#37421](https://github.com/Expensify/App/pull/37421) [#49539](https://github.com/Expensify/App/pull/49539) [#64155](https://github.com/Expensify/App/pull/64155)
+- PR Updating Patch: [#33280](https://github.com/Expensify/App/pull/33280) [#37421](https://github.com/Expensify/App/pull/37421) [#49539](https://github.com/Expensify/App/pull/49539) [#64155](https://github.com/Expensify/App/pull/64155) [#65119](https://github.com/Expensify/App/issues/65119)
 
 ### [@react-navigation+core+7.10.0+002+getStateFromPath.patch](@react-navigation+core+7.10.0+002+getStateFromPath.patch)
 - Reason: Make sure navigation state props retrieved from the path are available at all nesting levels to avoid undefined state.
 - Upstream PR/issue: N/A
 - E/App issue: [#48150](https://github.com/Expensify/App/issues/48150)
 - PR Introducing Patch: [#48151](https://github.com/Expensify/App/pull/48151)
-- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155) 
-
-### [@react-navigation+stack+7.3.3+003+fix-invisible-sidebar-safari.patch](@react-navigation+stack+7.3.3+003+fix-invisible-sidebar-safari.patch)
-- Reason: Sidebar is invisible on the safari
-- Upstream PR/issue: N/A
-- E/App issue: [#65119](https://github.com/Expensify/App/issues/65119)
+- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155)
