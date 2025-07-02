@@ -226,7 +226,7 @@ function SearchAutocompleteList(
                     .map((details) => {
                         return {
                             name: details.displayName ?? Str.removeSMSDomain(details.login ?? ''),
-                            accountID: details.accountID.toString(),
+                            accountID: details?.accountID?.toString(),
                         };
                     });
 
@@ -424,7 +424,7 @@ function SearchAutocompleteList(
                 return filteredCards.map((card) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CARD_ID,
                     text: getCardDescription(card.cardID, allCards),
-                    autocompleteID: card.cardID.toString(),
+                    autocompleteID: card?.cardID?.toString(),
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                 }));
             }
