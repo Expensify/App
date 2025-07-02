@@ -4695,6 +4695,11 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 0,
         },
 
+        dropDownSmallButtonArrowContain: {
+            marginLeft: 8,
+            marginRight: 12,
+        },
+
         dropDownMediumButtonArrowContain: {
             marginLeft: 12,
             marginRight: 16,

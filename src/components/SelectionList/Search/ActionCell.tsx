@@ -148,8 +148,10 @@ function ActionCell({
                 addBankAccountRoute={bankAccountRoute}
                 onPress={confirmPayment}
                 style={[styles.w100]}
+                wrapperStyle={[styles.w100]}
                 shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
                 isDisabled={isOffline}
+                isLoading={isLoading}
             />
         );
     }

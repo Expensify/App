@@ -73,6 +73,7 @@ function ButtonWithDropdownMenu<IValueType>({
     const areAllOptionsDisabled = options.every((option) => option.disabled);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
+    const isButtonSizeSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL;
     const nullCheckRef = (ref: RefObject<View | null>) => ref ?? null;
 
     useEffect(() => {
@@ -187,7 +188,12 @@ function ButtonWithDropdownMenu<IValueType>({
                         >
                             <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
                                 <View style={[success ? styles.buttonSuccessDivider : styles.buttonDivider]} />
-                                <View style={[isButtonSizeLarge ? styles.dropDownLargeButtonArrowContain : styles.dropDownMediumButtonArrowContain]}>
+                                <View
+                                    style={[
+                                        isButtonSizeLarge && styles.dropDownLargeButtonArrowContain,
+                                        isButtonSizeSmall ? styles.dropDownSmallButtonArrowContain : styles.dropDownMediumButtonArrowContain,
+                                    ]}
+                                >
                                     <Icon
                                         medium={isButtonSizeLarge}
                                         small={!isButtonSizeLarge}
