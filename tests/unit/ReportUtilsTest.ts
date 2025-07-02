@@ -3843,12 +3843,21 @@ describe('ReportUtils', () => {
             };
             const nonWhisperReportAction = {
                 ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 message: [
                     {
                         whisperedTo: undefined,
                     },
                 ],
             } as ReportAction;
+
+            beforeAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
+            });
 
             it('cannot be flagged if it is from the current user', () => {
                 const nonWhisperReportActionFromCurrentUser = {
@@ -3871,7 +3880,7 @@ describe('ReportUtils', () => {
                     ...nonWhisperReportAction,
                     message: [
                         {
-                            ...nonWhisperReportAction.message[0],
+                            whisperedTo: undefined,
                             html: '',
                             deleted: getRandomDate(),
                         },
@@ -3880,13 +3889,39 @@ describe('ReportUtils', () => {
                 expect(canFlagReportAction(deletedReportAction, report.reportID)).toBe(false);
             });
 
-            it('cannot be flagged if the action is a created task report', () => {});
+            it('cannot be flagged if the action is a created task report', () => {
+                const createdTaskReportAction = {
+                    ...nonWhisperReportAction,
+                    message: [
+                        {
+                            whisperedTo: undefined,
 
-            it('cannot be flagged if the report does not exist', () => {});
+                            // This signifies that the action is a created task report along with the ADD_COMMENT action name
+                            taskReportID: '123456',
+                        },
+                    ],
+                } as ReportAction;
+                expect(canFlagReportAction(createdTaskReportAction, report.reportID)).toBe(false);
+            });
 
-            it('cannot be flagged if the report is not allowed to be commented on', () => {});
+            it('cannot be flagged if the report does not exist', () => {
+                expect(canFlagReportAction(nonWhisperReportAction, 'starwarsisthebest')).toBe(false);
+            });
 
-            it('can be flagged', () => {});
+            it('cannot be flagged if the report is not allowed to be commented on', () => {
+                // eslint-disable-next-line rulesdir/no-negated-variables
+                const reportThatCannotBeCommentedOn = {
+                    ...createRandomReport(2),
+
+                    // If the permissions does not contain WRITE, then it cannot be commented on
+                    permissions: [],
+                } as Report;
+                expect(canFlagReportAction(nonWhisperReportAction, reportThatCannotBeCommentedOn.reportID)).toBe(false);
+            });
+
+            it('can be flagged', () => {
+                expect(canFlagReportAction(nonWhisperReportAction, report.reportID)).toBe(true);
+            });
         });
     });
 
