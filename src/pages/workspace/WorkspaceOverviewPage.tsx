@@ -174,7 +174,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
 
-    const dropdownMenuRef = useRef<any>(null);
+    const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
 
     const confirmDeleteAndHideModal = useCallback(() => {
         if (!policy?.id || !policyName) {
@@ -190,9 +190,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     }, [policy?.id, policyName, shouldUseNarrowLayout]);
 
     useEffect(() => {
-        if (!isLoadingBill) {
-            dropdownMenuRef.current.setIsMenuVisible(false);
+        if (isLoadingBill) {
+            return;
         }
+        dropdownMenuRef.current?.setIsMenuVisible(false);
     }, [isLoadingBill]);
 
     const onDeleteWorkspace = useCallback(() => {
@@ -223,7 +224,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (readOnly) {
             return null;
         }
-        const secondaryActions: DropdownOption<string>[] = [];
+        const secondaryActions: Array<DropdownOption<string>> = [];
         if (isPolicyAdmin) {
             secondaryActions.push({
                 value: 'invite',

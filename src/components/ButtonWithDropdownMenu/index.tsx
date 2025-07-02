@@ -73,7 +73,7 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
     const areAllOptionsDisabled = options.every((option) => option.disabled);
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
-    const nullCheckRef = (ref: RefObject<View | null>) => ref ?? null;
+    const nullCheckRef = (refParam: RefObject<View | null>) => refParam ?? null;
 
     useEffect(() => {
         if (!dropdownAnchor.current) {
