@@ -593,6 +593,19 @@ const translations = {
         help: 'Aide',
         expenseReports: 'Rapports de dépenses',
         rateOutOfPolicy: 'Évaluer hors politique',
+        leaveWorkspace: "Quitter l'espace de travail",
+        leaveWorkspaceConfirmation: 'Si vous quittez cet espace de travail, vous ne pourrez plus y soumettre de dépenses.',
+        leaveWorkspaceConfirmationAuditor: 'Si vous quittez cet espace de travail, vous ne pourrez plus voir ses rapports et paramètres.',
+        leaveWorkspaceConfirmationAdmin: 'Si vous quittez cet espace de travail, vous ne pourrez plus gérer ses paramètres.',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Si vous quittez cet espace de travail, vous serez remplacé dans le flux de validation par ${workspaceOwner}, le propriétaire de l'espace de travail.`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Si vous quittez cet espace de travail, vous serez remplacé en tant qu'exportateur préféré par ${workspaceOwner}, le propriétaire de l'espace de travail.`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Si vous quittez cet espace de travail, vous serez remplacé en tant que contact technique par ${workspaceOwner}, le propriétaire de l'espace de travail.`,
+        leaveWorkspaceReimburser:
+            'Vous ne pouvez pas quitter cet espace de travail en tant que rembourseur. Veuillez définir un nouveau rembourseur dans Espaces de travail > Effectuer ou suivre les paiements, puis réessayez.',
+        cannotLeaveWorkspaceOutstandingReport: 'Veuillez approuver tous les rapports de dépenses en attente avant de quitter cet espace de travail.',
         reimbursable: 'Remboursable',
         editYourProfile: 'Modifier votre profil',
         comments: 'Commentaires',
@@ -4833,6 +4846,18 @@ const translations = {
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Ajouté par la connexion secondaire ${secondaryLogin}.`,
             membersListTitle: "Annuaire de tous les membres de l'espace de travail.",
             importMembers: 'Importer des membres',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `Si vous retirez ${approver} de cet espace de travail, nous les remplacerons dans le flux d'approbation par ${workspaceOwner}, le propriétaire de l'espace de travail.`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} a des rapports de dépenses en attente d'approbation. Veuillez lui demander de les approuver, ou prendre en charge ses rapports avant de le retirer de l'espace de travail.`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
+                `Vous ne pouvez pas retirer ${memberName} de cet espace de travail. Veuillez définir un nouveau rembourseur dans Workflows > Créer ou suivre les paiements, puis réessayez.`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Si vous retirez ${memberName} de cet espace de travail, nous les remplacerons en tant qu'exportateur préféré par ${workspaceOwner}, le propriétaire de l'espace de travail.`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Si vous retirez ${memberName} de cet espace de travail, nous les remplacerons en tant que contact technique par ${workspaceOwner}, le propriétaire de l'espace de travail.`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} a un rapport en cours à traiter. Veuillez lui demander de compléter l'action requise avant de le retirer de l'espace de travail.`,
         },
         card: {
             getStartedIssuing: 'Commencez en émettant votre première carte virtuelle ou physique.',

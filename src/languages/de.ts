@@ -593,6 +593,19 @@ const translations = {
         help: 'Hilfe',
         expenseReports: 'Spesenabrechnungen',
         rateOutOfPolicy: 'Außerhalb der Richtlinie bewerten',
+        leaveWorkspace: 'Workspace verlassen',
+        leaveWorkspaceConfirmation: 'Wenn Sie diesen Workspace verlassen, können Sie keine Ausgaben mehr einreichen.',
+        leaveWorkspaceConfirmationAuditor: 'Wenn Sie diesen Workspace verlassen, können Sie keine Berichte und Einstellungen mehr einsehen.',
+        leaveWorkspaceConfirmationAdmin: 'Wenn Sie diesen Workspace verlassen, können Sie die Einstellungen nicht mehr verwalten.',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Wenn Sie diesen Workspace verlassen, werden Sie im Genehmigungsprozess durch ${workspaceOwner}, den Workspace-Inhaber, ersetzt.`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Wenn Sie diesen Workspace verlassen, werden Sie als bevorzugter Exporteur durch ${workspaceOwner}, den Workspace-Inhaber, ersetzt.`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Wenn Sie diesen Workspace verlassen, werden Sie als technischer Ansprechpartner durch ${workspaceOwner}, den Workspace-Inhaber, ersetzt.`,
+        leaveWorkspaceReimburser:
+            'Sie können diesen Workspace nicht als Erstattungsbeauftragter verlassen. Bitte setzen Sie einen neuen Erstattungsbeauftragten in Workspaces > Zahlungen erstellen oder nachverfolgen und versuchen Sie es dann erneut.',
+        cannotLeaveWorkspaceOutstandingReport: 'Bitte genehmigen Sie alle ausstehenden Ausgabenberichte, die Ihnen vor dem Verlassen dieses Workspaces vorgelegt wurden.',
         reimbursable: 'Erstattungsfähig',
         editYourProfile: 'Bearbeiten Sie Ihr Profil',
         comments: 'Kommentare',
@@ -4822,6 +4835,18 @@ const translations = {
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Hinzugefügt durch sekundären Login ${secondaryLogin}.`,
             membersListTitle: 'Verzeichnis aller Arbeitsbereichsmitglieder.',
             importMembers: 'Mitglieder importieren',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `Wenn Sie ${approver} aus diesem Workspace entfernen, wird ${workspaceOwner}, der Workspace-Inhaber, sie im Genehmigungsprozess ersetzen.`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} hat ausstehende Ausgabenberichte zur Genehmigung. Bitte bitten Sie sie, die Berichte zu genehmigen oder übernehmen Sie die Kontrolle, bevor Sie sie aus dem Workspace entfernen.`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
+                `Sie können ${memberName} nicht aus diesem Workspace entfernen. Bitte setzen Sie einen neuen Erstattungsbeauftragten in Workflows > Zahlungen erstellen oder nachverfolgen und versuchen Sie es dann erneut.`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Wenn Sie ${memberName} aus diesem Workspace entfernen, wird ${workspaceOwner}, der Workspace-Inhaber, sie als bevorzugten Exporteur ersetzen.`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Wenn Sie ${memberName} aus diesem Workspace entfernen, wird ${workspaceOwner}, der Workspace-Inhaber, sie als technischen Ansprechpartner ersetzen.`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} hat einen ausstehenden Bericht zur Bearbeitung. Bitte bitten Sie sie, die erforderliche Aktion abzuschließen, bevor Sie sie aus dem Workspace entfernen.`,
         },
         card: {
             getStartedIssuing: 'Beginnen Sie, indem Sie Ihre erste virtuelle oder physische Karte ausstellen.',

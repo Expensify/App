@@ -593,6 +593,19 @@ const translations = {
         help: '助けて',
         expenseReports: '経費報告書',
         rateOutOfPolicy: 'ポリシー外の評価',
+        leaveWorkspace: 'ワークスペースを離れる',
+        leaveWorkspaceConfirmation: 'このワークスペースを離れると、費用を提出できなくなります。',
+        leaveWorkspaceConfirmationAuditor: 'このワークスペースを離れると、レポートや設定を確認できなくなります。',
+        leaveWorkspaceConfirmationAdmin: 'このワークスペースを離れると、設定を管理できなくなります。',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `このワークスペースを離れると、承認フローで ${workspaceOwner}（ワークスペース所有者）に置き換えられます。`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `このワークスペースを離れると、優先エクスポーターとして ${workspaceOwner}（ワークスペース所有者）に置き換えられます。`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `このワークスペースを離れると、テクニカルコンタクトとして ${workspaceOwner}（ワークスペース所有者）に置き換えられます。`,
+        leaveWorkspaceReimburser:
+            'リムバースメント担当者としてこのワークスペースを離れることはできません。ワークスペース > 支払いの作成または追跡で新しいリムバースメント担当者を設定してから再試行してください。',
+        cannotLeaveWorkspaceOutstandingReport: 'ワークスペースを離れる前に、未処理の費用報告書を承認してください。',
         reimbursable: '払い戻し可能',
         editYourProfile: 'プロフィールを編集',
         comments: 'コメント',
@@ -4814,6 +4827,17 @@ const translations = {
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `セカンダリーログイン ${secondaryLogin} によって追加されました。`,
             membersListTitle: 'すべてのワークスペースメンバーのディレクトリ。',
             importMembers: 'メンバーをインポート',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `もし${approver}をこのワークスペースから削除すると、承認フローで${workspaceOwner}（ワークスペース所有者）がその役割を引き継ぎます。`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName}には未承認の費用報告書があります。承認を依頼するか、報告書を引き継いでからこのワークスペースから削除してください。`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
+                `${memberName}をこのワークスペースから削除することはできません。ワークスペース > 支払いを作成または追跡で新しいリムバースメント担当者を設定してから再試行してください。`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `もし${memberName}をこのワークスペースから削除すると、${workspaceOwner}（ワークスペース所有者）がその役割を引き継ぎます。`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `もし${memberName}をこのワークスペースから削除すると、${workspaceOwner}（ワークスペース所有者）がその役割を引き継ぎます。`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) => `${memberName}には未処理のレポートがあります。必要なアクションを完了してから削除してください。`,
         },
         card: {
             getStartedIssuing: '最初のバーチャルカードまたは物理カードを発行して始めましょう。',

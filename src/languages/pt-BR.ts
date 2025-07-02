@@ -592,6 +592,19 @@ const translations = {
         help: 'Ajuda',
         expenseReports: 'Relatórios de Despesas',
         rateOutOfPolicy: 'Taxa fora da política',
+        leaveWorkspace: 'Sair do espaço de trabalho',
+        leaveWorkspaceConfirmation: 'Se você sair deste espaço de trabalho, não poderá mais enviar despesas para ele.',
+        leaveWorkspaceConfirmationAuditor: 'Se você sair deste espaço de trabalho, não poderá mais visualizar seus relatórios e configurações.',
+        leaveWorkspaceConfirmationAdmin: 'Se você sair deste espaço de trabalho, não poderá mais gerenciar suas configurações.',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Se você sair deste espaço de trabalho, será substituído no fluxo de aprovação por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Se você sair deste espaço de trabalho, será substituído como o exportador preferido por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+            `Se você sair deste espaço de trabalho, será substituído como o contato técnico por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
+        leaveWorkspaceReimburser:
+            'Você não pode sair deste espaço de trabalho como reembolsador. Defina um novo reembolsador em Espaços de trabalho > Realizar ou rastrear pagamentos e tente novamente.',
+        cannotLeaveWorkspaceOutstandingReport: 'Por favor, aprove todos os relatórios de despesas pendentes antes de sair deste espaço de trabalho.',
         reimbursable: 'Reembolsável',
         editYourProfile: 'Edite seu perfil',
         comments: 'Comentários',
@@ -4829,6 +4842,18 @@ const translations = {
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Adicionado pelo login secundário ${secondaryLogin}.`,
             membersListTitle: 'Diretório de todos os membros do espaço de trabalho.',
             importMembers: 'Importar membros',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `Se você remover ${approver} deste espaço de trabalho, substituiremos ele no fluxo de aprovação por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} tem relatórios de despesas pendentes de aprovação. Por favor, peça para ele aprovar ou assuma o controle dos relatórios antes de removê-lo do espaço de trabalho.`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
+                `Você não pode remover ${memberName} deste espaço de trabalho. Defina um novo reembolsador em Workflows > Realizar ou rastrear pagamentos e tente novamente.`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Se você remover ${memberName} deste espaço de trabalho, o substituiremos como o exportador preferido por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `Se você remover ${memberName} deste espaço de trabalho, o substituiremos como o contato técnico por ${workspaceOwner}, o proprietário do espaço de trabalho.`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} tem um relatório pendente de processamento. Por favor, peça para completar a ação necessária antes de removê-lo do espaço de trabalho.`,
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',

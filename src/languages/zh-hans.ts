@@ -592,6 +592,15 @@ const translations = {
         help: '帮助',
         expenseReports: '费用报告',
         rateOutOfPolicy: '超出政策的费率',
+        leaveWorkspace: '离开工作空间',
+        leaveWorkspaceConfirmation: '如果您离开此工作空间，您将无法再提交费用。',
+        leaveWorkspaceConfirmationAuditor: '如果您离开此工作空间，您将无法查看其报告和设置。',
+        leaveWorkspaceConfirmationAdmin: '如果您离开此工作空间，您将无法管理其设置。',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) => `如果您离开此工作空间，您将在审批流程中被 ${workspaceOwner}（工作空间所有者）取代。`,
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) => `如果您离开此工作空间，您将被 ${workspaceOwner}（工作空间所有者）替代，成为首选导出者。`,
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) => `如果您离开此工作空间，您将被 ${workspaceOwner}（工作空间所有者）替代，成为技术联系人。`,
+        leaveWorkspaceReimburser: '您不能作为报销员离开此工作空间。请在工作空间 > 创建或跟踪付款中设置新的报销员，然后重试。',
+        cannotLeaveWorkspaceOutstandingReport: '请在离开此工作空间之前批准任何未处理的费用报告。',
         reimbursable: '可报销的',
         editYourProfile: '编辑您的个人资料',
         comments: '评论',
@@ -4753,6 +4762,15 @@ const translations = {
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `由次要登录 ${secondaryLogin} 添加。`,
             membersListTitle: '所有工作区成员的目录。',
             importMembers: '导入成员',
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+                `如果您从此工作空间中删除${approver}，我们将在审批流程中将其替换为${workspaceOwner}，即工作空间的所有者。`,
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) => `${memberName}有待批准的费用报告。请让他们先批准，或者接管他们的报告后再将其从工作空间中删除。`,
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) => `您不能从此工作空间中删除${memberName}。请在工作流 > 创建或跟踪付款中设置新的报销员，然后重试。`,
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `如果您从此工作空间中删除${memberName}，我们将用${workspaceOwner}（工作空间所有者）替换他作为首选导出商。`,
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+                `如果您从此工作空间中删除${memberName}，我们将用${workspaceOwner}（工作空间所有者）替换他作为技术联系人。`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) => `${memberName}有一个待处理的报告，需要采取行动。请让他们完成所需的操作，然后再将其从工作空间中删除。`,
         },
         card: {
             getStartedIssuing: '通过申请您的第一张虚拟或实体卡来开始。',
