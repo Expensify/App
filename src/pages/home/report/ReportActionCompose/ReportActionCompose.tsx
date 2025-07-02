@@ -45,10 +45,8 @@ import {
     getReportRecipientAccountIDs,
     isAdminRoom,
     isAnnounceRoom,
-    isChatRoom,
     isClosedReport,
     isConciergeChatReport,
-    isGroupChat,
     isInvoiceReport,
     isReportTransactionThread,
     isSettled,
@@ -210,20 +208,13 @@ function ReportActionCompose({
                 .filter((accountID) => accountID !== currentUserPersonalDetails.accountID),
         [currentUserPersonalDetails.accountID, report?.participants],
     );
-    const parentReport = useMemo(() => getParentReport(report), [report]);
-    const parentReportParticipantIDs = useMemo(
-        () =>
-            Object.keys(parentReport?.participants ?? {})
-                .map(Number)
-                .filter((accountID) => accountID !== currentUserPersonalDetails.accountID),
-        [currentUserPersonalDetails.accountID, parentReport?.participants],
-    );
 
     const shouldShowReportRecipientLocalTime = useMemo(
         () => canShowReportRecipientLocalTime(personalDetails, report, currentUserPersonalDetails.accountID) && !isComposerFullSize,
         [personalDetails, report, currentUserPersonalDetails.accountID, isComposerFullSize],
     );
 
+    const parentReport = useMemo(() => getParentReport(report), [report]);
     const includesConcierge = useMemo(() => chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
