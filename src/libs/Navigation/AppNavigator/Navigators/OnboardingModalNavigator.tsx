@@ -34,6 +34,9 @@ const defaultScreenOptions: PlatformStackNavigationOptions = {
     headerShown: false,
     web: {
         cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+        cardStyle: {
+            height: '100%',
+        },
     },
 };
 

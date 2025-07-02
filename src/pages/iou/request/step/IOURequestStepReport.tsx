@@ -12,7 +12,7 @@ import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNo
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
-type ReportListItem = ListItem & {
+type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
     value: string;
 };
@@ -26,7 +26,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
-    const selectReport = (item: ReportListItem) => {
+    const selectReport = (item: TransactionGroupListItem) => {
         if (!transaction) {
             return;
         }
