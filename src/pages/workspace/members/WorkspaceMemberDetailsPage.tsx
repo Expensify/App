@@ -32,6 +32,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
+import {isProcessingReport} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
@@ -57,6 +58,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspacePolicyOnyxProps = {
     /** Personal details of all users */
@@ -104,6 +106,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isReimburser = policy?.achAccount?.reimburser === memberLogin;
     const [isCannotRemoveUser, setIsCannotRemoveUser] = useState(false);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
 
     const policyApproverEmail = policy?.approver;
     const {approvalWorkflows} = useMemo(
@@ -136,7 +139,17 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             policy?.connections?.quickbooksOnline?.config?.export?.exporter,
         ];
 
+        const hasPendingApproval = Object.values(!reports || isEmptyObject(reports) ? {} : reports).some((report) => {
+            return report?.policyID === policyID && report?.managerID === accountID && isProcessingReport(report);
+        });
+
         const isUserExporter = exporters.includes(details.login);
+
+        if (hasPendingApproval) {
+            return translate('workspace.people.removeMemberPromptForPendingApproval', {
+                memberName: displayName,
+            });
+        }
 
         if (isTechnicalContact) {
             return translate('workspace.people.removeMemberPromptForTechnicalContact', {

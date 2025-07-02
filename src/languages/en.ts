@@ -596,6 +596,7 @@ const translations = {
         leaveWorkspaceConfirmationForTechnicalContact: ({workspaceOwner}: {workspaceOwner: string}) =>
             `If you leave this workspace, you'll be replaced as the technical contact with ${workspaceOwner}, the workspace owner.`,
         leaveWorkspaceReimburser: "You can't leave this workspace as the reimburser. Please set a new reimburser in Workspaces > Make or track payments, then try again.",
+        cannotLeaveWorkspaceOutstandingProcessingReport: 'Please approve any outstanding expense reports submitted to you before leaving this workspace.',
         reimbursable: 'Reimbursable',
         editYourProfile: 'Edit your profile',
         comments: 'Comments',
@@ -4812,6 +4813,8 @@ const translations = {
             importMembers: 'Import members',
             removeMemberPromptForApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
                 `If you remove ${approver} from this workspace, we'll replace them in the approval workflow with ${workspaceOwner}, the workspace owner.`,
+            removeMemberPromptForPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} has outstanding expense reports to approve. Please ask them to approve, or take control of their reports before removing them from the workspace.`,
             removeMemberPromptForProcessingReport: ({memberName}: {memberName: string}) =>
                 `${memberName} has outstanding expense reports to approve. Please ask them to approve, or take control of their reports before removing them from the workspace.`,
             removeMemberPromptForReimburser: ({memberName}: {memberName: string}) =>

@@ -588,6 +588,7 @@ const translations = {
             `Si sales de este espacio de trabajo, serás reemplazado como el exportador preferido por ${workspaceOwner}, el propietario del espacio de trabajo.`,
         leaveWorkspaceReimburser:
             'No puedes salir de este espacio de trabajo como reembolsador. Por favor, establece un nuevo reembolsador en Espacios de trabajo > Realizar o rastrear pagos y luego inténtalo de nuevo.',
+        cannotLeaveWorkspaceOutstandingProcessingReport: 'Por favor, apruebe cualquier informe de gastos pendiente que se le haya enviado antes de abandonar este espacio de trabajo.',
         reimbursable: 'Reembolsable',
         editYourProfile: 'Edita tu perfil',
         comments: 'Comentarios',
@@ -4810,6 +4811,8 @@ const translations = {
             removeGroupMemberButtonTitle: 'Eliminar del grupo',
             removeRoomMemberButtonTitle: 'Eliminar del chat',
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `¿Estás seguro de que deseas eliminar a ${memberName}?`,
+            removeMemberPromptForPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} tiene gastos pendientes por aprobar. Por favor, pideles que aproben, o tomen el control de sus informes antes de eliminarlos del espacio de trabajo.`,
             removeMemberTitle: 'Eliminar miembro',
             transferOwner: 'Transferir la propiedad',
             makeMember: 'Hacer miembro',
