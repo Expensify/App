@@ -3,7 +3,7 @@ import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {TupleToUnion} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -11,9 +11,9 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
-import TransactionItemRow, {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
+import TransactionItemRow from '@components/TransactionItemRow';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
@@ -30,8 +30,8 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
-import {compareValues, getShouldShowMerchant, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
+import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {compareValues, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getCategory, getDescription, getTag, getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
@@ -77,20 +77,6 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
 ];
-
-const allReportColumns = [
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
-];
-
-type ReportColumnType = Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
 
 type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
 
@@ -208,8 +194,6 @@ function MoneyRequestReportTransactionList({
                 columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT] = true;
             }
 
-            console.log('description', getDescription(transactionItem));
-
             if (getDescription(transactionItem) !== '') {
                 columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION] = true;
             }
@@ -225,10 +209,8 @@ function MoneyRequestReportTransactionList({
 
         return Object.keys(columns).filter((columnName: string) => {
             return columns[columnName];
-        }) as ReportColumnType;
+        }) as SortableColumnName[];
     }, [transactions]);
-
-    console.log('columns to show', columnsToShow);
 
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
@@ -301,7 +283,6 @@ function MoneyRequestReportTransactionList({
 
                                         setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
                                     }}
-                                    isIOUReport={isIOUReport(report)}
                                     columnsToShow={columnsToShow}
                                 />
                             )}
