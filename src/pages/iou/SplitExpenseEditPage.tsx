@@ -9,7 +9,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -71,7 +70,6 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
             }),
         [shouldShowTags, policy, policyTags, splitExpenseDraftTransaction],
     );
-    const previousTagsVisibility = usePrevious(tagVisibility.map((v) => v.shouldShow)) ?? [];
 
     return (
         <ScreenWrapper testID={SplitExpenseEditPage.displayName}>
@@ -132,12 +130,14 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             policyTagLists.map(({name}, index) => {
                                 const tagVisibilityItem = tagVisibility.at(index);
                                 const shouldShow = tagVisibilityItem?.shouldShow ?? false;
-                                const prevShouldShow = previousTagsVisibility.at(index) ?? false;
+
+                                if (!shouldShow) {
+                                    return null;
+                                }
 
                                 return (
                                     <MenuItemWithTopDescription
                                         shouldShowRightIcon
-                                        highlighted={shouldShow && !getTagForDisplay(splitExpenseDraftTransaction, index) && !prevShouldShow}
                                         key={name}
                                         title={getTagForDisplay(splitExpenseDraftTransaction, index)}
                                         description={name}
