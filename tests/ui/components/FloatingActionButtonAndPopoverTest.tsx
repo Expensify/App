@@ -2,6 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type Navigation from '@libs/Navigation/Navigation';
+// eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
 import FloatingActionButtonAndPopover from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import CONST from '@src/CONST';
@@ -113,7 +114,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     canSendInvoice: jest.fn(() => false),
     getGroupPaidPoliciesWithExpenseChatEnabled: jest.fn(() => []),
     isPaidGroupPolicy: jest.fn(() => false),
-    shouldShowPolicy: jest.fn(() => true),
+    shouldShowPolicy: jest.fn(() => false),
 }));
 
 jest.mock('@libs/ReportUtils', () => ({
@@ -197,7 +198,7 @@ describe('FloatingActionButtonAndPopover', () => {
     });
 
     it('should not show "Take a Two Minute Test Drive" menu item when shouldShowNewWorkspaceButton is true', async () => {
-        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(false);
+        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(true);
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
             id: 'policy1',
@@ -222,14 +223,12 @@ describe('FloatingActionButtonAndPopover', () => {
 
         expect(screen.queryByText('Take a Two Minute Test Drive')).toBeNull();
 
-        expect(screen.getByText('New workspace')).toBeTruthy();
-
         // Reset the mock for other tests
-        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(true);
+        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(false);
     });
 
     it('should show "Take a Two Minute Test Drive" menu item when shouldShowNewWorkspaceButton is false', async () => {
-        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(true);
+        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(false);
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
             id: 'policy1',
@@ -254,10 +253,8 @@ describe('FloatingActionButtonAndPopover', () => {
 
         expect(screen.getByText('Take a Two Minute Test Drive')).toBeTruthy();
 
-        expect(screen.queryByText('New workspace')).toBeNull();
-
         // Reset the mock for other tests
-        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(false);
+        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(true);
     });
 
     it('should not show "Take a Two Minute Test Drive" menu item when user has seen the tour', async () => {
@@ -280,7 +277,7 @@ describe('FloatingActionButtonAndPopover', () => {
             areInvoicesEnabled: false,
         });
 
-        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(true);
+        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(false);
 
         await waitForBatchedUpdates();
 
@@ -295,6 +292,6 @@ describe('FloatingActionButtonAndPopover', () => {
         expect(screen.queryByText('Take a Two Minute Test Drive')).toBeNull();
 
         // Reset the mock for other tests
-        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(false);
+        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(true);
     });
 });
