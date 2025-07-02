@@ -8,19 +8,11 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {TranslationPaths} from '@src/languages/types';
 
-type SingleSelectItem<T> =
-    | {
-          translation: TranslationPaths;
-          text?: never;
-          value: T;
-      }
-    | {
-          translation?: never;
-          text: string;
-          value: T;
-      };
+type SingleSelectItem<T> = {
+    text: string;
+    value: T;
+};
 
 type SingleSelectPopupProps<T> = {
     /** The label to show when in an overlay on mobile */
@@ -48,7 +40,7 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((item) => ({
-            text: item.text ?? translate(item.translation),
+            text: item.text,
             keyForList: item.value,
             isSelected: item.value === selectedItem?.value,
         }));

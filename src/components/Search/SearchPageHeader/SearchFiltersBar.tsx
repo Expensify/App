@@ -273,7 +273,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             {
                 label: translate('common.type'),
                 PopoverComponent: typeComponent,
-                value: type ? (type.text ?? translate(type.translation)) : null,
+                value: type?.text ?? null,
                 filterKey: FILTER_KEYS.TYPE,
             },
             ...(shouldDisplayGroupByFilter
@@ -281,7 +281,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                       {
                           label: translate('search.groupBy'),
                           PopoverComponent: groupByComponent,
-                          value: groupBy ? (groupBy.text ?? translate(groupBy.translation)) : null,
+                          value: groupBy?.text ?? null,
                           filterKey: FILTER_KEYS.GROUP_BY,
                       },
                   ]
@@ -291,7 +291,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                       {
                           label: translate('search.filters.feed'),
                           PopoverComponent: feedComponent,
-                          value: feed ? (feed.text ?? translate(feed.translation)) : null,
+                          value: feed?.text ?? null,
                           filterKey: FILTER_KEYS.FEED,
                       },
                   ]

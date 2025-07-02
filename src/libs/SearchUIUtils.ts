@@ -1667,11 +1667,11 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
 
 function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
     const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
-        {translation: 'common.expense', value: CONST.SEARCH.DATA_TYPES.EXPENSE},
-        {translation: 'common.chat', value: CONST.SEARCH.DATA_TYPES.CHAT},
-        {translation: 'common.invoice', value: CONST.SEARCH.DATA_TYPES.INVOICE},
-        {translation: 'common.trip', value: CONST.SEARCH.DATA_TYPES.TRIP},
-        {translation: 'common.task', value: CONST.SEARCH.DATA_TYPES.TASK},
+        {text: translateLocal('common.expense'), value: CONST.SEARCH.DATA_TYPES.EXPENSE},
+        {text: translateLocal('common.chat'), value: CONST.SEARCH.DATA_TYPES.CHAT},
+        {text: translateLocal('common.invoice'), value: CONST.SEARCH.DATA_TYPES.INVOICE},
+        {text: translateLocal('common.trip'), value: CONST.SEARCH.DATA_TYPES.TRIP},
+        {text: translateLocal('common.task'), value: CONST.SEARCH.DATA_TYPES.TASK},
     ];
     const shouldHideInvoiceOption = !canSendInvoice(policies, currentUserLogin) && !hasInvoiceReports();
 
@@ -1680,7 +1680,7 @@ function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserL
 }
 
 function getGroupByOptions() {
-    return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({translation: `search.filters.groupBy.${value}`, value}));
+    return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translateLocal(`search.filters.groupBy.${value}`), value}));
 }
 
 function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList) {
