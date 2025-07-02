@@ -211,10 +211,8 @@ const ALLOWED_TYPE_FILTERS = {
 
 type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS>;
 
-type InputID = SearchAdvancedFiltersKey;
-
 type SearchAdvancedFiltersForm = Form<
-    InputID,
+    SearchAdvancedFiltersKey,
     {
         [FILTER_KEYS.GROUP_BY]: SearchGroupBy;
         [FILTER_KEYS.TYPE]: SearchDataTypes;
