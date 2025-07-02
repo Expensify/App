@@ -2,13 +2,23 @@ import React, {useEffect, useMemo, useRef} from 'react';
 import Animated, {Easing, Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
-import {getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
+import {getModalInAnimationStyle, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
-function Container({style, animationOut, animationInTiming = 300, animationOutTiming = 300, onOpenCallBack, onCloseCallBack, type, ...props}: ReanimatedModalProps & ContainerProps) {
+function Container({
+    style,
+    animationIn,
+    animationOut,
+    animationInTiming = 300,
+    animationOutTiming = 300,
+    onOpenCallBack,
+    onCloseCallBack,
+    type,
+    ...props
+}: ReanimatedModalProps & ContainerProps) {
     const styles = useThemeStyles();
     const onCloseCallbackRef = useRef(onCloseCallBack);
     const initProgress = useSharedValue(0);
@@ -26,10 +36,8 @@ function Container({style, animationOut, animationInTiming = 300, animationOutTi
         initProgress.set(withTiming(1, {duration: animationInTiming, easing}, onOpenCallBack));
     }, [animationInTiming, onOpenCallBack, initProgress, isInitiated]);
 
-    const animatedStyles = useAnimatedStyle(
-        () => (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED ? {transform: [{translateX: `${100 * (1 - initProgress.get())}%`}]} : {opacity: initProgress.get()}),
-        [initProgress],
-    );
+    // instead of an entering transition since keyframe animations break keyboard on mWeb Chrome (#62799)
+    const animatedStyles = useAnimatedStyle(() => getModalInAnimationStyle(animationIn)(initProgress.get()), [initProgress]);
 
     const Exiting = useMemo(() => {
         const AnimationOut = new Keyframe(getModalOutAnimation(animationOut));

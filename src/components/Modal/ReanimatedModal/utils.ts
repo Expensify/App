@@ -1,5 +1,6 @@
 import {Easing} from 'react-native-reanimated';
 import type {ValidKeyframeProps} from 'react-native-reanimated/lib/typescript/commonTypes';
+import type {ViewStyle} from 'react-native';
 import type {AnimationInType, AnimationOutType} from './types';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
@@ -30,6 +31,19 @@ function getModalInAnimation(animationType: AnimationInType): ValidKeyframeProps
                     easing,
                 },
             };
+        default:
+            throw new Error('Unknown animation type');
+    }
+}
+
+function getModalInAnimationStyle(animationType: AnimationInType): (progress: number) => ViewStyle { // 'progress' in range [0, 1]
+    switch (animationType) {
+        case 'slideInRight':
+            return (progress) => ({transform: [{translateX: `${100 * (1 - progress)}%`}]});
+        case 'slideInUp':
+            return (progress) => ({transform: [{translateY: `${100 * (1 - progress)}%`}]});
+        case 'fadeIn':
+            return (progress) => ({opacity: progress});
         default:
             throw new Error('Unknown animation type');
     }
@@ -66,4 +80,4 @@ function getModalOutAnimation(animationType: AnimationOutType): ValidKeyframePro
     }
 }
 
-export {getModalInAnimation, getModalOutAnimation};
+export {getModalInAnimation, getModalOutAnimation, getModalInAnimationStyle};
