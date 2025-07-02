@@ -9,7 +9,7 @@ import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
-import {getOriginalMessage} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
@@ -3786,8 +3786,23 @@ describe('ReportUtils', () => {
     });
 
     describe('isWhisperAction', () => {
-        it('is a whisper action if the reportAction.message.whisperedTo is not empty', () => {});
-        it('is not a whisper action if the reportAction.originalMessage.whisperedTo is empty', () => {});
+        it('an action where reportAction.message.whisperedTo has accountIDs is a whisper action', () => {
+            const whisperReportAction: ReportAction = {
+                ...createRandomReportAction(1),
+            };
+            expect(isWhisperAction(whisperReportAction)).toBe(true);
+        });
+        it('an action where reportAction.originalMessage.whisperedTo does not exist is not a whisper action', () => {
+            const nonWhisperReportAction = {
+                ...createRandomReportAction(1),
+                message: [
+                    {
+                        whisperedTo: undefined,
+                    },
+                ],
+            };
+            expect(isWhisperAction(nonWhisperReportAction as ReportAction)).toBe(false);
+        });
     });
 
     describe('canFlagReportAction', () => {
