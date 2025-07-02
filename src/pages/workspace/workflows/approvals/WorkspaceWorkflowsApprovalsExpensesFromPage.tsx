@@ -25,7 +25,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {formatMemberForList, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {formatMemberForList, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -98,7 +98,10 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         }
 
         setSelectedMembers((prevSelectedMembers) => {
+            const workflowMemberEmails = new Set<string>();
             const workflowMembers = approvalWorkflow.members.map((member) => {
+                workflowMemberEmails.add(member.email);
+                
                 const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
                 let accountID = Number(policyMemberEmailsToAccountIDs[member.email]);
 
@@ -128,8 +131,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 };
             });
 
-            const workflowMemberEmails = new Set(approvalWorkflow.members.map((member) => member.email));
-            const preservedSelectedMembers = prevSelectedMembers.filter((member) => !workflowMemberEmails.has(member.login));
+            const workflowMemberLogins = new Set(workflowMembers.map(member => member.login));
+            const preservedSelectedMembers = prevSelectedMembers.filter((member) => !workflowMemberLogins.has(member.login));
 
             return [...workflowMembers, ...preservedSelectedMembers];
         });
@@ -195,9 +198,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         if (debouncedSearchTerm !== '') {
             filteredMembers = tokenizedSearch(members, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']);
         } else {
-            const sortedWorkspaceMembers = sortAlphabetically(workspaceMembers, 'text');
-            const sortedExternalUsers = sortAlphabetically(externalUsers, 'text');
-            filteredMembers = [...selectedMembers, ...sortedWorkspaceMembers, ...sortedExternalUsers];
+            filteredMembers = [...selectedMembers, ...workspaceMembers, ...externalUsers];
         }
 
         return [
