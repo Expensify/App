@@ -320,8 +320,12 @@ function createTransactionPreviewConditionals({
 
     const shouldShowCategory = !!categoryForDisplay && isReportAPolicyExpenseChat;
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const hasAnyViolations = isUnreportedAndHasInvalidDistanceRateTransaction(transaction) || hasViolationsOfTypeNotice || hasWarningTypeViolation(transaction?.transactionID, violations, true) || hasViolation(transaction, violations, true);
+    const hasAnyViolations =
+        isUnreportedAndHasInvalidDistanceRateTransaction(transaction) ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        hasViolationsOfTypeNotice ||
+        hasWarningTypeViolation(transaction?.transactionID, violations, true) ||
+        hasViolation(transaction, violations, true);
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
     const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionsWithErrors(iouReport?.reportID);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors;

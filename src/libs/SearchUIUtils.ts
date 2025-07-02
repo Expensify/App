@@ -681,7 +681,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
     if (!isTransaction && !isReportEntry(key)) {
         return CONST.SEARCH.ACTION_TYPES.VIEW;
     }
-    
+
     const transaction = isTransaction ? data[key] : undefined;
     if (isUnreportedAndHasInvalidDistanceRateTransaction(transaction)) {
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
