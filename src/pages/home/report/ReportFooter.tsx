@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
@@ -10,7 +10,6 @@ import BlockedReportFooter from '@components/BlockedReportFooter';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import SwipeableView from '@components/SwipeableView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -220,20 +219,18 @@ function ReportFooter({
             )}
             {!shouldHideComposer && (!!shouldShowComposeInput || !shouldUseNarrowLayout) && (
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-                    <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                        <ReportActionCompose
-                            onSubmit={onSubmitComment}
-                            onComposerFocus={onComposerFocus}
-                            onComposerBlur={onComposerBlur}
-                            reportID={report.reportID}
-                            report={report}
-                            lastReportAction={lastReportAction}
-                            pendingAction={pendingAction}
-                            isComposerFullSize={isComposerFullSize}
-                            didHideComposerInput={didHideComposerInput}
-                            reportTransactions={reportTransactions}
-                        />
-                    </SwipeableView>
+                    <ReportActionCompose
+                        onSubmit={onSubmitComment}
+                        onComposerFocus={onComposerFocus}
+                        onComposerBlur={onComposerBlur}
+                        reportID={report.reportID}
+                        report={report}
+                        lastReportAction={lastReportAction}
+                        pendingAction={pendingAction}
+                        isComposerFullSize={isComposerFullSize}
+                        didHideComposerInput={didHideComposerInput}
+                        reportTransactions={reportTransactions}
+                    />
                 </View>
             )}
         </>
