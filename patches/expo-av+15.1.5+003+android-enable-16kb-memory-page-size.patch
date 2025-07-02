@@ -1,0 +1,25 @@
+diff --git a/node_modules/expo-av/android/build.gradle b/node_modules/expo-av/android/build.gradle
+index 3ecd645..dcdc27c 100644
+--- a/node_modules/expo-av/android/build.gradle
++++ b/node_modules/expo-av/android/build.gradle
+@@ -37,7 +37,8 @@ android {
+         cppFlags "-O2 -frtti -fexceptions -Wall -fstack-protector-all"
+         abiFilters (*reactNativeArchitectures())
+         arguments "-DANDROID_STL=c++_shared",
+-            "-DREACT_NATIVE_DIR=${REACT_NATIVE_DIR}"
++          "-DREACT_NATIVE_DIR=${REACT_NATIVE_DIR}",
++          "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+       }
+     }
+   }
+@@ -66,6 +67,10 @@ android {
+         "**/libhermes.so",
+         "**/libjsi.so",
+     ]
++
++    jniLibs {
++      useLegacyPackaging true
++    }
+   }
+ 
+ 

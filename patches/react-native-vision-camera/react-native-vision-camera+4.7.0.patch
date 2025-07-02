@@ -559,21 +559,6 @@ index 0000000..56a6c3d
 diff --git a/node_modules/react-native-vision-camera/android/src/main/.DS_Store b/node_modules/react-native-vision-camera/android/src/main/.DS_Store
 new file mode 100644
 index 0000000..e69de29
-diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/core/CameraSession.kt b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/core/CameraSession.kt
-index 862c03a..f892ab7 100644
---- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/core/CameraSession.kt
-+++ b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/core/CameraSession.kt
-@@ -90,7 +90,9 @@ class CameraSession(internal val context: Context, internal val callback: Callba
-     }
-   }
- 
--  override fun getLifecycle(): Lifecycle = lifecycleRegistry
-+  override val lifecycle: Lifecycle
-+    get() = lifecycleRegistry
-+//  override fun getLifecycle(): Lifecycle = lifecycleRegistry
- 
-   /**
-    * Configures the [CameraSession] with new values in one batch.
 diff --git a/node_modules/react-native-vision-camera/ios/.swiftformat b/node_modules/react-native-vision-camera/ios/.swiftformat
 new file mode 100644
 index 0000000..95e71c1
