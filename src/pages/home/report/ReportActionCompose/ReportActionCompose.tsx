@@ -44,20 +44,9 @@ import {
     canShowReportRecipientLocalTime,
     chatIncludesChronos,
     chatIncludesConcierge,
-    getParentReport,
-    getReportRecipientAccountIDs,
-    isAdminRoom,
-    isAnnounceRoom,
-    isChatRoom,
-    isConciergeChatReport,
-    isExpenseReport,
-    isGroupChat,
-    isInvoiceReport,
-    isIOUReport,
-    isReportApproved,
+    getReportRecipientAccountIDs, isExpenseReport, isIOUReport,
     isReportTransactionThread,
-    isSettled,
-    isUserCreatedPolicyRoom,
+    temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -152,6 +141,7 @@ function ReportActionCompose({
     const personalDetails = usePersonalDetails();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, {canBeMissing: true});
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
 
     // TODO: remove beta check after the feature is enabled
     const {isBetaEnabled} = usePermissions();
@@ -224,22 +214,11 @@ function ReportActionCompose({
     const includesConcierge = useMemo(() => chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
-    const parentReport = useMemo(() => getParentReport(report), [report]);
-    const shouldDisplayDualDropZone = useMemo(
-        () =>
-            !isChatRoom(report) &&
-            !isUserCreatedPolicyRoom(report) &&
-            !isAnnounceRoom(report) &&
-            !isAdminRoom(report) &&
-            !isConciergeChatReport(report) &&
-            !isInvoiceReport(report) &&
-            !isGroupChat(report) &&
-            !isReportApproved({report: parentReport}) &&
-            !isReportApproved({report}) &&
-            !isSettled(parentReport) &&
-            !isSettled(report),
-        [report, parentReport],
-    );
+
+    const shouldDisplayDualDropZone = useMemo(() => {
+        return !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs).length;
+    }, [report, policy, reportParticipantIDs]);
+
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
 
     const shouldAddOrReplaceReceipt = isTransactionThreadView || isIOUReport(report) || isExpenseReport(report);
