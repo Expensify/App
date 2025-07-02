@@ -3892,14 +3892,10 @@ describe('ReportUtils', () => {
             it('cannot be flagged if the action is a created task report', () => {
                 const createdTaskReportAction = {
                     ...nonWhisperReportAction,
-                    message: [
-                        {
-                            whisperedTo: undefined,
-
-                            // This signifies that the action is a created task report along with the ADD_COMMENT action name
-                            taskReportID: '123456',
-                        },
-                    ],
+                    originalMessage: {
+                        // This signifies that the action is a created task report along with the ADD_COMMENT action name
+                        taskReportID: '123456',
+                    },
                 } as ReportAction;
                 expect(canFlagReportAction(createdTaskReportAction, report.reportID)).toBe(false);
             });
