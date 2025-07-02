@@ -151,7 +151,6 @@ function getTransactionPreviewTextAndTranslationPaths({
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
-    originalTransaction: OnyxEntry<OnyxTypes.Transaction>;
     action: OnyxEntry<OnyxTypes.ReportAction>;
     violations: OnyxTypes.TransactionViolations;
     transactionDetails: Partial<TransactionDetails>;

@@ -52,7 +52,7 @@ describe('TransactionPreviewUtils', () => {
 
     describe('getTransactionPreviewTextAndTranslationPaths', () => {
         it('should return an empty RBR message when shouldShowRBR is false and no transaction is given', () => {
-            const result = getTransactionPreviewTextAndTranslationPaths({...basicProps, shouldShowRBR: false, originalTransaction: undefined});
+            const result = getTransactionPreviewTextAndTranslationPaths({...basicProps, shouldShowRBR: false});
             expect(result.RBRMessage.text).toEqual('');
         });
 
@@ -97,7 +97,7 @@ describe('TransactionPreviewUtils', () => {
                 originalTransaction: undefined,
             };
             const cardTransaction = getTransactionPreviewTextAndTranslationPaths(functionArgsWithCardTransaction);
-            const cashTransaction = getTransactionPreviewTextAndTranslationPaths({...basicProps, originalTransaction: undefined});
+            const cashTransaction = getTransactionPreviewTextAndTranslationPaths({...basicProps});
 
             expect(cardTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.card'}]));
             expect(cashTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.cash'}]));
