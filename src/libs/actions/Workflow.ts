@@ -343,9 +343,9 @@ export {
     removeApprovalWorkflow,
     setApprovalWorkflowMembers,
     setApprovalWorkflowApprover,
+    setApprovalWorkflow,
     clearApprovalWorkflowApprover,
     clearApprovalWorkflowApprovers,
-    setApprovalWorkflow,
     clearApprovalWorkflow,
     validateApprovalWorkflow,
 };
