@@ -229,6 +229,7 @@ import type {
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitParams,
@@ -5658,6 +5659,9 @@ const translations = {
             return `changed the "${categoryName}" category to ${newValue} (previously ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
+        addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
+        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removed the tax "${taxName}"`,
+        updateTax: ({oldValue, taxName}: UpdatedPolicyTaxParams) => `${oldValue ? 'disabled' : 'enabled'} the tax "${taxName}"`,
         updatedDescriptionHint: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryDescriptionHintTypeParams) => {
             if (!newValue) {
                 return `removed the description hint "${oldValue}" from the category "${categoryName}"`;
