@@ -48,7 +48,7 @@ type AttachmentPickerWithMenuItemsProps = {
     currentUserPersonalDetails: OnyxTypes.PersonalDetails;
 
     /** Callback when the attachment is picked */
-    onAttachmentPicked: (url: FileObject) => void;
+    onAttachmentPicked: (url: FileObject | FileObject[]) => void;
 
     /** Whether or not the full size composer is available */
     isFullComposerAvailable: boolean;
@@ -309,13 +309,18 @@ function AttachmentPickerWithMenuItems({
     // 4. And the Create button is at the bottom.
     const createButtonContainerStyles = [styles.flexGrow0, styles.flexShrink0];
 
+    const isMultipleDragAndDropEnabled = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP);
+
     return (
-        <AttachmentPicker>
+        <AttachmentPicker
+            allowMultiple={isMultipleDragAndDropEnabled}
+            fileLimit={isMultipleDragAndDropEnabled ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
+        >
             {({openPicker}) => {
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
                     openPicker({
-                        onPicked: (data) => onAttachmentPicked(data.at(0) ?? {}),
+                        onPicked: onAttachmentPicked,
                         onCanceled: onCanceledAttachmentPicker,
                     });
                 };
