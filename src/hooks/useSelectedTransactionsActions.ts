@@ -234,9 +234,9 @@ function useSelectedTransactionsActions({
             });
         }
 
-        const canAllSelectedTransactionsBeRemoved = selectedTransactionIDs.every((transactionID) => {
-            const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transactionID);
-            const action = getIOUActionForTransactionID(reportActions, transactionID);
+        const canAllSelectedTransactionsBeRemoved = Object.values(selectedTransactions).every((transaction) => {
+            const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transaction);
+            const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
             const isActionDeleted = isDeletedAction(action);
             const isIOUActionOwner = typeof action?.actorAccountID === 'number' && typeof session?.accountID === 'number' && action.actorAccountID === session?.accountID;
 
