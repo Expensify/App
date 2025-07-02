@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod, LastPaymentMethodType, Policy, SearchResults} from '@src/types/onyx';
-import {ConnectionName} from '@src/types/onyx/Policy';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 
