@@ -283,7 +283,7 @@ function TransactionItemRow({
                     )}
                 </View>
             ),
-            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: transactionItem.shouldShowMerchant ? (
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: (
                 <View
                     key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}
@@ -296,8 +296,8 @@ function TransactionItemRow({
                         />
                     )}
                 </View>
-            ) : null,
-            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: transactionItem.shouldShowDescription ? (
+            ),
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: (
                 <View
                     key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}
@@ -310,7 +310,7 @@ function TransactionItemRow({
                         />
                     )}
                 </View>
-            ) : null,
+            ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]: (
                 <View
                     key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO}

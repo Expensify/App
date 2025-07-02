@@ -13,25 +13,6 @@ type ColumnConfig = {
     isColumnSortable?: boolean;
 };
 
-const shouldShowColumnConfig: Record<SortableColumnName, (isIOUReport: boolean) => boolean> = {
-    [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: () => true,
-    [CONST.SEARCH.TABLE_COLUMNS.TYPE]: () => true,
-    [CONST.SEARCH.TABLE_COLUMNS.DATE]: () => true,
-    [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: () => true,
-    [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: (isIOUReport) => !isIOUReport,
-    [CONST.SEARCH.TABLE_COLUMNS.TAG]: (isIOUReport) => !isIOUReport,
-    [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => true,
-    [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: () => true,
-    [CONST.SEARCH.TABLE_COLUMNS.IN]: () => false,
-    [CONST.SEARCH.TABLE_COLUMNS.FROM]: () => false,
-    [CONST.SEARCH.TABLE_COLUMNS.TO]: () => false,
-    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: () => false,
-    [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: () => false,
-    [CONST.SEARCH.TABLE_COLUMNS.ACTION]: () => false,
-    [CONST.SEARCH.TABLE_COLUMNS.TITLE]: () => false,
-    [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: () => false,
-};
-
 const columnConfig: ColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
@@ -50,6 +31,10 @@ const columnConfig: ColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
+        translationKey: 'common.description',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
@@ -81,19 +66,26 @@ type SearchTableHeaderProps = {
     isIOUReport: boolean;
 };
 
-function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting, isIOUReport, amountColumnSize, taxAmountColumnSize}: SearchTableHeaderProps) {
+function MoneyRequestReportTableHeader({
+    sortBy,
+    sortOrder,
+    onSortPress,
+    dateColumnSize,
+    shouldShowSorting,
+    isIOUReport,
+    amountColumnSize,
+    taxAmountColumnSize,
+    columnsToShow,
+}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
-            const shouldShowFun = shouldShowColumnConfig[columnName];
-            if (!shouldShowFun) {
-                return false;
-            }
-            return shouldShowFun(isIOUReport);
+            return columnsToShow.includes(columnName);
         },
-        [isIOUReport],
+        [columnsToShow],
     );
+
     return (
         <View style={[styles.dFlex, styles.flex5]}>
             <SortableTableHeader

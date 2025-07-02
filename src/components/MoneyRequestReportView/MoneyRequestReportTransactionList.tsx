@@ -3,7 +3,7 @@ import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
-import type {TupleToUnion} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -11,9 +11,9 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
-import TransactionItemRow from '@components/TransactionItemRow';
+import TransactionItemRow, {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
@@ -31,8 +31,8 @@ import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
-import {compareValues, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {compareValues, getShouldShowMerchant, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
+import {getCategory, getDescription, getTag, getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -83,11 +83,14 @@ const allReportColumns = [
     CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE,
     CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE,
     CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
+    CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION,
     CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY,
     CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG,
     CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS,
     CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
 ];
+
+type ReportColumnType = Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
 
 type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
 
@@ -186,6 +189,47 @@ function MoneyRequestReportTransactionList({
             }));
     }, [newTransactions, sortBy, sortOrder, transactions]);
 
+    const columnsToShow = useMemo(() => {
+        const columns: Record<string, boolean> = {
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: true,
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE]: true,
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE]: true,
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: false,
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: false,
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY]: false,
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG]: false,
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: true,
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: true,
+        };
+
+        transactions.forEach((transactionItem) => {
+            const merchant = transactionItem.modifiedMerchant ? transactionItem.modifiedMerchant : (transactionItem.merchant ?? '');
+            if (merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
+                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT] = true;
+            }
+
+            console.log('description', getDescription(transactionItem));
+
+            if (getDescription(transactionItem) !== '') {
+                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION] = true;
+            }
+
+            if (getCategory(transactionItem) !== '') {
+                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = true;
+            }
+
+            if (getTag(transactionItem) !== '') {
+                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] = true;
+            }
+        });
+
+        return Object.keys(columns).filter((columnName: string) => {
+            return columns[columnName];
+        }) as ReportColumnType;
+    }, [transactions]);
+
+    console.log('columns to show', columnsToShow);
+
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
             const iouAction = getIOUActionForTransactionID(reportActions, activeTransaction.transactionID);
@@ -258,6 +302,7 @@ function MoneyRequestReportTransactionList({
                                         setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
                                     }}
                                     isIOUReport={isIOUReport(report)}
+                                    columnsToShow={columnsToShow}
                                 />
                             )}
                         </View>
@@ -314,7 +359,7 @@ function MoneyRequestReportTransactionList({
                                         shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
                                         shouldShowCheckbox={!!selectionMode?.isEnabled || !isSmallScreenWidth}
                                         onCheckboxPress={toggleTransaction}
-                                        columns={allReportColumns}
+                                        columns={columnsToShow}
                                         scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                                         isInReportTableView
                                     />
