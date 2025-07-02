@@ -3,15 +3,16 @@ title: Configure a Company Workspace
 description: Learn how to create, customize, and manage your Expensify workspace to start tracking company expenses.
 keywords: [New Expensify, how to get started, new workspace, create workspace, add members, approval workflows, connect accounting software]
 ---
+
 <div id="new-expensify" markdown="1">
 
 Setting up a workspace in New Expensify is the first step to managing company expenses. This guide walks you through creating your workspace, inviting team members, setting up categories, enabling features, and more. Your first workspace includes a free 30-day trial and access to a **Setup Specialist** via the **#admins chat room** or **Concierge** in your Inbox.
 
 ---
 
-# Create a workspace
+# Create a Workspace
 
-Workspaces let you control expense policies, manage company cards, and connect to accounting software. Each workspace includes its own settings, rules, and integrations.
+Workspaces help manage company expenses, enforce policies, and integrate with accounting software. Each workspace has its own set of rules, settings, company card feeds, and integrations. Once invited to a workspace, members can submit expenses according to its rules.
 
 **To create a workspace:**
 1. In the left-hand menu, select **Workspaces**.
@@ -21,14 +22,15 @@ Workspaces let you control expense policies, manage company cards, and connect t
 
 ---
 
-# Connect to accounting software
+# Connect to Accounting Software
 
-Link your workspace to QuickBooks Online, Xero, NetSuite, or Sage Intacct for seamless data sync.
+If your team uses **QuickBooks Online**, **Xero**, **NetSuite**, or **Sage Intacct**, connect your workspace for seamless imports and exports.
 
-**Import:** Syncs your chart of accounts for accurate expense coding  
-**Export:** Sends approved reports to your accounting platform
+**Benefits of connecting an accounting integration to Expensify:**
+- **Import:** Sync your chart of accounts for accurate coding.
+- **Export:** Automatically send approved expense reports to your accounting system.
 
-## Integration guides
+## Accounting Integration Guides
 - [Connect to QuickBooks Online](https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online)
 - [Connect to Xero](https://help.expensify.com/articles/new-expensify/connections/xero/Connect-to-Xero)
 - [Connect to NetSuite](https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-To-NetSuite)
@@ -38,14 +40,14 @@ Link your workspace to QuickBooks Online, Xero, NetSuite, or Sage Intacct for se
 
 # Add Categories
 
-Categories help organize expenses and can be synced from your accounting software.
+Categories help organize and track expenses. If connected to accounting software, your chart of accounts will import automatically.
 
 **How to manage categories:**
 1. In the left-hand menu, select **Categories**.
 2. To disable a category, click it and toggle it off.
 3. To add a category, click **Add Category**, enter a name, and click **Save**.
 
-[Learn more about expense categories](https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-categories)
+✅ [Learn more about expense categories](https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-categories).
 
 **Note:** Categories are enabled by default. To disable all categories, go to **More Features** and toggle off **Categories**.
 
@@ -53,10 +55,14 @@ Categories help organize expenses and can be synced from your accounting softwar
 
 # Invite members
 
-1. In the left-hand menu, select **Members**.
-2. Click **Invite Member**.
-3. Search by name, email, or phone number.
-4. Click **Next**, optionally add a message, then click **Invite**.
+Bring your team into the workspace so they can start submitting expenses.
+
+
+**How to invite members:**
+1. In the left-hand menu, click **Members**.
+2. Click **Invite member**.
+3. Enter names, emails, or phone numbers (multiple entries allowed).
+4. Click **Next**, add an optional message, and click **Invite**.
 
 💡 **Tip:** You can also invite members from the workspace Profile page by clicking **Share** to get the invite link or QR code.
 
@@ -70,7 +76,8 @@ Categories help organize expenses and can be synced from your accounting softwar
 
 # Assign Admins
 
-Admins can manage settings and approve all reports. Here's a comparison:
+Admins manage workspace settings, reports, and approvals. The table below shows key differences between members and admins:
+
 
 | Member                          | Admin                             |
 | ------------------------------ | ---------------------------------- |
@@ -116,12 +123,10 @@ Approval workflows help automate expense report reviews.
 **Customize your workspace further with these features:**
 
 - [Expensify Cards](https://help.expensify.com/new-expensify/hubs/expensify-card/)
-- [Rules](https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules)
-- [Distance rates](https://help.expensify.com/articles/new-expensify/workspaces/Set-distance-rates)
+- [Workspace Settings](https://help.expensify.com/new-expensify/hubs/workspaces/)
 - [Workflows - Payments](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account)
 - [Workflows - Delayed submission](https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows)
-- [Tags](https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags)
-- [Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-taxes)
+- [Connect Company Cards](https://help.expensify.com/new-expensify/hubs/connect-credit-cards/)
 
 **How to enable features:**
 1. In the left-hand menu, select **More Features**.

@@ -42,7 +42,7 @@ import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
-import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
+import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {Route} from './ROUTES';
 import './setup/backgroundTask';
 import './setup/hybridApp';
@@ -99,7 +99,7 @@ function App({url}: AppProps) {
                                     PopoverContextProvider,
                                     CurrentReportIDContextProvider,
                                     ScrollOffsetContextProvider,
-                                    ReportAttachmentsProvider,
+                                    AttachmentModalContextProvider,
                                     PickerStateProvider,
                                     EnvironmentProvider,
                                     CustomStatusBarAndBackgroundContextProvider,
