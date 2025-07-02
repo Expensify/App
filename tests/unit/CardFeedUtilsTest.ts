@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection} from 'react-native-onyx';
 import {getCardFeedNamesWithType, getCardFeedsForDisplay, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
 import {translateLocal} from '@libs/Localize';
@@ -6,7 +7,6 @@ import IntlStore from '@src/languages/IntlStore';
 import type {CardFeeds, CardList, CompanyCardFeed, WorkspaceCardsList} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-/* eslint-disable @typescript-eslint/naming-convention */
 const fakeWorkspace: Record<string, WorkspaceCardsList> = {
     'cards_11111111_Expensify Card': {
         '11111111': {
@@ -58,7 +58,6 @@ const fakeWorkspace: Record<string, WorkspaceCardsList> = {
         },
     },
 };
-/* eslint-enable @typescript-eslint/naming-convention */
 
 const cardListMock = {
     '11223344': {
