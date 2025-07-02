@@ -19,6 +19,7 @@ import {LOCALES} from './LOCALES';
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 
+// Using 28 days to align with OldDot and because all months are guaranteed to be at least 28 days.
 const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
 
 const DEFAULT_NUMBER_ID = 0;
@@ -6730,12 +6731,6 @@ const CONST = {
         VISIBLE: 'visible',
         READY_TO_BE_HIDDEN: 'readyToBeHidden',
         HIDDEN: `hidden`,
-    },
-
-    HYBRID_APP_SIGN_IN_STATE: {
-        NOT_STARTED: 'notStarted',
-        STARTED: 'started',
-        FINISHED: 'finished',
     },
 
     CSV_IMPORT_COLUMNS: {
