@@ -109,8 +109,6 @@ function BaseModal(
     const insets = useSafeAreaInsets();
 
     const isVisibleRef = useRef(isVisible);
-    const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
-
     const wasVisible = usePrevious(isVisible);
 
     const uniqueModalId = useMemo(() => modalId ?? ComposerFocusManager.getId(), [modalId]);
@@ -159,22 +157,6 @@ function BaseModal(
             removeOnCloseListener();
         };
     }, [isVisible, wasVisible, onClose, type]);
-
-    useEffect(() => {
-        hideModalCallbackRef.current = hideModal;
-    }, [hideModal]);
-
-    useEffect(
-        () => () => {
-            // Only trigger onClose and setModalVisibility if the modal is unmounting while visible.
-            if (!isVisibleRef.current) {
-                return;
-            }
-            hideModalCallbackRef.current?.(true);
-        },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [],
-    );
 
     const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {
