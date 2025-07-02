@@ -29,6 +29,7 @@ RCT_EXPORT_MODULE()
 
 - (void)getHybridAppSettings:(RCTPromiseResolveBlock)resolve
                       reject:(RCTPromiseRejectBlock)reject {
+    NSLog(@"[ReactNativeHybridApp] `getHybridAppSettings` should never be called in standalone `New Expensify` app");                
     reject(@"NOT_IMPLEMENTED", @"This method is not available in standalone New Expensify app", nil);
 }
 
