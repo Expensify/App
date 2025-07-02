@@ -1,8 +1,8 @@
 import {useRoute} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
-import type {OnyxCollection} from 'react-native-onyx';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
