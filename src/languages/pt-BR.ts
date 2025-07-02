@@ -7027,6 +7027,10 @@ const translations = {
         },
         callScheduled: 'Chamada agendada',
     },
+    signingOutPage: {
+        title: 'Desconectando...',
+        subtitle: 'Um momento, por favor.',
+    },
     autoSubmitModal: {
         title: 'Tudo pronto e enviado!',
         description: 'Todos os avisos e violações foram resolvidos, então:',

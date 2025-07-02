@@ -2,7 +2,7 @@ import React from 'react';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PublicScreensParamList} from '@navigation/types';
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
@@ -10,6 +10,7 @@ import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
 import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
 import SAMLSignInPage from '@pages/signin/SAMLSignInPage';
 import SignInPage from '@pages/signin/SignInPage';
+import SigningOutPage from '@pages/SigningOutPage';
 import UnlinkLoginPage from '@pages/UnlinkLoginPage';
 import ValidateLoginPage from '@pages/ValidateLoginPage';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -70,6 +71,13 @@ function PublicScreens() {
                 name={NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR}
                 component={PublicRightModalNavigator}
                 options={rootNavigatorScreenOptions.rightModalNavigator}
+            />
+            <RootStack.Screen
+                name={SCREENS.SIGNING_OUT}
+                component={SigningOutPage}
+                options={{
+                    animation: Animations.NONE,
+                }}
             />
             <RootStack.Screen
                 name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}
