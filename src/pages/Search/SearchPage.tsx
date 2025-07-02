@@ -41,12 +41,14 @@ import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {hasVBBA} from '@libs/PolicyUtils';
-import {generateReportID} from '@libs/ReportUtils';
+import {hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {generateReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import variables from '@styles/variables';
-import {initMoneyRequest, setMoneyRequestReceipt} from '@userActions/IOU';
+import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -69,6 +71,9 @@ function SearchPage({route}: SearchPageProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -388,6 +393,8 @@ function SearchPage({route}: SearchPageProps) {
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
         });
 
+        const newReceiptFiles: ReceiptFile[] = [];
+
         files.forEach((file, index) => {
             const source = URL.createObjectURL(file as Blob);
             const transaction =
@@ -399,9 +406,30 @@ function SearchPage({route}: SearchPageProps) {
                           reportID: newReportID,
                       });
             const transactionID = transaction.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+            newReceiptFiles.push({
+                file,
+                source,
+                transactionID,
+            });
             setMoneyRequestReceipt(transactionID, source, file.name ?? '', true);
         });
-        navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
+
+        if (isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
+            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            const setParticipantsPromises = newReceiptFiles.map((receiptFile) => setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat));
+            Promise.all(setParticipantsPromises).then(() =>
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                        CONST.IOU.ACTION.CREATE,
+                        CONST.IOU.TYPE.SUBMIT,
+                        initialTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                        activePolicyExpenseChat?.reportID,
+                    ),
+                ),
+            );
+        } else {
+            navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
+        }
     };
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
