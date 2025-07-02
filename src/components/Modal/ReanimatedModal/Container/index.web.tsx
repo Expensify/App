@@ -1,12 +1,12 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import Animated, {Easing, Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import type ModalProps from '@components/Modal/BottomDockedModal/types';
-import type {ContainerProps} from '@components/Modal/BottomDockedModal/types';
+import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
+import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
-function Container({style, animationInTiming = 300, animationOutTiming = 300, onOpenCallBack, onCloseCallBack, ...props}: ModalProps & ContainerProps) {
+function Container({style, animationInTiming = 300, animationOutTiming = 300, onOpenCallBack, onCloseCallBack, ...props}: ReanimatedModalProps & ContainerProps) {
     const styles = useThemeStyles();
     const onCloseCallbackRef = useRef(onCloseCallBack);
     const opacity = useSharedValue(0);
