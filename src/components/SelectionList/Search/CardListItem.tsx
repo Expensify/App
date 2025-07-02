@@ -2,11 +2,10 @@ import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
+import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import SelectCircle from '@components/SelectCircle';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {BaseListItemProps, ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -166,18 +165,14 @@ function CardListItem<TItem extends ListItem>({
                     </View>
                 </View>
                 {!!canSelectMultiple && !item.isDisabled && (
-                    <PressableWithFeedback
-                        onPress={handleCheckboxPress}
-                        disabled={isDisabled}
-                        role={CONST.ROLE.BUTTON}
+                    <Checkbox
+                        shouldSelectOnPressEnter
+                        isChecked={item.isSelected ?? false}
                         accessibilityLabel={item.text ?? ''}
-                        style={[styles.ml2, styles.optionSelectCircle]}
-                    >
-                        <SelectCircle
-                            isChecked={item.isSelected ?? false}
-                            selectCircleStyles={styles.ml0}
-                        />
-                    </PressableWithFeedback>
+                        onPress={handleCheckboxPress}
+                        disabled={!!isDisabled}
+                        style={styles.ml3}
+                    />
                 )}
             </>
         </BaseListItem>
