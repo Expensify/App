@@ -34,15 +34,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchQueryJSON} from './types';
 
-<<<<<<< HEAD
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
-type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
-type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem | typeof TaskListItem;
-=======
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem;
->>>>>>> main
 
 type SearchListHandle = {
     scrollAndHighlightItem?: (items: string[]) => void;
