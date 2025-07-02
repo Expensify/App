@@ -71,8 +71,6 @@ function ReportActionItem({allReports, policies, action, report, transactions, s
         canBeMissing: true,
         selector: (transaction) => transaction?.errorFields?.route ?? null,
     });
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is needed to prevent the app from crashing when the app is using imported state.
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || undefined}`, {canBeMissing: true});
 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
@@ -104,7 +102,6 @@ function ReportActionItem({allReports, policies, action, report, transactions, s
             iouReportOfLinkedReport={iouReportOfLinkedReport}
             emojiReactions={emojiReactions}
             linkedTransactionRouteError={linkedTransactionRouteError}
-            reportNameValuePairs={reportNameValuePairs}
             isUserValidated={isUserValidated}
             parentReport={parentReport}
             personalDetails={personalDetails}
