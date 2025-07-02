@@ -1,7 +1,7 @@
 import {useContext, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import HybridAppModule from "@expensify/react-native-hybrid-app/src/index.native";
-import Log from './libs/__mocks__/Log';
+import Log from './libs/Log';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import {parseHybridAppSettings} from './libs/actions/HybridApp';
