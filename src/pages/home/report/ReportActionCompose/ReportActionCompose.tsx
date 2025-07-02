@@ -37,6 +37,7 @@ import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
 import Performance from '@libs/Performance';
 import {
+    canRequestMoney,
     canShowReportRecipientLocalTime,
     chatIncludesChronos,
     chatIncludesConcierge,
@@ -147,6 +148,7 @@ function ReportActionCompose({
     const personalDetails = usePersonalDetails();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, {canBeMissing: true});
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
 
     // TODO: remove beta check after the feature is enabled
     const {isBetaEnabled} = usePermissions();
@@ -230,8 +232,13 @@ function ReportActionCompose({
             !isSettled(parentReport) &&
             !isSettled(report) &&
             !isClosedReport(parentReport) &&
-            !isClosedReport(report),
-        [report, parentReport],
+            !isClosedReport(report) &&
+            canRequestMoney(
+                report,
+                policy,
+                reportParticipantIDs.filter((accountID) => currentUserPersonalDetails?.accountID !== accountID),
+            ),
+        [report, parentReport, policy, reportParticipantIDs, currentUserPersonalDetails?.accountID],
     );
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const transactionID = useMemo(() => getTransactionID(reportID), [reportID]);
