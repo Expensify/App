@@ -3785,6 +3785,25 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('isWhisperAction', () => {});
+
+    describe('canFlagReportAction', () => {
+        describe('a whisper action', () => {
+            it('cannot be flagged if it is from concierge', () => {});
+            it('cannot be flagged if it is from the current user', () => {});
+            it('can be flagged if it is not from concierge or the current user', () => {});
+        });
+        describe('a non-whisper action', () => {
+            it('cannot be flagged if it is from the current user', () => {});
+            it('cannot be flagged if the action name is something other than ADD_COMMENT', () => {});
+            it('cannot be flagged if the action is deleted', () => {});
+            it('cannot be flagged if the action is a created task report', () => {});
+            it('cannot be flagged if the report does not exist', () => {});
+            it('cannot be flagged if the report is not allowed to be commented on', () => {});
+            it('can be flagged', () => {});
+        });
+    });
+
     // Note: shouldShowFlagComment() calls isArchivedNonExpenseReport() which has it's own unit tests, so whether
     // the report is an expense report or not does not need to be tested here.
     describe('shouldShowFlagComment', () => {
