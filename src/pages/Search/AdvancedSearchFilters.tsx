@@ -493,8 +493,6 @@ function AdvancedSearchFilters() {
     const queryString = useMemo(() => buildQueryStringFromFilterFormValues(searchAdvancedFilters), [searchAdvancedFilters]);
     const queryJSON = useMemo(() => buildSearchQueryJSON(queryString || buildCannedSearchQuery()), [queryString]);
 
-    console.debug('queryJSON', queryJSON);
-
     const applyFiltersAndNavigate = () => {
         clearAllFilters();
         Navigation.navigate(
