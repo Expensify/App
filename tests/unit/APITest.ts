@@ -1,6 +1,6 @@
 import MockedOnyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
+import type {EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import type {ApiRequestCommandParameters, ReadCommand, WriteCommand} from '@libs/API/types';
 import CONST from '@src/CONST';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
