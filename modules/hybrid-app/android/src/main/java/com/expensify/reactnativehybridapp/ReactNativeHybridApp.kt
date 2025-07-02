@@ -56,7 +56,8 @@ class ReactNativeHybridApp(reactContext: ReactApplicationContext) :
     Log.d(NAME, "`clearOldDotAfterSignOut` should never be called in standalone `New Expensify` app")
   }
 
-  override fun getHybridAppSettings(promise: Promise) { 
+  override fun getHybridAppSettings(promise: Promise) {
+    Log.d(NAME, "`getHybridAppSettings` should never be called in standalone `New Expensify` app") 
     promise.reject("NOT_IMPLEMENTED", "getHybridAppSettings is not implemented in standalone New Expensify app")
   }
 }
