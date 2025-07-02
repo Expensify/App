@@ -38,6 +38,7 @@ import type {AccountData, BankAccount, LastPaymentMethodType, Policy} from '@src
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import {Bank} from '../Icon/Expensicons';
 import type SettlementButtonProps from './types';
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
@@ -145,19 +146,23 @@ function SettlementButton({
                     const accountData = method?.accountData as AccountData;
                     return accountData?.type === requiredAccountType;
                 })
-                .map((formattedPaymentMethod) => ({
-                    text: formattedPaymentMethod?.title ?? '',
-                    description: formattedPaymentMethod?.description ?? '',
-                    icon: formattedPaymentMethod?.icon,
-                    shouldUpdateSelectedIndex: true,
-                    onSelected: () => {
-                        onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, formattedPaymentMethod.methodID, formattedPaymentMethod.accountType, undefined);
-                    },
-                    iconStyles: formattedPaymentMethod?.iconStyles,
-                    iconHeight: formattedPaymentMethod?.iconSize,
-                    iconWidth: formattedPaymentMethod?.iconSize,
-                    value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                }));
+                .map((formattedPaymentMethod) => {
+                    const {icon, iconStyles, iconSize, title, description, accountType, methodID} = formattedPaymentMethod ?? {};
+
+                    return {
+                        text: title ?? '',
+                        description: description ?? '',
+                        icon: typeof icon === 'number' ? Bank : icon,
+                        shouldUpdateSelectedIndex: true,
+                        onSelected: () => {
+                            onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, methodID, accountType, undefined);
+                        },
+                        iconStyles: iconStyles,
+                        iconHeight: iconSize,
+                        iconWidth: iconSize,
+                        value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                    };
+                });
         },
         [formattedPaymentMethods, onPress],
     );
@@ -168,14 +173,18 @@ function SettlementButton({
         }
         const policyBankAccounts = formattedPaymentMethods.filter((method) => method.methodID === policy?.achAccount?.bankAccountID);
 
-        return policyBankAccounts.map((formattedPaymentMethod) => ({
-            text: formattedPaymentMethod?.title ?? '',
-            description: formattedPaymentMethod?.description ?? '',
-            icon: formattedPaymentMethod?.icon,
-            onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, true, undefined),
-            methodID: formattedPaymentMethod?.methodID,
-            value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-        }));
+        return policyBankAccounts.map((formattedPaymentMethod) => {
+            const {icon, title, description, methodID} = formattedPaymentMethod ?? {};
+
+            return {
+                text: title ?? '',
+                description: description ?? '',
+                icon: typeof icon === 'number' ? Bank : icon,
+                onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, true, undefined),
+                methodID,
+                value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            };
+        });
     }
 
     function getLatestPersonalBankAccount() {
