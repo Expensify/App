@@ -135,6 +135,7 @@ import {
     isIOUOwnedByCurrentUser,
     isMoneyRequest,
     isPolicyAdmin,
+    isSelfDM,
     isUnread,
     isAdminRoom as reportUtilsIsAdminRoom,
     isAnnounceRoom as reportUtilsIsAnnounceRoom,
@@ -2560,6 +2561,9 @@ function getEmptyOptions(): Options {
 
 function shouldUseBoldText(report: OptionData): boolean {
     const notificationPreference = report.notificationPreference ?? getReportNotificationPreference(report);
+    if (isSelfDM(report)) {
+        return report.isUnread === true;
+    }
     return report.isUnread === true && notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE && !isHiddenForCurrentUser(notificationPreference);
 }
 
