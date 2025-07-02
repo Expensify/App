@@ -828,7 +828,10 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     </OfflineWithFeedback>
                 )}
                 {shouldShowReimbursable && (
-                    <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                    <OfflineWithFeedback
+                        pendingAction={getPendingFieldAction('reimbursable')}
+                        contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}
+                    >
                         <View>
                             <Text>{Str.UCFirst(translate('iou.reimbursable'))}</Text>
                         </View>
@@ -838,7 +841,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             onToggle={saveReimbursable}
                             disabled={!canEditReimbursable}
                         />
-                    </View>
+                    </OfflineWithFeedback>
                 )}
                 {!!parentReportID && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
@@ -863,7 +866,10 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 )}
                 {/* Note: "Billable" toggle and "View trip details" should be always the last two items */}
                 {shouldShowBillable && (
-                    <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
+                    <OfflineWithFeedback
+                        pendingAction={getPendingFieldAction('billable')}
+                        contentContainerStyle={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}
+                    >
                         <View>
                             <Text>{translate('common.billable')}</Text>
                             {!!getErrorForField('billable') && (
@@ -882,7 +888,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             onToggle={saveBillable}
                             disabled={!canEdit}
                         />
-                    </View>
+                    </OfflineWithFeedback>
                 )}
                 {shouldShowViewTripDetails && (
                     <MenuItem
