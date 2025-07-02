@@ -66,6 +66,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
 
         switch (type) {
             case CONST.MODAL.MODAL_TYPE.FULLSCREEN:
+                modalStyle = {...modalStyle, height: '100%'};
                 modalContainerStyle = {};
                 swipeDirection = 'down';
                 animationIn = 'slideInUp';
