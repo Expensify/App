@@ -114,9 +114,8 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
      * Hide the emoji picker menu.
      */
     const hideEmojiPicker = (isNavigating?: boolean) => {
-        if (shouldUseNarrowLayout) {
-            blurActiveElement();
-        }
+        blurActiveElement();
+
         const currOnModalHide = onModalHide.current;
         onModalHide.current = () => {
             if (currOnModalHide) {
