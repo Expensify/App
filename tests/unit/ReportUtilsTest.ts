@@ -77,7 +77,7 @@ import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/r
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import {convertedInvoiceChat} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomReportAction from '../utils/collections/reportActions';
+import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import {
     createAdminRoom,
     createAnnounceRoom,
@@ -3838,6 +3838,9 @@ describe('ReportUtils', () => {
         });
 
         describe('a non-whisper action', () => {
+            const report = {
+                ...createRandomReport(1),
+            };
             const nonWhisperReportAction = {
                 ...createRandomReportAction(1),
                 message: [
@@ -3846,12 +3849,43 @@ describe('ReportUtils', () => {
                     },
                 ],
             } as ReportAction;
-            it('cannot be flagged if it is from the current user', () => {});
-            it('cannot be flagged if the action name is something other than ADD_COMMENT', () => {});
-            it('cannot be flagged if the action is deleted', () => {});
+
+            it('cannot be flagged if it is from the current user', () => {
+                const nonWhisperReportActionFromCurrentUser = {
+                    ...nonWhisperReportAction,
+                    actorAccountID: currentUserAccountID,
+                };
+                expect(canFlagReportAction(nonWhisperReportActionFromCurrentUser, report.reportID)).toBe(false);
+            });
+
+            it('cannot be flagged if the action name is something other than ADD_COMMENT', () => {
+                const nonWhisperReportActionWithDifferentActionName = {
+                    ...nonWhisperReportAction,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                };
+                expect(canFlagReportAction(nonWhisperReportActionWithDifferentActionName, report.reportID)).toBe(false);
+            });
+
+            it('cannot be flagged if the action is deleted', () => {
+                const deletedReportAction = {
+                    ...nonWhisperReportAction,
+                    message: [
+                        {
+                            ...nonWhisperReportAction.message[0],
+                            html: '',
+                            deleted: getRandomDate(),
+                        },
+                    ],
+                } as ReportAction;
+                expect(canFlagReportAction(deletedReportAction, report.reportID)).toBe(false);
+            });
+
             it('cannot be flagged if the action is a created task report', () => {});
+
             it('cannot be flagged if the report does not exist', () => {});
+
             it('cannot be flagged if the report is not allowed to be commented on', () => {});
+
             it('can be flagged', () => {});
         });
     });
