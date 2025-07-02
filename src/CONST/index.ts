@@ -6168,6 +6168,7 @@ const CONST = {
             CHAT: 'chat',
         },
         ACTION_FILTERS: {
+            APPROVE: 'approve',
             PAY: 'pay',
             EXPORT: 'export',
         },
