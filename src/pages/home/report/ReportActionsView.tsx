@@ -10,14 +10,12 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
-import Timing from '@libs/actions/Timing';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
 import {selectAllTransactionsForReport} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {generateNewRandomInt, rand64} from '@libs/NumberUtils';
-import Performance from '@libs/Performance';
 import {
     getCombinedReportActions,
     getMostRecentIOURequestActionID,
@@ -31,6 +29,7 @@ import {
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isMoneyRequestReport} from '@libs/ReportUtils';
+import markOpenReportEnd from '@libs/Telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -247,17 +246,7 @@ function ReportActionsView({
 
         didLayout.current = true;
 
-        Performance.markEnd(CONST.TIMING.OPEN_REPORT);
-        Timing.end(CONST.TIMING.OPEN_REPORT);
-
-        Performance.markEnd(CONST.TIMING.OPEN_REPORT_THREAD);
-        Timing.end(CONST.TIMING.OPEN_REPORT_THREAD);
-
-        Performance.markEnd(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        Timing.end(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-
-        Performance.markEnd(CONST.TIMING.OPEN_REPORT_SEARCH);
-        Timing.end(CONST.TIMING.OPEN_REPORT_SEARCH);
+        markOpenReportEnd();
     }, []);
 
     // Check if the first report action in the list is the one we're currently linked to

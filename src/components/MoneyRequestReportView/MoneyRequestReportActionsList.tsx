@@ -25,7 +25,6 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Timing from '@libs/actions/Timing';
 import DateUtils from '@libs/DateUtils';
 import {parseFSAttributes} from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -33,7 +32,6 @@ import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import Performance from '@libs/Performance';
 import {
     getFirstVisibleReportActionID,
     getMostRecentIOURequestActionID,
@@ -47,6 +45,7 @@ import {
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isUnread} from '@libs/ReportUtils';
+import markOpenReportEnd from '@libs/Telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -545,17 +544,7 @@ function MoneyRequestReportActionsList({
 
         didLayout.current = true;
 
-        Performance.markEnd(CONST.TIMING.OPEN_REPORT);
-        Timing.end(CONST.TIMING.OPEN_REPORT);
-
-        Performance.markEnd(CONST.TIMING.OPEN_REPORT_THREAD);
-        Timing.end(CONST.TIMING.OPEN_REPORT_THREAD);
-
-        Performance.markEnd(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-        Timing.end(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
-
-        Performance.markEnd(CONST.TIMING.OPEN_REPORT_SEARCH);
-        Timing.end(CONST.TIMING.OPEN_REPORT_SEARCH);
+        markOpenReportEnd();
     }, []);
 
     const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
