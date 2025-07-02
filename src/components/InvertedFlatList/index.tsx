@@ -1,15 +1,15 @@
+import type {LegendList} from '@legendapp/list';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect, useRef} from 'react';
-import type {FlatList, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter} from 'react-native';
 import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import type {BaseInvertedFlatListProps} from './BaseInvertedFlatList';
-import CellRendererComponent from './CellRendererComponent';
 
 // This is adapted from https://codesandbox.io/s/react-native-dsyse
 // It's a HACK alert since FlatList has inverted scrolling on web
-function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, ...props}: BaseInvertedFlatListProps<T>, ref: ForwardedRef<FlatList>) {
+function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, ...props}: BaseInvertedFlatListProps<T>, ref: ForwardedRef<typeof LegendList>) {
     const lastScrollEvent = useRef<number | null>(null);
     const scrollEndTimeout = useRef<NodeJS.Timeout | null>(null);
     const updateInProgress = useRef<boolean>(false);
@@ -89,7 +89,6 @@ function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, ...props}: Base
             {...props}
             ref={ref}
             onScroll={handleScroll}
-            CellRendererComponent={CellRendererComponent}
         />
     );
 }
