@@ -1,5 +1,5 @@
 ---
-title: Split Expenses
+title: Split Personal Expenses
 description: Learn how to split an expense with others in New Expensify, including how to initiate a chat before making a request.
 keywords: [split expense, shared cost, request payment, Expensify Wallet, start chat, New Expensify]
 ---
