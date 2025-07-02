@@ -3396,6 +3396,31 @@ function openReportFromDeepLink(url: string) {
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
+            // We want to check if the reportID exists and if the account can access this report first.
+            // Then, decide whether to navigate to this deeplink or not.
+            let openReportPromise = Promise.resolve();
+            const shouldForceNavigatingToRoute = {value: false};
+            if (reportID && !isAuthenticated) {
+                openReport(reportID, '', [], undefined, '0', true);
+
+                let openReportResolve: () => void;
+                openReportPromise = new Promise((resolve) => {
+                    openReportResolve = resolve;
+                });
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                    // eslint-disable-next-line rulesdir/prefer-early-return
+                    callback: (report) => {
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        if (report?.errorFields?.notFound || report?.reportID) {
+                            Onyx.disconnect(connection);
+                            openReportResolve();
+                            shouldForceNavigatingToRoute.value = !!report?.reportID;
+                        }
+                    },
+                });
+            }
+
             const connection = Onyx.connect({
                 key: ONYXKEYS.NVP_ONBOARDING,
                 callback: (val) => {
@@ -3436,7 +3461,7 @@ function openReportFromDeepLink(url: string) {
                             // Check if the report exists in the collection
                             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                             // If the report does not exist, navigate to the last accessed report or Concierge chat
-                            if (reportID && !report) {
+                            if (!shouldForceNavigatingToRoute.value && reportID && !report?.reportID) {
                                 const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
                                 if (lastAccessedReportID) {
                                     const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
@@ -3462,8 +3487,12 @@ function openReportFromDeepLink(url: string) {
                                     hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
                                     isUserFromPublicDomain: !!account?.isFromPublicDomain,
                                 }),
-                            onCompleted: handleDeeplinkNavigation,
-                            onCanceled: handleDeeplinkNavigation,
+                            onCompleted: () => {
+                                openReportPromise.then(() => handleDeeplinkNavigation());
+                            },
+                            onCanceled: () => {
+                                openReportPromise.then(() => handleDeeplinkNavigation());
+                            },
                         });
                     });
                 },
