@@ -719,8 +719,7 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>, isReportArchived = false): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
-    const lastVisibleMessage = getLastVisibleMessage(report?.reportID)
-
+    const lastVisibleMessage = getLastVisibleMessage(report?.reportID);
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
@@ -869,8 +868,9 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     }
 
-    if(reportID && !lastMessageTextFromReport && isAddCommentAction(lastReportAction)){
-        lastMessageTextFromReport = lastVisibleMessage?.lastMessageText
+    // If the last action is AddComment and no last message text was determined yet, use getLastVisibleMessage to get the preview text
+    if (reportID && !lastMessageTextFromReport && isAddCommentAction(lastReportAction)) {
+        lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
