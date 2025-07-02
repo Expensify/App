@@ -45,7 +45,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {getAllSelfApprovers, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, isPolicyAuditor, shouldShowPolicy} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar, isProcessingReport} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar, hasUserPendingApprovalForPolicy} from '@libs/ReportUtils';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -106,6 +106,17 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
     clearErrors(policyID);
 }
 
+function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefined> | undefined, policyID: string | undefined, userEmail: string | undefined): boolean {
+    if (!policies || !policyID || !userEmail) {
+        return false;
+    }
+    const policy = policies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    if (!policy) {
+        return false;
+    }
+    return policy.achAccount?.reimburser === userEmail;
+}
+
 function WorkspacesListPage() {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -154,9 +165,9 @@ function WorkspacesListPage() {
 
     const personalDetails = usePersonalDetails();
     const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+    const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
     const [policyIDToLeave, setPolicyIDToLeave] = useState<string>();
     const policyToLeave = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToLeave}`];
-    const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
 
     const hideSupportalModal = () => {
         setIsSupportalActionRestrictedModalOpen(false);
@@ -179,15 +190,18 @@ function WorkspacesListPage() {
         setIsLeaveModalOpen(false);
     };
 
-    const getLeaveWorkspaceConfirmation = () => {
+    const confirmModalPrompt = () => {
+        // Helper to get the policy object for the current policy ID to leave
+        const currentPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToLeave}`];
         const intacctConfig = policyToLeave?.connections?.intacct.config.export;
         const policyOwnerDisplayName = personalDetails?.[policyToLeave?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
-        const technicalContact = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToLeave}`]?.technicalContact;
-        const isCurrentUserReimburser = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToLeave}`]?.achAccount?.reimburser === session?.email;
+        const technicalContact = currentPolicy?.technicalContact;
+        const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, session?.email);
+        const userEmail = session?.email ?? '';
+        const userAccountID = session?.accountID ? String(session.accountID) : undefined;
 
-        const hasPendingApproval = Object.values(!reports || isEmptyObject(reports) ? {} : reports).some((report) => {
-            return report?.policyID === policyIDToLeave && report?.managerID === session?.accountID && isProcessingReport(report);
-        });
+        // Check if user has any pending approvals
+        const hasPendingApproval = hasUserPendingApprovalForPolicy(reports, policyIDToLeave, userAccountID);
 
         if (hasPendingApproval) {
             return translate('common.cannotLeaveWorkspaceOutstandingReport');
@@ -197,26 +211,28 @@ function WorkspacesListPage() {
             return translate('common.leaveWorkspaceReimburser');
         }
 
-        if (technicalContact === session?.email) {
+        if (technicalContact === userEmail) {
             return translate('common.leaveWorkspaceConfirmationTechContact', {
                 workspaceOwner: policyOwnerDisplayName,
             });
         }
 
-        if (intacctConfig?.exporter === session?.email) {
+        if (intacctConfig?.exporter === userEmail) {
             return translate('common.leaveWorkspaceConfirmationExporter', {
                 workspaceOwner: policyOwnerDisplayName,
             });
         }
 
-        if (getAllSelfApprovers(policyToLeave).includes(session?.email ?? '')) {
+        if (getAllSelfApprovers(policyToLeave).includes(userEmail)) {
             return translate('common.leaveWorkspaceConfirmationApprover', {
                 workspaceOwner: policyOwnerDisplayName,
             });
         }
+
         if (isPolicyAdmin(policyToLeave)) {
             return translate('common.leaveWorkspaceConfirmationAdmin');
         }
+
         if (isPolicyAuditor(policyToLeave)) {
             return translate('common.leaveWorkspaceConfirmationAuditor');
         }
@@ -245,9 +261,7 @@ function WorkspacesListPage() {
                 },
             ];
 
-            const hasPendingApproval = Object.values(!reports || isEmptyObject(reports) ? {} : reports).some((report) => {
-                return report?.policyID === item.policyID && report?.managerID === session?.accountID && isProcessingReport(report);
-            });
+            const hasPendingApproval = hasUserPendingApprovalForPolicy(reports, item.policyID, session?.accountID ? String(session.accountID) : undefined);
 
             if (isOwner) {
                 threeDotsMenuItems.push({
@@ -286,7 +300,7 @@ function WorkspacesListPage() {
                     icon: Expensicons.Exit,
                     text: translate('common.leave'),
                     onSelected: callFunctionIfActionIsAllowed(() => {
-                        const isReimburser = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]?.achAccount?.reimburser === session?.email;
+                        const isReimburser = isUserReimburserForPolicy(policies, item.policyID, session?.email);
 
                         setPolicyIDToLeave(item.policyID);
 
@@ -348,10 +362,11 @@ function WorkspacesListPage() {
             );
         },
         [
-            session?.email,
             session?.accountID,
+            session?.email,
             activePolicyID,
             translate,
+            reports,
             styles.ph5,
             styles.mb2,
             styles.mh5,
@@ -361,6 +376,7 @@ function WorkspacesListPage() {
             shouldCalculateBillNewDot,
             isSupportalAction,
             setIsDeletingPaidWorkspace,
+            policies,
             isLessThanMediumScreen,
             isLoadingBill,
             resetLoadingSpinnerIconIndex,
@@ -578,7 +594,7 @@ function WorkspacesListPage() {
                 isVisible={isLeaveModalOpen}
                 onConfirm={confirmLeaveAndHideModal}
                 onCancel={() => setIsLeaveModalOpen(false)}
-                prompt={getLeaveWorkspaceConfirmation()}
+                prompt={confirmModalPrompt()}
                 confirmText={translate('common.leaveWorkspace')}
                 cancelText={translate('common.cancel')}
                 danger
@@ -589,7 +605,7 @@ function WorkspacesListPage() {
                 onConfirm={() => {
                     setIsCannotLeaveWorkspaceModalOpen(false);
                 }}
-                prompt={getLeaveWorkspaceConfirmation()}
+                prompt={confirmModalPrompt()}
                 confirmText={translate('common.buttonConfirm')}
                 success
                 shouldShowCancelButton={false}

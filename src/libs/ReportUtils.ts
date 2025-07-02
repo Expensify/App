@@ -11083,6 +11083,18 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
     return getReportName(iouReport) || action.childReportName;
 }
 
+function hasUserPendingApprovalForPolicy(reports: Record<string, Report | undefined> | undefined, policyID: string | undefined, userAccountID: string | undefined): boolean {
+    if (!policyID || !userAccountID || !reports || isEmptyObject(reports)) {
+        return false;
+    }
+    return Object.values(reports).some((report) => {
+        if (!report) {
+            return false;
+        }
+        return report.policyID === policyID && String(report.managerID) === userAccountID && isProcessingReport(report);
+    });
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -11462,6 +11474,7 @@ export {
     isOneTransactionReport,
     isWorkspaceTaskReport,
     isWorkspaceThread,
+    hasUserPendingApprovalForPolicy,
 };
 
 export type {

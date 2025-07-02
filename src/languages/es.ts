@@ -4809,7 +4809,6 @@ const translations = {
             removeGroupMemberButtonTitle: 'Eliminar del grupo',
             removeRoomMemberButtonTitle: 'Eliminar del chat',
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `¿Estás seguro de que deseas eliminar a ${memberName}?`,
-
             removeMemberTitle: 'Eliminar miembro',
             transferOwner: 'Transferir la propiedad',
             makeMember: 'Hacer miembro',
@@ -4825,20 +4824,15 @@ const translations = {
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Agregado por nombre de usuario secundario ${secondaryLogin}.`,
             membersListTitle: 'Directorio de todos los miembros del espacio de trabajo.',
             importMembers: 'Importar miembros',
-            removeMemberPromptForApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
+            removeMemberPromptApprover: ({approver, workspaceOwner}: {approver: string; workspaceOwner: string}) =>
                 `Si eliminas a ${approver} de este espacio de trabajo, lo reemplazaremos en el flujo de aprobación con ${workspaceOwner}, el propietario del espacio de trabajo.`,
-
-            removeMemberPromptForProcessingReport: ({memberName}: {memberName: string}) =>
-                `${memberName} tiene informes de gastos pendientes de aprobación. Pídele que los apruebe o toma el control de sus informes antes de eliminarlo del espacio de trabajo.`,
-
-            removeMemberPromptForReimburser: ({memberName}: {memberName: string}) =>
+            removeMemberPromptReimburser: ({memberName}: {memberName: string}) =>
                 `No puedes eliminar a ${memberName} de este espacio de trabajo. Por favor, establece un nuevo reembolsador en Flujos de trabajo > Realizar o rastrear pagos, luego intenta nuevamente.`,
-
-            removeMemberPromptForExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+            removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `Si eliminas a ${memberName} de este espacio de trabajo, lo reemplazaremos como el exportador preferido con ${workspaceOwner}, el propietario del espacio de trabajo.`,
-            removeMemberPromptForTechnicalContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
+            removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `If you remove ${memberName} from this workspace, we'll replace them as the technical contact with ${workspaceOwner}, the workspace owner.`,
-            removeMemberPromptForPendingApproval: ({memberName}: {memberName: string}) =>
+            removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
                 `${memberName} tiene gastos pendientes por aprobar. Por favor, pideles que aproben, o tomen el control de sus informes antes de eliminarlos del espacio de trabajo.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} tiene un informe en proceso pendiente de acción. Pídele que complete la acción requerida antes de eliminarlo del espacio de trabajo.`,
