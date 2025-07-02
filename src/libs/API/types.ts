@@ -487,6 +487,7 @@ const WRITE_COMMANDS = {
     COMPLETE_CONCIERGE_CALL: 'CompleteConciergeCall',
     FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING: 'FinishCorpayBankAccountOnboarding',
     REOPEN_REPORT: 'ReopenReport',
+    TRAVEL_SIGNUP_REQUEST: 'RequestTravelAccess',
     IMPORT_PLAID_ACCOUNTS: 'ImportPlaidAccounts',
 } as const;
 
@@ -995,6 +996,7 @@ type WriteCommandParameters = {
 
     // Change transaction report
     [WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT]: Parameters.ChangeTransactionsReportParams;
+    [WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST]: null;
 };
 
 const READ_COMMANDS = {
