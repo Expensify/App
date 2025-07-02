@@ -1,24 +1,30 @@
+import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import {cleanFileName, validateImageForCorruption} from './fileDownload/FileUtils';
 
-type AttachmentValidationError = CorruptionError | 'fileDoesNotExist' | 'fileInvalid';
-type ValidResult = {
-    isValid: true;
+type ValidatedFile = {
     fileType: 'file' | 'uri';
     source: string;
     file: FileObject;
 };
-type InvalidResult = {
-    isValid: false;
-    error: AttachmentValidationError;
+
+type SingleAttachmentValidResult = {
+    isValid: true;
+    validatedFile: ValidatedFile;
 };
 
-type AttachmentValidationResult = ValidResult | InvalidResult;
+type SingleAttachmentValidationError = ValueOf<typeof CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS>;
+type SingleAttachmentInvalidResult = {
+    isValid: false;
+    error: SingleAttachmentValidationError;
+};
 
-function validateAttachmentFile(file: FileObject): Promise<AttachmentValidationResult> {
-    if (!file || !isDirectoryCheck(file)) {
-        return Promise.resolve({isValid: false, error: 'fileDoesNotExist'});
+type SingleAttachmentValidationResult = SingleAttachmentValidResult | SingleAttachmentInvalidResult;
+
+function validateAttachmentFile(file: FileObject): Promise<SingleAttachmentValidationResult> {
+    if (!file) {
+        return Promise.resolve({isValid: false, error: CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.NO_FILE_PROVIDED});
     }
 
     let fileObject = file;
@@ -26,13 +32,15 @@ function validateAttachmentFile(file: FileObject): Promise<AttachmentValidationR
         fileObject = file.getAsFile() as FileObject;
     }
     if (!fileObject) {
-        return Promise.resolve({isValid: false, error: 'fileInvalid'});
+        return Promise.resolve({isValid: false, error: CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_INVALID});
     }
 
     return isFileCorrupted(fileObject).then((corruptionResult) => {
         if (!corruptionResult.isValid) {
-            return corruptionResult as InvalidResult;
+            return corruptionResult;
         }
+
+        let validatedFile: ValidatedFile;
 
         if (fileObject instanceof File) {
             /**
@@ -47,59 +55,99 @@ function validateAttachmentFile(file: FileObject): Promise<AttachmentValidationR
             const inputSource = URL.createObjectURL(updatedFile);
             updatedFile.uri = inputSource;
 
-            return {isValid: true, fileType: 'file', source: inputSource, file: updatedFile} as ValidResult;
+            validatedFile = {
+                fileType: 'file',
+                source: inputSource,
+                file: updatedFile,
+            };
+
+            return {isValid: true, validatedFile};
         }
 
-        return {isValid: true, fileType: 'uri', source: fileObject.uri, file: fileObject} as ValidResult;
+        validatedFile = {
+            fileType: 'uri',
+            source: fileObject.uri ?? '',
+            file: fileObject,
+        };
+
+        return {isValid: true, validatedFile};
     });
 }
 
-type CorruptionError = 'tooLarge' | 'tooSmall' | 'error';
-type NoCorruptionResult = {
+type MultipleAttachmentsFileValidResult = {
     isValid: true;
+    validatedFiles: ValidatedFile[];
 };
-type CorruptionResult = {
-    isValid: false;
-    error: CorruptionError;
-};
-type AttachmentCorruptionValidationResult = NoCorruptionResult | CorruptionResult;
 
-function isFileCorrupted(fileObject: FileObject): Promise<AttachmentCorruptionValidationResult> {
+type MultipleAttachmentsValidationError = ValueOf<typeof CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS>;
+type MultiAttachmentsInvalidResult = {
+    isValid: false;
+    error: MultipleAttachmentsValidationError;
+    fileResults: SingleAttachmentValidationResult[];
+};
+type MultipleAttachmentsValidationResult = MultipleAttachmentsFileValidResult | MultiAttachmentsInvalidResult;
+
+function validateMultipleAttachmentFiles(files: FileObject[]): Promise<MultipleAttachmentsValidationResult> {
+    if (files?.length || files.some((f) => isDirectory(f))) {
+        return Promise.resolve({isValid: false, error: CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED, fileResults: []});
+    }
+
+    if (files.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
+        return Promise.resolve({isValid: false, error: CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED, fileResults: []});
+    }
+
+    return Promise.all(files.map((f) => validateAttachmentFile(f))).then((results) => {
+        if (results.every((result) => result.isValid)) {
+            return {
+                isValid: true,
+                validatedFiles: results.map((result) => (result as SingleAttachmentValidResult).validatedFile),
+            };
+        }
+
+        return {
+            isValid: false,
+            error: CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.WRONG_FILE_TYPE,
+            fileResults: results,
+        };
+    });
+}
+
+function isFileCorrupted(fileObject: FileObject): Promise<SingleAttachmentValidationResult> {
     return validateImageForCorruption(fileObject)
         .then(() => {
             if (fileObject.size && fileObject.size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                 return {
                     isValid: false,
-                    error: 'tooLarge',
-                } satisfies AttachmentCorruptionValidationResult;
+                    error: CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_TOO_LARGE,
+                } as SingleAttachmentInvalidResult;
             }
 
             if (fileObject.size && fileObject.size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
                 return {
                     isValid: false,
-                    error: 'tooSmall',
-                } satisfies AttachmentCorruptionValidationResult;
+                    error: CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_TOO_SMALL,
+                } as SingleAttachmentInvalidResult;
             }
 
             return {
                 isValid: true,
-            } satisfies AttachmentCorruptionValidationResult;
+            } as SingleAttachmentValidResult;
         })
         .catch(() => {
             return {
                 isValid: false,
-                error: 'error',
-            };
+                error: CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_INVALID,
+            } as SingleAttachmentInvalidResult;
         });
 }
 
-function isDirectoryCheck(data: FileObject) {
+function isDirectory(data: FileObject) {
     if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
-        return false;
+        return true;
     }
 
-    return true;
+    return false;
 }
 
-export default validateAttachmentFile;
-export type {AttachmentValidationResult};
+export {validateAttachmentFile, validateMultipleAttachmentFiles};
+export type {SingleAttachmentValidationResult, SingleAttachmentValidationError, MultipleAttachmentsValidationResult, MultipleAttachmentsValidationError};

@@ -1,11 +1,13 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import type {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import {openReport} from '@libs/actions/Report';
-import validateAttachmentFile from '@libs/AttachmentUtils';
+import type {MultipleAttachmentsValidationError, SingleAttachmentValidationError} from '@libs/AttachmentUtils';
+import {validateAttachmentFile, validateMultipleAttachmentFiles} from '@libs/AttachmentUtils';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,13 +17,12 @@ import type {AttachmentModalBaseContentProps, OnValidateFileCallback} from '@pag
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps, FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ModalType from '@src/types/utils/ModalType';
 
-function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps) {
+function AddAttachmentModalContent({route, navigation}: AttachmentModalScreenProps) {
     const {
         attachmentID,
         type,
@@ -35,7 +36,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         hashKey,
         shouldDisableSendButton,
         headerTitle,
-        onConfirm,
+        onConfirm: onConfirmParam,
         onShow,
     } = route.params;
 
@@ -51,9 +52,9 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
 
-    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [attachmentInvalidReason, setAttachmentInvalidReason] = useState<TranslationPaths | null>(null);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths | null>(null);
+    const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
+    const [fileError, setFileError] = useState<SingleAttachmentValidationError | MultipleAttachmentsValidationError>();
+    const [isFileErrorModalVisible, setIsFileErrorModalVisible] = useState(false);
     const submitRef = useRef<View | HTMLElement>(null);
 
     // Extract the reportActionID from the attachmentID (format: reportActionID_index)
@@ -68,8 +69,8 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             return false;
         }
         const isEmptyReport = isEmptyObject(report);
-        return !!isLoadingApp || isEmptyReport || (reportMetadata?.isLoadingInitialReportActions !== false && shouldFetchReport);
-    }, [isOffline, reportID, isLoadingApp, report, reportMetadata, shouldFetchReport]);
+        return !!isLoadingApp || isEmptyReport || (reportMetadata?.isLoadingInitialReportActions !== false && shouldFetchReport) || validFilesToUpload.length === 0;
+    }, [isOffline, report, reportID, isLoadingApp, reportMetadata?.isLoadingInitialReportActions, shouldFetchReport, validFilesToUpload.length]);
 
     const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [source, setSource] = useState(() => Number(sourceParam) || (typeof sourceParam === 'string' ? tryResolveUrlFromApiRoot(decodeURIComponent(sourceParam)) : undefined));
@@ -120,55 +121,105 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         [],
     );
 
+    // const handleOpenModal = useCallback(
+    //     (inputSource: string, fileObject: FileObject) => {
+    //         const inputModalType = getModalType(inputSource, fileObject);
+    //         setIsModalOpen(true);
+    //         setSourceState(inputSource);
+    //         setFile(fileObject);
+    //         setModalType(inputModalType);
+    //     },
+    //     [getModalType, setSourceState, setFile, setModalType],
+    // );
+
     // Validates the attachment file and renders the appropriate modal type or errors
     const validateFile: OnValidateFileCallback = useCallback(
         (file, setFile) => {
-            if (!file || Array.isArray(file)) {
+            if (!file) {
+                return;
+            }
+
+            if (Array.isArray(file)) {
+                validateMultipleAttachmentFiles(file).then((result) => {
+                    if (result.isValid) {
+                        const validFiles = result.validatedFiles.map((f) => f.file);
+                        const firstFile = validFiles.at(0);
+                        const inputModalType = getModalType(firstFile?.uri ?? '', firstFile ?? {});
+
+                        setModalType(inputModalType);
+                        setValidFilesToUpload(validFiles);
+                        setFile(validFiles);
+                        return;
+                    }
+
+                    setFileError(result.error);
+                    setIsFileErrorModalVisible(true);
+
+                    if (result.error === CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
+                        const validFiles = file.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
+                        setValidFilesToUpload(validFiles);
+                        setFile(validFiles);
+                    }
+                });
+
                 return;
             }
 
             validateAttachmentFile(file).then((result) => {
-                if (!result.isValid) {
-                    const {error} = result;
+                if (result.isValid) {
+                    const {validatedFile} = result;
+                    const {source: fileSource} = validatedFile;
+                    const inputModalType = getModalType(fileSource, file);
 
-                    setIsAttachmentInvalid?.(true);
-                    switch (error) {
-                        case 'tooLarge':
-                            setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentTooLarge');
-                            setAttachmentInvalidReason?.('attachmentPicker.sizeExceeded');
-                            break;
-                        case 'tooSmall':
-                            setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentTooSmall');
-                            setAttachmentInvalidReason?.('attachmentPicker.sizeNotMet');
-                            break;
-                        case 'fileDoesNotExist':
-                            setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentError');
-                            setAttachmentInvalidReason?.('attachmentPicker.folderNotAllowedMessage');
-                            break;
-                        case 'fileInvalid':
-                        default:
-                            setAttachmentInvalidReasonTitle?.('attachmentPicker.attachmentError');
-                            setAttachmentInvalidReason?.('attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                    }
+                    setModalType(inputModalType);
+                    setSource(fileSource);
+                    setValidFilesToUpload([validatedFile.file]);
+                    setFile(validatedFile.file);
 
                     return;
                 }
 
-                const {source: fileSource} = result;
-                const inputModalType = getModalType(fileSource, file);
-                setModalType(inputModalType);
-                setSource(fileSource);
-                setFile(file);
+                const {error} = result;
+                setFileError(error);
             });
         },
         [getModalType],
     );
 
+    const onConfirm = useCallback(
+        (file: FileObject | FileObject[]) => {
+            if (validFilesToUpload.length) {
+                onConfirmParam?.(validFilesToUpload);
+            } else {
+                onConfirmParam?.(file);
+            }
+        },
+        [onConfirmParam, validFilesToUpload],
+    );
+
+    const confirmAndContinue = useCallback(() => {
+        const newValidFilesToUpload = validFilesToUpload;
+        setValidFilesToUpload([]);
+
+        let shouldRevalidate = false;
+        if (fileError === CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
+            shouldRevalidate = true;
+        }
+        setIsFileErrorModalVisible(false);
+        InteractionManager.runAfterInteractions(() => {
+            if (shouldRevalidate) {
+                setValidFilesToUpload(newValidFilesToUpload);
+            }
+
+            setFileError(undefined);
+        });
+    }, [fileError, validFilesToUpload]);
+
     const contentTypeProps = useMemo<Partial<AttachmentModalBaseContentProps>>(
         () =>
             fileParam
                 ? {
-                      file: fileParam,
+                      file: validFilesToUpload.length ? validFilesToUpload : fileParam,
                       onValidateFile: validateFile,
                   }
                 : {
@@ -182,32 +233,34 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
                       originalFileName: originalFileName ?? '',
                       isLoading,
                   },
-        [attachmentLink, fileParam, isAuthTokenRequired, isLoading, originalFileName, report, type, validateFile],
+        [attachmentLink, fileParam, isAuthTokenRequired, isLoading, originalFileName, report, type, validFilesToUpload, validateFile],
     );
 
     const contentProps = useMemo<Partial<AttachmentModalBaseContentProps>>(
         () => ({
             ...contentTypeProps,
+            fileError,
+            isFileErrorModalVisible,
             source,
             attachmentID,
             accountID,
             onConfirm,
             headerTitle,
-            isAttachmentInvalid,
-            attachmentInvalidReasonTitle,
-            attachmentInvalidReason,
             shouldDisableSendButton,
             submitRef,
             onCarouselAttachmentChange,
+            onFileErrorModalConfirm: confirmAndContinue,
+            onFileErrorModalCancel: navigation.goBack,
         }),
         [
             accountID,
             attachmentID,
-            attachmentInvalidReason,
-            attachmentInvalidReasonTitle,
+            confirmAndContinue,
             contentTypeProps,
+            fileError,
             headerTitle,
-            isAttachmentInvalid,
+            isFileErrorModalVisible,
+            navigation.goBack,
             onCarouselAttachmentChange,
             onConfirm,
             shouldDisableSendButton,
@@ -240,6 +293,6 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         />
     );
 }
-ReportAttachmentModalContent.displayName = 'ReportAttachmentModalContent';
+AddAttachmentModalContent.displayName = 'AddAttachmentModalContent';
 
-export default ReportAttachmentModalContent;
+export default AddAttachmentModalContent;

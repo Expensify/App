@@ -26,18 +26,17 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import type {MultipleAttachmentsValidationError, SingleAttachmentValidationError} from '@libs/AttachmentUtils';
 import fileDownload from '@libs/fileDownload';
-import {getFileName} from '@libs/fileDownload/FileUtils';
+import {getFileName, getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
-import {detachReceipt} from '@userActions/IOU';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -45,7 +44,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
 import type {FileObject} from './types';
 
-type OnValidateFileCallback = (file: FileObject | undefined, setFile: (file: FileObject | undefined) => void) => void;
+type OnValidateFileCallback = (file: FileObject | FileObject[] | undefined, setFile: (file: FileObject | FileObject[] | undefined) => void) => void;
 
 type OnCloseOptions = {
     shouldCallDirectly?: boolean;
@@ -63,10 +62,16 @@ type AttachmentModalBaseContentProps = {
     fallbackSource?: AvatarSource;
 
     /** Optional file object to be used for the attachment. If not passed in via props must be specified when modal is opened. */
-    file?: FileObject;
+    file?: FileObject | FileObject[];
+
+    /** The index of the file to display in the carousel */
+    fileToDisplayIndex?: number;
 
     /** Optional original filename when uploading */
     originalFileName?: string;
+
+    /** If set, the attachment modal will show an error modal */
+    fileError?: SingleAttachmentValidationError | MultipleAttachmentsValidationError;
 
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
@@ -131,35 +136,35 @@ type AttachmentModalBaseContentProps = {
     /** The link of the attachment */
     attachmentLink?: string;
 
-    /** Determines if the attachment is invalid or not */
-    isAttachmentInvalid?: boolean;
-
-    /** Determines if the attachment is invalid or not */
-    attachmentInvalidReason?: TranslationPaths | null;
-
-    /** Determines the title of the invalid reason modal */
-    attachmentInvalidReasonTitle?: TranslationPaths | null;
-
     /** Ref to the submit button */
     submitRef?: RefObject<View | HTMLElement | null>;
 
-    /** Determines if the delete receipt confirm modal is visible or not */
-    isDeleteReceiptConfirmModalVisible?: boolean;
-
     /** Optional callback to fire when we want to preview an image and approve it for use. */
-    onConfirm?: (file: FileObject) => void;
+    onConfirm?: (file: FileObject | FileObject[]) => void;
 
     /** Callback triggered when the modal is closed */
     onClose?: (options?: OnCloseOptions) => void;
 
-    /** Callback triggered when the confirm modal is closed */
-    onConfirmModalClose?: () => void;
+    /** Determines if the delete receipt confirm modal is visible or not */
+    isDeleteReceiptConfirmModalVisible?: boolean;
+
+    /** Determines if the file error modal is visible or not */
+    isFileErrorModalVisible?: boolean;
+
+    /** Callback triggered when the delete receipt modal is confirmed */
+    onDeleteReceiptModalConfirm?: () => void;
+
+    /** Callback triggered when the delete receipt modal is cancelled */
+    onDeleteReceiptModalCancel?: () => void;
+
+    /** Callback triggered when the file error modal is confirmed */
+    onFileErrorModalConfirm?: () => void;
+
+    /** Callback triggered when the file error modal is cancelled */
+    onFileErrorModalCancel?: () => void;
 
     /** Callback triggered when the delete receipt modal is shown */
     onRequestDeleteReceipt?: () => void;
-
-    /** Callback triggered when the delete receipt is confirmed */
-    onDeleteReceipt?: () => void;
 
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
     onCarouselAttachmentChange?: (attachment: Attachment) => void;
@@ -173,6 +178,7 @@ function AttachmentModalBaseContent({
     attachmentID,
     fallbackSource,
     file: fileProp,
+    fileToDisplayIndex = 0,
     originalFileName = '',
     isAuthTokenRequired = false,
     maybeIcon = false,
@@ -196,15 +202,16 @@ function AttachmentModalBaseContent({
     shouldDisableSendButton = false,
     shouldDisplayHelpButton = true,
     isDeleteReceiptConfirmModalVisible = false,
-    isAttachmentInvalid = false,
-    attachmentInvalidReason,
-    attachmentInvalidReasonTitle,
+    isFileErrorModalVisible = false,
+    fileError,
     submitRef,
     onClose,
     onConfirm,
-    onConfirmModalClose,
+    onDeleteReceiptModalConfirm,
+    onDeleteReceiptModalCancel,
+    onFileErrorModalConfirm,
+    onFileErrorModalCancel,
     onRequestDeleteReceipt,
-    onDeleteReceipt,
     onCarouselAttachmentChange = () => {},
     onValidateFile,
 }: AttachmentModalBaseContentProps) {
@@ -242,7 +249,31 @@ function AttachmentModalBaseContent({
     }, [clearAttachmentErrors]);
 
     const fallbackFile = useMemo(() => (originalFileName ? {name: originalFileName} : undefined), [originalFileName]);
-    const [file, setFile] = useState<FileObject | undefined>(() => fileProp ?? fallbackFile);
+    const [file, setFileInternal] = useState<FileObject | FileObject[] | undefined>(() => fileProp ?? fallbackFile);
+    const [isMultipleFiles, setIsMultipleFiles] = useState<boolean>(() => Array.isArray(file));
+    const getFileToDisplay = useCallback(() => {
+        if (isMultipleFiles) {
+            return (file as FileObject[])?.at(fileToDisplayIndex);
+        }
+        return file as FileObject;
+    }, [file, fileToDisplayIndex, isMultipleFiles]);
+    const [fileToDisplay, setFileToDisplay] = useState<FileObject | undefined>(() => getFileToDisplay());
+
+    const setFile = useCallback(
+        (newFile: FileObject | FileObject[] | undefined) => {
+            if (Array.isArray(newFile)) {
+                setFileInternal(newFile);
+                setFileToDisplay(newFile.at(fileToDisplayIndex));
+                setIsMultipleFiles(true);
+            } else {
+                setFileInternal(newFile);
+                setFileToDisplay(newFile);
+                setIsMultipleFiles(false);
+            }
+        },
+        [fileToDisplayIndex],
+    );
+
     useEffect(() => {
         if (!fileProp) {
             return;
@@ -253,11 +284,11 @@ function AttachmentModalBaseContent({
         } else {
             setFile(fileProp ?? fallbackFile);
         }
-    }, [fileProp, fallbackFile, onValidateFile]);
+    }, [fileProp, fallbackFile, onValidateFile, setFile]);
 
     useEffect(() => {
         setFile(fallbackFile);
-    }, [fallbackFile]);
+    }, [fallbackFile, setFile]);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -275,7 +306,7 @@ function AttachmentModalBaseContent({
             onCarouselAttachmentChange(attachment);
             setCurrentAttachmentLink(attachment?.attachmentLink ?? '');
         },
-        [onCarouselAttachmentChange],
+        [onCarouselAttachmentChange, setFile],
     );
 
     const setDownloadButtonVisibility = useCallback(
@@ -298,14 +329,14 @@ function AttachmentModalBaseContent({
         }
 
         if (typeof sourceURL === 'string') {
-            const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? getFileName(`${sourceURL}`) : file?.name;
+            const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? getFileName(`${sourceURL}`) : fileToDisplay?.name;
             fileDownload(sourceURL, fileName ?? '', undefined, undefined, undefined, undefined, undefined, !draftTransactionID);
         }
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
         Keyboard.dismiss();
-    }, [sourceState, isAuthTokenRequiredState, type, file?.name, draftTransactionID]);
+    }, [sourceState, isAuthTokenRequiredState, type, fileToDisplay?.name, draftTransactionID]);
 
     /**
      * Execute the onConfirm callback and close the modal.
@@ -324,15 +355,6 @@ function AttachmentModalBaseContent({
         onClose?.();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isConfirmButtonDisabled, onConfirm, file, sourceState]);
-
-    /**
-     * Detach the receipt and close the modal.
-     */
-    const deleteAndCloseModal = useCallback(() => {
-        detachReceipt(transaction?.transactionID);
-        onDeleteReceipt?.();
-        onClose?.();
-    }, [onClose, onDeleteReceipt, transaction?.transactionID]);
 
     // Close the modal when the escape key is pressed
     useEffect(() => {
@@ -505,7 +527,7 @@ function AttachmentModalBaseContent({
                                         containerStyles={[styles.mh5]}
                                         source={sourceForAttachmentView}
                                         isAuthTokenRequired={isAuthTokenRequiredState}
-                                        file={file}
+                                        file={fileToDisplay}
                                         onToggleKeyboard={setIsConfirmButtonDisabled}
                                         onPDFLoadError={() => onPdfLoadError?.()}
                                         isWorkspaceAvatar={isWorkspaceAvatar}
@@ -551,8 +573,8 @@ function AttachmentModalBaseContent({
                     <ConfirmModal
                         title={translate('receipt.deleteReceipt')}
                         isVisible={isDeleteReceiptConfirmModalVisible}
-                        onConfirm={deleteAndCloseModal}
-                        onCancel={onConfirmModalClose}
+                        onConfirm={() => onDeleteReceiptModalConfirm?.()}
+                        onCancel={() => onDeleteReceiptModalCancel?.()}
                         prompt={translate('receipt.deleteConfirmation')}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
@@ -562,13 +584,14 @@ function AttachmentModalBaseContent({
             </GestureHandlerRootView>
             {!isReceiptAttachment && (
                 <ConfirmModal
-                    title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                    onConfirm={() => onConfirmModalClose?.()}
-                    onCancel={onConfirmModalClose}
-                    isVisible={isAttachmentInvalid}
-                    prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
-                    confirmText={translate('common.close')}
-                    shouldShowCancelButton={false}
+                    title={getFileValidationErrorText(fileError).title}
+                    onConfirm={() => onFileErrorModalConfirm?.()}
+                    onCancel={onFileErrorModalCancel}
+                    isVisible={isFileErrorModalVisible}
+                    prompt={getFileValidationErrorText(fileError).reason}
+                    confirmText={translate(isMultipleFiles ? 'common.continue' : 'common.close')}
+                    shouldShowCancelButton={isMultipleFiles}
+                    cancelText={translate('common.cancel')}
                     onModalHide={onInvalidReasonModalHide}
                 />
             )}

@@ -407,6 +407,14 @@ const ROUTES = {
             return getUrlWithBackToParam(`${baseRoute}${queryString}` as const, backTo);
         },
     },
+    REPORT_ADD_ATTACHMENT: {
+        route: 'r/:reportID/attachment/add',
+        getRoute: (reportID: string, params?: AttachmentRouteParams) => {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            const {reportID: _reportIDParam, ...restParams} = params ?? {};
+            return getAttachmentModalScreenRoute(`r/${reportID}/attachment/add`, restParams);
+        },
+    },
     REPORT_AVATAR: {
         route: 'r/:reportID/avatar',
         getRoute: (reportID: string, policyID?: string) => {

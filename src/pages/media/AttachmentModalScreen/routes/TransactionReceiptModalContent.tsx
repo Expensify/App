@@ -1,6 +1,6 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import {navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
+import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
@@ -93,6 +93,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             ? !transaction
             : moneyRequestReportID !== transaction?.reportID;
 
+    /**
+     * Detach the receipt and close the modal.
+     */
+    const deleteReceiptAndClose = useCallback(() => {
+        detachReceipt(transaction?.transactionID);
+        navigation.goBack();
+    }, [navigation, transaction?.transactionID]);
+
     const contentProps = useMemo(
         () =>
             ({
@@ -111,12 +119,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 iouType,
                 draftTransactionID: isDraftTransaction ? transactionID : undefined,
                 shouldShowNotFoundPage,
+                onDeleteReceiptModalConfirm: deleteReceiptAndClose,
+                onDeleteReceiptModalCancel: () => setIsDeleteReceiptConfirmModalVisible?.(false),
                 onRequestDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(true),
-                onDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(false),
             }) satisfies Partial<AttachmentModalBaseContentProps>,
         [
             canDeleteReceipt,
             canEditReceipt,
+            deleteReceiptAndClose,
             imageSource,
             iouAction,
             iouType,

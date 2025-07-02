@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import {useState} from 'react';
-import type {ValueOf} from 'type-fest';
+import type {MultipleAttachmentsValidationError, SingleAttachmentValidationError} from '@libs/AttachmentUtils';
 import {resizeImageIfNeeded, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
@@ -9,21 +9,21 @@ function useFileValidation() {
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
-    const [fileError, setFileError] = useState<ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null>(null);
+    const [fileError, setFileError] = useState<SingleAttachmentValidationError | MultipleAttachmentsValidationError>();
 
     /**
      * Sets the upload receipt error modal content when an invalid receipt is uploaded
      */
-    const setUploadReceiptError = (error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>) => {
+    const setUploadReceiptError = (error: SingleAttachmentValidationError | MultipleAttachmentsValidationError) => {
         setIsAttachmentInvalid(true);
         setFileError(error);
         setPdfFile(null);
     };
 
-    const validateAndResizeFile = (originalFile: FileObject, setReceiptAndNavigate: (file: FileObject) => void, isPdfValidated?: boolean, isCheckingMultipleFiles?: boolean) => {
+    const validateAndResizeFile = (originalFile: FileObject, setReceiptAndNavigate: (file: FileObject) => void, isPdfValidated?: boolean) => {
         validateImageForCorruption(originalFile)
             .then(() => {
-                const error = validateAttachment(originalFile, isCheckingMultipleFiles, true);
+                const error = validateAttachment(originalFile, true);
                 if (error) {
                     setIsAttachmentInvalid(true);
                     setFileError(error);
@@ -46,7 +46,7 @@ function useFileValidation() {
                 });
             })
             .catch(() => {
-                setFileError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED);
+                setFileError(CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_CORRUPTED);
                 return false;
             });
     };
@@ -60,6 +60,7 @@ function useFileValidation() {
         setUploadReceiptError,
         isLoadingReceipt,
         fileError,
+        setFileError,
     };
 }
 

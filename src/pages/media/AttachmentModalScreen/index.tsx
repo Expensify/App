@@ -1,6 +1,7 @@
 import React, {useContext, useMemo} from 'react';
 import SCREENS from '@src/SCREENS';
 import AttachmentModalContext from './AttachmentModalContext';
+import AddAttachmentModalContent from './routes/AddAttachmentModalContent';
 import ProfileAvatarModalContent from './routes/ProfileAvatarModalContent';
 import ReportAttachmentModalContent from './routes/ReportAttachmentModalContent';
 import ReportAvatarModalContent from './routes/ReportAvatarModalContent';
@@ -28,8 +29,15 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
             <ReportAttachmentModalContent
                 route={{...route, params: paramsWithContext}}
                 navigation={navigation}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...paramsWithContext}
+            />
+        );
+    }
+
+    if (route.name === SCREENS.ADD_ATTACHMENT) {
+        return (
+            <AddAttachmentModalContent
+                route={{...route, params: paramsWithContext}}
+                navigation={navigation}
             />
         );
     }
