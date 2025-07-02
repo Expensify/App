@@ -41,7 +41,8 @@
 - PR Updating Patch: [#22678](https://github.com/Expensify/App/pull/22678) [#22437](https://github.com/Expensify/App/pull/22437) [#64155](https://github.com/Expensify/App/pull/64155)
 
 ### [@react-navigation+stack+7.3.3+002+dontDetachScreen.patch](@react-navigation+stack+7.3.3+002+dontDetachScreen.patch)
-- Reason: Makes sure the second screen in stack doesn't get detached too early. Additionally, it's important to add a `zIndex: Platform.OS === 'web' ? 'auto' : undefined` to ensure correct display of the home screen on Safari.
+- Reason: Prevents the second screen in the stack from being detached too early.  
+  Additionally, setting `zIndex: Platform.OS === 'web' ? 'auto' : undefined` helps avoid issues in Safari where the home screen might be hidden due to `overflow: hidden`.
 - Upstream PR/issue: N/A
 - E/App issue: [#22372](https://github.com/Expensify/App/issues/22372)
 - PR Introducing Patch: [#22437](https://github.com/Expensify/App/pull/22437)
