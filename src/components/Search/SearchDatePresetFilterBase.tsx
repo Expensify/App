@@ -197,7 +197,7 @@ function SearchDatePresetFilterBase({dateKey, titleKey, presets}: SearchDatePres
             />
             <FormAlertWithSubmitButton
                 buttonText={translate('common.save')}
-                containerStyles={[styles.m4, styles.mb5]}
+                containerStyles={[styles.m4, styles.mt3, styles.mb5]}
                 onSubmit={save}
                 enabledWhenOffline
             />

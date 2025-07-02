@@ -12,7 +12,7 @@ import {
     getOriginalReportID,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getTransactionsWithReceipts,
-    isArchivedNonExpenseReportWithID,
+    isArchivedNonExpenseReport,
     isChatThread,
     isClosedExpenseReportWithNoExpenses,
     isCurrentUserTheOnlyParticipant,
@@ -68,8 +68,6 @@ function ReportActionItem({allReports, action, report, transactions, shouldShowD
         canBeMissing: true,
         selector: (transaction) => transaction?.errorFields?.route ?? null,
     });
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is needed to prevent the app from crashing when the app is using imported state.
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || undefined}`, {canBeMissing: true});
 
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
@@ -99,14 +97,13 @@ function ReportActionItem({allReports, action, report, transactions, shouldShowD
             iouReportOfLinkedReport={iouReportOfLinkedReport}
             emojiReactions={emojiReactions}
             linkedTransactionRouteError={linkedTransactionRouteError}
-            reportNameValuePairs={reportNameValuePairs}
             isUserValidated={isUserValidated}
             parentReport={parentReport}
             personalDetails={personalDetails}
             blockedFromConcierge={blockedFromConcierge}
             originalReportID={originalReportID}
             deleteReportActionDraft={deleteReportActionDraft}
-            isArchivedRoom={isArchivedNonExpenseReportWithID(originalReport, isOriginalReportArchived)}
+            isArchivedRoom={isArchivedNonExpenseReport(originalReport, isOriginalReportArchived)}
             isChronosReport={chatIncludesChronosWithID(originalReportID)}
             toggleEmojiReaction={toggleEmojiReaction}
             createDraftTransactionAndNavigateToParticipantSelector={createDraftTransactionAndNavigateToParticipantSelector}
