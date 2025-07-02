@@ -35,7 +35,11 @@ function TestToolsModalPage() {
     const backTo = route.params?.backTo;
     const [shouldStoreLogs = false] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const isAuthenticated = useIsAuthenticated();
-    const consoleRoute = getRouteBasedOnAuthStatus(isAuthenticated, backTo);
+
+    // If no backTo param is provided (direct access to /test-tools),
+    // use home route as a default backTo param for console navigation
+    const effectiveBackTo = backTo ?? ROUTES.HOME;
+    const consoleRoute = getRouteBasedOnAuthStatus(isAuthenticated, effectiveBackTo);
 
     const maxHeight = windowHeight;
 
