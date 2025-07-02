@@ -11,9 +11,9 @@ import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
+import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense, OriginalMessageMovedTransaction} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
-import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBDSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
+import {FallbackAvatar, IntacctSquare, NetSuiteExport, NetSuiteSquare, QBDSquare, QBOExport, QBOSquare, SageIntacctExport, XeroExport, XeroSquare} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
@@ -1088,10 +1088,7 @@ let reportAttributesDerivedValue: ReportAttributesDerivedValue['reports'];
 Onyx.connect({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     callback: (value) => {
-        if (!value) {
-            return;
-        }
-        reportAttributesDerivedValue = value.reports;
+        reportAttributesDerivedValue = value?.reports ?? {};
     },
 });
 
@@ -3236,7 +3233,7 @@ function getIconsForInvoiceReport(
  */
 function getIcons(
     report: OnyxInputOrEntry<Report>,
-    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList> = allPersonalDetails,
     defaultIcon: AvatarSource | null = null,
     defaultName = '',
     defaultAccountID = -1,
@@ -6098,13 +6095,18 @@ function getDeletedTransactionMessage(action: ReportAction) {
     return message;
 }
 
-function getReportUrl(reportID?: string) {
-    return `${environmentURL}/r/${reportID}`;
+function getReportDetails(reportID: string): {reportName: string; reportUrl: string} {
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    return {
+        reportName: getReportName(report) ?? report?.reportName ?? '',
+        reportUrl: `${environmentURL}/r/${reportID}`,
+    };
 }
 
-function getMovedTransactionMessage(parentReportAction: OnyxEntry<ReportAction>, movedIOUReport?: Report) {
-    const reportName = getReportName(movedIOUReport, undefined, parentReportAction) ?? movedIOUReport?.reportName ?? '';
-    const reportUrl = getReportUrl(movedIOUReport?.reportID);
+function getMovedTransactionMessage(action: ReportAction) {
+    const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
+    const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+    const {reportName, reportUrl} = getReportDetails(toReportID);
     const message = translateLocal('iou.movedTransaction', {
         reportUrl,
         reportName,
@@ -6388,7 +6390,14 @@ function buildOptimisticUnapprovedReportAction(amount: number, currency: string,
  * Builds an optimistic MOVED report action with a randomly generated reportActionID.
  * This action is used when we move reports across workspaces.
  */
-function buildOptimisticMovedReportAction(fromPolicyID: string | undefined, toPolicyID: string, newParentReportID: string, movedReportID: string, policyName: string): ReportAction {
+function buildOptimisticMovedReportAction(
+    fromPolicyID: string | undefined,
+    toPolicyID: string,
+    newParentReportID: string,
+    movedReportID: string,
+    policyName: string,
+    isIouReport = false,
+): ReportAction {
     const originalMessage = {
         fromPolicyID,
         toPolicyID,
@@ -6398,8 +6407,10 @@ function buildOptimisticMovedReportAction(fromPolicyID: string | undefined, toPo
 
     const movedActionMessage = [
         {
-            html: `moved the report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
-            text: `moved the report to the ${policyName} workspace`,
+            html: isIouReport
+                ? `moved this <a href='${CONST.NEW_EXPENSIFY_URL}r/${movedReportID}' target='_blank' rel='noreferrer noopener'>report</a> to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`
+                : `moved this report to the <a href='${CONST.NEW_EXPENSIFY_URL}r/${newParentReportID}' target='_blank' rel='noreferrer noopener'>${policyName}</a> workspace`,
+            text: `moved this report to the ${policyName} workspace`,
             type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
         },
     ];
@@ -10727,6 +10738,23 @@ function getIntegrationIcon(connectionName?: ConnectionName) {
     return undefined;
 }
 
+function getIntegrationExportIcon(connectionName?: ConnectionName) {
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
+        return XeroExport;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO || connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
+        return QBOExport;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
+        return NetSuiteExport;
+    }
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
+        return SageIntacctExport;
+    }
+
+    return undefined;
+}
+
 function canBeExported(report: OnyxEntry<Report>) {
     if (!report?.statusNum) {
         return false;
@@ -11388,6 +11416,7 @@ export {
     getReportViolations,
     findPolicyExpenseChatByPolicyID,
     getIntegrationIcon,
+    getIntegrationExportIcon,
     canBeExported,
     isExported,
     hasExportError,
