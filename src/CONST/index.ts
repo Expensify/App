@@ -19,6 +19,9 @@ import {LOCALES} from './LOCALES';
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 
+// Using 28 days to align with OldDot and because all months are guaranteed to be at least 28 days.
+const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
+
 const DEFAULT_NUMBER_ID = 0;
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
@@ -418,6 +421,7 @@ const CONST = {
         ORDINAL_DAY_OF_MONTH: 'do',
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
         SECONDS_PER_DAY: 24 * 60 * 60,
+        MONTH_DAYS,
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -623,7 +627,7 @@ const CONST = {
     },
     BETAS: {
         ALL: 'all',
-        AUTO_SUBMIT: 'autoSubmit',
+        ASAP_SUBMIT: 'asapSubmit',
         DEFAULT_ROOMS: 'defaultRooms',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
@@ -1039,10 +1043,7 @@ const CONST = {
             APPROVE: 'approve',
             UNAPPROVE: 'unapprove',
             CANCEL_PAYMENT: 'cancelPayment',
-            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
-            MARK_AS_EXPORTED: 'markAsExported',
             HOLD: 'hold',
-            DOWNLOAD_CSV: 'downloadCSV',
             DOWNLOAD_PDF: 'downloadPDF',
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
@@ -1051,6 +1052,7 @@ const CONST = {
             ADD_EXPENSE: 'addExpense',
             SPLIT: 'split',
             REOPEN: 'reopen',
+            EXPORT: 'export',
             PAY: 'pay',
         },
         PRIMARY_ACTIONS: {
@@ -1394,6 +1396,7 @@ const CONST = {
         EXPORT_OPTIONS: {
             EXPORT_TO_INTEGRATION: 'exportToIntegration',
             MARK_AS_EXPORTED: 'markAsExported',
+            DOWNLOAD_CSV: 'downloadCSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -3186,6 +3189,7 @@ const CONST = {
             AMEX_CUSTOM_FEED: 'AmexCustomFeed',
             SELECT_COUNTRY: 'SelectCountry',
             PLAID_CONNECTION: 'PlaidConnection',
+            SELECT_STATEMENT_CLOSE_DATE: 'SelectStatementCloseDate',
         },
         CARD_TYPE: {
             AMEX: 'amex',
@@ -3226,6 +3230,11 @@ const CONST = {
         DELETE_TRANSACTIONS: {
             RESTRICT: 'corporate',
             ALLOW: 'personal',
+        },
+        STATEMENT_CLOSE_DATE: {
+            LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+            LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
+            CUSTOM_DAY_OF_MONTH: 'customDayOfMonth',
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
@@ -6722,12 +6731,6 @@ const CONST = {
         VISIBLE: 'visible',
         READY_TO_BE_HIDDEN: 'readyToBeHidden',
         HIDDEN: `hidden`,
-    },
-
-    HYBRID_APP_SIGN_IN_STATE: {
-        NOT_STARTED: 'notStarted',
-        STARTED: 'started',
-        FINISHED: 'finished',
     },
 
     CSV_IMPORT_COLUMNS: {
