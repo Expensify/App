@@ -250,6 +250,10 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
     const closeAndResetModal = useCallback(() => {
         closeConfirmModal();
         closeModal();
+        InteractionManager.runAfterInteractions(() => {
+            setFileError(null);
+            setValidFilesToUpload([]);
+        });
     }, [closeConfirmModal, closeModal]);
 
     const openModal = useCallback(() => {
