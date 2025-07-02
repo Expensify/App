@@ -4576,9 +4576,7 @@ function getReportPreviewMessage(
         });
     }
 
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line deprecation/deprecation
-    const reportPolicy = getPolicy(report.policyID);
+    const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
     let linkedTransaction;
     if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
@@ -9203,9 +9201,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
         const {amount, currency} = originalMessage?.IOUDetails ?? originalMessage ?? {};
         const formattedAmount = convertToDisplayString(Math.abs(amount), currency) ?? '';
 
-        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line deprecation/deprecation
-        const reportPolicy = getPolicy(report?.policyID);
+        const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const last4Digits = reportPolicy?.achAccount?.accountNumber.slice(-4) ?? '';
 
         switch (originalMessage.paymentType) {

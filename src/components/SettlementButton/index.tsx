@@ -6,6 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {Bank} from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
@@ -38,7 +39,6 @@ import type {AccountData, BankAccount, LastPaymentMethodType, Policy} from '@src
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import {Bank} from '../Icon/Expensicons';
 import type SettlementButtonProps from './types';
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
@@ -157,7 +157,7 @@ function SettlementButton({
                         onSelected: () => {
                             onPress(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, payAsBusiness, methodID, accountType, undefined);
                         },
-                        iconStyles: iconStyles,
+                        iconStyles,
                         iconHeight: iconSize,
                         iconWidth: iconSize,
                         value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,

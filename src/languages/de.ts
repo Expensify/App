@@ -1131,6 +1131,8 @@ const translations = {
         payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
             formattedAmount ? `${formattedAmount} über ${policyName} bezahlen` : `Über ${policyName} bezahlen`,
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => `${amount} mit Bankkonto ${last4Digits} bezahlt.`,
+        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
+            `heeft ${amount} betaald met bankrekening ${last4Digits}. via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte regels</a>`,
         invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Privatkonto • ${lastFour}`,
         invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Geschäftskonto • ${lastFour}`,
         nextStep: 'Nächste Schritte',

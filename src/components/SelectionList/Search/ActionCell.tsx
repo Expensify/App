@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {OnyxEntry, useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -76,7 +77,7 @@ function ActionCell({
      */
     const snapshotIOUReport = useMemo(() => {
         return !iouReport ? getSnapshotIOUReport(reportID, hash) : null;
-    }, [reportID, iouReport]);
+    }, [reportID, iouReport, hash]);
 
     const {currency} = iouReport ?? snapshotIOUReport ?? {};
 
@@ -140,6 +141,7 @@ function ActionCell({
                 shouldUseShortForm
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                 currency={currency}
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 policyID={policyID || snapshotIOUReport?.policyID || iouReport?.policyID}
                 iouReport={iouReport ?? (snapshotIOUReport as OnyxEntry<Report>)}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
