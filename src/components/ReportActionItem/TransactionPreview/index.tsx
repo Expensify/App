@@ -41,7 +41,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         contextAction,
     } = props;
 
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null);
@@ -89,6 +89,10 @@ function TransactionPreview(props: TransactionPreviewProps) {
         transactionPreview = originalTransaction;
     }
 
+    // See description of `transactionRawAmount` prop for more context
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const transactionRawAmount = (transaction?.modifiedAmount || transaction?.amount) ?? 0;
+
     const iouAction = isBillSplit && originalTransaction ? (getIOUActionForReportID(chatReportID, originalTransaction.transactionID) ?? action) : action;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
@@ -115,7 +119,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     chatReport={chatReport}
                     personalDetails={personalDetails}
                     transaction={transactionPreview}
-                    iouReport={iouReport}
+                    transactionRawAmount={transactionRawAmount}
+                    report={report}
                     violations={violations}
                     offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
                     navigateToReviewFields={navigateToReviewFields}
@@ -138,7 +143,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
             chatReport={chatReport}
             personalDetails={personalDetails}
             transaction={originalTransaction}
-            iouReport={iouReport}
+            transactionRawAmount={transactionRawAmount}
+            report={report}
             violations={violations}
             offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
             navigateToReviewFields={navigateToReviewFields}

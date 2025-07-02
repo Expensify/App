@@ -16,6 +16,7 @@ import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
     compareDuplicateTransactionFields,
+    getAmount,
     getFormattedCreated,
     getOriginalTransactionWithSplitInfo,
     hasMissingSmartscanFields,
@@ -42,7 +43,11 @@ const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     login: undefined,
 };
 
-function getIOUData(managerID: number, ownerAccountID: number, isIOUReport: boolean, personalDetails: OnyxTypes.PersonalDetailsList | undefined, amount: number) {
+/**
+ * Returns the data for displaying payer and receiver (`from` and `to`) values for given ids and amount.
+ * In IOU transactions we can deduce who is the payer and receiver based on sign (positive/negative) of the amount.
+ */
+function getIOUPayerAndReceiver(managerID: number, ownerAccountID: number, personalDetails: OnyxTypes.PersonalDetailsList | undefined, amount: number) {
     let fromID = ownerAccountID;
     let toID = managerID;
 
@@ -51,12 +56,10 @@ function getIOUData(managerID: number, ownerAccountID: number, isIOUReport: bool
         toID = ownerAccountID;
     }
 
-    return fromID && toID && isIOUReport
-        ? {
-              from: personalDetails ? personalDetails[fromID] : emptyPersonalDetails,
-              to: personalDetails ? personalDetails[toID] : emptyPersonalDetails,
-          }
-        : undefined;
+    return {
+        from: personalDetails ? personalDetails[fromID] : emptyPersonalDetails,
+        to: personalDetails ? personalDetails[toID] : emptyPersonalDetails,
+    };
 }
 
 const getReviewNavigationRoute = (
@@ -253,7 +256,7 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    const amount = isBillSplit ? getOriginalTransactionWithSplitInfo(transaction).originalTransaction?.amount : requestAmount;
+    const amount = isBillSplit ? getAmount(getOriginalTransactionWithSplitInfo(transaction).originalTransaction) : requestAmount;
     let displayAmountText: TranslationPathOrText = isTransactionScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
@@ -350,5 +353,12 @@ function createTransactionPreviewConditionals({
     };
 }
 
-export {getReviewNavigationRoute, getIOUData, getTransactionPreviewTextAndTranslationPaths, createTransactionPreviewConditionals, getViolationTranslatePath, getUniqueActionErrors};
+export {
+    getReviewNavigationRoute,
+    getIOUPayerAndReceiver,
+    getTransactionPreviewTextAndTranslationPaths,
+    createTransactionPreviewConditionals,
+    getViolationTranslatePath,
+    getUniqueActionErrors,
+};
 export type {TranslationPathOrText};
