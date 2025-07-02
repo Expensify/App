@@ -17,8 +17,10 @@ import {
     getShareDestinationOptions,
     getShareLogOptions,
     getValidOptions,
+    optionsOrderBy,
     orderOptions,
     orderWorkspaceOptions,
+    recentReportComparator,
 } from '@libs/OptionsListUtils';
 import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -1785,6 +1787,58 @@ describe('OptionsListUtils', () => {
 
             // Then the returned value should match the search term
             expect(filteredReports).toEqual(reports);
+        });
+    });
+
+    describe('getMostRecentOptions()', () => {
+        it('returns the most recent options up to the specified limit', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z'} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
+                {reportID: '3', lastVisibleActionCreated: '2022-01-01T09:00:00Z'} as OptionData,
+                {reportID: '4', lastVisibleActionCreated: '2022-01-01T13:00:00Z'} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = optionsOrderBy(options, 2, comparator);
+            expect(result.length).toBe(2);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(0)!.reportID).toBe('4');
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(1)!.reportID).toBe('2');
+        });
+
+        it('returns all options if limit is greater than options length', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z'} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z'} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = optionsOrderBy(options, 5, comparator);
+            expect(result.length).toBe(2);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(0)!.reportID).toBe('2');
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(1)!.reportID).toBe('1');
+        });
+
+        it('returns empty array if options is empty', () => {
+            const result = optionsOrderBy([], 3, recentReportComparator);
+            expect(result).toEqual([]);
+        });
+
+        it('applies filter function if provided', () => {
+            const options: OptionData[] = [
+                {reportID: '1', lastVisibleActionCreated: '2022-01-01T10:00:00Z', isPinned: true} as OptionData,
+                {reportID: '2', lastVisibleActionCreated: '2022-01-01T12:00:00Z', isPinned: false} as OptionData,
+                {reportID: '3', lastVisibleActionCreated: '2022-01-01T09:00:00Z', isPinned: true} as OptionData,
+            ];
+            const comparator = (option: OptionData) => option.lastVisibleActionCreated ?? '';
+            const result = optionsOrderBy(options, 2, comparator, (option) => option.isPinned);
+            expect(result.length).toBe(2);
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(0)!.reportID).toBe('1');
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            expect(result.at(1)!.reportID).toBe('3');
         });
     });
 });
