@@ -194,6 +194,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {cacheAttachment, removeCachedAttachment} from './Attachment';
 import {clearByKey} from './CachedPDFPaths';
 import {setDownload} from './Download';
 import {close} from './Modal';
@@ -659,8 +660,9 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
+    const attachmentID = rand64();
     if (text && !file) {
-        const reportComment = buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, reportID);
+        const reportComment = buildOptimisticAddCommentReportAction({text, reportID});
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -669,8 +671,9 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
-        const attachment = buildOptimisticAddCommentReportAction(text, file, undefined, undefined, undefined, reportID);
+        const attachment = buildOptimisticAddCommentReportAction({text, file, reportID, attachmentID});
         attachmentAction = attachment.reportAction;
+        cacheAttachment(attachmentID, file.uri ?? '');
     }
 
     if (text && file) {
@@ -680,6 +683,30 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         // And the API command needs to go to the new API which supports combining both text and attachments in a single report action
         commandName = WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT;
     }
+
+    // Store all markdown text attachments i.e `![](https://images.unsplash.com/...)`
+    const reportActionID = file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID;
+    const attachmentTags = [...reportCommentText.matchAll(CONST.REGEX.ATTACHMENT.ATTACHMENT)];
+
+    const attachments = attachmentTags.flatMap((htmlTag, index) => {
+        const tag = htmlTag[0];
+        // [2] means the exact value, in this case source url and attachment id of the attachment tag
+        const source = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE)?.[2];
+        const dataAttachmentID = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2];
+
+        if (!source) {
+            return [];
+        }
+
+        return {
+            uri: source,
+            attachmentID: dataAttachmentID ?? `${reportActionID}_${index + 1}`,
+        };
+    });
+
+    attachments.forEach((attachment) => {
+        cacheAttachment(attachment.attachmentID, attachment.uri ?? '');
+    });
 
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction ?? reportCommentAction;
@@ -715,7 +742,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     }
     const parameters: AddCommentOrAttachmentParams = {
         reportID,
-        reportActionID: file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID,
+        reportActionID,
         commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
         file,
@@ -725,6 +752,10 @@ function addActions(reportID: string, text = '', file?: FileObject) {
 
     if (reportIDDeeplinkedFromOldDot === reportID && isConciergeChatReport(report)) {
         parameters.isOldDotConciergeChat = true;
+    }
+
+    if (file) {
+        parameters.attachmentID = attachmentID;
     }
 
     const optimisticData: OnyxUpdate[] = [
@@ -1855,6 +1886,27 @@ function deleteReportComment(reportID: string | undefined, reportAction: ReportA
 
     if (!reportActionID || !originalReportID || !reportID) {
         return;
+    }
+    if (Array.isArray(reportAction.message) && reportAction.message.length > 0) {
+        reportAction.message.forEach((message) => {
+            const reportCommentText = message?.html ?? '';
+
+            const attachmentTags = [...reportCommentText.matchAll(CONST.REGEX.ATTACHMENT.ATTACHMENT)];
+
+            const attachments = attachmentTags.flatMap((htmlTag, index) => {
+                const tag = htmlTag[0];
+
+                const attachmentID = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_ID)?.[2]; // [2] means the exact value of the attachment id of the attachment tag
+
+                return {
+                    attachmentID: attachmentID ?? `${reportActionID}_${index + 1}`,
+                };
+            });
+
+            attachments.forEach((attachment) => {
+                removeCachedAttachment(attachment.attachmentID);
+            });
+        });
     }
 
     const isDeletedParentAction = ReportActionsUtils.isThreadParentMessage(reportAction, reportID);

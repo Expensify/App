@@ -1761,7 +1761,6 @@ const CONST = {
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
-    ATTACHMENT_REGEX: /<video |<img /,
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
@@ -3421,16 +3420,27 @@ const CONST = {
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,
         ANY_SPACE: /\s/g,
-
-        // Extract attachment's source from the data's html string
-        ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
-
         EMOJI_NAME: /:[\p{L}0-9_+-]+:/gu,
         EMOJI_SUGGESTIONS: /:[\p{L}0-9_+-]{1,40}$/u,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         LINE_BREAK: /\r\n|\r|\n|\u2028/g,
         CODE_2FA: /^\d{6}$/,
-        ATTACHMENT_ID: /chat-attachments\/(\d+)/,
+
+        ATTACHMENT: {
+            // Match any attachment tag inside the markdown text i.e only: <img or <video
+            ATTACHMENT_REGEX: /<video |<img /,
+            // Extract all attachments including all atributes and values from markdown text
+            ATTACHMENT: /<(img|video)[^>]*>/gi,
+            // Extract attachment's source from the data's html string
+            ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
+            // Retrieve the attachment id value from data-attachment-id attribute
+            ATTACHMENT_ID: /data-attachment-id=(["'])(.*?)\1/,
+            // Retrive attachment source id from attachment source url link
+            ATTACHMENT_SOURCE_ID: /chat-attachments\/(\d+)/,
+            // Retrieve attachment source either local or remote
+            ATTACHMENT_SOURCE: /(src|data-expensify-source|data-optimistic-src)="([^"]+)"/i,
+        },
+
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
         HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
         EMPTY_COMMENT: /^(\s)*$/,
@@ -6095,6 +6105,10 @@ const CONST = {
             TRAVEL_EXPENSE: 'travelExpense',
         },
         BOOK_MEETING_LINK: 'https://calendly.com/d/cqsm-2gm-fxr/expensify-product-team',
+    },
+
+    CACHE_API_KEYS: {
+        ATTACHMENTS: 'attachments',
     },
 
     SESSION_STORAGE_KEYS: {

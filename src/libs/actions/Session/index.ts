@@ -26,6 +26,7 @@ import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Authentication from '@libs/Authentication';
+import CacheAPI from '@libs/CacheAPI';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Fullstory from '@libs/Fullstory';
 import HttpUtils from '@libs/HttpUtils';
@@ -863,6 +864,7 @@ function cleanupSession() {
     NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
     resetHomeRouteParams();
+    CacheAPI.clear();
     clearCache().then(() => {
         Log.info('Cleared all cache data', true, {}, true);
     });
