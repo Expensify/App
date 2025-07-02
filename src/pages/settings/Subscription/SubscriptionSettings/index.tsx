@@ -180,12 +180,21 @@ function SubscriptionSettings() {
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
                 <Text style={[styles.textSupporting, styles.mb5]}>
-                    <RenderHTML
-                        html={translate('subscription.subscriptionSettings.learnMore', {
-                            adminsChatReportRoute: adminsChatReportID ? adminsChatReportRoute : '#admins room.',
-                            pricingURL,
-                        })}
-                    />
+                    {adminsChatReportID ? (
+                        <RenderHTML
+                            html={translate('subscription.subscriptionSettings.learnMore', {
+                                adminsChatReportRoute,
+                                pricingURL,
+                            })}
+                        />
+                    ) : (
+                        <RenderHTML
+                            html={translate('subscription.subscriptionSettings.learnMore', {
+                                pricingURL,
+                                adminsChatReportRoute: '',
+                            })}
+                        />
+                    )}
                 </Text>
 
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>
