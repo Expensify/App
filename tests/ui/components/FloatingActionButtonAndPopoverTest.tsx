@@ -1,6 +1,8 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import type Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import FloatingActionButtonAndPopover from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,13 +40,16 @@ jest.mock('@libs/actions/QuickActionNavigation', () => ({
 
 // Mock react-navigation hooks
 jest.mock('@react-navigation/native', () => {
-    const React = require('react');
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
-        useIsFocused: jest.fn(() => true),
-        createNavigationContainerRef: jest.fn(() => ({current: null})),
-        NavigationContext: React.createContext(null),
-        useSafeAreaInsets: jest.fn(() => ({top: 0, bottom: 0, left: 0, right: 0})),
-        useNavigationState: jest.fn(() => null),
+        ...actualNav,
+        useNavigation: () => ({
+            navigate: jest.fn(),
+            addListener: () => jest.fn(),
+        }),
+        useIsFocused: () => true,
+        useNavigationState: () => {},
+        useFocusEffect: jest.fn(),
     };
 });
 
@@ -56,9 +61,13 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({
 jest.mock('@hooks/useLocalize', () => () => ({
     translate: jest.fn((key: string) => {
         const translations: Record<string, string> = {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             'testDrive.quickAction.takeATwoMinuteTestDrive': 'Take a Two Minute Test Drive',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             'workspace.new.newWorkspace': 'New workspace',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             'iou.createExpense': 'Create expense',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             'sidebarScreen.fabNewChat': 'New chat',
         };
         return translations[key] || key;
@@ -149,7 +158,9 @@ jest.mock('@components/ProductTrainingContext', () => ({
 }));
 
 jest.mock('@src/utils/mapOnyxCollectionItems', () => (collection: unknown, selector: (item: unknown) => unknown) => {
-    if (!collection || typeof collection !== 'object') return {};
+    if (!collection || typeof collection !== 'object') {
+        return {};
+    }
     return Object.fromEntries(Object.entries(collection).map(([key, value]) => [key, selector(value)]));
 });
 
@@ -160,13 +171,6 @@ describe('FloatingActionButtonAndPopover', () => {
             [ONYXKEYS.SESSION]: {
                 accountID: 1,
                 email: 'test@test.com',
-            },
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                1: {
-                    accountID: 1,
-                    login: 'test@test.com',
-                    displayName: 'Test User',
-                },
             },
             [ONYXKEYS.IS_LOADING_APP]: false,
             [ONYXKEYS.NVP_ONBOARDING]: {
@@ -193,8 +197,7 @@ describe('FloatingActionButtonAndPopover', () => {
     });
 
     it('should not show "Take a Two Minute Test Drive" menu item when shouldShowNewWorkspaceButton is true', async () => {
-        const {shouldShowPolicy} = require('@libs/PolicyUtils');
-        shouldShowPolicy.mockReturnValue(false);
+        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(false);
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
             id: 'policy1',
@@ -222,12 +225,11 @@ describe('FloatingActionButtonAndPopover', () => {
         expect(screen.getByText('New workspace')).toBeTruthy();
 
         // Reset the mock for other tests
-        shouldShowPolicy.mockReturnValue(true);
+        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(true);
     });
 
     it('should show "Take a Two Minute Test Drive" menu item when shouldShowNewWorkspaceButton is false', async () => {
-        const {shouldShowPolicy} = require('@libs/PolicyUtils');
-        shouldShowPolicy.mockReturnValue(true);
+        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(true);
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
             id: 'policy1',
@@ -255,7 +257,7 @@ describe('FloatingActionButtonAndPopover', () => {
         expect(screen.queryByText('New workspace')).toBeNull();
 
         // Reset the mock for other tests
-        shouldShowPolicy.mockReturnValue(false);
+        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(false);
     });
 
     it('should not show "Take a Two Minute Test Drive" menu item when user has seen the tour', async () => {
@@ -278,8 +280,7 @@ describe('FloatingActionButtonAndPopover', () => {
             areInvoicesEnabled: false,
         });
 
-        const {shouldShowPolicy} = require('@libs/PolicyUtils');
-        shouldShowPolicy.mockReturnValue(true);
+        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(true);
 
         await waitForBatchedUpdates();
 
@@ -294,6 +295,6 @@ describe('FloatingActionButtonAndPopover', () => {
         expect(screen.queryByText('Take a Two Minute Test Drive')).toBeNull();
 
         // Reset the mock for other tests
-        shouldShowPolicy.mockReturnValue(false);
+        jest.spyOn(PolicyUtils, 'shouldShowPolicy').mockReturnValue(false);
     });
 });
