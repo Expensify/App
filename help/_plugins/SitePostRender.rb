@@ -143,7 +143,7 @@ module Jekyll
 
         type HelpContent = {
             /** The content to display for this route */
-            content: ContentComponent;
+            content?: ContentComponent;
 
             /** Any children routes that this route has */
             children?: Record<string, HelpContent>;

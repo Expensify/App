@@ -55,6 +55,7 @@ type GetReportPrimaryActionParams = {
     reportNameValuePairs?: ReportNameValuePairs;
     reportActions?: ReportAction[];
     isChatReportArchived?: boolean;
+    invoiceReceiverPolicy?: Policy;
 };
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived = false) {
@@ -140,7 +141,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     return false;
 }
 
-function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, isChatReportArchived?: boolean) {
+function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, isChatReportArchived?: boolean, invoiceReceiverPolicy?: Policy) {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
     }
@@ -182,7 +183,7 @@ function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePair
         return parentReport?.invoiceReceiver?.accountID === getCurrentUserAccountID();
     }
 
-    return policy?.role === CONST.POLICY.ROLE.ADMIN;
+    return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN;
 }
 
 function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]) {
@@ -249,7 +250,7 @@ function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, repor
 }
 
 function isReviewDuplicatesAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
-    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
+    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction));
 
     if (!hasDuplicates) {
         return false;
@@ -278,7 +279,7 @@ function isMarkAsCashAction(report: Report, reportTransactions: Transaction[], v
     }
 
     const transactionIDs = reportTransactions.map((t) => t.transactionID);
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations);
 
     if (hasAllPendingRTERViolations) {
         return true;
@@ -302,7 +303,7 @@ function getAllExpensesToHoldIfApplicable(report?: Report, reportActions?: Repor
 }
 
 function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
-    const {report, reportTransactions, violations, policy, reportNameValuePairs, reportActions, isChatReportArchived, chatReport} = params;
+    const {report, reportTransactions, violations, policy, reportNameValuePairs, reportActions, isChatReportArchived, chatReport, invoiceReceiverPolicy} = params;
 
     const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
 
@@ -330,7 +331,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 
-    if (isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived)) {
+    if (isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 
