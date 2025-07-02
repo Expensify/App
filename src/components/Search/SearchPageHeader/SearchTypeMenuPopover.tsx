@@ -25,7 +25,6 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
         // Capture the current route when the menu is triggered
         const triggerRoute = Navigation.getActiveRouteWithoutParams();
 
-
         openMenu(triggerRoute);
     }, [openMenu]);
 
