@@ -39,7 +39,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
             {!delayPopoverMenuFirstRender && (
                 <PopoverMenu
                     menuItems={allMenuItems}
-                    isVisible={isPopoverVisible && Navigation.getActiveRouteWithoutParams() === '/search'}
+                    isVisible={isPopoverVisible}
                     anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                     onClose={closeMenu}
                     onItemSelected={closeMenu}
