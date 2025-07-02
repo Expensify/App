@@ -1,4 +1,4 @@
-import type {OnboardingPurpose} from '@src/CONST';
+import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
