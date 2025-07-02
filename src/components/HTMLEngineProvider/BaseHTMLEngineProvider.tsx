@@ -4,6 +4,7 @@ import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEng
 import type {TNode} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
+import themeColors from '@styles/theme/themes/dark';
 import FontUtils from '@styles/utils/FontUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {computeEmbeddedMaxWidth, isChildOfTaskTitle} from './htmlEngineUtils';
@@ -64,7 +65,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                     if (tnode.attributes.issmall === undefined) {
                         return {...styles.mutedNormalTextLabel, ...styles.mb0};
                     }
-                    return {...styles.mutedNormalTextLabel, ...styles.mb0, ...styles.textMicro};
+                    return {...styles.mutedNormalTextLabel, ...styles.mb0, ...styles.textMicro, color: themeColors.textSupporting};
                 },
                 contentModel: HTMLContentModel.block,
             }),
@@ -85,7 +86,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                         if (tnode.attributes.center === undefined) {
                             return {whiteSpace: 'pre'};
                         }
-                        return {whiteSpace: 'pre', flex: 1, justifyContent: 'center', textDecorationLine: 'none'};
+                        return {whiteSpace: 'pre', flex: 1, justifyContent: 'center', textDecorationLine: 'none', color: themeColors.link};
                     }
                     return {whiteSpace: 'pre', ...styles.onlyEmojisText};
                 },
