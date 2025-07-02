@@ -4831,7 +4831,7 @@ const translations = {
             removeMemberPromptExporter: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `Si eliminas a ${memberName} de este espacio de trabajo, lo reemplazaremos como el exportador preferido con ${workspaceOwner}, el propietario del espacio de trabajo.`,
             removeMemberPromptTechContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
-                `If you remove ${memberName} from this workspace, we'll replace them as the technical contact with ${workspaceOwner}, the workspace owner.`,
+                `Si eliminas a ${memberName} de este espacio de trabajo, lo reemplazaremos como contacto técnico con ${workspaceOwner}, el propietario del espacio de trabajo.`,
             removeMemberPromptPendingApproval: ({memberName}: {memberName: string}) =>
                 `${memberName} tiene gastos pendientes por aprobar. Por favor, pideles que aproben, o tomen el control de sus informes antes de eliminarlos del espacio de trabajo.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
