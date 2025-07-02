@@ -215,13 +215,6 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             setIsPopoverVisible(true);
             // Defer heavy processing until after interactions
             InteractionManager.runAfterInteractions(() => {
-                if (triggerRoute) {
-                    const currentRoute = Navigation.getActiveRouteWithoutParams();
-                    if (currentRoute !== triggerRoute) {
-                        setIsPopoverVisible(false);
-                        return;
-                    }
-                }
                 processSavedSearches();
             });
         },

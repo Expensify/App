@@ -20,10 +20,17 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
+    const currentRoute = Navigation.getActiveRouteWithoutParams();
+    const isOnSearchPage = currentRoute === '/search';
 
     const handleOpenMenu = useCallback(() => {
         // Capture the current route when the menu is triggered
         const triggerRoute = Navigation.getActiveRouteWithoutParams();
+
+        // Only allow modal to open on the main search page
+        if (triggerRoute !== '/search') {
+            return;
+        }
 
         openMenu(triggerRoute);
     }, [openMenu]);
@@ -38,7 +45,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
             {!delayPopoverMenuFirstRender && (
                 <PopoverMenu
                     menuItems={allMenuItems}
-                    isVisible={isPopoverVisible}
+                    isVisible={isPopoverVisible && isOnSearchPage}
                     anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                     onClose={closeMenu}
                     onItemSelected={closeMenu}
