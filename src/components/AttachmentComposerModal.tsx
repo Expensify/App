@@ -4,16 +4,6 @@ import {InteractionManager} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Animated, {FadeIn, LayoutAnimationConfig} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
-import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
-import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
-import type {Attachment} from '@components/Attachments/types';
-import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
-import HeaderGap from '@components/HeaderGap';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Modal from '@components/Modal';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,6 +11,16 @@ import {cleanFileName, getFileValidationErrorText, validateAttachment, validateI
 import CONST from '@src/CONST';
 import type ModalType from '@src/types/utils/ModalType';
 import viewRef from '@src/types/utils/viewRef';
+import AttachmentCarouselView from './Attachments/AttachmentCarousel/AttachmentCarouselView';
+import useCarouselArrows from './Attachments/AttachmentCarousel/useCarouselArrows';
+import useAttachmentErrors from './Attachments/AttachmentView/useAttachmentErrors';
+import type {Attachment} from './Attachments/types';
+import Button from './Button';
+import ConfirmModal from './ConfirmModal';
+import HeaderGap from './HeaderGap';
+import HeaderWithBackButton from './HeaderWithBackButton';
+import Modal from './Modal';
+import SafeAreaConsumer from './SafeAreaConsumer';
 
 type ImagePickerResponse = {
     height?: number;
