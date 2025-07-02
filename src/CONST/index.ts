@@ -6724,12 +6724,6 @@ const CONST = {
         HIDDEN: `hidden`,
     },
 
-    HYBRID_APP_SIGN_IN_STATE: {
-        NOT_STARTED: 'notStarted',
-        STARTED: 'started',
-        FINISHED: 'finished',
-    },
-
     CSV_IMPORT_COLUMNS: {
         EMAIL: 'email',
         NAME: 'name',

@@ -1,12 +1,14 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
+import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -24,7 +26,7 @@ import {startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink, openTravelDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
-import {closeReactNativeApp, isAnonymousUser} from '@libs/actions/Session';
+import {isAnonymousUser} from '@libs/actions/Session';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -131,6 +133,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     });
     const viewTourReportID = introSelected?.viewTour;
     const [viewTourReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourReportID}`, {canBeMissing: true});
+
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
@@ -569,7 +573,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                 onConfirm={() => {
                     setModalVisible(false);
                     if (CONFIG.IS_HYBRID_APP) {
-                        closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+                        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+                        setRootStatusBarEnabled(false);
                         return;
                     }
                     openOldDotLink(CONST.OLDDOT_URLS.INBOX);
