@@ -15,8 +15,8 @@ To view or manage your subscription in New Expensify:
 
 - **Open the app** on your device.
 - **Click your profile icon** in the bottom-left corner.
-- **Go to Workspaces.**
-- **Click Subscription** under the appropriate workspace to view your current plan and settings.
+- **Go to Account.**
+- **Click Subscription** to view your current plan and settings.
 
 ---
 
@@ -60,7 +60,7 @@ To request an early cancellation:
 
 To permanently delete a workspace:
 
-1. Go to **Settings > Workspaces**.
+1. Go to **Workspaces**.
 2. Click the three dots next to the workspace name.
 3. Select **Delete workspace** from the dropdown.
 4. Confirm the deletion when prompted.
