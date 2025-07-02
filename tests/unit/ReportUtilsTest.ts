@@ -25,6 +25,7 @@ import {
     canEditReportDescription,
     canEditRoomVisibility,
     canEditWriteCapability,
+    canFlagReportAction,
     canHoldUnholdReportAction,
     findLastAccessedReport,
     getAllAncestorReportActions,
@@ -3800,18 +3801,51 @@ describe('ReportUtils', () => {
                         whisperedTo: undefined,
                     },
                 ],
-            };
-            expect(isWhisperAction(nonWhisperReportAction as ReportAction)).toBe(false);
+            } as ReportAction;
+            expect(isWhisperAction(nonWhisperReportAction)).toBe(false);
         });
     });
 
     describe('canFlagReportAction', () => {
         describe('a whisper action', () => {
-            it('cannot be flagged if it is from concierge', () => {});
-            it('cannot be flagged if it is from the current user', () => {});
-            it('can be flagged if it is not from concierge or the current user', () => {});
+            const whisperReportAction: ReportAction = {
+                ...createRandomReportAction(1),
+            };
+
+            it('cannot be flagged if it is from concierge', () => {
+                const whisperReportActionFromConcierge = {
+                    ...whisperReportAction,
+                    actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                };
+
+                // The reportID doesn't matter because there is an early return for whisper actions and the report is not looked at
+                expect(canFlagReportAction(whisperReportActionFromConcierge, '123456')).toBe(false);
+            });
+
+            it('cannot be flagged if it is from the current user', () => {
+                const whisperReportActionFromCurrentUser = {
+                    ...whisperReportAction,
+                    actorAccountID: currentUserAccountID,
+                };
+
+                // The reportID doesn't matter because there is an early return for whisper actions and the report is not looked at
+                expect(canFlagReportAction(whisperReportActionFromCurrentUser, '123456')).toBe(false);
+            });
+
+            it('can be flagged if it is not from concierge or the current user', () => {
+                expect(canFlagReportAction(whisperReportAction, '123456')).toBe(true);
+            });
         });
+
         describe('a non-whisper action', () => {
+            const nonWhisperReportAction = {
+                ...createRandomReportAction(1),
+                message: [
+                    {
+                        whisperedTo: undefined,
+                    },
+                ],
+            } as ReportAction;
             it('cannot be flagged if it is from the current user', () => {});
             it('cannot be flagged if the action name is something other than ADD_COMMENT', () => {});
             it('cannot be flagged if the action is deleted', () => {});
