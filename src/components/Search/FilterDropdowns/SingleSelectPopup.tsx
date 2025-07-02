@@ -44,7 +44,7 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
             keyForList: item.value,
             isSelected: item.value === selectedItem?.value,
         }));
-    }, [items, translate, selectedItem]);
+    }, [items, selectedItem]);
 
     const updateSelectedItem = useCallback(
         (item: ListItem) => {
