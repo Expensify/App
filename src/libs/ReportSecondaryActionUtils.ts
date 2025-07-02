@@ -172,10 +172,10 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     if (!isCurrentUserManager) {
         return false;
     }
-    const isExpenseReport = isExpenseReportUtils(report);
-    const isReportApprover = isApproverUtils(policy, currentUserAccountID);
     const isProcessingReport = isProcessingReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
+    if (!isProcessingReport) {
+        return false;
+    }
 
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -183,6 +183,8 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
     }
+    const isExpenseReport = isExpenseReportUtils(report);
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -203,7 +205,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
-
+    const isReportApprover = isApproverUtils(policy, currentUserAccountID);
     const userControlsReport = isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
@@ -534,14 +536,6 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 
-    if (isExportAction(report, policy, reportActions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING);
-    }
-
-    if (isMarkAsExportedAction(report, policy)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
-    }
-
     if (isRetractAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.RETRACT);
     }
@@ -558,7 +552,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV);
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
@@ -571,6 +565,22 @@ function getSecondaryReportActions({
     if (isDeleteAction(report, reportTransactions, reportActions ?? [], policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
+
+    return options;
+}
+
+function getSecondaryExportReportActions(report: Report, policy?: Policy, reportActions?: ReportAction[]): Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> {
+    const options: Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> = [];
+
+    if (isExportAction(report, policy, reportActions)) {
+        options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
+    }
+
+    if (isMarkAsExportedAction(report, policy)) {
+        options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
+    }
+
+    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
 
     return options;
 }
@@ -599,4 +609,4 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction, getSecondaryExportReportActions};
