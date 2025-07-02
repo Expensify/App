@@ -6407,6 +6407,7 @@ describe('actions/IOU', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(Number(policyID)),
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                type: CONST.POLICY.TYPE.TEAM,
             };
 
             const fakeReport: Report = {
