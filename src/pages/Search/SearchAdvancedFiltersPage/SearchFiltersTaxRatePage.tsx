@@ -41,6 +41,9 @@ function SearchFiltersTaxRatePage() {
         }
         const selectedPoliciesTaxRatesItems = selectedPoliciesTaxRates.reduce(
             (acc, taxRates) => {
+                if (!taxRates) {
+                    return acc;
+                }
                 Object.entries(taxRates).forEach(([taxRateKey, taxRate]) => {
                     if (!acc[taxRate.name]) {
                         acc[taxRate.name] = [];
