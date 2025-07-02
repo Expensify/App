@@ -1,8 +1,9 @@
-import {getCardFeedNamesWithType, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
+import type {OnyxCollection} from 'react-native-onyx';
+import {getCardFeedNamesWithType, getCardFeedsForDisplay, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
 import {translateLocal} from '@libs/Localize';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeeds, CardList, CompanyCardFeed, WorkspaceCardsList} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -59,6 +60,35 @@ const fakeWorkspace: Record<string, WorkspaceCardsList> = {
 };
 /* eslint-enable @typescript-eslint/naming-convention */
 
+const cardListMock = {
+    '11223344': {
+        state: 1,
+        bank: 'vcf',
+        lastFourPAN: '1234',
+    },
+    '10203040': {
+        state: 1,
+        bank: CONST.EXPENSIFY_CARD.BANK,
+        lastFourPAN: '1234',
+    },
+} as unknown as CardList;
+
+const cardFeedAmericaExpressMock = 'oauth.americanexpressfdx.com 1001' as CompanyCardFeed;
+const cardFeedVisaMock = 'vcf' as CompanyCardFeed;
+const cardFeedsMock: OnyxCollection<CardFeeds> = {
+    sharedNVP_private_domain_member_1234: {
+        settings: {
+            companyCardNicknames: {
+                [cardFeedVisaMock]: 'Custom feed name',
+            },
+            companyCards: {
+                [cardFeedAmericaExpressMock]: {},
+                [cardFeedVisaMock]: {},
+            },
+        },
+    },
+};
+
 describe('Card Feed Utils', () => {
     beforeAll(() => {
         IntlStore.load(CONST.LOCALES.EN);
@@ -86,5 +116,22 @@ describe('Card Feed Utils', () => {
         const feeds = ['99999999_Expensify Card'];
         const selected = getSelectedCardsFromFeeds({}, fakeWorkspace, feeds);
         expect(selected).toEqual([]);
+    });
+
+    it('returns card feeds for display with custom names', () => {
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeedsMock, cardListMock);
+        expect(cardFeedsForDisplay).toEqual({
+            'Expensify Card': {feed: 'Expensify Card', name: 'Expensify Card'},
+            'oauth.americanexpressfdx.com 1001': {feed: 'oauth.americanexpressfdx.com 1001', name: 'American Express'},
+            vcf: {feed: 'vcf', name: 'Custom feed name'},
+        });
+    });
+
+    it('returns card feeds for display without Expensify Card', () => {
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeedsMock, {});
+        expect(cardFeedsForDisplay).toEqual({
+            'oauth.americanexpressfdx.com 1001': {feed: 'oauth.americanexpressfdx.com 1001', name: 'American Express'},
+            vcf: {feed: 'vcf', name: 'Custom feed name'},
+        });
     });
 });
