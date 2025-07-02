@@ -270,22 +270,9 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     overflow: 'hidden',
                 };
 
-                animationIn = {
-                    from: {
-                        translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
-                    },
-                    to: {
-                        translateX: 0,
-                    },
-                };
-                animationOut = {
-                    from: {
-                        translateX: 0,
-                    },
-                    to: {
-                        translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
-                    },
-                };
+                animationIn = 'slideInRight';
+                animationOut = 'slideOutRight';
+
                 hideBackdrop = true;
                 swipeDirection = undefined;
                 shouldAddBottomSafeAreaPadding = true;

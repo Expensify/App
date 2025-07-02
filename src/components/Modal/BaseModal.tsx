@@ -93,6 +93,7 @@ function BaseModal(
         disableAnimationIn = false,
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+        hasBackdrop,
         shouldUseReanimatedModal = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
@@ -320,7 +321,7 @@ function BaseModal(
                         backdropColor={theme.overlay}
                         backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
                         backdropTransitionOutTiming={0}
-                        hasBackdrop={fullscreen}
+                        hasBackdrop={hasBackdrop ?? fullscreen}
                         coverScreen={fullscreen}
                         style={[modalStyle, sidePanelStyle]}
                         deviceHeight={windowHeight}

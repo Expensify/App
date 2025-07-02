@@ -58,6 +58,8 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             shouldUseCustomBackdrop
             onBackdropPress={onClose}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldUseReanimatedModal
+            hasBackdrop={false}
         >
             <ScreenWrapper
                 style={[styles.pb0]}
