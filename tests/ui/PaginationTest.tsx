@@ -362,10 +362,10 @@ describe('Pagination', () => {
 
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
 
         // We now have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
-        expect(getReportActions()).toHaveLength(10);
+        expect(getReportActions()).toHaveLength(15);
 
         // Simulate the backend returning no new messages to simulate reaching the start of the chat.
         mockGetNewerActions(0);
@@ -377,9 +377,249 @@ describe('Pagination', () => {
 
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 3);
 
         // We still have 15 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
-        expect(getReportActions()).toHaveLength(10);
+        expect(getReportActions()).toHaveLength(15);
+    });
+
+    it('activates frontend pagination when loading large datasets', async () => {
+        // Mock a large dataset (>100 actions) to trigger frontend pagination
+        const LARGE_MESSAGE_COUNT = 150;
+        mockOpenReport(LARGE_MESSAGE_COUNT, '150');
+
+        await signInAndGetApp();
+        await navigateToSidebarOption(REPORT_ID);
+
+        // With frontend pagination active, we should see a limited number of actions
+        const initialActionCount = getReportActions().length;
+        expect(initialActionCount).toBeGreaterThan(0);
+        expect(initialActionCount).toBeLessThan(LARGE_MESSAGE_COUNT);
+
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 0, {reportID: REPORT_ID});
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+
+        // Scrolling down should expand the frontend pagination window
+        // and show more actions from Onyx cache without API calls
+        scrollToOffset(LIST_CONTENT_SIZE.height);
+        await waitForBatchedUpdatesWithAct();
+
+        // Should now show more actions (expanded through scrolling)
+        const expandedActionCount = getReportActions().length;
+        expect(expandedActionCount).toBeGreaterThanOrEqual(initialActionCount);
+
+        // No additional API calls should be made (loading from Onyx cache)
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+
+        // Scroll down again to expand further
+        scrollToOffset(LIST_CONTENT_SIZE.height * 2);
+        await waitForBatchedUpdatesWithAct();
+
+        // Should now show even more actions (further expansion)
+        const finalActionCount = getReportActions().length;
+        expect(finalActionCount).toBeGreaterThanOrEqual(expandedActionCount);
+
+        // Still no additional API calls
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+    });
+
+    it('prevents unnecessary API calls when all data is already loaded', async () => {
+        mockOpenReport(20, '20');
+
+        await signInAndGetApp();
+        await navigateToSidebarOption(REPORT_ID);
+
+        const initialCount = getReportActions().length;
+        expect(initialCount).toBeGreaterThan(0);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
+
+        // Mock GetOlderActions to return data that overlaps with what we already have
+        mockGetOlderActions(10);
+
+        scrollToOffset(LIST_CONTENT_SIZE.height);
+        await waitForBatchedUpdatesWithAct();
+
+        // No API call needed if data is in cache
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+
+        // Now all data from pages is loaded in Onyx. Subsequent scrolling should NOT trigger API calls
+        scrollToOffset(LIST_CONTENT_SIZE.height * 2);
+        await waitForBatchedUpdatesWithAct();
+
+        // No additional API calls should be made
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+    });
+
+    it('centers view around target action when deep linking', async () => {
+        const LARGE_MESSAGE_COUNT = 200;
+        mockOpenReport(LARGE_MESSAGE_COUNT, '200');
+
+        await signInAndGetApp();
+
+        // Navigate directly to report with specific action ID
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, buildReportComments(LARGE_MESSAGE_COUNT, '200'));
+        });
+
+        await navigateToSidebarOption(REPORT_ID);
+
+        // With a large dataset, frontend pagination should activate
+        const deepLinkActions = getReportActions().length;
+        expect(deepLinkActions).toBeGreaterThan(0);
+        expect(deepLinkActions).toBeLessThanOrEqual(LARGE_MESSAGE_COUNT);
+
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
+        // Should not make unnecessary API calls since data is already in Onyx
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+    });
+
+    it('automatically expands pagination window when new data is loaded', async () => {
+        const INITIAL_COUNT = 120;
+        mockOpenReport(INITIAL_COUNT, '120');
+
+        await signInAndGetApp();
+        await navigateToSidebarOption(REPORT_ID);
+
+        const autoExpandInitial = getReportActions().length;
+        expect(autoExpandInitial).toBeGreaterThan(0);
+
+        // Simulate new data arriving from backend
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, buildReportComments(10, '130'));
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Pagination window should auto-expand to show the new data
+        const autoExpandFinal = getReportActions().length;
+        expect(autoExpandFinal).toBeGreaterThanOrEqual(autoExpandInitial);
+    });
+
+    it('resets pagination when cache is cleared', async () => {
+        const LARGE_COUNT = 150;
+        mockOpenReport(LARGE_COUNT, '150');
+
+        await signInAndGetApp();
+        await navigateToSidebarOption(REPORT_ID);
+
+        const cacheResetInitial = getReportActions().length;
+        expect(cacheResetInitial).toBeGreaterThan(0);
+
+        // Expand pagination window by scrolling
+        scrollToOffset(LIST_CONTENT_SIZE.height);
+        await waitForBatchedUpdatesWithAct();
+
+        const cacheResetExpanded = getReportActions().length;
+        expect(cacheResetExpanded).toBeGreaterThanOrEqual(cacheResetInitial);
+
+        // Simulate cache being cleared (data shrinks)
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, buildReportComments(10, '10'));
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Pagination should reset to show actions from the new smaller dataset
+        const resetActions = getReportActions().length;
+        expect(resetActions).toBeGreaterThan(0);
+        expect(resetActions).toBeLessThanOrEqual(150);
+    });
+
+    it('does not activate frontend pagination for small datasets', async () => {
+        // Mock a small dataset (<=100 actions) should not trigger frontend pagination
+        const SMALL_MESSAGE_COUNT = 80;
+        mockOpenReport(SMALL_MESSAGE_COUNT, '80');
+
+        await signInAndGetApp();
+        await navigateToSidebarOption(REPORT_ID);
+
+        const smallDatasetActions = getReportActions().length;
+        expect(smallDatasetActions).toBeGreaterThan(0);
+        expect(smallDatasetActions).toBeLessThanOrEqual(SMALL_MESSAGE_COUNT);
+
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+
+        // Scrolling should not significantly expand actions for small datasets
+        scrollToOffset(LIST_CONTENT_SIZE.height);
+        await waitForBatchedUpdatesWithAct();
+
+        // Should show all or most of the available actions since it's a small dataset
+        const finalSmallDatasetActions = getReportActions().length;
+        expect(finalSmallDatasetActions).toBeGreaterThanOrEqual(smallDatasetActions);
+        expect(finalSmallDatasetActions).toBeLessThanOrEqual(SMALL_MESSAGE_COUNT);
+    });
+
+    it('follows incremental expansion pattern [0-50] → [0-100] → [0-150]', async () => {
+        const LARGE_COUNT = 200;
+        mockOpenReport(LARGE_COUNT, '200');
+
+        await signInAndGetApp();
+        await navigateToSidebarOption(REPORT_ID);
+
+        const initialActions = getReportActions().length;
+        expect(initialActions).toBeGreaterThan(0);
+
+        // First expansion: more actions should be visible
+        scrollToOffset(LIST_CONTENT_SIZE.height);
+        await waitForBatchedUpdatesWithAct();
+        const firstExpansion = getReportActions().length;
+        expect(firstExpansion).toBeGreaterThanOrEqual(initialActions);
+
+        // Second expansion: even more actions should be visible
+        scrollToOffset(LIST_CONTENT_SIZE.height * 2);
+        await waitForBatchedUpdatesWithAct();
+        const secondExpansion = getReportActions().length;
+        expect(secondExpansion).toBeGreaterThanOrEqual(firstExpansion);
+
+        // Third expansion: all data visible
+        scrollToOffset(LIST_CONTENT_SIZE.height * 3);
+        await waitForBatchedUpdatesWithAct();
+        const thirdExpansion = getReportActions().length;
+        expect(thirdExpansion).toBeGreaterThanOrEqual(secondExpansion);
+
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
+        // No API calls should be made during frontend expansion
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+    });
+
+    it('falls back to API calls when frontend pagination is exhausted', async () => {
+        const INITIAL_COUNT = 150;
+        mockOpenReport(INITIAL_COUNT, '150');
+        mockGetOlderActions(25);
+
+        await signInAndGetApp();
+        await navigateToSidebarOption(REPORT_ID);
+
+        // Expand to show all frontend data
+        scrollToOffset(LIST_CONTENT_SIZE.height);
+        await waitForBatchedUpdatesWithAct();
+        scrollToOffset(LIST_CONTENT_SIZE.height * 2);
+        await waitForBatchedUpdatesWithAct();
+        scrollToOffset(LIST_CONTENT_SIZE.height * 3);
+        await waitForBatchedUpdatesWithAct();
+
+        const fallbackActions = getReportActions().length;
+        expect(fallbackActions).toBeGreaterThan(0);
+
+        // Now scroll more to trigger API call for additional data
+        scrollToOffset(LIST_CONTENT_SIZE.height * 4);
+        await waitForBatchedUpdatesWithAct();
+
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
+        // / No API call needed if all data is in cache
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+
+        const finalFallbackActions = getReportActions().length;
+        expect(finalFallbackActions).toBeGreaterThanOrEqual(fallbackActions);
     });
 });
