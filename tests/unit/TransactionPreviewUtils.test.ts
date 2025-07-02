@@ -273,7 +273,7 @@ describe('TransactionPreviewUtils', () => {
             expect(result.shouldShowDescription).toBeTruthy();
         });
 
-        it('should show split share only if user is part of the split bill transaction', async () => {
+        it('should show split share only if user is part of the split bill transaction', () => {
             const functionArgs = {
                 ...basicProps,
                 isBillSplit: true,
@@ -292,7 +292,7 @@ describe('TransactionPreviewUtils', () => {
             expect(result.shouldShowSplitShare).toBeTruthy();
         });
 
-        it('should not show split share if user is not a participant', async () => {
+        it('should not show split share if user is not a participant', () => {
             const functionArgs = {
                 ...basicProps,
                 isBillSplit: true,
