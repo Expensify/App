@@ -2010,6 +2010,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.TRACK_EXPENSE]: undefined;
     [SCREENS.SUBMIT_EXPENSE]: undefined;
     [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
+    [SCREENS.ADD_ATTACHMENT]: AttachmentModalScreenParams;
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;
         backTo?: Routes;

@@ -8,6 +8,7 @@ const PROTECTED_SCREENS = {
     HOME: 'Home',
     CONCIERGE: 'Concierge',
     ATTACHMENTS: 'Attachments',
+    ADD_ATTACHMENT: 'AddAttachment',
     TRACK_EXPENSE: 'TrackExpense',
     SUBMIT_EXPENSE: 'SubmitExpense',
 } as const;

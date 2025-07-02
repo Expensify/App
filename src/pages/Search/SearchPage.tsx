@@ -438,8 +438,8 @@ function SearchPage({route}: SearchPageProps) {
                 setPdfFile(null);
                 setReceiptAndNavigate(pdfFile, true);
             }}
-            onPassword={() => setUploadReceiptError(CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE)}
-            onLoadError={() => setUploadReceiptError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED)}
+            onPassword={() => setUploadReceiptError(CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.PROTECTED_FILE)}
+            onLoadError={() => setUploadReceiptError(CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.FILE_CORRUPTED)}
         />
     ) : null;
 

@@ -29,7 +29,7 @@ type AttachmentModalModalProps = {
 
 type AttachmentModalScreenParams = AttachmentModalBaseContentProps &
     AttachmentModalModalProps & {
-        file?: FileObject;
+        file?: FileObject | FileObject[];
         reportID?: string;
         policyID?: string;
         transactionID?: string;
