@@ -226,7 +226,7 @@ function SearchAutocompleteList(
                     .map((details) => {
                         return {
                             name: details.displayName ?? Str.removeSMSDomain(details.login ?? ''),
-                            accountID: details?.accountID?.toString(),
+                            accountID: details.accountID.toString(),
                         };
                     });
 
@@ -304,7 +304,7 @@ function SearchAutocompleteList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY: {
                 const autocompleteList = autocompleteValue ? categoryAutocompleteList : recentCategoriesAutocompleteList;
                 const filteredCategories = autocompleteList
-                    .filter((category) => category.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(category.toLowerCase()))
+                    .filter((category) => category?.toLowerCase()?.includes(autocompleteValue?.toLowerCase()) && !alreadyAutocompletedKeys.includes(category?.toLowerCase()))
                     .sort()
                     .slice(0, 10);
 
@@ -424,7 +424,7 @@ function SearchAutocompleteList(
                 return filteredCards.map((card) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CARD_ID,
                     text: getCardDescription(card.cardID, allCards),
-                    autocompleteID: card?.cardID?.toString(),
+                    autocompleteID: card.cardID.toString(),
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                 }));
             }
