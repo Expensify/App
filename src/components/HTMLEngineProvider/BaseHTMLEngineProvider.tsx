@@ -85,9 +85,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.islarge === undefined) {
                         if (tnode.attributes.center === undefined) {
-                            return {whiteSpace: 'pre'};
+                            return {whiteSpace: 'pre', textDecorationLine: 'none', color: themeColors.link};
                         }
-                        return {whiteSpace: 'pre', flex: 1, justifyContent: 'center', textDecorationLine: 'none', color: themeColors.link};
+                        return {whiteSpace: 'pre', flex: 1, justifyContent: 'center'};
                     }
                     return {whiteSpace: 'pre', ...styles.onlyEmojisText};
                 },
