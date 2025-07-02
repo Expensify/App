@@ -10,8 +10,14 @@ permissions:
   checks: write
 
 jobs:
-  coverage:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        group:
+          - "src/"
+          - "tests/unit/"
+          - "tests/integration/"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,18 +32,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests with coverage
-        run: |
-          echo "Running tests with coverage..."
-          npm run test -- --coverage --ci --coverageReporters=lcov --watchAll=false --passWithNoTests
-          echo "Coverage files generated:"
-          ls -la coverage/ || echo "No coverage directory found"
-          if [ -f "coverage/lcov.info" ]; then
-            echo "lcov.info found, size: $(wc -l < coverage/lcov.info) lines"
-            head -20 coverage/lcov.info
-          else
-            echo "❌ lcov.info not found!"
-          fi
+      - name: Run tests
+        run: npm run test -- --testPathPattern=${{ matrix.group }} --coverage --ci --coverageReporters=lcov --watchAll=false --passWithNoTests
         env:
           CI: true
 
