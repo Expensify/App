@@ -164,7 +164,6 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
         };
     }, []);
 
-
     useEffect(() => {
         if (!validFilesToUpload.length) {
             return;
@@ -219,13 +218,15 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
                 return;
             }
 
-            const fileObjects = data.map((item) => {
-                let fileObject = item;
-                if ('getAsFile' in item && typeof item.getAsFile === 'function') {
-                    fileObject = item.getAsFile() as FileObject;
-                }
-                return fileObject;
-            }).filter((fileObject): fileObject is FileObject => fileObject !== null);
+            const fileObjects = data
+                .map((item) => {
+                    let fileObject = item;
+                    if ('getAsFile' in item && typeof item.getAsFile === 'function') {
+                        fileObject = item.getAsFile() as FileObject;
+                    }
+                    return fileObject;
+                })
+                .filter((fileObject): fileObject is FileObject => fileObject !== null);
 
             if (!fileObjects.length || fileObjects.some((fileObject) => !isDirectoryCheck(fileObject))) {
                 return;
@@ -241,7 +242,6 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
         },
         [isDirectoryCheck, validateFiles],
     );
-
 
     const closeModal = useCallback(() => {
         setIsModalOpen(false);
