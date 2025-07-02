@@ -302,7 +302,10 @@ function SettlementButton({
         }
 
         if (shouldShowPayElsewhereOption) {
-            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
+            buttonOptions.push({
+                ...paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE],
+                ...(!buttonOptions.length && shouldUseShortForm ? {text: translate('iou.pay')} : {}),
+            });
         }
 
         if (isInvoiceReport) {
@@ -587,7 +590,7 @@ function SettlementButton({
                     style={style}
                     shouldPopoverUseScrollView={paymentButtonOptions.length > 5}
                     containerStyles={paymentButtonOptions.length > 5 ? styles.settlementButtonListContainer : {}}
-                    wrapperStyle={[wrapperStyle, shouldUseShortForm && shouldUseSplitButton ? {minWidth: 90} : {}]}
+                    wrapperStyle={[wrapperStyle, shouldUseShortForm && shouldUseSplitButton && !paymentButtonOptions.length ? {minWidth: 90} : {}]}
                     disabledStyle={disabledStyle}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}
