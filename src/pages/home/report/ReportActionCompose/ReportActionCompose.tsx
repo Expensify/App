@@ -45,6 +45,7 @@ import {
     isAdminRoom,
     isAnnounceRoom,
     isChatRoom,
+    isClosedReport,
     isConciergeChatReport,
     isGroupChat,
     isInvoiceReport,
@@ -227,7 +228,9 @@ function ReportActionCompose({
             !isInvoiceReport(report) &&
             !isGroupChat(report) &&
             !isSettled(parentReport) &&
-            !isSettled(report),
+            !isSettled(report) &&
+            !isClosedReport(parentReport) &&
+            !isClosedReport(report),
         [report, parentReport],
     );
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
