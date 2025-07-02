@@ -209,14 +209,22 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
     const isOpen = isOpenExpenseReport(report);
     const isReimbursed = isSettled(report);
 
-    if (
-        !hasAnyViolations ||
-        isReimbursed ||
-        (!(isSubmitter && isOpen && policy?.areWorkflowsEnabled) &&
-            !canApprove(report, violations, policy, transactions, false) &&
-            !canPay(report, violations, policy, isReportArchived, policy, false))
-    ) {
+    // If the report is reimbursed, no review is needed
+    if (isReimbursed) {
         return false;
+    }
+
+    // If there are no violations, check if the user has permission to review
+    if (!hasAnyViolations) {
+        // Only allow review if the user is a submitter with open report and workflows enabled,
+        // or if they can approve/pay
+        if (
+            !(isSubmitter && isOpen && policy?.areWorkflowsEnabled) &&
+            !canApprove(report, violations, policy, transactions, false) &&
+            !canPay(report, violations, policy, isReportArchived, policy, false)
+        ) {
+            return false;
+        }
     }
 
     // We handle RTER violations independently because those are not configured via policy workflows

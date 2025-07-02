@@ -383,6 +383,9 @@ describe('getReportPreviewAction', () => {
     });
 
     it('canView should return true for reports in which we are waiting for user to add a bank account', async () => {
+        // Reset mock to ensure no violations for this test
+        (ReportUtils.hasViolations as jest.Mock).mockReturnValue(false);
+        
         const report = {
             ...createRandomReport(REPORT_ID),
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -402,5 +405,96 @@ describe('getReportPreviewAction', () => {
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+    });
+
+    it('canReview should return true for non-submitter viewing expense with violations', async () => {
+        (ReportUtils.hasViolations as jest.Mock).mockReturnValue(true);
+        
+        const DIFFERENT_USER_ACCOUNT_ID = 2;
+        const report: Report = {
+            ...createRandomReport(REPORT_ID),
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,  // Report should be open
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,    // Report should be open
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: DIFFERENT_USER_ACCOUNT_ID, // Different user owns the report
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.areWorkflowsEnabled = true;  // Enable workflows to match the scenario
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const REPORT_VIOLATION = {
+            HELD: 'held',
+        } as unknown as ReportViolations;
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${REPORT_ID}`, REPORT_VIOLATION);
+
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            transactionID: `${TRANSACTION_ID}`,
+        } as unknown as Transaction;
+
+        // Set up violations collection with the transaction ID
+        const violationsCollection: OnyxCollection<TransactionViolation[]> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.HOLD,
+                } as TransactionViolation,
+            ],
+        };
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        expect(getReportPreviewAction(violationsCollection, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
+    });
+
+    it('canReview should return true for member (not submitter) viewing held expense', async () => {
+        (ReportUtils.hasViolations as jest.Mock).mockReturnValue(true);
+        
+        const MEMBER_ACCOUNT_ID = 3;
+        const report: Report = {
+            ...createRandomReport(REPORT_ID),
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: MEMBER_ACCOUNT_ID, // Member owns the report but current user is not the owner
+            managerID: 4, // Different manager
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.areWorkflowsEnabled = true;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        
+        // Simulate a held expense violation
+        const REPORT_VIOLATION = {
+            HELD: 'held',
+        } as unknown as ReportViolations;
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${REPORT_ID}`, REPORT_VIOLATION);
+
+        const TRANSACTION_ID_2 = 2;
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            transactionID: `${TRANSACTION_ID_2}`,
+        } as unknown as Transaction;
+
+        // Set up violations collection with the transaction ID
+        const violationsCollection: OnyxCollection<TransactionViolation[]> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID_2}`]: [
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.HOLD,
+                    data: {
+                        reason: 'Testing hold expense',
+                    },
+                } as TransactionViolation,
+            ],
+        };
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        expect(getReportPreviewAction(violationsCollection, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
     });
 });
