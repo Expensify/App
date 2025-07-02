@@ -25,7 +25,7 @@ function SearchFiltersGroupByPage() {
 
     const listData: Array<ListItem<SearchGroupBy>> = useMemo(() => {
         return getGroupByOptions().map((groupOption) => ({
-            text: groupOption.text ?? translate(groupOption.translation),
+            text: groupOption.text,
             keyForList: groupOption.value,
             isSelected: selectedItem === groupOption.value,
         }));
