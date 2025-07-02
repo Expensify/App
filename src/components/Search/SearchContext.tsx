@@ -1,6 +1,6 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
-import {isTransactionListItemType, isTransactionMemberGroupListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isTransactionCardGroupListItemType, isTransactionListItemType, isTransactionMemberGroupListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {SearchContext, SearchContextData} from './types';
@@ -70,6 +70,13 @@ function SearchContextProvider({children}: ChildrenProps) {
         }
 
         if (data.length && data.every(isTransactionMemberGroupListItemType)) {
+            selectedReports = data
+                .flatMap((item) => item.transactions)
+                .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID}) => ({reportID, action, total, policyID}));
+        }
+
+        if (data.length && data.every(isTransactionCardGroupListItemType)) {
             selectedReports = data
                 .flatMap((item) => item.transactions)
                 .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
