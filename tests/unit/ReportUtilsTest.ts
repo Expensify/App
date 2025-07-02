@@ -3785,7 +3785,10 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('isWhisperAction', () => {});
+    describe('isWhisperAction', () => {
+        it('is a whisper action if the reportAction.message.whisperedTo is not empty', () => {});
+        it('is not a whisper action if the reportAction.originalMessage.whisperedTo is empty', () => {});
+    });
 
     describe('canFlagReportAction', () => {
         describe('a whisper action', () => {
