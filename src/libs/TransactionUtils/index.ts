@@ -17,6 +17,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     getCleanedTagName,
     getDistanceRateCustomUnitRate,
@@ -42,7 +43,7 @@ import {
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
@@ -438,7 +439,7 @@ function getUpdatedTransaction({
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport ? -amount : amount;
             const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
-                toLocaleDigit(TranslationStore.getCurrentLocale(), digit),
+                toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -478,7 +479,7 @@ function getUpdatedTransaction({
             const updatedAmount = isFromExpenseReport ? -amount : amount;
             const updatedCurrency = updatedMileageRate.currency ?? CONST.CURRENCY.USD;
             const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, translateLocal, (digit) =>
-                toLocaleDigit(TranslationStore.getCurrentLocale(), digit),
+                toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             );
 
             updatedTransaction.amount = updatedAmount;
@@ -559,18 +560,14 @@ function getDescription(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false, disableOppositeConversion = false): number {
+function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false): number {
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
-    if ((!isFromExpenseReport || isFromTrackedExpense) && !allowNegative) {
+    if (!isFromExpenseReport || isFromTrackedExpense) {
         const amount = transaction?.modifiedAmount ?? 0;
         if (amount) {
             return Math.abs(amount);
         }
         return Math.abs(transaction?.amount ?? 0);
-    }
-
-    if (disableOppositeConversion) {
-        return transaction?.amount ?? 0;
     }
 
     // Expense report case:
@@ -581,9 +578,8 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
         return -amount;
     }
 
-    amount = transaction?.amount ?? 0;
-
     // To avoid -0 being shown, lets only change the sign if the value is other than 0.
+    amount = transaction?.amount ?? 0;
     return amount ? -amount : 0;
 }
 
@@ -674,7 +670,7 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
         const {unit, rate} = mileageRate;
         const distanceInMeters = getDistanceInMeters(transaction, unit);
         return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
-            toLocaleDigit(TranslationStore.getCurrentLocale(), digit),
+            toLocaleDigit(IntlStore.getCurrentLocale(), digit),
         );
     }
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '');
@@ -688,7 +684,21 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
  * Return the list of modified attendees if present otherwise list of attendees
  */
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
-    return transaction?.modifiedAttendees ? transaction.modifiedAttendees : (transaction?.comment?.attendees ?? []);
+    const attendees = transaction?.modifiedAttendees ? transaction.modifiedAttendees : (transaction?.comment?.attendees ?? []);
+    if (attendees.length === 0) {
+        const details = getPersonalDetailByEmail(currentUserEmail);
+        attendees.push({
+            email: currentUserEmail,
+            login: details?.login ?? currentUserEmail,
+            displayName: details?.displayName ?? currentUserEmail,
+            accountID: currentUserAccountID,
+            text: details?.displayName ?? currentUserEmail,
+            searchText: details?.displayName ?? currentUserEmail,
+            avatarUrl: details?.avatarThumbnail ?? '',
+            selected: true,
+        });
+    }
+    return attendees;
 }
 
 /**
