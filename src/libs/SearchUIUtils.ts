@@ -544,10 +544,7 @@ function getTransactionsSections(
         // Use Map.get() for faster lookups with default values
         const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
         const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
-        // const isPolicyExpenseChat = !!reports.find((rp) => rp.policyID === transactionItem.policyID && rp.isPolicyExpenseChat);
 
-        // console.log({reports})
-        // console.log({isPolicyExpenseChat});
         const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
         const transactionSection: TransactionListItemType = {
@@ -568,7 +565,6 @@ function getTransactionsSections(
             isAmountColumnWide: shouldShowAmountInWideColumn,
             isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
             violations: transactionViolations,
-            // isPolicyExpenseChat,
 
             // Manually copying all the properties from transactionItem
             transactionID: transactionItem.transactionID,
@@ -972,7 +968,6 @@ function getReportSections(
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
             const to = transactionItem.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
-            // const isPolicyExpenseChat = !!reports.find((rp) => rp.policyID === transactionItem.policyID && rp.isPolicyExpenseChat);
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
@@ -995,7 +990,6 @@ function getReportSections(
                 violations: transactionViolations,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
-                // isPolicyExpenseChat,
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
@@ -1367,6 +1361,10 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
             return false;
         }
 
+        if (policy.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
+            return false;
+        }
+
         const isPolicyApprover = policy.approver === email;
         const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
             return employee.submitsTo === email || employee.forwardsTo === email;
@@ -1512,7 +1510,6 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
                         action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
                         exporter: [`${session.accountID}`],
-                        status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.PAID, CONST.SEARCH.STATUS.EXPENSE.DONE],
                         exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
                     });
                     return queryString;
