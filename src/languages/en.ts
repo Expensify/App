@@ -4261,6 +4261,11 @@ const translations = {
                     pleaseSelectFeedType: 'Please select a feed type before continuing',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Last day of the month',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Last business day of the month',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Custom day of month',
+            },
             assignCard: 'Assign card',
             findCard: 'Find card',
             cardNumber: 'Card number',
@@ -4277,6 +4282,7 @@ const translations = {
             startDateDescription: "We'll import all transaction from this date onwards. If no date is specified, we’ll go as far back as your bank allows.",
             fromTheBeginning: 'From the beginning',
             customStartDate: 'Custom start date',
+            customCloseDate: 'Custom close date',
             letsDoubleCheck: 'Let’s double check that everything looks right.',
             confirmationDescription: 'We’ll begin importing transactions immediately.',
             cardholder: 'Cardholder',
@@ -4498,6 +4504,7 @@ const translations = {
                 removeCardFeedDescription: 'Are you sure you want to remove this card feed? This will unassign all cards.',
                 error: {
                     feedNameRequired: 'Card feed name is required',
+                    statementCloseDateRequired: 'Please select a statement close date.',
                 },
                 corporate: 'Restrict deleting transactions',
                 personal: 'Allow deleting transactions',
@@ -4522,6 +4529,8 @@ const translations = {
                 expensifyCardBannerTitle: 'Get the Expensify Card',
                 expensifyCardBannerSubtitle: 'Enjoy cash back on every US purchase, up to 50% off your Expensify bill, unlimited virtual cards, and so much more.',
                 expensifyCardBannerLearnMoreButton: 'Learn more',
+                statementCloseDateTitle: 'Statement close date',
+                statementCloseDateDescription: 'Let us know when your card statement closes, and we’ll create a matching statement in Expensify.',
             },
             workflows: {
                 title: 'Workflows',

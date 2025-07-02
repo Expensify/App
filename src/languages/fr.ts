@@ -4288,6 +4288,11 @@ const translations = {
                     pleaseSelectFeedType: 'Veuillez sélectionner un type de flux avant de continuer',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Dernier jour du mois',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Dernier jour ouvrable du mois',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Jour personnalisé du mois',
+            },
             assignCard: 'Attribuer la carte',
             findCard: 'Trouver la carte',
             cardNumber: 'Numéro de carte',
@@ -4304,6 +4309,7 @@ const translations = {
             startDateDescription: "Nous importerons toutes les transactions à partir de cette date. Si aucune date n'est spécifiée, nous remonterons aussi loin que votre banque le permet.",
             fromTheBeginning: 'Depuis le début',
             customStartDate: 'Date de début personnalisé',
+            customCloseDate: 'Date de clôture personnalisée',
             letsDoubleCheck: 'Vérifions que tout est correct.',
             confirmationDescription: 'Nous commencerons à importer les transactions immédiatement.',
             cardholder: 'Titulaire de carte',
@@ -4531,6 +4537,7 @@ const translations = {
                 removeCardFeedDescription: 'Êtes-vous sûr de vouloir supprimer ce flux de cartes ? Cela désassignera toutes les cartes.',
                 error: {
                     feedNameRequired: 'Le nom du flux de carte est requis',
+                    statementCloseDateRequired: 'Veuillez sélectionner une date de clôture du relevé.',
                 },
                 corporate: 'Restreindre la suppression des transactions',
                 personal: 'Autoriser la suppression des transactions',
@@ -4558,6 +4565,8 @@ const translations = {
                 expensifyCardBannerSubtitle:
                     "Profitez de remises en argent sur chaque achat aux États-Unis, jusqu'à 50 % de réduction sur votre facture Expensify, des cartes virtuelles illimitées, et bien plus encore.",
                 expensifyCardBannerLearnMoreButton: 'En savoir plus',
+                statementCloseDateTitle: 'Date de clôture du relevé',
+                statementCloseDateDescription: 'Indiquez-nous la date de clôture de votre relevé de carte et nous créerons un relevé correspondant dans Expensify.',
             },
             workflows: {
                 title: 'Workflows',
