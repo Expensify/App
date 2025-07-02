@@ -1,7 +1,7 @@
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import {decorateRangesWithShortMentions, getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 
-const TEST_COMPANY_DOMAIN = 'mycompany.com';
+const TEST_COMPANY_DOMAIN = 'myCompany.com';
 
 describe('decorateRangesWithShortMentions', () => {
     test('returns empty list for empty text', () => {
@@ -163,7 +163,7 @@ describe('decorateRangesWithShortMentions', () => {
 });
 
 describe('getParsedMessageWithShortMentions', () => {
-    const availableMentionLogins = ['person@mycompany.com', 'john.doe@mycompany.com', 'steven@someother.org'];
+    const availableMentionLogins = ['person@myCompany.com', 'john.doe@myCompany.com', 'steven@someother.org'];
 
     test('returns text without any mentions unchanged', () => {
         const result = getParsedMessageWithShortMentions({
@@ -192,7 +192,7 @@ describe('getParsedMessageWithShortMentions', () => {
             userEmailDomain: TEST_COMPANY_DOMAIN,
             parserOptions: {},
         });
-        expect(result).toEqual('<mention-user>@john.doe@mycompany.com</mention-user> is a correct short mention');
+        expect(result).toEqual('<mention-user>@john.doe@myCompany.com</mention-user> is a correct short mention');
     });
 
     test('returns text with simple short mention unchanged, when full mention was not in the available logins', () => {
@@ -213,12 +213,12 @@ describe('getParsedMessageWithShortMentions', () => {
             parserOptions: {},
         });
         expect(result).toEqual(
-            '<mention-user>@john.doe@mycompany.com</mention-user> and <mention-user>@john.doe@othermail.com</mention-user> and another <mention-user>@person@mycompany.com</mention-user>',
+            '<mention-user>@john.doe@myCompany.com</mention-user> and <mention-user>@john.doe@othermail.com</mention-user> and another <mention-user>@person@myCompany.com</mention-user>',
         );
     });
 
     test("returns text with short mention that is followed by special ' char", () => {
         const result = getParsedMessageWithShortMentions({text: `this is @john.doe's mention`, availableMentionLogins, userEmailDomain: TEST_COMPANY_DOMAIN, parserOptions: {}});
-        expect(result).toEqual(`this is <mention-user>@john.doe@mycompany.com</mention-user>'s mention`);
+        expect(result).toEqual(`this is <mention-user>@john.doe@myCompany.com</mention-user>'s mention`);
     });
 });
