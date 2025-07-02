@@ -7885,8 +7885,8 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
             .filter((violation) => violation?.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
             .flatMap((violation) => violation?.data?.duplicates ?? [])
             .map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
-        
-        removeSettledAndApprovedTransactions(duplicates).forEach((duplicate) => updateDuplicateTransactionViolation(transactionID, duplicateID, optimisticData, failureData));
+
+        removeSettledAndApprovedTransactions(duplicates).forEach((duplicateID) => updateDuplicateTransactionViolation(transactionID, duplicateID, optimisticData, failureData));
     }
 
     if (shouldDeleteTransactionThread) {
