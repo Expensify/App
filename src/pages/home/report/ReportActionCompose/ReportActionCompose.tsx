@@ -559,10 +559,8 @@ function ReportActionCompose({
                             onModalShow={() => setIsAttachmentPreviewActive(true)}
                             onModalHide={onAttachmentPreviewClose}
                             shouldDisableSendButton={!!exceededMaxLength}
-                            reportID={reportID}
-                            shouldHandleNavigationBack
                         >
-                            {({displayFileInModal, displayMultipleFilesInModal}) => {
+                            {({displayFilesInModal}) => {
                                 const handleAttachmentDrop = (event: DragEvent) => {
                                     if (isAttachmentPreviewActive) {
                                         return;
@@ -573,22 +571,21 @@ function ReportActionCompose({
                                             file.uri = URL.createObjectURL(file);
                                             return file;
                                         });
-                                        displayMultipleFilesInModal(files);
+                                        displayFilesInModal(files);
                                         return;
                                     }
 
                                     const data = event.dataTransfer?.files[0];
                                     if (data) {
                                         data.uri = URL.createObjectURL(data);
-                                        displayFileInModal(data);
+                                        displayFilesInModal([data]);
                                     }
                                 };
 
                                 return (
                                     <>
                                         <AttachmentPickerWithMenuItems
-                                            displayFileInModal={displayFileInModal}
-                                            displayMultipleFilesInModal={displayMultipleFilesInModal}
+                                            displayFilesInModal={displayFilesInModal}
                                             reportID={reportID}
                                             report={report}
                                             currentUserPersonalDetails={currentUserPersonalDetails}
@@ -632,7 +629,7 @@ function ReportActionCompose({
                                             inputPlaceholder={inputPlaceholder}
                                             isComposerFullSize={isComposerFullSize}
                                             setIsFullComposerAvailable={setIsFullComposerAvailable}
-                                            displayFileInModal={displayFileInModal}
+                                            displayFilesInModal={displayFilesInModal}
                                             onCleared={submitForm}
                                             isBlockedFromConcierge={isBlockedFromConcierge}
                                             disabled={disabled}
@@ -673,7 +670,7 @@ function ReportActionCompose({
                                                     const data = event.dataTransfer?.files[0];
                                                     if (data) {
                                                         data.uri = URL.createObjectURL(data);
-                                                        displayFileInModal(data);
+                                                        displayFilesInModal([data]);
                                                     }
                                                 }}
                                             />

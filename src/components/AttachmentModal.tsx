@@ -14,7 +14,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import fileDownload from '@libs/fileDownload';
-import {cleanFileName, getFileName, getFileValidationErrorText, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import {getFileName, getFileValidationErrorText, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, isReceiptBeingScanned} from '@libs/TransactionUtils';
@@ -62,8 +62,6 @@ type ImagePickerResponse = {
 type FileObject = Partial<File | ImagePickerResponse>;
 
 type ChildrenProps = {
-    displayFileInModal: (data: FileObject) => void;
-    displayMultipleFilesInModal: (data: FileObject[]) => void;
     show: () => void;
 };
 
@@ -219,6 +217,8 @@ function AttachmentModal({
     const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
 
+    // TODO: remove all the logic related to validating attachments for ReportActionCompose in a follow-up for easier testing and preventing regressions
+
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
             ? {
@@ -348,15 +348,6 @@ function AttachmentModal({
         [],
     );
 
-    const isDirectoryCheck = useCallback((data: FileObject) => {
-        if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
-            setFileError(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
-            setIsFileErrorModalVisible(true);
-            return false;
-        }
-        return true;
-    }, []);
-
     const handleOpenModal = useCallback(
         (inputSource: string, fileObject: FileObject) => {
             const inputModalType = getModalType(inputSource, fileObject);
@@ -406,61 +397,6 @@ function AttachmentModal({
             setFileError(null);
         });
     };
-
-    const validateAndDisplayMultipleFilesToUpload = useCallback(
-        (data: FileObject[]) => {
-            if (!data?.length || data.some((fileObject) => !isDirectoryCheck(fileObject))) {
-                return;
-            }
-            if (data.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
-                const validFiles = data.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
-                setValidFilesToUpload(validFiles);
-                setFileError(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
-                setIsFileErrorModalVisible(true);
-                return;
-            }
-            validateFiles(data);
-        },
-        [isDirectoryCheck, validateFiles],
-    );
-
-    const validateAndDisplayFileToUpload = useCallback(
-        (data: FileObject) => {
-            if (!data || !isDirectoryCheck(data)) {
-                return;
-            }
-            let fileObject = data;
-            if ('getAsFile' in data && typeof data.getAsFile === 'function') {
-                fileObject = data.getAsFile() as FileObject;
-            }
-            if (!fileObject) {
-                return;
-            }
-
-            isValidFile(fileObject).then((isValid) => {
-                if (!isValid) {
-                    return;
-                }
-                if (fileObject instanceof File) {
-                    /**
-                     * Cleaning file name, done here so that it covers all cases:
-                     * upload, drag and drop, copy-paste
-                     */
-                    let updatedFile = fileObject;
-                    const cleanName = cleanFileName(updatedFile.name);
-                    if (updatedFile.name !== cleanName) {
-                        updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
-                    }
-                    const inputSource = URL.createObjectURL(updatedFile);
-                    updatedFile.uri = inputSource;
-                    handleOpenModal(inputSource, updatedFile);
-                } else if (fileObject.uri) {
-                    handleOpenModal(fileObject.uri, fileObject);
-                }
-            });
-        },
-        [isDirectoryCheck, isValidFile, handleOpenModal],
-    );
 
     /**
      * Closes the modal.
@@ -762,11 +698,7 @@ function AttachmentModal({
                 />
             )}
 
-            {children?.({
-                displayFileInModal: validateAndDisplayFileToUpload,
-                displayMultipleFilesInModal: validateAndDisplayMultipleFilesToUpload,
-                show: openModal,
-            })}
+            {children?.({show: openModal})}
         </>
     );
 }

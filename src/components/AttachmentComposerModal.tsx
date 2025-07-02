@@ -1,25 +1,26 @@
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { InteractionManager, View } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { FadeIn, LayoutAnimationConfig, useSharedValue } from 'react-native-reanimated';
-import type { ValueOf } from 'type-fest';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import type {View} from 'react-native';
+import {InteractionManager} from 'react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import Animated, {FadeIn, LayoutAnimationConfig} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
+import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
+import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
+import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
+import type {Attachment} from '@components/Attachments/types';
+import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
+import HeaderGap from '@components/HeaderGap';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Modal from '@components/Modal';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { cleanFileName, getFileValidationErrorText, validateAttachment, validateImageForCorruption } from '@libs/fileDownload/FileUtils';
+import {cleanFileName, getFileValidationErrorText, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import type ModalType from '@src/types/utils/ModalType';
 import viewRef from '@src/types/utils/viewRef';
-import AttachmentCarouselPagerContext from './Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
-import AttachmentView from './Attachments/AttachmentView';
-import useAttachmentErrors from './Attachments/AttachmentView/useAttachmentErrors';
-import Button from './Button';
-import ConfirmModal from './ConfirmModal';
-import HeaderGap from './HeaderGap';
-import HeaderWithBackButton from './HeaderWithBackButton';
-import Modal from './Modal';
-import SafeAreaConsumer from './SafeAreaConsumer';
-
 
 type ImagePickerResponse = {
     height?: number;
@@ -33,62 +34,45 @@ type ImagePickerResponse = {
 type FileObject = Partial<File | ImagePickerResponse>;
 
 type ChildrenProps = {
-    displayFileInModal: (data: FileObject) => void;
-    displayMultipleFilesInModal: (data: FileObject[]) => void;
+    displayFilesInModal: (data: FileObject[]) => void;
     show: () => void;
 };
 
 type AttachmentComposerModalProps = {
     /** Optional callback to fire when we want to preview an image and approve it for use. */
-    onConfirm?: ((file: FileObject | FileObject[]) => void) | null;
+    onConfirm: ((file: FileObject | FileObject[]) => void) | null;
 
     /** Title shown in the header of the modal */
-    headerTitle?: string;
-
-    /** The ID of the current report */
-    reportID?: string;
+    headerTitle: string;
 
     /** Optional callback to fire when we want to do something after modal show. */
-    onModalShow?: () => void;
+    onModalShow: () => void;
 
     /** Optional callback to fire when we want to do something after modal hide. */
-    onModalHide?: () => void;
+    onModalHide: () => void;
 
     /** A function as a child to pass modal launching methods to */
-    children?: React.FC<ChildrenProps>;
+    children: React.FC<ChildrenProps>;
 
     /** Should disable send button */
-    shouldDisableSendButton?: boolean;
-
-    /** Should handle navigation back */
-    shouldHandleNavigationBack?: boolean;
+    shouldDisableSendButton: boolean;
 };
 
-function AttachmentComposerModal({
-    onConfirm,
-    reportID,
-    onModalShow = () => {},
-    onModalHide = () => {},
-    headerTitle,
-    children,
-    shouldDisableSendButton = false,
-    shouldHandleNavigationBack,
-}: AttachmentComposerModalProps) {
+function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide = () => {}, headerTitle, children, shouldDisableSendButton = false}: AttachmentComposerModalProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {setAttachmentError, clearAttachmentErrors} = useAttachmentErrors();
+    const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
+
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [fileError, setFileError] = useState<ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null>(null);
     const [isFileErrorModalVisible, setIsFileErrorModalVisible] = useState(false);
-    const [sourceState, setSourceState] = useState<string>('');
     const [modalType, setModalType] = useState<ModalType>(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
-    const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const nope = useSharedValue(false);
     const [validFilesToUpload, setValidFilesToUpload] = useState<FileObject[]>([]);
-    const {setAttachmentError, clearAttachmentErrors} = useAttachmentErrors();
-
-    const [file, setFile] = useState<FileObject | undefined>(undefined);
-    const {translate} = useLocalize();
+    const [attachments, setAttachments] = useState<Attachment[]>([]);
+    const [page, setPage] = useState<number>(0);
+    const [currentAttachment, setCurrentAttachment] = useState<Attachment | null>(null);
 
     /**
      * If our attachment is a PDF, return the unswipeable Modal type.
@@ -96,9 +80,7 @@ function AttachmentComposerModal({
     const getModalType = useCallback(
         (sourceURL: string, fileObject: FileObject) => {
             const fileName = fileObject?.name ?? translate('attachmentView.unknownFilename');
-            return sourceURL && (sourceURL.includes('.pdf') || fileName.includes('.pdf'))
-                ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
-                : CONST.MODAL.MODAL_TYPE.CENTERED;
+            return sourceURL && (sourceURL.includes('.pdf') || fileName.includes('.pdf')) ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.CENTERED;
         },
         [translate],
     );
@@ -107,26 +89,22 @@ function AttachmentComposerModal({
      * Execute the onConfirm callback and close the modal.
      */
     const submitAndClose = useCallback(() => {
-        // If the modal has already been closed or the confirm button is disabled
-        // do not submit.
-        if (!isModalOpen || isConfirmButtonDisabled) {
+        // If the modal has already been closed
+        if (!isModalOpen) {
             return;
         }
 
         if (onConfirm) {
             if (validFilesToUpload.length) {
                 onConfirm(validFilesToUpload);
-            } else {
-                onConfirm(Object.assign(file ?? {}, {source: sourceState} as FileObject));
+            } else if (currentAttachment) {
+                onConfirm(currentAttachment.file ?? (currentAttachment as FileObject));
             }
         }
 
         setIsModalOpen(false);
-    }, [isModalOpen, isConfirmButtonDisabled, onConfirm, file, sourceState, validFilesToUpload]);
+    }, [isModalOpen, onConfirm, validFilesToUpload, currentAttachment]);
 
-    /**
-     * Close the confirm modals.
-     */
     const closeConfirmModal = useCallback(() => {
         setIsFileErrorModalVisible(false);
     }, []);
@@ -151,6 +129,7 @@ function AttachmentComposerModal({
         [],
     );
 
+    // TODO: Check if this function is still needed, as it doesn't work.
     const isDirectoryCheck = useCallback((data: FileObject) => {
         if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
             setFileError(CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED);
@@ -160,44 +139,68 @@ function AttachmentComposerModal({
         return true;
     }, []);
 
-    const handleOpenModal = useCallback(
-        (inputSource: string, fileObject: FileObject) => {
-            const inputModalType = getModalType(inputSource, fileObject);
-            setIsModalOpen(true);
-            setSourceState(inputSource);
-            setFile(fileObject);
-            setModalType(inputModalType);
-        },
-        [getModalType],
-    );
+    const cleanFileObjectName = useCallback((fileObject: FileObject): FileObject => {
+        if (fileObject instanceof File) {
+            const cleanName = cleanFileName(fileObject.name);
+            if (fileObject.name !== cleanName) {
+                const updatedFile = new File([fileObject], cleanName, {type: fileObject.type});
+                const inputSource = URL.createObjectURL(updatedFile);
+                updatedFile.uri = inputSource;
+                return updatedFile;
+            }
+            if (!fileObject.uri) {
+                const inputSource = URL.createObjectURL(fileObject);
+                // eslint-disable-next-line no-param-reassign
+                fileObject.uri = inputSource;
+            }
+        }
+        return fileObject;
+    }, []);
+
+    const convertFileToAttachment = useCallback((fileObject: FileObject, source: string): Attachment => {
+        return {
+            source,
+            file: fileObject,
+        };
+    }, []);
+
 
     useEffect(() => {
         if (!validFilesToUpload.length) {
             return;
         }
 
-        if (validFilesToUpload.length > 0) {
-            if (fileError) {
-                return;
+        if (validFilesToUpload.length > 0 && !fileError) {
+            // Convert all files to attachments
+            const newAttachments = validFilesToUpload.map((fileObject) => {
+                const source = fileObject.uri ?? '';
+                return convertFileToAttachment(fileObject, source);
+            });
+
+            const firstAttachment = newAttachments.at(0) ?? null;
+            setAttachments(newAttachments);
+            setCurrentAttachment(firstAttachment);
+            setPage(0);
+
+            if (firstAttachment?.file) {
+                const inputModalType = getModalType(firstAttachment.source as string, firstAttachment.file);
+                setModalType(inputModalType);
             }
-            const fileToDisplay = validFilesToUpload.at(0);
-            if (fileToDisplay) {
-                const inputSource = fileToDisplay.uri ?? '';
-                handleOpenModal(inputSource, fileToDisplay);
-            }
+
+            setIsModalOpen(true);
         }
-    }, [fileError, handleOpenModal, validFilesToUpload]);
+    }, [fileError, validFilesToUpload, convertFileToAttachment, getModalType]);
 
     const validateFiles = useCallback(
         (data: FileObject[]) => {
             let validFiles: FileObject[] = [];
 
-            Promise.all(data.map((fileToUpload) => isValidFile(fileToUpload, true).then((isValid) => (isValid ? fileToUpload : null)))).then((results) => {
+            Promise.all(data.map((fileToUpload) => isValidFile(fileToUpload, true).then((isValid) => (isValid ? cleanFileObjectName(fileToUpload) : null)))).then((results) => {
                 validFiles = results.filter((validFile): validFile is FileObject => validFile !== null);
                 setValidFilesToUpload(validFiles);
             });
         },
-        [isValidFile],
+        [isValidFile, cleanFileObjectName],
     );
 
     const confirmAndContinue = () => {
@@ -210,60 +213,36 @@ function AttachmentComposerModal({
         });
     };
 
-    const validateAndDisplayFileToUpload = useCallback(
-        (data: FileObject) => {
-            if (!data || !isDirectoryCheck(data)) {
-                return;
-            }
-            let fileObject = data;
-            if ('getAsFile' in data && typeof data.getAsFile === 'function') {
-                fileObject = data.getAsFile() as FileObject;
-            }
-            if (!fileObject) {
-                return;
-            }
-
-            isValidFile(fileObject).then((isValid) => {
-                if (!isValid) {
-                    return;
-                }
-                if (fileObject instanceof File) {
-                    let updatedFile = fileObject;
-                    const cleanName = cleanFileName(updatedFile.name);
-                    if (updatedFile.name !== cleanName) {
-                        updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
-                    }
-                    const inputSource = URL.createObjectURL(updatedFile);
-                    updatedFile.uri = inputSource;
-                    handleOpenModal(inputSource, updatedFile);
-                } else if (fileObject.uri) {
-                    handleOpenModal(fileObject.uri, fileObject);
-                }
-            });
-        },
-        [isDirectoryCheck, isValidFile, handleOpenModal],
-    );
-
     const validateAndDisplayMultipleFilesToUpload = useCallback(
         (data: FileObject[]) => {
-            if (!data?.length || data.some((fileObject) => !isDirectoryCheck(fileObject))) {
+            if (!data?.length) {
                 return;
             }
-            if (data.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
-                const validFiles = data.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
+
+            const fileObjects = data.map((item) => {
+                let fileObject = item;
+                if ('getAsFile' in item && typeof item.getAsFile === 'function') {
+                    fileObject = item.getAsFile() as FileObject;
+                }
+                return fileObject;
+            }).filter((fileObject): fileObject is FileObject => fileObject !== null);
+
+            if (!fileObjects.length || fileObjects.some((fileObject) => !isDirectoryCheck(fileObject))) {
+                return;
+            }
+            if (fileObjects.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
+                const validFiles = fileObjects.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
                 setValidFilesToUpload(validFiles);
                 setFileError(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
                 setIsFileErrorModalVisible(true);
                 return;
             }
-            validateFiles(data);
+            validateFiles(fileObjects);
         },
         [isDirectoryCheck, validateFiles],
     );
 
-    /**
-     * Closes the modal.
-     */
+
     const closeModal = useCallback(() => {
         setIsModalOpen(false);
     }, []);
@@ -273,29 +252,11 @@ function AttachmentComposerModal({
         closeModal();
     }, [closeConfirmModal, closeModal]);
 
-    /**
-     *  open the modal
-     */
     const openModal = useCallback(() => {
         setIsModalOpen(true);
     }, []);
 
     const headerTitleNew = headerTitle ?? translate('reportActionCompose.sendAttachment');
-
-    const context = useMemo(
-        () => ({
-            pagerItems: [{source: sourceState, index: 0, isActive: true}],
-            activePage: 0,
-            pagerRef: undefined,
-            isPagerScrolling: nope,
-            isScrollEnabled: nope,
-            onTap: () => {},
-            onScaleChanged: () => {},
-            onSwipeDown: closeModal,
-            onAttachmentError: setAttachmentError,
-        }),
-        [closeModal, setAttachmentError, nope, sourceState],
-    );
 
     const submitRef = useRef<View | HTMLElement>(null);
 
@@ -307,13 +268,14 @@ function AttachmentComposerModal({
                 isVisible={isModalOpen}
                 onModalShow={() => {
                     onModalShow();
-                    setShouldLoadAttachment(true);
                 }}
                 onModalHide={() => {
                     onModalHide();
-                    setShouldLoadAttachment(false);
                     clearAttachmentErrors();
                     setValidFilesToUpload([]);
+                    setAttachments([]);
+                    setCurrentAttachment(null);
+                    setPage(0);
                 }}
                 propagateSwipe
                 initialFocus={() => {
@@ -322,7 +284,7 @@ function AttachmentComposerModal({
                     }
                     return submitRef.current;
                 }}
-                shouldHandleNavigationBack={shouldHandleNavigationBack}
+                shouldHandleNavigationBack
             >
                 <GestureHandlerRootView style={styles.flex1}>
                     {shouldUseNarrowLayout && <HeaderGap />}
@@ -337,25 +299,22 @@ function AttachmentComposerModal({
                         shouldSetModalVisibility={false}
                         shouldDisplayHelpButton={false}
                     />
-                    <View style={styles.imageModalImageCenterContainer}>
-                        {!!sourceState &&
-                            shouldLoadAttachment && (
-                                <AttachmentCarouselPagerContext.Provider value={context}>
-                                    <AttachmentView
-                                        containerStyles={[styles.mh5]}
-                                        source={sourceState}
-                                        isAuthTokenRequired={false}
-                                        file={file}
-                                        onToggleKeyboard={setIsConfirmButtonDisabled}
-                                        isUsedInAttachmentModal
-                                        reportID={reportID}
-                                    />
-                                </AttachmentCarouselPagerContext.Provider>
-                            )}
-                    </View>
-                    {/* Show confirmation button */}
+                    {attachments.length > 0 && !!currentAttachment && (
+                        <AttachmentCarouselView
+                            attachments={attachments}
+                            source={currentAttachment.source}
+                            page={page}
+                            setPage={setPage}
+                            onClose={closeModal}
+                            autoHideArrows={autoHideArrows}
+                            cancelAutoHideArrow={cancelAutoHideArrows}
+                            setShouldShowArrows={setShouldShowArrows}
+                            onAttachmentError={setAttachmentError}
+                            shouldShowArrows={shouldShowArrows}
+                        />
+                    )}
                     <LayoutAnimationConfig skipEntering>
-                        {!!onConfirm && !isConfirmButtonDisabled && (
+                        {(validFilesToUpload.length > 0 || !!currentAttachment) && (
                             <SafeAreaConsumer>
                                 {({safeAreaPaddingBottomStyle}) => (
                                     <Animated.View
@@ -370,7 +329,7 @@ function AttachmentComposerModal({
                                             textStyles={[styles.buttonConfirmText]}
                                             text={translate('common.send')}
                                             onPress={submitAndClose}
-                                            isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
+                                            isDisabled={shouldDisableSendButton}
                                             pressOnEnter
                                         />
                                     </Animated.View>
@@ -392,8 +351,7 @@ function AttachmentComposerModal({
             />
 
             {children?.({
-                displayFileInModal: validateAndDisplayFileToUpload,
-                displayMultipleFilesInModal: validateAndDisplayMultipleFilesToUpload,
+                displayFilesInModal: validateAndDisplayMultipleFilesToUpload,
                 show: openModal,
             })}
         </>
