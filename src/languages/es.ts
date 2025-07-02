@@ -576,19 +576,17 @@ const translations = {
         rateOutOfPolicy: 'Tasa fuera de póliza',
         leaveWorkspace: 'Salir del espacio de trabajo',
         leaveWorkspaceConfirmation: 'Si sales de este espacio de trabajo, no podrás enviar gastos a él.',
-        leaveWorkspaceConfirmationForAuditor: 'Si sales de este espacio de trabajo, no podrás ver sus informes y configuraciones.',
-        leaveWorkspaceConfirmationForAdmin: 'Si sales de este espacio de trabajo, no podrás gestionar su configuración.',
-        leaveWorkspaceConfirmationForApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationAuditor: 'Si sales de este espacio de trabajo, no podrás ver sus informes y configuraciones.',
+        leaveWorkspaceConfirmationAdmin: 'Si sales de este espacio de trabajo, no podrás gestionar su configuración.',
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
             `Si sales de este espacio de trabajo, serás reemplazado en el flujo de aprobación por ${workspaceOwner}, el propietario del espacio de trabajo.`,
-        cannotRemoveUserDueToProcessingReport: ({memberName}: {memberName: string}) =>
-            `${memberName} tiene un informe en proceso pendiente de acción. Pídele que complete la acción requerida antes de eliminarlo del espacio de trabajo.`,
-        leaveWorkspaceConfirmationForExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
             `Si sales de este espacio de trabajo, serás reemplazado como el exportador preferido por ${workspaceOwner}, el propietario del espacio de trabajo.`,
-        leaveWorkspaceConfirmationForTechnicalContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
             `Si sales de este espacio de trabajo, serás reemplazado como el exportador preferido por ${workspaceOwner}, el propietario del espacio de trabajo.`,
         leaveWorkspaceReimburser:
             'No puedes salir de este espacio de trabajo como reembolsador. Por favor, establece un nuevo reembolsador en Espacios de trabajo > Realizar o rastrear pagos y luego inténtalo de nuevo.',
-        cannotLeaveWorkspaceOutstandingProcessingReport: 'Por favor, apruebe cualquier informe de gastos pendiente que se le haya enviado antes de abandonar este espacio de trabajo.',
+        cannotLeaveWorkspaceOutstandingReport: 'Por favor, apruebe cualquier informe de gastos pendiente que se le haya enviado antes de abandonar este espacio de trabajo.',
         reimbursable: 'Reembolsable',
         editYourProfile: 'Edita tu perfil',
         comments: 'Comentarios',
@@ -4811,8 +4809,7 @@ const translations = {
             removeGroupMemberButtonTitle: 'Eliminar del grupo',
             removeRoomMemberButtonTitle: 'Eliminar del chat',
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `¿Estás seguro de que deseas eliminar a ${memberName}?`,
-            removeMemberPromptForPendingApproval: ({memberName}: {memberName: string}) =>
-                `${memberName} tiene gastos pendientes por aprobar. Por favor, pideles que aproben, o tomen el control de sus informes antes de eliminarlos del espacio de trabajo.`,
+
             removeMemberTitle: 'Eliminar miembro',
             transferOwner: 'Transferir la propiedad',
             makeMember: 'Hacer miembro',
@@ -4841,6 +4838,10 @@ const translations = {
                 `Si eliminas a ${memberName} de este espacio de trabajo, lo reemplazaremos como el exportador preferido con ${workspaceOwner}, el propietario del espacio de trabajo.`,
             removeMemberPromptForTechnicalContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `If you remove ${memberName} from this workspace, we'll replace them as the technical contact with ${workspaceOwner}, the workspace owner.`,
+            removeMemberPromptForPendingApproval: ({memberName}: {memberName: string}) =>
+                `${memberName} tiene gastos pendientes por aprobar. Por favor, pideles que aproben, o tomen el control de sus informes antes de eliminarlos del espacio de trabajo.`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} tiene un informe en proceso pendiente de acción. Pídele que complete la acción requerida antes de eliminarlo del espacio de trabajo.`,
         },
         accounting: {
             settings: 'configuración',

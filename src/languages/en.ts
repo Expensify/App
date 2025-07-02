@@ -585,18 +585,16 @@ const translations = {
         rateOutOfPolicy: 'Rate out of policy',
         leaveWorkspace: 'Leave workspace',
         leaveWorkspaceConfirmation: "If you leave this workspace, you won't be able to submit expenses to it.",
-        leaveWorkspaceConfirmationForAuditor: "If you leave this workspace, you won't be able to view its reports and settings.",
-        leaveWorkspaceConfirmationForAdmin: "If you leave this workspace, you won't be able to manage its settings.",
-        leaveWorkspaceConfirmationForApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationAuditor: "If you leave this workspace, you won't be able to view its reports and settings.",
+        leaveWorkspaceConfirmationAdmin: "If you leave this workspace, you won't be able to manage its settings.",
+        leaveWorkspaceConfirmationApprover: ({workspaceOwner}: {workspaceOwner: string}) =>
             `If you leave this workspace, you'll be replaced in the approval workflow by ${workspaceOwner}, the workspace owner.`,
-        cannotRemoveUserDueToProcessingReport: ({memberName}: {memberName: string}) =>
-            `${memberName} has an outstanding processing report to take action on. Please ask them to complete the required action before removing them from the workspace.`,
-        leaveWorkspaceConfirmationForExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationExporter: ({workspaceOwner}: {workspaceOwner: string}) =>
             `If you leave this workspace, you'll be replaced as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
-        leaveWorkspaceConfirmationForTechnicalContact: ({workspaceOwner}: {workspaceOwner: string}) =>
+        leaveWorkspaceConfirmationTechContact: ({workspaceOwner}: {workspaceOwner: string}) =>
             `If you leave this workspace, you'll be replaced as the technical contact with ${workspaceOwner}, the workspace owner.`,
         leaveWorkspaceReimburser: "You can't leave this workspace as the reimburser. Please set a new reimburser in Workspaces > Make or track payments, then try again.",
-        cannotLeaveWorkspaceOutstandingProcessingReport: 'Please approve any outstanding expense reports submitted to you before leaving this workspace.',
+        cannotLeaveWorkspaceOutstandingReport: 'Please approve any outstanding expense reports submitted to you before leaving this workspace.',
         reimbursable: 'Reimbursable',
         editYourProfile: 'Edit your profile',
         comments: 'Comments',
@@ -4787,6 +4785,7 @@ const translations = {
             }),
             removeMembersWarningPrompt: ({memberName, ownerName}: RemoveMembersWarningPrompt) =>
                 `${memberName} is an approver in this workspace. When you unshare this workspace with them, we’ll replace them in the approval workflow with the workspace owner, ${ownerName}`,
+
             removeMembersTitle: () => ({
                 one: 'Remove member',
                 other: 'Remove members',
@@ -4823,6 +4822,8 @@ const translations = {
                 `If you remove ${memberName} from this workspace, we'll replace them as the preferred exporter with ${workspaceOwner}, the workspace owner.`,
             removeMemberPromptForTechnicalContact: ({memberName, workspaceOwner}: {memberName: string; workspaceOwner: string}) =>
                 `If you remove ${memberName} from this workspace, we'll replace them as the technical contact with ${workspaceOwner}, the workspace owner.`,
+            cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
+                `${memberName} has an outstanding processing report to take action on. Please ask them to complete the required action before removing them from the workspace.`,
         },
         card: {
             getStartedIssuing: 'Get started by issuing your first virtual or physical card.',

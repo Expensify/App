@@ -190,7 +190,7 @@ function WorkspacesListPage() {
         });
 
         if (hasPendingApproval) {
-            return translate('common.cannotLeaveWorkspaceOutstandingProcessingReport');
+            return translate('common.cannotLeaveWorkspaceOutstandingReport');
         }
 
         if (isCurrentUserReimburser) {
@@ -198,27 +198,27 @@ function WorkspacesListPage() {
         }
 
         if (technicalContact === session?.email) {
-            return translate('common.leaveWorkspaceConfirmationForTechnicalContact', {
+            return translate('common.leaveWorkspaceConfirmationTechContact', {
                 workspaceOwner: policyOwnerDisplayName,
             });
         }
 
         if (intacctConfig?.exporter === session?.email) {
-            return translate('common.leaveWorkspaceConfirmationForExporter', {
+            return translate('common.leaveWorkspaceConfirmationExporter', {
                 workspaceOwner: policyOwnerDisplayName,
             });
         }
 
         if (getAllSelfApprovers(policyToLeave).includes(session?.email ?? '')) {
-            return translate('common.leaveWorkspaceConfirmationForApprover', {
+            return translate('common.leaveWorkspaceConfirmationApprover', {
                 workspaceOwner: policyOwnerDisplayName,
             });
         }
         if (isPolicyAdmin(policyToLeave)) {
-            return translate('common.leaveWorkspaceConfirmationForAdmin');
+            return translate('common.leaveWorkspaceConfirmationAdmin');
         }
         if (isPolicyAuditor(policyToLeave)) {
-            return translate('common.leaveWorkspaceConfirmationForAuditor');
+            return translate('common.leaveWorkspaceConfirmationAuditor');
         }
 
         return translate('common.leaveWorkspaceConfirmation');
