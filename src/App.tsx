@@ -77,7 +77,7 @@ function App({url}: AppProps) {
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
                 <InitialURLContextProvider url={url}>
-                    <HybridAppHandler/>
+                    <HybridAppHandler />
                     <GestureHandlerRootView style={fill}>
                         <ComposeProviders
                             components={[
