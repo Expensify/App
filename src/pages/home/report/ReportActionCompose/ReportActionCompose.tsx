@@ -210,6 +210,14 @@ function ReportActionCompose({
                 .filter((accountID) => accountID !== currentUserPersonalDetails.accountID),
         [currentUserPersonalDetails.accountID, report?.participants],
     );
+    const parentReport = useMemo(() => getParentReport(report), [report]);
+    const parentReportParticipantIDs = useMemo(
+        () =>
+            Object.keys(parentReport?.participants ?? {})
+                .map(Number)
+                .filter((accountID) => accountID !== currentUserPersonalDetails.accountID),
+        [currentUserPersonalDetails.accountID, parentReport?.participants],
+    );
 
     const shouldShowReportRecipientLocalTime = useMemo(
         () => canShowReportRecipientLocalTime(personalDetails, report, currentUserPersonalDetails.accountID) && !isComposerFullSize,
@@ -219,26 +227,20 @@ function ReportActionCompose({
     const includesConcierge = useMemo(() => chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
-    const parentReport = useMemo(() => getParentReport(report), [report]);
+
     const shouldDisplayDualDropZone = useMemo(
         () =>
-            !isChatRoom(report) &&
             !isUserCreatedPolicyRoom(report) &&
             !isAnnounceRoom(report) &&
             !isAdminRoom(report) &&
             !isConciergeChatReport(report) &&
             !isInvoiceReport(report) &&
-            !isGroupChat(report) &&
             !isSettled(parentReport) &&
             !isSettled(report) &&
             !isClosedReport(parentReport) &&
             !isClosedReport(report) &&
-            canRequestMoney(
-                report,
-                policy,
-                reportParticipantIDs.filter((accountID) => currentUserPersonalDetails?.accountID !== accountID),
-            ),
-        [report, parentReport, policy, reportParticipantIDs, currentUserPersonalDetails?.accountID],
+            canRequestMoney(report, policy, reportParticipantIDs),
+        [report, parentReport, policy, reportParticipantIDs],
     );
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const transactionID = useMemo(() => getTransactionID(reportID), [reportID]);
