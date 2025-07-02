@@ -24,6 +24,7 @@ type AttachmentModalModalProps = {
     modalType?: ModalType;
     onShow?: () => void;
     onClose?: () => void;
+    shouldHandleNavigationBack?: boolean;
 };
 
 type AttachmentModalScreenParams = AttachmentModalBaseContentProps &

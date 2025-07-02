@@ -53,3 +53,8 @@
 - E/App issue: [#48150](https://github.com/Expensify/App/issues/48150)
 - PR Introducing Patch: [#48151](https://github.com/Expensify/App/pull/48151)
 - PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155) 
+
+### [@react-navigation+stack+7.3.3+003+fix-invisible-sidebar-safari.patch](@react-navigation+stack+7.3.3+003+fix-invisible-sidebar-safari.patch)
+- Reason: Sidebar is invisible on the safari
+- Upstream PR/issue: N/A
+- E/App issue: [#65119](https://github.com/Expensify/App/issues/65119)
