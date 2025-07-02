@@ -306,7 +306,7 @@ function SearchAutocompleteList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY: {
                 const autocompleteList = autocompleteValue ? categoryAutocompleteList : recentCategoriesAutocompleteList;
                 const filteredCategories = autocompleteList
-                    .filter((category) => category.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(category.toLowerCase()))
+                    .filter((category) => category?.toLowerCase()?.includes(autocompleteValue?.toLowerCase()) && !alreadyAutocompletedKeys.includes(category?.toLowerCase()))
                     .sort()
                     .slice(0, 10);
 
