@@ -15,12 +15,13 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getPolicy, getTagLists} from '@libs/PolicyUtils';
+import {getPolicy, getTagLists, hasDependentTags} from '@libs/PolicyUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getTag} from '@libs/TransactionUtils';
+import {getTag, getTagForDisplay} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -59,6 +60,53 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const shouldShowTag = !!policy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
     const shouldShowCategory = !!policy?.areCategoriesEnabled && !!policyCategories;
+
+    const tagList = policyTagLists.map(({name, orderWeight, tags}, index) => {
+        const tagForDisplay = getTagForDisplay(splitExpenseDraftTransactionDetails, index);
+        let shouldShow = false;
+        if (hasDependentTags(policy, policyTags)) {
+            if (index === 0) {
+                shouldShow = true;
+            } else {
+                const prevTagValue = getTagForDisplay(splitExpenseDraftTransactionDetails, index - 1);
+                shouldShow = !!prevTagValue;
+            }
+        } else {
+            shouldShow = !!tagForDisplay || hasEnabledOptions(tags);
+        }
+
+        if (!shouldShow) {
+            return null;
+        }
+
+        return (
+            <MenuItemWithTopDescription
+                highlighted={shouldShow && !tagForDisplay}
+                title={tagForDisplay}
+                numberOfLinesTitle={2}
+                interactive
+                shouldShowRightIcon
+                titleStyle={styles.flex1}
+                shouldShowBasicTitle
+                shouldShowDescriptionOnTop
+                key={translate('workspace.common.tags')}
+                description={name ?? translate('common.tag')}
+                onPress={() => {
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                            CONST.IOU.ACTION.EDIT,
+                            CONST.IOU.TYPE.SPLIT_EXPENSE,
+                            orderWeight,
+                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                            reportID,
+                            Navigation.getActiveRoute(),
+                        ),
+                    );
+                }}
+                style={[styles.moneyRequestMenuItem]}
+            />
+        );
+    });
 
     return (
         <ScreenWrapper testID={SplitExpenseEditPage.displayName}>
@@ -115,29 +163,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 titleStyle={styles.flex1}
                             />
                         )}
-                        {shouldShowTag && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                key={translate('workspace.common.tags')}
-                                description={translate('workspace.common.tags')}
-                                title={transactionTag}
-                                numberOfLinesTitle={2}
-                                onPress={() => {
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
-                                            CONST.IOU.ACTION.EDIT,
-                                            CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                            0,
-                                            CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                            reportID,
-                                            Navigation.getActiveRoute(),
-                                        ),
-                                    );
-                                }}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                            />
-                        )}
+                        {shouldShowTag && tagList}
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
                             key={translate('common.date')}
