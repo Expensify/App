@@ -7881,12 +7881,12 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
     ];
 
     if (transactionViolations) {
-        const duplicates = transactionViolations
-            .filter((violation) => violation?.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-            .flatMap((violation) => violation?.data?.duplicates ?? [])
-            .map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
-
-        removeSettledAndApprovedTransactions(duplicates).forEach((duplicateID) => updateDuplicateTransactionViolation(transactionID, duplicateID, optimisticData, failureData));
+        removeSettledAndApprovedTransactions(
+            transactionViolations
+                .filter((violation) => violation?.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
+                .flatMap((violation) => violation?.data?.duplicates ?? [])
+                .map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]),
+        ).forEach((duplicate) => updateDuplicateTransactionViolation(transactionID, duplicate.transactionID, optimisticData, failureData));
     }
 
     if (shouldDeleteTransactionThread) {
