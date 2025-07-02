@@ -74,6 +74,12 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                     categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: option.value} : {},
                     categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: currentTrackingCategoryValue} : {},
                 );
+                if (option.value === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD) {
+                    Policy.enablePolicyReportFields(policyID, true);
+                }
+                if (currentTrackingCategoryValue === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD) {
+                    Policy.enablePolicyReportFields(policyID, false);
+                }
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
         },
