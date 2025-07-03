@@ -623,7 +623,7 @@ const SCREENS = {
         RULES_MAX_EXPENSE_AMOUNT: 'Rules_Max_Expense_Amount',
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
-        RULES_CUSTOM: 'Rules_Custom',
+        POLICY: 'Policy',
         RULES_PROHIBITED_DEFAULT: 'Rules_Prohibited_Default',
         PER_DIEM: 'Per_Diem',
         PER_DIEM_IMPORT: 'Per_Diem_Import',

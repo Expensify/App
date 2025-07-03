@@ -1077,7 +1077,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.RULES_CUSTOM]: {
+    [SCREENS.WORKSPACE.POLICY]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.PER_DIEM_IMPORT]: {

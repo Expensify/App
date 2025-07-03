@@ -10,10 +10,10 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
+import Navigation from '@navigation/Navigation';
+import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {updateCustomRules} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -21,13 +21,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesCustomForm';
 
-type RulesCustomPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CUSTOM>;
+type PolicyProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.POLICY>;
 
-function RulesCustomPage({
+function Policy({
     route: {
         params: {policyID},
     },
-}: RulesCustomPageProps) {
+}: PolicyProps) {
     const policy = usePolicy(policyID);
 
     const {inputCallbackRef} = useAutoFocusInput();
@@ -49,10 +49,10 @@ function RulesCustomPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesCustomPage.displayName}
+                testID={Policy.displayName}
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.rules.customRules.title')}
+                    title={translate('workspace.policy.title')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider
@@ -71,7 +71,7 @@ function RulesCustomPage({
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.CUSTOM_RULES}
-                            label={translate('workspace.rules.customRules.subtitle')}
+                            label={translate('workspace.policy.subtitle')}
                             role={CONST.ROLE.PRESENTATION}
                             value={customRulesValue}
                             onChangeText={onChangeCustomRules}
@@ -80,7 +80,7 @@ function RulesCustomPage({
                             autoGrowHeight
                             maxLength={CONST.DESCRIPTION_LIMIT}
                         />
-                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.customRules.description')}</Text>
+                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.policy.description')}</Text>
                     </View>
                 </FormProvider>
             </ScreenWrapper>
@@ -88,6 +88,6 @@ function RulesCustomPage({
     );
 }
 
-RulesCustomPage.displayName = 'RulesCustomPage';
+Policy.displayName = 'RulesCustomPage';
 
-export default RulesCustomPage;
+export default Policy;

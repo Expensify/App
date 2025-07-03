@@ -1023,8 +1023,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT]: {
                             path: ROUTES.RULES_BILLABLE_DEFAULT.route,
                         },
-                        [SCREENS.WORKSPACE.RULES_CUSTOM]: {
-                            path: ROUTES.RULES_CUSTOM.route,
+                        [SCREENS.WORKSPACE.POLICY]: {
+                            path: ROUTES.WORKSPACE_OVERVIEW_POLICY.route,
                         },
                         [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {
                             path: ROUTES.RULES_PROHIBITED_DEFAULT.route,

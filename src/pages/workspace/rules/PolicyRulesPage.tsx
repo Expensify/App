@@ -11,7 +11,7 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import CustomRulesSection from './CustomRulesSection';
+import PolicySection from '../PolicySection';
 import ExpenseReportRulesSection from './ExpenseReportRulesSection';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
 
@@ -19,7 +19,6 @@ type PolicyRulesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorPara
 
 function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -44,7 +43,6 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <IndividualExpenseRulesSection policyID={policyID} />
                     <ExpenseReportRulesSection policyID={policyID} />
-                    {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) ? <CustomRulesSection policyID={policyID} /> : null}
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
