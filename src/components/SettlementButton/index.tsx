@@ -2,7 +2,7 @@ import isEmpty from 'lodash/isEmpty';
 import truncate from 'lodash/truncate';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import * as Expensicons from '@components/Icon/Expensicons';
