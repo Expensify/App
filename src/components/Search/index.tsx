@@ -174,10 +174,12 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const {translate} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
-    useFocusEffect(useCallback(() => {
-        clearSelectedTransactions(hash);
-        setCurrentSearchHash(hash);
-    }, [hash, clearSelectedTransactions, setCurrentSearchHash]));
+    useFocusEffect(
+        useCallback(() => {
+            clearSelectedTransactions(hash);
+            setCurrentSearchHash(hash);
+        }, [hash, clearSelectedTransactions, setCurrentSearchHash]),
+    );
 
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
