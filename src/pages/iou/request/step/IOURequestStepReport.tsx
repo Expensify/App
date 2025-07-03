@@ -22,7 +22,8 @@ type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {backTo, action} = route.params;
-    const reportID = transaction?.reportID === '0' ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
+    const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const reportID = isUnreported ? transaction?.participants?.at(0)?.reportID : transaction?.reportID;
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: false});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -59,6 +60,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             selectReport={selectReport}
             removeFromReport={removeFromReport}
             isEditing={isEditing}
+            isUnreported={isUnreported}
         />
     );
 }
