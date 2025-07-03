@@ -35,7 +35,6 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
-    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -46,7 +45,6 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
-    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -277,6 +275,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -1115,19 +1114,10 @@ const translations = {
         individual: 'Individuel',
         business: 'Entreprise',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Payer ${formattedAmount} avec Expensify` : `Payer avec Expensify`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Payer ${formattedAmount} en tant qu'individu` : `Payer avec un compte personnel`),
-        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Payer ${formattedAmount} avec le portefeuille` : `Payer avec le portefeuille`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Payer ${formattedAmount} en tant qu'individu` : `Payer en tant qu'individu`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Payer ${formattedAmount}`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Payer ${formattedAmount} en tant qu'entreprise` : `Payer avec un compte professionnel`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Marquer ${formattedAmount} comme payé` : `Marquer comme payé`),
-        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `Payé ${amount} avec le compte personnel ${last4Digits}` : `Payé avec le compte personnel`),
-        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) =>
-            amount ? `Payé ${amount} avec le compte professionnel ${last4Digits}` : `Payé avec le compte professionnel`,
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `Payer ${formattedAmount} via ${policyName}` : `Payer via ${policyName}`,
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => `Payé ${amount} avec le compte bancaire ${last4Digits}.`,
-        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `Compte personnel • ${lastFour}`,
-        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `Compte professionnel • ${lastFour}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Payer ${formattedAmount} en tant qu'entreprise` : `Payer en tant qu'entreprise`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Payer ${formattedAmount} ailleurs` : `Payer ailleurs`),
         nextStep: 'Étapes suivantes',
         finished: 'Terminé',
         sendInvoice: ({amount}: RequestAmountParams) => `Envoyer une facture de ${amount}`,
@@ -1163,8 +1153,8 @@ const translations = {
             `a annulé le paiement de ${amount}, car ${submitterDisplayName} n'a pas activé leur Expensify Wallet dans les 30 jours`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} a ajouté un compte bancaire. Le paiement de ${amount} a été effectué.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}marqué comme payé`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}payé avec le portefeuille`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''} payé ailleurs`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''} payé avec Expensify`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''} payé avec Expensify via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l'espace de travail</a>`,
         noReimbursableExpenses: 'Ce rapport contient un montant invalide',
@@ -1824,7 +1814,6 @@ const translations = {
         enableWallet: 'Activer le portefeuille',
         addBankAccountToSendAndReceive: 'Soyez remboursé pour les dépenses que vous soumettez à un espace de travail.',
         addBankAccount: 'Ajouter un compte bancaire',
-        addDebitOrCreditCard: 'Ajouter une carte de débit ou de crédit',
         assignedCards: 'Cartes assignées',
         assignedCardsDescription: "Ce sont des cartes attribuées par un administrateur d'espace de travail pour gérer les dépenses de l'entreprise.",
         expensifyCard: 'Expensify Card',
@@ -2039,7 +2028,6 @@ const translations = {
         cardLastFour: 'Carte se terminant par',
         addFirstPaymentMethod: "Ajoutez un mode de paiement pour envoyer et recevoir des paiements directement dans l'application.",
         defaultPaymentMethod: 'Par défaut',
-        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `Bank Account • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -2639,11 +2627,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Pour connecter un compte bancaire, veuillez <a href="${contactMethodRoute}">ajoutez un e-mail comme identifiant principal</a> et réessayez. Vous pouvez ajouter votre numéro de téléphone comme connexion secondaire.`,
         hasBeenThrottledError: "Une erreur s'est produite lors de l'ajout de votre compte bancaire. Veuillez attendre quelques minutes et réessayer.",
-        hasCurrencyError: {
-            phrase1: "Oups ! Il semble que la devise de votre espace de travail soit différente de l'USD. Pour continuer, veuillez aller sur",
-            link: "vos paramètres d'espace de travail",
-            phrase2: 'pour le régler sur USD et réessayer.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Oups ! Il semble que la devise de votre espace de travail soit différente de l'USD. Pour continuer, veuillez aller sur <a href="${workspaceRoute}">vos paramètres d'espace de travail</a> pour le régler sur USD et réessayer.`,
         error: {
             youNeedToSelectAnOption: 'Veuillez sélectionner une option pour continuer',
             noBankAccountAvailable: "Désolé, aucun compte bancaire n'est disponible.",
@@ -4293,6 +4278,11 @@ const translations = {
                     pleaseSelectFeedType: 'Veuillez sélectionner un type de flux avant de continuer',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Dernier jour du mois',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Dernier jour ouvrable du mois',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Jour personnalisé du mois',
+            },
             assignCard: 'Attribuer la carte',
             findCard: 'Trouver la carte',
             cardNumber: 'Numéro de carte',
@@ -4309,6 +4299,7 @@ const translations = {
             startDateDescription: "Nous importerons toutes les transactions à partir de cette date. Si aucune date n'est spécifiée, nous remonterons aussi loin que votre banque le permet.",
             fromTheBeginning: 'Depuis le début',
             customStartDate: 'Date de début personnalisé',
+            customCloseDate: 'Date de clôture personnalisée',
             letsDoubleCheck: 'Vérifions que tout est correct.',
             confirmationDescription: 'Nous commencerons à importer les transactions immédiatement.',
             cardholder: 'Titulaire de carte',
@@ -4536,6 +4527,7 @@ const translations = {
                 removeCardFeedDescription: 'Êtes-vous sûr de vouloir supprimer ce flux de cartes ? Cela désassignera toutes les cartes.',
                 error: {
                     feedNameRequired: 'Le nom du flux de carte est requis',
+                    statementCloseDateRequired: 'Veuillez sélectionner une date de clôture du relevé.',
                 },
                 corporate: 'Restreindre la suppression des transactions',
                 personal: 'Autoriser la suppression des transactions',
@@ -4563,6 +4555,8 @@ const translations = {
                 expensifyCardBannerSubtitle:
                     "Profitez de remises en argent sur chaque achat aux États-Unis, jusqu'à 50 % de réduction sur votre facture Expensify, des cartes virtuelles illimitées, et bien plus encore.",
                 expensifyCardBannerLearnMoreButton: 'En savoir plus',
+                statementCloseDateTitle: 'Date de clôture du relevé',
+                statementCloseDateDescription: 'Indiquez-nous la date de clôture de votre relevé de carte et nous créerons un relevé correspondant dans Expensify.',
             },
             workflows: {
                 title: 'Workflows',
@@ -6144,7 +6138,8 @@ const translations = {
                 unshare: ({to}: UnshareParams) => `membre supprimé ${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `payé ${currency}${amount}`,
                 takeControl: `a pris le contrôle`,
-                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `échec de la synchronisation avec ${label}${errorMessage ? ` ("${errorMessage}")` : ''}`,
+                integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
+                    `Un problème est survenu lors de la synchronisation avec ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Veuillez corriger le problème dans les <a href="${workspaceAccountingLink}">paramètres de l'espace de travail</a>.`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `ajouté ${email} en tant que ${role === 'member' ? 'a' : 'un'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `a mis à jour le rôle de ${email} à ${newRole} (précédemment ${currentRole})`,
                 updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
@@ -6657,9 +6652,7 @@ const translations = {
             authenticatePayment: 'Authentifier le paiement',
             requestRefund: 'Demander un remboursement',
             requestRefundModal: {
-                phrase1: 'Obtenir un remboursement est facile, il suffit de rétrograder votre compte avant votre prochaine date de facturation et vous recevrez un remboursement.',
-                phrase2:
-                    "Attention : La rétrogradation de votre compte entraînera la suppression de votre/vos espace(s) de travail. Cette action est irréversible, mais vous pouvez toujours créer un nouvel espace de travail si vous changez d'avis.",
+                full: "Obtenir un remboursement est facile, il suffit de rétrograder votre compte avant votre prochaine date de facturation et vous recevrez un remboursement. <br /> <br /> Attention : La rétrogradation de votre compte entraînera la suppression de votre/vos espace(s) de travail. Cette action est irréversible, mais vous pouvez toujours créer un nouvel espace de travail si vous changez d'avis.",
                 confirm: 'Supprimer le(s) espace(s) de travail et rétrograder',
             },
             viewPaymentHistory: "Voir l'historique des paiements",

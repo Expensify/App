@@ -35,7 +35,6 @@ import type {
     AuthenticationErrorParams,
     AutoPayApprovedReportsLimitErrorParams,
     BadgeFreeTrialParams,
-    BankAccountLastFourParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryDomainRoomPartOneParams,
@@ -46,7 +45,6 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
-    BusinessBankAccountParams,
     BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -277,6 +275,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -1114,18 +1113,10 @@ const translations = {
         individual: '個人',
         business: 'ビジネス',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Expensifyで${formattedAmount}を支払う` : `Expensifyで支払う`),
-        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount}を個人として支払う` : `個人口座で支払う`),
-        settleWallet: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `ウォレットで${formattedAmount}を支払う` : `ウォレットで支払う`),
+        settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `個人として${formattedAmount}を支払う` : `個人として支払う`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `${formattedAmount}を支払う`,
-        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount}をビジネスとして支払う` : `ビジネス口座で支払う`),
-        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount}を支払い済みにマーク` : `支払い済みにマーク`),
-        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount}を個人口座（${last4Digits}）で支払い済み` : `個人口座で支払い済み`),
-        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount}をビジネス口座（${last4Digits}）で支払い済み` : `ビジネス口座で支払い済み`),
-        payWithPolicy: ({formattedAmount, policyName}: SettleExpensifyCardParams & {policyName: string}) =>
-            formattedAmount ? `${policyName}経由で${formattedAmount}を支払う` : `${policyName}経由で支払う`,
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => `${amount}を銀行口座（${last4Digits}）で支払い済み。`,
-        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `個人口座・${lastFour}`,
-        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `ビジネス口座・${lastFour}`,
+        settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount} をビジネスとして支払う` : `ビジネスとして支払う`),
+        payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `他の場所で${formattedAmount}を支払う` : `他の場所で支払う`),
         nextStep: '次のステップ',
         finished: '完了',
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} 請求書を送信`,
@@ -1160,8 +1151,8 @@ const translations = {
             `${submitterDisplayName}が30日以内にExpensifyウォレットを有効にしなかったため、${amount}の支払いをキャンセルしました。`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName}が銀行口座を追加しました。${amount}の支払いが行われました。`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}支払い済みにマークされました`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}ウォレットで支払い済み`,
+        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}は他で支払われました`,
+        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}はExpensifyで支払いました`,
         automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
             `${payer ? `${payer} ` : ''}は<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>を通じてExpensifyで支払いました。`,
         noReimbursableExpenses: 'このレポートには無効な金額が含まれています',
@@ -1813,7 +1804,6 @@ const translations = {
         enableWallet: 'ウォレットを有効にする',
         addBankAccountToSendAndReceive: 'ワークスペースに提出した経費の払い戻しを受ける。',
         addBankAccount: '銀行口座を追加',
-        addDebitOrCreditCard: 'デビットカードまたはクレジットカードを追加',
         assignedCards: '割り当てられたカード',
         assignedCardsDescription: 'これらは、会社の支出を管理するためにワークスペース管理者によって割り当てられたカードです。',
         expensifyCard: 'Expensify Card',
@@ -2022,7 +2012,6 @@ const translations = {
         cardLastFour: '末尾が',
         addFirstPaymentMethod: 'アプリ内で直接送受金を行うために支払い方法を追加してください。',
         defaultPaymentMethod: 'デフォルト',
-        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `銀行口座・${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -2657,11 +2646,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `銀行口座を接続するには、お願いします <a href="${contactMethodRoute}">メールをプライマリーログインとして追加する</a> もう一度試してください。電話番号をセカンダリログインとして追加できます。`,
         hasBeenThrottledError: '銀行口座の追加中にエラーが発生しました。数分待ってから再試行してください。',
-        hasCurrencyError: {
-            phrase1: 'おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、こちらにアクセスしてください。',
-            link: 'ワークスペースの設定',
-            phrase2: 'USDに設定して、もう一度お試しください。',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、こちらにアクセスしてください。<a href="${workspaceRoute}">ワークスペースの設定</a> USDに設定して、もう一度お試しください。`,
         error: {
             youNeedToSelectAnOption: 'オプションを選択してください',
             noBankAccountAvailable: '申し訳ありませんが、利用可能な銀行口座がありません。',
@@ -4282,6 +4268,11 @@ const translations = {
                     pleaseSelectFeedType: '続行する前にフィードタイプを選択してください',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '月の最終日',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: '月の最終営業日',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'カスタム月日',
+            },
             assignCard: 'カードを割り当てる',
             findCard: 'カードを探す',
             cardNumber: 'カード番号',
@@ -4298,6 +4289,7 @@ const translations = {
             startDateDescription: 'この日付以降のすべての取引をインポートします。日付が指定されていない場合は、銀行が許可する限り遡ります。',
             fromTheBeginning: '最初から',
             customStartDate: 'カスタム開始日',
+            customCloseDate: 'カスタムクローズ日',
             letsDoubleCheck: 'すべてが正しいかどうかをもう一度確認しましょう。',
             confirmationDescription: 'すぐに取引のインポートを開始します。',
             cardholder: 'カードホルダー',
@@ -4520,6 +4512,7 @@ const translations = {
                 removeCardFeedDescription: 'このカードフィードを削除してもよろしいですか？これにより、すべてのカードの割り当てが解除されます。',
                 error: {
                     feedNameRequired: 'カードフィード名は必須です',
+                    statementCloseDateRequired: '明細書の締め日を選択してください。',
                 },
                 corporate: '取引の削除を制限する',
                 personal: '取引の削除を許可',
@@ -4544,6 +4537,8 @@ const translations = {
                 expensifyCardBannerTitle: 'Expensifyカードを取得する',
                 expensifyCardBannerSubtitle: 'すべての米国での購入でキャッシュバックを楽しみ、Expensifyの請求書が最大50%オフ、無制限のバーチャルカードなど、さらに多くの特典があります。',
                 expensifyCardBannerLearnMoreButton: '詳細を確認',
+                statementCloseDateTitle: '利用明細書の締め日',
+                statementCloseDateDescription: 'カード利用明細書の締め日をお知らせいただければ、Expensifyで一致する明細書を作成します。',
             },
             workflows: {
                 title: 'ワークフロー',
@@ -6107,7 +6102,8 @@ const translations = {
                 unshare: ({to}: UnshareParams) => `削除されたメンバー${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `${currency}${amount} を支払いました`,
                 takeControl: `制御を取りました`,
-                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `${label}${errorMessage ? ` ("${errorMessage}")` : ''}との同期に失敗しました`,
+                integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
+                    `${label}との同期中に問題が発生しました${errorMessage ? `（"${errorMessage}"）` : ''}。<a href="${workspaceAccountingLink}">ワークスペースの設定</a>で問題を修正してください。`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `${email}を${role === 'member' ? 'a' : 'an'} ${role}として追加しました`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `${email} の役割を ${newRole} に更新しました（以前は ${currentRole}）`,
                 updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
@@ -6614,8 +6610,7 @@ const translations = {
             authenticatePayment: '支払いを認証する',
             requestRefund: '返金をリクエスト',
             requestRefundModal: {
-                phrase1: '返金を受けるのは簡単です。次の請求日までにアカウントをダウングレードするだけで、返金されます。',
-                phrase2: 'ご注意: アカウントをダウングレードすると、ワークスペースが削除されます。この操作は元に戻せませんが、気が変わった場合はいつでも新しいワークスペースを作成できます。',
+                full: '返金を受けるのは簡単です。次の請求日までにアカウントをダウングレードするだけで、返金されます。<br /> <br /> ご注意: アカウントをダウングレードすると、ワークスペースが削除されます。この操作は元に戻せませんが、気が変わった場合はいつでも新しいワークスペースを作成できます。',
                 confirm: 'ワークスペースを削除してダウングレード',
             },
             viewPaymentHistory: '支払い履歴を表示',
