@@ -35,7 +35,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
             <Button
                 innerStyles={[{backgroundColor: theme.sidebarHover}]}
                 icon={Expensicons.Menu}
-                onPress={handleOpenMenu}
+                onPress={() => openMenu(currentRoute)}
             />
             {!delayPopoverMenuFirstRender && (
                 <PopoverMenu
