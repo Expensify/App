@@ -99,7 +99,6 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
-    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -276,6 +275,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -550,6 +550,7 @@ const translations = {
         userID: 'User ID',
         disable: 'Disabilita',
         export: 'Esporta',
+        basicExport: 'Esportazione basica',
         initialValue: 'Valore iniziale',
         currentDate: 'La data odierna',
         value: 'Valore',
@@ -665,12 +666,6 @@ const translations = {
         attachmentImageTooLarge: 'Questa immagine è troppo grande per essere visualizzata in anteprima prima del caricamento.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Puoi caricare solo fino a ${fileLimit} file alla volta.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `I file superano ${maxUploadSizeInMB} MB. Per favore riprova.`,
-        someFilesCantBeUploaded: 'Alcuni file non possono essere caricati',
-        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `I file devono essere inferiori a ${maxUploadSizeInMB} MB. I file più grandi non verranno caricati.`,
-        maxFileLimitExceeded: 'Puoi caricare fino a 30 ricevute alla volta. Quelle in eccesso non verranno caricate.',
-        unsupportedFileType: ({fileType}: FileTypeParams) => `I file ${fileType} non sono supportati. Verranno caricati solo i tipi di file supportati.`,
-        learnMoreAboutSupportedFiles: 'Scopri di più sui formati supportati.',
-        passwordProtected: 'I PDF protetti da password non sono supportati. Verranno caricati solo i file supportati.',
     },
     dropzone: {
         addAttachments: 'Aggiungi allegati',
@@ -2643,11 +2638,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Per collegare un conto bancario, per favore <a href="${contactMethodRoute}">aggiungi un'email come login principale</a> e riprova. Puoi aggiungere il tuo numero di telefono come login secondario.`,
         hasBeenThrottledError: "Si è verificato un errore durante l'aggiunta del tuo conto bancario. Attendi qualche minuto e riprova.",
-        hasCurrencyError: {
-            phrase1: 'Ops! Sembra che la valuta del tuo spazio di lavoro sia impostata su una valuta diversa da USD. Per procedere, vai a',
-            link: 'le impostazioni del tuo spazio di lavoro',
-            phrase2: 'impostarlo su USD e riprovare.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Ops! Sembra che la valuta del tuo spazio di lavoro sia impostata su una valuta diversa da USD. Per procedere, vai a <a href="${workspaceRoute}">le impostazioni del tuo spazio di lavoro</a> impostarlo su USD e riprovare.`,
         error: {
             youNeedToSelectAnOption: "Seleziona un'opzione per procedere",
             noBankAccountAvailable: 'Spiacente, non è disponibile alcun conto bancario.',
@@ -3423,7 +3415,7 @@ const translations = {
             welcomeNote: 'Per favore, usa Expensify per inviare le tue ricevute per il rimborso, grazie!',
             subscription: 'Abbonamento',
             markAsEntered: 'Segna come inserito manualmente',
-            markAsExported: 'Segna come esportato manualmente',
+            markAsExported: 'Segna come esportato',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Esporta in ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifichiamo che tutto sia corretto.',
             lineItemLevel: 'Livello voce di dettaglio',
@@ -4291,6 +4283,11 @@ const translations = {
                     pleaseSelectFeedType: 'Si prega di selezionare un tipo di feed prima di continuare',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Ultimo giorno del mese',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Ultimo giorno lavorativo del mese',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Giorno del mese personalizzato',
+            },
             assignCard: 'Assegna carta',
             findCard: 'Trova carta',
             cardNumber: 'Numero di carta',
@@ -4308,6 +4305,7 @@ const translations = {
                 'Importeremo tutte le transazioni da questa data in poi. Se non viene specificata alcuna data, risaliremo indietro fino a quanto consentito dalla tua banca.',
             fromTheBeginning: "Dall'inizio",
             customStartDate: 'Data di inizio personalizzata',
+            customCloseDate: 'Data di chiusura personalizzata',
             letsDoubleCheck: 'Verifichiamo che tutto sia corretto.',
             confirmationDescription: 'Inizieremo immediatamente a importare le transazioni.',
             cardholder: 'Titolare della carta',
@@ -4531,6 +4529,7 @@ const translations = {
                 removeCardFeedDescription: 'Sei sicuro di voler rimuovere questo feed di carte? Questo disassegnerà tutte le carte.',
                 error: {
                     feedNameRequired: 'Il nome del feed della carta è obbligatorio',
+                    statementCloseDateRequired: "Selezionare una data di chiusura dell'estratto conto.",
                 },
                 corporate: "Limita l'eliminazione delle transazioni",
                 personal: "Consenti l'eliminazione delle transazioni",
@@ -4557,6 +4556,8 @@ const translations = {
                 expensifyCardBannerSubtitle:
                     'Goditi il cashback su ogni acquisto negli Stati Uniti, fino al 50% di sconto sulla tua fattura Expensify, carte virtuali illimitate e molto altro ancora.',
                 expensifyCardBannerLearnMoreButton: 'Scopri di più',
+                statementCloseDateTitle: "Data di chiusura dell'estratto conto",
+                statementCloseDateDescription: "Comunicateci la data di chiusura dell'estratto conto della vostra carta e creeremo un estratto conto corrispondente in Expensify.",
             },
             workflows: {
                 title: 'Flussi di lavoro',

@@ -5,10 +5,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNextStep, TransactionViolations} from '@src/types/onyx';
+import type {Beta, Policy, Report, ReportNextStep, TransactionViolations} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import EmailUtils from './EmailUtils';
+import Permissions from './Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {
@@ -40,6 +41,12 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
+});
+
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (allBetas = value),
 });
 
 let transactionViolations: OnyxCollection<TransactionViolations>;
@@ -142,7 +149,9 @@ function buildNextStep(
     const {harvesting, autoReportingOffset} = policy;
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
-    const shouldShowFixMessage = hasViolations && autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+    const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
     const [policyOwnerPersonalDetails, ownerPersonalDetails] = getPersonalDetailsByIDs({
         accountIDs: [policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, ownerAccountID],
         currentUserAccountID,
@@ -200,7 +209,7 @@ function buildNextStep(
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
-            if (shouldFixViolations) {
+            if ((isASAPSubmitBetaEnabled && hasViolations && isInstantSubmitEnabled) || shouldFixViolations) {
                 optimisticNextStep = {
                     type,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,

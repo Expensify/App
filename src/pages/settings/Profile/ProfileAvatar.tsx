@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
+import useOnyx from '@hooks/useOnyx';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
