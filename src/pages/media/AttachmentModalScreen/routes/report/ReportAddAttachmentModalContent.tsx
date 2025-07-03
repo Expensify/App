@@ -15,9 +15,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import useFileErrorModal from './useFileErrorModal';
-import useFileUploadValidation from './useFileUploadValidation';
-import useReportAttachmentModalType from './useReportAttachmentModalType';
+import useFileErrorModal from './hooks/useFileErrorModal';
+import useFileUploadValidation from './hooks/useFileUploadValidation';
+import useNavigateToReportOnRefresh from './hooks/useNavigateToReportOnRefresh';
+import useReportAttachmentModalType from './hooks/useReportAttachmentModalType';
 
 function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScreenProps) {
     const {
@@ -45,6 +46,8 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
         canBeMissing: false,
     });
+
+    useNavigateToReportOnRefresh({source: sourceParam, file: fileParam, reportID});
 
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
@@ -146,7 +149,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         isMultipleFiles: Array.isArray(validFilesToUpload) && validFilesToUpload.length > 0,
     });
 
-    const contentTypeProps = useMemo<Partial<AttachmentModalBaseContentProps>>(() => {
+    const contentProps = useMemo<AttachmentModalBaseContentProps>(() => {
         if (validFilesToUpload === undefined) {
             return {
                 isLoading: true,
@@ -156,19 +159,11 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         return {
             file: validFilesToUpload,
             fileToDisplayIndex: 0,
+            source,
             isLoading,
-            fileError,
-            isFileErrorModalVisible,
             isAuthTokenRequired,
             attachmentLink,
             originalFileName,
-        };
-    }, [attachmentLink, fileError, isAuthTokenRequired, isFileErrorModalVisible, isLoading, originalFileName, validFilesToUpload]);
-
-    const contentProps = useMemo<Partial<AttachmentModalBaseContentProps>>(
-        () => ({
-            ...contentTypeProps,
-            source,
             attachmentID,
             accountID,
             onConfirm,
@@ -177,24 +172,22 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             submitRef,
             onCarouselAttachmentChange,
             ExtraModals,
-        }),
-        [ExtraModals, accountID, attachmentID, contentTypeProps, headerTitle, onCarouselAttachmentChange, onConfirm, shouldDisableSendButton, source],
-    );
-
-    // If the user refreshes during the send attachment flow, we need to navigate back to the report or home
-    useEffect(() => {
-        if (!!sourceParam || !!fileParam) {
-            return;
-        }
-
-        Navigation.isNavigationReady().then(() => {
-            if (reportID) {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-            } else {
-                Navigation.goBack(ROUTES.HOME);
-            }
-        });
-    }, [sourceParam, reportID, route.name, fileParam]);
+        };
+    }, [
+        ExtraModals,
+        accountID,
+        attachmentID,
+        attachmentLink,
+        headerTitle,
+        isAuthTokenRequired,
+        isLoading,
+        onCarouselAttachmentChange,
+        onConfirm,
+        originalFileName,
+        shouldDisableSendButton,
+        source,
+        validFilesToUpload,
+    ]);
 
     return (
         <AttachmentModalContainer
