@@ -22,7 +22,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const {unmodifiedPaddings} = useSafeAreaPaddings();
     const currentRoute = Navigation.getActiveRouteWithoutParams();
 
-    return ( 
+    return (
         <>
             <Button
                 innerStyles={[{backgroundColor: theme.sidebarHover}]}
