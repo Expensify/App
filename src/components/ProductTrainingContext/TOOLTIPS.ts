@@ -182,13 +182,17 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         content: [
             {
                 text: () => {
+                    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+                    const {translate} = useLocalize();
+                    // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+                    const {windowWidth} = useWindowDimensions();
                     const systemFonts = [...defaultSystemFonts, 'MyCustomFont'];
 
-                    const html = `<span style="color: white">${useLocalize().translate('productTrainingTooltip.scanTestDriveTooltip')}<span>`;
+                    const html = `<span style="color: white">${translate('productTrainingTooltip.scanTestDriveTooltip')}<span>`;
                     const source = {
                         html,
                     };
-                    return React.createElement(RenderHtml, {source, systemFonts, contentWidth: useWindowDimensions().windowWidth});
+                    return React.createElement(RenderHtml, {source, systemFonts, contentWidth: windowWidth});
                 },
             },
         ],
