@@ -36,7 +36,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
-import {getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
+import {getConfirmModalPrompt} from '@libs/fileDownload/FileUtils';
 import getModalState from '@libs/getModalState';
 import Performance from '@libs/Performance';
 import {
@@ -152,7 +152,8 @@ function ReportActionCompose({
     // TODO: remove beta check after the feature is enabled
     const {isBetaEnabled} = usePermissions();
 
-    const {validateAndResizeFile, setIsAttachmentInvalid, isAttachmentInvalid, setUploadReceiptError, pdfFile, setPdfFile, fileError} = useFileValidation();
+    const {validateAndResizeFile, setIsAttachmentInvalid, isAttachmentInvalid, attachmentInvalidReason, attachmentInvalidReasonTitle, setUploadReceiptError, pdfFile, setPdfFile} =
+        useFileValidation();
 
     /**
      * Updates the Highlight state of the composer
@@ -703,11 +704,11 @@ function ReportActionCompose({
                         />
                     </View>
                     <ConfirmModal
-                        title={getFileValidationErrorText(fileError).title}
+                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
                         onConfirm={hideReceiptModal}
                         onCancel={hideReceiptModal}
                         isVisible={isAttachmentInvalid}
-                        prompt={getFileValidationErrorText(fileError).reason}
+                        prompt={getConfirmModalPrompt(attachmentInvalidReason)}
                         confirmText={translate('common.close')}
                         shouldShowCancelButton={false}
                     />
