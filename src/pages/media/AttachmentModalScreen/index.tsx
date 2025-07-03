@@ -1,10 +1,10 @@
 import React, {useContext, useMemo} from 'react';
 import SCREENS from '@src/SCREENS';
 import AttachmentModalContext from './AttachmentModalContext';
-import AddAttachmentModalContent from './routes/AddAttachmentModalContent';
 import ProfileAvatarModalContent from './routes/ProfileAvatarModalContent';
-import ReportAttachmentModalContent from './routes/ReportAttachmentModalContent';
-import ReportAvatarModalContent from './routes/ReportAvatarModalContent';
+import ReportAddAttachmentModalContent from './routes/report/ReportAddAttachmentModalContent';
+import ReportAttachmentModalContent from './routes/report/ReportAttachmentModalContent';
+import ReportAvatarModalContent from './routes/report/ReportAvatarModalContent';
 import TransactionReceiptModalContent from './routes/TransactionReceiptModalContent';
 import WorkspaceAvatarModalContent from './routes/WorkspaceAvatarModalContent';
 import type {AttachmentModalScreenParams, AttachmentModalScreenProps} from './types';
@@ -33,9 +33,9 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
         );
     }
 
-    if (route.name === SCREENS.ADD_ATTACHMENT) {
+    if (route.name === SCREENS.REPORT_ADD_ATTACHMENT) {
         return (
-            <AddAttachmentModalContent
+            <ReportAddAttachmentModalContent
                 route={{...route, params: paramsWithContext}}
                 navigation={navigation}
             />

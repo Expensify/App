@@ -601,7 +601,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
-                    name={SCREENS.ADD_ATTACHMENT}
+                    name={SCREENS.REPORT_ADD_ATTACHMENT}
                     options={attachmentModalScreenOptions}
                     getComponent={loadAttachmentModalScreen}
                     listeners={modalScreenListeners}

@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
 import type {TupleToUnion} from 'type-fest';
-import type {MultipleAttachmentsValidationError, SingleAttachmentValidationError} from '@libs/AttachmentUtils';
+import type {MultipleAttachmentsValidationError, SingleAttachmentValidationError} from '@libs/AttachmentValidation';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
 import {translateLocal} from '@libs/Localize';

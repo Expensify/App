@@ -74,21 +74,21 @@ function validateAttachmentFile(file: FileObject): Promise<SingleAttachmentValid
     });
 }
 
-type MultipleAttachmentsFileValidResult = {
+type MultipleAttachmentsValidResult = {
     isValid: true;
     validatedFiles: ValidatedFile[];
 };
 
 type MultipleAttachmentsValidationError = ValueOf<typeof CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS>;
-type MultiAttachmentsInvalidResult = {
+type MultipleAttachmentsInvalidResult = {
     isValid: false;
     error: MultipleAttachmentsValidationError;
     fileResults: SingleAttachmentValidationResult[];
 };
-type MultipleAttachmentsValidationResult = MultipleAttachmentsFileValidResult | MultiAttachmentsInvalidResult;
+type MultipleAttachmentsValidationResult = MultipleAttachmentsValidResult | MultipleAttachmentsInvalidResult;
 
 function validateMultipleAttachmentFiles(files: FileObject[]): Promise<MultipleAttachmentsValidationResult> {
-    if (files?.length || files.some((f) => isDirectory(f))) {
+    if (!files?.length || files.some((f) => isDirectory(f))) {
         return Promise.resolve({isValid: false, error: CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED, fileResults: []});
     }
 
@@ -150,4 +150,13 @@ function isDirectory(data: FileObject) {
 }
 
 export {validateAttachmentFile, validateMultipleAttachmentFiles};
-export type {SingleAttachmentValidationResult, SingleAttachmentValidationError, MultipleAttachmentsValidationResult, MultipleAttachmentsValidationError};
+export type {
+    SingleAttachmentValidationResult,
+    SingleAttachmentValidResult,
+    SingleAttachmentInvalidResult,
+    SingleAttachmentValidationError,
+    MultipleAttachmentsValidationResult,
+    MultipleAttachmentsValidResult,
+    MultipleAttachmentsInvalidResult,
+    MultipleAttachmentsValidationError,
+};

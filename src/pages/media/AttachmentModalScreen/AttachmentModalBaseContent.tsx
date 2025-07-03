@@ -26,7 +26,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import type {MultipleAttachmentsValidationError, SingleAttachmentValidationError} from '@libs/AttachmentUtils';
+import type {MultipleAttachmentsValidationError, SingleAttachmentValidationError} from '@libs/AttachmentValidation';
 import fileDownload from '@libs/fileDownload';
 import {getFileName, getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -43,8 +43,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
 import type {FileObject} from './types';
-
-type OnValidateFileCallback = (file: FileObject | FileObject[] | undefined, setFile: (file: FileObject | FileObject[] | undefined) => void) => void;
 
 type OnCloseOptions = {
     shouldCallDirectly?: boolean;
@@ -168,13 +166,10 @@ type AttachmentModalBaseContentProps = {
 
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
     onCarouselAttachmentChange?: (attachment: Attachment) => void;
-
-    /** Optional callback to fire when we want to validate the file. */
-    onValidateFile?: OnValidateFileCallback;
 };
 
 function AttachmentModalBaseContent({
-    source = '',
+    source: sourceProp = '',
     attachmentID,
     fallbackSource,
     file: fileProp,
@@ -213,18 +208,20 @@ function AttachmentModalBaseContent({
     onFileErrorModalCancel,
     onRequestDeleteReceipt,
     onCarouselAttachmentChange = () => {},
-    onValidateFile,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
     // This logic is used to ensure that the source is updated when the source changes and
     // that the initially provided source is always used as a fallback.
-    const [sourceState, setSourceState] = useState<AvatarSource>(() => source);
-    const sourceForAttachmentView = sourceState || source;
+    const [source, setSource] = useState<AvatarSource>(() => sourceProp);
+    const isLocalSource = typeof source === 'string' && /^file:|^blob:/.test(source);
+    const sourceForAttachmentView = source || sourceProp;
     useEffect(() => {
-        setSourceState(() => source);
+        setSource(() => source);
     }, [source]);
 
     const [isAuthTokenRequiredState, setIsAuthTokenRequiredState] = useState(isAuthTokenRequired);
@@ -275,32 +272,15 @@ function AttachmentModalBaseContent({
     );
 
     useEffect(() => {
-        if (!fileProp) {
-            return;
-        }
-
-        if (onValidateFile) {
-            onValidateFile?.(fileProp, setFile);
-        } else {
-            setFile(fileProp ?? fallbackFile);
-        }
-    }, [fileProp, fallbackFile, onValidateFile, setFile]);
-
-    useEffect(() => {
-        setFile(fallbackFile);
-    }, [fallbackFile, setFile]);
-
-    const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
-
-    const isLocalSource = typeof sourceState === 'string' && /^file:|^blob:/.test(sourceState);
+        setFile(fileProp ?? fallbackFile);
+    }, [fileProp, fallbackFile, setFile]);
 
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
      */
     const onNavigate = useCallback(
         (attachment: Attachment) => {
-            setSourceState(attachment.source);
+            setSource(attachment.source);
             setFile(attachment.file);
             setIsAuthTokenRequiredState(attachment.isAuthTokenRequired ?? false);
             onCarouselAttachmentChange(attachment);
@@ -323,7 +303,7 @@ function AttachmentModalBaseContent({
      * Download the currently viewed attachment.
      */
     const downloadAttachment = useCallback(() => {
-        let sourceURL = sourceState;
+        let sourceURL = source;
         if (isAuthTokenRequiredState && typeof sourceURL === 'string') {
             sourceURL = addEncryptedAuthTokenToURL(sourceURL);
         }
@@ -336,7 +316,7 @@ function AttachmentModalBaseContent({
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
         Keyboard.dismiss();
-    }, [sourceState, isAuthTokenRequiredState, type, fileToDisplay?.name, draftTransactionID]);
+    }, [isAuthTokenRequiredState, type, fileToDisplay?.name, draftTransactionID]);
 
     /**
      * Execute the onConfirm callback and close the modal.
@@ -349,12 +329,12 @@ function AttachmentModalBaseContent({
         }
 
         if (onConfirm) {
-            onConfirm(Object.assign(file ?? {}, {source: sourceState} as FileObject));
+            onConfirm(Object.assign(file ?? {}, {source} as FileObject));
         }
 
         onClose?.();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isConfirmButtonDisabled, onConfirm, file, sourceState]);
+    }, [isConfirmButtonDisabled, onConfirm, file, source]);
 
     // Close the modal when the escape key is pressed
     useEffect(() => {
@@ -421,18 +401,18 @@ function AttachmentModalBaseContent({
         }
         return menuItems;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isReceiptAttachment, transaction, file, sourceState, iouType]);
+    }, [isReceiptAttachment, transaction, file, source, iouType]);
 
     // There are a few things that shouldn't be set until we absolutely know if the file is a receipt or an attachment.
     // props.isReceiptAttachment will be null until its certain what the file is, in which case it will then be true|false.
     const headerTitle = useMemo(() => headerTitleProp ?? translate(isReceiptAttachment ? 'common.receipt' : 'common.attachment'), [headerTitleProp, isReceiptAttachment, translate]);
     const shouldShowThreeDotsButton = useMemo(() => isReceiptAttachment && threeDotsMenuItems.length !== 0, [isReceiptAttachment, threeDotsMenuItems.length]);
     const shouldShowDownloadButton = useMemo(() => {
-        if ((!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) && !isErrorInAttachment(sourceState)) {
+        if ((!isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH) && !isErrorInAttachment(source)) {
             return allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
         }
         return false;
-    }, [allowDownload, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, isReceiptAttachment, report, shouldShowNotFoundPage, sourceState, type]);
+    }, [allowDownload, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, isReceiptAttachment, report, shouldShowNotFoundPage, type]);
 
     const isPDFLoadError = useRef(false);
     const onPdfLoadError = useCallback(() => {
@@ -602,4 +582,4 @@ AttachmentModalBaseContent.displayName = 'AttachmentModalBaseContent';
 
 export default memo(AttachmentModalBaseContent);
 
-export type {AttachmentModalBaseContentProps, OnValidateFileCallback, OnCloseOptions};
+export type {AttachmentModalBaseContentProps, OnCloseOptions};
