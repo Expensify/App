@@ -13,10 +13,10 @@ import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import {PressableWithFeedback} from '@components/Pressable';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
-import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
+import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ExtendedTargetedEvent, ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ExtendedTargetedEvent, ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useInitialWindowDimensions from '@hooks/useInitialWindowDimensions';
@@ -36,11 +36,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {createItemHeightCalculator} from './itemHeightCalculator';
 import ITEM_HEIGHTS from './itemHeights';
+import type {SearchQueryJSON} from './types';
 
 const AnimatedFlashListComponent = Animated.createAnimatedComponent(FlashList<SearchListItem>);
 
-type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
-type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem | typeof TaskListItem;
+type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
+type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem;
 
 type SearchListHandle = {
     scrollAndHighlightItem?: (items: string[]) => void;
@@ -76,11 +77,8 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Whether to prevent long press of options */
     shouldPreventLongPressRow?: boolean;
 
-    /** The hash of the queryJSON */
-    queryJSONHash: number;
-
-    /** Whether to group the list by reports */
-    shouldGroupByReports?: boolean;
+    /** The search query */
+    queryJSON: SearchQueryJSON;
 
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
@@ -90,9 +88,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Styles to apply to the content container */
     contentContainerStyle?: StyleProp<ViewStyle>;
-
-    /** The type of query JSON */
-    queryJSONType: string;
 
     /** The estimated height of an item in the list */
     estimatedItemSize?: number;
@@ -117,20 +112,18 @@ function SearchList(
         ListFooterComponent,
         shouldPreventDefaultFocusOnSelectRow,
         shouldPreventLongPressRow,
-        queryJSONHash,
-        shouldGroupByReports,
+        queryJSON,
         onViewableItemsChanged,
         onLayout,
         estimatedItemSize = ITEM_HEIGHTS.NARROW_WITHOUT_DRAWER.STANDARD,
-        queryJSONType,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
     const styles = useThemeStyles();
-    const {initialHeight, initialWidth} = useInitialWindowDimensions();
 
-    // Memoize flattened transactions to prevent recalculation on every render
-    const flattenedTransactions = useMemo(() => (shouldGroupByReports ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data), [shouldGroupByReports, data]);
+    const {initialHeight, initialWidth} = useInitialWindowDimensions();
+    const {hash, groupBy, type} = queryJSON;
+    const flattenedTransactions = groupBy ? (data as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : data;
 
     const flattenedTransactionWithoutPendingDelete = useMemo(
         () => flattenedTransactions.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
@@ -367,10 +360,11 @@ function SearchList(
                         ...item,
                     }}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                    queryJSONHash={queryJSONHash}
+                    queryJSONHash={hash}
                     policies={policies}
                     isDisabled={isDisabled}
                     allReports={allReports}
+                    groupBy={groupBy}
                 />
             );
         },
@@ -383,7 +377,8 @@ function SearchList(
             onCheckboxPress,
             onSelectRow,
             policies,
-            queryJSONHash,
+            hash,
+            groupBy,
             setFocusedIndex,
             shouldPreventDefaultFocusOnSelectRow,
             allReports,
@@ -392,15 +387,16 @@ function SearchList(
 
     const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
+    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedTransactionWithoutPendingDelete.length;
 
     const getItemHeight = useMemo(
         () =>
             createItemHeightCalculator({
                 isLargeScreenWidth,
                 shouldUseNarrowLayout,
-                queryJSONType,
+                type,
             }),
-        [isLargeScreenWidth, shouldUseNarrowLayout, queryJSONType],
+        [isLargeScreenWidth, shouldUseNarrowLayout, type],
     );
 
     const overrideItemLayout = useCallback(
@@ -445,7 +441,7 @@ function SearchList(
                     {canSelectMultiple && (
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={flattenedTransactionWithoutPendingDelete.length > 0 && selectedItemsLength === flattenedTransactionWithoutPendingDelete.length}
+                            isChecked={isSelectAllChecked}
                             isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactionWithoutPendingDelete.length}
                             onPress={() => {
                                 onAllCheckboxPress();
@@ -462,7 +458,7 @@ function SearchList(
                             onPress={onAllCheckboxPress}
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             role="button"
-                            accessibilityState={{checked: selectedItemsLength === flattenedTransactionWithoutPendingDelete.length}}
+                            accessibilityState={{checked: isSelectAllChecked}}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
