@@ -7,7 +7,6 @@ import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import CONFIG from '@src/CONFIG';
-import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
@@ -15,6 +14,7 @@ import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearInitialPath} from './OnboardingFlow';
+import type {OnboardingCompanySize} from './OnboardingFlow';
 
 type OnboardingData = Onboarding | undefined;
 

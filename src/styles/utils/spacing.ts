@@ -459,7 +459,7 @@ export default {
         paddingVertical: 4,
     },
 
-    pv1half: {
+    pv1Half: {
         paddingVertical: 6,
     },
 
@@ -723,6 +723,10 @@ export default {
         gap: 4,
     },
 
+    gapHalf: {
+        gap: 2,
+    },
+
     gap2: {
         gap: 8,
     },
@@ -773,10 +777,6 @@ export default {
 
     minHeight65: {
         minHeight: 260,
-    },
-
-    minWidth18: {
-        minWidth: 72,
     },
 
     maxHeight5: {

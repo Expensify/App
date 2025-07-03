@@ -1,10 +1,12 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo} from 'react';
+import React, {useContext, useEffect, useMemo} from 'react';
 import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import type {ConfirmationPageProps} from '@components/ConfirmationPage';
+import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
@@ -13,7 +15,6 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {closeReactNativeApp} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -28,6 +29,7 @@ import SCREENS from '@src/SCREENS';
 function MergeResultPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT>>();
     const {result, login} = params;
@@ -151,7 +153,8 @@ function MergeResultPage() {
                 secondaryButtonText: translate('mergeAccountsPage.mergePendingSAML.goToExpensifyClassic'),
                 onSecondaryButtonPress: () => {
                     if (CONFIG.IS_HYBRID_APP) {
-                        closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+                        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+                        setRootStatusBarEnabled(false);
                         return;
                     }
                     openOldDotLink(CONST.OLDDOT_URLS.INBOX, false);
@@ -231,7 +234,7 @@ function MergeResultPage() {
                 illustration: Illustrations.LockClosedOrange,
             },
         };
-    }, [login, translate, userEmailOrPhone, styles]);
+    }, [setRootStatusBarEnabled, login, translate, userEmailOrPhone, styles]);
 
     useEffect(() => {
         /**
@@ -287,7 +290,7 @@ function MergeResultPage() {
                 secondaryButtonText={secondaryButtonText}
                 onSecondaryButtonPress={onSecondaryButtonPress}
                 description={description}
-                descriptionStyle={{...descriptionStyle, ...styles.textSupporting}}
+                descriptionStyle={[descriptionStyle, styles.textSupporting]}
                 illustration={illustration}
                 illustrationStyle={illustrationStyle}
                 cta={cta}
