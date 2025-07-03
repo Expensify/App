@@ -719,11 +719,13 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
         const oldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
 
         // 1. Optimistically change the reportID on the passed transactions
+        const targetReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReportID : reportID;
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                reportID,
+                reportID: targetReportID,
             },
         });
 
@@ -731,7 +733,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                reportID,
+                reportID: targetReportID,
             },
         });
 
@@ -801,7 +803,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
             updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : (oldReport?.total ?? 0)) + transactionAmount;
         }
         if (reportID && newReport) {
-            updatedReportTotals[reportID] = (updatedReportTotals[reportID] ? updatedReportTotals[reportID] : (newReport.total ?? 0)) - transactionAmount;
+            updatedReportTotals[targetReportID] = (updatedReportTotals[targetReportID] ? updatedReportTotals[targetReportID] : (newReport.total ?? 0)) - transactionAmount;
         }
 
         // 4. Optimistically update the IOU action reportID
@@ -818,7 +820,6 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
         const trackExpenseActionableWhisper = isUnreported ? getTrackExpenseActionableWhisper(transaction.transactionID, selfDMReportID) : undefined;
 
         if (oldIOUAction) {
-            const targetReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (existingSelfDMReportID ?? selfDMReport.reportID) : reportID;
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
@@ -854,7 +855,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
 
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
             value: {
                 [newIOUAction.reportActionID]: {pendingAction: null},
             },
@@ -863,7 +864,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
             failureData.push(
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
                     value: {
                         [newIOUAction.reportActionID]: null,
                     },
@@ -884,7 +885,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`,
             value: {
-                parentReportID: reportID,
+                parentReportID: targetReportID,
                 parentReportActionID: optimisticMoneyRequestReportActionID,
                 policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
             },
@@ -906,7 +907,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
         let transactionThreadReportID = newIOUAction.childReportID;
         let transactionThreadCreatedReportActionID;
         if (!transactionThreadReportID) {
-            const optimisticTransactionThread = buildTransactionThread(newIOUAction, newReport);
+            const optimisticTransactionThread = buildTransactionThread(newIOUAction, reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? undefined : newReport);
             const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction(currentUserEmail);
             transactionThreadReportID = optimisticTransactionThread.reportID;
             transactionThreadCreatedReportActionID = optimisticCreatedActionForTransactionThread.reportActionID;
@@ -925,7 +926,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
                     value: {[newIOUAction.reportActionID]: {childReportID: optimisticTransactionThread.reportID}},
                 },
             );
@@ -956,7 +957,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
                     value: {[newIOUAction.reportActionID]: {childReportID: null}},
                 },
             );
@@ -965,7 +966,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, po
         // 7. Add MOVED_TRANSACTION or UNREPORTED_TRANSACTION report actions
         const movedAction =
             reportID === CONST.REPORT.UNREPORTED_REPORT_ID
-                ? buildOptimisticUnreportedTransactionAction(transactionThreadReportID, transaction.reportID)
+                ? buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID)
                 : buildOptimisticMovedTransactionAction(transactionThreadReportID, reportID);
 
         optimisticData.push({
