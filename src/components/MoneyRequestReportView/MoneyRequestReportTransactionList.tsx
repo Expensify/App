@@ -32,7 +32,7 @@ import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import {compareValues, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {getCategory, getDescription, getTag, getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {getCategory, getDescription, getTag, getTransactionPendingAction, isScanning, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -190,7 +190,7 @@ function MoneyRequestReportTransactionList({
 
         transactions.forEach((transactionItem) => {
             const merchant = transactionItem.modifiedMerchant ? transactionItem.modifiedMerchant : (transactionItem.merchant ?? '');
-            if (merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
+            if ((merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) || isScanning(transactionItem)) {
                 columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT] = true;
             }
 
