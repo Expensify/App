@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type UseSearchBackPress from './types';
 
 const useSearchBackPress: UseSearchBackPress = ({onClearSelection, onNavigationCallBack}) => {
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     useFocusEffect(
         useCallback(() => {
             const onBackPress = () => {
