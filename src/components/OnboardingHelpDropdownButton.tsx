@@ -1,5 +1,4 @@
 import {addMinutes} from 'date-fns';
-import noop from 'lodash/noop';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
