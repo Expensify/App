@@ -10,7 +10,7 @@ import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
 import {getRequestType, hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
@@ -121,26 +121,25 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         [deleteReceiptAndClose, isDeleteReceiptConfirmModalVisible, translate],
     );
 
-    const contentProps = useMemo(
-        () =>
-            ({
-                source: imageSource,
-                isAuthTokenRequired: !isLocalFile && !isDraftTransaction,
-                report,
-                isReceiptAttachment: true,
-                canEditReceipt: ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt,
-                canDeleteReceipt: canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt,
-                allowDownload: !isEReceipt,
-                isTrackExpenseAction: isTrackExpenseActionValue,
-                originalFileName: isDraftTransaction ? transaction?.filename : receiptURIs?.filename,
-                isLoading: !transaction && reportMetadata?.isLoadingInitialReportActions,
-                iouAction,
-                iouType,
-                draftTransactionID: isDraftTransaction ? transactionID : undefined,
-                shouldShowNotFoundPage,
-                ExtraModals,
-                onRequestDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(true),
-            }) satisfies Partial<AttachmentModalBaseContentProps>,
+    const contentProps = useMemo<AttachmentModalBaseContentProps>(
+        () => ({
+            source: imageSource,
+            isAuthTokenRequired: !isLocalFile && !isDraftTransaction,
+            report,
+            isReceiptAttachment: true,
+            canEditReceipt: ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt,
+            canDeleteReceipt: canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt,
+            allowDownload: !isEReceipt,
+            isTrackExpenseAction: isTrackExpenseActionValue,
+            originalFileName: isDraftTransaction ? transaction?.filename : receiptURIs?.filename,
+            isLoading: !transaction && reportMetadata?.isLoadingInitialReportActions,
+            iouAction,
+            iouType,
+            draftTransactionID: isDraftTransaction ? transactionID : undefined,
+            shouldShowNotFoundPage,
+            ExtraModals,
+            onRequestDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(true),
+        }),
         [
             ExtraModals,
             canDeleteReceipt,

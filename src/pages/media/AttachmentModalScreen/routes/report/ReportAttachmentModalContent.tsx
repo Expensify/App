@@ -8,7 +8,7 @@ import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';

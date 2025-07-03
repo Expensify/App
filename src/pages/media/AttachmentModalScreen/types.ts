@@ -2,7 +2,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
 import type ModalType from '@src/types/utils/ModalType';
-import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent';
+import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent/types';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used

@@ -399,5 +399,3 @@ function AttachmentModalBaseContent({
 AttachmentModalBaseContent.displayName = 'AttachmentModalBaseContent';
 
 export default memo(AttachmentModalBaseContent);
-
-export type {AttachmentModalBaseContentProps};

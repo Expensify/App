@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, isGroupChat, isThread} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
-import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,13 +32,12 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         };
     }, [policy, report]);
 
-    const contentProps = useMemo(
-        () =>
-            ({
-                ...attachment,
-                shouldShowNotFoundPage: !report?.reportID && !isLoadingApp,
-                isLoading: (!report?.reportID || !policy?.id) && !!isLoadingApp,
-            }) satisfies Partial<AttachmentModalBaseContentProps>,
+    const contentProps = useMemo<AttachmentModalBaseContentProps>(
+        () => ({
+            ...attachment,
+            shouldShowNotFoundPage: !report?.reportID && !isLoadingApp,
+            isLoading: (!report?.reportID || !policy?.id) && !!isLoadingApp,
+        }),
         [attachment, isLoadingApp, policy?.id, report?.reportID],
     );
 

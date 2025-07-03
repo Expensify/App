@@ -5,7 +5,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import {isValidAccountRoute} from '@libs/ValidationUtils';
-import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
+import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
@@ -28,16 +28,15 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
         openPublicProfilePage(accountID);
     }, [accountID]);
 
-    const contentProps = useMemo(
-        () =>
-            ({
-                source: getFullSizeAvatar(avatarURL, accountID),
-                isLoading: !!(personalDetailsMetadata?.[accountID]?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length)),
-                headerTitle: formatPhoneNumber(displayName),
-                originalFileName: personalDetail?.originalFileName ?? '',
-                shouldShowNotFoundPage: !avatarURL,
-                maybeIcon: true,
-            }) satisfies Partial<AttachmentModalBaseContentProps>,
+    const contentProps = useMemo<AttachmentModalBaseContentProps>(
+        () => ({
+            source: getFullSizeAvatar(avatarURL, accountID),
+            isLoading: !!(personalDetailsMetadata?.[accountID]?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length)),
+            headerTitle: formatPhoneNumber(displayName),
+            originalFileName: personalDetail?.originalFileName ?? '',
+            shouldShowNotFoundPage: !avatarURL,
+            maybeIcon: true,
+        }),
         [accountID, avatarURL, displayName, isLoadingApp, personalDetail, personalDetailsMetadata],
     );
 
