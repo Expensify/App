@@ -341,6 +341,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Name of the added category */
     categoryName?: string;
 
+    /** Name of the added tax */
+    taxName?: string;
+
     /** Name of the updated field */
     updatedField?: string;
 
