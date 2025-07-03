@@ -48,7 +48,7 @@ type AttachmentPickerWithMenuItemsProps = {
     currentUserPersonalDetails: OnyxTypes.PersonalDetails;
 
     /** Callback to open the file in the modal */
-    displayFileInModal: (url: FileObject) => void;
+    displayFilesInModal: (files: FileObject[]) => void;
 
     /** Whether or not the full size composer is available */
     isFullComposerAvailable: boolean;
@@ -106,7 +106,7 @@ function AttachmentPickerWithMenuItems({
     report,
     currentUserPersonalDetails,
     reportParticipantIDs,
-    displayFileInModal,
+    displayFilesInModal,
     isFullComposerAvailable,
     isComposerFullSize,
     reportID,
@@ -320,7 +320,7 @@ function AttachmentPickerWithMenuItems({
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
                     openPicker({
-                        onPicked: (data) => displayFileInModal(data.at(0) ?? {}),
+                        onPicked: (data) => displayFilesInModal(data.at(0) ?? {}),
                         onCanceled: onCanceledAttachmentPicker,
                     });
                 };

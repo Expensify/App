@@ -523,8 +523,12 @@ function ReportActionCompose({
                 setPdfFile(null);
                 setReceiptAndNavigate(pdfFile, true);
             }}
-            onPassword={() => setUploadReceiptError(CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE)}
-            onLoadError={() => setUploadReceiptError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED)}
+            onPassword={() => {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
+            }}
+            onLoadError={() => {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+            }}
         />
     ) : null;
 
