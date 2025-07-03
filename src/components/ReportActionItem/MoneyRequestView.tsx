@@ -22,6 +22,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import {getCompanyCardDescription} from '@libs/CardUtils';
+import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
@@ -223,10 +224,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         return CONST.IOU.TYPE.SUBMIT;
     }, [isTrackExpense, isInvoice]);
 
-    const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
-
     const category = transactionCategory ?? '';
-    const categoryForDisplay = emptyCategories.includes(category) ? '' : category;
+    const categoryForDisplay = isCategoryMissing(category) ? '' : category;
 
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
@@ -565,7 +564,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         style={styles.mv3}
                     >
                         <ReceiptEmptyState
-                            hasError={hasErrors}
                             disabled={!canEditReceipt}
                             onPress={() => {
                                 if (!transaction?.transactionID || !report?.reportID) {

@@ -119,6 +119,10 @@ function isSubmitAction(
         return false;
     }
 
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
 
     if (!isExpenseReport || report?.total === 0) {
@@ -289,7 +293,8 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportClosed = isClosedReportUtils(report);
 
-    if (isReportPayer && arePaymentsEnabled && (isReportApproved || isReportClosed)) {
+    const isReportSettled = isSettled(report);
+    if (isReportPayer && arePaymentsEnabled && (isReportApproved || isReportClosed || isReportSettled)) {
         return true;
     }
 

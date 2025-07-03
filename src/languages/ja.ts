@@ -99,7 +99,6 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
-    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -276,6 +275,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -666,12 +666,6 @@ const translations = {
         attachmentImageTooLarge: 'この画像はアップロード前にプレビューするには大きすぎます。',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `一度にアップロードできるファイルは${fileLimit}個までです。`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `ファイルが ${maxUploadSizeInMB} MB を超えています。もう一度お試しください。`,
-        someFilesCantBeUploaded: '一部のファイルはアップロードできません',
-        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `ファイルは${maxUploadSizeInMB}MB未満である必要があります。それより大きいファイルはアップロードされません。`,
-        maxFileLimitExceeded: '一度に最大30枚の領収書をアップロードできます。超過分はアップロードされません。',
-        unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType}ファイルはサポートされていません。サポートされているファイルタイプのみがアップロードされます。`,
-        learnMoreAboutSupportedFiles: 'サポートされているフォーマットについて詳しく知る。',
-        passwordProtected: 'パスワード保護されたPDFはサポートされていません。サポートされているファイルのみがアップロードされます。',
     },
     dropzone: {
         addAttachments: '添付ファイルを追加',
@@ -2652,11 +2646,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `銀行口座を接続するには、お願いします <a href="${contactMethodRoute}">メールをプライマリーログインとして追加する</a> もう一度試してください。電話番号をセカンダリログインとして追加できます。`,
         hasBeenThrottledError: '銀行口座の追加中にエラーが発生しました。数分待ってから再試行してください。',
-        hasCurrencyError: {
-            phrase1: 'おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、こちらにアクセスしてください。',
-            link: 'ワークスペースの設定',
-            phrase2: 'USDに設定して、もう一度お試しください。',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、こちらにアクセスしてください。<a href="${workspaceRoute}">ワークスペースの設定</a> USDに設定して、もう一度お試しください。`,
         error: {
             youNeedToSelectAnOption: 'オプションを選択してください',
             noBankAccountAvailable: '申し訳ありませんが、利用可能な銀行口座がありません。',

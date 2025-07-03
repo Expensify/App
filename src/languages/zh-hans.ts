@@ -99,7 +99,6 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
-    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -276,6 +275,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -665,12 +665,6 @@ const translations = {
         attachmentImageTooLarge: '此图像太大，无法在上传前预览。',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `您一次最多只能上传 ${fileLimit} 个文件。`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `文件超过 ${maxUploadSizeInMB} MB。请重试。`,
-        someFilesCantBeUploaded: '有些文件无法上传',
-        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `文件必须小于${maxUploadSizeInMB} MB。较大的文件将不会被上传。`,
-        maxFileLimitExceeded: '您一次最多可上传30张收据。额外的将不会被上传。',
-        unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType} 文件不受支持。只有受支持的文件类型才会被上传。`,
-        learnMoreAboutSupportedFiles: '了解更多关于支持的格式。',
-        passwordProtected: '不支持密码保护的PDF。只有受支持的文件才会被上传。',
     },
     dropzone: {
         addAttachments: '添加附件',
@@ -2621,11 +2615,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `要连接银行账户，请 <a href="${contactMethodRoute}">添加一个电子邮件作为您的主要登录方式</a> 并重试。您可以添加电话号码作为辅助登录。`,
         hasBeenThrottledError: '添加您的银行账户时发生错误。请稍等几分钟后重试。',
-        hasCurrencyError: {
-            phrase1: '哎呀！您的工作区货币似乎设置为不同于 USD 的货币。要继续，请前往',
-            link: '您的工作区设置',
-            phrase2: '将其设置为美元，然后重试。',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `哎呀！您的工作区货币似乎设置为不同于 USD 的货币。要继续，请前往 <a href="${workspaceRoute}">您的工作区设置</a> 将其设置为美元，然后重试。`,
         error: {
             youNeedToSelectAnOption: '请选择一个选项继续',
             noBankAccountAvailable: '抱歉，没有可用的银行账户。',

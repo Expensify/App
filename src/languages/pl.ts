@@ -99,7 +99,6 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
-    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -276,6 +275,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -666,12 +666,6 @@ const translations = {
         attachmentImageTooLarge: 'Ten obraz jest zbyt duży, aby wyświetlić podgląd przed przesłaniem.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Możesz przesłać jednocześnie maksymalnie ${fileLimit} plików.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Plik przekracza ${maxUploadSizeInMB} MB. Proszę spróbować ponownie.`,
-        someFilesCantBeUploaded: 'Niektóre pliki nie mogą zostać przesłane',
-        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Pliki muszą mieć mniej niż ${maxUploadSizeInMB} MB. Większe pliki nie zostaną przesłane.`,
-        maxFileLimitExceeded: 'Możesz przesłać maksymalnie 30 paragonów naraz. Dodatkowe nie zostaną przesłane.',
-        unsupportedFileType: ({fileType}: FileTypeParams) => `Pliki ${fileType} nie są obsługiwane. Tylko obsługiwane typy plików zostaną przesłane.`,
-        learnMoreAboutSupportedFiles: 'Dowiedz się więcej o obsługiwanych formatach.',
-        passwordProtected: 'Pliki PDF chronione hasłem nie są obsługiwane. Tylko obsługiwane pliki zostaną przesłane.',
     },
     dropzone: {
         addAttachments: 'Dodaj załączniki',
@@ -2646,11 +2640,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Aby połączyć konto bankowe, proszę <a href="${contactMethodRoute}">dodaj e-mail jako swoje główne dane logowania</a> i spróbuj ponownie. Możesz dodać swój numer telefonu jako dodatkowy login.`,
         hasBeenThrottledError: 'Wystąpił błąd podczas dodawania Twojego konta bankowego. Proszę poczekać kilka minut i spróbować ponownie.',
-        hasCurrencyError: {
-            phrase1: 'Ups! Wygląda na to, że waluta Twojego miejsca pracy jest ustawiona na inną niż USD. Aby kontynuować, przejdź do',
-            link: 'ustawienia Twojego miejsca pracy',
-            phrase2: 'ustawić na USD i spróbować ponownie.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Ups! Wygląda na to, że waluta Twojego miejsca pracy jest ustawiona na inną niż USD. Aby kontynuować, przejdź do <a href="${workspaceRoute}">ustawienia Twojego miejsca pracy</a> ustawić na USD i spróbować ponownie.`,
         error: {
             youNeedToSelectAnOption: 'Proszę wybrać opcję, aby kontynuować',
             noBankAccountAvailable: 'Przepraszamy, nie ma dostępnego konta bankowego.',

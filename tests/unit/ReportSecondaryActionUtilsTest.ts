@@ -118,6 +118,35 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
+    it('should not include SUBMIT option for admin with only pending transactions', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        } as unknown as Report;
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const transaction = {
+            transactionID: 'TRANSACTION_ID',
+            status: CONST.TRANSACTION.STATUS.PENDING,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        const result = getSecondaryReportActions({report, chatReport, reportTransactions: [transaction], violations: {}, policy});
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
+    });
+
     it('includes APPROVE option for approver and report with duplicates', async () => {
         const report = {
             reportID: REPORT_ID,
@@ -927,6 +956,30 @@ describe('getSecondaryExportReportActions', () => {
             role: CONST.POLICY.ROLE.ADMIN,
             connections: {[CONST.POLICY.CONNECTIONS.NAME.QBD]: {config: {autosync: {enabled: true}}}},
         } as unknown as Policy;
+
+        const result = getSecondaryExportReportActions(report, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(true);
+    });
+
+    it('include EXPORT option for settled expense report with integrated policy', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            policyID: POLICY_ID,
+        } as unknown as Report;
+
+        const policy = {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.XERO]: {},
+            },
+            id: POLICY_ID,
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as Policy;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
         const result = getSecondaryExportReportActions(report, policy);
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(true);

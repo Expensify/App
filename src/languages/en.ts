@@ -87,7 +87,6 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
-    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -264,6 +263,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -656,12 +656,6 @@ const translations = {
         attachmentImageTooLarge: 'This image is too large to preview before uploading.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `You can only upload up to ${fileLimit} files at a time.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Files exceeds ${maxUploadSizeInMB} MB. Please try again.`,
-        someFilesCantBeUploaded: "Some files can't be uploaded",
-        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Files must be under ${maxUploadSizeInMB} MB. Any larger files won't be uploaded.`,
-        maxFileLimitExceeded: "You can upload up to 30 receipts at a time. Any extras won't be uploaded.",
-        unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType} files aren't supported. Only supported file types will be uploaded.`,
-        learnMoreAboutSupportedFiles: 'Learn more about supported formats.',
-        passwordProtected: "Password-protected PDFs aren't supported. Only supported files will be uploaded.",
     },
     dropzone: {
         addAttachments: 'Add attachments',
@@ -2629,11 +2623,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `To connect a bank account, please <a href="${contactMethodRoute}">add an email as your primary login</a> and try again. You can add your phone number as a secondary login.`,
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
-        hasCurrencyError: {
-            phrase1: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to ',
-            link: 'your workspace settings',
-            phrase2: ' to set it to USD and try again.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to <a href="${workspaceRoute}">your workspace settings</a> to set it to USD and try again.`,
         error: {
             youNeedToSelectAnOption: 'Please select an option to proceed',
             noBankAccountAvailable: "Sorry, there's no bank account available",

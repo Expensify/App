@@ -86,7 +86,6 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
-    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -264,6 +263,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -651,12 +651,6 @@ const translations = {
         attachmentImageTooLarge: 'Esta imagen es demasiado grande para obtener una vista previa antes de subirla.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Solamente puedes suber ${fileLimit} archivos a la vez.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `El archivo supera los ${maxUploadSizeInMB} MB. Por favor, vuelve a intentarlo.`,
-        someFilesCantBeUploaded: 'Algunos archivos no se pueden subir',
-        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Los archivos deben ser menores a ${maxUploadSizeInMB} MB. Los archivos más grandes no se subirán.`,
-        maxFileLimitExceeded: 'Puedes subir hasta 30 recibos a la vez. Los extras no se subirán.',
-        unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType} archivos no son compatibles. Solo se subirán los archivos compatibles.`,
-        learnMoreAboutSupportedFiles: 'Obtén más información sobre los formatos compatibles.',
-        passwordProtected: 'Los PDFs con contraseña no son compatibles. Solo se subirán los archivos compatibles',
     },
     dropzone: {
         addAttachments: 'Añadir archivos adjuntos',
@@ -2617,11 +2611,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Para añadir una cuenta bancaria verificada, <a href="${contactMethodRoute}">asegúrate de que tu nombre de usuario principal sea un correo electrónico válido</a> y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.`,
         hasBeenThrottledError: 'Se ha producido un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
-        hasCurrencyError: {
-            phrase1: '¡Ups! Parece que la moneda de tu espacio de trabajo no está configurada en USD. Para continuar, ve a ',
-            link: 'la configuración del área de trabajo',
-            phrase2: ', configúrala en USD e inténtalo nuevamente.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `¡Ups! Parece que la moneda de tu espacio de trabajo no está configurada en USD. Para continuar, ve a <a href="${workspaceRoute}">la configuración del área de trabajo</a>, configúrala en USD e inténtalo nuevamente.`,
         error: {
             youNeedToSelectAnOption: 'Debes seleccionar una opción para continuar',
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',

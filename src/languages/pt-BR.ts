@@ -99,7 +99,6 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
-    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -276,6 +275,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -665,12 +665,6 @@ const translations = {
         attachmentImageTooLarge: 'Esta imagem é muito grande para pré-visualizar antes de fazer o upload.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Você pode enviar até ${fileLimit} arquivos de uma vez.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Os arquivos excedem ${maxUploadSizeInMB} MB. Por favor, tente novamente.`,
-        someFilesCantBeUploaded: 'Alguns arquivos não podem ser enviados',
-        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Os arquivos devem ter menos de ${maxUploadSizeInMB} MB. Arquivos maiores não serão enviados.`,
-        maxFileLimitExceeded: 'Você pode enviar até 30 recibos por vez. Os extras não serão enviados.',
-        unsupportedFileType: ({fileType}: FileTypeParams) => `Arquivos ${fileType} não são suportados. Apenas os tipos de arquivo suportados serão enviados.`,
-        learnMoreAboutSupportedFiles: 'Saiba mais sobre formatos suportados.',
-        passwordProtected: 'PDFs protegidos por senha não são suportados. Apenas arquivos suportados serão enviados.',
     },
     dropzone: {
         addAttachments: 'Adicionar anexos',
@@ -2649,11 +2643,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Para conectar uma conta bancária, por favor <a href="${contactMethodRoute}">adicione um e-mail como seu login principal</a> e tente novamente. Você pode adicionar seu número de telefone como um login secundário.`,
         hasBeenThrottledError: 'Ocorreu um erro ao adicionar sua conta bancária. Por favor, aguarde alguns minutos e tente novamente.',
-        hasCurrencyError: {
-            phrase1: 'Ops! Parece que a moeda do seu espaço de trabalho está definida para uma moeda diferente de USD. Para continuar, por favor vá para',
-            link: 'suas configurações de espaço de trabalho',
-            phrase2: 'para definir para USD e tentar novamente.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Ops! Parece que a moeda do seu espaço de trabalho está definida para uma moeda diferente de USD. Para continuar, por favor vá para <a href="${workspaceRoute}">suas configurações de espaço de trabalho</a> para definir para USD e tentar novamente.`,
         error: {
             youNeedToSelectAnOption: 'Por favor, selecione uma opção para continuar',
             noBankAccountAvailable: 'Desculpe, não há nenhuma conta bancária disponível.',

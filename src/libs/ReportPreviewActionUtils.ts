@@ -38,7 +38,7 @@ import {
     isSettled,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {allHavePendingRTERViolation, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
 function canSubmit(
     report: Report,
@@ -59,6 +59,10 @@ function canSubmit(
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasBeenReopened = hasReportBeenReopened(reportActions);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
+
+    if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
+        return false;
+    }
 
     const hasAnyViolations =
         hasMissingSmartscanFields(report.reportID, transactions) ||
