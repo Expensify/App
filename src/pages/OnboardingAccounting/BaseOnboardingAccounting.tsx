@@ -1,5 +1,4 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
@@ -41,8 +40,6 @@ import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type {BaseOnboardingAccountingProps} from './types';
 
 type Integration = {
@@ -105,10 +102,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
-    const route = useRoute();
-    const shouldPreventBackNavigation = (['ONBOARDING_WORK_EMAIL', 'ONBOARDING_WORK_EMAIL_VALIDATION'] as const).some((key) =>
-        decodeURIComponent((route.params as {backTo?: Route})?.backTo ?? '').includes(`/${ROUTES[key].route}`),
-    );
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -325,7 +318,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                shouldShowBackButton={!shouldPreventBackNavigation}
+                shouldShowBackButton
                 progressBarPercentage={80}
                 onBackButtonPress={Navigation.goBack}
             />
