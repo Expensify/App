@@ -3475,6 +3475,7 @@ describe('actions/IOU', () => {
                 updateMoneyRequestAmountAndCurrency({
                     transactionID: transaction.transactionID,
                     transactionThreadReportID: thread.reportID,
+                    transactionViolations: {},
                     amount: 20000,
                     currency: CONST.CURRENCY.USD,
                     taxAmount: 0,
@@ -5664,6 +5665,7 @@ describe('actions/IOU', () => {
                 },
                 policyTagList: {},
                 policyCategories: {},
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();
@@ -5722,6 +5724,7 @@ describe('actions/IOU', () => {
                 },
                 policyTagList: {},
                 policyCategories: {},
+                transactionViolations: {},
             });
 
             await waitForBatchedUpdates();

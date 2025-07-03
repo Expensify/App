@@ -42,6 +42,7 @@ function IOURequestStepDate({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(report?.policyID);
+    const [allTransactionViolations = {}] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: false});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
@@ -107,7 +108,7 @@ function IOURequestStepDate({
         setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft);
 
         if (isEditing) {
-            updateMoneyRequestDate(transactionID, reportID, newCreated, policy, policyTags, policyCategories);
+            updateMoneyRequestDate(transactionID, reportID, allTransactionViolations, newCreated, policy, policyTags, policyCategories);
         }
 
         navigateBack();

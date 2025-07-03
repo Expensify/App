@@ -81,6 +81,7 @@ function IOURequestStepAmount({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [allTransactionViolations = {}] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
@@ -293,6 +294,7 @@ function IOURequestStepAmount({
         updateMoneyRequestAmountAndCurrency({
             transactionID,
             transactionThreadReportID: reportID,
+            transactionViolations: allTransactionViolations,
             currency,
             amount: newAmount,
             taxAmount,

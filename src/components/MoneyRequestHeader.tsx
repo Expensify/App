@@ -79,7 +79,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         {canBeMissing: true},
     );
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
-
+    const [allTransactionViolations = {}] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`, {canBeMissing: true});
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: false});
@@ -330,7 +330,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     if (isTrackExpenseAction(parentReportAction)) {
                         deleteTrackExpense(report?.parentReportID, transaction.transactionID, parentReportAction, true);
                     } else {
-                        deleteMoneyRequest(transaction.transactionID, parentReportAction, true);
+                        deleteMoneyRequest(transaction.transactionID, parentReportAction, true, allTransactionViolations);
                         removeTransaction(transaction.transactionID);
                     }
                     onBackButtonPress();
