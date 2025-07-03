@@ -41,11 +41,10 @@ const ANIMATION_DURATION_IN_MS = 300;
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
-    currentSearchResults?: SearchResults;
-    lastNonEmptySearchResults?: SearchResults;
+    searchResults?: SearchResults;
 };
 
-function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults, lastNonEmptySearchResults}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -54,7 +53,6 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const {isOffline} = useNetwork();
 
     // Controls the visibility of the educational tooltip based on user scrolling.
@@ -136,7 +134,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
         );
     }
 
-    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
+    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
 
     return (
@@ -207,8 +205,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
                 {!searchRouterListVisible && (
                     <View style={[styles.flex1]}>
                         <Search
-                            currentSearchResults={currentSearchResults}
-                            lastNonEmptySearchResults={lastNonEmptySearchResults}
+                            searchResults={searchResults}
                             key={queryJSON.hash}
                             queryJSON={queryJSON}
                             onSearchListScroll={scrollHandler}

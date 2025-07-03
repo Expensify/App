@@ -47,6 +47,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import SearchScopeProvider from './SearchScopeProvider';
@@ -56,8 +57,7 @@ type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     contentContainerStyle?: StyleProp<ViewStyle>;
-    currentSearchResults?: SearchResults;
-    lastNonEmptySearchResults?: SearchResults;
+    searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
 };
 
@@ -134,7 +134,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     };
 }
 
-function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onSearchListScroll, contentContainerStyle, handleSearch}: SearchProps) {
+function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch}: SearchProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -182,7 +182,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         setCurrentSearchHash(hash);
     }, [hash, clearSelectedTransactions, setCurrentSearchHash, isFocused]);
 
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
 
     useEffect(() => {
@@ -240,7 +239,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
-    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
+    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
 
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0));
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
@@ -313,6 +312,10 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 };
             });
         }
+        if (isEmptyObject(newTransactionList)) {
+            return;
+        }
+
         setSelectedTransactions(newTransactionList, data);
 
         isRefreshingSelection.current = true;
