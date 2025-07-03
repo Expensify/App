@@ -402,7 +402,7 @@ const searchResults: OnyxTypes.SearchResults = {
         hasMoreResults: false,
         hasResults: true,
         offset: 0,
-        status: '',
+        status: CONST.SEARCH.STATUS.EXPENSE.ALL,
         isLoading: false,
         type: 'expense',
     },
@@ -1485,7 +1485,7 @@ describe('SearchUIUtils', () => {
             },
             search: {
                 type: 'expense',
-                status: '',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 offset: 0,
                 hasMoreResults: false,
                 hasResults: true,
