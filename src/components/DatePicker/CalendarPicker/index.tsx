@@ -96,7 +96,7 @@ function CalendarPicker({
             );
             return newCurrentDateView;
         });
-        setTimeout(() => setIsYearPickerVisible(false));
+        requestAnimationFrame(() => setIsYearPickerVisible(false));
     };
 
     /**

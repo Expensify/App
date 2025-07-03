@@ -16,8 +16,8 @@ import type {AnimationInType, AnimationOutType} from './types';
 function ReanimatedModal({
     testID,
     animationInDelay,
-    animationInTiming = 300,
-    animationOutTiming = 300,
+    animationInTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN,
+    animationOutTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT,
     animationIn = 'fadeIn',
     animationOut = 'fadeOut',
     avoidKeyboard = false,

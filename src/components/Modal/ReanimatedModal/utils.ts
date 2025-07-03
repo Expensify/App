@@ -1,6 +1,6 @@
+import type {ViewStyle} from 'react-native';
 import {Easing} from 'react-native-reanimated';
 import type {ValidKeyframeProps} from 'react-native-reanimated/lib/typescript/commonTypes';
-import type {ViewStyle} from 'react-native';
 import variables from '@styles/variables';
 import type {AnimationInType, AnimationOutType} from './types';
 
@@ -37,7 +37,8 @@ function getModalInAnimation(animationType: AnimationInType): ValidKeyframeProps
     }
 }
 
-function getModalInAnimationStyle(animationType: AnimationInType): (progress: number) => ViewStyle { // 'progress' in range [0, 1]
+function getModalInAnimationStyle(animationType: AnimationInType): (progress: number) => ViewStyle {
+    // 'progress' in range [0, 1]
     switch (animationType) {
         case 'slideInRight':
             return (progress) => ({transform: [{translateX: `${100 * (1 - progress)}%`}]});

@@ -209,8 +209,9 @@ function BaseModal(
                 innerContainerStyle,
                 outerStyle,
                 shouldUseModalPaddingStyle,
+                shouldUseReanimatedModal,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseModalPaddingStyle],
+        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseModalPaddingStyle, shouldUseReanimatedModal],
     );
 
     const modalPaddingStyles = useMemo(() => {
