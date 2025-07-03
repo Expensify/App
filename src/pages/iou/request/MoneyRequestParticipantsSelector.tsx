@@ -4,7 +4,6 @@ import lodashReject from 'lodash/reject';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
 import Button from '@components/Button';
@@ -22,6 +21,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -111,7 +111,7 @@ function MoneyRequestParticipantsSelector({
         shouldInitialize: didScreenTransitionEnd,
     });
     const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
-    const [textInputAutoFocus, setTextInputAutoFocus] = useState(false);
+    const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -463,7 +463,6 @@ function MoneyRequestParticipantsSelector({
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
         InteractionManager.runAfterInteractions(importAndSaveContacts);
-        setTextInputAutoFocus(true);
     }, [importAndSaveContacts]);
 
     const footerContent = useMemo(() => {
@@ -580,6 +579,7 @@ function MoneyRequestParticipantsSelector({
             <ContactPermissionModal
                 onGrant={initiateContactImportAndSetState}
                 onDeny={setContactPermissionState}
+                onFocusTextInput={() => setTextInputAutoFocus(true)}
             />
             <SelectionList
                 onConfirm={handleConfirmSelection}

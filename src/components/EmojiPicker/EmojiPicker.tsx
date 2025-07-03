@@ -1,8 +1,9 @@
 /* eslint-disable react-compiler/react-compiler */
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef, RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
+import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -11,9 +12,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import type {AnchorOrigin, EmojiPickerRef, EmojiPopoverAnchor, OnEmojiSelected, OnModalHideValue, OnWillShowPicker} from '@libs/actions/EmojiPickerAction';
+import type {AnchorOrigin, EmojiPickerOnModalHide, EmojiPickerRef, EmojiPopoverAnchor, OnEmojiSelected, ShowEmojiPickerOptions} from '@libs/actions/EmojiPickerAction';
 import {isMobileChrome} from '@libs/Browser';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
+import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import EmojiPickerMenu from './EmojiPickerMenu';
@@ -30,22 +34,26 @@ type EmojiPickerProps = {
 function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<EmojiPickerRef>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
+
     const [isEmojiPickerVisible, setIsEmojiPickerVisible] = useState(false);
     const [emojiPopoverAnchorPosition, setEmojiPopoverAnchorPosition] = useState({
         horizontal: 0,
         vertical: 0,
     });
     const [emojiPopoverAnchorOrigin, setEmojiPopoverAnchorOrigin] = useState<AnchorOrigin>(DEFAULT_ANCHOR_ORIGIN);
+    const [isWithoutOverlay, setIsWithoutOverlay] = useState(true);
     const [activeID, setActiveID] = useState<string | null>();
     const emojiPopoverAnchorRef = useRef<EmojiPopoverAnchor | null>(null);
     const emojiAnchorDimension = useRef({
         width: 0,
         height: 0,
     });
-    const onModalHide = useRef<OnModalHideValue>(() => {});
+    const onModalHide = useRef<EmojiPickerOnModalHide>(() => {});
     const onEmojiSelected = useRef<OnEmojiSelected>(() => {});
     const activeEmoji = useRef<string | undefined>(undefined);
     const emojiSearchInput = useRef<BaseTextInputRef | null>(null);
+    const composerToRefocusOnClose = useRef<ComposerType | undefined>(undefined);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -70,18 +78,28 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
      * @param id - Unique id for EmojiPicker
      * @param activeEmojiValue - Selected emoji to be highlighted
      */
-    const showEmojiPicker = (
-        onModalHideValue: OnModalHideValue,
-        onEmojiSelectedValue: OnEmojiSelected,
-        emojiPopoverAnchorValue: EmojiPopoverAnchor,
-        anchorOrigin?: AnchorOrigin,
-        onWillShow?: OnWillShowPicker,
-        id?: string,
-        activeEmojiValue?: string,
-    ) => {
+    const showEmojiPicker = ({
+        onModalHide: onModalHideValue,
+        onEmojiSelected: onEmojiSelectedValue,
+        emojiPopoverAnchor: emojiPopoverAnchorValue,
+        anchorOrigin,
+        onWillShow,
+        id,
+        activeEmoji: activeEmojiValue,
+        withoutOverlay = true,
+        composerToRefocusOnClose: composerToRefocusOnCloseValue,
+    }: ShowEmojiPickerOptions) => {
+        composerToRefocusOnClose.current = composerToRefocusOnCloseValue;
+        if (composerToRefocusOnCloseValue === 'main') {
+            ReportActionComposeFocusManager.preventComposerFocusOnFirstResponderOnce();
+        } else if (composerToRefocusOnCloseValue === 'edit') {
+            ReportActionComposeFocusManager.preventEditComposerFocusOnFirstResponderOnce();
+        }
+
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
         activeEmoji.current = activeEmojiValue;
+        setIsWithoutOverlay(withoutOverlay);
         emojiPopoverAnchorRef.current = emojiPopoverAnchorValue;
         const emojiPopoverAnchor = getEmojiPopoverAnchor();
         // Drop focus to avoid blue focus ring.
@@ -112,16 +130,30 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
     /**
      * Hide the emoji picker menu.
      */
-    const hideEmojiPicker = (isNavigating?: boolean) => {
-        const currOnModalHide = onModalHide.current;
-        onModalHide.current = () => {
-            if (currOnModalHide) {
-                currOnModalHide(!!isNavigating);
-            }
+    const hideEmojiPicker = useCallback(
+        (isNavigating?: boolean) => {
+            const currOnModalHide = onModalHide.current;
+            onModalHide.current = () => {
+                if (currOnModalHide) {
+                    currOnModalHide(!!isNavigating);
+                }
 
-            emojiPopoverAnchorRef.current = null;
-        };
-        setIsEmojiPickerVisible(false);
+                emojiPopoverAnchorRef.current = null;
+            };
+            setIsEmojiPickerVisible(false);
+            actionSheetAwareScrollViewContext.transitionActionSheetState({
+                type: Actions.CLOSE_POPOVER,
+            });
+        },
+        [onModalHide, actionSheetAwareScrollViewContext],
+    );
+
+    const handleModalHide = () => {
+        onModalHide.current();
+
+        refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose.current).then(() => {
+            composerToRefocusOnClose.current = undefined;
+        });
     };
 
     /**
@@ -188,7 +220,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             }
             emojiPopoverDimensionListener.remove();
         };
-    }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor]);
+    }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor, hideEmojiPicker]);
 
     return (
         <PopoverWithMeasuredContent
@@ -196,14 +228,14 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             isVisible={isEmojiPickerVisible}
             onClose={hideEmojiPicker}
             onModalShow={focusEmojiSearchInput}
-            onModalHide={onModalHide.current}
+            onModalHide={handleModalHide}
             shouldSetModalVisibility={false}
             anchorPosition={{
                 vertical: emojiPopoverAnchorPosition.vertical,
                 horizontal: emojiPopoverAnchorPosition.horizontal,
             }}
             anchorRef={getEmojiPopoverAnchor() as RefObject<View | HTMLDivElement>}
-            withoutOverlay
+            withoutOverlay={isWithoutOverlay}
             popoverDimensions={{
                 width: CONST.EMOJI_PICKER_SIZE.WIDTH,
                 height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
@@ -223,7 +255,9 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
                     <EmojiPickerMenu
                         onEmojiSelected={selectEmoji}
                         activeEmoji={activeEmoji.current}
-                        ref={(el) => (emojiSearchInput.current = el)}
+                        ref={(el) => {
+                            emojiSearchInput.current = el;
+                        }}
                     />
                 </View>
             </FocusTrapForModal>
