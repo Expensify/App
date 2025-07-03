@@ -12,7 +12,7 @@ import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNo
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
-type ReportListItemType = ListItem & {
+type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
     value: string;
 };
@@ -26,7 +26,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
-    const selectReport = (item: ReportListItemType) => {
+    const selectReport = (item: TransactionGroupListItem) => {
         if (!transaction) {
             return;
         }
@@ -43,21 +43,11 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
     };
 
-    const removeFromReport = () => {
-        if (!transaction) {
-            return;
-        }
-        changeTransactionsReport([transaction.transactionID], CONST.REPORT.UNREPORTED_REPORT_ID);
-        Navigation.dismissModal();
-    };
-
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
             transactionsReports={transactionReport ? [transactionReport] : []}
             selectReport={selectReport}
-            removeFromReport={removeFromReport}
-            isEditing={isEditing}
         />
     );
 }

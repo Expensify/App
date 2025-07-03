@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
+import {getReportPreviewAction} from '@libs/ReportPreviewActionUtils';
 // eslint-disable-next-line no-restricted-syntax
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -14,7 +14,7 @@ import type {Connections, NetSuiteConnection} from '@src/types/onyx/Policy';
 import * as InvoiceData from '../data/Invoice';
 import type {InvoiceTestData} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'tester@mail.com';
@@ -95,6 +95,36 @@ describe('getReportPreviewAction', () => {
         // Simulate how components use a hook to pass the isReportArchived parameter
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+    });
+
+    it('canSubmit should return false for expense preview report with only pending transactions', async () => {
+        const report: Report = {
+            ...createRandomReport(REPORT_ID),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        if (policy.harvesting) {
+            policy.harvesting.enabled = false;
+        }
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            status: CONST.TRANSACTION.STATUS.PENDING,
+            amount: 10,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        // Simulate how components use a hook to pass the isReportArchived parameter
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });
 
     describe('canApprove', () => {

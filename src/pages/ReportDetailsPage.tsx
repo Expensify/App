@@ -139,7 +139,7 @@ const CASES = {
 
 type CaseID = ValueOf<typeof CASES>;
 
-function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDetailsPageProps) {
+function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
@@ -147,6 +147,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const backTo = route.params.backTo;
 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {canBeMissing: true});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`, {canBeMissing: true});
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
         selector: (actions) => (report?.parentReportActionID ? actions?.[report.parentReportActionID] : undefined),
@@ -159,26 +160,23 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const {removeTransaction} = useSearchContext();
 
-    const transactionThreadReportID = useMemo(() => getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline), [report.reportID, reportActions, isOffline]);
+    const transactionThreadReportID = useMemo(() => getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline), [reportActions, isOffline, report, chatReport]);
 
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.isDebugModeEnabled, canBeMissing: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
-    const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policies), [report?.policyID, policies]);
+    const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtil(report), [report]);
     const shouldUseFullTitle = useMemo(() => shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => isChatRoomUtil(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => isUserCreatedPolicyRoomUtil(report), [report]);
     const isDefaultRoom = useMemo(() => isDefaultRoomUtil(report), [report]);
     const isChatThread = useMemo(() => isChatThreadUtil(report), [report]);
-    const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, reportNameValuePairs), [report, reportNameValuePairs]);
     const isMoneyRequestReport = useMemo(() => isMoneyRequestReportUtil(report), [report]);
     const isMoneyRequest = useMemo(() => isMoneyRequestUtil(report), [report]);
     const isInvoiceReport = useMemo(() => isInvoiceReportUtil(report), [report]);
@@ -196,7 +194,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
     const isSelfDMTrackExpenseReport = isTrackExpenseReport && isSelfDMUtil(parentReport);
-    const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report), [report]);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, isReportArchived), [report, isReportArchived]);
+    const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report, isReportArchived), [report, isReportArchived]);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
@@ -275,8 +275,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isTaskModifiable &&
         isTaskActionable;
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
-    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
-    const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransactionID);
+    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
+    const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID}`, {canBeMissing: true});
+    const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted);
     useEffect(() => {
         if (canDeleteRequest) {
@@ -455,7 +456,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     translationKey: 'task.markAsIncomplete',
                     isAnonymousAction: false,
                     action: callFunctionIfActionIsAllowed(() => {
-                        Navigation.dismissModal();
+                        Navigation.goBack(backTo);
                         reopenTask(report);
                     }),
                 });

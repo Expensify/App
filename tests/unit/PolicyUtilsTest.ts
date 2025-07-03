@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -650,6 +650,7 @@ describe('PolicyUtils', () => {
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL),
+                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
                 },
@@ -668,14 +669,16 @@ describe('PolicyUtils', () => {
             expect(result).toBe(false);
         });
 
-        it('returns true if policy is paid group policy and submitter is a member of the new policy', async () => {
+        it('returns true if policy is paid group policy and the manger is the payer', async () => {
             const currentUserLogin = employeeEmail;
             const currentUserAccountID = employeeAccountID;
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                isPolicyExpenseChatEnabled: true,
                 employeeList: {
-                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
             };
             const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
@@ -684,22 +687,21 @@ describe('PolicyUtils', () => {
                 ...createRandomReport(0),
                 type: CONST.REPORT.TYPE.IOU,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                ownerAccountID: currentUserAccountID,
-                managerID: approverAccountID,
+                ownerAccountID: approverAccountID,
+                managerID: currentUserAccountID,
             };
 
             const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
             expect(result).toBe(true);
         });
 
-        it('returns true if policy is paid group policy and submitter is not a member but current user is admin', async () => {
-            const currentUserLogin = adminEmail;
-
+        it('returns false if the manager is not the payer of the new policy', async () => {
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                isPolicyExpenseChatEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
-                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                    [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.USER},
                 },
             };
             const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
@@ -713,7 +715,33 @@ describe('PolicyUtils', () => {
             };
 
             const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
-            expect(result).toBe(true);
+            expect(result).toBe(false);
+        });
+
+        it('returns false if policies are not policyExpenseChatEnabled', async () => {
+            const currentUserLogin = employeeEmail;
+            const currentUserAccountID = employeeAccountID;
+
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                isPolicyExpenseChatEnabled: false,
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                },
+            };
+            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+            const report = {
+                ...createRandomReport(0),
+                type: CONST.REPORT.TYPE.IOU,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                ownerAccountID: approverAccountID,
+                managerID: currentUserAccountID,
+            };
+
+            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
+            expect(result).toBe(false);
         });
     });
 

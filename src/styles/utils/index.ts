@@ -30,6 +30,7 @@ import getNavigationBarType from './getNavigationBarType/index';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
+import getSuccessReportCardLostIllustrationStyle from './getSuccessReportCardLostIllustrationStyle';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
 import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
@@ -273,6 +274,29 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
     return {
         overflow: 'hidden',
         ...getAvatarBorderRadius(size, type),
+    };
+}
+
+/**
+ * Returns the avatar subscript icon container styles
+ */
+function getAvatarSubscriptIconContainerStyle(iconWidth = 16, iconHeight = 16): ViewStyle {
+    const borderWidth = 2;
+
+    // The width of the container is the width of the icon + 2x border width (left and right)
+    const containerWidth = iconWidth + 2 * borderWidth;
+    // The height of the container is the height of the icon + 2x border width (top and bottom)
+    const containerHeight = iconHeight + 2 * borderWidth;
+
+    return {
+        overflow: 'hidden',
+        position: 'absolute',
+        bottom: -4,
+        right: -4,
+        borderWidth,
+        borderRadius: 2 + borderWidth,
+        width: containerWidth,
+        height: containerHeight,
     };
 }
 
@@ -1206,6 +1230,7 @@ const staticStyleUtils = {
     getAvatarExtraFontSizeStyle,
     getAvatarSize,
     getAvatarWidthStyle,
+    getAvatarSubscriptIconContainerStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
@@ -1274,6 +1299,7 @@ const staticStyleUtils = {
     getHighResolutionInfoWrapperStyle,
     getItemBackgroundColorStyle,
     getNavigationBarType,
+    getSuccessReportCardLostIllustrationStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1327,7 +1353,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             ...styles.overflowHidden,
             // maxHeight is not of the input only but the of the whole input container
             // which also includes the top padding and bottom border
-            height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth,
+            height: maxHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2,
         };
     },
 
@@ -1348,7 +1374,19 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getMarkdownMaxHeight: (maxAutoGrowHeight: number | undefined): TextStyle => {
         // maxHeight is not of the input only but the of the whole input container
         // which also includes the top padding and bottom border
-        return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderBottomWidth} : {};
+        return maxAutoGrowHeight ? {maxHeight: maxAutoGrowHeight - styles.textInputMultilineContainer.paddingTop - styles.textInputContainer.borderWidth * 2} : {};
+    },
+
+    /**
+     * Computes styles for the text input icon container.
+     * Applies horizontal padding if requested, and sets the top margin based on the presence of a label.
+     */
+    getTextInputIconContainerStyles: (hasLabel: boolean, includePadding = true) => {
+        const paddingStyle = includePadding ? {paddingHorizontal: 11} : {};
+        return {
+            ...paddingStyle,
+            marginTop: hasLabel ? 8 : 16,
+        };
     },
 
     /**
@@ -1434,6 +1472,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius,
+        margin: 2,
     }),
 
     /**
@@ -1531,7 +1570,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Return the height of magic code input container
      */
-    getHeightOfMagicCodeInput: (): ViewStyle => ({height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderBottomWidth}),
+    getHeightOfMagicCodeInput: (): ViewStyle => ({height: styles.magicCodeInputContainer.height - styles.textInputContainer.borderWidth * 2}),
 
     /**
      * Generate fill color of an icon based on its state.
@@ -1632,7 +1671,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false): ViewStyle => {
+    getReportTableColumnStyles: (columnName: string, isDateColumnWide = false, isAmountColumnWide = false, isTaxAmountColumnWide = false): ViewStyle => {
         let columnWidth;
         switch (columnName) {
             case CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS:
@@ -1656,8 +1695,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
+                columnWidth = {...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
-                columnWidth = {...getWidthStyle(variables.w96), ...styles.alignItemsEnd};
+                columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TYPE:
                 columnWidth = {...getWidthStyle(variables.w20), ...styles.alignItemsCenter};

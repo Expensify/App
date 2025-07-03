@@ -17,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isCategoryMissing} from '@libs/CategoryUtils';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
 import {
@@ -25,10 +26,9 @@ import {
     getCreated as getTransactionCreated,
     getTransactionPendingAction,
     hasMissingSmartscanFields,
-    hasReceipt,
     isAmountMissing,
     isMerchantMissing,
-    isReceiptBeingScanned,
+    isScanning,
     isTransactionPendingDelete,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -88,6 +88,8 @@ type TransactionItemRowProps = {
     isSelected: boolean;
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
+    amountColumnSize: TableColumnSize;
+    taxAmountColumnSize: TableColumnSize;
     onCheckboxPress: (transactionID: string) => void;
     shouldShowCheckbox: boolean;
     columns?: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS>>;
@@ -98,6 +100,7 @@ type TransactionItemRowProps = {
     isReportItemChild?: boolean;
     isActionLoading?: boolean;
     isInReportTableView?: boolean;
+    isInSingleTransactionReport?: boolean;
 };
 
 /** If merchant name is empty or (none), then it falls back to description if screen is narrow */
@@ -109,11 +112,13 @@ function getMerchantNameWithFallback(transactionItem: TransactionWithOptionalSea
     if (merchantNameEmpty && shouldUseNarrowLayout) {
         merchantOrDescriptionToDisplay = Parser.htmlToText(description);
     }
+
     let merchant = shouldShowMerchant ? merchantOrDescriptionToDisplay : Parser.htmlToText(description);
 
-    if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem) && shouldShowMerchant) {
+    if (isScanning(transactionItem) && shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
     }
+
     const merchantName = StringUtils.getFirstLine(merchant);
     return merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchantName : '';
 }
@@ -124,6 +129,8 @@ function TransactionItemRow({
     isSelected,
     shouldShowTooltip,
     dateColumnSize,
+    amountColumnSize,
+    taxAmountColumnSize,
     onCheckboxPress,
     shouldShowCheckbox = false,
     columns,
@@ -134,6 +141,7 @@ function TransactionItemRow({
     isReportItemChild = false,
     isActionLoading,
     isInReportTableView = false,
+    isInSingleTransactionReport = false,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -143,10 +151,12 @@ function TransactionItemRow({
     const isPendingDelete = isTransactionPendingDelete(transactionItem);
     const viewRef = useRef<View>(null);
 
-    const hasCategoryOrTag = !!transactionItem.category || !!transactionItem.tag;
+    const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: transactionItem.shouldBeHighlighted ?? false,
@@ -197,7 +207,10 @@ function TransactionItemRow({
     const columnComponent: ColumnComponents = useMemo(
         () => ({
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
+                <View
+                    key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}
+                >
                     <TypeCell
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
@@ -206,7 +219,10 @@ function TransactionItemRow({
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
+                <View
+                    key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}
+                >
                     <ReceiptCell
                         transactionItem={transactionItem}
                         isSelected={isSelected}
@@ -215,7 +231,10 @@ function TransactionItemRow({
             ),
 
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
+                <View
+                    key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}
+                >
                     <TagCell
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
@@ -224,7 +243,10 @@ function TransactionItemRow({
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide)]}>
+                <View
+                    key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide)]}
+                >
                     <DateCell
                         created={createdAt}
                         showTooltip={shouldShowTooltip}
@@ -233,7 +255,10 @@ function TransactionItemRow({
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
+                <View
+                    key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}
+                >
                     <CategoryCell
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
@@ -242,7 +267,10 @@ function TransactionItemRow({
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                <View
+                    key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.ACTION}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}
+                >
                     {!!transactionItem.action && (
                         <ActionCell
                             action={transactionItem.action}
@@ -256,7 +284,10 @@ function TransactionItemRow({
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
+                <View
+                    key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}
+                >
                     {!!merchantOrDescriptionName && (
                         <MerchantOrDescriptionCell
                             merchantOrDescription={merchantOrDescriptionName}
@@ -267,7 +298,10 @@ function TransactionItemRow({
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                <View
+                    key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.TO}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}
+                >
                     {!!transactionItem.to && (
                         <UserInfoCell
                             accountID={transactionItem.to.accountID}
@@ -278,7 +312,10 @@ function TransactionItemRow({
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                <View
+                    key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.FROM}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}
+                >
                     {!!transactionItem.from && (
                         <UserInfoCell
                             accountID={transactionItem.from.accountID}
@@ -289,12 +326,21 @@ function TransactionItemRow({
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS)]}>
-                    <ChatBubbleCell transaction={transactionItem} />
+                <View
+                    key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS)]}
+                >
+                    <ChatBubbleCell
+                        transaction={transactionItem}
+                        isInSingleTransactionReport={isInSingleTransactionReport}
+                    />
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                <View
+                    key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, undefined, isAmountColumnWide)]}
+                >
                     <TotalCell
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
@@ -303,7 +349,10 @@ function TransactionItemRow({
                 </View>
             ),
             [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAX]: (
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT)]}>
+                <View
+                    key={CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAX}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, undefined, undefined, isTaxAmountColumnWide)]}
+                >
                     <TaxCell
                         transactionItem={transactionItem}
                         shouldShowTooltip={shouldShowTooltip}
@@ -317,6 +366,9 @@ function TransactionItemRow({
             isActionLoading,
             isReportItemChild,
             isDateColumnWide,
+            isAmountColumnWide,
+            isTaxAmountColumnWide,
+            isInSingleTransactionReport,
             isSelected,
             merchantOrDescriptionName,
             onButtonPress,
@@ -420,6 +472,7 @@ function TransactionItemRow({
                                 <ChatBubbleCell
                                     transaction={transactionItem}
                                     containerStyles={[styles.mt2]}
+                                    isInSingleTransactionReport={isInSingleTransactionReport}
                                 />
                             </View>
                         </View>

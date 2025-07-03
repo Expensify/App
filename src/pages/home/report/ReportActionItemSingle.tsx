@@ -78,7 +78,7 @@ type ReportActionItemSingleProps = Partial<ChildrenProps> & {
 };
 
 const showUserDetails = (accountID: number | undefined) => {
-    Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute()));
+    Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
 };
 
 const showWorkspaceDetails = (reportID: string | undefined) => {
@@ -123,6 +123,7 @@ function ReportActionItemSingle({
     let displayName = getDisplayNameForParticipant({accountID: actorAccountID, personalDetailsData: personalDetails});
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};
     const accountOwnerDetails = getPersonalDetailByEmail(login ?? '');
+
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isTripRoom = isTripRoomReportUtils(report);
@@ -200,14 +201,18 @@ function ReportActionItemSingle({
         id: avatarId,
     };
 
+    const showMultipleUserAvatarPattern = displayAllActors && !shouldShowSubscriptAvatar;
+
+    const headingText = showMultipleUserAvatarPattern ? `${icon.name} & ${secondaryAvatar.name}` : displayName;
+
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
-    const personArray = displayName
+    const personArray = headingText
         ? [
               {
                   type: 'TEXT',
-                  text: displayName,
+                  text: headingText,
               },
           ]
         : action?.person;
@@ -284,6 +289,7 @@ function ReportActionItemSingle({
             </UserDetailsTooltip>
         );
     };
+
     const hasEmojiStatus = !displayAllActors && status?.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(status?.clearAfter ?? '');
     const statusText = status?.text ?? '';
@@ -324,6 +330,7 @@ function ReportActionItemSingle({
                                     isSingleLine
                                     actorIcon={icon}
                                     moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
+                                    shouldShowTooltip={!showMultipleUserAvatarPattern}
                                 />
                             ))}
                         </PressableWithoutFeedback>

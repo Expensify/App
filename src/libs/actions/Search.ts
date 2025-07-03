@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {PaymentData, SearchQueryJSON} from '@components/Search/types';
-import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionList/types';
 import * as API from '@libs/API';
 import type {ExportSearchItemsToCSVParams, SubmitReportParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -14,11 +14,12 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getSubmitToAccountID} from '@libs/PolicyUtils';
 import {hasHeldExpenses} from '@libs/ReportUtils';
-import {isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
+import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src/types/onyx';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
@@ -40,14 +41,14 @@ Onyx.connect({
     waitForCollectionCallback: true,
 });
 
-function handleActionButtonPress(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
+function handleActionButtonPress(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void, isInMobileSelectionMode: boolean) {
     // The transactionIDList is needed to handle actions taken on `status:all` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
-    const allReportTransactions = (isReportListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
+    const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
-    if (hasHeldExpense) {
+    if (hasHeldExpense || isInMobileSelectionMode) {
         goToItem();
         return;
     }
@@ -77,13 +78,13 @@ function getLastPolicyPaymentMethod(policyID: string | undefined, lastPaymentMet
     if (typeof lastPaymentMethods?.[policyID] === 'string') {
         lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
     } else {
-        lastPolicyPaymentMethod = (lastPaymentMethods?.[policyID] as LastPaymentMethodType)?.lastUsed as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+        lastPolicyPaymentMethod = (lastPaymentMethods?.[policyID] as LastPaymentMethodType)?.lastUsed.name as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
     }
 
     return lastPolicyPaymentMethod;
 }
 
-function getPayActionCallback(hash: number, item: TransactionListItemType | ReportListItemType, goToItem: () => void) {
+function getPayActionCallback(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod);
 
     if (!lastPolicyPaymentMethod) {
@@ -150,6 +151,7 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
                 search: {
                     status: queryJSON?.status,
                     type: queryJSON?.type,
+                    isLoading: false,
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
@@ -244,6 +246,10 @@ function openSearchFiltersCardPage() {
 
     const failureData: OnyxUpdate[] = [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, value: null}];
     API.read(READ_COMMANDS.OPEN_SEARCH_FILTERS_CARD_PAGE, null, {optimisticData, successData, failureData});
+}
+
+function openSearchPage() {
+    API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
 }
 
 function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: number}) {
@@ -416,10 +422,20 @@ function clearAllFilters() {
 }
 
 function clearAdvancedFilters() {
-    const values: Partial<Record<ValueOf<typeof FILTER_KEYS>, null>> = {};
+    const values: Partial<Nullable<SearchAdvancedFiltersForm>> = {};
     Object.values(FILTER_KEYS)
-        .filter((key) => !([FILTER_KEYS.TYPE, FILTER_KEYS.STATUS, FILTER_KEYS.GROUP_BY] as string[]).includes(key))
+        .filter((key) => key !== FILTER_KEYS.GROUP_BY)
         .forEach((key) => {
+            if (key === FILTER_KEYS.TYPE) {
+                values[key] = CONST.SEARCH.DATA_TYPES.EXPENSE;
+                return;
+            }
+
+            if (key === FILTER_KEYS.STATUS) {
+                values[key] = CONST.SEARCH.STATUS.EXPENSE.ALL;
+                return;
+            }
+
             values[key] = null;
         });
 
@@ -444,5 +460,6 @@ export {
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
     openSearchFiltersCardPage,
+    openSearchPage as openSearch,
     getLastPolicyPaymentMethod,
 };

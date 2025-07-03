@@ -41,6 +41,7 @@ function StatusPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const formRef = useRef<FormRef>(null);
     const [brickRoadIndicator, setBrickRoadIndicator] = useState<ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>>();
+
     const currentUserEmojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const currentUserStatusText = currentUserPersonalDetails?.status?.text ?? '';
     const currentUserClearAfter = currentUserPersonalDetails?.status?.clearAfter ?? '';

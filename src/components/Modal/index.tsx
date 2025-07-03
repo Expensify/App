@@ -28,7 +28,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     };
 
     const handlePopStateRef = useRef(() => {
-        rest.onClose();
+        rest.onClose?.();
     });
 
     const showModal = () => {

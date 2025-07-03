@@ -1,6 +1,6 @@
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
@@ -21,6 +21,7 @@ import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useNewTransactions from '@hooks/useNewTransactions';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
@@ -153,7 +154,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`, {initialValue: false, canBeMissing: true});
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
-    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: false, allowStaleData: true});
+    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: false});
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportOnyx?.parentReportID)}`, {
         canEvict: false,
@@ -171,7 +172,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             const reportActionID = route?.params?.reportActionID;
             const isValidReportActionID = reportActionID && isNumeric(reportActionID);
             if (reportActionID && !isValidReportActionID) {
-                navigation.setParams({reportActionID: ''});
+                Navigation.isNavigationReady().then(() => navigation.setParams({reportActionID: ''}));
             }
             return;
         }
@@ -258,6 +259,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
     const reportID = report?.reportID;
 
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
     const lastReportIDFromRoute = usePrevious(reportIDFromRoute);
@@ -268,6 +270,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`, {canBeMissing: true});
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
@@ -299,7 +302,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         canBeMissing: false,
     });
     const reportTransactionIDs = reportTransactions?.map((transaction) => transaction.transactionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline, reportTransactionIDs);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
@@ -312,17 +315,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
 
-    const prevTransactions = usePrevious(reportTransactions);
-
-    const newTransactions = useMemo(() => {
-        if (!reportTransactions || !prevTransactions || reportTransactions.length <= prevTransactions.length) {
-            return CONST.EMPTY_ARRAY as unknown as OnyxTypes.Transaction[];
-        }
-        return reportTransactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
-        // Depending only on transactions is enough because prevTransactions is a helper object.
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportTransactions]);
+    const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
@@ -395,11 +388,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }
 
     useEffect(() => {
-        if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(linkedAction?.childReportID, reportID, linkedAction)) {
+        if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction)) {
             return;
         }
         navigation.setParams({reportActionID: ''});
-    }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation]);
+    }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation, report, childReport]);
 
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute);
 
@@ -618,6 +611,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 isTopMostReportId &&
                 reportDetailScreens.find((r) => r === currentRoute?.name) &&
                 !!currentRoute?.params &&
+                typeof currentRoute.params === 'object' &&
                 'reportID' in currentRoute.params &&
                 reportIDFromRoute === currentRoute.params.reportID;
             // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
@@ -863,4 +857,4 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 }
 
 ReportScreen.displayName = 'ReportScreen';
-export default memo(ReportScreen, (prevProps, nextProps) => lodashIsEqual(prevProps.route, nextProps.route));
+export default memo(ReportScreen, (prevProps, nextProps) => deepEqual(prevProps.route, nextProps.route));
