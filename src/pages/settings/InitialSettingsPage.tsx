@@ -238,9 +238,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     icon: Expensicons.TreasureChest,
                     iconRight: Expensicons.NewWindow,
                     shouldShowRightIcon: true,
-                    link: CONST.WHATS_NEW,
+                    link: CONST.WHATS_NEW_URL,
                     action: () => {
-                        openExternalLink(CONST.WHATS_NEW);
+                        openExternalLink(CONST.WHATS_NEW_URL);
                     },
                 },
                 {
