@@ -94,7 +94,6 @@ import {
     isTaskAction,
     isThreadParentMessage,
     isUnapprovedAction,
-    isWhisperAction,
     shouldReportActionBeVisible,
 } from './ReportActionsUtils';
 import type {OptionData} from './ReportUtils';
@@ -125,7 +124,6 @@ import {
     getUpgradeWorkspaceMessage,
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
-    isArchivedReport,
     isChatThread,
     isDefaultRoom,
     isDM,
@@ -429,7 +427,6 @@ Onyx.connect({
             const reportActionsForDisplay = sortedReportActions.filter(
                 (reportAction, actionKey) =>
                     shouldReportActionBeVisible(reportAction, actionKey, isWriteActionAllowed) &&
-                    !isWhisperAction(reportAction) &&
                     reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                     reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
@@ -717,12 +714,7 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  */
-function getLastMessageTextForReport(
-    report: OnyxEntry<Report>,
-    lastActorDetails: Partial<PersonalDetails> | null,
-    policy?: OnyxEntry<Policy>,
-    reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>,
-): string {
+function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>, isReportArchived = false): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
 
@@ -730,7 +722,7 @@ function getLastMessageTextForReport(
     const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
     let lastMessageTextFromReport = '';
 
-    if (isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived)) {
+    if (isArchivedNonExpenseReport(report, isReportArchived)) {
         const archiveReason =
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             (isClosedAction(lastOriginalReportAction) && getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
@@ -789,7 +781,9 @@ function getLastMessageTextForReport(
         const properSchemaForModifiedExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: report?.reportID, reportAction: lastReportAction});
         lastMessageTextFromReport = formatReportLastMessageText(properSchemaForModifiedExpenseMessage, true);
     } else if (isMovedTransactionAction(lastReportAction)) {
-        lastMessageTextFromReport = getMovedTransactionMessage(lastReportAction);
+        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+        const movedIOUReport = isExpenseReport(parentReport) ? parentReport : report;
+        lastMessageTextFromReport = getMovedTransactionMessage(lastReportAction, movedIOUReport);
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
@@ -856,7 +850,7 @@ function getLastMessageTextForReport(
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
     if (
         reportID &&
-        !isArchivedReport(reportNameValuePairs) &&
+        !isReportArchived &&
         (report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED || (lastOriginalReportAction?.reportActionID && isDeletedAction(lastOriginalReportAction)))
     ) {
         return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
@@ -936,7 +930,7 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         result.isMoneyRequestReport = reportUtilsIsMoneyRequestReport(report);
         result.isThread = isChatThread(report);
         result.isTaskReport = reportUtilsIsTaskReport(report);
-        result.shouldShowSubscript = shouldReportShowSubscript(report);
+        result.shouldShowSubscript = shouldReportShowSubscript(report, !!result.private_isArchived);
         result.isPolicyExpenseChat = reportUtilsIsPolicyExpenseChat(report);
         result.isOwnPolicyExpenseChat = report.isOwnPolicyExpenseChat ?? false;
         result.allReportErrors = reportAttributesDerivedValue?.[report.reportID]?.reportErrors ?? {};
@@ -968,10 +962,10 @@ function createOption(accountIDs: number[], personalDetails: OnyxInputOrEntry<Pe
         const lastAction = lastVisibleReportActions[report.reportID];
         // lastActorAccountID can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const lastActorAccountID = report.lastActorAccountID || lastAction?.actorAccountID;
+        const lastActorAccountID = lastAction?.actorAccountID || report.lastActorAccountID;
         const lastActorDetails = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
         const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
-        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, undefined, reportNameValuePairs);
+        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, undefined, !!result.private_isArchived);
         let lastMessageText = lastMessageTextFromReport;
 
         const shouldDisplayLastActorName =

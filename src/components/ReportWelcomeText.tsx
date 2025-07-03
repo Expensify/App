@@ -50,6 +50,8 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID || undefined}`, {canBeMissing: true});
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
     const isChatRoom = isChatRoomReportUtils(report);
     const isSelfDM = isSelfDMReportUtils(report);
     const isInvoiceRoom = isInvoiceRoomReportUtils(report);
@@ -59,9 +61,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
-    const isReportArchived = useReportIsArchived(report?.reportID);
     const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy, isReportArchived);
-    const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
     const policyName = getPolicyName({report});
 
