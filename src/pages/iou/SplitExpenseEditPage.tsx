@@ -89,7 +89,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                 titleStyle={styles.flex1}
                 shouldShowBasicTitle
                 shouldShowDescriptionOnTop
-                key={translate('workspace.common.tags')}
+                key={name ?? translate('common.tag')}
                 description={name ?? translate('common.tag')}
                 onPress={() => {
                     Navigation.navigate(
