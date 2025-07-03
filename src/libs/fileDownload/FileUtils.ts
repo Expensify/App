@@ -331,15 +331,7 @@ const resizeImageIfNeeded = (file: FileObject) => {
     if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
         return Promise.resolve(file);
     }
-    return getImageDimensionsAfterResize(file).then(({width, height}) =>
-        getImageManipulator({
-            fileUri: file.uri ?? '',
-            width,
-            height,
-            fileName: file.name ?? '',
-            type: file.type,
-        }),
-    );
+    return getImageDimensionsAfterResize(file).then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}));
 };
 
 const createFile = (file: File): FileObject => {
@@ -385,6 +377,17 @@ const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: bo
             return false;
         });
 };
+
+const getConfirmModalPrompt = (attachmentInvalidReason: TranslationPaths | undefined) => {
+    if (!attachmentInvalidReason) {
+        return '';
+    }
+    if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
+        return translateLocal(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
+    }
+    return translateLocal(attachmentInvalidReason);
+};
+
 
 const isValidReceiptExtension = (file: FileObject) => {
     const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
@@ -518,4 +521,5 @@ export {
     isValidReceiptExtension,
     getFileValidationErrorText,
     isHeicOrHeifImage,
+    getConfirmModalPrompt,
 };

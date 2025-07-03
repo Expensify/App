@@ -288,9 +288,8 @@ function ReportActionCompose({
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, []);
 
-    const attachmentFileRef = useRef<FileObject | FileObject[] | null>(null);
-
-    const addAttachment = useCallback((file: FileObject | FileObject[]) => {
+    const attachmentFileRef = useRef<FileObject | null>(null);
+    const addAttachment = useCallback((file: FileObject) => {
         attachmentFileRef.current = file;
         const clear = composerRef.current?.clear;
         if (!clear) {
