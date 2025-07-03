@@ -241,7 +241,7 @@ import {
     hasViolation,
     hasWarningTypeViolation,
     isCardTransaction as isCardTransactionTransactionUtils,
-    isDemoTransaction,
+    isDemoTransactionFunc,
     isDistanceRequest,
     isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
@@ -2500,7 +2500,7 @@ function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, rep
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
 
-    if (isDemoTransaction(iouTransaction)) {
+    if (isDemoTransactionFunc(iouTransaction)) {
         return true;
     }
 
