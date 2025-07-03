@@ -111,13 +111,15 @@ function MoneyRequestParticipantsSelector({
         shouldInitialize: didScreenTransitionEnd,
     });
     const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
-    const [textInputAutoFocus, setTextInputAutoFocus] = useState(false);
+    const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyUtil(policy), [policy]);
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
+    const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
 
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
@@ -179,7 +181,7 @@ function MoneyRequestParticipantsSelector({
                 shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
                 shouldSeparateWorkspaceChat: true,
                 includeSelfDM: !isMovingTransactionFromTrackExpense(action) && iouType !== CONST.IOU.TYPE.INVOICE,
-                canShowManagerMcTest: action !== CONST.IOU.ACTION.SUBMIT,
+                canShowManagerMcTest: !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT,
                 isPerDiemRequest,
             },
         );
@@ -202,6 +204,7 @@ function MoneyRequestParticipantsSelector({
         options.reports,
         participants,
         isPerDiemRequest,
+        hasBeenAddedToNudgeMigration,
     ]);
 
     const chatOptions = useMemo(() => {
@@ -460,7 +463,6 @@ function MoneyRequestParticipantsSelector({
     const initiateContactImportAndSetState = useCallback(() => {
         setContactPermissionState(RESULTS.GRANTED);
         InteractionManager.runAfterInteractions(importAndSaveContacts);
-        setTextInputAutoFocus(true);
     }, [importAndSaveContacts]);
 
     const footerContent = useMemo(() => {
@@ -577,6 +579,7 @@ function MoneyRequestParticipantsSelector({
             <ContactPermissionModal
                 onGrant={initiateContactImportAndSetState}
                 onDeny={setContactPermissionState}
+                onFocusTextInput={() => setTextInputAutoFocus(true)}
             />
             <SelectionList
                 onConfirm={handleConfirmSelection}

@@ -1,3 +1,4 @@
+import {findFocusedRoute} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -15,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
@@ -54,9 +56,10 @@ type NavigationTabBarProps = {
 function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar = false}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {orderedReports} = useSidebarOrderedReports();
+    const subscriptionPlan = useSubscriptionPlan();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -126,6 +129,11 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         interceptAnonymousUser(() => {
             const settingsTabState = getSettingsTabStateFromSessionStorage();
             if (settingsTabState && !shouldUseNarrowLayout) {
+                const stateRoute = findFocusedRoute(settingsTabState);
+                if (!subscriptionPlan && stateRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ROOT) {
+                    Navigation.navigate(ROUTES.SETTINGS_PROFILE.route);
+                    return;
+                }
                 const lastVisitedSettingsRoute = getLastVisitedTabPath(settingsTabState);
                 if (lastVisitedSettingsRoute) {
                     Navigation.navigate(lastVisitedSettingsRoute);
@@ -134,7 +142,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             }
             Navigation.navigate(ROUTES.SETTINGS);
         });
-    }, [selectedTab, shouldUseNarrowLayout]);
+    }, [selectedTab, subscriptionPlan, shouldUseNarrowLayout]);
 
     /**
      * The settings tab is related to SettingsSplitNavigator and WorkspaceSplitNavigator.
@@ -247,6 +255,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                     )}
                                 </View>
                                 <Text
+                                    numberOfLines={2}
                                     style={[
                                         styles.textSmall,
                                         styles.textAlignCenter,
@@ -274,6 +283,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                 />
                             </View>
                             <Text
+                                numberOfLines={2}
                                 style={[
                                     styles.textSmall,
                                     styles.textAlignCenter,
@@ -301,6 +311,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                                 {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
                             </View>
                             <Text
+                                numberOfLines={preferredLocale === CONST.LOCALES.DE || preferredLocale === CONST.LOCALES.NL ? 1 : 2}
                                 style={[
                                     styles.textSmall,
                                     styles.textAlignCenter,
@@ -366,6 +377,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                             )}
                         </View>
                         <Text
+                            numberOfLines={1}
                             style={[
                                 styles.textSmall,
                                 styles.textAlignCenter,
@@ -394,6 +406,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                         />
                     </View>
                     <Text
+                        numberOfLines={1}
                         style={[
                             styles.textSmall,
                             styles.textAlignCenter,
@@ -425,6 +438,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                         {!!workspacesTabIndicatorStatus && <View style={styles.navigationTabBarStatusIndicator(workspacesTabIndicatorColor)} />}
                     </View>
                     <Text
+                        numberOfLines={1}
                         style={[
                             styles.textSmall,
                             styles.textAlignCenter,

@@ -17,6 +17,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID, setDraftSplitTransaction, setMoneyRequestCategory, updateMoneyRequestCategory} from '@libs/actions/IOU';
 import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/Category';
+import {isCategoryMissing} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
@@ -74,7 +75,9 @@ function IOURequestStepCategory({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
-    const transactionCategory = getTransactionDetails(currentTransaction)?.category;
+    const transactionCategory = getTransactionDetails(currentTransaction)?.category ?? '';
+
+    const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportAction = reportActions?.[report?.parentReportActionID || reportActionID] ?? null;
@@ -83,7 +86,7 @@ function IOURequestStepCategory({
         (isReportInGroupPolicy(report) || isGroupPolicy(policy?.type ?? '')) &&
         // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (!!transactionCategory || hasEnabledOptions(Object.values(policyCategories ?? {})));
+        (!!categoryForDisplay || hasEnabledOptions(Object.values(policyCategories ?? {})));
 
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
@@ -126,7 +129,7 @@ function IOURequestStepCategory({
 
     const updateCategory = (category: ListItem) => {
         const categorySearchText = category.searchText ?? '';
-        const isSelectedCategory = categorySearchText === transactionCategory;
+        const isSelectedCategory = categorySearchText === categoryForDisplay;
         const updatedCategory = isSelectedCategory ? '' : categorySearchText;
 
         if (transaction) {
@@ -217,7 +220,7 @@ function IOURequestStepCategory({
                 <>
                     <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
                     <CategoryPicker
-                        selectedCategory={transactionCategory}
+                        selectedCategory={categoryForDisplay}
                         policyID={report?.policyID ?? policy?.id}
                         onSubmit={updateCategory}
                     />
