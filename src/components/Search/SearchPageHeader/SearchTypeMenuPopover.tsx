@@ -21,9 +21,8 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const buttonRef = useRef<HTMLDivElement>(null);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
     const currentRoute = Navigation.getActiveRouteWithoutParams();
-    const isOnSearchPage = currentRoute === '/search';
 
-    return (
+    return ( 
         <>
             <Button
                 innerStyles={[{backgroundColor: theme.sidebarHover}]}
@@ -33,7 +32,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
             {!delayPopoverMenuFirstRender && (
                 <PopoverMenu
                     menuItems={allMenuItems}
-                    isVisible={isPopoverVisible && isOnSearchPage}
+                    isVisible={isPopoverVisible}
                     anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                     onClose={closeMenu}
                     onItemSelected={closeMenu}
