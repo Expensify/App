@@ -139,6 +139,7 @@ function IOURequestStepScan({
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
 
     const canUseMultiDragAndDrop = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP);
+    const shouldAcceptMultipleFiles = canUseMultiDragAndDrop && !isEditing;
 
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
@@ -856,11 +857,11 @@ function IOURequestStepScan({
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <AttachmentPicker
                     acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}
-                    allowMultiple={canUseMultiDragAndDrop}
+                    allowMultiple={shouldAcceptMultipleFiles}
                 >
                     {({openPicker}) => (
                         <PressableWithFeedback
-                            accessibilityLabel={translate('common.chooseFile')}
+                            accessibilityLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                             role={CONST.ROLE.BUTTON}
                             style={isMultiScanEnabled && styles.opacity0}
                             onPress={() => {
@@ -963,25 +964,25 @@ function IOURequestStepScan({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...panResponder.panHandlers}
             >
-                <Text style={[styles.textFileUpload]}>{translate(canUseMultiDragAndDrop ? 'receipt.uploadMultiple' : 'receipt.upload')}</Text>
+                <Text style={[styles.textFileUpload]}>{translate(shouldAcceptMultipleFiles ? 'receipt.uploadMultiple' : 'receipt.upload')}</Text>
                 <Text style={[styles.subTextFileUpload]}>
                     {isSmallScreenWidth
-                        ? translate(canUseMultiDragAndDrop ? 'receipt.chooseReceipts' : 'receipt.chooseReceipt')
-                        : translate(canUseMultiDragAndDrop ? 'receipt.dragReceiptsBeforeEmail' : 'receipt.dragReceiptBeforeEmail')}
+                        ? translate(shouldAcceptMultipleFiles ? 'receipt.chooseReceipts' : 'receipt.chooseReceipt')
+                        : translate(shouldAcceptMultipleFiles ? 'receipt.dragReceiptsBeforeEmail' : 'receipt.dragReceiptBeforeEmail')}
                     <CopyTextToClipboard
                         text={CONST.EMAIL.RECEIPTS}
                         textStyles={[styles.textBlue]}
                     />
-                    {isSmallScreenWidth ? null : translate(canUseMultiDragAndDrop ? 'receipt.dragReceiptsAfterEmail' : 'receipt.dragReceiptAfterEmail')}
+                    {isSmallScreenWidth ? null : translate(shouldAcceptMultipleFiles ? 'receipt.dragReceiptsAfterEmail' : 'receipt.dragReceiptAfterEmail')}
                 </Text>
             </View>
 
-            <AttachmentPicker allowMultiple={canUseMultiDragAndDrop}>
+            <AttachmentPicker allowMultiple={shouldAcceptMultipleFiles}>
                 {({openPicker}) => (
                     <Button
                         success
-                        text={translate(canUseMultiDragAndDrop ? 'common.chooseFiles' : 'common.chooseFile')}
-                        accessibilityLabel={translate('common.chooseFile')}
+                        text={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
+                        accessibilityLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                         style={[styles.p9]}
                         onPress={() => {
                             openPicker({
