@@ -234,7 +234,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     },
                 },
                 {
-                    translationKey: 'initialSettingsPage.whatsnew',
+                    translationKey: 'initialSettingsPage.whatIsNew',
                     icon: Expensicons.TreasureChest,
                     iconRight: Expensicons.NewWindow,
                     shouldShowRightIcon: true,

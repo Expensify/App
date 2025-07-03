@@ -1528,7 +1528,7 @@ const translations = {
             phrase4: 'プライバシー',
         },
         help: '助けて',
-        whatsnew: '新着情報',
+        whatIsNew: '新着情報',
         accountSettings: 'アカウント設定',
         account: 'アカウント',
         general: '一般',

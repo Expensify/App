@@ -1514,7 +1514,7 @@ const translations = {
             phrase4: 'Privacy',
         },
         help: 'Help',
-        whatsnew: "What's new",
+        whatIsNew: "What's new",
         accountSettings: 'Account settings',
         account: 'Account',
         general: 'General',

@@ -1513,7 +1513,7 @@ const translations = {
             phrase4: '隐私',
         },
         help: '帮助',
-        whatsnew: '新内容',
+        whatIsNew: '新内容',
         accountSettings: '账户设置',
         account: '账户',
         general: '常规',
