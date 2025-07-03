@@ -320,7 +320,7 @@ function AttachmentPickerWithMenuItems({
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
                     openPicker({
-                        onPicked: (data) => displayFilesInModal(data.at(0) ?? {}),
+                        onPicked: (data) => displayFilesInModal([data.at(0) ?? {}]),
                         onCanceled: onCanceledAttachmentPicker,
                     });
                 };
