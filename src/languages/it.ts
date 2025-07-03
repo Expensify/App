@@ -1529,7 +1529,7 @@ const translations = {
             phrase4: 'Privacy',
         },
         help: 'Aiuto',
-        whatsnew: "Novità",
+        whatsnew: 'Novità',
         accountSettings: 'Impostazioni account',
         account: 'Account',
         general: 'Generale',
