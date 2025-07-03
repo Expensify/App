@@ -176,7 +176,7 @@
     "react-native-launch-arguments": "^4.0.2",
     "react-native-localize": "^2.2.6",
     "react-native-modal": "^13.0.0",
-    "react-native-nitro-modules": "0.25.2",
+    "react-native-nitro-modules": "0.26.2",
     "react-native-nitro-sqlite": "9.1.9",
     "react-native-onyx": "^2.0.113",
     "react-native-pager-view": "6.5.3",
