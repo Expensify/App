@@ -1,12 +1,12 @@
 import React, {useEffect, useMemo} from 'react';
 import type {ComponentType} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import {getReportPrivateNote} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
