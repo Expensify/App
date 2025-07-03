@@ -207,13 +207,9 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             }
             return;
         }
-        if (selectedKeys.length > 0 && !selectionMode && !isSearchResultsEmpty) {
+        if (selectedKeys.length > 0 && !selectionMode) {
             turnOnMobileSelectionMode();
         }
-
-        // We don't need to run the effect on change of isSearchResultsEmpty.
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth, selectedTransactions, selectionMode]);
 
     useEffect(() => {
