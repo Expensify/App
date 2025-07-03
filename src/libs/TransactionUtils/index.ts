@@ -328,7 +328,7 @@ function hasReceiptSource(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.receipt?.source;
 }
 
-function isDemoTransaction(transaction: OnyxInputOrEntry<Transaction>): boolean {
+function isDemoTransactionFunc(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return transaction?.comment?.isDemoTransaction ?? false;
 }
 
@@ -1748,7 +1748,7 @@ export {
     getTransactionPendingAction,
     isTransactionPendingDelete,
     createUnreportedExpenseSections,
-    isDemoTransaction,
+    isDemoTransactionFunc,
 };
 
 export type {TransactionChanges};

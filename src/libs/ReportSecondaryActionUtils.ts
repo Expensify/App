@@ -47,7 +47,7 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
     isCardTransaction as isCardTransactionUtils,
-    isDemoTransaction,
+    isDemoTransactionFunc,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
@@ -419,7 +419,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
     const isSingleTransaction = reportTransactions.length === 1;
 
-    if (reportTransactions.length > 0 && reportTransactions.every((t) => isDemoTransaction(t))) {
+    if (reportTransactions.length > 0 && reportTransactions.every((t) => isDemoTransactionFunc(t))) {
         return true;
     }
 

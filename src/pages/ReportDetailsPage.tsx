@@ -32,7 +32,6 @@ import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
@@ -93,7 +92,7 @@ import {
     shouldUseFullTitleToDisplay,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {isDemoTransaction} from '@libs/TransactionUtils';
+import {isDemoTransactionFunc} from '@libs/TransactionUtils';
 import {deleteMoneyRequest, deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete, getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU';
 import {
     clearAvatarErrors,
@@ -280,7 +279,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID}`, {canBeMissing: true});
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
-    const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
+    const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransactionFunc(iouTransaction);
 
     useEffect(() => {
         if (canDeleteRequest) {
