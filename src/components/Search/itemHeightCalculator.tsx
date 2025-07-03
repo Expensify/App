@@ -1,16 +1,16 @@
-import type {ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import {isReportActionListItemType, isReportListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import {isReportActionListItemType, isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import {hasMissingSmartscanFields, isAmountMissing, isMerchantMissing} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ITEM_HEIGHTS from './itemHeights';
 
-type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
+type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
 
 type ItemHeightConfig = {
     isLargeScreenWidth: boolean;
     shouldUseNarrowLayout: boolean;
-    queryJSONType?: string;
+    type?: string;
 };
 
 /**
@@ -74,7 +74,7 @@ function getTransactionItemHeight(item: TransactionListItemType, config: ItemHei
 /**
  * Calculates height for report list items (grouped transactions)
  */
-function getReportListItemHeight(item: ReportListItemType, config: ItemHeightConfig): number {
+function getReportListItemHeight(item: TransactionGroupListItemType, config: ItemHeightConfig): number {
     const {isLargeScreenWidth} = config;
 
     if (!item.transactions || item.transactions.length === 0) {
@@ -102,7 +102,7 @@ function getReportListItemHeight(item: ReportListItemType, config: ItemHeightCon
 function calculateItemHeight(item: SearchListItem, config: ItemHeightConfig): number {
     try {
         // Chat messages (report actions)
-        if (isReportActionListItemType(item) && config.queryJSONType === CONST.SEARCH.DATA_TYPES.CHAT) {
+        if (isReportActionListItemType(item) && config.type === CONST.SEARCH.DATA_TYPES.CHAT) {
             return getReportActionItemHeight(item, config);
         }
 
@@ -112,7 +112,7 @@ function calculateItemHeight(item: SearchListItem, config: ItemHeightConfig): nu
         }
 
         // Report groups
-        if (isReportListItemType(item)) {
+        if (isTransactionGroupListItemType(item)) {
             return getReportListItemHeight(item, config);
         }
 
