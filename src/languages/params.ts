@@ -137,6 +137,10 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
+type WorkspaceRouteParams = {
+    workspaceRoute: string;
+};
+
 type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
@@ -1065,5 +1069,6 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    WorkspaceRouteParams,
     BusinessTaxIDParams,
 };

@@ -277,6 +277,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -551,6 +552,7 @@ const translations = {
         userID: 'ID do Usuário',
         disable: 'Desativar',
         export: 'Exportar',
+        basicExport: 'Exporta\u00E7\u00E3o b\u00E1sica',
         initialValue: 'Valor inicial',
         currentDate: 'Data atual',
         value: 'Valor',
@@ -2641,11 +2643,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Para conectar uma conta bancária, por favor <a href="${contactMethodRoute}">adicione um e-mail como seu login principal</a> e tente novamente. Você pode adicionar seu número de telefone como um login secundário.`,
         hasBeenThrottledError: 'Ocorreu um erro ao adicionar sua conta bancária. Por favor, aguarde alguns minutos e tente novamente.',
-        hasCurrencyError: {
-            phrase1: 'Ops! Parece que a moeda do seu espaço de trabalho está definida para uma moeda diferente de USD. Para continuar, por favor vá para',
-            link: 'suas configurações de espaço de trabalho',
-            phrase2: 'para definir para USD e tentar novamente.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Ops! Parece que a moeda do seu espaço de trabalho está definida para uma moeda diferente de USD. Para continuar, por favor vá para <a href="${workspaceRoute}">suas configurações de espaço de trabalho</a> para definir para USD e tentar novamente.`,
         error: {
             youNeedToSelectAnOption: 'Por favor, selecione uma opção para continuar',
             noBankAccountAvailable: 'Desculpe, não há nenhuma conta bancária disponível.',
@@ -3420,7 +3419,7 @@ const translations = {
             welcomeNote: 'Por favor, use o Expensify para enviar seus recibos para reembolso, obrigado!',
             subscription: 'Assinatura',
             markAsEntered: 'Marcar como inserido manualmente',
-            markAsExported: 'Marcar como exportado manualmente',
+            markAsExported: 'Marcar como exportado',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Vamos verificar se tudo está correto.',
             lineItemLevel: 'Nível de item linha',
@@ -4282,6 +4281,11 @@ const translations = {
                     pleaseSelectFeedType: 'Por favor, selecione um tipo de feed antes de continuar.',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Último dia do mês',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Último dia útil do mês',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Dia personalizado do mês',
+            },
             assignCard: 'Atribuir cartão',
             findCard: 'Encontrar cartão',
             cardNumber: 'Número do cartão',
@@ -4298,6 +4302,7 @@ const translations = {
             startDateDescription: 'Importaremos todas as transações a partir desta data. Se nenhuma data for especificada, iremos o mais longe possível conforme permitido pelo seu banco.',
             fromTheBeginning: 'Desde o início',
             customStartDate: 'Data de início personalizada',
+            customCloseDate: 'Data de fechamento personalizada',
             letsDoubleCheck: 'Vamos verificar se tudo está correto.',
             confirmationDescription: 'Começaremos a importar transações imediatamente.',
             cardholder: 'Titular do cartão',
@@ -4521,6 +4526,7 @@ const translations = {
                 removeCardFeedDescription: 'Tem certeza de que deseja remover este feed de cartão? Isso desatribuirá todos os cartões.',
                 error: {
                     feedNameRequired: 'O nome do feed do cartão é obrigatório',
+                    statementCloseDateRequired: 'Favor selecionar uma data de fechamento do extrato.',
                 },
                 corporate: 'Restringir a exclusão de transações',
                 personal: 'Permitir excluir transações',
@@ -4546,6 +4552,8 @@ const translations = {
                 expensifyCardBannerTitle: 'Obtenha o Cartão Expensify',
                 expensifyCardBannerSubtitle: 'Aproveite o cashback em todas as compras nos EUA, até 50% de desconto na sua fatura do Expensify, cartões virtuais ilimitados e muito mais.',
                 expensifyCardBannerLearnMoreButton: 'Saiba mais',
+                statementCloseDateTitle: 'Statement close date',
+                statementCloseDateDescription: 'Informe-nos quando o extrato do seu cartão for encerrado e criaremos um extrato correspondente na Expensify.',
             },
             workflows: {
                 title: 'Fluxos de Trabalho',

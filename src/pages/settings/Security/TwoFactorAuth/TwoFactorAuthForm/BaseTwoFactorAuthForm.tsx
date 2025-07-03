@@ -1,12 +1,15 @@
+import {useFocusEffect} from '@react-navigation/native';
 import React, {forwardRef, useCallback, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import {isMobileSafari} from '@libs/Browser';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidTwoFactorCode} from '@libs/ValidationUtils';
 import {clearAccountMessages, toggleTwoFactorAuth, validateTwoFactorAuth} from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BaseTwoFactorAuthFormRef} from './types';
 
@@ -77,7 +80,31 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
             }
             inputRef.current.focus();
         },
+        focusLastSelected() {
+            if (!inputRef.current) {
+                return;
+            }
+            setTimeout(() => {
+                inputRef.current?.focusLastSelected();
+            }, CONST.ANIMATED_TRANSITION);
+        },
     }));
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!inputRef.current) {
+                return;
+            }
+            // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
+            if (!isMobileSafari()) {
+                setTimeout(() => {
+                    inputRef.current?.focusLastSelected();
+                }, CONST.ANIMATED_TRANSITION);
+            } else {
+                inputRef.current?.focusLastSelected();
+            }
+        }, []),
+    );
 
     return (
         <MagicCodeInput
@@ -88,6 +115,7 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
             onFulfill={validateAndSubmitForm}
             errorText={formError.twoFactorAuthCode ?? getLatestErrorMessage(account)}
             ref={inputRef}
+            autoFocus={false}
         />
     );
 }
