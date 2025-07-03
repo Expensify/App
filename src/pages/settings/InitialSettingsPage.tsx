@@ -111,7 +111,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const shouldLogout = useRef(false);
 
-    const freeTrialText = getFreeTrialText(policies);
+    const freeTrialText = getFreeTrialText(translate, policies);
 
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 

@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import {Star} from '@components/Icon/Expensicons';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,13 +30,14 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
 
     const [freeTrialText, setFreeTrialText] = useState<string | undefined>(undefined);
     const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
 
     useEffect(() => {
         if (!privateSubscription && !isOffline) {
             return;
         }
-        setFreeTrialText(getFreeTrialText(policies));
-    }, [isOffline, privateSubscription, policies, firstDayFreeTrial, lastDayFreeTrial]);
+        setFreeTrialText(getFreeTrialText(translate, policies));
+    }, [isOffline, privateSubscription, policies, firstDayFreeTrial, lastDayFreeTrial, translate]);
 
     if (!freeTrialText) {
         return null;
