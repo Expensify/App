@@ -49,6 +49,7 @@ import {
     isGroupChat,
     isInvoiceReport,
     isReportTransactionThread,
+    isSelfDM,
     isSettled,
     isUserCreatedPolicyRoom,
 } from '@libs/ReportUtils';
@@ -498,7 +499,14 @@ function ReportActionCompose({
                 setMoneyRequestReceipt(newTransactionID, source, file.name ?? '', true);
                 setMoneyRequestParticipantsFromReport(newTransactionID, report);
             });
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    CONST.IOU.ACTION.CREATE,
+                    isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT,
+                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                    reportID,
+                ),
+            );
         }
     };
 
