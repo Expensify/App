@@ -276,12 +276,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         !isClosedReport(report) &&
         isTaskModifiable &&
         isTaskActionable;
-
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
-
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID}`, {canBeMissing: true});
-    const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransactionID);
+    const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
 
     useEffect(() => {

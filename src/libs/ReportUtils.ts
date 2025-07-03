@@ -2495,12 +2495,12 @@ function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transact
  * Can only delete if the author is this user and the action is an ADD_COMMENT action or an IOU action in an unsettled report, or if the user is a
  * policy admin
  */
-function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string | undefined, transactions?: Transaction[], iouTransaction?: OnyxEntry<Transaction>): boolean {
+function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string | undefined, iouTransaction?: OnyxEntry<Transaction>): boolean {
     const report = getReportOrDraftReport(reportID);
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
 
-    if (transactions?.every((t) => isDemoTransaction(t))) {
+    if (isDemoTransaction(iouTransaction)) {
         return true;
     }
 

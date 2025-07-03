@@ -2695,7 +2695,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(canDeleteReportAction(moneyRequestAction, '1', [transaction])).toBe(true);
+            expect(canDeleteReportAction(moneyRequestAction, '1', transaction)).toBe(true);
         });
     });
 
