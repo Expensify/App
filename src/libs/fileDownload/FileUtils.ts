@@ -388,7 +388,6 @@ const getConfirmModalPrompt = (attachmentInvalidReason: TranslationPaths | undef
     return translateLocal(attachmentInvalidReason);
 };
 
-
 const isValidReceiptExtension = (file: FileObject) => {
     const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
     return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
