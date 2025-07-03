@@ -25,7 +25,7 @@ function LimitStep({policyID}: LimitStepProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const isEditing = issueNewCard?.isEditing;
 
     const submit = useCallback(
@@ -95,8 +95,9 @@ function LimitStep({policyID}: LimitStepProps) {
             >
                 <InputWrapper
                     InputComponent={AmountForm}
-                    defaultValue={convertToFrontendAmountAsString(issueNewCard?.data?.limit, CONST.CURRENCY.USD, false)}
+                    defaultValue={convertToFrontendAmountAsString(issueNewCard?.data?.limit, issueNewCard?.data?.currency, false)}
                     isCurrencyPressable={false}
+                    currency={issueNewCard?.data?.currency}
                     inputID={INPUT_IDS.LIMIT}
                     ref={inputCallbackRef}
                 />
