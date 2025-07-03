@@ -182,15 +182,13 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         content: [
             {
                 text: () => {
-                    const {translate} = useLocalize();
-                    const {windowWidth} = useWindowDimensions();
                     const systemFonts = [...defaultSystemFonts, 'MyCustomFont'];
 
-                    const html = `<span style="color: white">${translate('productTrainingTooltip.scanTestDriveTooltip')}<span>`;
+                    const html = `<span style="color: white">${useLocalize().translate('productTrainingTooltip.scanTestDriveTooltip')}<span>`;
                     const source = {
                         html,
                     };
-                    return React.createElement(RenderHtml, {source, systemFonts, contentWidth: windowWidth});
+                    return React.createElement(RenderHtml, {source, systemFonts, contentWidth: useWindowDimensions().windowWidth});
                 },
             },
         ],
