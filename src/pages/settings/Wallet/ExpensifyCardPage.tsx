@@ -395,7 +395,10 @@ function ExpensifyCardPage({
                 validateError={validateError}
                 validateCodeActionErrorField="revealExpensifyCardDetails"
                 sendValidateCode={() => requestValidateCodeAction()}
-                onClose={() => setIsValidateCodeActionModalVisible(false)}
+                onClose={() => {
+                    setIsValidateCodeActionModalVisible(false);
+                    resetValidateActionCodeSent();
+                }}
                 isVisible={isValidateCodeActionModalVisible}
                 title={translate('cardPage.validateCardTitle')}
                 descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
