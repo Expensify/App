@@ -101,7 +101,7 @@ function TabSelectorItem({
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
             }}
-            wrapperStyle={styles.productTrainingTooltipWrapper}
+            wrapperStyle={[styles.productTrainingTooltipWrapper, styles.pAbsolute]}
             computeHorizontalShiftForNative
         >
             {children}
