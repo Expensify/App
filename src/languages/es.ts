@@ -86,7 +86,6 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
-    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -535,6 +534,7 @@ const translations = {
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
         export: 'Exportar',
+        basicExport: 'Exportar básico',
         initialValue: 'Valor inicial',
         currentDate: 'Fecha actual',
         value: 'Valor',
@@ -651,12 +651,6 @@ const translations = {
         attachmentImageTooLarge: 'Esta imagen es demasiado grande para obtener una vista previa antes de subirla.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Solamente puedes suber ${fileLimit} archivos a la vez.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `El archivo supera los ${maxUploadSizeInMB} MB. Por favor, vuelve a intentarlo.`,
-        someFilesCantBeUploaded: 'Algunos archivos no se pueden subir',
-        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Los archivos deben ser menores a ${maxUploadSizeInMB} MB. Los archivos más grandes no se subirán.`,
-        maxFileLimitExceeded: 'Puedes subir hasta 30 recibos a la vez. Los extras no se subirán.',
-        unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType} archivos no son compatibles. Solo se subirán los archivos compatibles.`,
-        learnMoreAboutSupportedFiles: 'Obtén más información sobre los formatos compatibles.',
-        passwordProtected: 'Los PDFs con contraseña no son compatibles. Solo se subirán los archivos compatibles',
     },
     dropzone: {
         addAttachments: 'Añadir archivos adjuntos',
@@ -3296,8 +3290,8 @@ const translations = {
             message: 'Tu administrador ha desactivado Expensify Travel. Por favor, sigue la política de reservas de tu empresa para organizar tus viajes.',
         },
         verifyCompany: {
-            title: '¡Empieza a viajar hoy mismo!',
-            message: `Por favor, contacta a tu gestor de cuenta o a salesteam@expensify.com para solicitar una demostración de Travel y habilitarlo para tu empresa.`,
+            title: 'Estamos revisando tu solicitud...',
+            message: `Estamos realizando algunas comprobaciones para verificar que tu cuenta esté lista para Expensify Travel. ¡Nos pondremos en contacto contigo en breve!`,
         },
         updates: {
             bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
@@ -3392,7 +3386,7 @@ const translations = {
             welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
             subscription: 'Suscripción',
             markAsEntered: 'Marcar como introducido manualmente',
-            markAsExported: 'Marcar como exportado manualmente',
+            markAsExported: 'Marcar como exportado',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
@@ -4266,6 +4260,11 @@ const translations = {
                     pleaseSelectFeedType: 'Seleccione un tipo de pienso antes de continuar',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Último día del mes',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Último día hábil del mes',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Día personalizado del mes',
+            },
             assignCard: 'Asignar tarjeta',
             findCard: 'Encontrar tarjeta',
             cardNumber: 'Número de la tarjeta',
@@ -4282,6 +4281,7 @@ const translations = {
             startDateDescription: 'Importaremos todas las transacciones desde esta fecha en adelante. Si no se especifica una fecha, iremos tan atrás como lo permita tu banco.',
             fromTheBeginning: 'Desde el principio',
             customStartDate: 'Fecha de inicio personalizada',
+            customCloseDate: 'Fecha de cierre personalizada',
             letsDoubleCheck: 'Verifiquemos que todo esté bien.',
             confirmationDescription: 'Comenzaremos a importar transacciones inmediatamente.',
             cardholder: 'Titular de la tarjeta',
@@ -4507,6 +4507,7 @@ const translations = {
                 removeCardFeedDescription: '¿Estás seguro de que deseas eliminar esta fuente de tarjetas? Esto anulará la asignación de todas las tarjetas.',
                 error: {
                     feedNameRequired: 'Se requiere el nombre de la fuente de la tarjeta',
+                    statementCloseDateRequired: 'Por favor, selecciona una fecha de cierre del estado de cuenta.',
                 },
                 corporate: 'Restringir eliminación de transacciones',
                 personal: 'Permitir eliminación de transacciones',
@@ -4533,6 +4534,8 @@ const translations = {
                 expensifyCardBannerSubtitle:
                     'Disfruta de una devolución en cada compra en Estados Unidos, hasta un 50% de descuento en tu factura de Expensify, tarjetas virtuales ilimitadas y mucho más.',
                 expensifyCardBannerLearnMoreButton: 'Más información',
+                statementCloseDateTitle: 'Fecha de cierre del estado de cuenta',
+                statementCloseDateDescription: 'Indícanos cuándo cierra el estado de cuenta de tu tarjeta y crearemos uno correspondiente en Expensify.',
             },
             workflows: {
                 title: 'Flujos de trabajo',
