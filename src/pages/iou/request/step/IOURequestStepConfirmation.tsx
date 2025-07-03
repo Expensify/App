@@ -1033,7 +1033,7 @@ function IOURequestStepConfirmation({
                             <DropZoneUI
                                 icon={isEditingReceipt ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
                                 dropStyles={styles.receiptDropOverlay(true)}
-                                dropTitle={translate(isEditingReceipt ? 'dropzone.replaceReceipt' : 'dropzone.scanReceipts')}
+                                dropTitle={translate(isEditingReceipt ? 'dropzone.replaceReceipt' : 'quickAction.scanReceipt')}
                                 dropTextStyles={styles.receiptDropText}
                                 dropInnerWrapperStyles={styles.receiptDropInnerWrapper(true)}
                             />
