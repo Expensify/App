@@ -27,7 +27,6 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose, sho
 
             onClose?.();
             Navigation.dismissModal();
-            Navigation.goBack();
 
             if (options?.onAfterClose) {
                 options?.onAfterClose();
