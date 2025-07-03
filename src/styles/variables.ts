@@ -357,10 +357,10 @@ export default {
     // Search item base padding/margin
     searchItemBasePadding: 8,
 
-    // Chat-specific item heights
-    searchChatReportPreviewHeightLargeScreen: 433.81,
-    searchChatReportPreviewWithViolationsHeightLargeScreen: 459.81,
-    searchChatReportPreviewHeightSmallScreen: 598.06,
-    searchChatReportPreviewWithViolationsHeightSmallScreen: 624.06,
+    // Chat-specific item heights (rounded to nearest integer). The values was measured on the screen
+    searchChatReportPreviewHeightLargeScreen: 434,
+    searchChatReportPreviewWithViolationsHeightLargeScreen: 460,
+    searchChatReportPreviewHeightSmallScreen: 598,
+    searchChatReportPreviewWithViolationsHeightSmallScreen: 624,
     searchChatStandardItemHeight: 97,
 } as const;
