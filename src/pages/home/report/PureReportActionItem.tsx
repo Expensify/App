@@ -55,7 +55,7 @@ import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getCleanedTagName} from '@libs/PolicyUtils';
+import {getCleanedTagName, isPolicyAdmin, isPolicyOwner} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
     getAddedApprovalRuleMessage,
@@ -358,6 +358,9 @@ type PureReportActionItemProps = {
 
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
+
+    /** Current user's account id */
+    currentUserAccountID?: number;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -421,6 +424,7 @@ function PureReportActionItem({
     userBillingFundID,
     policies,
     shouldShowBorder,
+    currentUserAccountID,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -811,13 +815,18 @@ function PureReportActionItem({
             ];
         }
 
-        return [
-            {
+        const actionableMentionWhisperOptions = [];
+
+        if (isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID)) {
+            actionableMentionWhisperOptions.push({
                 text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
                 onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE, policy),
                 isMediumSized: true,
-            },
+            });
+        }
+
+        actionableMentionWhisperOptions.push(
             {
                 text: 'actionableMentionWhisperOptions.inviteToChat',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
@@ -830,11 +839,14 @@ function PureReportActionItem({
                 onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, policy),
                 isMediumSized: true,
             },
-        ];
+        );
+        return actionableMentionWhisperOptions;
     }, [
         action,
         userBillingFundID,
         isActionableWhisper,
+        policy,
+        currentUserAccountID,
         reportID,
         originalReportID,
         isBetaEnabled,
@@ -842,7 +854,6 @@ function PureReportActionItem({
         dismissTrackExpenseActionableWhisper,
         resolveActionableReportMentionWhisper,
         resolveActionableMentionWhisper,
-        policy,
     ]);
 
     /**
