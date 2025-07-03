@@ -92,7 +92,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
-    const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
+    const canSelectMultiple = isSmallScreenWidth ? !!selectionMode : true;
 
     /**
      * Get members for the current room
@@ -357,7 +357,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         },
         [report, backTo],
     );
-    const selectionModeHeader = selectionMode?.isEnabled && isSmallScreenWidth;
+    const selectionModeHeader = !!selectionMode && isSmallScreenWidth;
 
     const customListHeader = useMemo(() => {
         const header = (
@@ -392,7 +392,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
                     onBackButtonPress={() => {
-                        if (selectionMode?.isEnabled) {
+                        if (selectionMode) {
                             setSelectedMembers([]);
                             turnOffMobileSelectionMode();
                             return;

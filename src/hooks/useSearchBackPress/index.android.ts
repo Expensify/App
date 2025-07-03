@@ -11,7 +11,7 @@ const useSearchBackPress: UseSearchBackPress = ({onClearSelection, onNavigationC
     useFocusEffect(
         useCallback(() => {
             const onBackPress = () => {
-                if (selectionMode?.isEnabled) {
+                if (selectionMode) {
                     onClearSelection();
                     turnOffMobileSelectionMode();
                     return true;
@@ -21,7 +21,7 @@ const useSearchBackPress: UseSearchBackPress = ({onClearSelection, onNavigationC
             };
             const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
             return () => backHandler.remove();
-        }, [selectionMode?.isEnabled, onClearSelection, onNavigationCallBack]),
+        }, [selectionMode, onClearSelection, onNavigationCallBack]),
     );
 };
 

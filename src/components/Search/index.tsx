@@ -155,7 +155,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         isExportMode,
         setExportMode,
     } = useSearchContext();
-    const {selectionMode} = useMobileSelectionMode();
+    const selectionMode = useMobileSelectionMode();
     const [offset, setOffset] = useState(0);
 
     const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
@@ -191,31 +191,31 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         }
 
         const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
-        if (selectedKeys.length === 0 && selectionMode?.isEnabled && shouldTurnOffSelectionMode) {
+        if (selectedKeys.length === 0 && selectionMode && shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
 
         // We don't want to run the effect on isFocused change as we only need it to early return when it is false.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTransactions, selectionMode?.isEnabled, shouldTurnOffSelectionMode]);
+    }, [selectedTransactions, selectionMode, shouldTurnOffSelectionMode]);
 
     useEffect(() => {
         const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
         if (!isSmallScreenWidth) {
-            if (selectedKeys.length === 0) {
+            if (selectedKeys.length === 0 && !!selectionMode) {
                 turnOffMobileSelectionMode();
             }
             return;
         }
-        if (selectedKeys.length > 0 && !selectionMode?.isEnabled && !isSearchResultsEmpty) {
+        if (selectedKeys.length > 0 && !selectionMode && !isSearchResultsEmpty) {
             turnOnMobileSelectionMode();
         }
 
         // We don't need to run the effect on change of isSearchResultsEmpty.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSmallScreenWidth, selectedTransactions, selectionMode?.isEnabled]);
+    }, [isSmallScreenWidth, selectedTransactions, selectionMode]);
 
     useEffect(() => {
         if (isOffline || !isFocused) {
@@ -401,7 +401,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const openReport = useCallback(
         (item: SearchListItem) => {
-            if (selectionMode?.isEnabled) {
+            if (selectionMode) {
                 toggleTransaction(item);
                 return;
             }
@@ -448,7 +448,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
-        [hash, selectionMode?.isEnabled, toggleTransaction],
+        [hash, selectionMode, toggleTransaction],
     );
 
     const onViewableItemsChanged = useCallback(
@@ -470,7 +470,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || selectionMode?.isEnabled === true);
+    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || selectionMode === true);
     const ListItem = getListItem(type, status, groupBy);
     const sortedSelectedData = useMemo(
         () =>

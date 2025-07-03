@@ -62,7 +62,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
     const triggerScrollEvent = useScrollEventEmitter();
 
     const handleBackButtonPress = useCallback(() => {
-        if (!selectionMode?.isEnabled) {
+        if (!selectionMode) {
             return false;
         }
         clearSelectedTransactions(undefined, true);
@@ -149,7 +149,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
             shouldShowOfflineIndicator={!!searchResults}
         >
             <View style={[styles.flex1, styles.overflowHidden]}>
-                {!selectionMode?.isEnabled ? (
+                {!selectionMode ? (
                     <View style={[StyleUtils.getSearchPageNarrowHeaderStyles(), searchRouterListVisible && styles.flex1, styles.mh100]}>
                         <View style={[styles.zIndex10, styles.appBG]}>
                             <TopBar
@@ -212,7 +212,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
                             key={queryJSON.hash}
                             queryJSON={queryJSON}
                             onSearchListScroll={scrollHandler}
-                            contentContainerStyle={!selectionMode?.isEnabled ? styles.searchListContentContainerStyles : undefined}
+                            contentContainerStyle={!selectionMode ? styles.searchListContentContainerStyles : undefined}
                             handleSearch={handleSearchAction}
                         />
                     </View>
