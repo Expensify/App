@@ -6,6 +6,13 @@ enum EventType {
     PushReceived = 'com.airship.push_received',
 }
 
+// eslint-disable-next-line no-restricted-syntax
+enum PermissionStatus {
+    Granted = 'granted',
+    Denied = 'denied',
+    NotDetermined = 'not_determined',
+}
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 namespace iOS {
     /**
@@ -71,4 +78,4 @@ const Airship: Partial<AirshipRoot> = {
 
 export default Airship;
 
-export {EventType, iOS};
+export {EventType, iOS, PermissionStatus};

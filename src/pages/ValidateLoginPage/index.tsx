@@ -2,7 +2,9 @@ import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Session from '@userActions/Session';
+import {setNewDotSignInState} from '@userActions/HybridApp';
+import {handleExitToNavigation, signInWithValidateCodeAndNavigate} from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ValidateLoginPageProps from './types';
@@ -12,7 +14,7 @@ function ValidateLoginPage({
         params: {accountID, validateCode, exitTo},
     },
 }: ValidateLoginPageProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
 
     useEffect(() => {
         // Wait till navigation becomes available
@@ -21,12 +23,17 @@ function ValidateLoginPage({
                 // If already signed in, do not show the validate code if not on web,
                 // because we don't want to block the user with the interstitial page.
                 if (exitTo) {
-                    Session.handleExitToNavigation(exitTo);
+                    handleExitToNavigation(exitTo);
                     return;
                 }
                 Navigation.goBack();
             } else {
-                Session.signInWithValidateCodeAndNavigate(Number(accountID), validateCode, '', exitTo);
+                // On HybridApp we need to orchestrate the sign-in flow of both apps so we need to set the state to STARTED here
+                if (CONFIG.IS_HYBRID_APP) {
+                    setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
+                }
+
+                signInWithValidateCodeAndNavigate(Number(accountID), validateCode, '', exitTo);
             }
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
