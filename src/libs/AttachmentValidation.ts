@@ -22,6 +22,10 @@ type SingleAttachmentInvalidResult = {
 
 type SingleAttachmentValidationResult = SingleAttachmentValidResult | SingleAttachmentInvalidResult;
 
+function isSingleAttachmentValidationResult(result: unknown): result is SingleAttachmentValidationResult {
+    return typeof result === 'object' && result !== null && 'isValid' in result && typeof result.isValid === 'boolean' && ('validatedFile' in result || 'error' in result);
+}
+
 function validateAttachmentFile(file: FileObject): Promise<SingleAttachmentValidationResult> {
     if (!file) {
         return Promise.resolve({isValid: false, error: CONST.SINGLE_ATTACHMENT_FILE_VALIDATION_ERRORS.NO_FILE_PROVIDED});
@@ -87,6 +91,10 @@ type MultipleAttachmentsInvalidResult = {
 };
 type MultipleAttachmentsValidationResult = MultipleAttachmentsValidResult | MultipleAttachmentsInvalidResult;
 
+function isMultipleAttachmentsValidationResult(result: unknown): result is MultipleAttachmentsValidationResult {
+    return typeof result === 'object' && result !== null && 'isValid' in result && typeof result.isValid === 'boolean' && ('validatedFiles' in result || 'fileResults' in result);
+}
+
 function validateMultipleAttachmentFiles(files: FileObject[]): Promise<MultipleAttachmentsValidationResult> {
     if (!files?.length || files.some((f) => isDirectory(f))) {
         return Promise.resolve({isValid: false, error: CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED, fileResults: []});
@@ -149,7 +157,7 @@ function isDirectory(data: FileObject) {
     return false;
 }
 
-export {validateAttachmentFile, validateMultipleAttachmentFiles};
+export {validateAttachmentFile, validateMultipleAttachmentFiles, isSingleAttachmentValidationResult, isMultipleAttachmentsValidationResult};
 export type {
     SingleAttachmentValidationResult,
     SingleAttachmentValidResult,

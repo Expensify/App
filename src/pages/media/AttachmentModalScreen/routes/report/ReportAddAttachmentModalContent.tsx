@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import {openReport} from '@libs/actions/Report';
+import {isMultipleAttachmentsValidationResult, isSingleAttachmentValidationResult} from '@libs/AttachmentValidation';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
@@ -101,10 +102,11 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     const {validFilesToUpload, fileError, isFileErrorModalVisible} = useFileUploadValidation({
         files: filesToValidate,
         onValid: (result) => {
-            if (!('validatedFile' in result)) {
-                return;
+            if (isSingleAttachmentValidationResult(result)) {
+                setSource(result.validatedFile.source);
+            } else if (isMultipleAttachmentsValidationResult(result)) {
+                setSource(result.validatedFiles.at(0)?.source);
             }
-            setSource(result.validatedFile.source);
         },
     });
     const modalType = useReportAttachmentModalType(validFilesToUpload ?? fileParam);
