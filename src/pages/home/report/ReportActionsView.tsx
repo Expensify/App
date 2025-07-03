@@ -185,7 +185,9 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-    }, [report, allReportActions, reportPreviewAction?.childMoneyRequestCount, transactionThreadReport, isReportTransactionThread]);
+        // We don't need to listen for changes in whole report and threadTransactionReport objects
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [report.reportID, reportPreviewAction?.childMoneyRequestCount, isReportTransactionThread]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
