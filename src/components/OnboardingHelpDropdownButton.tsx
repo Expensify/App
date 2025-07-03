@@ -57,6 +57,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
         options.push({
             text: translate('getAssistancePage.scheduleACall'),
             icon: CalendarSolid,
+            iconLeft: CalendarSolid,
             value: CONST.ONBOARDING_HELP.SCHEDULE_CALL,
             onSelected: () => {
                 clearBookingDraft();
@@ -106,6 +107,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
         options.push({
             text: translate('getAssistancePage.registerForWebinar'),
             icon: Monitor,
+            iconRight: Monitor,
             value: CONST.ONBOARDING_HELP.REGISTER_FOR_WEBINAR,
             onSelected: () => {
                 openExternalLink(CONST.REGISTER_FOR_WEBINAR_URL);
@@ -119,8 +121,10 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
 
     return (
         <ButtonWithDropdownMenu
-            onPress={noop}
-            shouldAlwaysShowDropdownMenu
+            onPress={(_event, value) => {
+                const option = options.find((opt) => opt.value === value);
+                option?.onSelected?.();
+            }}
             pressOnEnter
             success={!!hasActiveScheduledCall}
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}

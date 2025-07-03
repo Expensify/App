@@ -72,6 +72,7 @@ function ButtonWithDropdownMenu<IValueType>({
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
     const nullCheckRef = (ref: RefObject<View | null>) => ref ?? null;
+    const shouldShowRightIcon = !!options.at(0)?.iconRight;
 
     useEffect(() => {
         if (!dropdownAnchor.current) {
@@ -210,10 +211,13 @@ function ButtonWithDropdownMenu<IValueType>({
                     large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                     medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                    innerStyles={[innerStyleDropButton]}
+                    innerStyles={[innerStyleDropButton, shouldShowRightIcon && styles.dropDownButtonCartIconView]}
+                    iconRightStyles={shouldShowRightIcon && styles.ml2}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     secondLineText={secondLineText}
-                    icon={icon}
+                    icon={icon ?? options.at(0)?.iconLeft}
+                    iconRight={options.at(0)?.iconRight}
+                    shouldShowRightIcon={shouldShowRightIcon}
                 />
             )}
             {(shouldAlwaysShowDropdownMenu || options.length > 1) && !!popoverAnchorPosition && (
