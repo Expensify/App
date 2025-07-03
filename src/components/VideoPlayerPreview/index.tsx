@@ -65,8 +65,8 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const {isOnSearch} = useSearchContext();
     const navigation = useNavigation();
 
-    // We want to play the video only when the user is on the page where it was rendered
-    const isUserRemainOnFirstRenderRoute = useCheckIfRouteHasRemainedUnchanged(videoUrl);
+    // We want to play the video only when the user is on the page where it was initially rendered
+    const doesUserRemainOnFirstRenderRoute = useCheckIfRouteHasRemainedUnchanged(videoUrl);
 
     // `onVideoLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
@@ -86,12 +86,12 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     }, [navigation]);
 
     useEffect(() => {
-        const isFocused = isUserRemainOnFirstRenderRoute();
+        const isFocused = doesUserRemainOnFirstRenderRoute();
         if (videoUrl !== currentlyPlayingURL || reportID !== currentRouteReportID || !isFocused) {
             return;
         }
         setIsThumbnail(false);
-    }, [currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID, videoUrl, reportID, isUserRemainOnFirstRenderRoute, isOnSearch]);
+    }, [currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID, videoUrl, reportID, doesUserRemainOnFirstRenderRoute, isOnSearch]);
 
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>

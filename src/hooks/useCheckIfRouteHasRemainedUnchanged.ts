@@ -12,19 +12,21 @@ import useResponsiveLayout from './useResponsiveLayout';
  * @return Function that checks if the route where the component was rendered matches the currently active route.
  */
 function useCheckIfRouteHasRemainedUnchanged(videoUrl: string) {
-    // Ref stores a value determining whether the component is still rendered on the route.
-    // If the value is false, it immediately returns false; if true, it checks whether it is in the attachment modal.
-    const hasOnRenderedRouteRef = useRef<boolean | undefined>(undefined);
+    // Determines whether the component is still rendered on the initial rendered route.
+    const isOnInitialRenderedRouteRef = useRef<boolean | undefined>(undefined);
     const navigation = useNavigation();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
 
+    /**
+     * Return true only when on the initial rendered route or on the attachment modal route whose source parameter equals videoUrl.
+     */
     const hasRouteRemainedUnchanged = useCallback(() => {
         if (navigation.isFocused()) {
             return true;
         }
 
-        // If navigating outside the rendered route and attachment modal route
-        if (!hasOnRenderedRouteRef.current) {
+        // If navigating away from the initial rendered route or attachment route
+        if (!isOnInitialRenderedRouteRef.current) {
             return false;
         }
 
@@ -35,8 +37,8 @@ function useCheckIfRouteHasRemainedUnchanged(videoUrl: string) {
             currentRoute?.params &&
             'source' in currentRoute.params &&
             currentRoute.params.source === videoUrl &&
-            // Because the video player is shared only on desktop
-            // Allow in RHP
+            // Because the video player is shared only on large screens
+            // Allow in RHP in cases where we're in RHP on the Search page
             (!shouldUseNarrowLayout || isInNarrowPaneModal)
         ) {
             return true;
@@ -48,23 +50,24 @@ function useCheckIfRouteHasRemainedUnchanged(videoUrl: string) {
     // Initialize and check if starting with the attachment modal
     useEffect(() => {
         Navigation.isNavigationReady().then(() => {
-            if (hasOnRenderedRouteRef.current !== undefined) {
+            if (isOnInitialRenderedRouteRef.current !== undefined) {
                 return;
             }
 
             const route = navigationRef.getCurrentRoute();
-            // If the app is opened via the attachment route, it will always remain on the report screen.
+            // If the app is launched with the attachment route, it will always remain on the report screen.
             // Thus, it can be considered as still being on the rendered route.
-            hasOnRenderedRouteRef.current = route?.name === SCREENS.ATTACHMENTS;
+            isOnInitialRenderedRouteRef.current = route?.name === SCREENS.ATTACHMENTS;
         });
     }, []);
 
-    // Update the route reference on 'blur' events, except when opening attachments modal
     useEffect(() => {
+        // When the 'focus' event is emitted, it means we've returned to the initial rendered route
         const unsubscribeFocus = navigation.addListener('focus', () => {
-            hasOnRenderedRouteRef.current = true;
+            isOnInitialRenderedRouteRef.current = true;
         });
 
+        // Update the state indicating we've left the initial rendered route on 'blur' events, except when opening the attachments modal
         const unsubscribeBlur = navigation.addListener('blur', () => {
             const route = navigationRef.getCurrentRoute();
 
@@ -73,7 +76,7 @@ function useCheckIfRouteHasRemainedUnchanged(videoUrl: string) {
                 return;
             }
 
-            hasOnRenderedRouteRef.current = false;
+            isOnInitialRenderedRouteRef.current = false;
         });
 
         return () => {
