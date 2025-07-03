@@ -17,6 +17,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,6 +42,7 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
+import PolicySection from '@pages/workspace/PolicySection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -172,6 +174,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
+    const {isBetaEnabled} = usePermissions();
 
     const confirmDeleteAndHideModal = useCallback(() => {
         if (!policy?.id || !policyName) {
@@ -375,6 +378,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 </View>
                             </OfflineWithFeedback>
                         )}
+
+                        {isBetaEnabled(CONST.BETAS.CUSTOM_RULES) ? (
+                            <PolicySection
+                                policyID={route.params.policyID}
+                                interactive={!readOnly}
+                            />
+                        ) : null}
+
                         {!readOnly && (
                             <View style={[styles.flexRow, styles.mt6, styles.mnw120]}>
                                 {isPolicyAdmin && (

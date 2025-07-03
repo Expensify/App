@@ -5413,6 +5413,11 @@ const translations = {
             chatInAdmins: 'Chat in #admins',
             addPaymentCard: 'Add payment card',
         },
+        policy: {
+            title: 'Policy',
+            subtitle: 'Description',
+            description: 'Input the policy of this workspace',
+        },
         rules: {
             individualExpenseRules: {
                 title: 'Expenses',
@@ -5509,11 +5514,6 @@ const translations = {
                 defaultTaxRate: 'Default tax rate',
                 goTo: 'Go to',
                 andEnableWorkflows: 'and enable workflows, then add approvals to unlock this feature.',
-            },
-            customRules: {
-                title: 'Custom rules',
-                subtitle: 'Description',
-                description: 'Input custom rules for expense reports',
             },
         },
         planTypePage: {
