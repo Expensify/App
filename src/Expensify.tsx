@@ -99,7 +99,6 @@ function Expensify() {
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
     const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST, {canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
-    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
 
     useDebugShortcut();
 
@@ -115,12 +114,10 @@ function Expensify() {
     const isAuthenticated = useIsAuthenticated();
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
-    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale && (CONFIG.IS_HYBRID_APP ? !hybridApp?.loggedOutFromOldDot : true);
-    const shouldHideSplash =
-        shouldInit &&
-        (CONFIG.IS_HYBRID_APP
-            ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && (isAuthenticated || !!hybridApp?.useNewDotSignInPage)
-            : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
+    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
+    const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
+    const isHybridAppReady = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated;
+    const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isHybridAppReady : isSplashVisible);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
@@ -205,6 +202,10 @@ function Expensify() {
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
+            // We use custom deeplink handler in setup/hybridApp
+            if (CONFIG.IS_HYBRID_APP) {
+                return;
+            }
             setInitialUrl(url);
             Report.openReportFromDeepLink(url ?? '');
         });

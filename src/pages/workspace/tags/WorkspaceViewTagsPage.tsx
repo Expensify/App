@@ -66,7 +66,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const dropdownButtonRef = useRef(null);
+    const dropdownButtonRef = useRef<View>(null);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
@@ -409,7 +409,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 {tagList.length > 0 && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
+                        turnOnSelectionModeOnLongPress={!hasDependentTags}
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                         sections={[{data: filteredTagList, isDisabled: false}]}
                         selectedItems={selectedTags}

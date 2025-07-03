@@ -190,6 +190,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     pendingAction: getPendingAction(policyTagList),
                     enabled: true,
                     required: policyTagList.required,
+                    isDisabledCheckbox: isSwitchDisabled,
                     rightElement:
                         isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS) && hasDependentTags ? (
                             <ListItemRightCaretWithLabel
@@ -248,7 +249,17 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         const normalizeSearchInput = StringUtils.normalize(searchInput.toLowerCase());
         return tagText.includes(normalizeSearchInput) || tagValue.includes(normalizeSearchInput);
     }, []);
-    const sortTags = useCallback((tags: TagListItem[]) => tags.sort((a, b) => localeCompare(a.value, b.value)), []);
+    const sortTags = useCallback(
+        (tags: TagListItem[]) => {
+            // For multi-level tags, preserve the policy order (by orderWeight) instead of sorting alphabetically
+            if (hasDependentTags || isMultiLevelTags) {
+                return tags.sort((a, b) => (a.orderWeight ?? 0) - (b.orderWeight ?? 0));
+            }
+            // For other cases, sort alphabetically by name
+            return tags.sort((a, b) => localeCompare(a.value, b.value));
+        },
+        [hasDependentTags, isMultiLevelTags],
+    );
     const [inputValue, setInputValue, filteredTagList] = useSearchResults(tagList, filterTag, sortTags);
 
     const filteredTagListKeyedByName = useMemo(
@@ -270,7 +281,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const toggleAllTags = () => {
-        const availableTags = filteredTagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const availableTags = filteredTagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !tag.isDisabledCheckbox);
         setSelectedTags(selectedTags.length > 0 ? [] : availableTags.map((item) => item.value));
     };
 
@@ -508,7 +519,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (requiredTagCount > 0 && !hasDependentTags && isMultiLevelTags) {
             options.push({
-                icon: Expensicons.Checkmark,
+                icon: Expensicons.Close,
                 text: translate('workspace.tags.notRequireTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.REQUIRE,
                 onSelected: () => {
