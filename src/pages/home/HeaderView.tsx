@@ -26,6 +26,7 @@ import Tooltip from '@components/Tooltip';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
@@ -35,6 +36,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+import {getOneTransactionThreadReportID, getReportActions} from '@libs/ReportActionsUtils';
 import {
     canJoinChat,
     canUserPerformWriteAction,
@@ -47,6 +49,7 @@ import {
     getPolicyName,
     getReportDescription,
     getReportName,
+    getReportOrDraftReport,
     hasReportNameError,
     isAdminRoom,
     isArchivedReport,
@@ -55,10 +58,8 @@ import {
     isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
     isCurrentUserSubmitter,
     isDeprecatedGroupDM,
-    isExpenseReport,
     isExpenseRequest,
     isGroupChat as isGroupChatReportUtils,
-    isIOUReport,
     isOpenTaskReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isSelfDM as isSelfDMReportUtils,
@@ -140,8 +141,19 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     const isTaskReport = isTaskReportReportUtils(report);
     const [parentOfParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {canBeMissing: true});
+    const {isOffline} = useNetwork();
     const reportHeaderData =
-        ((!isTaskReport && !isChatThread) || (parentOfParentReport && (isIOUReport(parentOfParentReport) || isExpenseReport(parentOfParentReport)))) && report?.parentReportID
+        ((!isTaskReport && !isChatThread) ||
+            (parentOfParentReport &&
+                !!getOneTransactionThreadReportID(
+                    parentOfParentReport,
+                    getReportOrDraftReport(parentOfParentReport?.chatReportID),
+                    getReportActions(parentOfParentReport),
+                    isOffline,
+                    undefined,
+                    true,
+                ))) &&
+        report?.parentReportID
             ? parentReport
             : report;
     // Use sorted display names for the title for group chats on native small screen widths
