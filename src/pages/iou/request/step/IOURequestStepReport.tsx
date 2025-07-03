@@ -1,6 +1,6 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {ListItem} from '@components/SelectionList/types';
+import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
