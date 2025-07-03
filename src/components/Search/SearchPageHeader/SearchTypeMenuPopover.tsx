@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 import Button from '@components/Button';
 import PopoverMenu from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -22,13 +22,6 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const {unmodifiedPaddings} = useSafeAreaPaddings();
     const currentRoute = Navigation.getActiveRouteWithoutParams();
     const isOnSearchPage = currentRoute === '/search';
-
-    const handleOpenMenu = useCallback(() => {
-        // Capture the current route when the menu is triggered
-        const triggerRoute = Navigation.getActiveRouteWithoutParams();
-
-        openMenu(triggerRoute);
-    }, [openMenu]);
 
     return (
         <>
