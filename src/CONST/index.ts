@@ -425,8 +425,7 @@ const CONST = {
     DOCUSIGN_POWERFORM_LINK: {
         US: 'https://powerforms.docusign.net/ddc56dcb-9cc7-4b36-997c-fea9327f570e?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
         CA: 'https://powerforms.docusign.net/efc57fcc-0d5d-43c3-a175-1687ad456242?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
-        // TODO replace with correct link once its provided
-        AUD: 'https://powerforms.docusign.net/efc57fcc-0d5d-43c3-a175-1687ad456242?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
+        AU: 'https://powerforms.docusign.net/bbc9e9f1-3331-43db-9bfb-a1c785205d4b?env=na1&acct=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde&accountId=cf4cc39a-1c3e-4c19-bbf9-71844e1bcbde',
     },
     BANK_ACCOUNT: {
         BENEFICIAL_OWNER_INFO_STEP: {
@@ -590,7 +589,7 @@ const CONST = {
             },
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
-        CA_STEP_NAMES: ['1', '2', '3', '4', '5', '6', '7'],
+        DOCUSIGN_REQUIRED_STEP_NAMES: ['1', '2', '3', '4', '5', '6', '7'],
         STEP_HEADER_HEIGHT: 40,
         SIGNER_INFO_STEP: {
             SUBSTEP: {

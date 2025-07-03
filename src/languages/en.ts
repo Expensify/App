@@ -3177,7 +3177,10 @@ const translations = {
     docusignStep: {
         subheader: 'Docusign subheader',
         pleaseComplete:
-            'Please complete the ACH authorization form with the Docusign link below and then upload that signed copy here so we can withdraw funds directly from your bank account.',
+            'Please complete the ACH authorization form with the Docusign link below and then upload that signed copy here so we can withdraw funds directly from your bank account',
+        pleaseCompleteTheBusinessAccount: 'Please complete the Business Account Application Direct Debit Arrangement',
+        pleaseCompleteTheDirect:
+            'Please complete Direct Debit Arrangement using the Docusign link below and then upload that signed copy here so we can withdraw funds directly from your bank account.',
         takeMeTo: 'Take me to docusign',
         uploadAdditional: 'Upload additional documentation',
         pleaseUpload: 'Please upload the DEFT form and Docusign signature page',

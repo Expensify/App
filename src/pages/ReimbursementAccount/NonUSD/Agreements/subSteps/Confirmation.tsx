@@ -10,8 +10,8 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isRequiredFulfilled} from '@libs/ValidationUtils';
+import requiresDocusignStep from '@pages/ReimbursementAccount/NonUSD/utils/requiresDocusignStep';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -65,6 +65,7 @@ function Confirmation({onNext, policyCurrency}: ConfirmationProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
     const agreementsStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const isDocusignStepRequired = requiresDocusignStep(policyCurrency);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
@@ -96,11 +97,11 @@ function Confirmation({onNext, policyCurrency}: ConfirmationProps) {
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             onSubmit={onNext}
             validate={validate}
-            submitButtonText={translate('agreementsStep.accept')}
+            submitButtonText={isDocusignStepRequired ? translate('common.confirm') : translate('agreementsStep.accept')}
             style={[styles.mh5, styles.flexGrow1]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('agreementsStep.pleaseConfirm')}</Text>
-            {policyCurrency !== CONST.CURRENCY.CAD && <Text style={[styles.pv3, styles.textSupporting]}>{translate('agreementsStep.regulationRequiresUs')}</Text>}
+            {!isDocusignStepRequired && <Text style={[styles.pv3, styles.textSupporting]}>{translate('agreementsStep.regulationRequiresUs')}</Text>}
             <InputWrapper
                 InputComponent={CheckboxWithLabel}
                 accessibilityLabel={translate('agreementsStep.iAmAuthorized')}

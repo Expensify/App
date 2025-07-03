@@ -30,7 +30,7 @@ function NonUSDVerifiedBankAccountFlow({
     policyCurrency,
 }: NonUSDVerifiedBankAccountFlowProps) {
     const isDocusignStepRequired = requiresDocusignStep(policyCurrency);
-    const stepNames = isDocusignStepRequired ? CONST.NON_USD_BANK_ACCOUNT.CA_STEP_NAMES : CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES;
+    const stepNames = isDocusignStepRequired ? CONST.NON_USD_BANK_ACCOUNT.DOCUSIGN_REQUIRED_STEP_NAMES : CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES;
 
     const handleNextNonUSDBankAccountStep = () => {
         switch (nonUSDBankAccountStep) {

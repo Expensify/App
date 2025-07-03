@@ -78,13 +78,19 @@ function UploadPowerform({onNext, isEditing}: UploadPowerformProps) {
             enabledWhenOffline={false}
             isLoading={reimbursementAccount?.isFinishingCorpayBankAccountOnboarding}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb10]}>{translate('docusignStep.pleaseComplete')}</Text>
+            {countryStepCountryValue === CONST.COUNTRY.CA && <Text style={[styles.textHeadlineLineHeightXXL, styles.mb10]}>{translate('docusignStep.pleaseComplete')}</Text>}
+            {countryStepCountryValue === CONST.COUNTRY.AU && (
+                <>
+                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('docusignStep.pleaseCompleteTheBusinessAccount')}</Text>
+                    <Text style={[styles.textSupporting, styles.mb10]}>{translate('docusignStep.pleaseCompleteTheDirect')}</Text>
+                </>
+            )}
             <Button
                 success
                 large
                 style={[styles.w100, styles.mb15]}
                 onPress={() => {
-                    openLink(CONST.DOCUSIGN_POWERFORM_LINK[countryStepCountryValue as 'US' | 'CA'], environmentURL);
+                    openLink(CONST.DOCUSIGN_POWERFORM_LINK[countryStepCountryValue as 'CA' | 'AU'], environmentURL);
                 }}
                 text={translate('docusignStep.takeMeTo')}
             />
