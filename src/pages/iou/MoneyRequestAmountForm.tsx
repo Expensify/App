@@ -314,13 +314,6 @@ function MoneyRequestAmountForm(
                         isNegative={isNegative}
                         allowFlippingAmount={allowFlippingAmount}
                     />
-                    {!!formError && (
-                        <FormHelpMessage
-                            style={[styles.pAbsolute, styles.b0, styles.mb0, styles.ph5, styles.w100]}
-                            isError
-                            message={formError}
-                        />
-                    )}
                 </View>
                 {isCurrencyPressable && !canUseTouchScreen && (
                     <Button
@@ -333,33 +326,42 @@ function MoneyRequestAmountForm(
                         text={currency}
                     />
                 )}
+                {!!formError && (
+                    <FormHelpMessage
+                        style={[styles.pAbsolute, styles.b0, styles.mb0, styles.ph5, styles.w100]}
+                        isError
+                        message={formError}
+                    />
+                )}
             </View>
-            <View>
-                <View style={[styles.flexRow, styles.justifyContentCenter, styles.mb2, styles.gap2]}>
-                    {isCurrencyPressable && canUseTouchScreen && (
-                        <Button
-                            shouldShowRightIcon
-                            small
-                            iconRight={Expensicons.DownArrow}
-                            onPress={onCurrencyButtonPress}
-                            style={styles.minWidth18}
-                            isContentCentered
-                            text={currency}
-                        />
-                    )}
-                    {allowFlippingAmount && canUseTouchScreen && (
-                        <Button
-                            shouldShowRightIcon
-                            small
-                            iconRight={Expensicons.PlusMinus}
-                            onPress={toggleNegative}
-                            style={styles.minWidth18}
-                            isContentCentered
-                            text={translate('iou.flip')}
-                        />
-                    )}
+            {canUseTouchScreen && (
+                <View>
+                    <View style={[styles.flexRow, styles.justifyContentCenter, styles.mb2, styles.mt2, styles.gap2]}>
+                        {isCurrencyPressable && (
+                            <Button
+                                shouldShowRightIcon
+                                small
+                                iconRight={Expensicons.DownArrow}
+                                onPress={onCurrencyButtonPress}
+                                style={styles.minWidth18}
+                                isContentCentered
+                                text={currency}
+                            />
+                        )}
+                        {allowFlippingAmount && (
+                            <Button
+                                shouldShowRightIcon
+                                small
+                                iconRight={Expensicons.PlusMinus}
+                                onPress={toggleNegative}
+                                style={styles.minWidth18}
+                                isContentCentered
+                                text={translate('iou.flip')}
+                            />
+                        )}
+                    </View>
                 </View>
-            </View>
+            )}
             <View
                 onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
                 style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper, styles.pt0]}
