@@ -19,6 +19,9 @@ import {LOCALES} from './LOCALES';
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 
+// Using 28 days to align with OldDot and because all months are guaranteed to be at least 28 days.
+const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
+
 const DEFAULT_NUMBER_ID = 0;
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
@@ -416,6 +419,7 @@ const CONST = {
         ORDINAL_DAY_OF_MONTH: 'do',
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
         SECONDS_PER_DAY: 24 * 60 * 60,
+        MONTH_DAYS,
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -621,7 +625,7 @@ const CONST = {
     },
     BETAS: {
         ALL: 'all',
-        AUTO_SUBMIT: 'autoSubmit',
+        ASAP_SUBMIT: 'asapSubmit',
         DEFAULT_ROOMS: 'defaultRooms',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
@@ -1037,10 +1041,7 @@ const CONST = {
             APPROVE: 'approve',
             UNAPPROVE: 'unapprove',
             CANCEL_PAYMENT: 'cancelPayment',
-            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
-            MARK_AS_EXPORTED: 'markAsExported',
             HOLD: 'hold',
-            DOWNLOAD_CSV: 'downloadCSV',
             DOWNLOAD_PDF: 'downloadPDF',
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
@@ -1049,6 +1050,7 @@ const CONST = {
             ADD_EXPENSE: 'addExpense',
             SPLIT: 'split',
             REOPEN: 'reopen',
+            EXPORT: 'export',
             PAY: 'pay',
         },
         PRIMARY_ACTIONS: {
@@ -1391,6 +1393,7 @@ const CONST = {
         EXPORT_OPTIONS: {
             EXPORT_TO_INTEGRATION: 'exportToIntegration',
             MARK_AS_EXPORTED: 'markAsExported',
+            DOWNLOAD_CSV: 'downloadCSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -1488,6 +1491,8 @@ const CONST = {
         SKELETON_ANIMATION_SPEED: 3,
         SEARCH_OPTIONS_COMPARISON: 'search_options_comparison',
         SEARCH_MOST_RECENT_OPTIONS: 'search_most_recent_options',
+        DEBOUNCE_HANDLE_SEARCH: 'debounce_handle_search',
+        FAST_SEARCH_TREE_CREATION: 'fast_search_tree_creation',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -3168,6 +3173,7 @@ const CONST = {
             AMEX_CUSTOM_FEED: 'AmexCustomFeed',
             SELECT_COUNTRY: 'SelectCountry',
             PLAID_CONNECTION: 'PlaidConnection',
+            SELECT_STATEMENT_CLOSE_DATE: 'SelectStatementCloseDate',
         },
         CARD_TYPE: {
             AMEX: 'amex',
@@ -3208,6 +3214,11 @@ const CONST = {
         DELETE_TRANSACTIONS: {
             RESTRICT: 'corporate',
             ALLOW: 'personal',
+        },
+        STATEMENT_CLOSE_DATE: {
+            LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+            LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
+            CUSTOM_DAY_OF_MONTH: 'customDayOfMonth',
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
@@ -6149,6 +6160,10 @@ const CONST = {
             TRIP: 'trip',
             CHAT: 'chat',
         },
+        ACTION_FILTERS: {
+            PAY: 'pay',
+            EXPORT: 'export',
+        },
         ACTION_TYPES: {
             VIEW: 'view',
             REVIEW: 'review',
@@ -6289,6 +6304,7 @@ const CONST = {
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
+            ACTION: 'action',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
@@ -6331,6 +6347,7 @@ const CONST = {
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
+            ACTION: 'action',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',
@@ -6576,7 +6593,7 @@ const CONST = {
             multiLevelTags: {
                 id: 'multiLevelTags' as const,
                 alias: 'multiLevelTags',
-                name: 'multiLevelTags',
+                name: 'Multi-level tags',
                 title: 'workspace.upgrade.multiLevelTags.title' as const,
                 description: 'workspace.upgrade.multiLevelTags.description' as const,
                 icon: 'Tag',
