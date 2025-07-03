@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import useFileErrorModal from './useFileErrorModal';
 import useFileUploadValidation from './useFileUploadValidation';
 import useReportAttachmentModalType from './useReportAttachmentModalType';
 
@@ -112,6 +113,13 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     });
     const modalType = useReportAttachmentModalType(fileParam);
 
+    const ExtraModals = useFileErrorModal({
+        fileError,
+        isFileErrorModalVisible,
+        onCancel: navigation.goBack,
+        isMultipleFiles: Array.isArray(validFilesToUpload) && validFilesToUpload.length > 0,
+    });
+
     const contentTypeProps = useMemo<Partial<AttachmentModalBaseContentProps>>(
         () =>
             validFilesToUpload
@@ -145,6 +153,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             shouldDisableSendButton,
             submitRef,
             onCarouselAttachmentChange,
+            ExtraModals,
         }),
         [accountID, attachmentID, contentTypeProps, headerTitle, onCarouselAttachmentChange, onConfirm, shouldDisableSendButton, source],
     );

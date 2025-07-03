@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import useFileErrorModal from './useFileErrorModal';
 import useFileUploadValidation from './useFileUploadValidation';
 import useReportAttachmentModalType from './useReportAttachmentModalType';
 
@@ -116,14 +117,6 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         [onConfirmParam, validFilesToUpload],
     );
 
-    const confirmAndContinue = useCallback(() => {
-        if (fileError !== CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
-            return;
-        }
-
-        setFilesToValidate(fileParam);
-    }, [fileError, fileParam]);
-
     const isLoading = useMemo(() => {
         if (isOffline || isReportNotFound(report) || !reportID) {
             return false;
@@ -136,6 +129,22 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             (Array.isArray(validFilesToUpload) && validFilesToUpload.length === 0)
         );
     }, [isOffline, report, reportID, isLoadingApp, reportMetadata?.isLoadingInitialReportActions, shouldFetchReport, validFilesToUpload]);
+
+    const confirmAndContinue = useCallback(() => {
+        if (fileError !== CONST.MULTIPLE_ATTACHMENT_FILES_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
+            return;
+        }
+
+        setFilesToValidate(fileParam);
+    }, [fileError, fileParam]);
+
+    const ExtraModals = useFileErrorModal({
+        fileError,
+        isFileErrorModalVisible,
+        onConfirm: confirmAndContinue,
+        onCancel: navigation.goBack,
+        isMultipleFiles: Array.isArray(validFilesToUpload) && validFilesToUpload.length > 0,
+    });
 
     const contentTypeProps = useMemo<Partial<AttachmentModalBaseContentProps>>(() => {
         if (validFilesToUpload === undefined) {
@@ -167,10 +176,9 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
             shouldDisableSendButton,
             submitRef,
             onCarouselAttachmentChange,
-            onFileErrorModalConfirm: confirmAndContinue,
-            onFileErrorModalCancel: navigation.goBack,
+            ExtraModals,
         }),
-        [accountID, attachmentID, confirmAndContinue, contentTypeProps, headerTitle, navigation.goBack, onCarouselAttachmentChange, onConfirm, shouldDisableSendButton, source],
+        [ExtraModals, accountID, attachmentID, contentTypeProps, headerTitle, onCarouselAttachmentChange, onConfirm, shouldDisableSendButton, source],
     );
 
     // If the user refreshes during the send attachment flow, we need to navigate back to the report or home

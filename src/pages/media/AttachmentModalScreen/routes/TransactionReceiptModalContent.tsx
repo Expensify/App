@@ -1,5 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import ConfirmModal from '@components/ConfirmModal';
+import useLocalize from '@hooks/useLocalize';
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
@@ -16,6 +18,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps) {
+    const {translate} = useLocalize();
+
     const {reportID = '', transactionID = '', iouAction, iouType, readonly: readonlyProp, isFromReviewDuplicates: isFromReviewDuplicatesProp} = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
@@ -101,6 +105,22 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         navigation.goBack();
     }, [navigation, transaction?.transactionID]);
 
+    const ExtraModals = useMemo(
+        () => (
+            <ConfirmModal
+                title={translate('receipt.deleteReceipt')}
+                isVisible={isDeleteReceiptConfirmModalVisible}
+                onConfirm={() => deleteReceiptAndClose()}
+                onCancel={() => setIsDeleteReceiptConfirmModalVisible?.(false)}
+                prompt={translate('receipt.deleteConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
+        ),
+        [deleteReceiptAndClose, isDeleteReceiptConfirmModalVisible, translate],
+    );
+
     const contentProps = useMemo(
         () =>
             ({
@@ -108,7 +128,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 isAuthTokenRequired: !isLocalFile && !isDraftTransaction,
                 report,
                 isReceiptAttachment: true,
-                isDeleteReceiptConfirmModalVisible,
                 canEditReceipt: ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt,
                 canDeleteReceipt: canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt,
                 allowDownload: !isEReceipt,
@@ -119,18 +138,16 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 iouType,
                 draftTransactionID: isDraftTransaction ? transactionID : undefined,
                 shouldShowNotFoundPage,
-                onDeleteReceiptModalConfirm: deleteReceiptAndClose,
-                onDeleteReceiptModalCancel: () => setIsDeleteReceiptConfirmModalVisible?.(false),
+                ExtraModals,
                 onRequestDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(true),
             }) satisfies Partial<AttachmentModalBaseContentProps>,
         [
+            ExtraModals,
             canDeleteReceipt,
             canEditReceipt,
-            deleteReceiptAndClose,
             imageSource,
             iouAction,
             iouType,
-            isDeleteReceiptConfirmModalVisible,
             isDraftTransaction,
             isEReceipt,
             isLocalFile,

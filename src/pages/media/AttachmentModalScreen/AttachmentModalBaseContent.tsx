@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
@@ -13,7 +13,6 @@ import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttac
 import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -26,9 +25,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import type {MultipleAttachmentsValidationError, SingleAttachmentValidationError} from '@libs/AttachmentValidation';
 import fileDownload from '@libs/fileDownload';
-import {getFileName, getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
+import {getFileName} from '@libs/fileDownload/FileUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -67,9 +65,6 @@ type AttachmentModalBaseContentProps = {
 
     /** Optional original filename when uploading */
     originalFileName?: string;
-
-    /** If set, the attachment modal will show an error modal */
-    fileError?: SingleAttachmentValidationError | MultipleAttachmentsValidationError;
 
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
@@ -137,29 +132,14 @@ type AttachmentModalBaseContentProps = {
     /** Ref to the submit button */
     submitRef?: RefObject<View | HTMLElement | null>;
 
+    /** Extra modals to be displayed in the modal */
+    ExtraModals?: React.ReactNode;
+
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm?: (file: FileObject | FileObject[]) => void;
 
     /** Callback triggered when the modal is closed */
     onClose?: (options?: OnCloseOptions) => void;
-
-    /** Determines if the delete receipt confirm modal is visible or not */
-    isDeleteReceiptConfirmModalVisible?: boolean;
-
-    /** Determines if the file error modal is visible or not */
-    isFileErrorModalVisible?: boolean;
-
-    /** Callback triggered when the delete receipt modal is confirmed */
-    onDeleteReceiptModalConfirm?: () => void;
-
-    /** Callback triggered when the delete receipt modal is cancelled */
-    onDeleteReceiptModalCancel?: () => void;
-
-    /** Callback triggered when the file error modal is confirmed */
-    onFileErrorModalConfirm?: () => void;
-
-    /** Callback triggered when the file error modal is cancelled */
-    onFileErrorModalCancel?: () => void;
 
     /** Callback triggered when the delete receipt modal is shown */
     onRequestDeleteReceipt?: () => void;
@@ -170,11 +150,11 @@ type AttachmentModalBaseContentProps = {
 
 function AttachmentModalBaseContent({
     source: sourceProp = '',
-    attachmentID,
     fallbackSource,
     file: fileProp,
     fileToDisplayIndex = 0,
     originalFileName = '',
+    attachmentID,
     isAuthTokenRequired = false,
     maybeIcon = false,
     headerTitle: headerTitleProp,
@@ -196,16 +176,10 @@ function AttachmentModalBaseContent({
     shouldShowNotFoundPage = false,
     shouldDisableSendButton = false,
     shouldDisplayHelpButton = true,
-    isDeleteReceiptConfirmModalVisible = false,
-    isFileErrorModalVisible = false,
-    fileError,
     submitRef,
     onClose,
     onConfirm,
-    onDeleteReceiptModalConfirm,
-    onDeleteReceiptModalCancel,
-    onFileErrorModalConfirm,
-    onFileErrorModalCancel,
+    ExtraModals,
     onRequestDeleteReceipt,
     onCarouselAttachmentChange = () => {},
 }: AttachmentModalBaseContentProps) {
@@ -316,7 +290,7 @@ function AttachmentModalBaseContent({
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
         Keyboard.dismiss();
-    }, [isAuthTokenRequiredState, type, fileToDisplay?.name, draftTransactionID]);
+    }, [source, isAuthTokenRequiredState, type, fileToDisplay?.name, draftTransactionID]);
 
     /**
      * Execute the onConfirm callback and close the modal.
@@ -412,20 +386,7 @@ function AttachmentModalBaseContent({
             return allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline && !isLocalSource;
         }
         return false;
-    }, [allowDownload, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, isReceiptAttachment, report, shouldShowNotFoundPage, type]);
-
-    const isPDFLoadError = useRef(false);
-    const onPdfLoadError = useCallback(() => {
-        isPDFLoadError.current = true;
-        onClose?.();
-    }, [isPDFLoadError, onClose]);
-
-    const onInvalidReasonModalHide = useCallback(() => {
-        if (!isPDFLoadError.current) {
-            return;
-        }
-        isPDFLoadError.current = false;
-    }, [isPDFLoadError]);
+    }, [allowDownload, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, isReceiptAttachment, report, shouldShowNotFoundPage, source, type]);
 
     // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
     const falseSV = useSharedValue(false);
@@ -445,137 +406,110 @@ function AttachmentModalBaseContent({
     );
 
     return (
-        <>
-            <GestureHandlerRootView style={styles.flex1}>
-                {shouldUseNarrowLayout && <HeaderGap />}
-                <HeaderWithBackButton
-                    shouldMinimizeMenuButton
-                    title={headerTitle}
-                    shouldShowBorderBottom
-                    shouldShowDownloadButton={shouldShowDownloadButton}
-                    shouldDisplayHelpButton={shouldDisplayHelpButton}
-                    onDownloadButtonPress={() => downloadAttachment()}
-                    shouldShowCloseButton={!shouldUseNarrowLayout}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={onClose}
-                    onCloseButtonPress={onClose}
-                    shouldShowThreeDotsButton={shouldShowThreeDotsButton}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
-                    threeDotsAnchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                    }}
-                    shouldSetModalVisibility={false}
-                    threeDotsMenuItems={threeDotsMenuItems}
-                    shouldOverlayDots
-                    subTitleLink={currentAttachmentLink ?? ''}
-                />
-                <View style={styles.imageModalImageCenterContainer}>
-                    {isLoading && <FullScreenLoadingIndicator testID="attachment-loading-spinner" />}
-                    {shouldShowNotFoundPage && !isLoading && (
-                        <BlockingView
-                            icon={Illustrations.ToddBehindCloud}
-                            iconWidth={variables.modalTopIconWidth}
-                            iconHeight={variables.modalTopIconHeight}
-                            title={translate('notFound.notHere')}
-                            subtitle={translate('notFound.pageNotFound')}
-                            linkKey="notFound.goBackHome"
-                            shouldShowLink
-                            onLinkPress={onClose}
-                        />
-                    )}
-                    {!shouldShowNotFoundPage &&
-                        !isLoading &&
-                        // We shouldn't show carousel arrow in search result attachment
-                        (!isEmptyObject(report) && !isReceiptAttachment && type !== CONST.ATTACHMENT_TYPE.SEARCH ? (
-                            <AttachmentCarousel
-                                accountID={accountID}
-                                type={type}
-                                attachmentID={attachmentID}
-                                report={report}
-                                onNavigate={onNavigate}
-                                onClose={onClose}
-                                source={source}
-                                setDownloadButtonVisibility={setDownloadButtonVisibility}
-                                attachmentLink={currentAttachmentLink}
-                                onAttachmentError={setAttachmentError}
-                            />
-                        ) : (
-                            !!sourceForAttachmentView && (
-                                <AttachmentCarouselPagerContext.Provider value={context}>
-                                    <AttachmentView
-                                        containerStyles={[styles.mh5]}
-                                        source={sourceForAttachmentView}
-                                        isAuthTokenRequired={isAuthTokenRequiredState}
-                                        file={fileToDisplay}
-                                        onToggleKeyboard={setIsConfirmButtonDisabled}
-                                        onPDFLoadError={() => onPdfLoadError?.()}
-                                        isWorkspaceAvatar={isWorkspaceAvatar}
-                                        maybeIcon={maybeIcon}
-                                        fallbackSource={fallbackSource}
-                                        isUsedInAttachmentModal
-                                        transactionID={transaction?.transactionID}
-                                        isUploaded={!isEmptyObject(report)}
-                                        reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
-                                    />
-                                </AttachmentCarouselPagerContext.Provider>
-                            )
-                        ))}
-                </View>
-                {/* If we have an onConfirm method show a confirmation button */}
-                {!!onConfirm && !isConfirmButtonDisabled && (
-                    <LayoutAnimationConfig skipEntering>
-                        {!!onConfirm && !isConfirmButtonDisabled && (
-                            <SafeAreaConsumer>
-                                {({safeAreaPaddingBottomStyle}) => (
-                                    <Animated.View
-                                        style={safeAreaPaddingBottomStyle}
-                                        entering={FadeIn}
-                                    >
-                                        <Button
-                                            ref={submitRef ? viewRef(submitRef) : undefined}
-                                            success
-                                            large
-                                            style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
-                                            textStyles={[styles.buttonConfirmText]}
-                                            text={translate('common.send')}
-                                            onPress={submitAndClose}
-                                            isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
-                                            pressOnEnter
-                                        />
-                                    </Animated.View>
-                                )}
-                            </SafeAreaConsumer>
-                        )}
-                    </LayoutAnimationConfig>
-                )}
-                {isReceiptAttachment && (
-                    <ConfirmModal
-                        title={translate('receipt.deleteReceipt')}
-                        isVisible={isDeleteReceiptConfirmModalVisible}
-                        onConfirm={() => onDeleteReceiptModalConfirm?.()}
-                        onCancel={() => onDeleteReceiptModalCancel?.()}
-                        prompt={translate('receipt.deleteConfirmation')}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
+        <GestureHandlerRootView style={styles.flex1}>
+            {shouldUseNarrowLayout && <HeaderGap />}
+            <HeaderWithBackButton
+                shouldMinimizeMenuButton
+                title={headerTitle}
+                shouldShowBorderBottom
+                shouldShowDownloadButton={shouldShowDownloadButton}
+                shouldDisplayHelpButton={shouldDisplayHelpButton}
+                onDownloadButtonPress={() => downloadAttachment()}
+                shouldShowCloseButton={!shouldUseNarrowLayout}
+                shouldShowBackButton={shouldUseNarrowLayout}
+                onBackButtonPress={onClose}
+                onCloseButtonPress={onClose}
+                shouldShowThreeDotsButton={shouldShowThreeDotsButton}
+                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
+                threeDotsAnchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                }}
+                shouldSetModalVisibility={false}
+                threeDotsMenuItems={threeDotsMenuItems}
+                shouldOverlayDots
+                subTitleLink={currentAttachmentLink ?? ''}
+            />
+            <View style={styles.imageModalImageCenterContainer}>
+                {isLoading && <FullScreenLoadingIndicator testID="attachment-loading-spinner" />}
+                {shouldShowNotFoundPage && !isLoading && (
+                    <BlockingView
+                        icon={Illustrations.ToddBehindCloud}
+                        iconWidth={variables.modalTopIconWidth}
+                        iconHeight={variables.modalTopIconHeight}
+                        title={translate('notFound.notHere')}
+                        subtitle={translate('notFound.pageNotFound')}
+                        linkKey="notFound.goBackHome"
+                        shouldShowLink
+                        onLinkPress={onClose}
                     />
                 )}
-            </GestureHandlerRootView>
-            {!isReceiptAttachment && (
-                <ConfirmModal
-                    title={getFileValidationErrorText(fileError).title}
-                    onConfirm={() => onFileErrorModalConfirm?.()}
-                    onCancel={onFileErrorModalCancel}
-                    isVisible={isFileErrorModalVisible}
-                    prompt={getFileValidationErrorText(fileError).reason}
-                    confirmText={translate(isMultipleFiles ? 'common.continue' : 'common.close')}
-                    shouldShowCancelButton={isMultipleFiles}
-                    cancelText={translate('common.cancel')}
-                    onModalHide={onInvalidReasonModalHide}
-                />
+                {!shouldShowNotFoundPage &&
+                    !isLoading &&
+                    // We shouldn't show carousel arrow in search result attachment
+                    (!isEmptyObject(report) && !isReceiptAttachment && type !== CONST.ATTACHMENT_TYPE.SEARCH ? (
+                        <AttachmentCarousel
+                            accountID={accountID}
+                            type={type}
+                            attachmentID={attachmentID}
+                            report={report}
+                            onNavigate={onNavigate}
+                            onClose={onClose}
+                            source={source}
+                            setDownloadButtonVisibility={setDownloadButtonVisibility}
+                            attachmentLink={currentAttachmentLink}
+                            onAttachmentError={setAttachmentError}
+                        />
+                    ) : (
+                        !!sourceForAttachmentView && (
+                            <AttachmentCarouselPagerContext.Provider value={context}>
+                                <AttachmentView
+                                    containerStyles={[styles.mh5]}
+                                    source={sourceForAttachmentView}
+                                    isAuthTokenRequired={isAuthTokenRequiredState}
+                                    file={fileToDisplay}
+                                    onToggleKeyboard={setIsConfirmButtonDisabled}
+                                    isWorkspaceAvatar={isWorkspaceAvatar}
+                                    maybeIcon={maybeIcon}
+                                    fallbackSource={fallbackSource}
+                                    isUsedInAttachmentModal
+                                    transactionID={transaction?.transactionID}
+                                    isUploaded={!isEmptyObject(report)}
+                                    reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
+                                />
+                            </AttachmentCarouselPagerContext.Provider>
+                        )
+                    ))}
+            </View>
+            {/* If we have an onConfirm method show a confirmation button */}
+            {!!onConfirm && !isConfirmButtonDisabled && (
+                <LayoutAnimationConfig skipEntering>
+                    {!!onConfirm && !isConfirmButtonDisabled && (
+                        <SafeAreaConsumer>
+                            {({safeAreaPaddingBottomStyle}) => (
+                                <Animated.View
+                                    style={safeAreaPaddingBottomStyle}
+                                    entering={FadeIn}
+                                >
+                                    <Button
+                                        ref={submitRef ? viewRef(submitRef) : undefined}
+                                        success
+                                        large
+                                        style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
+                                        textStyles={[styles.buttonConfirmText]}
+                                        text={translate('common.send')}
+                                        onPress={submitAndClose}
+                                        isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
+                                        pressOnEnter
+                                    />
+                                </Animated.View>
+                            )}
+                        </SafeAreaConsumer>
+                    )}
+                </LayoutAnimationConfig>
             )}
-        </>
+            {ExtraModals}
+        </GestureHandlerRootView>
     );
 }
 AttachmentModalBaseContent.displayName = 'AttachmentModalBaseContent';
