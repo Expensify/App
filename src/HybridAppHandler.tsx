@@ -8,7 +8,6 @@ import {setupNewDotAfterTransitionFromOldDot} from './libs/actions/Session';
 import Log from './libs/Log';
 import ONYXKEYS from './ONYXKEYS';
 import SplashScreenStateContext from './SplashScreenStateContext';
-import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 function HybridAppHandler() {
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
