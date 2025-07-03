@@ -2651,9 +2651,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction).then(() => {
-                expect(canDeleteReportAction(moneyRequestAction, currentReportId)).toBe(false);
-            });
+            expect(canDeleteReportAction(moneyRequestAction, currentReportId, transaction)).toBe(false);
         });
     });
 

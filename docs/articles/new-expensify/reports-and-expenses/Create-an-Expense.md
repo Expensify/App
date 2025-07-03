@@ -36,6 +36,15 @@ You can create an expense by scanning a receipt, entering details manually, or t
 💡 **Note:** You can also forward receipts to `receipts@expensify.com` using a verified email address.
 💡 **Note:** Upload your receipt via SMS by texting the photo of your receipt to 47777. To start sending your receipts add your phone number to your account from **Account > Profile > Phone Number**.
 
+## Smart Receipt Detection
+
+Expensify uses AI to detect suspicious or non-human receipts:
+
+- **AI-generated receipts** – We'll flag receipts that appear to be artificially created.
+- **Prohibited expenses** – If a receipt violates workspace rules, it will be flagged as soon as it's submitted.
+
+This feature helps prevent policy violations and ensures accurate expense tracking from the moment of upload.
+
 ---
 
 ## Option 2: Manually Add an Expense
