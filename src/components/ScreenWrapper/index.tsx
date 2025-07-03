@@ -1,5 +1,5 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {forwardRef, useContext, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, View, ViewStyle} from 'react-native';
@@ -173,7 +173,7 @@ function ScreenWrapper(
     const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: true});
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
-    UNSTABLE_usePreventRemove((isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
+    usePreventRemove((isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
@@ -234,7 +234,7 @@ function ScreenWrapper(
     return (
         <FocusTrapForScreen focusTrapSettings={focusTrapSettings}>
             <ScreenWrapperContainer
-                forwardedRef={ref}
+                ref={ref}
                 style={[styles.flex1, style]}
                 bottomContent={bottomContent}
                 didScreenTransitionEnd={didScreenTransitionEnd}
