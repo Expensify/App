@@ -94,7 +94,8 @@ function UploadPowerform({onNext, isEditing}: UploadPowerformProps) {
                 }}
                 text={translate('docusignStep.takeMeTo')}
             />
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('docusignStep.uploadAdditional')}</Text>
+            {countryStepCountryValue === CONST.COUNTRY.CA && <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('docusignStep.uploadAdditional')}</Text>}
+            {countryStepCountryValue === CONST.COUNTRY.AU && <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('docusignStep.pleaseUploadTheDirect')}</Text>}
             <Text style={[styles.textHeadlineH2, styles.colorMuted, styles.mb10]}>{translate('docusignStep.pleaseUpload')}</Text>
             <InputWrapper
                 InputComponent={UploadFile}

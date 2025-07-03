@@ -3169,13 +3169,14 @@ const translations = {
     docusignStep: {
         subheader: 'Subtítulo de Docusign',
         pleaseComplete:
-            'Por favor, complete el formulario de autorización ACH usando el enlace de Docusign a continuación y luego cargue una copia firmada aquí para que podamos retirar fondos directamente de su cuenta bancaria.',
-        pleaseCompleteTheBusinessAccount: 'Por favor, complete la Solicitud de Cuenta Comercial y el Acuerdo de Débito Directo.',
+            'Por favor, complete el formulario de autorización ACH con el enlace de Docusign a continuación y luego cargue esa copia firmada aquí para que podamos retirar fondos directamente de su cuenta bancaria.',
+        pleaseCompleteTheBusinessAccount: 'Por favor, complete la Solicitud de Cuenta Comercial para el Acuerdo de Débito Directo.',
         pleaseCompleteTheDirect:
-            'Por favor, complete el Acuerdo de Débito Directo usando el enlace de Docusign a continuación y luego cargue una copia firmada aquí para que podamos retirar fondos directamente de su cuenta bancaria.',
+            'Por favor, complete el Acuerdo de Débito Directo usando el enlace de Docusign a continuación y luego cargue esa copia firmada aquí para que podamos retirar fondos directamente de su cuenta bancaria.',
         takeMeTo: 'Llévame a Docusign',
         uploadAdditional: 'Cargar documentación adicional',
         pleaseUpload: 'Por favor, cargue el formulario DEFT y la página de firma de Docusign',
+        pleaseUploadTheDirect: 'Por favor, cargue los Acuerdos de Débito Directo y la página de firma de Docusign',
     },
     finishStep: {
         connect: 'Conectar cuenta bancaria',
