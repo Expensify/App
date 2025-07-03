@@ -19,7 +19,21 @@ function SearchAdvancedFiltersPage() {
     const [searchAdvancedFilters = emptySearchFilters] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
     const shouldShowResetFilters = Object.entries(searchAdvancedFilters)
-        .filter(([key]) => !([CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY] as string[]).includes(key))
+        .filter(([key, value]) => {
+            if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
+                return false;
+            }
+
+            if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE) {
+                return value !== CONST.SEARCH.DATA_TYPES.EXPENSE;
+            }
+
+            if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS) {
+                return value !== CONST.SEARCH.STATUS.EXPENSE.ALL;
+            }
+
+            return true;
+        })
         .some(([, value]) => (Array.isArray(value) ? value.length !== 0 : !!value));
 
     return (
