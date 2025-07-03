@@ -214,7 +214,7 @@ function ComposerWithSuggestions(
         setIsFullComposerAvailable,
         isMenuVisible,
         inputPlaceholder,
-        onFilePasted: displayFileInModal,
+        onFilePasted,
         isBlockedFromConcierge,
         disabled,
         setIsCommentEmpty,
@@ -812,7 +812,7 @@ function ComposerWithSuggestions(
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(file) => {
                         textInputRef.current?.blur();
-                        displayFileInModal(file);
+                        onFilePasted(file);
                     }}
                     onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}

@@ -339,7 +339,7 @@ function AttachmentModalBaseContent({
                             report={report}
                             onNavigate={onNavigate}
                             onClose={onClose}
-                            source={source}
+                            source={sourceProp}
                             setDownloadButtonVisibility={setDownloadButtonVisibility}
                             attachmentLink={currentAttachmentLink}
                             onAttachmentError={setAttachmentError}
