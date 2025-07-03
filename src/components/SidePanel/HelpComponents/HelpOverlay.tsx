@@ -3,6 +3,7 @@ import Animated, {Easing, Keyframe} from 'react-native-reanimated';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type HelpOverlayProps = {
@@ -22,13 +23,13 @@ function HelpOverlay({isRHPVisible, onBackdropPress}: HelpOverlayProps) {
     const CustomFadeIn = new Keyframe({
         from: {opacity: 0},
         to: {
-            opacity: 0.72,
+            opacity: variables.overlayOpacity,
             easing,
         },
     }).duration(CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
 
     const CustomFadeOut = new Keyframe({
-        from: {opacity: 0.72},
+        from: {opacity: variables.overlayOpacity},
         to: {
             opacity: 0,
             easing,
