@@ -9929,8 +9929,14 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         return;
     }
 
+    // if (actionName === CONST.IOU.ACTION.SHARE) {
+    //     Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined));
+    //     return;
+    // }
+
     if (actionName === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined));
+        const backTo = Navigation.getActiveRoute();
+        Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backTo));
         return;
     }
 
