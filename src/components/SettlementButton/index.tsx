@@ -554,6 +554,7 @@ function SettlementButton({
     });
 
     const shouldUseSplitButton = hasPreferredPaymentMethod || !!lastPaymentPolicy || ((isInvoiceReport || isExpenseReportUtil(iouReport)) && hasIntentToPay);
+    const shouldLimitWidth = shouldUseShortForm && shouldUseSplitButton && !paymentButtonOptions.length;
 
     return (
         <KYCWall
@@ -591,7 +592,7 @@ function SettlementButton({
                     shouldUseShortForm={shouldUseShortForm}
                     shouldPopoverUseScrollView={paymentButtonOptions.length > 5}
                     containerStyles={paymentButtonOptions.length > 5 ? styles.settlementButtonListContainer : {}}
-                    wrapperStyle={[wrapperStyle, shouldUseShortForm && shouldUseSplitButton && !paymentButtonOptions.length ? {minWidth: 90} : {}]}
+                    wrapperStyle={[wrapperStyle, shouldLimitWidth ? styles.settlementButtonShortFormWidth : {}]}
                     disabledStyle={disabledStyle}
                     buttonSize={buttonSize}
                     anchorAlignment={paymentMethodDropdownAnchorAlignment}

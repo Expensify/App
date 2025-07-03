@@ -13,6 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import mergeRefs from '@libs/mergeRefs';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps} from './types';
@@ -186,7 +187,7 @@ function ButtonWithDropdownMenu<IValueType>({
                             large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                             medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                             small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                            innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton, isButtonSizeSmall && {minWidth: 22}]}
+                            innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton, isButtonSizeSmall && styles.dropDownButtonCartIcon]}
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                         >
                             <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
@@ -201,8 +202,8 @@ function ButtonWithDropdownMenu<IValueType>({
                                         medium={isButtonSizeLarge}
                                         small={!isButtonSizeLarge && !shouldUseShortForm}
                                         inline={shouldUseShortForm}
-                                        width={shouldUseShortForm ? 12 : undefined}
-                                        height={shouldUseShortForm ? 12 : undefined}
+                                        width={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
+                                        height={shouldUseShortForm ? variables.iconSizeExtraSmall : undefined}
                                         src={Expensicons.DownArrow}
                                         additionalStyles={shouldUseShortForm ? [styles.pRelative, styles.t0] : undefined}
                                         fill={success ? theme.buttonSuccessText : theme.icon}

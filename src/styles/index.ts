@@ -4700,6 +4700,10 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 0,
         },
 
+        dropDownButtonCartIcon: {
+            minWidth: 22,
+        },
+
         dropDownSmallButtonArrowContain: {
             marginLeft: 3,
             marginRight: 6,
@@ -4922,6 +4926,10 @@ const styles = (theme: ThemeColors) =>
             maxHeight: 500,
             paddingBottom: 0,
             paddingTop: 0,
+        },
+
+        settlementButtonShortFormWidth: {
+            minWidth: 90,
         },
 
         moneyRequestViewImage: {
