@@ -262,7 +262,6 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
     const transactionID = existingTransactionID ?? rand64();
 
-    
     const commentJSON: Comment = {comment, attendees};
     if (isDemoTransaction) {
         commentJSON.isDemoTransaction = true;
