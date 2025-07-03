@@ -164,7 +164,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const statusComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
-                const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : '';
+                const newStatus = selectedItems.length ? selectedItems.map((i) => i.value) : CONST.SEARCH.STATUS.EXPENSE.ALL;
                 updateFilterForm({status: newStatus});
             };
 
