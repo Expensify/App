@@ -102,6 +102,7 @@ export type {default as VerifyIdentityForBankAccountParams} from './VerifyIdenti
 export type {default as AnswerQuestionsForWalletParams} from './AnswerQuestionsForWalletParams';
 export type {default as AddCommentOrAttachmentParams} from './AddCommentOrAttachmentParams';
 export type {default as ReadNewestActionParams} from './ReadNewestActionParams';
+export type {default as ImportPlaidAccountsParams} from './ImportPlaidAccountsParams';
 export type {default as MarkAllMessagesAsReadParams} from './MarkAllMessagesAsReadParams';
 export type {default as MarkAsUnreadParams} from './MarkAsUnreadParams';
 export type {default as TogglePinnedChatParams} from './TogglePinnedChatParams';
@@ -404,7 +405,6 @@ export type {default as CompleteConciergeCallParams} from './CompleteConciergeCa
 export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishCorpayBankAccountOnboardingParams';
 export type {default as DeclineMoneyRequestParams} from './DeclineMoneyRequestParams';
 export type {default as MarkTransactionViolationAsResolvedParams} from './MarkTransactionViolationAsResolvedParams';
-export type {default as SetVacationDelegateParams} from './SetVacationDelegateParams';
 export type {default as LockAccountParams} from './LockAccountParams';
 export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
 export type {default as ReopenReportParams} from './ReopenReportParams';

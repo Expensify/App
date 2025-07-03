@@ -34,6 +34,7 @@ type NavigationRoot = NavigationHelpers<RootNavigatorParamList>;
 type GoBackAction = Extract<CommonActions.Action, {type: 'GO_BACK'}>;
 type ResetAction = Extract<CommonActions.Action, {type: 'RESET'}>;
 type SetParamsAction = Extract<CommonActions.Action, {type: 'SET_PARAMS'}>;
+type NavigateDeprecatedAction = Extract<CommonActions.Action, {type: 'NAVIGATE_DEPRECATED'}>;
 
 type ActionNavigate = {
     type: ValueOf<typeof CONST.NAVIGATION.ACTION_TYPE>;
@@ -49,7 +50,7 @@ type ActionNavigate = {
     target?: string;
 };
 
-type StackNavigationAction = GoBackAction | ResetAction | SetParamsAction | ActionNavigate | undefined;
+type StackNavigationAction = GoBackAction | ResetAction | SetParamsAction | ActionNavigate | NavigateDeprecatedAction | undefined;
 
 type NavigationStateRoute = NavigationState['routes'][number];
 type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<Route<TRouteName>>;
@@ -168,7 +169,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
-    [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
     [SCREENS.WORKSPACE.ADDRESS]: {
         policyID: string;
@@ -1420,6 +1420,10 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
         backToReport?: string;
     };
+    [SCREENS.MONEY_REQUEST.RECEIPT_VIEW_MODAL]: {
+        transactionID: string;
+        backTo: Routes;
+    };
     [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: {
         action: IOUAction;
         iouType: IOUType;
@@ -1728,10 +1732,6 @@ type RightModalNavigatorParamList = {
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
-    [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: {
-        token: string;
-        isTestAccount?: boolean;
-    };
     [SCREENS.TRAVEL.TRIP_SUMMARY]: {
         reportID: string;
         transactionID: string;
@@ -1776,6 +1776,7 @@ type ReportsSplitNavigatorParamList = {
         moneyRequestReportActionID?: string;
         transactionID?: string;
     };
+    [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
 };
 
 type SettingsSplitNavigatorParamList = {
@@ -1983,6 +1984,7 @@ type SharedScreensParamList = {
         shortLivedAuthToken?: string;
         shortLivedToken?: string;
         authTokenType?: ValueOf<typeof CONST.AUTH_TOKEN_TYPES>;
+        // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
         exitTo?: Routes | HybridAppRoute;
         shouldForceLogin: string;
         domain?: Routes;
@@ -1991,6 +1993,7 @@ type SharedScreensParamList = {
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
         validateCode: string;
+        // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
         exitTo?: Routes | HybridAppRoute;
     };
 };
@@ -2022,6 +2025,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE_AVATAR]: {
         policyID: string;

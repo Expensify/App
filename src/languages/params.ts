@@ -137,6 +137,10 @@ type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
+type WorkspaceRouteParams = {
+    workspaceRoute: string;
+};
+
 type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
@@ -218,8 +222,6 @@ type UntilTimeParams = {time: string};
 type StepCounterParams = {step: number; total?: number; text?: string};
 
 type UserIsAlreadyMemberParams = {login: string; name: string};
-
-type GoToRoomParams = {roomName: string};
 
 type NewWorkspaceNameParams = {userName: string; workspaceNumber?: number};
 
@@ -441,7 +443,7 @@ type ExportAgainModalDescriptionParams = {
     connectionName: ConnectionName;
 };
 
-type IntegrationSyncFailedParams = {label: string; errorMessage: string; linkText?: string; linkURL?: string};
+type IntegrationSyncFailedParams = {label: string; errorMessage: string; linkText?: string; linkURL?: string; workspaceAccountingLink?: string};
 
 type AddEmployeeParams = {email: string; role: string};
 
@@ -775,8 +777,17 @@ type ContactMethodsRouteParams = {
     contactMethodsRoute: string;
 };
 
+type ContactMethodParams = {
+    contactMethodRoute: string;
+};
+
+type BusinessTaxIDParams = {
+    country: string;
+};
+
 export type {
     ContactMethodsRouteParams,
+    ContactMethodParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
@@ -869,7 +880,6 @@ export type {
     EnterMagicCodeParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
-    GoToRoomParams,
     SubmittedToVacationDelegateParams,
     HeldRequestParams,
     InstantSummaryParams,
@@ -1048,4 +1058,6 @@ export type {
     AirlineParams,
     RailTicketParams,
     TravelTypeParams,
+    WorkspaceRouteParams,
+    BusinessTaxIDParams,
 };
