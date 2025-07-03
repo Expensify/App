@@ -172,6 +172,7 @@ type ShouldShow = (args: {
     areHoldRequirementsMet: boolean;
     account: OnyxEntry<Account>;
     transactions: Transaction[];
+    iouTransaction: OnyxEntry<Transaction>;
 }) => boolean;
 
 type ContextMenuActionPayload = {
@@ -820,7 +821,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.deleteAction',
         icon: Expensicons.Trashcan,
-        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID, moneyRequestAction, transactions}) =>
+        shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID, moneyRequestAction, transactions, iouTransaction}) =>
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
             !!reportID &&
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
@@ -828,6 +829,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 moneyRequestAction ?? reportAction,
                 isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : reportID,
                 transactions,
+                iouTransaction,
             ) &&
             !isArchivedRoom &&
             !isChronosReport &&
