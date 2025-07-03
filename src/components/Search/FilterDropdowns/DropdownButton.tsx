@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
@@ -69,7 +69,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
      * Toggle the overlay between open & closed, and re-calculate the
      * position of the trigger
      */
-    const toggleOverlay = () => {
+    const toggleOverlay = useCallback(() => {
         setIsOverlayVisible((previousValue) => {
             if (!previousValue && willAlertModalBecomeVisible) {
                 return false;
@@ -77,7 +77,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
 
             return !previousValue;
         });
-    };
+    }, [willAlertModalBecomeVisible]);
 
     /**
      * When no items are selected, render the label, otherwise, render the
@@ -98,6 +98,15 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
         }
         return {width: CONST.POPOVER_DROPDOWN_WIDTH};
     }, [isSmallScreenWidth, styles]);
+
+    const popoverContent = useMemo(() => {
+        if (!isOverlayVisible) {
+            return null;
+        }
+        return PopoverComponent({closeOverlay: toggleOverlay});
+        // PopoverComponent is stable so we don't need it here as a dep.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isOverlayVisible, toggleOverlay]);
 
     return (
         <>
@@ -140,7 +149,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
             >
-                {PopoverComponent({closeOverlay: toggleOverlay})}
+                {popoverContent}
             </PopoverWithMeasuredContent>
         </>
     );
