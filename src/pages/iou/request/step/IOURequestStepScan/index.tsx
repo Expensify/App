@@ -980,7 +980,7 @@ function IOURequestStepScan({
                 {({openPicker}) => (
                     <Button
                         success
-                        text={translate('common.chooseFile')}
+                        text={translate(canUseMultiDragAndDrop ? 'common.chooseFiles' : 'common.chooseFile')}
                         accessibilityLabel={translate('common.chooseFile')}
                         style={[styles.p9]}
                         onPress={() => {

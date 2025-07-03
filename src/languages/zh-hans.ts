@@ -562,6 +562,7 @@ const translations = {
         longID: 'Long ID',
         bankAccounts: '银行账户',
         chooseFile: '选择文件',
+        chooseFiles: '选择文件',
         dropTitle: 'Let it go',
         dropMessage: '在此处拖放您的文件',
         ignore: 'Ignore',

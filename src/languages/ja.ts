@@ -562,6 +562,7 @@ const translations = {
         longID: 'Long ID',
         bankAccounts: '銀行口座',
         chooseFile: 'ファイルを選択',
+        chooseFiles: 'ファイルを選択',
         dropTitle: 'そのままにしておく',
         dropMessage: 'ここにファイルをドロップしてください',
         ignore: 'Ignore',

@@ -562,6 +562,7 @@ const translations = {
         longID: 'Lang ID',
         bankAccounts: 'Bankrekeningen',
         chooseFile: 'Bestand kiezen',
+        chooseFiles: 'Bestanden kiezen',
         dropTitle: 'Laat het gaan',
         dropMessage: 'Sleep hier je bestand in.',
         ignore: 'Ignore',

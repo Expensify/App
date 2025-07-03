@@ -553,6 +553,7 @@ const translations = {
         longID: 'Long ID',
         bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
+        chooseFiles: 'Choose files',
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
         ignore: 'Ignore',

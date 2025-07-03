@@ -562,6 +562,7 @@ const translations = {
         longID: 'ID lungo',
         bankAccounts: 'Conti bancari',
         chooseFile: 'Scegli file',
+        chooseFiles: 'Scegli file',
         dropTitle: 'Lascia andare',
         dropMessage: 'Trascina qui il tuo file',
         ignore: 'Ignore',
