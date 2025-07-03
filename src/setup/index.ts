@@ -57,6 +57,7 @@ export default function () {
             ONYXKEYS.COLLECTION.POLICY,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
             ONYXKEYS.PERSONAL_DETAILS_LIST,
+            ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST,
         ],
     });
 
