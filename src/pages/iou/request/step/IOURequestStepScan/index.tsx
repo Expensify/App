@@ -139,7 +139,7 @@ function IOURequestStepScan({
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
 
     const canUseMultiDragAndDrop = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP);
-    const shouldAcceptMultipleFiles = canUseMultiDragAndDrop && !isEditing;
+    const shouldAcceptMultipleFiles = canUseMultiDragAndDrop && !isEditing && !backTo;
 
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
