@@ -68,7 +68,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         policies,
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
-        selectedPolicyID: report.policyID,
+        selectedPolicyIDs: report.policyID ? [report.policyID] : undefined,
         searchTerm: debouncedSearchTerm,
         additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policies),
     });

@@ -2,12 +2,23 @@
 title: Manage Expensify Subscription
 description: Learn how to manage your subscription, update billing details, cancel early, or delete a workspace in New Expensify.
 keywords: [New Expensify, subscription, billing, payment card, cancel subscription, delete workspace, remove workspace, subscription settings]
+
 ---
+
 <div id="new-expensify" markdown="1">
 
 Easily manage your subscription in New Expensify—update payment details, adjust your plan, request early cancellation, or delete a workspace if needed.
 
 You can view and manage your subscription under **Account > Subscription**. 
+
+---
+
+# View Subscription and Add a Payment Card
+
+To view your subscription and add a payment card:
+
+1. Navigate to **Account > Subscription**.
+2. Click **Add Payment Card** and enter your card details to ensure uninterrupted billing.
 
 ---
 
@@ -26,6 +37,8 @@ In the Subscription section, you can view and update your plan details, includin
 ---
 
 # Request Early Cancellation
+
+To request an early cancellation:
 
 1. Head to **Account > Subscription**.
 2. Click the **Request early cancellation** button.
@@ -48,7 +61,7 @@ To permanently delete a workspace and downgrade to a free account:
 
 ---
 
-## Pricing Information
+# Pricing Information
 
 Visit our [Billing page](https://help.expensify.com/new-expensify/hubs/billing-and-subscriptions/) for full pricing details.
 
