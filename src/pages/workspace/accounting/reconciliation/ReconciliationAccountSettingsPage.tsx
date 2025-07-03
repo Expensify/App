@@ -1,5 +1,4 @@
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import ConnectionLayout from '@components/ConnectionLayout';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -7,6 +6,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
