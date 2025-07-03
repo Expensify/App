@@ -21,6 +21,7 @@ import useFileUploadValidation from './hooks/useFileUploadValidation';
 import useNavigateToReportOnRefresh from './hooks/useNavigateToReportOnRefresh';
 import useReportAttachmentModalType from './hooks/useReportAttachmentModalType';
 
+
 function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScreenProps) {
     const {
         attachmentID,
