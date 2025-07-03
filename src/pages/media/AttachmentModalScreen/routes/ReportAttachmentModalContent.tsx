@@ -5,7 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import {openReport} from '@libs/actions/Report';
-import validateAttachmentFile from '@libs/AttachmentUtils';
+import {validateAttachmentFile} from '@libs/AttachmentUtils';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
