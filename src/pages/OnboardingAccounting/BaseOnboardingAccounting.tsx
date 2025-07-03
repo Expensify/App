@@ -1,8 +1,9 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import Button from '@components/Button';
+import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -16,6 +17,8 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -25,7 +28,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
-import {closeReactNativeApp} from '@libs/actions/Session';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
@@ -98,6 +100,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {onboardingMessages} = useOnboardingMessages();
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -134,13 +138,14 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         }
 
         if (CONFIG.IS_HYBRID_APP) {
-            closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+            HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+            setRootStatusBarEnabled(false);
             return;
         }
         waitForIdle().then(() => {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
         });
-    }, [isLoading, prevIsLoading]);
+    }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
         const createAccountingOption = (integration: Integration): OnboardingListItem => ({
@@ -215,7 +220,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
         completeOnboarding({
             engagementChoice: onboardingPurposeSelected,
-            onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+            onboardingMessage: onboardingMessages[onboardingPurposeSelected],
             adminsChatReportID,
             onboardingPolicyID: policyID,
             companySize: onboardingCompanySize,
@@ -252,6 +257,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         isSmallScreenWidth,
         onboardingAdminsChatReportID,
         onboardingCompanySize,
+        onboardingMessages,
         onboardingPolicyID,
         onboardingPurposeSelected,
         paidGroupPolicy,

@@ -1,20 +1,26 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import PrevNextButtons from '@components/PrevNextButtons';
+import useOnyx from '@hooks/useOnyx';
+import {clearActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {clearActiveTransactionThreadIDs, getActiveTransactionThreadIDs} from './TransactionThreadReportIDRepository';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentReportID: string;
 };
 
 function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyRequestReportRHPNavigationButtonsProps) {
-    const reportIDsList = getActiveTransactionThreadIDs();
-    const {prevReportID, nextReportID} = (() => {
-        if (!reportIDsList) {
+    const [reportIDsList = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
+        canBeMissing: true,
+    });
+
+    const {prevReportID, nextReportID} = useMemo(() => {
+        if (!reportIDsList || reportIDsList.length < 2) {
             return {prevReportID: undefined, nextReportID: undefined};
         }
 
@@ -24,7 +30,7 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
         const nextID = currentReportIndex <= reportIDsList.length - 1 ? reportIDsList.at(currentReportIndex + 1) : undefined;
 
         return {prevReportID: prevID, nextReportID: nextID};
-    })();
+    }, [currentReportID, reportIDsList]);
 
     const backTo = Navigation.getActiveRoute();
 
