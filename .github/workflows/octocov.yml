@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        chunk: [ 1, 2, 3 ]
+        shard_index: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,9 +30,12 @@ jobs:
         run: npm ci
 
       - name: Run tests with coverage
-        run: npm run test -- --coverage --ci --coverageReporters=lcov --watchAll=false --passWithNoTests --shard=${{ matrix.chunk }}/3
+        run: npm run test:coverage -- --shard=${{ matrix.shard_index }}/3 --coverageDirectory=coverage-shard-${{ matrix.shard_index }}
         env:
           CI: true
+
+      - name: Merge coverage reports with istanbul-combine
+        run: npm run test:coverage:merge
 
       - name: Run octocov
         uses: k1LoW/octocov-action@v1
