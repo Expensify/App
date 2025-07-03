@@ -29,7 +29,7 @@ function SearchPageHeader({queryJSON, searchRouterListVisible, hideSearchRouterL
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
-    if (shouldUseNarrowLayout && !!selectionMode) {
+    if (shouldUseNarrowLayout && !!selectionMode && headerButtonsOptions.length > 0) {
         return (
             <View>
                 <SearchSelectedNarrow
