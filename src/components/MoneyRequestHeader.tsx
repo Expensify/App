@@ -89,7 +89,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const theme = useTheme();
     const {translate} = useLocalize();
     const isOnHold = isOnHoldTransactionUtils(transaction);
-    const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID);
+    const isDuplicate = isDuplicateTransactionUtils(transaction);
     const reportID = report?.reportID;
     const {removeTransaction} = useSearchContext();
 
