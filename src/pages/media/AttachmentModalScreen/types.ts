@@ -38,6 +38,6 @@ type AttachmentModalScreenParams = AttachmentModalBaseContentProps &
         hashKey?: number;
     };
 
-type AttachmentModalScreenProps = PlatformStackScreenProps<RootNavigatorParamList, typeof SCREENS.ATTACHMENTS>;
+type AttachmentModalScreenProps = PlatformStackScreenProps<RootNavigatorParamList, typeof SCREENS.REPORT_ATTACHMENTS>;
 
 export type {AttachmentModalScreenParams, AttachmentModalModalProps, AttachmentModalScreenProps, FileObject, ImagePickerResponse};

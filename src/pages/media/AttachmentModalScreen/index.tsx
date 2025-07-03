@@ -24,7 +24,7 @@ function AttachmentModalScreen({route, navigation}: AttachmentModalScreenProps) 
         return route.params;
     }, [attachmentsContext, route.params]);
 
-    if (route.name === SCREENS.ATTACHMENTS) {
+    if (route.name === SCREENS.REPORT_ATTACHMENTS) {
         return (
             <ReportAttachmentModalContent
                 route={{...route, params: paramsWithContext}}

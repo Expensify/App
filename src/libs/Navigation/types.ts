@@ -2009,7 +2009,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.CONCIERGE]: undefined;
     [SCREENS.TRACK_EXPENSE]: undefined;
     [SCREENS.SUBMIT_EXPENSE]: undefined;
-    [SCREENS.ATTACHMENTS]: AttachmentModalScreenParams;
+    [SCREENS.REPORT_ATTACHMENTS]: AttachmentModalScreenParams;
     [SCREENS.REPORT_ADD_ATTACHMENT]: AttachmentModalScreenParams;
     [SCREENS.PROFILE_AVATAR]: AttachmentModalScreenParams;
     [SCREENS.WORKSPACE_AVATAR]: AttachmentModalScreenParams;
