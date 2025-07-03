@@ -207,9 +207,7 @@ function MoneyRequestReportTransactionList({
             }
         });
 
-        return Object.keys(columns).filter((columnName: string) => {
-            return columns[columnName];
-        }) as SortableColumnName[];
+        return Object.keys(columns).filter((columnName: string) => columns[columnName]) as SortableColumnName[];
     }, [transactions]);
 
     const navigateToTransaction = useCallback(
@@ -283,7 +281,7 @@ function MoneyRequestReportTransactionList({
 
                                         setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
                                     }}
-                                    columnsToShow={columnsToShow}
+                                    columns={columnsToShow}
                                 />
                             )}
                         </View>

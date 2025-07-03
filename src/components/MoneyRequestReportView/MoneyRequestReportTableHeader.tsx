@@ -63,17 +63,17 @@ type SearchTableHeaderProps = {
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     shouldShowSorting: boolean;
-    columnsToShow: SortableColumnName[];
+    columns: SortableColumnName[];
 };
 
-function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting, amountColumnSize, taxAmountColumnSize, columnsToShow}: SearchTableHeaderProps) {
+function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting, amountColumnSize, taxAmountColumnSize, columns}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
-            return columnsToShow.includes(columnName);
+            return columns.includes(columnName);
         },
-        [columnsToShow],
+        [columns],
     );
 
     return (
