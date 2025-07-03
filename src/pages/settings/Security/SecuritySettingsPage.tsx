@@ -165,7 +165,7 @@ function SecuritySettingsPage() {
             });
         } else {
             baseMenuItems.push({
-                translationKey: 'lockAccountPage.lockAccount',
+                translationKey: 'lockAccountPage.reportSuspiciousActivity',
                 icon: Expensicons.UserLock,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
             });
@@ -401,7 +401,7 @@ function SecuritySettingsPage() {
                             </View>
                             <PopoverMenu
                                 isVisible={shouldShowDelegatePopoverMenu}
-                                anchorRef={delegateButtonRef as RefObject<View>}
+                                anchorRef={delegateButtonRef as RefObject<View | null>}
                                 anchorPosition={{
                                     horizontal: anchorPosition.horizontal,
                                     vertical: anchorPosition.vertical,

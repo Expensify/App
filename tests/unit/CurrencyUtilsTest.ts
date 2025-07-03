@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import TranslationStore from '@src/languages/TranslationStore';
+import IntlStore from '@src/languages/IntlStore';
 import * as CurrencyUtils from '@src/libs/CurrencyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -31,14 +31,15 @@ describe('CurrencyUtils', () => {
     });
 
     beforeEach(() => {
-        TranslationStore.load(CONST.LOCALES.DEFAULT);
+        IntlStore.load(CONST.LOCALES.DEFAULT);
+        return waitForBatchedUpdates();
     });
 
     afterEach(() => Onyx.clear());
 
     describe('getLocalizedCurrencySymbol', () => {
         test.each(AVAILABLE_LOCALES)('Returns non empty string for all currencyCode with preferredLocale %s', (preferredLocale) =>
-            TranslationStore.load(preferredLocale).then(() => {
+            IntlStore.load(preferredLocale).then(() => {
                 currencyCodeList.forEach((currencyCode: string) => {
                     const localizedSymbol = CurrencyUtils.getLocalizedCurrencySymbol(currencyCode);
 
@@ -158,7 +159,7 @@ describe('CurrencyUtils', () => {
             ['EUR', 250000, '2500,00\xa0€'],
             ['EUR', 250000000, '2.500.000,00\xa0€'],
         ])('Correctly displays %s in ES locale', (currency, amount, expectedResult) =>
-            TranslationStore.load(CONST.LOCALES.ES).then(() => expect(CurrencyUtils.convertToDisplayString(amount, currency)).toBe(expectedResult)),
+            IntlStore.load(CONST.LOCALES.ES).then(() => expect(CurrencyUtils.convertToDisplayString(amount, currency)).toBe(expectedResult)),
         );
     });
 
@@ -185,7 +186,7 @@ describe('CurrencyUtils', () => {
             ['EUR', 250000, '2500\xa0€'],
             ['EUR', 250000000, '2.500.000\xa0€'],
         ])('Correctly displays %s in ES locale', (currency, amount, expectedResult) =>
-            TranslationStore.load(CONST.LOCALES.ES).then(() => expect(CurrencyUtils.convertToShortDisplayString(amount, currency)).toBe(expectedResult)),
+            IntlStore.load(CONST.LOCALES.ES).then(() => expect(CurrencyUtils.convertToShortDisplayString(amount, currency)).toBe(expectedResult)),
         );
     });
 });
