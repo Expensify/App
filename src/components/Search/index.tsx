@@ -177,12 +177,9 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
         clearSelectedTransactions(hash);
         setCurrentSearchHash(hash);
-    }, [hash, clearSelectedTransactions, setCurrentSearchHash, isFocused]);
+    }, [hash, clearSelectedTransactions, setCurrentSearchHash]);
 
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
@@ -220,11 +217,12 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     }, [isSmallScreenWidth, selectedTransactions, selectionMode?.isEnabled]);
 
     useEffect(() => {
-        if (isOffline || !isFocused) {
+        if (isOffline) {
             return;
         }
+
         handleSearch({queryJSON, offset});
-    }, [handleSearch, isOffline, offset, queryJSON, isFocused]);
+    }, [handleSearch, isOffline, offset, queryJSON]);
 
     useEffect(() => {
         openSearch();

@@ -2,10 +2,9 @@ import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
+import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import SelectCircle from '@components/SelectCircle';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {BaseListItemProps, ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -50,7 +49,7 @@ function CardListItem<TItem extends ListItem>({
 
     const ownersAvatar = {
         source: item.cardOwnerPersonalDetails?.avatar ?? FallbackAvatar,
-        id: item.cardOwnerPersonalDetails?.accountID ?? -1,
+        id: item.cardOwnerPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
         type: CONST.ICON_TYPE_AVATAR,
         name: item.cardOwnerPersonalDetails?.displayName ?? '',
         fallbackIcon: item.cardOwnerPersonalDetails?.fallbackIcon,
@@ -85,7 +84,7 @@ function CardListItem<TItem extends ListItem>({
                             <View>
                                 <UserDetailsTooltip
                                     shouldRender={showTooltip}
-                                    accountID={Number(item.cardOwnerPersonalDetails?.accountID ?? -1)}
+                                    accountID={Number(item.cardOwnerPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID)}
                                     icon={ownersAvatar}
                                     fallbackUserDetails={{
                                         displayName: item.cardOwnerPersonalDetails?.displayName,
@@ -144,18 +143,14 @@ function CardListItem<TItem extends ListItem>({
                     </View>
                 </View>
                 {!!canSelectMultiple && !item.isDisabled && (
-                    <PressableWithFeedback
-                        onPress={handleCheckboxPress}
-                        disabled={isDisabled}
-                        role={CONST.ROLE.BUTTON}
+                    <Checkbox
+                        shouldSelectOnPressEnter
+                        isChecked={item.isSelected ?? false}
                         accessibilityLabel={item.text ?? ''}
-                        style={[styles.ml2, styles.optionSelectCircle]}
-                    >
-                        <SelectCircle
-                            isChecked={item.isSelected ?? false}
-                            selectCircleStyles={styles.ml0}
-                        />
-                    </PressableWithFeedback>
+                        onPress={handleCheckboxPress}
+                        disabled={!!isDisabled}
+                        style={styles.ml3}
+                    />
                 )}
             </>
         </BaseListItem>
