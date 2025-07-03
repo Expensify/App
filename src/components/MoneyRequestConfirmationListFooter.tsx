@@ -654,6 +654,24 @@ function MoneyRequestConfirmationListFooter({
         },
         {
             item: (
+                <View
+                    key={translate('common.billable')}
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}
+                >
+                    <ToggleSettingOptionRow
+                        switchAccessibilityLabel={translate('common.billable')}
+                        title={translate('common.billable')}
+                        onToggle={(isOn) => onToggleBillable?.(isOn)}
+                        isActive={iouIsBillable}
+                        disabled={isReadOnly}
+                        wrapperStyle={styles.flex1}
+                    />
+                </View>
+            ),
+            shouldShow: shouldShowBillable,
+        },
+        {
+            item: (
                 <MenuItemWithTopDescription
                     key={translate('common.report')}
                     shouldShowRightIcon={shouldReportBeEditable}
@@ -672,24 +690,6 @@ function MoneyRequestConfirmationListFooter({
                 />
             ),
             shouldShow: isPolicyExpenseChat,
-        },
-        {
-            item: (
-                <View
-                    key={translate('common.billable')}
-                    style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}
-                >
-                    <ToggleSettingOptionRow
-                        switchAccessibilityLabel={translate('common.billable')}
-                        title={translate('common.billable')}
-                        onToggle={(isOn) => onToggleBillable?.(isOn)}
-                        isActive={iouIsBillable}
-                        disabled={isReadOnly}
-                        wrapperStyle={styles.flex1}
-                    />
-                </View>
-            ),
-            shouldShow: shouldShowBillable,
         },
     ];
 
