@@ -60,7 +60,7 @@ async function run() {
         }
 
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
-        const prList = await GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
+        const prList = await GitUtils.getPullRequestsDeployedBetween(priorTag, inputTag);
         console.log('Found the pull request list: ', prList);
         core.setOutput('PR_LIST', prList);
     } catch (error) {
