@@ -327,7 +327,7 @@ function MoneyRequestReportActionsList({
         // Scan through each visible report action until we find the appropriate action to show the unread marker
         for (let index = startIndex; index >= endIndex; index--) {
             const reportAction = visibleReportActions.at(index);
-            const nextAction = visibleReportActions.at(index - 1);
+            const nextAction = index > 0 ? visibleReportActions.at(index - 1) : undefined;
             const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
 
             const shouldDisplayNewMarker =

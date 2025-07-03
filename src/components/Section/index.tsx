@@ -159,6 +159,7 @@ function Section({
                                 webStyle={styles.h100}
                                 autoPlay
                                 loop
+                                shouldLoadAfterInteractions={shouldUseNarrowLayout}
                             />
                         ) : (
                             <ImageSVG
