@@ -48,7 +48,9 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         content: [
             {
                 text: () => {
+                    // eslint-disable-next-line
                     const {translate} = useLocalize();
+                    // eslint-disable-next-line
                     const {windowWidth} = useWindowDimensions();
                     const systemFonts = [...defaultSystemFonts, 'MyCustomFont'];
 
