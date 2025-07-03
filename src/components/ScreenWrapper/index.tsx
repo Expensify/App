@@ -4,7 +4,6 @@ import type {ForwardedRef, ReactNode} from 'react';
 import React, {forwardRef, useContext, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, View, ViewStyle} from 'react-native';
 import {Keyboard} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
 import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
@@ -15,6 +14,7 @@ import {InitialURLContext} from '@components/InitialURLContextProvider';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useEnvironment from '@hooks/useEnvironment';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -170,11 +170,14 @@ function ScreenWrapper(
     const shouldOffsetMobileOfflineIndicator = displaySmallScreenOfflineIndicator && addSmallScreenOfflineIndicatorBottomSafeAreaPadding && isOffline;
 
     const {initialURL} = useContext(InitialURLContext);
-    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: true});
+    const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: true});
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
-    usePreventRemove((isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
-        if (!CONFIG.IS_HYBRID_APP) {
+    usePreventRemove(true, () => {
+        const isOnInitialURL = initialURL === Navigation.getActiveRouteWithoutParams();
+        const shouldGoBackToOldDot = isSingleNewDotEntry && isOnInitialURL;
+
+        if (!CONFIG.IS_HYBRID_APP || !shouldGoBackToOldDot) {
             return;
         }
         HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
