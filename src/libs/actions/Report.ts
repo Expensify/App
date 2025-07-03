@@ -1751,10 +1751,21 @@ function saveReportDraft(reportID: string, report: Report) {
 /**
  * Saves the comment left by the user as they are typing. By saving this data the user can switch between chats, close
  * tab, refresh etc without worrying about loosing what they typed out.
- * When empty string or null is passed, it will delete the draft comment from Onyx store.
  */
 function saveReportDraftComment(reportID: string, comment: string | null, callback: () => void = () => {}) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, prepareDraftComment(comment)).then(callback);
+    API.write(
+        WRITE_COMMANDS.SAVE_REPORT_DRAFT_COMMENT,
+        {
+            reportID,
+            // comment is quoted to intentionally preserve whitespace, otherwise it will be trimmed by the WAF _and_ Auth's SParseHTTP function
+            comment: `"${comment}"`,
+        },
+        {optimisticData: [{onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, value: comment}]},
+        {
+            checkAndFixConflictingRequest: (persistedRequests) =>
+                resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.SAVE_REPORT_DRAFT_COMMENT && request.data?.reportID === reportID),
+        },
+    ).then(callback);
 }
 
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */

@@ -119,6 +119,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type DraftReportComments from './DraftReportComments';
 
 export type {
     TryNewDot,
@@ -264,4 +265,5 @@ export type {
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
     HybridApp,
+    DraftReportComments,
 };
