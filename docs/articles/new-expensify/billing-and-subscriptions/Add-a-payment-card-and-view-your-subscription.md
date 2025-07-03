@@ -13,16 +13,7 @@ You can view and manage your subscription under **Account > Subscription**.
 
 ---
 
-# View Subscription and Add a Payment Card
-
-To view your subscription and add a payment card:
-
-1. Navigate to **Account > Subscription**.
-2. Click **Add Payment Card** and enter your card details to ensure uninterrupted billing.
-
----
-
-# Manage Subscription Plan
+# Manage Subscription
 
 In the Subscription section, you can view and update your plan details, including:
 
