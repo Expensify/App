@@ -802,6 +802,21 @@ function buildUserReadableQueryString(
                 operator: queryFilter.at(0)?.operator ?? CONST.SEARCH.SYNTAX_OPERATORS.AND,
                 value: taxRate,
             }));
+        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+            displayQueryFilters = queryFilter.reduce((acc, filter) => {
+                const feedKey = filter.value.toString();
+                const workspaceFeedKey = getWorkspaceCardFeedKey(feedKey);
+
+                const workspaceValue = cardFeedNamesWithType[workspaceFeedKey];
+                const domainValue = cardFeedNamesWithType[feedKey];
+
+                if ((workspaceValue && workspaceValue.type === 'workspace') || (domainValue && domainValue.type === 'domain')) {
+                    const value = workspaceValue?.type === 'workspace' ? workspaceValue.name : domainValue.name;
+                    acc.push({operator: filter.operator, value});
+                }
+
+                return acc;
+            }, [] as QueryFilter[]);
         } else {
             displayQueryFilters = queryFilter.map((filter) => ({
                 operator: filter.operator,
