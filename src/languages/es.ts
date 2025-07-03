@@ -7433,7 +7433,7 @@ const translations = {
             part3: '.',
         },
         scanTestTooltip: {
-            part1: '<strong>¡Escanea nuestro recibo de prueba</strong> para ver cómo funciona!',
+            scanTestReceipt: '<strong>¡Escanea nuestro recibo de prueba</strong> para ver cómo funciona!',
             part3: '¡Elige a',
             part4: ' nuestro gerente',
             part5: ' de prueba para probarlo!',

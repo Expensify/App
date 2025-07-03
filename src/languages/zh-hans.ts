@@ -6852,7 +6852,7 @@ const translations = {
             part3: 'here.',
         },
         scanTestTooltip: {
-            part1: '<strong>想看看扫描功能如何运作吗？</strong> 试用测试收据！',
+            scanTestReceipt: '<strong>想看看扫描功能如何运作吗？</strong> 试用测试收据！',
             part3: '选择我们的',
             part4: '测试经理',
             part5: '试试看吧！',

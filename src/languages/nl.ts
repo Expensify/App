@@ -6982,7 +6982,7 @@ const translations = {
             part3: 'hier.',
         },
         scanTestTooltip: {
-            part1: '<strong>Wil je zien hoe Scan werkt?</strong> Probeer een testbon!',
+            scanTestReceipt: '<strong>Wil je zien hoe Scan werkt?</strong> Probeer een testbon!',
             part3: 'Kies onze',
             part4: 'testmanager',
             part5: 'om het uit te proberen!',

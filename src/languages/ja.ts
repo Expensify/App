@@ -6946,7 +6946,7 @@ const translations = {
             part3: 'here.',
         },
         scanTestTooltip: {
-            part1: '<strong>Scanの動作を確認しますか?</strong> テスト領収書を試してみてください！',
+            scanTestReceipt: '<strong>Scanの動作を確認しますか?</strong> テスト領収書を試してみてください！',
             part3: '私たちの〜を選んでください',
             part4: 'テストマネージャー',
             part5: '試してみてください！',

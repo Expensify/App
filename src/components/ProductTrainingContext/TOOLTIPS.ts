@@ -139,11 +139,13 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         content: [
             {
                 text: () => {
+                    // eslint-disable-next-line
                     const {translate} = useLocalize();
+                    // eslint-disable-next-line
                     const {windowWidth} = useWindowDimensions();
                     const systemFonts = [...defaultSystemFonts, 'MyCustomFont'];
 
-                    const html = `<span style="color: white">${translate('productTrainingTooltip.scanTestTooltip.part1')}<span>`;
+                    const html = `<span style="color: white">${translate('productTrainingTooltip.scanTestTooltip.scanTestReceipt')}<span>`;
                     const source = {
                         html,
                     };
