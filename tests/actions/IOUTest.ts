@@ -2693,7 +2693,7 @@ describe('actions/IOU', () => {
                                             lastMessageHtml: `paid $${amount / 100}.00 with Expensify`,
                                             lastMessageText: `paid $${amount / 100}.00 with Expensify`,
                                             statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
-                                            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                                            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                                         }),
                                     );
                                     expect(updatedChatReport).toEqual(
