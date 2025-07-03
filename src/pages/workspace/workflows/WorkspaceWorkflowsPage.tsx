@@ -6,7 +6,7 @@ import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
 import ConfirmModal from '@components/ConfirmModal';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
-import {Plus} from '@components/Icon/Expensicons';
+import {Plus, Table} from '@components/Icon/Expensicons';
 import {Workflows} from '@components/Icon/Illustrations';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
@@ -219,6 +219,21 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             iconWidth={20}
                             style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                             onPress={addApprovalAction}
+                        />
+                        <MenuItem
+                            title={translate('workflowsPage.importApprovalWorkflow')}
+                            titleStyle={styles.textStrong}
+                            icon={Table}
+                            iconHeight={20}
+                            iconWidth={20}
+                            style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                            onPress={() => {
+                                if (isAccountLocked) {
+                                    showLockedAccountModal();
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(route.params.policyID));
+                            }}
                         />
                     </>
                 ),
