@@ -12,8 +12,8 @@ function TextWithEmojiFragment({message = '', style}: TextWithEmojiFragmentProps
 
     return (
         <Text style={style}>
-            {processedTextArray.map(({text, isEmoji}, index) => {
-                return isEmoji ? (
+            {processedTextArray.map(({text, isEmoji}, index) =>
+                isEmoji ? (
                     <View
                         // eslint-disable-next-line react/no-array-index-key
                         key={index}
@@ -22,8 +22,8 @@ function TextWithEmojiFragment({message = '', style}: TextWithEmojiFragmentProps
                     </View>
                 ) : (
                     convertToLTR(text)
-                );
-            })}
+                ),
+            )}
         </Text>
     );
 }
