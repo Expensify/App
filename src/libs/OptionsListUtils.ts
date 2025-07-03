@@ -876,10 +876,11 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
         }
     }
-  
+
     // If the last action is AddComment and no last message text was determined yet, use getLastVisibleMessage to get the preview text
     if (reportID && !lastMessageTextFromReport && isAddCommentAction(lastReportAction)) {
         lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
+    }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
