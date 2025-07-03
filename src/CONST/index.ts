@@ -908,6 +908,7 @@ const CONST = {
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     PR_TESTING_NEW_EXPENSIFY_URL: `https://${Config?.PULL_REQUEST_NUMBER}.pr-testing.expensify.com`,
     NEWHELP_URL: 'https://help.expensify.com',
+    WHATS_NEW: 'https://use.expensify.com/blog?category=Product%20Info',
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     IMPORT_TAGS_EXPENSIFY_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#import-a-spreadsheet-1',
     IMPORT_TAGS_EXPENSIFY_URL_DEPENDENT_TAGS: 'https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags#multi-level-tags',

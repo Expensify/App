@@ -1537,6 +1537,7 @@ const translations = {
             phrase4: 'Datenschutz',
         },
         help: 'Hilfe',
+        whatsnew: "Was ist neu",
         accountSettings: 'Kontoeinstellungen',
         account: 'Konto',
         general: 'Allgemein',

@@ -1530,6 +1530,7 @@ const translations = {
             phrase4: 'Privacy',
         },
         help: 'Help',
+        whatsnew: "Wat is nieuw",
         accountSettings: 'Accountinstellingen',
         account: 'Account',
         general: 'Algemeen',

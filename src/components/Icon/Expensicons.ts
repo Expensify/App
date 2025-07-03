@@ -183,6 +183,7 @@ import Printer from '@assets/images/printer.svg';
 import Profile from '@assets/images/profile.svg';
 import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
+import TreasureChest from '@assets/images/treasure-chest.svg';
 import ReceiptBody from '@assets/images/receipt-body.svg';
 import ReceiptMultiple from '@assets/images/receipt-multiple.svg';
 import ReceiptPlaceholderPlus from '@assets/images/receipt-placeholder-plus.svg';
@@ -392,6 +393,7 @@ export {
     QBOSquare,
     QrCode,
     QuestionMark,
+    TreasureChest,
     Receipt,
     ReceiptPlaceholderPlus,
     ReceiptPlus,
