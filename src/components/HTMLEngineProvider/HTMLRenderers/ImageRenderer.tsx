@@ -101,7 +101,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         thumbnailImageComponent
     ) : (
         <ShowContextMenuContext.Consumer>
-            {({onShowContextMenu, anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
+            {({onShowContextMenu, anchor, report, isReportArchived, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                 <AttachmentContext.Consumer>
                     {({reportID, accountID, type}) => (
                         <PressableWithoutFocus
@@ -112,7 +112,16 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 }
 
                                 const attachmentLink = tnode.parent?.attributes?.href;
-                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID, attachmentID, type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
+                                const route = ROUTES.ATTACHMENTS?.getRoute({
+                                    attachmentID,
+                                    reportID,
+                                    type,
+                                    source,
+                                    accountID,
+                                    isAuthTokenRequired: isAttachmentOrReceipt,
+                                    originalFileName: fileName,
+                                    attachmentLink,
+                                });
                                 Navigation.navigate(route);
                             }}
                             onLongPress={(event) => {
@@ -120,7 +129,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                     return;
                                 }
                                 return onShowContextMenu(() =>
-                                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs)),
+                                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived)),
                                 );
                             }}
                             isNested

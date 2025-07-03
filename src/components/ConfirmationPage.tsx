@@ -1,6 +1,6 @@
 import React from 'react';
-import type {TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import isIllustrationLottieAnimation from '@libs/isIllustrationLottieAnimation';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -47,10 +47,10 @@ type ConfirmationPageProps = {
     headingStyle?: TextStyle;
 
     /** Additional style for the animation */
-    illustrationStyle?: ViewStyle;
+    illustrationStyle?: StyleProp<ViewStyle>;
 
     /** Additional style for the description */
-    descriptionStyle?: TextStyle;
+    descriptionStyle?: StyleProp<TextStyle>;
 
     /** Additional style for the cta */
     ctaStyle?: TextStyle;
@@ -60,6 +60,9 @@ type ConfirmationPageProps = {
 
     /** Additional style for the container */
     containerStyle?: ViewStyle;
+
+    /** Additional style for the inner container */
+    innerContainerStyle?: ViewStyle;
 };
 
 function ConfirmationPage({
@@ -79,13 +82,14 @@ function ConfirmationPage({
     ctaStyle,
     footerStyle,
     containerStyle,
+    innerContainerStyle,
 }: ConfirmationPageProps) {
     const styles = useThemeStyles();
     const isLottie = isIllustrationLottieAnimation(illustration);
 
     return (
         <View style={[styles.flex1, containerStyle]}>
-            <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
+            <View style={[styles.screenCenteredContainer, styles.alignItemsCenter, innerContainerStyle]}>
                 {isLottie ? (
                     <Lottie
                         source={illustration}
@@ -93,8 +97,8 @@ function ConfirmationPage({
                         loop
                         style={[styles.confirmationAnimation, illustrationStyle]}
                         webStyle={{
-                            width: (illustrationStyle?.width as number) ?? styles.confirmationAnimation.width,
-                            height: (illustrationStyle?.height as number) ?? styles.confirmationAnimation.height,
+                            width: (StyleSheet.flatten(illustrationStyle)?.width as number) ?? styles.confirmationAnimation.width,
+                            height: (StyleSheet.flatten(illustrationStyle)?.height as number) ?? styles.confirmationAnimation.height,
                         }}
                     />
                 ) : (

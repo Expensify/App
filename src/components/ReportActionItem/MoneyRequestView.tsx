@@ -22,6 +22,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import {getCompanyCardDescription} from '@libs/CardUtils';
+import {isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
@@ -43,7 +44,6 @@ import {
     isReportInGroupPolicy,
     isSettled as isSettledReportUtils,
     isTrackExpenseReport,
-    shouldEnableNegative,
 } from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
@@ -147,8 +147,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${linkedTransactionID}`, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
 
-    const allowNegativeAmount = shouldEnableNegative(report, policy);
-
     const {
         created: transactionDate,
         amount: transactionAmount,
@@ -163,7 +161,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         originalAmount: transactionOriginalAmount,
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
-    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount) ?? {}, [allowNegativeAmount, transaction]);
+    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
@@ -226,10 +224,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         return CONST.IOU.TYPE.SUBMIT;
     }, [isTrackExpense, isInvoice]);
 
-    const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
-
     const category = transactionCategory ?? '';
-    const categoryForDisplay = emptyCategories.includes(category) ? '' : category;
+    const categoryForDisplay = isCategoryMissing(category) ? '' : category;
 
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
@@ -543,7 +539,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
             return;
         }
-        revert(transaction?.transactionID ?? linkedTransactionID, getLastModifiedExpense(report?.reportID));
+        revert(transaction, getLastModifiedExpense(report?.reportID));
         clearError(transaction.transactionID);
         clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
     }, [transaction, chatReport, parentReportAction, linkedTransactionID, report?.reportID]);
