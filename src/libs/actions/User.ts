@@ -56,6 +56,7 @@ import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
+import {resolveDuplicationConflictAction} from './RequestConflictUtils';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
 import Timing from './Timing';
 
@@ -116,11 +117,6 @@ function closeAccount(reason: string) {
         optimisticData,
         failureData,
     });
-
-    // On HybridApp, we need to sign out from the oldDot app as well to keep state of both apps in sync
-    if (CONFIG.IS_HYBRID_APP) {
-        HybridAppModule.signOutFromOldDot();
-    }
 }
 
 /**
@@ -818,7 +814,14 @@ function pingPusher() {
     lastPingSentTimestamp = pingTimestamp;
 
     const parameters: PusherPingParams = {pingID, pingTimestamp};
-    API.write(WRITE_COMMANDS.PUSHER_PING, parameters);
+    API.write(
+        WRITE_COMMANDS.PUSHER_PING,
+        parameters,
+        {},
+        {
+            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.PUSHER_PING),
+        },
+    );
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
     Timing.start(CONST.TIMING.PUSHER_PING_PONG);
 }
@@ -911,6 +914,7 @@ function subscribeToUserEvents() {
             updates: pushEventData.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
         };
+        Log.info('[subscribeToUserEvents] Applying Onyx updates');
         applyOnyxUpdatesReliably(updates);
     });
 
@@ -1378,8 +1382,8 @@ function dismissTrackTrainingModal() {
  * Dismiss the Auto-Submit explanation modal
  * @param shouldDismiss Whether the user selected "Don't show again"
  */
-function dismissInstantSubmitExplanation(shouldDismiss: boolean) {
-    Onyx.merge(ONYXKEYS.NVP_DISMISSED_INSTANT_SUBMIT_EXPLANATION, shouldDismiss);
+function dismissASAPSubmitExplanation(shouldDismiss: boolean) {
+    Onyx.merge(ONYXKEYS.NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION, shouldDismiss);
 }
 
 function requestRefund() {
@@ -1441,7 +1445,7 @@ export {
     closeAccount,
     dismissReferralBanner,
     dismissTrackTrainingModal,
-    dismissInstantSubmitExplanation,
+    dismissASAPSubmitExplanation,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,
