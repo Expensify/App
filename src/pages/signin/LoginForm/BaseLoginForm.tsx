@@ -238,7 +238,6 @@ function BaseLoginForm({blurOnSubmit = false, isVisible}: BaseLoginFormProps, re
                     label={translate('loginForm.phoneOrEmail')}
                     accessibilityLabel={translate('loginForm.phoneOrEmail')}
                     value={login}
-                    textInputContainerStyles={{backgroundColor: theme.appBG}}
                     returnKeyType="go"
                     autoCompleteType="username"
                     textContentType="username"
