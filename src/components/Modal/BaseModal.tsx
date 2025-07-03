@@ -23,20 +23,27 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 import CONST from '@src/CONST';
-import BottomDockedModal from './BottomDockedModal';
-import type ModalProps from './BottomDockedModal/types';
 import ModalContent from './ModalContent';
 import ModalContext from './ModalContext';
+import ReanimatedModal from './ReanimatedModal';
+import type ReanimatedModalProps from './ReanimatedModal/types';
 import type BaseModalProps from './types';
 
-type ModalComponentProps = (ReactNativeModalProps | ModalProps) & {
+const REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED, CONST.MODAL.MODAL_TYPE.FULLSCREEN];
+
+type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
     type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
 };
 
 function ModalComponent({type, ...props}: ModalComponentProps) {
-    if (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED) {
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return <BottomDockedModal {...(props as ModalProps)} />;
+    if (type && REANIMATED_MODAL_TYPES.includes(type)) {
+        return (
+            <ReanimatedModal
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...(props as ReanimatedModalProps)}
+                type={type}
+            />
+        );
     }
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ReactNativeModal {...(props as ReactNativeModalProps)} />;
@@ -102,8 +109,6 @@ function BaseModal(
     const insets = useSafeAreaInsets();
 
     const isVisibleRef = useRef(isVisible);
-    const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>();
-
     const wasVisible = usePrevious(isVisible);
 
     const uniqueModalId = useMemo(() => modalId ?? ComposerFocusManager.getId(), [modalId]);
@@ -152,22 +157,6 @@ function BaseModal(
             removeOnCloseListener();
         };
     }, [isVisible, wasVisible, onClose, type]);
-
-    useEffect(() => {
-        hideModalCallbackRef.current = hideModal;
-    }, [hideModal]);
-
-    useEffect(
-        () => () => {
-            // Only trigger onClose and setModalVisibility if the modal is unmounting while visible.
-            if (!isVisibleRef.current) {
-                return;
-            }
-            hideModalCallbackRef.current?.(true);
-        },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [],
-    );
 
     const handleShowModal = useCallback(() => {
         if (shouldSetModalVisibility) {
