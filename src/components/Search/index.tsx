@@ -2,7 +2,6 @@ import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
@@ -11,6 +10,7 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
@@ -177,12 +177,9 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
     useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
         clearSelectedTransactions(hash);
         setCurrentSearchHash(hash);
-    }, [hash, clearSelectedTransactions, setCurrentSearchHash, isFocused]);
+    }, [hash, clearSelectedTransactions, setCurrentSearchHash]);
 
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
@@ -220,11 +217,12 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     }, [isSmallScreenWidth, selectedTransactions, selectionMode?.isEnabled]);
 
     useEffect(() => {
-        if (isOffline || !isFocused) {
+        if (isOffline) {
             return;
         }
+
         handleSearch({queryJSON, offset});
-    }, [handleSearch, isOffline, offset, queryJSON, isFocused]);
+    }, [handleSearch, isOffline, offset, queryJSON]);
 
     useEffect(() => {
         openSearch();

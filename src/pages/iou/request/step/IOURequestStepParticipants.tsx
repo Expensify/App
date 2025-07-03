@@ -1,8 +1,8 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -199,7 +199,9 @@ function IOURequestStepParticipants({
             }
 
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
-            selectedReportID.current = firstParticipantReportID ?? generateReportID();
+            // We use || to be sure that if the first participant doesn't have a reportID, we generate a new one.
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            selectedReportID.current = firstParticipantReportID || generateReportID();
         },
         [iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense],
     );
