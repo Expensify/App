@@ -74,9 +74,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
-        // We don't want to replace the space in tags with &nbsp;
-        const escapedHtml = html.replace(/(?:(?![\n\r])\s)(?![^<]*>)/g, '&nbsp;');
-        const htmlWithDeletedTag = styleAsDeleted ? `<del>${escapedHtml}</del>` : escapedHtml;
+        const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
 
         let htmlContent = htmlWithDeletedTag;
         if (containsOnlyEmojis) {
