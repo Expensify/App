@@ -2083,9 +2083,9 @@ const translations = {
     },
     termsOfUse: {
         terms: ({termsURL, privacyURL}: TermsOfUseRouteParams) =>
-            `<comment><mtm issmall>Accedendo, accetti i <a href="${termsURL}">Termini di Servizio</a> e <a href="${privacyURL}">Privacy</a>.</mtm></comment>`,
+            `<comment><mtm issmall>Accedendo, accetti i <a href="${termsURL}" style="color: #5ab0ff;">Termini di Servizio</a> e <a href="${privacyURL}" style="color: #5ab0ff;">Privacy</a>.</mtm></comment>`,
         licenses: ({licensesURL}: LicensesParams) =>
-            `<comment><mtm issmall>La trasmissione di denaro è fornita da ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) in base al suo <a href="${licensesURL}">licenze</a>.</mtm></comment>`,
+            `<comment><mtm issmall>La trasmissione di denaro è fornita da ${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS} (NMLS ID:2017010) in base al suo <a href="${licensesURL}" style="color: #5ab0ff;">licenze</a>.</mtm></comment>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Non hai ricevuto un codice magico?',

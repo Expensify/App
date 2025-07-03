@@ -180,7 +180,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             customHTMLElementModels={customHTMLElementModels}
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
-            enableCSSInlineProcessing={false}
+            enableCSSInlineProcessing={true}
             systemFonts={Object.values(FontUtils.fontFamily.single).map((font) => font.fontFamily)}
             htmlParserOptions={{
                 recognizeSelfClosing: true,
