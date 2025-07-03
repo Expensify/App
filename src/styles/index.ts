@@ -449,6 +449,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeSmall,
         },
 
+        textExtraSmall: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeExtraSmall,
+        },
+
         textMicro: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -4696,8 +4701,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         dropDownSmallButtonArrowContain: {
-            marginLeft: 8,
-            marginRight: 12,
+            marginLeft: 3,
+            marginRight: 6,
         },
 
         dropDownMediumButtonArrowContain: {

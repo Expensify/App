@@ -588,6 +588,7 @@ function SettlementButton({
                     options={paymentButtonOptions}
                     onOptionSelected={(option) => handlePaymentSelection(undefined, option.value, triggerKYCFlow)}
                     style={style}
+                    shouldUseShortForm={shouldUseShortForm}
                     shouldPopoverUseScrollView={paymentButtonOptions.length > 5}
                     containerStyles={paymentButtonOptions.length > 5 ? styles.settlementButtonListContainer : {}}
                     wrapperStyle={[wrapperStyle, shouldUseShortForm && shouldUseSplitButton && !paymentButtonOptions.length ? {minWidth: 90} : {}]}

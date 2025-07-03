@@ -150,6 +150,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether to use modal padding style for the popover menu */
     shouldUseModalPaddingStyle?: boolean;
+
+    /** Whether to use short form for the button */
+    shouldUseShortForm?: boolean;
 };
 
 export type {

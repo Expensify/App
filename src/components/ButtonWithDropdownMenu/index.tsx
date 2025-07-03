@@ -13,6 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import mergeRefs from '@libs/mergeRefs';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps} from './types';
@@ -53,6 +54,7 @@ function ButtonWithDropdownMenu<IValueType>({
     shouldPopoverUseScrollView = false,
     containerStyles,
     shouldUseModalPaddingStyle = true,
+    shouldUseShortForm = false,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -133,6 +135,7 @@ function ButtonWithDropdownMenu<IValueType>({
         },
     );
     const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : {};
+    const isTextTooLong = customText && customText?.length > 6;
 
     const handlePress = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -162,12 +165,13 @@ function ButtonWithDropdownMenu<IValueType>({
                         large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                         medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                        innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView]}
+                        innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView, isTextTooLong && shouldUseShortForm && {...styles.pl2}]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                         iconRight={Expensicons.DownArrow}
                         shouldShowRightIcon={!isSplitButton}
                         isSplitButton={isSplitButton}
                         testID={testID}
+                        textStyles={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}]}
                         secondLineText={secondLineText}
                         icon={icon}
                     />
@@ -183,7 +187,7 @@ function ButtonWithDropdownMenu<IValueType>({
                             large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                             medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                             small={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                            innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton]}
+                            innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton, isButtonSizeSmall && {minWidth: 22}]}
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                         >
                             <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
@@ -191,13 +195,17 @@ function ButtonWithDropdownMenu<IValueType>({
                                 <View
                                     style={[
                                         isButtonSizeLarge && styles.dropDownLargeButtonArrowContain,
-                                        isButtonSizeSmall ? styles.dropDownSmallButtonArrowContain : styles.dropDownMediumButtonArrowContain,
+                                        isButtonSizeSmall && shouldUseShortForm ? styles.dropDownSmallButtonArrowContain : styles.dropDownMediumButtonArrowContain,
                                     ]}
                                 >
                                     <Icon
                                         medium={isButtonSizeLarge}
-                                        small={!isButtonSizeLarge}
+                                        small={!isButtonSizeLarge && !shouldUseShortForm}
+                                        inline={shouldUseShortForm}
+                                        width={shouldUseShortForm ? 12 : undefined}
+                                        height={shouldUseShortForm ? 12 : undefined}
                                         src={Expensicons.DownArrow}
+                                        additionalStyles={shouldUseShortForm ? [styles.pRelative, styles.t0] : undefined}
                                         fill={success ? theme.buttonSuccessText : theme.icon}
                                     />
                                 </View>
