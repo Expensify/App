@@ -248,13 +248,20 @@ function ComposerWithSuggestions(
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
-    const draftComment = getDraftComment(reportID) ?? '';
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
+    const [draftReportComments] = useOnyx(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {canBeMissing: true, selector: (draftReportComments) => draftReportComments?.[reportID]});
+    console.log('draftReportComments', draftReportComments);
+    console.log('draftComment', draftComment);
     const [value, setValue] = useState(() => {
-        if (draftComment) {
-            emojisPresentBefore.current = extractEmojis(draftComment);
+        if (draftReportComments) {
+            emojisPresentBefore.current = extractEmojis(draftReportComments);
         }
-        return draftComment;
+        return draftReportComments ?? '';
     });
+
+    useEffect(() => {
+        setValue(draftReportComments ?? '');
+    }, [draftReportComments]);
 
     const commentRef = useRef(value);
 
@@ -417,6 +424,7 @@ function ComposerWithSuggestions(
             }
 
             commentRef.current = newCommentConverted;
+
             if (shouldDebounceSaveComment) {
                 isCommentPendingSaved.current = true;
                 debouncedSaveReportComment(reportID, newCommentConverted);
@@ -726,7 +734,7 @@ function ComposerWithSuggestions(
             mobileInputScrollPosition.current = 0;
             // Note: use the value when the clear happened, not the current value which might have changed already
             onCleared(text);
-            updateComment('', true);
+            updateComment('', false);
         },
         [onCleared, updateComment],
     );
@@ -844,7 +852,9 @@ function ComposerWithSuggestions(
                 resetKeyboardInput={resetKeyboardInput}
             />
 
-            {isValidReportIDFromPath(reportID) && (
+            {/* CQ TODO do we actually need this? */}
+
+            {/*{isValidReportIDFromPath(reportID) && (
                 <SilentCommentUpdater
                     reportID={reportID}
                     value={value}
@@ -852,7 +862,7 @@ function ComposerWithSuggestions(
                     commentRef={commentRef}
                     isCommentPendingSaved={isCommentPendingSaved}
                 />
-            )}
+            )}*/}
 
             {/* Only used for testing so far */}
             {children}
