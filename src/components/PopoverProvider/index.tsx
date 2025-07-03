@@ -13,7 +13,7 @@ const PopoverContext = createContext<PopoverContextValue>({
     setActivePopoverExtraAnchorRef: () => {},
 });
 
-function elementContains(ref: RefObject<View | HTMLElement | Text> | undefined, target: EventTarget | null) {
+function elementContains(ref: RefObject<View | HTMLElement | Text | null> | undefined, target: EventTarget | null) {
     if (ref?.current && 'contains' in ref.current && ref?.current?.contains(target as Node)) {
         return true;
     }
@@ -23,10 +23,10 @@ function elementContains(ref: RefObject<View | HTMLElement | Text> | undefined, 
 function PopoverContextProvider(props: PopoverContextProps) {
     const [isOpen, setIsOpen] = useState(false);
     const activePopoverRef = useRef<AnchorRef | null>(null);
-    const [activePopoverAnchor, setActivePopoverAnchor] = useState<AnchorRef['anchorRef']['current']>(null);
+    const [activePopoverAnchor, setActivePopoverAnchor] = useState<AnchorRef['anchorRef']['current'] | null>(null);
     const [activePopoverExtraAnchorRefs, setActivePopoverExtraAnchorRefs] = useState<AnchorRef['extraAnchorRefs']>([]);
 
-    const closePopover = useCallback((anchorRef?: RefObject<View | HTMLElement | Text>): boolean => {
+    const closePopover = useCallback((anchorRef?: RefObject<View | HTMLElement | Text | null>): boolean => {
         if (!activePopoverRef.current || (anchorRef && anchorRef !== activePopoverRef.current.anchorRef)) {
             return false;
         }
@@ -45,7 +45,7 @@ function PopoverContextProvider(props: PopoverContextProps) {
             }
             // Incase there are any extra anchor refs where the popover should not close on click
             // for example, the case when the QAB tooltip is clicked it closes the popover this will prevent that
-            if (activePopoverExtraAnchorRefs?.some((ref: RefObject<View | HTMLElement | Text>) => elementContains(ref, e.target))) {
+            if (activePopoverExtraAnchorRefs?.some((ref: RefObject<View | HTMLElement | Text | null>) => elementContains(ref, e.target))) {
                 return;
             }
             const ref = activePopoverRef.current?.anchorRef;
@@ -125,7 +125,7 @@ function PopoverContextProvider(props: PopoverContextProps) {
     );
 
     // To set the extra anchor refs for the popover when prop-drilling is not possible
-    const setActivePopoverExtraAnchorRef = useCallback((extraAnchorRef?: RefObject<View | HTMLDivElement | Text>) => {
+    const setActivePopoverExtraAnchorRef = useCallback((extraAnchorRef?: RefObject<View | HTMLDivElement | Text | null>) => {
         if (!extraAnchorRef) {
             return;
         }

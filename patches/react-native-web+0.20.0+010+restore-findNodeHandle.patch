@@ -1,0 +1,30 @@
+diff --git a/node_modules/react-native-web/dist/exports/findNodeHandle/index.js b/node_modules/react-native-web/dist/exports/findNodeHandle/index.js
+index c2aa986..48a6c5f 100644
+--- a/node_modules/react-native-web/dist/exports/findNodeHandle/index.js
++++ b/node_modules/react-native-web/dist/exports/findNodeHandle/index.js
+@@ -9,6 +9,7 @@
+  */
+ 
+ var findNodeHandle = component => {
+-  throw new Error('findNodeHandle is not supported on web. ' + 'Use the ref property on the component instead.');
++  console.warn('findNodeHandle is not supported on web. ' + 'Use the ref property on the component instead.');
++  return component;
+ };
+ export default findNodeHandle;
+diff --git a/node_modules/react-native-web/src/exports/findNodeHandle/index.js b/node_modules/react-native-web/src/exports/findNodeHandle/index.js
+index df43377..8987743 100644
+--- a/node_modules/react-native-web/src/exports/findNodeHandle/index.js
++++ b/node_modules/react-native-web/src/exports/findNodeHandle/index.js
+@@ -9,10 +9,8 @@
+  */
+ 
+ const findNodeHandle = (component) => {
+-  throw new Error(
+-    'findNodeHandle is not supported on web. ' +
+-      'Use the ref property on the component instead.'
+-  );
++  console.warn('findNodeHandle is not supported on web. ' + 'Use the ref property on the component instead.');
++  return component;
+ };
+ 
+ export default findNodeHandle;
