@@ -876,7 +876,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<
     // If the action's message text is empty and it is not a deleted parent with visible child actions, hide it. Else, consider the action to be displayable.
     return (
         shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction) &&
-        !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
+        (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) || isActionableMentionWhisper(reportAction)) &&
         !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction))
     );
 }
@@ -2816,14 +2816,13 @@ function isCardIssuedAction(
     );
 }
 
-function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card) {
-    const missingDetails = isMissingPrivatePersonalDetails(privatePersonalDetails);
-
+function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card, privatePersonalDetail?: PrivatePersonalDetails) {
+    const missingDetails = isMissingPrivatePersonalDetails(privatePersonalDetail);
     return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && (isCardPendingIssue(card) || missingDetails);
 }
 
-function shouldShowActivateCard(actionName?: ReportActionName, card?: Card) {
-    const missingDetails = isMissingPrivatePersonalDetails(privatePersonalDetails);
+function shouldShowActivateCard(actionName?: ReportActionName, card?: Card, privatePersonalDetail?: PrivatePersonalDetails) {
+    const missingDetails = isMissingPrivatePersonalDetails(privatePersonalDetail);
     return (actionName === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED || actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS) && isCardPendingActivate(card) && !missingDetails;
 }
 
@@ -2863,11 +2862,12 @@ function getCardIssuedMessage({
     const isCardVirtualAndReplaced = isVirtualCardReplaced(card);
     const expensifyCardLinkText = isCardVirtualAndReplaced ? translateLocal('workspace.expensifyCard.theNewCard') : translateLocal('cardPage.expensifyCard');
     const expensifyCardLink = shouldRenderHTML && !!card ? `<a href='${environmentURL}/${navigateRoute}'>${expensifyCardLinkText}</a>` : expensifyCardLinkText;
-    const companyCardLink = shouldRenderHTML
-        ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translateLocal('workspace.companyCards.companyCard')}</a>`
-        : translateLocal('workspace.companyCards.companyCard');
     const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
-    const shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || shouldShowAddMissingDetails(reportAction?.actionName, card);
+    const companyCardLink =
+        shouldRenderHTML && isAssigneeCurrentUser
+            ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translateLocal('workspace.companyCards.companyCard')}</a>`
+            : translateLocal('workspace.companyCards.companyCard');
+    const shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || shouldShowAddMissingDetails(reportAction?.actionName, card, privatePersonalDetails);
     const shouldShowReplaceCardMessage = !isAssigneeCurrentUser || shouldShowReplacedCard(reportAction?.actionName, card);
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
@@ -2945,33 +2945,10 @@ function getReportActionFromExpensifyCard(cardID: number) {
         });
 }
 
-function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>): string {
+function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>, policyID?: string): string {
     const {label, errorMessage} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED>) ?? {label: '', errorMessage: ''};
-    return translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage});
-}
-
-function getManagerOnVacation(action: OnyxEntry<ReportAction>): string | undefined {
-    if (!isApprovedAction(action)) {
-        return;
-    }
-
-    return getOriginalMessage(action)?.managerOnVacation;
-}
-
-function getVacationer(action: OnyxEntry<ReportAction>): string | undefined {
-    if (!isSubmittedAction(action)) {
-        return;
-    }
-
-    return getOriginalMessage(action)?.vacationer;
-}
-
-function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
-    if (!isSubmittedAction(action)) {
-        return;
-    }
-
-    return getOriginalMessage(action)?.to;
+    const workspaceAccountingLink = `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`;
+    return translateLocal('report.actions.type.integrationSyncFailed', {label, errorMessage, workspaceAccountingLink});
 }
 
 export {
@@ -3141,9 +3118,6 @@ export {
     getReportActionFromExpensifyCard,
     isReopenedAction,
     getIntegrationSyncFailedMessage,
-    getManagerOnVacation,
-    getVacationer,
-    getSubmittedTo,
     getReceiptScanFailedMessage,
 };
 

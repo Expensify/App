@@ -4,7 +4,6 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
@@ -25,6 +24,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
@@ -89,7 +89,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
-    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
     const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -117,13 +116,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
-    const hasPendingCardAction = hasPendingExpensifyCardAction(allCards);
+    const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
     const walletBrickRoadIndicator = useMemo(() => {
         if (hasPaymentMethodError(bankAccountList, fundList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection) {
-            return 'error';
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
         if (hasPendingCardAction) {
-            return 'info';
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
         return undefined;
     }, [bankAccountList, fundList, hasBrokenFeedConnection, hasPendingCardAction, userWallet?.errors, walletTerms?.errors]);
@@ -159,7 +158,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      * @returns object with translationKey, style and items for the account section
      */
     const accountMenuItemsData: Menu = useMemo(() => {
-        const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails, vacationDelegate);
+        const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails);
         const items: MenuData[] = [
             {
                 translationKey: 'common.profile',
@@ -210,7 +209,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     }, [
         loginList,
         privatePersonalDetails,
-        vacationDelegate,
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,

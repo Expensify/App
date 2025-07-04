@@ -1,5 +1,4 @@
 import {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
@@ -10,6 +9,7 @@ import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/Sub
 import {hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 import useTheme from './useTheme';
 
 type IndicatorStatus = ValueOf<typeof CONST.INDICATOR_STATUS>;
@@ -67,7 +67,7 @@ function useIndicatorStatus(): IndicatorStatusResult {
     const infoChecking: Partial<Record<IndicatorStatus, boolean>> = {
         [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && hasLoginListInfo(loginList),
         [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO]: hasSubscriptionGreenDotInfo(),
-        [CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO]: hasPendingExpensifyCardAction(allCards),
+        [CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO]: hasPendingExpensifyCardAction(allCards, privatePersonalDetails),
     };
 
     const [error] = Object.entries(errorChecking).find(([, value]) => value) ?? [];

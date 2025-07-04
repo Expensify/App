@@ -25,9 +25,10 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const assigneeAccountID = (getOriginalMessage(action) as IssueNewCardOriginalMessage)?.assigneeAccountID;
     const card = getExpensifyCardFromReportAction({reportAction: action, policyID});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
     const isAssigneeCurrentUser = !isEmptyObject(session) && session.accountID === assigneeAccountID;
-    const shouldShowAddMissingDetailsButton = isAssigneeCurrentUser && shouldShowAddMissingDetails(action?.actionName, card);
-    const shouldShowActivateButton = isAssigneeCurrentUser && (shouldShowActivateCard(action?.actionName, card) || shouldShowReplacedCard(action?.actionName, card));
+    const shouldShowAddMissingDetailsButton = isAssigneeCurrentUser && shouldShowAddMissingDetails(action?.actionName, card, privatePersonalDetails);
+    const shouldShowActivateButton = isAssigneeCurrentUser && (shouldShowActivateCard(action?.actionName, card, privatePersonalDetails) || shouldShowReplacedCard(action?.actionName, card));
 
     return (
         <>

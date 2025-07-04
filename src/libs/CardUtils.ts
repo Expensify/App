@@ -54,12 +54,6 @@ Onyx.connect({
     },
 });
 
-let privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
-Onyx.connect({
-    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    callback: (val) => (privatePersonalDetails = val),
-});
-
 let customCardNames: OnyxEntry<Record<string, string>> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES,
@@ -716,15 +710,15 @@ function isVirtualCardReplaced(card?: Card) {
     return card?.nameValuePairs?.isVirtual && card?.nameValuePairs?.statusChanges?.at(-1)?.status === CONST.EXPENSIFY_CARD.STATE.OPEN;
 }
 
-function isExpensifyCardPendingAction(card?: Card) {
+function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: PrivatePersonalDetails): boolean {
     return (
         card?.bank === CONST.EXPENSIFY_CARD.BANK &&
         (isCardPendingIssue(card) || isCardPendingActivate(card) || isCardPendingReplace(card) || isMissingPrivatePersonalDetails(privatePersonalDetails))
     );
 }
 
-function hasPendingExpensifyCardAction(cards: CardList | undefined = allCards) {
-    return Object.values(cards ?? {}).some(isExpensifyCardPendingAction);
+function hasPendingExpensifyCardAction(cards: CardList | undefined = allCards, privatePersonalDetails?: PrivatePersonalDetails) {
+    return Object.values(cards ?? {}).some((card) => isExpensifyCardPendingAction(card, privatePersonalDetails));
 }
 
 function getFundIdFromSettingsKey(key: string) {

@@ -1,8 +1,8 @@
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {setMoneyRequestAttendees, updateMoneyRequestAttendees} from '@libs/actions/IOU';
