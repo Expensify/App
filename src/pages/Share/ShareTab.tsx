@@ -1,4 +1,4 @@
-import React, {forwardRef, useEffect, useMemo, useRef} from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
