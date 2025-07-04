@@ -108,6 +108,7 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
             report={report}
             attachmentID={attachmentID}
             source={source}
+            onNavigate={onNavigate}
         />
     );
 }
