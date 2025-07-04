@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        shard_index: [1, 2, 3]
+        shard_index: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,7 +30,7 @@ jobs:
         run: npm ci
 
       - name: Run tests with coverage
-        run: npm run test -- --coverage --shard=${{ matrix.shard_index }}/3 --coverageDirectory=coverage-shard-${{ matrix.shard_index }}
+        run: npm run test -- --coverage --shard=${{ matrix.shard_index }}/5 --coverageDirectory=coverage-shard-${{ matrix.shard_index }}
         env:
           CI: true
 
