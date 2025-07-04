@@ -1,4 +1,4 @@
-import React, {useLayoutEffect, useRef, useState} from 'react';
+import React, {RefObject, useLayoutEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -46,8 +46,8 @@ type TabSelectorItemProps = {
     /** Function to render the content of the product training tooltip. */
     renderProductTrainingTooltip?: () => React.JSX.Element;
 
-    /** Width of parent tab selector, for computing tooltip placement */
-    selectorWidth: number;
+    /** Parent tab selector, for computing tooltip placement */
+    parentRef?: RefObject<View|null>;
 };
 
 function TabSelectorItem({
@@ -62,22 +62,31 @@ function TabSelectorItem({
     testID,
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
-    selectorWidth,
+    parentRef,
 }: TabSelectorItemProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
-    const childRef = useRef<View>(null);
+    const childRef = useRef<View | null>(null);
     const shouldShowEducationalTooltip = shouldShowProductTrainingTooltip && isActive;
+    const [shiftHorizontal, setShiftHorizontal] = useState(0);
 
-    // useLayoutEffect(() => {
-    //     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    //     childRef.current?.measure((x, y, width) => {
-    //         console.info(`TabSelector x=${x} y=${y} width=${width}`);
-    //     });
-    // }, []);
+    useLayoutEffect(() => {
+        if (!isActive) { return }
+        console.info(`useLayoutEffect title = ${title} parentRef = ${parentRef != null} parentref.current = ${parentRef?.current != null}`)
+        parentRef?.current?.measureInWindow((parentX, _parentY, parentWidth) => {
+            childRef.current?.measureInWindow((x, _y, width) => {
+                console.info(`parentRef measureInWindow x=${parentX} width=${parentWidth}`);
+                console.info(`childRef measureInWindow x=${x} width=${width}`);
+                // To center tooltip in parent:
+                const currentCenter = x + width / 2;            // where it is now...
+                const parentCenter = parentX + parentWidth / 2; // ... minus where it should be...
+                setShiftHorizontal(parentCenter - currentCenter); // ...equals the shift needed
+                console.info(`shiftHorizontal =  ${shiftHorizontal}`);
+            });
+        });
+    }, [isActive, parentRef, childRef, shiftHorizontal]);
 
     const children = (
-        // <View ref={childRef}>
             <AnimatedPressableWithFeedback
                 accessibilityLabel={title}
                 style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
@@ -88,6 +97,7 @@ function TabSelectorItem({
                 role={CONST.ROLE.BUTTON}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 testID={testID}
+                ref={childRef}
             >
                 <TabIcon
                     icon={icon}
@@ -102,7 +112,6 @@ function TabSelectorItem({
                     />
                 )}
             </AnimatedPressableWithFeedback>
-        // </View>
     );
 
     return shouldShowEducationalTooltip ? (
@@ -116,6 +125,7 @@ function TabSelectorItem({
             }}
             wrapperStyle={[styles.productTrainingTooltipWrapper, styles.pAbsolute]}
             computeHorizontalShiftForNative
+            shiftHorizontal={shiftHorizontal}
         >
             {children}
         </EducationalTooltip>

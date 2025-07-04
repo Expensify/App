@@ -90,6 +90,8 @@ function TabSelector({
         });
     }, []);
 
+    // console.info(`TabSelector shouldShowProductTrainingTooltip ${shouldShowProductTrainingTooltip}`);
+
     return (
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
             <View style={styles.tabSelector} ref={viewRef}>
@@ -119,7 +121,9 @@ function TabSelector({
 
                         onTabPress(route.name);
                     };
-
+                    if (isActive) {
+                        console.info(`TabSelector ${title} viewRef=${viewRef != null}`)
+                    }
                     return (
                         <TabSelectorItem
                             key={route.name}
@@ -134,7 +138,7 @@ function TabSelector({
                             shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                             shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                             renderProductTrainingTooltip={renderProductTrainingTooltip}
-                            selectorWidth={selectorWidth}
+                            parentRef={viewRef}
                         />
                     );
                 })}
