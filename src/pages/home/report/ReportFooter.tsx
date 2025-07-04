@@ -72,6 +72,8 @@ type ReportFooterProps = {
 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
+
+    nativeID?: string;
 };
 
 function ReportFooter({
@@ -85,6 +87,7 @@ function ReportFooter({
     onComposerBlur,
     onComposerFocus,
     reportTransactions,
+    nativeID,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -235,6 +238,7 @@ function ReportFooter({
                         isReportReadyForDisplay={isReportReadyForDisplay}
                         didHideComposerInput={didHideComposerInput}
                         reportTransactions={reportTransactions}
+                        nativeID={nativeID}
                     />
                 </View>
             )}
