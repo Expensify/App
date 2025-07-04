@@ -1,8 +1,8 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';

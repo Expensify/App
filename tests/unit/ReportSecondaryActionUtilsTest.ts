@@ -961,6 +961,30 @@ describe('getSecondaryExportReportActions', () => {
         expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(true);
     });
 
+    it('include EXPORT option for settled expense report with integrated policy', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            policyID: POLICY_ID,
+        } as unknown as Report;
+
+        const policy = {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.XERO]: {},
+            },
+            id: POLICY_ID,
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as Policy;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const result = getSecondaryExportReportActions(report, policy);
+        expect(result.includes(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)).toBe(true);
+    });
+
     it('includes MARK_AS_EXPORTED option for invoice report sender', async () => {
         const report = {
             reportID: REPORT_ID,

@@ -567,7 +567,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         style={styles.mv3}
                     >
                         <ReceiptEmptyState
-                            hasError={hasErrors}
                             disabled={!canEditReceipt}
                             onPress={() => {
                                 if (!transaction?.transactionID || !report?.reportID) {

@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';

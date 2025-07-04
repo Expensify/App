@@ -275,6 +275,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -2627,11 +2628,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Um ein Bankkonto zu verbinden, bitte <a href="${contactMethodRoute}">Fügen Sie eine E-Mail als Ihren primären Login hinzu</a> und versuchen Sie es erneut. Sie können Ihre Telefonnummer als sekundären Login hinzufügen.`,
         hasBeenThrottledError: 'Beim Hinzufügen Ihres Bankkontos ist ein Fehler aufgetreten. Bitte warten Sie ein paar Minuten und versuchen Sie es erneut.',
-        hasCurrencyError: {
-            phrase1: 'Ups! Es scheint, dass die Währung Ihres Arbeitsbereichs auf eine andere Währung als USD eingestellt ist. Um fortzufahren, gehen Sie bitte zu',
-            link: 'Ihre Arbeitsbereichseinstellungen',
-            phrase2: 'um es auf USD zu setzen und es erneut zu versuchen.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Ups! Es scheint, dass die Währung Ihres Arbeitsbereichs auf eine andere Währung als USD eingestellt ist. Um fortzufahren, gehen Sie bitte zu <a href="${workspaceRoute}">Ihre Arbeitsbereichseinstellungen</a> um es auf USD zu setzen und es erneut zu versuchen.`,
         error: {
             youNeedToSelectAnOption: 'Bitte wählen Sie eine Option, um fortzufahren.',
             noBankAccountAvailable: 'Entschuldigung, es ist kein Bankkonto verfügbar.',

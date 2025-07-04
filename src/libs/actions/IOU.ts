@@ -97,6 +97,7 @@ import {
     getTrackExpenseActionableWhisper,
     isActionableTrackExpense,
     isCreatedAction,
+    isDeletedAction,
     isMoneyRequestAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
@@ -9278,7 +9279,12 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
         // eslint-disable-next-line deprecation/deprecation
         const policy = getPolicy(iouReport?.policyID);
         const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy) || canApproveIOU(iouReport, policy);
-        return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton;
+        return (
+            action.childReportID?.toString() !== excludedIOUReportID &&
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
+            shouldShowSettlementButton &&
+            !isDeletedAction(action)
+        );
     });
 }
 
