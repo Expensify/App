@@ -219,6 +219,8 @@ function AttachmentModal({
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
 
+    // TODO: Remove the logic for validating files, ideally in a follow-up to avoid breaking changes/regressions
+
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
             ? {
