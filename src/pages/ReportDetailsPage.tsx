@@ -243,17 +243,21 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     });
 
     const isPrivateNotesFetchTriggered = reportMetadata?.isLoadingPrivateNotes !== undefined;
-
+    const iouAction = reportActions.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !!getOriginalMessage(action)?.IOUTransactionID);
+    const [childTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getOriginalMessage(iouAction)?.IOUTransactionID}`, {canBeMissing: true});
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyReport case
         if (caseID === CASES.MONEY_REPORT) {
+            if (isDemoTransaction(childTransaction)) {
+                return iouAction;
+            }
             if (!reportActions || !transactionThreadReport?.parentReportActionID) {
                 return undefined;
             }
             return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
         }
         return parentReportAction;
-    }, [caseID, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
+    }, [caseID, childTransaction, iouAction, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
 
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
