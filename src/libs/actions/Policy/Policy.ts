@@ -1885,8 +1885,7 @@ function buildPolicyData(
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // Determine workspace type based on user reported integration
-    const integrationRequiringCorporateType = ['quickbooksDesktop', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics'];
-    const workspaceType = userReportedIntegration && integrationRequiringCorporateType.includes(userReportedIntegration)
+    const workspaceType = userReportedIntegration && (CONST.POLICY.CONNECTIONS.CONTROL as readonly string[]).includes(userReportedIntegration)
         ? CONST.POLICY.TYPE.CORPORATE
         : CONST.POLICY.TYPE.TEAM;
 
