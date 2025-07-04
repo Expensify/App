@@ -1,4 +1,6 @@
 import React from 'react';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -15,9 +17,12 @@ const loadSearchMoneyReportPage = () => require<ReactComponentModule>('@pages/Se
 
 const Stack = createSearchFullscreenNavigator<SearchFullscreenNavigatorParamList>();
 
-function SearchFullscreenNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR>) {
+function SearchFullscreenNavigator({route, navigation}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR>) {
     // These options can be used here because the full screen navigator has the same structure as the split navigator in terms of the central screens, but it does not have a sidebar.
     const {centralScreen: centralScreenOptions} = useSplitNavigatorScreenOptions();
+
+    usePreloadFullScreenNavigators(navigation, NAVIGATION_TABS.SEARCH);
+
     return (
         <FreezeWrapper>
             <Stack.Navigator
