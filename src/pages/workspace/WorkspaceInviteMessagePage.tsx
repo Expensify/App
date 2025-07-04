@@ -111,7 +111,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         // Check if we're coming from approval workflow
         if (isFromApprovalWorkflow) {
             // Continue to the approver page
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0), {forceReplace: true});
             return;
         }
 
