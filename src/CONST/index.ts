@@ -124,7 +124,7 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
-type OnboardingAccounting = keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY | null;
+type OnboardingAccounting = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> | null;
 
 const onboardingInviteTypes = {
     IOU: 'iou',
@@ -2900,6 +2900,7 @@ const CONST = {
                 ORACLE: 'oracle',
                 SAP: 'sap',
                 MICROSOFT_DYNAMICS: 'microsoftDynamics',
+                OTHER: 'other',
             },
             ROUTE: {
                 QBO: 'quickbooks-online',
@@ -3008,6 +3009,7 @@ const CONST = {
                 this.CONNECTIONS.NAME.ORACLE,
                 this.CONNECTIONS.NAME.SAP,
                 this.CONNECTIONS.NAME.MICROSOFT_DYNAMICS,
+                this.CONNECTIONS.NAME.OTHER,
             ];
         },
         ACCESS_VARIANTS: {
