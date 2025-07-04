@@ -129,6 +129,36 @@ describe('navigateToWorkspacesPage', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
     });
 
+    it('navigates to WORKSPACES_LIST if shouldShowPolicy is false for the user', () => {
+        (navigationRef.getRootState as jest.Mock).mockReturnValue({
+            routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}],
+        });
+
+        (lastVisitedTabPathUtils.getWorkspacesTabStateFromSessionStorage as jest.Mock).mockReturnValue({
+            routes: [
+                {
+                    name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                    state: {
+                        routes: [
+                            {
+                                name: SCREENS.WORKSPACE.INITIAL,
+                                params: {policyID: fakePolicyID},
+                            },
+                        ],
+                    },
+                },
+            ],
+        });
+
+        (PolicyUtils.shouldShowPolicy as jest.Mock).mockReturnValue(false);
+        (PolicyUtils.isPendingDeletePolicy as jest.Mock).mockReturnValue(false);
+
+        mockIntercept();
+        navigateToWorkspacesPage(mockParams);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
+    });
+
     it('navigates to WORKSPACES_LIST if policyID is missing', () => {
         (navigationRef.getRootState as jest.Mock).mockReturnValue({
             routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}],
