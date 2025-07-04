@@ -17,16 +17,23 @@ type Params = {
     policy?: Policy;
 };
 
+// Gets the latest workspace navigation state, restoring from session or preserved state if needed.
 const getWorkspaceNavigationRouteState = () => {
     const rootState = navigationRef.getRootState();
+
+    // Only consider main (fullscreen) routes for top-level navigation context.
     const topmostFullScreenRoute = rootState?.routes?.findLast((route) => isFullScreenName(route.name));
     if (!topmostFullScreenRoute) {
+        // No fullscreen route: not in a workspace context.
         return {};
     }
+
+    // Prefer restoring workspace tab state from sessionStorage for accurate restoration.
     const workspacesTabStateFromSessionStorage = getWorkspacesTabStateFromSessionStorage() ?? rootState;
     const lastWorkspacesTabNavigatorRoute = workspacesTabStateFromSessionStorage?.routes.findLast((route) => isWorkspacesTabScreenName(route.name));
     let workspacesTabState = lastWorkspacesTabNavigatorRoute?.state;
 
+    // Use preserved state if live state is missing (e.g. after a pop).
     if (!workspacesTabState && lastWorkspacesTabNavigatorRoute?.key) {
         workspacesTabState = getPreservedNavigatorState(lastWorkspacesTabNavigatorRoute.key);
     }
@@ -34,43 +41,51 @@ const getWorkspaceNavigationRouteState = () => {
     return {lastWorkspacesTabNavigatorRoute, workspacesTabState, topmostFullScreenRoute};
 };
 
+// Navigates to the appropriate workspace tab or workspace list page.
 const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy}: Params) => {
     const {lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute} = getWorkspaceNavigationRouteState();
+
     if (!topmostFullScreenRoute) {
+        // Not in a main workspace navigation context, so do nothing.
         return;
     }
 
     if (topmostFullScreenRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+        // Already inside a workspace: go back to the list.
         Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
         return;
     }
 
     interceptAnonymousUser(() => {
-        // If there is no settings or workspace navigator route, then we should open the settings navigator.
+        // No workspace found in nav state: go to list.
         if (!lastWorkspacesTabNavigatorRoute) {
             Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
             return;
         }
 
-        // If there is a workspace navigator route, then we should open the workspace initial screen as it should be "remembered".
+        // Workspace route found: try to restore last workspace screen.
         if (lastWorkspacesTabNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-            // Screens of this navigator should always have policyID
             const shouldShowPolicy = shouldShowPolicyUtil(policy, false, currentUserLogin);
             const isPendingDelete = isPendingDeletePolicy(policy);
 
+            // Workspace is not accessible or is being deleted: go to list.
             if (!shouldShowPolicy || isPendingDelete) {
                 Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
                 return;
             }
 
+            // Restore to last-visited workspace tab or show initial tab
             if (policy?.id) {
                 const workspaceScreenName = !shouldUseNarrowLayout ? getLastVisitedWorkspaceTabScreen() : SCREENS.WORKSPACE.INITIAL;
-                // This action will put settings split under the workspace split to make sure that we can swipe back to settings split.
-                navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT, payload: {policyID: policy?.id, screenName: workspaceScreenName}});
+                navigationRef.dispatch({
+                    type: CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT,
+                    payload: {policyID: policy.id, screenName: workspaceScreenName},
+                });
             }
             return;
         }
 
+        // Fallback: any other state, go to the list.
         Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
     });
 };
