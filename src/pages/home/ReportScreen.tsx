@@ -844,6 +844,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}
                                         lastReportAction={lastReportAction}
+                                        reportTransactions={reportTransactions}
                                     />
                                 ) : null}
                             </View>

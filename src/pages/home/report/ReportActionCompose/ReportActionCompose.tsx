@@ -39,21 +39,19 @@ import {getDraftComment} from '@libs/DraftCommentUtils';
 import {getConfirmModalPrompt} from '@libs/fileDownload/FileUtils';
 import getModalState from '@libs/getModalState';
 import Performance from '@libs/Performance';
+import {getLinkedTransactionID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canShowReportRecipientLocalTime,
     chatIncludesChronos,
     chatIncludesConcierge,
     getParentReport,
     getReportRecipientAccountIDs,
-    isAdminRoom,
-    isAnnounceRoom,
-    isChatRoom,
-    isConciergeChatReport,
-    isGroupChat,
-    isInvoiceReport,
+    isExpenseReport,
+    isIOUReport,
+    isReportApproved,
     isReportTransactionThread,
     isSettled,
-    isUserCreatedPolicyRoom,
+    temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -96,6 +94,9 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    /** Report transactions */
+    reportTransactions?: OnyxEntry<OnyxTypes.Transaction[]>;
+
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction;
 
@@ -136,6 +137,7 @@ function ReportActionCompose({
     onComposerFocus,
     onComposerBlur,
     didHideComposerInput,
+    reportTransactions,
 }: ReportActionComposeProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
@@ -148,6 +150,7 @@ function ReportActionCompose({
     const personalDetails = usePersonalDetails();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, {canBeMissing: true});
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
 
     // TODO: remove beta check after the feature is enabled
     const {isBetaEnabled} = usePermissions();
@@ -221,26 +224,31 @@ function ReportActionCompose({
     const includesConcierge = useMemo(() => chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
-    const parentReport = useMemo(() => getParentReport(report), [report]);
-    const shouldDisplayDualDropZone = useMemo(
-        () =>
-            !isChatRoom(report) &&
-            !isUserCreatedPolicyRoom(report) &&
-            !isAnnounceRoom(report) &&
-            !isAdminRoom(report) &&
-            !isConciergeChatReport(report) &&
-            !isInvoiceReport(report) &&
-            !isGroupChat(report) &&
-            !isSettled(parentReport) &&
-            !isSettled(report),
-        [report, parentReport],
-    );
+
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
-    const transactionID = useMemo(() => getTransactionID(reportID), [reportID]);
+    const isTransactionsView = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
+
+    const shouldAddOrReplaceReceipt = (isTransactionThreadView || isIOUReport(report) || isExpenseReport(report)) && !isTransactionsView;
+
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
+        canEvict: false,
+        canBeMissing: true,
+    });
+
+    const iouAction = reportActions ? Object.values(reportActions).find((action) => isMoneyRequestAction(action)) : null;
+    const linkedTransactionID = iouAction ? getLinkedTransactionID(iouAction) : undefined;
+    const transactionID = useMemo(() => getTransactionID(reportID) ?? linkedTransactionID, [reportID, linkedTransactionID]);
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
 
     const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
+    const isSingleTransactionView = useMemo(() => !!transaction && reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
+
+    const shouldDisplayDualDropZone = useMemo(() => {
+        const parentReport = getParentReport(report);
+        const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
+        return (shouldAddOrReplaceReceipt && !isSettledOrApproved) || !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs).length;
+    }, [shouldAddOrReplaceReceipt, report, policy, reportParticipantIDs]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
@@ -481,7 +489,7 @@ function ReportActionCompose({
     const saveFileAndInitMoneyRequest = (file: FileObject) => {
         const source = URL.createObjectURL(file as Blob);
 
-        if (isTransactionThreadView && transactionID) {
+        if (shouldAddOrReplaceReceipt && transactionID) {
             replaceReceipt({transactionID, file: file as File, source});
         } else {
             initMoneyRequest({reportID, newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN});
@@ -633,6 +641,7 @@ function ReportActionCompose({
                                                 }
                                             }}
                                             onReceiptDrop={handleAddingReceipt}
+                                            shouldAcceptSingleReceipt={isSingleTransactionView}
                                         />
                                     )}
                                     {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && !shouldDisplayDualDropZone && (
