@@ -6189,6 +6189,7 @@ const CONST = {
             APPROVE: 'approve',
             PAY: 'pay',
             DONE: 'done',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
         },
         BULK_ACTION_TYPES: {
@@ -6214,6 +6215,9 @@ const CONST = {
             REPORTS: 'reports',
             MEMBERS: 'members',
             CARDS: 'cards',
+        },
+        EXPORT_STATUS: {
+            PENDING: 'pending',
         },
         BOOLEAN: {
             YES: 'yes',
@@ -6385,6 +6389,18 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
+        SUGGESTED_SEARCH_KEYS: {
+            EXPENSES: 'expenses',
+            REPORTS: 'reports',
+            CHATS: 'chats',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT: 'export',
+            UNAPPROVED: 'unapproved',
+            UNAPPROVED_CASH: 'unapprovedCash',
+            UNAPPROVED_COMPANY_CARDS: 'unapprovedCompanyCards',
+        },
     },
 
     /**
