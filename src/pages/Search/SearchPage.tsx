@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -68,7 +68,7 @@ function SearchPage({route}: SearchPageProps) {
     const {isOffline} = useNetwork();
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
-    const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -94,7 +94,7 @@ function SearchPage({route}: SearchPageProps) {
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
-    const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
+    const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
 
     useEffect(() => {
         confirmReadyToOpenApp();
@@ -107,7 +107,7 @@ function SearchPage({route}: SearchPageProps) {
 
         setLastSearchType(currentSearchResults.search.type);
         if (currentSearchResults.data) {
-            setLastNonEmptySearchResults(currentSearchResults);
+            lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
@@ -446,7 +446,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const {resetVideoPlayerData} = usePlaybackContext();
-    const shouldShowOfflineIndicator = currentSearchResults?.data ?? lastNonEmptySearchResults;
+    const shouldShowOfflineIndicator = currentSearchResults?.data ?? lastNonEmptySearchResults.current;
 
     // TODO: to be refactored in step 3
     const PDFThumbnailView = pdfFile ? (
@@ -502,8 +502,7 @@ function SearchPage({route}: SearchPageProps) {
                     <SearchPageNarrow
                         queryJSON={queryJSON}
                         headerButtonsOptions={headerButtonsOptions}
-                        lastNonEmptySearchResults={lastNonEmptySearchResults}
-                        currentSearchResults={currentSearchResults}
+                        searchResults={currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults.current}
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
                         <DropZoneUI
@@ -525,7 +524,7 @@ function SearchPage({route}: SearchPageProps) {
                         shouldShowCancelButton={false}
                     />
                 </DragAndDropProvider>
-                {!!selectionMode && selectionMode?.isEnabled && (
+                {!!selectionMode && (
                     <View>
                         <ConfirmModal
                             isVisible={isDeleteExpensesConfirmModalVisible}
@@ -597,8 +596,7 @@ function SearchPage({route}: SearchPageProps) {
                                 <Search
                                     key={queryJSON.hash}
                                     queryJSON={queryJSON}
-                                    currentSearchResults={currentSearchResults}
-                                    lastNonEmptySearchResults={lastNonEmptySearchResults}
+                                    searchResults={currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults.current}
                                     handleSearch={handleSearchAction}
                                 />
                                 <DragAndDropConsumer onDrop={initScanRequest}>

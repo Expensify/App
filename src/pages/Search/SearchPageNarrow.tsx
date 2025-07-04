@@ -41,11 +41,10 @@ const ANIMATION_DURATION_IN_MS = 300;
 type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
-    currentSearchResults?: SearchResults;
-    lastNonEmptySearchResults?: SearchResults;
+    searchResults?: SearchResults;
 };
 
-function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults, lastNonEmptySearchResults}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
@@ -54,7 +53,6 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const {isOffline} = useNetwork();
 
     // Controls the visibility of the educational tooltip based on user scrolling.
@@ -62,7 +60,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
     const triggerScrollEvent = useScrollEventEmitter();
 
     const handleBackButtonPress = useCallback(() => {
-        if (!selectionMode?.isEnabled) {
+        if (!selectionMode) {
             return false;
         }
         clearSelectedTransactions(undefined, true);
@@ -77,25 +75,28 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
         top: topBarOffset.get(),
     }));
 
-    const scrollHandler = useAnimatedScrollHandler({
-        onScroll: (event) => {
-            runOnJS(triggerScrollEvent)();
-            const {contentOffset, layoutMeasurement, contentSize} = event;
-            if (windowHeight > contentSize.height) {
-                return;
-            }
-            const currentOffset = contentOffset.y;
-            const isScrollingDown = currentOffset > scrollOffset.get();
-            const distanceScrolled = currentOffset - scrollOffset.get();
+    const scrollHandler = useAnimatedScrollHandler(
+        {
+            onScroll: (event) => {
+                runOnJS(triggerScrollEvent)();
+                const {contentOffset, layoutMeasurement, contentSize} = event;
+                if (windowHeight > contentSize.height) {
+                    return;
+                }
+                const currentOffset = contentOffset.y;
+                const isScrollingDown = currentOffset > scrollOffset.get();
+                const distanceScrolled = currentOffset - scrollOffset.get();
 
-            if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
-                topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset));
-            } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
-                topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
-            }
-            scrollOffset.set(currentOffset);
+                if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
+                    topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset));
+                } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
+                    topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
+                }
+                scrollOffset.set(currentOffset);
+            },
         },
-    });
+        [],
+    );
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
@@ -133,7 +134,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
         );
     }
 
-    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
+    const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
 
     return (
@@ -146,7 +147,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
             shouldShowOfflineIndicator={!!searchResults}
         >
             <View style={[styles.flex1, styles.overflowHidden]}>
-                {!selectionMode?.isEnabled ? (
+                {!selectionMode ? (
                     <View style={[StyleUtils.getSearchPageNarrowHeaderStyles(), searchRouterListVisible && styles.flex1, styles.mh100]}>
                         <View style={[styles.zIndex10, styles.appBG]}>
                             <TopBar
@@ -204,12 +205,11 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, currentSearchResults
                 {!searchRouterListVisible && (
                     <View style={[styles.flex1]}>
                         <Search
-                            currentSearchResults={currentSearchResults}
-                            lastNonEmptySearchResults={lastNonEmptySearchResults}
+                            searchResults={searchResults}
                             key={queryJSON.hash}
                             queryJSON={queryJSON}
                             onSearchListScroll={scrollHandler}
-                            contentContainerStyle={!selectionMode?.isEnabled ? styles.searchListContentContainerStyles : undefined}
+                            contentContainerStyle={!selectionMode ? styles.searchListContentContainerStyles : undefined}
                             handleSearch={handleSearchAction}
                         />
                     </View>

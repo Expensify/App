@@ -77,7 +77,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
 
     const hasErrors = Object.keys(searchResultsErrors ?? {}).length > 0 && !isOffline;
-    const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || (!!selectionMode && selectionMode.isEnabled));
+    const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || !!selectionMode);
 
     const [typeOptions, type] = useMemo(() => {
         const options = getTypeOptions(allPolicies, email);

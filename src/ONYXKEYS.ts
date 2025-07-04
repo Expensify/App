@@ -1156,7 +1156,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.REVIEW_DUPLICATES]: OnyxTypes.ReviewDuplicates;
     [ONYXKEYS.ADD_NEW_COMPANY_CARD]: OnyxTypes.AddNewCompanyCardFeed;
     [ONYXKEYS.ASSIGN_CARD]: OnyxTypes.AssignCard;
-    [ONYXKEYS.MOBILE_SELECTION_MODE]: OnyxTypes.MobileSelectionMode;
+    [ONYXKEYS.MOBILE_SELECTION_MODE]: boolean;
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_BILLING_FUND_ID]: number;
