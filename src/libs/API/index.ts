@@ -136,16 +136,6 @@ function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<voi
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData (or finallyData, if included in place of the former two values).
  * This is so that if the network is unavailable or the app is closed, we can send the WRITE request later.
- *
- * @param command - Name of API command to call.
- * @param apiCommandParameters - Parameters to send to the API.
- * @param onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
- *                             into Onyx before and after a request is made. Each nested object will be formatted in
- *                             the same way as an API response.
- * @param [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
- * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
- * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
- * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  */
 
 function write<TCommand extends WriteCommand>(
@@ -162,17 +152,6 @@ function write<TCommand extends WriteCommand>(
 /**
  * This function is used to write data to the API while ensuring that there are no duplicate requests in the queue.
  * If a duplicate request is found, it resolves the conflict by replacing the duplicated request with the new one.
- *
- * @param command - Name of API command to call.
- * @param apiCommandParameters - Parameters to send to the API.
- * @param onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
- *                             into Onyx before and after a request is made. Each nested object will be formatted in
- *                             the same way as an API response.
- * @param [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
- * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
- * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
- * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
- * @param requestMatcher - Custom request matcher function for resolveDuplicationConflictAction.
  */
 function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand>(
     command: TCommand,
@@ -190,16 +169,6 @@ function writeWithNoDuplicatesConflictAction<TCommand extends WriteCommand>(
 /**
  * This function is used to write data to the API while ensuring that there are no conflicts with enabling policy features.
  * If a conflict is found, it resolves the conflict by deleting the duplicated request.
- *
- * @param command - Name of API command to call.
- * @param apiCommandParameters - Parameters to send to the API.
- * @param onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
- *                             into Onyx before and after a request is made. Each nested object will be formatted in
- *                             the same way as an API response.
- * @param [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
- * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
- * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
- * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  */
 function writeWithNoDuplicatesEnableFeatureConflicts<TCommand extends EnablePolicyFeatureCommand>(
     command: TCommand,
@@ -220,17 +189,6 @@ function writeWithNoDuplicatesEnableFeatureConflicts<TCommand extends EnablePoli
  * It works just like API.read(), except that it will return a promise.
  * Using this method is discouraged and will throw an ESLint error. Use it sparingly and only when all other alternatives have been exhausted.
  * It is best to discuss it in Slack anytime you are tempted to use this method.
- *
- * @param command - Name of API command to call.
- * @param apiCommandParameters - Parameters to send to the API.
- * @param onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
- *                             into Onyx before and after a request is made. Each nested object will be formatted in
- *                             the same way as an API response.
- * @param [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
- * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
- * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
- * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
- * @returns
  */
 function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(
     command: TCommand,
@@ -258,16 +216,6 @@ function waitForWrites<TCommand extends ReadCommand>(command: TCommand) {
 
 /**
  * Requests made with this method are not be persisted to disk. If there is no network connectivity, the request is ignored and discarded.
- *
- * @param command - Name of API command to call.
- * @param apiCommandParameters - Parameters to send to the API.
- * @param onyxData  - Object containing errors, loading states, and optimistic UI data that will be merged
- *                             into Onyx before and after a request is made. Each nested object will be formatted in
- *                             the same way as an API response.
- * @param [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
- * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
- * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
- * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
  */
 function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): void {
     Log.info('[API] Called API.read', false, {command, ...apiCommandParameters});
