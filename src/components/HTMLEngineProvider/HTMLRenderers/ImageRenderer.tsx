@@ -1,5 +1,4 @@
 import React, {memo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
@@ -10,6 +9,7 @@ import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFileName, getFileType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
@@ -101,7 +101,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         thumbnailImageComponent
     ) : (
         <ShowContextMenuContext.Consumer>
-            {({onShowContextMenu, anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
+            {({onShowContextMenu, anchor, report, isReportArchived, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                 <AttachmentContext.Consumer>
                     {({reportID, accountID, type}) => (
                         <PressableWithoutFocus
@@ -112,7 +112,16 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 }
 
                                 const attachmentLink = tnode.parent?.attributes?.href;
-                                const route = ROUTES.ATTACHMENTS?.getRoute(reportID, attachmentID, type, source, accountID, isAttachmentOrReceipt, fileName, attachmentLink);
+                                const route = ROUTES.ATTACHMENTS?.getRoute({
+                                    attachmentID,
+                                    reportID,
+                                    type,
+                                    source,
+                                    accountID,
+                                    isAuthTokenRequired: isAttachmentOrReceipt,
+                                    originalFileName: fileName,
+                                    attachmentLink,
+                                });
                                 Navigation.navigate(route);
                             }}
                             onLongPress={(event) => {
@@ -120,14 +129,7 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                     return;
                                 }
                                 return onShowContextMenu(() =>
-                                    showContextMenuForReport(
-                                        event,
-                                        anchor,
-                                        report?.reportID,
-                                        action,
-                                        checkIfContextMenuActive,
-                                        isArchivedNonExpenseReport(report, !!reportNameValuePairs?.private_isArchived),
-                                    ),
+                                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived)),
                                 );
                             }}
                             isNested
