@@ -5,13 +5,14 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportNextStep, TransactionViolations} from '@src/types/onyx';
+import type {Beta, Policy, Report, ReportAction, ReportNextStep, TransactionViolations} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import EmailUtils from './EmailUtils';
 import Permissions from './Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
+import {getReportActions} from './ReportActionsUtils';
 import {
     getDisplayNameForParticipant,
     getNextApproverAccountID,
@@ -139,6 +140,7 @@ function buildNextStep(
     shouldFixViolations?: boolean,
     isUnapprove?: boolean,
     isReopen?: boolean,
+    isRetracted?: boolean,
 ): ReportNextStep | null {
     if (!isExpenseReport(report)) {
         return null;
@@ -205,6 +207,8 @@ function buildNextStep(
             },
         ],
     };
+    const reportActions = getReportActions(report?.reportID);
+    const isReportRetracted = Object.values(reportActions ?? {})?.some((action: ReportAction) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) || isRetracted;
 
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
@@ -232,7 +236,8 @@ function buildNextStep(
                 };
                 break;
             }
-            if (isReopen) {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            if ((isReportRetracted && isASAPSubmitBetaEnabled && isInstantSubmitEnabled) || isReopen) {
                 optimisticNextStep = {
                     type,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
