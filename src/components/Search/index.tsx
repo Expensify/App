@@ -1,4 +1,4 @@
-import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import {View} from 'react-native';
@@ -174,10 +174,12 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
     const {translate} = useLocalize();
     const searchListRef = useRef<SelectionListHandle | null>(null);
 
-    useEffect(() => {
-        clearSelectedTransactions(hash);
-        setCurrentSearchHash(hash);
-    }, [hash, clearSelectedTransactions, setCurrentSearchHash]);
+    useFocusEffect(
+        useCallback(() => {
+            clearSelectedTransactions(hash);
+            setCurrentSearchHash(hash);
+        }, [hash, clearSelectedTransactions, setCurrentSearchHash]),
+    );
 
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults);
 
