@@ -1,6 +1,7 @@
-import React, {RefObject, useLayoutEffect, useRef, useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated, View} from 'react-native';
+import {Animated} from 'react-native';
+import type {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -72,16 +73,13 @@ function TabSelectorItem({
 
     useLayoutEffect(() => {
         if (!isActive) { return }
-        console.info(`useLayoutEffect title = ${title} parentView = ${parentView != null} `)
+
         parentView?.measureInWindow((parentX, _parentY, parentWidth) => {
             childRef.current?.measureInWindow((x, _y, width) => {
-                console.info(`parentView measureInWindow x=${parentX} width=${parentWidth}`);
-                console.info(`childRef measureInWindow x=${x} width=${width}`);
                 // To center tooltip in parent:
                 const currentCenter = x + width / 2;            // where it is now...
                 const parentCenter = parentX + parentWidth / 2; // ... minus where it should be...
                 setShiftHorizontal(parentCenter - currentCenter); // ...equals the shift needed
-                console.info(`shiftHorizontal =  ${shiftHorizontal}`);
             });
         });
     }, [isActive, parentView, childRef, shiftHorizontal, title]);

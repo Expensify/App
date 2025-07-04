@@ -1,5 +1,5 @@
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -74,8 +74,7 @@ function TabSelector({
     const styles = useThemeStyles();
     const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
-    const viewRef = useRef<View>(null);
-    const [selectorWidth, setSelectorWidth] = React.useState(0);
+    const [view, setView] = useState<View | null>(null);
 
     useEffect(() => {
         // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
@@ -84,17 +83,6 @@ function TabSelector({
         }, CONST.ANIMATED_TRANSITION);
     }, [defaultAffectedAnimatedTabs, state.index]);
 
-    useLayoutEffect(() => {
-        viewRef.current?.measure((x, y, width) => {
-            console.info(`measure ${x} ${width}`)
-            setSelectorWidth(width);
-        });
-    }, []);
-
-
-    const [view, setView] = useState<View | null>(null);
-
-    // console.info(`TabSelector shouldShowProductTrainingTooltip ${shouldShowProductTrainingTooltip}`);
 
     return (
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
@@ -125,9 +113,8 @@ function TabSelector({
 
                         onTabPress(route.name);
                     };
-                    if (isActive) {
-                        console.info(`TabSelector ${title} viewRef=${viewRef != null}`)
-                    }
+
+                    
                     return (
                         <TabSelectorItem
                             key={route.name}

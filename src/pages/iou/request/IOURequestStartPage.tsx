@@ -165,11 +165,6 @@ function IOURequestStartPage({
         },
     );
 
-    // console.info(`IOURequestStartPage !getIsUserSubmittedExpenseOrScannedReceipt() ${!getIsUserSubmittedExpenseOrScannedReceipt()}`);
-    // console.info(`IOURequestStartPage !isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) ${isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST)}`);
-    // console.info(`IOURequestStartPage selectedTab === CONST.TAB_REQUEST.SCAN ${selectedTab === CONST.TAB_REQUEST.SCAN}`);
-    
-
     return (
         <AccessOrNotFoundWrapper
             reportID={reportID}
