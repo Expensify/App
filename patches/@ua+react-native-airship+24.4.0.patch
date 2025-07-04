@@ -1,0 +1,50 @@
+diff --git a/node_modules/@ua/react-native-airship/android/src/main/java/com/urbanairship/reactnative/AirshipModule.kt b/node_modules/@ua/react-native-airship/android/src/main/java/com/urbanairship/reactnative/AirshipModule.kt
+index 7740b40..c379cee 100644
+--- a/node_modules/@ua/react-native-airship/android/src/main/java/com/urbanairship/reactnative/AirshipModule.kt
++++ b/node_modules/@ua/react-native-airship/android/src/main/java/com/urbanairship/reactnative/AirshipModule.kt
+@@ -57,6 +57,18 @@ class AirshipModule internal constructor(val context: ReactApplicationContext) :
+         }
+     }
+ 
++    private val lifecycleEventListener = object : LifecycleEventListener {
++        override fun onHostResume() {
++            val backgroundTypes = EventType.values().filter { !it.isForeground() }
++            if (EventEmitter.shared().hasEvents(backgroundTypes)) {
++                AirshipHeadlessEventService.startService(context)
++            }
++        }
++
++        override fun onHostPause() {}
++        override fun onHostDestroy() {}
++    }
++
+     @SuppressLint("RestrictedApi")
+     override fun initialize() {
+         super.initialize()
+@@ -71,17 +83,7 @@ class AirshipModule internal constructor(val context: ReactApplicationContext) :
+                 }
+         }
+ 
+-        context.addLifecycleEventListener(object : LifecycleEventListener {
+-            override fun onHostResume() {
+-                val backgroundTypes = EventType.values().filter { !it.isForeground() }
+-                if (EventEmitter.shared().hasEvents(backgroundTypes)) {
+-                    AirshipHeadlessEventService.startService(context)
+-                }
+-            }
+-
+-            override fun onHostPause() {}
+-            override fun onHostDestroy() {}
+-        })
++        context.addLifecycleEventListener(lifecycleEventListener)
+ 
+         proxy.push.foregroundNotificationDisplayPredicate = this.foregroundDisplayPredicate
+         ProxyLogger.debug("AirshipModule initialized")
+@@ -89,6 +91,7 @@ class AirshipModule internal constructor(val context: ReactApplicationContext) :
+ 
+     override fun invalidate() {
+         super.invalidate()
++        context.removeLifecycleEventListener(lifecycleEventListener)
+         scope.cancel()
+     }
+ 

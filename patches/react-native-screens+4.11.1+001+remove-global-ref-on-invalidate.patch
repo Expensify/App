@@ -1,0 +1,90 @@
+diff --git a/node_modules/react-native-screens/android/src/fabric/java/com/swmansion/rnscreens/NativeProxy.kt b/node_modules/react-native-screens/android/src/fabric/java/com/swmansion/rnscreens/NativeProxy.kt
+index 301a94c..e1ff013 100644
+--- a/node_modules/react-native-screens/android/src/fabric/java/com/swmansion/rnscreens/NativeProxy.kt
++++ b/node_modules/react-native-screens/android/src/fabric/java/com/swmansion/rnscreens/NativeProxy.kt
+@@ -20,6 +20,8 @@ class NativeProxy {
+ 
+     external fun nativeAddMutationsListener(fabricUIManager: FabricUIManager)
+ 
++    external fun invalidateNative()
++
+     companion object {
+         // we use ConcurrentHashMap here since it will be read on the JS thread,
+         // and written to on the UI thread.
+diff --git a/node_modules/react-native-screens/android/src/main/cpp/NativeProxy.cpp b/node_modules/react-native-screens/android/src/main/cpp/NativeProxy.cpp
+index 62cb98f..2497fbd 100644
+--- a/node_modules/react-native-screens/android/src/main/cpp/NativeProxy.cpp
++++ b/node_modules/react-native-screens/android/src/main/cpp/NativeProxy.cpp
+@@ -14,14 +14,13 @@ namespace rnscreens {
+ NativeProxy::NativeProxy(jni::alias_ref<NativeProxy::javaobject> jThis)
+     : javaPart_(jni::make_global(jThis)) {}
+ 
+-NativeProxy::~NativeProxy() {}
+-
+ void NativeProxy::registerNatives() {
+   registerHybrid(
+       {makeNativeMethod("initHybrid", NativeProxy::initHybrid),
+        makeNativeMethod(
+            "nativeAddMutationsListener",
+-           NativeProxy::nativeAddMutationsListener)});
++           NativeProxy::nativeAddMutationsListener),
++       makeNativeMethod("invalidateNative", NativeProxy::invalidateNative)});
+ }
+ 
+ void NativeProxy::nativeAddMutationsListener(
+@@ -48,4 +47,8 @@ jni::local_ref<NativeProxy::jhybriddata> NativeProxy::initHybrid(
+   return makeCxxInstance(jThis);
+ }
+ 
++void NativeProxy::invalidateNative() {
++    javaPart_ = nullptr;
++}
++
+ } // namespace rnscreens
+diff --git a/node_modules/react-native-screens/android/src/main/cpp/NativeProxy.h b/node_modules/react-native-screens/android/src/main/cpp/NativeProxy.h
+index 80aa57c..ba9899d 100644
+--- a/node_modules/react-native-screens/android/src/main/cpp/NativeProxy.h
++++ b/node_modules/react-native-screens/android/src/main/cpp/NativeProxy.h
+@@ -19,8 +19,6 @@ class NativeProxy : public jni::HybridClass<NativeProxy> {
+       jni::alias_ref<jhybridobject> jThis);
+   static void registerNatives();
+ 
+-  ~NativeProxy();
+-
+  private:
+   friend HybridBase;
+   jni::global_ref<NativeProxy::javaobject> javaPart_;
+@@ -30,6 +28,8 @@ class NativeProxy : public jni::HybridClass<NativeProxy> {
+   void nativeAddMutationsListener(
+       jni::alias_ref<facebook::react::JFabricUIManager::javaobject>
+           fabricUIManager);
++
++  void invalidateNative();
+ };
+ 
+ } // namespace rnscreens
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt
+index 6bd229e..59f1248 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/ScreensModule.kt
+@@ -39,6 +39,7 @@ class ScreensModule(
+ 
+     override fun invalidate() {
+         super.invalidate()
++        proxy?.invalidateNative();
+         nativeUninstall()
+     }
+ 
+diff --git a/node_modules/react-native-screens/android/src/paper/java/com/swmansion/rnscreens/NativeProxy.kt b/node_modules/react-native-screens/android/src/paper/java/com/swmansion/rnscreens/NativeProxy.kt
+index 5c71566..7e57040 100644
+--- a/node_modules/react-native-screens/android/src/paper/java/com/swmansion/rnscreens/NativeProxy.kt
++++ b/node_modules/react-native-screens/android/src/paper/java/com/swmansion/rnscreens/NativeProxy.kt
+@@ -6,6 +6,8 @@ class NativeProxy {
+     // do nothing on Paper
+     fun nativeAddMutationsListener(fabricUIManager: FabricUIManager) = Unit
+ 
++    fun invalidateNative() = Unit
++
+     companion object {
+         fun addScreenToMap(
+             tag: Int,

@@ -1,0 +1,143 @@
+diff --git a/node_modules/react-native-keyboard-controller/android/src/fabric/java/com/reactnativekeyboardcontroller/KeyboardControllerViewManager.kt b/node_modules/react-native-keyboard-controller/android/src/fabric/java/com/reactnativekeyboardcontroller/KeyboardControllerViewManager.kt
+index 6276b1b..5799ac2 100644
+--- a/node_modules/react-native-keyboard-controller/android/src/fabric/java/com/reactnativekeyboardcontroller/KeyboardControllerViewManager.kt
++++ b/node_modules/react-native-keyboard-controller/android/src/fabric/java/com/reactnativekeyboardcontroller/KeyboardControllerViewManager.kt
+@@ -8,6 +8,7 @@ import com.facebook.react.viewmanagers.KeyboardControllerViewManagerDelegate
+ import com.facebook.react.viewmanagers.KeyboardControllerViewManagerInterface
+ import com.facebook.react.views.view.ReactViewGroup
+ import com.facebook.react.views.view.ReactViewManager
++import com.reactnativekeyboardcontroller.listeners.WindowDimensionListener
+ import com.reactnativekeyboardcontroller.managers.KeyboardControllerViewManagerImpl
+ import com.reactnativekeyboardcontroller.views.EdgeToEdgeReactViewGroup
+ 
+@@ -17,12 +18,24 @@ class KeyboardControllerViewManager(
+   KeyboardControllerViewManagerInterface<ReactViewGroup> {
+   private val manager = KeyboardControllerViewManagerImpl(mReactContext)
+   private val mDelegate = KeyboardControllerViewManagerDelegate(this)
++  private var listener : WindowDimensionListener? = null
+ 
+   override fun getDelegate(): ViewManagerDelegate<ReactViewGroup> = mDelegate
+ 
+   override fun getName(): String = KeyboardControllerViewManagerImpl.NAME
+ 
+-  override fun createViewInstance(context: ThemedReactContext): ReactViewGroup = manager.createViewInstance(context)
++  override fun createViewInstance(context: ThemedReactContext): ReactViewGroup {
++    if (listener == null) {
++      listener = WindowDimensionListener(context)
++      listener?.attachListener()
++    }
++    return manager.createViewInstance(context)
++  }
++
++  override fun invalidate() {
++    super.invalidate()
++    listener?.detachListener()
++  }
+ 
+   override fun onAfterUpdateTransaction(view: ReactViewGroup) {
+     super.onAfterUpdateTransaction(view)
+@@ -53,6 +66,12 @@ class KeyboardControllerViewManager(
+     value: Boolean,
+   ) = manager.setEnabled(view as EdgeToEdgeReactViewGroup, value)
+ 
++  override fun onDropViewInstance(view: ReactViewGroup) {
++    super.onDropViewInstance(view)
++    (view as EdgeToEdgeReactViewGroup).setActive(false)
++    view.removeWindowInsetsListener()
++  }
++
+   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> =
+     manager.getExportedCustomDirectEventTypeConstants()
+ }
+diff --git a/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/extensions/ThemedReactContext.kt b/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/extensions/ThemedReactContext.kt
+index 0155d1f..97176da 100644
+--- a/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/extensions/ThemedReactContext.kt
++++ b/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/extensions/ThemedReactContext.kt
+@@ -13,10 +13,6 @@ import com.facebook.react.uimanager.events.EventDispatcher
+ import com.reactnativekeyboardcontroller.listeners.WindowDimensionListener
+ import com.reactnativekeyboardcontroller.log.Logger
+ 
+-fun ThemedReactContext.setupWindowDimensionsListener() {
+-  WindowDimensionListener(this)
+-}
+-
+ fun ThemedReactContext?.dispatchEvent(
+   viewId: Int,
+   event: Event<*>,
+diff --git a/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/listeners/WindowDimensionListener.kt b/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/listeners/WindowDimensionListener.kt
+index 982c960..a7f93b4 100644
+--- a/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/listeners/WindowDimensionListener.kt
++++ b/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/listeners/WindowDimensionListener.kt
+@@ -1,6 +1,7 @@
+ package com.reactnativekeyboardcontroller.listeners
+ 
+ import android.view.ViewGroup
++import android.view.ViewTreeObserver
+ import com.facebook.react.bridge.Arguments
+ import com.facebook.react.uimanager.ThemedReactContext
+ import com.reactnativekeyboardcontroller.extensions.content
+@@ -16,8 +17,9 @@ class WindowDimensionListener(
+   private val context: ThemedReactContext?,
+ ) {
+   private var lastDispatchedDimensions = Dimensions(0.0, 0.0)
++  private var layoutListener : ViewTreeObserver.OnGlobalLayoutListener? = null
+ 
+-  init {
++  public fun attachListener() {
+     // attach to content view only once per app instance
+     if (context != null && listenerID != context.hashCode()) {
+       listenerID = context.hashCode()
+@@ -26,12 +28,18 @@ class WindowDimensionListener(
+ 
+       updateWindowDimensions(content)
+ 
+-      content?.viewTreeObserver?.addOnGlobalLayoutListener {
++      layoutListener = ViewTreeObserver.OnGlobalLayoutListener {
+         updateWindowDimensions(content)
+       }
++
++      content?.viewTreeObserver?.addOnGlobalLayoutListener(layoutListener)
+     }
+   }
+ 
++  public fun detachListener() {
++    context?.content?.viewTreeObserver?.removeOnGlobalLayoutListener(layoutListener)
++  }
++
+   private fun updateWindowDimensions(content: ViewGroup?) {
+     if (content == null) {
+       return
+diff --git a/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt b/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
+index 2374868..b0dfc9f 100644
+--- a/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
++++ b/node_modules/react-native-keyboard-controller/android/src/main/java/com/reactnativekeyboardcontroller/views/EdgeToEdgeReactViewGroup.kt
+@@ -15,7 +15,6 @@ import com.reactnativekeyboardcontroller.extensions.content
+ import com.reactnativekeyboardcontroller.extensions.removeSelf
+ import com.reactnativekeyboardcontroller.extensions.requestApplyInsetsWhenAttached
+ import com.reactnativekeyboardcontroller.extensions.rootView
+-import com.reactnativekeyboardcontroller.extensions.setupWindowDimensionsListener
+ import com.reactnativekeyboardcontroller.listeners.KeyboardAnimationCallback
+ import com.reactnativekeyboardcontroller.listeners.KeyboardAnimationCallbackConfig
+ import com.reactnativekeyboardcontroller.log.Logger
+@@ -51,7 +50,6 @@ class EdgeToEdgeReactViewGroup(
+   private val modalAttachedWatcher = ModalAttachedWatcher(this, reactContext, config, ::getKeyboardCallback)
+ 
+   init {
+-    reactContext.setupWindowDimensionsListener()
+     tag = VIEW_TAG
+   }
+ 
+@@ -124,6 +122,13 @@ class EdgeToEdgeReactViewGroup(
+     }
+   }
+ 
++  fun removeWindowInsetsListener() {
++    val rootView = reactContext.rootView
++    if (rootView != null) {
++      ViewCompat.setOnApplyWindowInsetsListener(rootView, null)
++    }
++  }
++
+   fun setEdgeToEdge() {
+     val nextValue = active || isPreservingEdgeToEdge
+ 
