@@ -1,10 +1,9 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {forwardRef, useContext, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, View, ViewStyle} from 'react-native';
 import {Keyboard} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
 import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
@@ -15,6 +14,7 @@ import {InitialURLContext} from '@components/InitialURLContextProvider';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useEnvironment from '@hooks/useEnvironment';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -173,7 +173,7 @@ function ScreenWrapper(
     const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: true});
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
-    UNSTABLE_usePreventRemove((isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
+    usePreventRemove((isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
@@ -234,7 +234,7 @@ function ScreenWrapper(
     return (
         <FocusTrapForScreen focusTrapSettings={focusTrapSettings}>
             <ScreenWrapperContainer
-                forwardedRef={ref}
+                ref={ref}
                 style={[styles.flex1, style]}
                 bottomContent={bottomContent}
                 didScreenTransitionEnd={didScreenTransitionEnd}
