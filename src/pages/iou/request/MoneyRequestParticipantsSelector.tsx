@@ -5,7 +5,6 @@ import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, us
 import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
 import Button from '@components/Button';
@@ -24,6 +23,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -197,6 +197,7 @@ function MoneyRequestParticipantsSelector(
                 includeSelfDM: !isMovingTransactionFromTrackExpense(action) && iouType !== CONST.IOU.TYPE.INVOICE,
                 canShowManagerMcTest: !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT,
                 isPerDiemRequest,
+                showRBR: false,
             },
         );
 

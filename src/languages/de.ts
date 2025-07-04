@@ -99,7 +99,6 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
-    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -276,6 +275,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -665,12 +665,6 @@ const translations = {
         attachmentImageTooLarge: 'Dieses Bild ist zu groß, um es vor dem Hochladen in der Vorschau anzuzeigen.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Sie können jeweils nur bis zu ${fileLimit} Dateien hochladen.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Dateien überschreiten ${maxUploadSizeInMB} MB. Bitte versuchen Sie es erneut.`,
-        someFilesCantBeUploaded: 'Einige Dateien können nicht hochgeladen werden',
-        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Dateien müssen unter ${maxUploadSizeInMB} MB sein. Größere Dateien werden nicht hochgeladen.`,
-        maxFileLimitExceeded: 'Sie können bis zu 30 Belege gleichzeitig hochladen. Weitere werden nicht hochgeladen.',
-        unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType} Dateien werden nicht unterstützt. Nur unterstützte Dateitypen werden hochgeladen.`,
-        learnMoreAboutSupportedFiles: 'Erfahren Sie mehr über unterstützte Formate.',
-        passwordProtected: 'Passwortgeschützte PDFs werden nicht unterstützt. Nur unterstützte Dateien werden hochgeladen.',
     },
     dropzone: {
         addAttachments: 'Anhänge hinzufügen',
@@ -2632,11 +2626,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Um ein Bankkonto zu verbinden, bitte <a href="${contactMethodRoute}">Fügen Sie eine E-Mail als Ihren primären Login hinzu</a> und versuchen Sie es erneut. Sie können Ihre Telefonnummer als sekundären Login hinzufügen.`,
         hasBeenThrottledError: 'Beim Hinzufügen Ihres Bankkontos ist ein Fehler aufgetreten. Bitte warten Sie ein paar Minuten und versuchen Sie es erneut.',
-        hasCurrencyError: {
-            phrase1: 'Ups! Es scheint, dass die Währung Ihres Arbeitsbereichs auf eine andere Währung als USD eingestellt ist. Um fortzufahren, gehen Sie bitte zu',
-            link: 'Ihre Arbeitsbereichseinstellungen',
-            phrase2: 'um es auf USD zu setzen und es erneut zu versuchen.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Ups! Es scheint, dass die Währung Ihres Arbeitsbereichs auf eine andere Währung als USD eingestellt ist. Um fortzufahren, gehen Sie bitte zu <a href="${workspaceRoute}">Ihre Arbeitsbereichseinstellungen</a> um es auf USD zu setzen und es erneut zu versuchen.`,
         error: {
             youNeedToSelectAnOption: 'Bitte wählen Sie eine Option, um fortzufahren.',
             noBankAccountAvailable: 'Entschuldigung, es ist kein Bankkonto verfügbar.',
@@ -4278,6 +4269,11 @@ const translations = {
                     pleaseSelectFeedType: 'Bitte wählen Sie einen Feed-Typ aus, bevor Sie fortfahren.',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Letzter Tag des Monats',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Letzter Geschäftstag des Monats',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Individueller Tag des Monats',
+            },
             assignCard: 'Karte zuweisen',
             findCard: 'Karte finden',
             cardNumber: 'Kartennummer',
@@ -4294,6 +4290,7 @@ const translations = {
             startDateDescription: 'Wir werden alle Transaktionen ab diesem Datum importieren. Wenn kein Datum angegeben ist, gehen wir so weit zurück, wie es Ihre Bank erlaubt.',
             fromTheBeginning: 'Von Anfang an',
             customStartDate: 'Benutzerdefiniertes Startdatum',
+            customCloseDate: 'Benutzerdefiniertes Abschlussdatum',
             letsDoubleCheck: 'Lassen Sie uns noch einmal überprüfen, ob alles richtig aussieht.',
             confirmationDescription: 'Wir werden sofort mit dem Import von Transaktionen beginnen.',
             cardholder: 'Karteninhaber',
@@ -4518,6 +4515,7 @@ const translations = {
                 removeCardFeedDescription: 'Möchten Sie diesen Karten-Feed wirklich entfernen? Dadurch werden alle Karten zugewiesen.',
                 error: {
                     feedNameRequired: 'Der Name des Karten-Feeds ist erforderlich',
+                    statementCloseDateRequired: 'Bitte wählen Sie ein Abschlussdatum für den Kontoauszug aus.',
                 },
                 corporate: 'Löschen von Transaktionen einschränken',
                 personal: 'Löschen von Transaktionen erlauben',
@@ -4544,6 +4542,8 @@ const translations = {
                 expensifyCardBannerSubtitle:
                     'Genießen Sie Cashback bei jedem Einkauf in den USA, bis zu 50 % Rabatt auf Ihre Expensify-Rechnung, unbegrenzte virtuelle Karten und vieles mehr.',
                 expensifyCardBannerLearnMoreButton: 'Erfahren Sie mehr',
+                statementCloseDateTitle: 'Datum des Rechnungsabschlusses',
+                statementCloseDateDescription: 'Teilen Sie uns mit, wann Ihre Kartenabrechnung geschlossen wird, und wir erstellen eine passende Abrechnung in Expensify.',
             },
             workflows: {
                 title: 'Workflows',
