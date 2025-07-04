@@ -3,15 +3,17 @@ import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
 import type {AppProps} from '@src/App';
 import type {Route} from '@src/ROUTES';
+import CONFIG from '@src/CONFIG';
+import Navigation from '@navigation/Navigation';
 
 type InitialUrlContextType = {
-    initialURL: Route | undefined;
-    setInitialURL: React.Dispatch<React.SetStateAction<Route | undefined>>;
+    initialURL: Route | null;
+    setInitialURL: React.Dispatch<React.SetStateAction<Route | null>>;
 };
 
 /** Initial url that will be opened when NewDot is embedded into Hybrid App. */
 const InitialURLContext = createContext<InitialUrlContextType>({
-    initialURL: undefined,
+    initialURL: null,
     setInitialURL: () => {},
 });
 
@@ -20,18 +22,19 @@ type InitialURLContextProviderProps = AppProps & {
     children: ReactNode;
 };
 
-function InitialURLContextProvider({children, url}: InitialURLContextProviderProps) {
-    const [initialURL, setInitialURL] = useState<Route | undefined>();
+function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
+    const [initialURL, setInitialURL] = useState<Route | null>(null);
 
     useEffect(() => {
-        if (url) {
-            setInitialURL(url);
-            return;
-        }
         Linking.getInitialURL().then((initURL) => {
-            setInitialURL(initURL as Route);
+            if (!initURL) {
+                return;
+            }
+            setInitialURL(
+                CONFIG.IS_HYBRID_APP ? Navigation.parseHybridAppUrl(initURL as Route) : initURL as Route 
+            );
         });
-    }, [url]);
+    }, []);
 
     const initialUrlContext = useMemo(
         () => ({
