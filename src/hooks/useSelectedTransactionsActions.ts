@@ -2,9 +2,9 @@ import {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
+import {deleteMoneyRequests, unholdRequest} from '@libs/actions/IOU';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {exportReportToCSV} from '@libs/actions/Report';
+import {deleteAppReport, exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -82,7 +82,13 @@ function useSelectedTransactionsActions({
             }),
         }));
 
-        transactionsWithActions.forEach(({transactionID, action}) => action && deleteMoneyRequest(transactionID, action));
+        if (allTransactionsLength === selectedTransactionIDs?.length) {
+            deleteAppReport(report?.reportID);
+            Navigation.goBack();
+        } else {
+            const deletableExpenses = transactionsWithActions?.filter(({action}) => action);
+            deleteMoneyRequests(deletableExpenses);
+        }
         clearSelectedTransactions(true);
         if (allTransactionsLength - transactionsWithActions.length <= 1) {
             turnOffMobileSelectionMode();
