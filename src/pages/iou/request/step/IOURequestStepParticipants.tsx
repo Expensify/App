@@ -246,6 +246,8 @@ function IOURequestStepParticipants({
             return;
         }
 
+        const nextBackTo = Navigation.getActiveRoute();
+
         // If coming from the combined submit/track flow and the user proceeds to submit the expense
         // we will use the submit IOU type in the confirmation flow.
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
@@ -253,6 +255,9 @@ function IOURequestStepParticipants({
             iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
             initialTransactionID,
             newReportID,
+            undefined,
+            undefined,
+            nextBackTo,
         );
 
         const route = isCategorizing
