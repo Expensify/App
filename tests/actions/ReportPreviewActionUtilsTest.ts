@@ -241,6 +241,7 @@ describe('getReportPreviewAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             isWaitingOnBankAccount: false,
+            total: 7,
         };
 
         const policy = createRandomPolicy(0);
@@ -260,6 +261,51 @@ describe('getReportPreviewAction', () => {
         expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current, undefined, invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     });
 
+    it('getReportPreviewAction should return VIEW action for zero value invoice', async () => {
+        const PARENT_REPORT_ID = (REPORT_ID + 1).toString();
+        const parentReport: Report = {
+            ...createRandomReport(Number(PARENT_REPORT_ID)),
+            type: CONST.REPORT.TYPE.INVOICE,
+            invoiceReceiver: {
+                type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                accountID: CURRENT_USER_ACCOUNT_ID,
+            },
+            policyID: '1',
+        };
+
+        const report: Report = {
+            ...createRandomReport(REPORT_ID),
+            type: CONST.REPORT.TYPE.INVOICE,
+            parentReportID: PARENT_REPORT_ID,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID + 1, // Different from current user
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            isWaitingOnBankAccount: false,
+            total: 0,
+            policyID: '1',
+        };
+
+        const policy = createRandomPolicy(0);
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.type = CONST.POLICY.TYPE.CORPORATE;
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        policy.id = '1';
+
+        const invoiceReceiverPolicy = createRandomPolicy(0);
+        invoiceReceiverPolicy.role = CONST.POLICY.ROLE.ADMIN;
+
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+        } as unknown as Transaction;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${PARENT_REPORT_ID}`, parentReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report.parentReportID));
+
+        expect(getReportPreviewAction(VIOLATIONS, report, policy, [transaction], isReportArchived.current, undefined, invoiceReceiverPolicy)).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+    });
+
     it('canPay should return false for archived invoice', async () => {
         const report = {
             ...createRandomReport(REPORT_ID),
@@ -268,6 +314,7 @@ describe('getReportPreviewAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             isWaitingOnBankAccount: false,
+            total: 7,
         };
 
         const policy = createRandomPolicy(0);
