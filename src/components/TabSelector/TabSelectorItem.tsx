@@ -85,31 +85,31 @@ function TabSelectorItem({
     }, [isActive, parentView, childRef, shiftHorizontal, title]);
 
     const children = (
-            <AnimatedPressableWithFeedback
-                accessibilityLabel={title}
-                style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
-                wrapperStyle={[styles.flexGrow1]}
-                onPress={onPress}
-                onHoverIn={() => setIsHovered(true)}
-                onHoverOut={() => setIsHovered(false)}
-                role={CONST.ROLE.BUTTON}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                testID={testID}
-                ref={childRef}
-            >
-                <TabIcon
-                    icon={icon}
+        <AnimatedPressableWithFeedback
+            accessibilityLabel={title}
+            style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
+            wrapperStyle={[styles.flexGrow1]}
+            onPress={onPress}
+            onHoverIn={() => setIsHovered(true)}
+            onHoverOut={() => setIsHovered(false)}
+            role={CONST.ROLE.BUTTON}
+            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            testID={testID}
+            ref={childRef}
+        >
+            <TabIcon
+                icon={icon}
+                activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+            />
+            {(shouldShowLabelWhenInactive || isActive) && (
+                <TabLabel
+                    title={title}
                     activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
                     inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
                 />
-                {(shouldShowLabelWhenInactive || isActive) && (
-                    <TabLabel
-                        title={title}
-                        activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
-                        inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
-                    />
-                )}
-            </AnimatedPressableWithFeedback>
+            )}
+        </AnimatedPressableWithFeedback>
     );
 
     return shouldShowEducationalTooltip ? (
