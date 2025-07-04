@@ -24,6 +24,13 @@ const HybridAppModule: HybridAppModuleType = {
         // eslint-disable-next-line no-console
         console.warn('HybridAppModule: `sendAuthToken` should never be called on web');
     },
+    getInitialURL() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `getInitialURL` should never be called on web');
+        return new Promise((resolve) => {
+            resolve(null);
+        });
+    },
 };
 
 export default HybridAppModule;

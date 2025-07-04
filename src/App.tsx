@@ -42,7 +42,6 @@ import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
-import type {Route} from './ROUTES';
 import './setup/backgroundTask';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
@@ -52,8 +51,6 @@ import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
  * These will always be `undefined` in "pure" NewDot builds.
  */
 type AppProps = {
-    /** The URL specifying the initial navigation destination when the app opens */
-    url?: Route;
     /** Serialized configuration data required to initialize the React Native app (e.g. authentication details) */
     hybridAppSettings?: string;
 };
@@ -71,14 +68,14 @@ const fill = {flex: 1};
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
-function App({url, hybridAppSettings}: AppProps) {
+function App({hybridAppSettings}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
     return (
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
-                <InitialURLContextProvider url={url}>
+                <InitialURLContextProvider>
                     <HybridAppHandler hybridAppSettings={hybridAppSettings} />
                     <GestureHandlerRootView style={fill}>
                         <ComposeProviders
