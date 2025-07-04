@@ -38,6 +38,7 @@ import type {
     SearchPersonalDetails,
     SearchPolicy,
     SearchReport,
+    SearchResultsInfo,
     SearchTask,
     SearchTransaction,
     SearchTransactionAction,
@@ -1634,14 +1635,14 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
     return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
-function isSearchDataLoaded(currentSearchResults: SearchResults | undefined, lastNonEmptySearchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
+function isSearchDataLoaded(currentSearchResults: SearchResultsInfo | undefined, lastNonEmptySearchResults: SearchResultsInfo | undefined, queryJSON: SearchQueryJSON | undefined) {
+    const searchResults = (currentSearchResults?.hasResults ?? currentSearchResults?.hasMoreResults) ? currentSearchResults : lastNonEmptySearchResults;
     const {status} = queryJSON ?? {};
 
     const isDataLoaded =
-        searchResults?.data !== undefined &&
-        searchResults?.search?.type === queryJSON?.type &&
-        (Array.isArray(status) ? searchResults?.search?.status === status.join(',') : searchResults?.search?.status === status);
+        (searchResults?.hasResults ?? searchResults?.hasMoreResults) &&
+        searchResults?.type === queryJSON?.type &&
+        (Array.isArray(status) ? searchResults?.status === status.join(',') : searchResults?.status === status);
 
     return isDataLoaded;
 }
