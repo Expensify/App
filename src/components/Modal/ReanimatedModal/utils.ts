@@ -37,8 +37,10 @@ function getModalInAnimation(animationType: AnimationInType): ValidKeyframeProps
     }
 }
 
+/**
+ * @returns A function that takes a number between 0 and 1 and returns a ViewStyle object.
+ */
 function getModalInAnimationStyle(animationType: AnimationInType): (progress: number) => ViewStyle {
-    // 'progress' in range [0, 1]
     switch (animationType) {
         case 'slideInRight':
             return (progress) => ({transform: [{translateX: `${100 * (1 - progress)}%`}]});
