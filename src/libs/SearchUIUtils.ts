@@ -1430,7 +1430,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+                        action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
                         to: [`${session.accountID}`],
                     });
                     return queryString;

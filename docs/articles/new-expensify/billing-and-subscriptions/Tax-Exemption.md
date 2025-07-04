@@ -20,7 +20,7 @@ If your organization qualifies as tax-exempt, you can request to remove sales ta
 
 **To request tax-exempt status for your Expensify subscription:**
 
-1. Go to **Account > Workspaces > Subscription > Subscription settings**.
+1. Go to **Account > Subscription > Subscription settings**.
 2. Click **Tax exempt status**.
 3. Selecting **Tax exempt status** will begin a chat with Concierge.
 4. From there, communicate that your account is tax-exempt and attach a PDF of your tax-exempt document.
