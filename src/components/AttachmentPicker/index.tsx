@@ -66,7 +66,6 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
                             currentFile.uri = URL.createObjectURL(currentFile);
                             return currentFile as FileObject;
                         });
-                        console.log({files});
                         onPicked.current(files);
                     } else if (e.target.files[0]) {
                         const file = e.target.files[0];
