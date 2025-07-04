@@ -301,6 +301,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onSelectRow={addAttendeeToSelection}
             shouldSingleExecuteRowSelect
+            autoCorrect={false}
             footerContent={footerContent}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             headerMessage={header}

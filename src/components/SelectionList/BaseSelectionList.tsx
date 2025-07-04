@@ -79,6 +79,7 @@ function BaseSelectionList<TItem extends ListItem>(
         listEmptyContent,
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
+        autoCorrect,
         showConfirmButton = false,
         isConfirmButtonDisabled = false,
         shouldUseDefaultTheme = false,
@@ -678,6 +679,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     inputMode={inputMode}
                     selectTextOnFocus
                     spellCheck={false}
+                    autoCorrect={autoCorrect}
                     iconLeft={textInputIconLeft}
                     onSubmitEditing={selectFocusedOption}
                     blurOnSubmit={!!flattenedSections.allOptions.length}

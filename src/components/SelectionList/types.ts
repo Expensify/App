@@ -547,6 +547,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
 
+    /** Whether autoCorrect functionality should enable  */
+    autoCorrect?: boolean;
+
     /** Label for the text input */
     textInputLabel?: string;
 
