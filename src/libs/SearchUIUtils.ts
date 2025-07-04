@@ -38,6 +38,7 @@ import type {
     SearchPersonalDetails,
     SearchPolicy,
     SearchReport,
+    SearchResultsInfo,
     SearchTask,
     SearchTransaction,
     SearchTransactionAction,
@@ -1650,9 +1651,9 @@ function isSearchDataLoaded(searchResults: SearchResults | undefined, queryJSON:
     const {status} = queryJSON ?? {};
 
     const isDataLoaded =
-        searchResults?.data !== undefined &&
-        searchResults?.search?.type === queryJSON?.type &&
-        (Array.isArray(status) ? searchResults?.search?.status === status.join(',') : searchResults?.search?.status === status);
+        (searchResults?.hasResults ?? searchResults?.hasMoreResults) &&
+        searchResults?.type === queryJSON?.type &&
+        (Array.isArray(status) ? searchResults?.status === status.join(',') : searchResults?.status === status);
 
     return isDataLoaded;
 }
