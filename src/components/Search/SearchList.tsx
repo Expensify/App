@@ -3,7 +3,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, 
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, {Easing, LinearTransition} from 'react-native-reanimated';
 import type {FlatListPropsWithLayout} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -32,6 +32,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchQueryJSON} from './types';
+
+const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
 type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof TransactionGroupListItem | typeof TaskListItem;
@@ -70,6 +72,9 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
     /** Whether to prevent long press of options */
     shouldPreventLongPressRow?: boolean;
 
+    /** Whether to animate the items in the list */
+    shouldAnimate?: boolean;
+
     /** The search query */
     queryJSON: SearchQueryJSON;
 
@@ -102,6 +107,7 @@ function SearchList(
         queryJSON,
         onViewableItemsChanged,
         onLayout,
+        shouldAnimate,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -411,6 +417,7 @@ function SearchList(
                 onViewableItemsChanged={onViewableItemsChanged}
                 onScrollToIndexFailed={onScrollToIndexFailed}
                 onLayout={onLayout}
+                itemLayoutAnimation={shouldAnimate ? LinearTransition.duration(400).easing(easing) : undefined}
             />
             <Modal
                 isVisible={isModalVisible}
