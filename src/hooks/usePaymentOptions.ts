@@ -1,8 +1,8 @@
 import {useEffect, useMemo, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type SettlementButtonProps from '@components/SettlementButton/types';
+import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {
@@ -19,6 +19,7 @@ import type {LastPaymentMethodType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useLocalize from './useLocalize';
+import useOnyx from './useOnyx';
 import useThemeStyles from './useThemeStyles';
 
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
@@ -55,7 +56,7 @@ function usePaymentOptions({
     shouldShowApproveButton = false,
     shouldDisableApproveButton = false,
     onlyShowPayElsewhere,
-}: UsePaymentOptionsProps) {
+}: UsePaymentOptionsProps): PaymentOrApproveOption[] {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -77,8 +78,6 @@ function usePaymentOptions({
             return (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed.name;
         },
     });
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
-    const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
 
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
     const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
@@ -100,17 +99,15 @@ function usePaymentOptions({
         const buttonOptions = [];
         const isExpenseReport = isExpenseReportUtil(iouReport);
         const paymentMethods = {
-            [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
-                text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
-                icon: Expensicons.User,
-                value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-                shouldUpdateSelectedIndex: false,
+            [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
+                text: translate('iou.settleExpensify', {formattedAmount}),
+                icon: Expensicons.Wallet,
+                value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
             },
-            [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
-                text: translate('iou.settleBusiness', {formattedAmount: ''}),
-                icon: Expensicons.Building,
-                value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-                shouldUpdateSelectedIndex: false,
+            [CONST.IOU.PAYMENT_TYPE.VBBA]: {
+                text: translate('iou.settleExpensify', {formattedAmount}),
+                icon: Expensicons.Wallet,
+                value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
                 text: translate('iou.payElsewhere', {formattedAmount}),
@@ -137,10 +134,10 @@ function usePaymentOptions({
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default.
         if (canUseWallet) {
-            buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
+            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
         if (isExpenseReport && shouldShowPayWithExpensifyOption) {
-            buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
+            buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
         if (shouldShowPayElsewhereOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
