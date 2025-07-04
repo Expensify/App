@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
@@ -51,19 +52,21 @@ function SearchMoneyRequestReportEmptyState({reportId, policy}: {reportId?: stri
 
     return (
         <View style={styles.flex1}>
-            <EmptyStateComponent
-                cardStyles={[styles.appBG]}
-                cardContentStyles={[styles.pt5, styles.pb0]}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                headerMedia={LottieAnimations.GenericEmptyState}
-                title={translate('search.moneyRequestReport.emptyStateTitle')}
-                subtitle={translate('search.moneyRequestReport.emptyStateSubtitle')}
-                headerStyles={[styles.emptyStateMoneyRequestReport]}
-                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                headerContentStyles={styles.emptyStateFolderWebStyles}
-                minModalHeight={minModalHeight}
-                buttons={[{buttonText: translate('iou.addExpense'), buttonAction: () => {}, success: true, isDisabled: false, dropDownOptions: addExpenseDropdownOptions}]}
-            />
+            <ScrollView>
+                <EmptyStateComponent
+                    cardStyles={[styles.appBG]}
+                    cardContentStyles={[styles.pt5, styles.pb0]}
+                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                    headerMedia={LottieAnimations.GenericEmptyState}
+                    title={translate('search.moneyRequestReport.emptyStateTitle')}
+                    subtitle={translate('search.moneyRequestReport.emptyStateSubtitle')}
+                    headerStyles={[styles.emptyStateMoneyRequestReport]}
+                    lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                    headerContentStyles={styles.emptyStateFolderWebStyles}
+                    minModalHeight={minModalHeight}
+                    buttons={[{buttonText: translate('iou.addExpense'), buttonAction: () => {}, success: true, isDisabled: false, dropDownOptions: addExpenseDropdownOptions}]}
+                />
+            </ScrollView>
         </View>
     );
 }
