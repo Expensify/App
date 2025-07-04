@@ -1,7 +1,6 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ScrollView} from 'react-native-gesture-handler';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 // Importing from the react-native-gesture-handler package instead of the `components/ScrollView` to fix scroll issue:
 // https://github.com/react-native-modal/react-native-modal/issues/236
@@ -10,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getHelpContent from '@components/SidePanel/getHelpContent';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';

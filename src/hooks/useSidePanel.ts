@@ -2,7 +2,6 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import SidePanelActions from '@libs/actions/SidePanel';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -11,6 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import KeyboardUtils from '@src/utils/keyboard';
 import useLocalize from './useLocalize';
+import useOnyx from './useOnyx';
 import useResponsiveLayout from './useResponsiveLayout';
 import useWindowDimensions from './useWindowDimensions';
 
