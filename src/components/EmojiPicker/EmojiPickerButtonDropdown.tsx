@@ -11,8 +11,9 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {EmojiPickerOnModalHide} from '@libs/actions/EmojiPickerAction';
+import {hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor, showEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getButtonState from '@libs/getButtonState';
-import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 
 type EmojiPickerButtonDropdownProps = {
@@ -20,16 +21,17 @@ type EmojiPickerButtonDropdownProps = {
     isDisabled?: boolean;
     accessibilityLabel?: string;
     role?: string;
-    onModalHide: EmojiPickerAction.OnModalHideValue;
+    onModalHide: EmojiPickerOnModalHide;
     onInputChange: (emoji: string) => void;
     value?: string;
     disabled?: boolean;
     style: StyleProp<ViewStyle>;
+    withoutOverlay?: boolean;
 };
 
 function EmojiPickerButtonDropdown(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    {isDisabled = false, onModalHide, onInputChange, value, disabled, style, ...otherProps}: EmojiPickerButtonDropdownProps,
+    {isDisabled = false, withoutOverlay = false, onModalHide, onInputChange, value, disabled, style, ...otherProps}: EmojiPickerButtonDropdownProps,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ref: ForwardedRef<AnimatedTextInputRef>,
 ) {
@@ -38,26 +40,25 @@ function EmojiPickerButtonDropdown(
     const emojiPopoverAnchor = useRef(null);
     const {translate} = useLocalize();
 
-    useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
+    useEffect(() => resetEmojiPopoverAnchor, []);
     const onPress = () => {
-        if (EmojiPickerAction.isEmojiPickerVisible()) {
-            EmojiPickerAction.hideEmojiPicker();
+        if (isEmojiPickerVisible()) {
+            hideEmojiPicker();
             return;
         }
 
-        EmojiPickerAction.showEmojiPicker(
+        showEmojiPicker({
             onModalHide,
-            (emoji) => onInputChange(emoji),
+            onEmojiSelected: (emoji) => onInputChange(emoji),
             emojiPopoverAnchor,
-            {
+            anchorOrigin: {
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 shiftVertical: 4,
             },
-            () => {},
-            undefined,
-            value,
-        );
+            activeEmoji: value,
+            withoutOverlay,
+        });
     };
 
     return (
