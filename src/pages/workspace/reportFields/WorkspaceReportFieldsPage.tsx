@@ -25,7 +25,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
-import {enablePolicyReportFields, setPolicyPreventMemberCreatedTitle} from '@libs/actions/Policy/Policy';
+import {enablePolicyReportFields, setPolicyPreventMemberCreatedTitle, clearPolicyErrorField} from '@libs/actions/Policy/Policy';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -158,6 +158,10 @@ function WorkspaceReportFieldsPage({
     );
 
     const reportTitlePendingFields = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields ?? {};
+    const titleError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
+    const defaultValueError = (titleError as {defaultValue?: string})?.defaultValue;
+    const errorMessage = defaultValueError && typeof defaultValueError === 'object' ? Object.values(defaultValueError)[0] : defaultValueError;
+    const reportTitleErrors = errorMessage ? {error: errorMessage} : policy?.errorFields?.fieldList;
 
     return (
         <AccessOrNotFoundWrapper
@@ -205,7 +209,11 @@ function WorkspaceReportFieldsPage({
                             containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
                             titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                         >
-                            <OfflineWithFeedback pendingAction={reportTitlePendingFields.defaultValue}>
+                            <OfflineWithFeedback
+                                pendingAction={reportTitlePendingFields.defaultValue}
+                                errors={reportTitleErrors}
+                                onClose={() => clearPolicyErrorField(policyID, 'fieldList')}
+                            >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.rules.expenseReportRules.customNameTitle')}
                                     title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '')}
