@@ -4,7 +4,9 @@ import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import {KeyboardGestureArea, useKeyboardHandler} from 'react-native-keyboard-controller';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {useAnimatedScrollHandler, useSharedValue} from 'react-native-reanimated';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -133,6 +135,69 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
+function useKeyboardAnimation() {
+    const progress = useSharedValue(0);
+    const height = useSharedValue(0);
+    const inset = useSharedValue(0);
+    const offset = useSharedValue(0);
+    const scrollY = useSharedValue(0);
+    const shouldUseOnMoveHandler = useSharedValue(false);
+
+    useKeyboardHandler({
+        onStart: (e) => {
+            'worklet';
+
+            // i. e. the keyboard was under interactive gesture, and will be showed
+            // again. Since iOS will not schedule layout animation for that we can't
+            // simply update `height` to destination and we need to listen to `onMove`
+            // handler to have a smooth animation
+            if (progress.value !== 1 && progress.value !== 0 && e.height !== 0) {
+                // eslint-disable-next-line react-compiler/react-compiler
+                shouldUseOnMoveHandler.value = true;
+
+                return;
+            }
+
+            progress.value = e.progress;
+            height.value = e.height;
+
+            inset.value = e.height;
+            // Math.max is needed to prevent overscroll when keyboard hides (and user scrolled to the top, for example)
+            offset.value = Math.max(e.height + scrollY.value, 0);
+        },
+        onInteractive: (e) => {
+            'worklet';
+
+            progress.value = e.progress;
+            height.value = e.height;
+        },
+        onMove: (e) => {
+            'worklet';
+
+            if (shouldUseOnMoveHandler.value) {
+                progress.value = e.progress;
+                height.value = e.height;
+            }
+        },
+        onEnd: (e) => {
+            'worklet';
+
+            height.value = e.height;
+            progress.value = e.progress;
+            shouldUseOnMoveHandler.value = false;
+        },
+    });
+
+    const onScroll = useAnimatedScrollHandler({
+        onScroll: (e) => {
+            scrollY.set(e.contentOffset.y);
+            // scroll.value = e.contentOffset.y - inset.value;
+        },
+    });
+
+    return {height, progress, onScroll, inset, offset, scrollY};
+}
+
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -148,6 +213,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const currentReportIDValue = useCurrentReportID();
+    const {scrollY, onScroll} = useKeyboardAnimation();
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {canBeMissing: true});
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {canBeMissing: true});
@@ -785,93 +851,103 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, visibleTransactions ?? []);
 
     return (
-        <ActionListContext.Provider value={actionListValue}>
-            <ReactionListWrapper>
-                <ScreenWrapper
-                    navigation={navigation}
-                    style={screenWrapperStyle}
-                    shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
-                    testID={`report-screen-${reportID}`}
-                >
-                    <FullPageNotFoundView
-                        shouldShow={shouldShowNotFoundPage}
-                        subtitleKey={shouldShowNotFoundLinkedAction ? 'notFound.commentYouLookingForCannotBeFound' : 'notFound.noAccess'}
-                        subtitleStyle={[styles.textSupporting]}
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
-                        shouldShowLink={shouldShowNotFoundLinkedAction}
-                        linkTranslationKey="notFound.goToChatInstead"
-                        subtitleKeyBelowLink={shouldShowNotFoundLinkedAction ? 'notFound.contactConcierge' : ''}
-                        onLinkPress={navigateToEndOfReport}
-                        shouldDisplaySearchRouter
+        <KeyboardGestureArea
+            style={styles.flexGrow1}
+            offset={90}
+            interpolator="ios"
+            textInputNativeID="composer"
+        >
+            <ActionListContext.Provider value={actionListValue}>
+                <ReactionListWrapper>
+                    <ScreenWrapper
+                        navigation={navigation}
+                        style={screenWrapperStyle}
+                        shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
+                        testID={`report-screen-${reportID}`}
                     >
-                        <OfflineWithFeedback
-                            pendingAction={reportPendingAction}
-                            errors={reportErrors}
-                            shouldShowErrorMessages={false}
-                            needsOffscreenAlphaCompositing
+                        <FullPageNotFoundView
+                            shouldShow={shouldShowNotFoundPage}
+                            subtitleKey={shouldShowNotFoundLinkedAction ? 'notFound.commentYouLookingForCannotBeFound' : 'notFound.noAccess'}
+                            subtitleStyle={[styles.textSupporting]}
+                            shouldShowBackButton={shouldUseNarrowLayout}
+                            onBackButtonPress={shouldShowNotFoundLinkedAction ? navigateToEndOfReport : Navigation.goBack}
+                            shouldShowLink={shouldShowNotFoundLinkedAction}
+                            linkTranslationKey="notFound.goToChatInstead"
+                            subtitleKeyBelowLink={shouldShowNotFoundLinkedAction ? 'notFound.contactConcierge' : ''}
+                            onLinkPress={navigateToEndOfReport}
+                            shouldDisplaySearchRouter
                         >
-                            {headerView}
-                        </OfflineWithFeedback>
-                        {!!accountManagerReportID && isConciergeChatReport(report) && isBannerVisible && (
-                            <Banner
-                                containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.br2]}
-                                text={chatWithAccountManagerText}
-                                onClose={dismissBanner}
-                                onButtonPress={chatWithAccountManager}
-                                shouldShowCloseButton
-                                icon={Expensicons.Lightbulb}
-                                shouldShowIcon
-                                shouldShowButton
-                            />
-                        )}
-                        <DragAndDropProvider isDisabled={isEditingDisabled}>
-                            <View
-                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                testID="report-actions-view-wrapper"
+                            <OfflineWithFeedback
+                                pendingAction={reportPendingAction}
+                                errors={reportErrors}
+                                shouldShowErrorMessages={false}
+                                needsOffscreenAlphaCompositing
                             >
-                                {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
-                                {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
-                                    <ReportActionsView
-                                        report={report}
-                                        reportActions={reportActions}
-                                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
-                                        hasNewerActions={hasNewerActions}
-                                        hasOlderActions={hasOlderActions}
-                                        parentReportAction={parentReportAction}
-                                        transactionThreadReportID={transactionThreadReportID}
-                                    />
-                                ) : null}
-                                {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
-                                    <MoneyRequestReportActionsList
-                                        report={report}
-                                        policy={policy}
-                                        reportActions={reportActions}
-                                        transactions={visibleTransactions}
-                                        newTransactions={newTransactions}
-                                        hasOlderActions={hasOlderActions}
-                                        hasNewerActions={hasNewerActions}
-                                        showReportActionsLoadingState={showReportActionsLoadingState}
-                                    />
-                                ) : null}
-                                {isCurrentReportLoadedFromOnyx ? (
-                                    <ReportFooter
-                                        report={report}
-                                        reportMetadata={reportMetadata}
-                                        policy={policy}
-                                        pendingAction={reportPendingAction}
-                                        isComposerFullSize={!!isComposerFullSize}
-                                        lastReportAction={lastReportAction}
-                                        reportTransactions={reportTransactions}
-                                    />
-                                ) : null}
-                            </View>
-                            <PortalHost name="suggestions" />
-                        </DragAndDropProvider>
-                    </FullPageNotFoundView>
-                </ScreenWrapper>
-            </ReactionListWrapper>
-        </ActionListContext.Provider>
+                                {headerView}
+                            </OfflineWithFeedback>
+                            {!!accountManagerReportID && isConciergeChatReport(report) && isBannerVisible && (
+                                <Banner
+                                    containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.br2]}
+                                    text={chatWithAccountManagerText}
+                                    onClose={dismissBanner}
+                                    onButtonPress={chatWithAccountManager}
+                                    shouldShowCloseButton
+                                    icon={Expensicons.Lightbulb}
+                                    shouldShowIcon
+                                    shouldShowButton
+                                />
+                            )}
+                            <DragAndDropProvider isDisabled={isEditingDisabled}>
+                                <View
+                                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                    testID="report-actions-view-wrapper"
+                                >
+                                    {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
+                                    {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                        <ReportActionsView
+                                            report={report}
+                                            reportActions={reportActions}
+                                            isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+                                            hasNewerActions={hasNewerActions}
+                                            hasOlderActions={hasOlderActions}
+                                            parentReportAction={parentReportAction}
+                                            transactionThreadReportID={transactionThreadReportID}
+                                            onScroll={onScroll}
+                                            scrollingVerticalOffset={scrollY}
+                                        />
+                                    ) : null}
+                                    {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                        <MoneyRequestReportActionsList
+                                            report={report}
+                                            policy={policy}
+                                            reportActions={reportActions}
+                                            transactions={visibleTransactions}
+                                            newTransactions={newTransactions}
+                                            hasOlderActions={hasOlderActions}
+                                            hasNewerActions={hasNewerActions}
+                                            showReportActionsLoadingState={showReportActionsLoadingState}
+                                        />
+                                    ) : null}
+                                    {isCurrentReportLoadedFromOnyx ? (
+                                        <ReportFooter
+                                            report={report}
+                                            reportMetadata={reportMetadata}
+                                            policy={policy}
+                                            pendingAction={reportPendingAction}
+                                            isComposerFullSize={!!isComposerFullSize}
+                                            lastReportAction={lastReportAction}
+                                            reportTransactions={reportTransactions}
+                                            nativeID="composer"
+                                        />
+                                    ) : null}
+                                </View>
+                                <PortalHost name="suggestions" />
+                            </DragAndDropProvider>
+                        </FullPageNotFoundView>
+                    </ScreenWrapper>
+                </ReactionListWrapper>
+            </ActionListContext.Provider>
+        </KeyboardGestureArea>
     );
 }
 

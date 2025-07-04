@@ -2,6 +2,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ScrollHandlerProcessed, SharedValue} from 'react-native-reanimated';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLoadReportActions from '@hooks/useLoadReportActions';
@@ -63,6 +64,10 @@ type ReportActionsViewProps = {
 
     /** If the report has older actions to load */
     hasOlderActions: boolean;
+
+    onScroll: ScrollHandlerProcessed<Record<string, unknown>>;
+
+    scrollingVerticalOffset: SharedValue<number>;
 };
 
 let listOldID = Math.round(Math.random() * 100);
@@ -75,6 +80,8 @@ function ReportActionsView({
     transactionThreadReportID,
     hasNewerActions,
     hasOlderActions,
+    onScroll,
+    scrollingVerticalOffset,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -309,6 +316,8 @@ function ReportActionsView({
                 loadNewerChats={loadNewerChats}
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
+                onScroll={onScroll}
+                scrollingVerticalOffset={scrollingVerticalOffset}
             />
             <UserTypingEventListener report={report} />
         </>
