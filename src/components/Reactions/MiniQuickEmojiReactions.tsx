@@ -1,12 +1,12 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import BaseMiniContextMenuItem from '@components/BaseMiniContextMenuItem';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocalizedEmojiName, getPreferredEmojiCode} from '@libs/EmojiUtils';
@@ -42,16 +42,14 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
 
     const openEmojiPicker = () => {
         onPressOpenPicker();
-        showEmojiPicker(
-            onEmojiPickerClosed,
-            (emojiCode, emojiObject) => {
+        showEmojiPicker({
+            onModalHide: onEmojiPickerClosed,
+            onEmojiSelected: (_emojiCode, emojiObject) => {
                 onEmojiSelected(emojiObject, emojiReactions);
             },
-            ref,
-            undefined,
-            () => {},
-            reportAction.reportActionID,
-        );
+            emojiPopoverAnchor: ref,
+            id: reportAction.reportActionID,
+        });
     };
 
     return (
