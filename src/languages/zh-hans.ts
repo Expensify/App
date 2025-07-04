@@ -5160,7 +5160,7 @@ const translations = {
             addPaymentCardTitle: '输入您的支付卡以转移所有权',
             addPaymentCardButtonText: '接受条款并添加支付卡',
             addPaymentCardReadAndAcceptText: ({termsURL, privacyURL}: AddPaymentCardReadAndAcceptRouteParams) =>
-                `<comment><muted-text-label>阅读并接受 <a href="${termsURL}" style="text-decoration-line: none;">条款</a> & <a href="${privacyURL}" style="text-decoration-line: none;">'隐私</a> 将卡添加的政策</muted-text-label></comment>`,
+                `<comment><mtm issmall>阅读并接受 <a href="${termsURL}" style="text-decoration-line: none;">条款</a> & <a href="${privacyURL}" style="text-decoration-line: none;">'隐私</a> 将卡添加的政策</mtm></comment>`,
             addPaymentCardPciCompliant: '符合PCI-DSS标准',
             addPaymentCardBankLevelEncrypt: '银行级加密',
             addPaymentCardRedundant: '冗余基础设施',

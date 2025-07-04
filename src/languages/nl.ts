@@ -5248,7 +5248,7 @@ const translations = {
             addPaymentCardTitle: 'Voer uw betaalkaart in om het eigendom over te dragen',
             addPaymentCardButtonText: 'Accepteer voorwaarden & voeg betaalkaart toe',
             addPaymentCardReadAndAcceptText: ({termsURL, privacyURL}: AddPaymentCardReadAndAcceptRouteParams) =>
-                `<comment><muted-text-label>Lezen en accepteren <a href="${termsURL}" style="text-decoration-line: none;">voorwaarden</a> & <a href="${privacyURL}" style="text-decoration-line: none;">privacy</a> beleid om uw kaart toe te voegen</muted-text-label></comment>`,
+                `<comment><mtm issmall>Lezen en accepteren <a href="${termsURL}" style="text-decoration-line: none;">voorwaarden</a> & <a href="${privacyURL}" style="text-decoration-line: none;">privacy</a> beleid om uw kaart toe te voegen</mtm></comment>`,
             addPaymentCardPciCompliant: 'PCI-DSS-conform',
             addPaymentCardBankLevelEncrypt: 'Versleuteling op bankniveau',
             addPaymentCardRedundant: 'Redundante infrastructuur',
