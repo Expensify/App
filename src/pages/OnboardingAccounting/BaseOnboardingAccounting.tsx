@@ -1,4 +1,3 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {SvgProps} from 'react-native-svg';
@@ -25,6 +24,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import closeReactNativeApp from '@libs/actions/HybridApp';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
@@ -138,8 +138,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         }
 
         if (CONFIG.IS_HYBRID_APP) {
-            HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-            setRootStatusBarEnabled(false);
+            closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
             return;
         }
         waitForIdle().then(() => {
