@@ -1,4 +1,3 @@
-import {findFocusedRoute} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -16,7 +15,6 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
@@ -24,19 +22,13 @@ import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import getPlatform from '@libs/getPlatform';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import {
-    getLastVisitedTabPath,
-    getLastVisitedWorkspaceTabScreen,
-    getSettingsTabStateFromSessionStorage,
-    getWorkspacesTabStateFromSessionStorage,
-} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
-import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {getLastVisitedWorkspaceTabScreen, getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {isFullScreenName, isWorkspacesTabScreenName} from '@navigation/helpers/isNavigatorName';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
-import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/home/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/home/sidebar/NavigationTabBarFloatingActionButton';
 import variables from '@styles/variables';
@@ -59,7 +51,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const {translate, preferredLocale} = useLocalize();
     const {indicatorColor: workspacesTabIndicatorColor, status: workspacesTabIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const {orderedReports} = useSidebarOrderedReports();
-    const subscriptionPlan = useSubscriptionPlan();
+
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -89,7 +81,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         }
 
         hideInboxTooltip();
-        Navigation.navigate(ROUTES.HOME);
+        navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}});
     }, [hideInboxTooltip, selectedTab]);
 
     const navigateToSearch = useCallback(() => {
@@ -98,27 +90,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
-            const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
-            const lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-            const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
-            const lastSearchRoute = lastSearchNavigatorState?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
-
-            if (lastSearchRoute) {
-                const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-                const queryJSON = buildSearchQueryJSON(q);
-                if (queryJSON) {
-                    const query = buildSearchQueryString(queryJSON);
-                    Navigation.navigate(
-                        ROUTES.SEARCH_ROOT.getRoute({
-                            query,
-                            ...rest,
-                        }),
-                    );
-                    return;
-                }
-            }
-
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
+            navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}});
         });
     }, [selectedTab]);
 
@@ -127,22 +99,9 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             return;
         }
         interceptAnonymousUser(() => {
-            const settingsTabState = getSettingsTabStateFromSessionStorage();
-            if (settingsTabState && !shouldUseNarrowLayout) {
-                const stateRoute = findFocusedRoute(settingsTabState);
-                if (!subscriptionPlan && stateRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ROOT) {
-                    Navigation.navigate(ROUTES.SETTINGS_PROFILE.route);
-                    return;
-                }
-                const lastVisitedSettingsRoute = getLastVisitedTabPath(settingsTabState);
-                if (lastVisitedSettingsRoute) {
-                    Navigation.navigate(lastVisitedSettingsRoute);
-                    return;
-                }
-            }
-            Navigation.navigate(ROUTES.SETTINGS);
+            navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}});
         });
-    }, [selectedTab, subscriptionPlan, shouldUseNarrowLayout]);
+    }, [selectedTab]);
 
     /**
      * The settings tab is related to SettingsSplitNavigator and WorkspaceSplitNavigator.

@@ -2,9 +2,13 @@ import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
+import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
-import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {AuthScreensParamList, SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
@@ -25,9 +29,11 @@ const CENTRAL_PANE_SETTINGS_SCREENS = {
 
 const Split = createSplitNavigator<SettingsSplitNavigatorParamList>();
 
-function SettingsSplitNavigator() {
+function SettingsSplitNavigator({navigation}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR>) {
     const route = useRoute();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
+
+    usePreloadFullScreenNavigators(navigation, NAVIGATION_TABS.SETTINGS);
 
     return (
         <FocusTrapForScreens>
