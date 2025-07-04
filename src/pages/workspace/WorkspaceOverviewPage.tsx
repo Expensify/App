@@ -207,9 +207,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     }, [setIsDeletingPaidWorkspace]);
 
     useEffect(() => {
-        if (isDeleteModalOpen) {
-            dropdownMenuRef.current?.setIsMenuVisible(false);
+        if (!isDeleteModalOpen) {
+            return;
         }
+        dropdownMenuRef.current?.setIsMenuVisible(false);
     }, [isDeleteModalOpen]);
 
     const handleBackButtonPress = () => {
