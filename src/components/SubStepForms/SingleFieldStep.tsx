@@ -90,10 +90,11 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
             enabledWhenOffline={enabledWhenOffline}
+            shouldHideFixErrorsAlert
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL]}>{formTitle}</Text>
-                {!!formDisclaimer && <Text style={[styles.textSupporting]}>{formDisclaimer}</Text>}
+                {!!formDisclaimer && <Text style={[styles.textSupporting, styles.mt3]}>{formDisclaimer}</Text>}
                 <View style={[styles.flex1]}>
                     <InputWrapper
                         InputComponent={TextInput}

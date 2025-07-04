@@ -147,8 +147,8 @@ function updateImportSpreadsheetData(ratesLength: number) {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: translateLocal('spreadsheet.importSuccessfullTitle'),
-                        prompt: translateLocal('spreadsheet.importPerDiemRatesSuccessfullDescription', {rates: ratesLength}),
+                        title: translateLocal('spreadsheet.importSuccessfulTitle'),
+                        prompt: translateLocal('spreadsheet.importPerDiemRatesSuccessfulDescription', {rates: ratesLength}),
                     },
                 },
             },
@@ -211,14 +211,17 @@ type DeletePerDiemCustomUnitOnyxType = Omit<CustomUnit, 'rates'> & {
 };
 
 function prepareNewCustomUnit(customUnit: CustomUnit, subRatesToBeDeleted: SubRateData[]) {
-    const mappedDeletedSubRatesToRate = subRatesToBeDeleted.reduce((acc, subRate) => {
-        if (subRate.rateID in acc) {
-            acc[subRate.rateID].push(subRate);
-        } else {
-            acc[subRate.rateID] = [subRate];
-        }
-        return acc;
-    }, {} as Record<string, SubRateData[]>);
+    const mappedDeletedSubRatesToRate = subRatesToBeDeleted.reduce(
+        (acc, subRate) => {
+            if (subRate.rateID in acc) {
+                acc[subRate.rateID].push(subRate);
+            } else {
+                acc[subRate.rateID] = [subRate];
+            }
+            return acc;
+        },
+        {} as Record<string, SubRateData[]>,
+    );
 
     // Copy the custom unit and remove the sub rates that are to be deleted
     const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);

@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSubStep from '@hooks/useSubStep';
@@ -23,7 +24,7 @@ import BankInformation from './substeps/BankInformation';
 import Confirmation from './substeps/Confirmation';
 import CountrySelection from './substeps/CountrySelection';
 import Success from './substeps/Success';
-import type {CustomSubStepProps} from './types';
+import type CustomSubStepProps from './types';
 import {getFieldsMap, getInitialPersonalDetailsValues, getInitialSubstep, getSubstepValues, testValidation} from './utils';
 
 type InternationalDepositAccountContentProps = {
@@ -102,24 +103,27 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
     const handleBackButtonPress = () => {
         if (isEditing) {
             resetScreenIndex(CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION);
-            return;
+            return true;
         }
 
         // Clicking back on the first screen should dismiss the modal
         if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR) {
             clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
             goBack();
-            return;
+            return true;
         }
 
         // Clicking back on the success screen should dismiss the modal
         if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS) {
             clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
             goBack();
-            return;
+            return true;
         }
         prevScreen();
+        return true;
     };
+
+    useHandleBackButton(handleBackButtonPress);
 
     const handleNextScreen = useCallback(() => {
         if (isEditing) {

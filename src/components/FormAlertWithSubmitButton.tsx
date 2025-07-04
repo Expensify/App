@@ -63,11 +63,20 @@ type FormAlertWithSubmitButtonProps = {
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
 
+    /** should render the extra button above submit button */
+    shouldRenderFooterAboveSubmit?: boolean;
+
     /**
      * Whether the button should have a background layer in the color of theme.appBG.
      * This is needed for buttons that allow content to display under them.
      */
     shouldBlendOpacity?: boolean;
+
+    /** Whether to add a bottom padding to the button */
+    addButtonBottomPadding?: boolean;
+
+    /** Prevents the button from triggering blur on mouse down. */
+    shouldPreventDefaultFocusOnPress?: boolean;
 };
 
 function FormAlertWithSubmitButton({
@@ -89,10 +98,13 @@ function FormAlertWithSubmitButton({
     useSmallerSubmitButtonSize = false,
     errorMessageStyle,
     enterKeyEventListenerPriority = 0,
+    shouldRenderFooterAboveSubmit = false,
     shouldBlendOpacity = false,
+    addButtonBottomPadding = true,
+    shouldPreventDefaultFocusOnPress = false,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
-    const style = [!footerContent ? {} : styles.mb3, buttonStyles];
+    const style = [footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
 
     // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
     // where pressing Enter saves the form instead of adding a new line in multiline input.
@@ -111,6 +123,7 @@ function FormAlertWithSubmitButton({
         >
             {(isOffline: boolean | undefined) => (
                 <View>
+                    {shouldRenderFooterAboveSubmit && footerContent}
                     {isOffline && !enabledWhenOffline ? (
                         <Button
                             success
@@ -121,6 +134,7 @@ function FormAlertWithSubmitButton({
                             danger={isSubmitActionDangerous}
                             medium={useSmallerSubmitButtonSize}
                             large={!useSmallerSubmitButtonSize}
+                            onMouseDown={shouldPreventDefaultFocusOnPress ? (e) => e.preventDefault() : undefined}
                         />
                     ) : (
                         <Button
@@ -137,9 +151,10 @@ function FormAlertWithSubmitButton({
                             danger={isSubmitActionDangerous}
                             medium={useSmallerSubmitButtonSize}
                             large={!useSmallerSubmitButtonSize}
+                            onMouseDown={shouldPreventDefaultFocusOnPress ? (e) => e.preventDefault() : undefined}
                         />
                     )}
-                    {footerContent}
+                    {!shouldRenderFooterAboveSubmit && footerContent}
                 </View>
             )}
         </FormAlertWrapper>

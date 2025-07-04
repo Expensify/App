@@ -1,7 +1,7 @@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {GetBrowser, IsChromeIOS, IsMobile, IsMobileChrome, IsMobileSafari, IsMobileWebKit, IsModernSafari, IsSafari, OpenRouteInDesktopApp} from './types';
+import type {GetBrowser, IsChromeIOS, IsMobile, IsMobileChrome, IsMobileIOS, IsMobileSafari, IsMobileWebKit, IsModernSafari, IsSafari, OpenRouteInDesktopApp} from './types';
 
 let isOpenRouteInDesktop = false;
 /**
@@ -40,6 +40,11 @@ const getBrowser: GetBrowser = () => {
  *
  */
 const isMobile: IsMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Silk|Opera Mini/i.test(navigator.userAgent);
+
+const isMobileIOS: IsMobileIOS = () => {
+    const userAgent = navigator.userAgent;
+    return /iP(ad|od|hone)/i.test(userAgent);
+};
 
 /**
  * Checks if requesting user agent is Safari browser on a mobile device
@@ -140,6 +145,7 @@ const resetIsOpeningRouteInDesktop = () => {
 export {
     getBrowser,
     isMobile,
+    isMobileIOS,
     isMobileSafari,
     isMobileWebKit,
     isSafari,

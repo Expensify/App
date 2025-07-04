@@ -1,13 +1,13 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PaymentMethods from '@userActions/PaymentMethods';
-import * as PolicyActions from '@userActions/Policy/Policy';
+import {clearPaymentCard3dsVerification, verifySetupIntent} from '@userActions/PaymentMethods';
+import {verifySetupIntentAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -19,14 +19,14 @@ type CardAuthenticationModalProps = {
 };
 function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModalProps) {
     const styles = useThemeStyles();
-    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [isLoading, setIsLoading] = useState(true);
     const [isVisible, setIsVisible] = useState(false);
 
     const onModalClose = useCallback(() => {
         setIsVisible(false);
-        PaymentMethods.clearPaymentCard3dsVerification();
+        clearPaymentCard3dsVerification();
     }, []);
 
     useEffect(() => {
@@ -36,14 +36,14 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
         setIsVisible(!!authenticationLink);
     }, [authenticationLink]);
 
-    const handleGBPAuthentication = useCallback(
+    const handleSCAAuthentication = useCallback(
         (event: MessageEvent<string>) => {
             const message = event.data;
-            if (message === CONST.GBP_AUTHENTICATION_COMPLETE) {
+            if (message === CONST.SCA_AUTHENTICATION_COMPLETE) {
                 if (policyID) {
-                    PolicyActions.verifySetupIntentAndRequestPolicyOwnerChange(policyID);
+                    verifySetupIntentAndRequestPolicyOwnerChange(policyID);
                 } else {
-                    PaymentMethods.verifySetupIntent(session?.accountID ?? -1, true);
+                    verifySetupIntent(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, true);
                 }
                 onModalClose();
             }
@@ -52,11 +52,11 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
     );
 
     useEffect(() => {
-        window.addEventListener('message', handleGBPAuthentication);
+        window.addEventListener('message', handleSCAAuthentication);
         return () => {
-            window.removeEventListener('message', handleGBPAuthentication);
+            window.removeEventListener('message', handleSCAAuthentication);
         };
-    }, [handleGBPAuthentication]);
+    }, [handleSCAAuthentication]);
 
     return (
         <Modal
@@ -77,6 +77,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                     shouldShowCloseButton
                     onCloseButtonPress={onModalClose}
                     shouldShowBackButton={false}
+                    shouldDisplayHelpButton={false}
                 />
                 {isLoading && <FullScreenLoadingIndicator />}
                 <View style={[styles.flex1]}>

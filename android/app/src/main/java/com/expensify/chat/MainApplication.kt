@@ -1,10 +1,14 @@
 package com.expensify.chat
 
+import android.app.Activity
 import com.facebook.react.common.assets.ReactFontManager
 
 import android.app.ActivityManager
+import android.app.ActivityManager.RunningAppProcessInfo
+import android.content.Context
 import android.content.res.Configuration
 import android.database.CursorWindow
+import android.os.Bundle
 import android.os.Process
 import androidx.multidex.MultiDexApplication
 import com.expensify.chat.bootsplash.BootSplashPackage
@@ -27,6 +31,11 @@ import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 
 class MainApplication : MultiDexApplication(), ReactApplication {
+    var currentState: String = "active"
+        private set
+    var prevState: String = "inactive"
+        private set
+
     override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(this, object : DefaultReactNativeHost(this) {
         override fun getUseDeveloperSupport() = BuildConfig.DEBUG
 
@@ -63,6 +72,30 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         if (isOnfidoProcess()) {
             return
         }
+
+        registerActivityLifecycleCallbacks(object: ActivityLifecycleCallbacks {
+            override fun onActivityStarted(p0: Activity) {
+                prevState = currentState
+                currentState = "active"
+            }
+
+            override fun onActivityStopped(p0: Activity) {
+                val isOnForeground = isAppOnForeground()
+                prevState = currentState
+                currentState = if (isOnForeground) "active" else "background"
+            }
+
+            override fun onActivityDestroyed(p0: Activity) {
+                val isOnForeground = isAppOnForeground()
+                prevState = currentState
+                currentState = if (isOnForeground) "active" else "background"
+            }
+
+            override fun onActivityCreated(p0: Activity, p1: Bundle?) {}
+            override fun onActivityResumed(p0: Activity) {}
+            override fun onActivityPaused(p0: Activity) {}
+            override fun onActivitySaveInstanceState(p0: Activity, p1: Bundle) {}
+        })
 
         SoLoader.init(this, OpenSourceMergedSoMapping)
         if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
@@ -105,5 +138,23 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         return manager.runningAppProcesses.any {
             it.pid == pid && it.processName.endsWith(":onfido_process")
         }
+    }
+
+    /**
+     * Checks if the application is currently running in the foreground.
+     * https://stackoverflow.com/a/8490088/8398300
+     */
+    private fun isAppOnForeground(): Boolean {
+        val activityManager = applicationContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val appProcesses = activityManager.runningAppProcesses ?: return false
+        val packageName: String = applicationContext.getPackageName()
+        for (appProcess in appProcesses) {
+            if (appProcess.importance == RunningAppProcessInfo.IMPORTANCE_FOREGROUND &&
+                appProcess.processName == packageName
+            ) {
+                return true
+            }
+        }
+        return false
     }
 }

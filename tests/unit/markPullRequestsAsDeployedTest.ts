@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-
 /**
  * @jest-environment node
  */
+
+/* eslint-disable @typescript-eslint/naming-convention */
 import CONST from '../../.github/libs/CONST';
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
@@ -68,7 +68,7 @@ const PRList: Record<number, PullRequest> = {
 const version = '42.42.42-42';
 const defaultTags = [
     {name: '42.42.42-42', commit: {sha: 'abcd'}},
-    {name: '42.42.42-41', commit: {sha: 'efgh'}},
+    {name: '42.42.42-41', commit: {sha: 'hash'}},
 ];
 
 function mockGetInputDefaultImplementation(key: string): boolean | string {
@@ -80,9 +80,7 @@ function mockGetInputDefaultImplementation(key: string): boolean | string {
         case 'DEPLOY_VERSION':
             return version;
         case 'IOS':
-        case 'IOS_HYBRID':
         case 'ANDROID':
-        case 'ANDROID_HYBRID':
         case 'DESKTOP':
         case 'WEB':
             return 'success';
@@ -109,7 +107,7 @@ beforeAll(() => {
     mockGetInput.mockImplementation(mockGetInputDefaultImplementation);
 
     // Mock octokit module
-    const moctokit = {
+    const mockOctokit = {
         rest: {
             issues: {
                 // eslint-disable-next-line @typescript-eslint/require-await
@@ -139,10 +137,10 @@ beforeAll(() => {
         paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
     };
 
-    GithubUtils.internalOctokit = moctokit as unknown as InternalOctokit;
+    GithubUtils.internalOctokit = mockOctokit as unknown as InternalOctokit;
 
     // Mock GitUtils
-    GitUtils.getPullRequestsMergedBetween = jest.fn();
+    GitUtils.getPullRequestsDeployedBetween = jest.fn();
 
     jest.mock('../../.github/libs/ActionUtils', () => ({
         getJSONInput: jest.fn().mockImplementation((name: string, defaultValue: string) => {
@@ -194,12 +192,10 @@ describe('markPullRequestsAsDeployed', () => {
 
 platform | result
 ---|---
-🤖 android 🤖|success ✅
 🖥 desktop 🖥|success ✅
-🍎 iOS 🍎|success ✅
 🕸 web 🕸|success ✅
-🤖🔄 android HybridApp 🤖🔄|success ✅
-🍎🔄 iOS HybridApp 🍎🔄|success ✅`,
+🤖 android 🤖|success ✅
+🍎 iOS 🍎|success ✅`,
                 issue_number: PR.issue_number,
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
@@ -226,12 +222,10 @@ platform | result
 
 platform | result
 ---|---
-🤖 android 🤖|success ✅
 🖥 desktop 🖥|success ✅
-🍎 iOS 🍎|success ✅
 🕸 web 🕸|success ✅
-🤖🔄 android HybridApp 🤖🔄|success ✅
-🍎🔄 iOS HybridApp 🍎🔄|success ✅`,
+🤖 android 🤖|success ✅
+🍎 iOS 🍎|success ✅`,
                 issue_number: PRList[i + 1].issue_number,
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
@@ -271,10 +265,7 @@ platform | result
             if (commit_sha === 'xyz') {
                 return {
                     data: {
-                        message: `Merge pull request #3 blahblahblah
-(cherry picked from commit dagdag)
-(CP triggered by freyja)`,
-                        committer: {name: 'freyja'},
+                        message: `Merge pull request #3 blahblahblah\\n(cherry picked from commit dag_dag)\\n(cherry-picked to staging by freyja)`,
                     },
                 };
             }
@@ -290,12 +281,10 @@ platform | result
 
 platform | result
 ---|---
-🤖 android 🤖|success ✅
 🖥 desktop 🖥|success ✅
-🍎 iOS 🍎|success ✅
 🕸 web 🕸|success ✅
-🤖🔄 android HybridApp 🤖🔄|success ✅
-🍎🔄 iOS HybridApp 🍎🔄|success ✅
+🤖 android 🤖|success ✅
+🍎 iOS 🍎|success ✅
 
 @Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.`,
             issue_number: 3,
@@ -329,12 +318,10 @@ platform | result
 
 platform | result
 ---|---
-🤖 android 🤖|skipped 🚫
 🖥 desktop 🖥|cancelled 🔪
-🍎 iOS 🍎|failed ❌
 🕸 web 🕸|success ✅
-🤖🔄 android HybridApp 🤖🔄|success ✅
-🍎🔄 iOS HybridApp 🍎🔄|success ✅`,
+🤖 android 🤖|skipped 🚫
+🍎 iOS 🍎|failed ❌`,
                 issue_number: PR.issue_number,
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,

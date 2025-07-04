@@ -4,6 +4,7 @@ const NativeCommandsAction = {
     scroll: 'scroll',
     type: 'type',
     backspace: 'backspace',
+    clear: 'clear',
 } as const;
 
 const makeTypeTextCommand = (text: string): NativeCommand => ({
@@ -17,4 +18,8 @@ const makeBackspaceCommand = (): NativeCommand => ({
     actionName: NativeCommandsAction.backspace,
 });
 
-export {NativeCommandsAction, makeTypeTextCommand, makeBackspaceCommand};
+const makeClearCommand = (): NativeCommand => ({
+    actionName: NativeCommandsAction.clear,
+});
+
+export {NativeCommandsAction, makeTypeTextCommand, makeBackspaceCommand, makeClearCommand};

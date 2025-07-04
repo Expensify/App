@@ -1,6 +1,5 @@
 import {format} from 'date-fns';
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -8,6 +7,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionStartDate} from '@libs/actions/CompanyCards';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,13 +44,14 @@ function TransactionStartDateSelectorPage({route}: TransactionStartDateSelectorM
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <ScreenWrapper
                 style={styles.pb0}
                 testID={TransactionStartDateSelectorPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={translate('common.date')}
@@ -64,6 +65,8 @@ function TransactionStartDateSelectorPage({route}: TransactionStartDateSelectorM
                     style={[styles.flexGrow1, styles.ph5]}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         InputComponent={DatePicker}
@@ -71,6 +74,7 @@ function TransactionStartDateSelectorPage({route}: TransactionStartDateSelectorM
                         minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                         maxDate={new Date()}
                         defaultValue={startDate}
+                        autoFocus
                     />
                 </FormProvider>
             </ScreenWrapper>

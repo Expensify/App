@@ -26,6 +26,7 @@ type AvatarSizeValue = ValueOf<
         | 'avatarSizeHeader'
         | 'avatarSizeMentionIcon'
         | 'avatarSizeSmallNormal'
+        | 'avatarSizeLargeNormal'
     >
 >;
 
@@ -41,7 +42,7 @@ type ButtonStateName = ValueOf<typeof CONST.BUTTON_STATES>;
 type AvatarSize = {width: number};
 
 type SVGAvatarColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
-type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue};
+type EreceiptColorStyle = {backgroundColor: ColorValue; color: ColorValue; titleColor: ColorValue};
 type TextColorStyle = {color: string};
 
 export type {

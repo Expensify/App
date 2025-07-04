@@ -1,19 +1,21 @@
 import {Str} from 'expensify-common';
-import React, {memo, useEffect, useState} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import React, {memo, useContext, useEffect, useState} from 'react';
+import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {Gallery} from '@components/Icon/Expensicons';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -85,6 +87,14 @@ type AttachmentViewProps = Attachment & {
     reportID?: string;
 };
 
+function checkIsFileImage(source: string | number | ImageURISource | ImageURISource[], fileName: string | undefined) {
+    const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
+
+    const isFileNameImage = fileName && Str.isImage(fileName);
+
+    return isSourceImage || isFileNameImage;
+}
+
 function AttachmentView({
     source,
     previewSource,
@@ -111,10 +121,12 @@ function AttachmentView({
     isUploading = false,
     reportID,
 }: AttachmentViewProps) {
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const {translate} = useLocalize();
-    const {updateCurrentlyPlayingURL} = usePlaybackContext();
+    const {updateCurrentURLAndReportID} = usePlaybackContext();
 
+    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+    const {onAttachmentError} = attachmentCarouselPagerContext ?? {};
     const theme = useTheme();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const styles = useThemeStyles();
@@ -123,13 +135,15 @@ function AttachmentView({
     const [isHighResolution, setIsHighResolution] = useState<boolean>(false);
     const [hasPDFFailedToLoad, setHasPDFFailedToLoad] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
+    const firstRenderRoute = useFirstRenderRoute();
+    const isInFocusedModal = firstRenderRoute.isFocused && isFocused === undefined;
 
     useEffect(() => {
-        if (!isFocused && !(file && isUsedInAttachmentModal)) {
+        if (!isFocused && !isInFocusedModal && !(file && isUsedInAttachmentModal)) {
             return;
         }
-        updateCurrentlyPlayingURL(isVideo && typeof source === 'string' ? source : null);
-    }, [file, isFocused, isUsedInAttachmentModal, isVideo, source, updateCurrentlyPlayingURL]);
+        updateCurrentURLAndReportID(isVideo && typeof source === 'string' ? source : undefined, reportID);
+    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID]);
 
     const [imageError, setImageError] = useState(false);
 
@@ -140,6 +154,12 @@ function AttachmentView({
             setIsHighResolution(isHighResolutionImage(resolution));
         });
     }, [file]);
+
+    useEffect(() => {
+        const isImageSource = typeof source !== 'function' && !!checkIsFileImage(source, file?.name);
+        const isErrorInImage = imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function');
+        onAttachmentError?.(source, isErrorInImage && isImageSource);
+    }, [fallbackSource, file?.name, imageError, onAttachmentError, source]);
 
     // Handles case where source is a component (ex: SVG) or a number
     // Number may represent a SVG or an image
@@ -159,6 +179,7 @@ function AttachmentView({
                 width={variables.defaultAvatarPreviewSize}
                 fill={iconFillColor}
                 additionalStyles={additionalStyles}
+                enableMultiGestureCanvas
             />
         );
     }
@@ -204,7 +225,7 @@ function AttachmentView({
 
         // We need the following View component on android native
         // So that the event will propagate properly and
-        // the Password protected preview will be shown for pdf attachement we are about to send.
+        // the Password protected preview will be shown for pdf attachment we are about to send.
         return (
             <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
                 <AttachmentViewPdf
@@ -229,11 +250,14 @@ function AttachmentView({
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the text field.
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
-    const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
-    const isFileNameImage = file?.name && Str.isImage(file.name);
-    const isFileImage = isSourceImage || isFileNameImage;
 
-    if (isFileImage) {
+    // isLocalSource checks if the source is blob as that's the type of the temp image coming from mobile web
+    const isFileImage = checkIsFileImage(source, file?.name);
+    const isLocalSourceImage = typeof source === 'string' && source.startsWith('blob:');
+
+    const isImage = isFileImage ?? isLocalSourceImage;
+
+    if (isImage) {
         if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {
             return (
                 <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
@@ -258,7 +282,7 @@ function AttachmentView({
                     <>
                         <View style={styles.imageModalImageCenterContainer}>
                             <DefaultAttachmentView
-                                icon={Expensicons.Gallery}
+                                icon={Gallery}
                                 fileName={file?.name}
                                 shouldShowDownloadIcon={shouldShowDownloadIcon}
                                 shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
@@ -280,12 +304,13 @@ function AttachmentView({
                         file={file}
                         isAuthTokenRequired={isAuthTokenRequired}
                         loadComplete={loadComplete}
-                        isImage={isFileImage}
+                        isImage={isImage}
                         onPress={onPress}
                         onError={() => {
                             if (isOffline) {
                                 return;
                             }
+
                             setImageError(true);
                         }}
                     />
@@ -324,4 +349,5 @@ AttachmentView.displayName = 'AttachmentView';
 
 export default memo(AttachmentView);
 
+export {checkIsFileImage};
 export type {AttachmentViewProps};

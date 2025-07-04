@@ -86,6 +86,7 @@ function getOnyxData<TKey extends OnyxKey>(options: ConnectOptions<TKey>) {
  * Simulate signing in and make sure all API calls in this flow succeed. Every time we add
  * a mockImplementationOnce() we are altering what Network.post() will return.
  */
+// cspell:disable-next-line
 function signInWithTestUser(accountID = 1, login = 'test@user.com', password = 'Password1', authToken = 'asdfqwerty', firstName = 'Test') {
     const originalXhr = HttpUtils.xhr;
 
@@ -148,7 +149,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                         },
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.USER,
+                            key: ONYXKEYS.ACCOUNT,
                             value: {
                                 isUsingExpensifyCard: false,
                             },
@@ -320,17 +321,24 @@ function assertFormDataMatchesObject(obj: Report, formData?: FormData) {
     expect(formData).not.toBeUndefined();
     if (formData) {
         expect(
-            Array.from(formData.entries()).reduce((acc, [key, val]) => {
-                acc[key] = val;
-                return acc;
-            }, {} as Record<string, string | Blob>),
+            Array.from(formData.entries()).reduce(
+                (acc, [key, val]) => {
+                    acc[key] = val;
+                    return acc;
+                },
+                {} as Record<string, string | Blob>,
+            ),
         ).toEqual(expect.objectContaining(obj));
     }
 }
 
+function getNavigateToChatHintRegex(): RegExp {
+    const hintTextPrefix = translateLocal('accessibilityHints.navigatesToChat');
+    return new RegExp(hintTextPrefix, 'i');
+}
+
 async function navigateToSidebarOption(index: number): Promise<void> {
-    const hintText = translateLocal('accessibilityHints.navigatesToChat');
-    const optionRow = screen.queryAllByAccessibilityHint(hintText).at(index);
+    const optionRow = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex()).at(index);
     if (!optionRow) {
         return;
     }
@@ -343,6 +351,7 @@ export {
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,
+    getFetchMockCalls,
     getGlobalFetchMock,
     setPersonalDetails,
     signInWithTestUser,
@@ -353,4 +362,5 @@ export {
     setupGlobalFetchMock,
     navigateToSidebarOption,
     getOnyxData,
+    getNavigateToChatHintRegex,
 };

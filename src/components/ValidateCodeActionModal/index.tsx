@@ -1,13 +1,13 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,13 +22,13 @@ function ValidateCodeActionModal({
     descriptionSecondary,
     onClose,
     onModalHide,
-    validatePendingAction,
     validateError,
+    validatePendingAction,
+    validateCodeActionErrorField,
     handleSubmitForm,
     clearError,
     footer,
     sendValidateCode,
-    hasMagicCodeBeenSent,
     isLoading,
     shouldHandleNavigationBack,
     disableAnimation,
@@ -39,9 +39,8 @@ function ValidateCodeActionModal({
     const firstRenderRef = useRef(true);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const styles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
-
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffset);
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
 
     const hide = useCallback(() => {
         clearError();
@@ -50,13 +49,13 @@ function ValidateCodeActionModal({
     }, [onClose, clearError]);
 
     useEffect(() => {
-        if (!firstRenderRef.current || !isVisible || hasMagicCodeBeenSent) {
+        if (!firstRenderRef.current || !isVisible || validateCodeAction?.validateCodeSent) {
             return;
         }
         firstRenderRef.current = false;
 
         sendValidateCode();
-        // We only want to send validate code on first render not on change of hasMagicCodeBeenSent, so we don't add it as a dependency.
+        // We only want to send validate code on first render not on change of validateCodeSent, so we don't add it as a dependency.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible, sendValidateCode]);
@@ -87,7 +86,7 @@ function ValidateCodeActionModal({
                     threeDotsMenuItems={threeDotsMenuItems}
                     shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                     shouldOverlayDots
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
+                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                     onThreeDotsButtonPress={onThreeDotsButtonPress}
                 />
 
@@ -101,15 +100,14 @@ function ValidateCodeActionModal({
                         {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
                         <ValidateCodeForm
                             isLoading={isLoading}
-                            validateCodeAction={validateCodeAction}
                             validatePendingAction={validatePendingAction}
+                            validateCodeActionErrorField={validateCodeActionErrorField}
                             validateError={validateError}
                             handleSubmitForm={handleSubmitForm}
                             sendValidateCode={sendValidateCode}
                             clearError={clearError}
                             buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
                             ref={validateCodeFormRef}
-                            hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                         />
                     </View>
                 </ScrollView>

@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,8 +37,14 @@ type TabSelectorItemProps = {
     /** Whether to show the label when the tab is inactive */
     shouldShowLabelWhenInactive?: boolean;
 
-    /** Whether to show the test receipt tooltip */
-    shouldShowTestReceiptTooltip?: boolean;
+    /** Test identifier used to find elements in unit and e2e tests */
+    testID?: string;
+
+    /** Determines whether the product training tooltip should be displayed to the user. */
+    shouldShowProductTrainingTooltip?: boolean;
+
+    /** Function to render the content of the product training tooltip. */
+    renderProductTrainingTooltip?: () => React.JSX.Element;
 };
 
 function TabSelectorItem({
@@ -51,13 +56,16 @@ function TabSelectorItem({
     inactiveOpacity = 1,
     isActive = false,
     shouldShowLabelWhenInactive = true,
-    shouldShowTestReceiptTooltip = false,
+    testID,
+    shouldShowProductTrainingTooltip = false,
+    renderProductTrainingTooltip,
 }: TabSelectorItemProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, shouldShowTestReceiptTooltip);
 
-    const content = () => (
+    const shouldShowEducationalTooltip = shouldShowProductTrainingTooltip && isActive;
+
+    const children = (
         <AnimatedPressableWithFeedback
             accessibilityLabel={title}
             style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
@@ -67,6 +75,7 @@ function TabSelectorItem({
             onHoverOut={() => setIsHovered(false)}
             role={CONST.ROLE.BUTTON}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            testID={testID}
         >
             <TabIcon
                 icon={icon}
@@ -83,26 +92,26 @@ function TabSelectorItem({
         </AnimatedPressableWithFeedback>
     );
 
-    return shouldShowTestReceiptTooltip ? (
+    return shouldShowEducationalTooltip ? (
         <EducationalTooltip
-            shouldRender={shouldShowProductTrainingTooltip}
+            shouldRender
             renderTooltipContent={renderProductTrainingTooltip}
             shouldHideOnNavigate
             anchorAlignment={{
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
             }}
-            wrapperStyle={styles.productTrainingTooltipWrapper}
-            shiftVertical={18}
+            wrapperStyle={[styles.productTrainingTooltipWrapper, styles.pAbsolute]}
+            computeHorizontalShiftForNative
         >
-            {content()}
+            {children}
         </EducationalTooltip>
     ) : (
         <Tooltip
             shouldRender={!shouldShowLabelWhenInactive && !isActive}
             text={title}
         >
-            {content()}
+            {children}
         </Tooltip>
     );
 }

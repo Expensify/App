@@ -37,13 +37,19 @@ type AttachmentCarouselPagerContextValue = {
     isScrollEnabled: SharedValue<boolean>;
 
     /** Function to call after a tap event */
-    onTap: () => void;
+    onTap?: () => void;
 
     /** Function to call when the scale changes */
-    onScaleChanged: (scale: number) => void;
+    onScaleChanged?: (scale: number) => void;
 
     /** Function to call after a swipe down event */
-    onSwipeDown: () => void;
+    onSwipeDown?: () => void;
+
+    /** Callback for attachment errors */
+    onAttachmentError?: (source: AttachmentSource, state?: boolean) => void;
+
+    /** In case we need a gesture that should work simultaneously with panning in MultiGestureCanvas */
+    externalGestureHandler?: GestureType;
 };
 
 const AttachmentCarouselPagerContext = createContext<AttachmentCarouselPagerContextValue | null>(null);

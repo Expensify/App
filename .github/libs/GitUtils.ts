@@ -1,7 +1,9 @@
+import * as core from '@actions/core';
 import {execSync, spawn} from 'child_process';
 import CONST from './CONST';
+import GithubUtils from './GithubUtils';
 import sanitizeStringForJSONParse from './sanitizeStringForJSONParse';
-import * as VersionUpdater from './versionUpdater';
+import {getPreviousVersion, SEMANTIC_VERSION_LEVELS} from './versionUpdater';
 import type {SemverLevel} from './versionUpdater';
 
 type CommitType = {
@@ -55,15 +57,20 @@ function tagExists(tag: string) {
  * @param level the Semver level to step backward by
  */
 function getPreviousExistingTag(tag: string, level: SemverLevel) {
-    let previousVersion = VersionUpdater.getPreviousVersion(tag, level);
+    let previousVersion = getPreviousVersion(tag.replace('-staging', ''), level);
     let tagExistsForPreviousVersion = false;
     while (!tagExistsForPreviousVersion) {
         if (tagExists(previousVersion)) {
             tagExistsForPreviousVersion = true;
             break;
         }
+        if (tagExists(`${previousVersion}-staging`)) {
+            tagExistsForPreviousVersion = true;
+            previousVersion = `${previousVersion}-staging`;
+            break;
+        }
         console.log(`Tag for previous version ${previousVersion} does not exist. Checking for an older version...`);
-        previousVersion = VersionUpdater.getPreviousVersion(previousVersion, level);
+        previousVersion = getPreviousVersion(previousVersion, level);
     }
     return previousVersion;
 }
@@ -112,8 +119,8 @@ function fetchTag(tag: string, shallowExcludeTag = '') {
  * Get merge logs between two tags (inclusive) as a JavaScript object.
  */
 function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitType[]> {
-    // Fetch tags, excluding commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = getPreviousExistingTag(fromTag, VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
+    // Fetch tags, excluding commits reachable from the previous patch version (or minor for prod) (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = getPreviousExistingTag(fromTag.replace('-staging', ''), fromTag.endsWith('-staging') ? SEMANTIC_VERSION_LEVELS.PATCH : SEMANTIC_VERSION_LEVELS.MINOR);
     fetchTag(fromTag, previousPatchVersion);
     fetchTag(toTag, previousPatchVersion);
 
@@ -164,7 +171,7 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
             return;
         }
 
-        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
+        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-(staging|production))/);
         if (!Array.isArray(match) || match.length < 2) {
             return;
         }
@@ -185,21 +192,35 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
 
 /**
  * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
+ *
+ * This function is being refactored to use the GitHub API instead of the git log command, but for now the
+ * issues retrieved from the GitHub API are just being logged for testing: https://github.com/Expensify/App/issues/58775
  */
-async function getPullRequestsMergedBetween(fromTag: string, toTag: string) {
+async function getPullRequestsDeployedBetween(fromTag: string, toTag: string) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
-    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
-    // Find which commit messages correspond to merged PR's
-    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
-    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-    return pullRequestNumbers;
+    const gitCommitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    const gitLogPullRequestNumbers = getValidMergedPRs(gitCommitList).sort((a, b) => a - b);
+    console.log(`[git log] Found ${gitCommitList.length} commits.`);
+    core.startGroup('[git log] Parsed PRs:');
+    core.info(JSON.stringify(gitLogPullRequestNumbers));
+    core.endGroup();
+
+    // Test the new GitHub API method
+    // eslint-disable-next-line deprecation/deprecation
+    const apiCommitList = await GithubUtils.getCommitHistoryBetweenTags(fromTag, toTag);
+    const apiPullRequestNumbers = getValidMergedPRs(apiCommitList).sort((a, b) => a - b);
+    console.log(`[api] Found ${apiCommitList.length} commits.`);
+    core.startGroup('[api] Parsed PRs:');
+    core.info(JSON.stringify(apiPullRequestNumbers));
+    core.endGroup();
+
+    return gitLogPullRequestNumbers;
 }
 
 export default {
     getPreviousExistingTag,
     getValidMergedPRs,
-    getPullRequestsMergedBetween,
+    getPullRequestsDeployedBetween,
 };
 export type {CommitType};

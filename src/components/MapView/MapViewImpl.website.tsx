@@ -9,11 +9,11 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo,
 import type {MapRef, ViewState} from 'react-map-gl';
 import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -250,7 +250,7 @@ const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
             };
         }, [waypoints, directionCoordinates, interactive, currentPosition, initialState.zoom]);
 
-        const distanceSymbolCoorinate = useMemo(() => {
+        const distanceSymbolCoordinate = useMemo(() => {
             if (!directionCoordinates?.length || !waypoints?.length) {
                 return;
             }
@@ -288,11 +288,11 @@ const MapViewImpl = forwardRef<MapViewHandle, MapViewProps>(
                             <View style={styles.currentPositionDot} />
                         </Marker>
                     )}
-                    {!!distanceSymbolCoorinate && !!distanceInMeters && !!distanceUnit && (
+                    {!!distanceSymbolCoordinate && !!distanceInMeters && !!distanceUnit && (
                         <Marker
                             key="distance-label"
-                            longitude={distanceSymbolCoorinate.at(0) ?? 0}
-                            latitude={distanceSymbolCoorinate.at(1) ?? 0}
+                            longitude={distanceSymbolCoordinate.at(0) ?? 0}
+                            latitude={distanceSymbolCoordinate.at(1) ?? 0}
                         >
                             <PressableWithoutFeedback
                                 accessibilityLabel={CONST.ROLE.BUTTON}

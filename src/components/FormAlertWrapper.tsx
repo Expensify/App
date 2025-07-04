@@ -3,10 +3,9 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type Network from '@src/types/onyx/Network';
 import FormHelpMessage from './FormHelpMessage';
-import {withNetwork} from './OnyxProvider';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 import TextLink from './TextLink';
@@ -30,9 +29,6 @@ type FormAlertWrapperProps = {
     /** Error message to display above button */
     message?: string;
 
-    /** Props to detect online status */
-    network: Network;
-
     /** Callback fired when the "fix the errors" link is pressed */
     onFixTheErrorsLinkPressed?: () => void;
 };
@@ -48,11 +44,11 @@ function FormAlertWrapper({
     isAlertVisible = false,
     isMessageHtml = false,
     message = '',
-    network,
     onFixTheErrorsLinkPressed = () => {},
 }: FormAlertWrapperProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
     let content;
     if (!message?.length) {
@@ -82,11 +78,11 @@ function FormAlertWrapper({
                     {content}
                 </FormHelpMessage>
             )}
-            {children(!!network.isOffline)}
+            {children(isOffline)}
         </View>
     );
 }
 
 FormAlertWrapper.displayName = 'FormAlertWrapper';
 
-export default withNetwork()(FormAlertWrapper);
+export default FormAlertWrapper;

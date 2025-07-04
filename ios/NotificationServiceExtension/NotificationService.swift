@@ -180,7 +180,7 @@ class NotificationService: UANotificationServiceExtension {
       userName: userName,
       title: notificationContent.title,
       messageText: notificationContent.body,
-      roomName: payload["roomName"] as? String
+      subtitle: payload["subtitle"] as? String
     )
   }
   
@@ -199,11 +199,11 @@ class NotificationService: UANotificationServiceExtension {
     // Configure the group/room name if there is one
     var speakableGroupName: INSpeakableString? = nil
     var recipients: [INPerson]? = nil
-    if (notificationData.roomName != nil) {
-      speakableGroupName = INSpeakableString(spokenPhrase: notificationData.roomName ?? "")
+    if (notificationData.subtitle != nil) {
+      speakableGroupName = INSpeakableString(spokenPhrase: notificationData.subtitle ?? "")
       
       // To add the group name subtitle there must be multiple recipients set. However, we do not have
-      // data on the participatns in the room/group chat so we just add a placeholder here. This shouldn't
+      // data on the participants in the room/group chat so we just add a placeholder here. This shouldn't
       // appear anywhere in the UI
       let placeholderPerson = INPerson(personHandle: INPersonHandle(value: "placeholder", type: .unknown),
                                        nameComponents: nil,
@@ -262,9 +262,9 @@ class NotificationData {
   public var userName: String
   public var title: String
   public var messageText: String
-  public var roomName: String?
+  public var subtitle: String?
   
-  public init (reportID: Int64, reportActionID: String, avatarURL: String, accountID: Int, userName: String, title: String, messageText: String, roomName: String?) {
+  public init (reportID: Int64, reportActionID: String, avatarURL: String, accountID: Int, userName: String, title: String, messageText: String, subtitle: String?) {
     self.reportID = reportID
     self.reportActionID = reportActionID
     self.avatarURL = avatarURL
@@ -272,6 +272,6 @@ class NotificationData {
     self.userName = userName
     self.title = title
     self.messageText = messageText
-    self.roomName = roomName
+    self.subtitle = subtitle
   }
 }

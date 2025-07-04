@@ -45,9 +45,13 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
                 errors.categoryName = translate('workspace.categories.existingCategoryError');
             } else if (newCategoryName === CONST.INVALID_CATEGORY_NAME) {
                 errors.categoryName = translate('workspace.categories.invalidCategoryName');
-            } else if ([...newCategoryName].length > CONST.CATEGORY_NAME_LIMIT) {
+            } else if ([...newCategoryName].length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                addErrorMessage(errors, 'categoryName', translate('common.error.characterLimitExceedCounter', {length: [...newCategoryName].length, limit: CONST.CATEGORY_NAME_LIMIT}));
+                addErrorMessage(
+                    errors,
+                    'categoryName',
+                    translate('common.error.characterLimitExceedCounter', {length: [...newCategoryName].length, limit: CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH}),
+                );
             }
 
             return errors;
@@ -72,6 +76,8 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
             validate={validateEdit || validate}
             style={[styles.mh5, styles.flex1]}
             enabledWhenOffline
+            shouldHideFixErrorsAlert
+            addBottomSafeAreaPadding
         >
             <InputWrapper
                 ref={inputCallbackRef}

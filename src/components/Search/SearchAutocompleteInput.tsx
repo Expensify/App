@@ -1,29 +1,30 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
-import type {ForwardedRef, ReactNode, RefObject} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import Animated, {LinearTransition, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import FormHelpMessage from '@components/FormHelpMessage';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearAdvancedFilters} from '@libs/actions/Search';
 import {parseFSAttributes} from '@libs/Fullstory';
+import Navigation from '@libs/Navigation/Navigation';
 import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
-import handleKeyPress from '@libs/SearchInputOnKeyPress';
-import shouldDelayFocus from '@libs/shouldDelayFocus';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import getSearchFiltersButtonTransition from './getSearchFiltersButtonTransition.ts/index';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 
@@ -40,7 +41,7 @@ type SearchAutocompleteInputProps = {
     onSubmit?: () => void;
 
     /** SearchAutocompleteList ref for managing TextInput and SearchAutocompleteList focus */
-    autocompleteListRef?: RefObject<SelectionListHandle>;
+    autocompleteListRef?: RefObject<SelectionListHandle | null>;
 
     /** Whether the input is full width */
     isFullWidth: boolean;
@@ -66,9 +67,6 @@ type SearchAutocompleteInputProps = {
     /** Any additional styles to apply to text input along with FormHelperMessage */
     outerWrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Component to be displayed on the right */
-    rightComponent?: ReactNode;
-
     /** Whether the search reports API call is running  */
     isSearchingForReports?: boolean;
 
@@ -92,7 +90,6 @@ function SearchAutocompleteInput(
         wrapperStyle,
         wrapperFocusedStyle = {},
         outerWrapperStyle,
-        rightComponent,
         isSearchingForReports,
         selection,
         substitutionMap,
@@ -103,27 +100,25 @@ function SearchAutocompleteInput(
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {activeWorkspaceID} = useActiveWorkspace();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
-    const currencyAutocompleteList = Object.keys(currencyList ?? {});
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
+    const currencyAutocompleteList = Object.keys(currencyList ?? {}).filter((currencyCode) => !currencyList?.[currencyCode]?.retired);
     const currencySharedValue = useSharedValue(currencyAutocompleteList);
 
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
     const categoryAutocompleteList = useMemo(() => {
-        return getAutocompleteCategories(allPolicyCategories, activeWorkspaceID);
-    }, [activeWorkspaceID, allPolicyCategories]);
+        return getAutocompleteCategories(allPolicyCategories);
+    }, [allPolicyCategories]);
     const categorySharedValue = useSharedValue(categoryAutocompleteList);
 
-    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const tagAutocompleteList = useMemo(() => {
-        return getAutocompleteTags(allPoliciesTags, activeWorkspaceID);
-    }, [activeWorkspaceID, allPoliciesTags]);
+        return getAutocompleteTags(allPoliciesTags);
+    }, [allPoliciesTags]);
     const tagSharedValue = useSharedValue(tagAutocompleteList);
 
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
     const emailList = Object.keys(loginList ?? {});
     const emailListSharedValue = useSharedValue(emailList);
 
@@ -132,7 +127,7 @@ function SearchAutocompleteInput(
     // we are handling focused/unfocused style using shared value instead of using state to avoid re-rendering. Otherwise layout animation in `Animated.View` will lag.
     const focusedSharedValue = useSharedValue(false);
     const wrapperAnimatedStyle = useAnimatedStyle(() => {
-        return focusedSharedValue.get() ? wrapperFocusedStyle : wrapperStyle ?? {};
+        return focusedSharedValue.get() ? wrapperFocusedStyle : (wrapperStyle ?? {});
     });
 
     useEffect(() => {
@@ -164,7 +159,7 @@ function SearchAutocompleteInput(
             'worklet';
 
             tagSharedValue.set(tagAutocompleteList);
-        });
+        })();
     }, [tagSharedValue, tagAutocompleteList]);
 
     const parser = useCallback(
@@ -176,13 +171,23 @@ function SearchAutocompleteInput(
         [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
     );
 
-    const additionalMarkdownStyle = useMemo(
-        () => ({
-            mentionHere: styles.br1,
-            mentionUser: styles.br1,
-        }),
-        [styles.br1],
-    );
+    const clearFilters = useCallback(() => {
+        clearAdvancedFilters();
+        onSearchQueryChange('');
+
+        // Check if we are on the search page before clearing query. If we are using the popup search menu,
+        // then the clear button is ONLY available when the search is *not* saved, so we don't have to navigate
+        const currentRoute = Navigation.getActiveRouteWithoutParams();
+        const isSearchPage = currentRoute === `/${ROUTES.SEARCH_ROOT.route}`;
+
+        if (isSearchPage) {
+            Navigation.navigate(
+                ROUTES.SEARCH_ROOT.getRoute({
+                    query: buildCannedSearchQuery(),
+                }),
+            );
+        }
+    }, [onSearchQueryChange]);
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
 
@@ -191,10 +196,7 @@ function SearchAutocompleteInput(
 
     return (
         <View style={[outerWrapperStyle]}>
-            <Animated.View
-                style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle]}
-                layout={shouldUseNarrowLayout && rightComponent ? LinearTransition : undefined}
-            >
+            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, wrapperStyle ?? styles.searchRouterTextInputContainer, wrapperAnimatedStyle]}>
                 <View
                     style={styles.flex1}
                     fsClass={CONST.FULL_STORY.UNMASK}
@@ -205,9 +207,8 @@ function SearchAutocompleteInput(
                         value={value}
                         onChangeText={onSearchQueryChange}
                         autoFocus={autoFocus}
-                        shouldDelayFocus={shouldDelayFocus}
                         caretHidden={caretHidden}
-                        loadingSpinnerStyle={[styles.mt0, styles.mr2]}
+                        loadingSpinnerStyle={[styles.mt0, styles.mr0, styles.justifyContentCenter]}
                         role={CONST.ROLE.PRESENTATION}
                         placeholder={translate('search.searchPlaceholder')}
                         autoCapitalize="none"
@@ -216,12 +217,11 @@ function SearchAutocompleteInput(
                         enterKeyHint="search"
                         accessibilityLabel={translate('search.searchPlaceholder')}
                         disabled={disabled}
-                        markdownStyle={additionalMarkdownStyle}
                         maxLength={CONST.SEARCH_QUERY_LIMIT}
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
-                        textInputContainerStyles={[styles.borderNone, styles.pb0]}
-                        inputStyle={[inputWidth, styles.pl3, {lineHeight: undefined}]}
+                        textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pl3]}
+                        inputStyle={[inputWidth, styles.lineHeightUndefined]}
                         placeholderTextColor={theme.textSupporting}
                         onFocus={() => {
                             onFocus?.();
@@ -233,21 +233,23 @@ function SearchAutocompleteInput(
                             focusedSharedValue.set(false);
                             onBlur?.();
                         }}
-                        isLoading={!!isSearchingForReports}
+                        isLoading={isSearchingForReports}
                         ref={ref}
-                        onKeyPress={handleKeyPress(onSubmit)}
                         type="markdown"
                         multiline={false}
                         parser={parser}
                         selection={selection}
                     />
                 </View>
-                {!!rightComponent && (
+                {!!value && (
                     <Animated.View
                         style={styles.pr3}
                         layout={SearchFiltersButtonTransition}
                     >
-                        {rightComponent}
+                        <TextInputClearButton
+                            onPressButton={clearFilters}
+                            style={styles.mt0}
+                        />
                     </Animated.View>
                 )}
             </Animated.View>

@@ -28,6 +28,21 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether the request was successful */
     isSuccess?: boolean;
+
+    /** The preferred policy for the domain card */
+    preferredPolicy?: string;
+
+    /** The Marqeta business token */
+    marqetaBusinessToken?: number;
+
+    /** Name of the domain card was issued for */
+    domainName?: string;
+
+    /** Name of the bank account used for the card settlement */
+    paymentBankAccountAddressName?: string;
+
+    /** Number of the bank account used for the card settlement */
+    paymentBankAccountNumber?: string;
 }>;
 
 export default ExpensifyCardSettings;

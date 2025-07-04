@@ -5,16 +5,16 @@ import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
-import type {FileObject} from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
+import {Close, Paperclip} from './Icon/Expensicons';
 import {PressableWithFeedback} from './Pressable';
-import Text from './Text';
+import TextWithMiddleEllipsis from './TextWithMiddleEllipsis';
 
 type UploadFileProps = {
     /** Text displayed on button when no file is uploaded */
@@ -67,7 +67,6 @@ function UploadFile({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-
     const handleFileUpload = (files: FileObject[]) => {
         const resultedFiles = [...uploadedFiles, ...files];
 
@@ -86,7 +85,7 @@ function UploadFile({
         }
 
         if (acceptedFileTypes.length > 0) {
-            const filesExtensions = files.map((file) => FileUtils.splitExtensionFromFileName(file?.name ?? '').fileExtension.toLowerCase());
+            const filesExtensions = files.map((file) => splitExtensionFromFileName(file?.name ?? '').fileExtension.toLowerCase());
 
             if (acceptedFileTypes.every((element) => !filesExtensions.includes(element as string))) {
                 setError(translate('attachmentPicker.notAllowedExtension'));
@@ -108,7 +107,7 @@ function UploadFile({
             <AttachmentPicker
                 acceptedFileTypes={acceptedFileTypes}
                 fileLimit={fileLimit}
-                allowMultiple={!!fileLimit}
+                allowMultiple={fileLimit > 1}
             >
                 {({openPicker}) => (
                     <Button
@@ -125,27 +124,26 @@ function UploadFile({
             </AttachmentPicker>
             {uploadedFiles.map((file) => (
                 <View
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p5, styles.mt3]}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.border, styles.p5, styles.mt3, styles.mw100]}
                     key={file.name}
                 >
                     <Icon
-                        src={Expensicons.Paperclip}
+                        src={Paperclip}
                         fill={theme.icon}
                         medium
                     />
-                    <Text
-                        style={[styles.ml2, styles.mr2, styles.textBold, styles.breakWord, styles.w100, styles.flexShrink1]}
-                        numberOfLines={2}
-                    >
-                        {file.name}
-                    </Text>
+                    <TextWithMiddleEllipsis
+                        text={file.name ?? ''}
+                        style={[styles.ml2, styles.mr2, styles.w100, styles.flexShrink1]}
+                        textStyle={styles.textBold}
+                    />
                     <PressableWithFeedback
                         onPress={() => onRemove(file?.name ?? '')}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.remove')}
                     >
                         <Icon
-                            src={Expensicons.Close}
+                            src={Close}
                             fill={theme.icon}
                             medium
                         />

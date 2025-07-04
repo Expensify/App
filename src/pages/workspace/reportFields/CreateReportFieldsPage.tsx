@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -9,6 +8,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -34,7 +34,7 @@ type CreateReportFieldsPageProps = WithPolicyAndFullscreenLoadingProps & Platfor
 
 const defaultDate = DateUtils.extractDate(new Date().toString());
 
-function CreateReportFieldsPage({
+function WorkspaceCreateReportFieldsPage({
     policy,
     route: {
         params: {policyID},
@@ -43,7 +43,7 @@ function CreateReportFieldsPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const formRef = useRef<FormRef>(null);
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
 
     const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
 
@@ -81,7 +81,9 @@ function CreateReportFieldsPage({
                 errors[INPUT_IDS.TYPE] = translate('workspace.reportFields.reportFieldTypeRequiredError');
             }
 
-            if (type === CONST.REPORT_FIELD_TYPES.TEXT && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
+            // formInitialValue can be undefined because the InitialValue component is rendered conditionally.
+            // If it's not been rendered when the validation is executed, formInitialValue will be undefined.
+            if (type === CONST.REPORT_FIELD_TYPES.TEXT && !!formInitialValue && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', {
                     length: formInitialValue.length,
                     limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH,
@@ -101,7 +103,7 @@ function CreateReportFieldsPage({
         setInitialCreateReportFieldsForm();
     }, []);
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
 
     const listValues = [...(formDraft?.[INPUT_IDS.LIST_VALUES] ?? [])].sort(localeCompare).join(', ');
 
@@ -113,9 +115,9 @@ function CreateReportFieldsPage({
             shouldBeBlocked={hasAccountingConnections(policy)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={CreateReportFieldsPage.displayName}
+                testID={WorkspaceCreateReportFieldsPage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -132,6 +134,7 @@ function CreateReportFieldsPage({
                     enabledWhenOffline
                     shouldValidateOnBlur={false}
                     disablePressOnEnter={!!modal?.isVisible}
+                    addBottomSafeAreaPadding
                 >
                     {({inputValues}) => (
                         <View style={styles.mhn5}>
@@ -146,6 +149,7 @@ function CreateReportFieldsPage({
                                 maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
                                 multiline={false}
                                 role={CONST.ROLE.PRESENTATION}
+                                required
                             />
                             <InputWrapper
                                 InputComponent={TypeSelector}
@@ -182,8 +186,8 @@ function CreateReportFieldsPage({
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.DATE && (
                                 <MenuItemWithTopDescription
-                                    title={translate('common.initialValue')}
-                                    description={translate('common.date')}
+                                    title={translate('common.currentDate')}
+                                    description={translate('common.initialValue')}
                                     rightLabel={translate('common.required')}
                                     interactive={false}
                                 />
@@ -205,6 +209,6 @@ function CreateReportFieldsPage({
     );
 }
 
-CreateReportFieldsPage.displayName = 'CreateReportFieldsPage';
+WorkspaceCreateReportFieldsPage.displayName = 'WorkspaceCreateReportFieldsPage';
 
-export default withPolicyAndFullscreenLoading(CreateReportFieldsPage);
+export default withPolicyAndFullscreenLoading(WorkspaceCreateReportFieldsPage);

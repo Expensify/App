@@ -3,6 +3,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import type {Parameters} from 'storybook/internal/types';
+import {SearchContextProvider} from '@components/Search/SearchContext';
 import ComposeProviders from '@src/components/ComposeProviders';
 import HTMLEngineProvider from '@src/components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
@@ -21,7 +22,9 @@ Onyx.init({
 
 const decorators = [
     (Story: React.ElementType) => (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider, SafeAreaProvider, PortalProvider, EnvironmentProvider, KeyboardStateProvider]}>
+        <ComposeProviders
+            components={[OnyxProvider, LocaleContextProvider, HTMLEngineProvider, SafeAreaProvider, PortalProvider, EnvironmentProvider, KeyboardStateProvider, SearchContextProvider]}
+        >
             <Story />
         </ComposeProviders>
     ),

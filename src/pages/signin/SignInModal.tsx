@@ -4,9 +4,9 @@ import {useSession} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import {openApp} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
-import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import SignInPage from './SignInPage';
@@ -15,7 +15,7 @@ import type {SignInPageRef} from './SignInPage';
 function SignInModal() {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const siginPageRef = useRef<SignInPageRef | null>(null);
+    const signinPageRef = useRef<SignInPageRef | null>(null);
     const session = useSession();
 
     useEffect(() => {
@@ -30,7 +30,7 @@ function SignInModal() {
             // This ensures that any communication gaps between the client and server during OpenReport processing do not cause the queue to pause,
             // which would prevent us from processing or clearing the queue.
             waitForIdle().then(() => {
-                App.openApp();
+                openApp(true);
             });
         }
     }, [session?.authTokenType]);
@@ -45,16 +45,16 @@ function SignInModal() {
         >
             <HeaderWithBackButton
                 onBackButtonPress={() => {
-                    if (!siginPageRef.current) {
+                    if (!signinPageRef.current) {
                         Navigation.goBack();
                         return;
                     }
-                    siginPageRef.current?.navigateBack();
+                    signinPageRef.current?.navigateBack();
                 }}
             />
             <SignInPage
                 shouldEnableMaxHeight={false}
-                ref={siginPageRef}
+                ref={signinPageRef}
             />
         </ScreenWrapper>
     );

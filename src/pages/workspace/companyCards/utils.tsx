@@ -42,6 +42,8 @@ function getExportMenuItem(
     const config = policy?.connections?.netsuite?.options.config;
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const {creditCards, bankAccounts: quickbooksOnlineBankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const {creditCardAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
+    const {export: exportQBD} = policy?.connections?.quickbooksDesktop?.config ?? {};
 
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO: {
@@ -293,6 +295,60 @@ function getExportMenuItem(
                 data,
             };
         }
+        case CONST.POLICY.CONNECTIONS.NAME.QBD: {
+            const nonReimbursableExpenses = exportQBD?.nonReimbursable;
+            const reimbursableExpenses = exportQBD?.reimbursable;
+            const typeNonReimbursable = nonReimbursableExpenses ? translate(`workspace.qbd.accounts.${nonReimbursableExpenses}`) : undefined;
+            const typeReimbursable = reimbursableExpenses ? translate(`workspace.qbd.accounts.${reimbursableExpenses}`) : undefined;
+            const type = typeNonReimbursable ?? typeReimbursable;
+            const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', {integration: currentConnectionName, type}) : undefined;
+            let data: Account[];
+            let shouldShowMenuItem =
+                nonReimbursableExpenses !== CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK &&
+                nonReimbursableExpenses !== CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL;
+            let title: string | undefined = '';
+            let selectedAccount: string | undefined = '';
+            const defaultAccount = exportQBD?.nonReimbursableAccount ?? exportQBD?.reimbursableAccount;
+            let isDefaultTitle = false;
+            let exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | undefined;
+            const qbdConfig = nonReimbursableExpenses ?? reimbursableExpenses;
+            switch (qbdConfig) {
+                case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
+                case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
+                case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
+                case CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD: {
+                    data = creditCardAccounts ?? [];
+                    isDefaultTitle = !!(
+                        companyCard?.nameValuePairs?.quickbooks_desktop_export_account_credit === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE ||
+                        (defaultAccount && !companyCard?.nameValuePairs?.quickbooks_desktop_export_account_credit)
+                    );
+                    title = isDefaultTitle ? defaultCard : companyCard?.nameValuePairs?.quickbooks_desktop_export_account_credit;
+                    selectedAccount = companyCard?.nameValuePairs?.quickbooks_desktop_export_account_credit ?? defaultAccount;
+                    exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_QUICKBOOKS_DESKTOP_EXPORT_ACCOUNT_CREDIT;
+                    break;
+                }
+                default:
+                    shouldShowMenuItem = false;
+                    data = [];
+            }
+
+            const resultData = data.length > 0 ? [defaultMenuItem, ...data] : data;
+
+            return {
+                description,
+                title,
+                exportType,
+                shouldShowMenuItem,
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID, backTo)),
+                data: resultData.map((card) => ({
+                    value: card.name,
+                    text: card.name,
+                    keyForList: card.name,
+                    isSelected: isDefaultTitle ? card.name === defaultCard : card.name === selectedAccount,
+                })),
+            };
+        }
+
         default:
             return undefined;
     }

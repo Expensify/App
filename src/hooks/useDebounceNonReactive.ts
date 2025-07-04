@@ -23,7 +23,7 @@ type GenericFunction = (...args: any[]) => void;
  */
 export default function useDebounceNonReactive<T extends GenericFunction>(func: T, wait: number, options?: DebounceSettings): T {
     const funcRef = useRef<T>(func); // Store the latest func reference
-    const debouncedFnRef = useRef<DebouncedFunc<T>>();
+    const debouncedFnRef = useRef<DebouncedFunc<T> | undefined>(undefined);
     const {leading, maxWait, trailing = true} = options ?? {};
 
     useEffect(() => {

@@ -1,26 +1,37 @@
 ---
-title: Uber integration
-description: Connecting your Uber account to Expensify
+title: Integrate Uber with Expensify
+description: Learn how to connect your Uber for Business account to Expensify to automatically import ride and meal receipts.
+keywords: [Expensify Classic, Uber, Uber for Business, receipt import, business travel, integrations]
 ---
-## Overview
 
-Link Expensify directly to your Uber account so your Uber for Business receipts populate automatically in Expensify. 
+<div id="expensify-classic" markdown="1">
 
-# How to connect Uber to Expensify
+Easily connect your Uber for Business account to Expensify so receipts for rides and meals are automatically imported and SmartScanned.
 
-You can do this right in the Uber app:
+# Connect Uber to Expensify
 
-1. Head to Account > Business hub > Get started 
-2. Tap Create an individual account > Get started
-3. Enter your business email and tap Next
-4. Select the payment card you'd like to use for your business profile
-5. Choose how frequently you’d like to receive travel summaries 
-6. Select Expensify as your expense provider
-Expensify and Uber are now connected! 
+Follow these steps in the Uber app to set up the integration:
 
-Now, every time you use Uber for Business – be it for rides or meals – the receipt will be imported and scanned into Expensify automatically. 
+1. Go to **Account > Business hub > Get started**.
+2. Tap **Create an individual account > Get started**.
+3. Enter your business email, then tap **Next**.
+4. Choose the payment card you'd like to use for your business profile.
+5. Select how often you'd like to receive travel summaries.
+6. Select **Expensify** as your expense provider.
+
+Once connected, your Uber for Business receipts will automatically appear in your Expensify account.
 
 ![Uber integration set up steps: Connecting your account](https://help.expensify.com/assets/images/Uber1.png){:width="100%"}
 ![Uber integration set up steps: Selecting Expensify](https://help.expensify.com/assets/images/Uber2.png){:width="100%"}
 
-To disconnect Uber and Expensify, simply follow the above path and select Disconnect on the Expensify option.
+---
+
+# Disconnect Uber from Expensify
+
+To remove the integration:
+
+1. Go to **Account > Business hub** in the Uber app.
+2. Tap the **Expensify** option.
+3. Select **Disconnect**.
+
+</div>

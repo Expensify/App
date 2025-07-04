@@ -1,5 +1,5 @@
 import {deepEqual, shallowEqual} from 'fast-equals';
-import type {TakeFirst} from '@src/types/utils/TupleOperations';
+import type TakeFirst from '@src/types/utils/TupleOperations';
 import DEFAULT_OPTIONS from './const';
 import type {ClientOptions, IsomorphicFn, KeyComparator, Options} from './types';
 

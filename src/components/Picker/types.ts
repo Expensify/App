@@ -100,4 +100,4 @@ type BasePickerProps<TPickerValue> = {
     hintText?: string;
 };
 
-export type {BasePickerHandle, BasePickerProps, AdditionalPickerEventsCallback, PickerSize, AdditionalPickerEvents, OnMouseDown, OnChange};
+export type {BasePickerHandle, BasePickerProps, PickerSize, AdditionalPickerEvents, OnMouseDown, OnChange};

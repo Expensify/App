@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
@@ -39,7 +39,6 @@ jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
-jest.mock('@src/components/Navigation/TopLevelBottomTabBar/useIsBottomTabVisibleDirectly');
 
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
@@ -103,6 +102,26 @@ const USER_C_ACCOUNT_ID = 3;
 const USER_C_EMAIL = 'user_c@test.com';
 let reportAction3CreatedDate: string;
 let reportAction9CreatedDate: string;
+const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
+const createdReportActionID = rand64().toString();
+const createdReportAction = {
+    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+    automatic: false,
+    created: format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING),
+    reportActionID: createdReportActionID,
+    message: [
+        {
+            style: 'strong',
+            text: '__FAKE__',
+            type: 'TEXT',
+        },
+        {
+            style: 'normal',
+            text: 'created this report',
+            type: 'TEXT',
+        },
+    ],
+};
 
 /**
  * Sets up a test with a logged in user that has one unread chat from another user. Returns the <App/> test instance.
@@ -116,21 +135,18 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
             const hintText = translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
-
-            await act(async () => {
-                await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
-            });
-            return waitForBatchedUpdatesWithAct();
         })
+        .then(async () => TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A'))
         .then(() => {
             subscribeToUserEvents();
             return waitForBatchedUpdates();
         })
         .then(async () => {
-            const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
             reportAction3CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 30), CONST.DATE.FNS_DB_FORMAT_STRING);
             reportAction9CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 90), CONST.DATE.FNS_DB_FORMAT_STRING);
-
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
+            });
             // Simulate setting an unread report and personal details
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                 reportID: REPORT_ID,
@@ -145,26 +161,8 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
                 lastActorAccountID: USER_B_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
             });
-            const createdReportActionID = rand64().toString();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-                [createdReportActionID]: {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                    automatic: false,
-                    created: format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING),
-                    reportActionID: createdReportActionID,
-                    message: [
-                        {
-                            style: 'strong',
-                            text: '__FAKE__',
-                            type: 'TEXT',
-                        },
-                        {
-                            style: 'normal',
-                            text: 'created this report',
-                            type: 'TEXT',
-                        },
-                    ],
-                },
+                [createdReportActionID]: createdReportAction,
                 1: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '1'),
                 2: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 20), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '2'),
                 3: TestHelper.buildTestReportComment(reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
@@ -174,9 +172,6 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
                 7: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 70), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '7'),
                 8: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 80), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '8'),
                 9: TestHelper.buildTestReportComment(reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
-            });
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
             });
 
             // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
@@ -210,8 +205,7 @@ describe('Unread Indicators', () => {
                 expect(sidebarLinks).toHaveLength(1);
 
                 // Verify there is only one option in the sidebar
-                const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
-                const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
+                const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
                 expect(optionRows).toHaveLength(1);
 
                 // And that the text is bold
@@ -222,7 +216,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
-                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
 
                 // That the report actions are visible along with the created action
                 const welcomeMessageHintText = translateLocal('accessibilityHints.chatWelcomeMessage');
@@ -246,8 +240,8 @@ describe('Unread Indicators', () => {
         signInAndGetAppWithUnreadChat()
             // Navigate to the unread chat from the sidebar
             .then(() => navigateToSidebarOption(0))
-            .then(async () => {
-                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+            .then(() => {
+                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify the unread indicator is present
                 const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
@@ -293,7 +287,7 @@ describe('Unread Indicators', () => {
                 const NEW_REPORT_ID = '2';
                 const NEW_REPORT_CREATED_DATE = subSeconds(new Date(), 5);
                 const NEW_REPORT_FIST_MESSAGE_CREATED_DATE = addSeconds(NEW_REPORT_CREATED_DATE, 1);
-                const createdReportActionID = rand64();
+                const createdReportActionIDLocal = rand64();
                 const commentReportActionID = rand64();
                 PusherHelper.emitOnyxUpdate([
                     {
@@ -317,11 +311,11 @@ describe('Unread Indicators', () => {
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NEW_REPORT_ID}`,
                         value: {
-                            [createdReportActionID]: {
+                            [createdReportActionIDLocal]: {
                                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                                 automatic: false,
                                 created: format(NEW_REPORT_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
-                                reportActionID: createdReportActionID,
+                                reportActionID: createdReportActionIDLocal,
                             },
                             [commentReportActionID]: {
                                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -350,8 +344,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // // Verify the new report option appears in the LHN
-                const optionRowsHintText = translateLocal('accessibilityHints.navigatesToChat');
-                const optionRows = screen.queryAllByAccessibilityHint(optionRowsHintText);
+                const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
                 expect(optionRows).toHaveLength(2);
                 // Verify the text for both chats are bold indicating that nothing has not yet been read
                 const displayNameHintTexts = translateLocal('accessibilityHints.chatUserDisplayNames');
@@ -369,8 +362,8 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(waitForBatchedUpdates)
-            .then(async () => {
-                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+            .then(() => {
+                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
                 const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText, {includeHiddenElements: true});
@@ -388,7 +381,7 @@ describe('Unread Indicators', () => {
             .then(() => {
                 // It's difficult to trigger marking a report comment as unread since we would have to mock the long press event and then
                 // another press on the context menu item so we will do it via the action directly and then test if the UI has updated properly
-                markCommentAsUnread(REPORT_ID, reportAction3CreatedDate);
+                markCommentAsUnread(REPORT_ID, createdReportAction);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -447,7 +440,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
-                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+                act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
@@ -486,7 +479,7 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(0);
 
                 // Mark a previous comment as unread and verify the unread action indicator returns
-                markCommentAsUnread(REPORT_ID, reportAction9CreatedDate);
+                markCommentAsUnread(REPORT_ID, createdReportAction);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -568,7 +561,7 @@ describe('Unread Indicators', () => {
         const firstNewReportAction = reportActions ? lastItem(reportActions) : undefined;
 
         if (firstNewReportAction) {
-            markCommentAsUnread(REPORT_ID, firstNewReportAction?.created);
+            markCommentAsUnread(REPORT_ID, firstNewReportAction);
 
             await waitForBatchedUpdates();
 
@@ -679,5 +672,40 @@ describe('Unread Indicators', () => {
         const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
         const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
         expect(unreadIndicator).toHaveLength(0);
+    });
+    it('Mark the chat as unread on clicking "Mark as unread" on an item in LHN when the last message of the chat was deleted by another user', async () => {
+        await signInAndGetAppWithUnreadChat();
+
+        await navigateToSidebar();
+
+        const reportAction11CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 110), CONST.DATE.FNS_DB_FORMAT_STRING);
+        const reportAction11 = TestHelper.buildTestReportComment(reportAction11CreatedDate, USER_B_ACCOUNT_ID, '11');
+        const reportAction12CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 120), CONST.DATE.FNS_DB_FORMAT_STRING);
+        const reportAction12 = TestHelper.buildTestReportComment(reportAction12CreatedDate, USER_B_ACCOUNT_ID, '12');
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+            11: reportAction11,
+            12: reportAction12,
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            lastVisibleActionCreated: reportAction12CreatedDate,
+        });
+
+        const message = reportAction12.message.at(0);
+        if (message) {
+            message.html = ''; // Simulate the server response for deleting the last message
+        }
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            lastVisibleActionCreated: reportAction11CreatedDate,
+        });
+
+        markCommentAsUnread(REPORT_ID, {reportActionID: -1} as unknown as ReportAction); // Marking the chat as unread from LHN passing a dummy reportActionID
+
+        await waitForBatchedUpdates();
+        const hintText = translateLocal('accessibilityHints.chatUserDisplayNames');
+        const displayNameTexts = screen.queryAllByLabelText(hintText);
+        expect(displayNameTexts).toHaveLength(1);
+        expect((displayNameTexts.at(0)?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
     });
 });

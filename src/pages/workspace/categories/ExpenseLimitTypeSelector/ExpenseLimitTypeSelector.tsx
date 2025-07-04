@@ -5,6 +5,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
+import KeyboardUtils from '@src/utils/keyboard';
 import ExpenseLimitTypeSelectorModal from './ExpenseLimitTypeSelectorModal';
 
 type ExpenseLimitTypeSelectorProps = {
@@ -28,7 +29,9 @@ function ExpenseLimitTypeSelector({defaultValue, wrapperStyle, label, setNewExpe
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {
-        setIsPickerVisible(true);
+        KeyboardUtils.dismiss().then(() => {
+            setIsPickerVisible(true);
+        });
     };
 
     const hidePickerModal = () => {

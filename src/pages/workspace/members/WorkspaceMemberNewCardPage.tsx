@@ -1,21 +1,26 @@
 import React, {useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     getCardFeedIcon,
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
+    getDomainOrWorkspaceAccountID,
     getFilteredCardList,
+    getPlaidInstitutionIconUrl,
     hasCardListObject,
     hasOnlyOneCardToAssign,
     isCustomFeed,
@@ -48,24 +53,27 @@ type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & Pla
 
 function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNewCardPageProps) {
     const {policyID} = route.params;
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const policy = getPolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [cardFeeds] = useCardFeeds(policyID);
     const [selectedFeed, setSelectedFeed] = useState('');
     const [shouldShowError, setShouldShowError] = useState(false);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {canBeMissing: true});
 
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const memberName = personalDetails?.[accountID]?.firstName ? personalDetails?.[accountID]?.firstName : personalDetails?.[accountID]?.login;
     const companyFeeds = getCompanyFeeds(cardFeeds, false, true);
     const isFeedExpired = isSelectedFeedExpired((selectedFeed as CompanyCardFeed) ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed] : undefined);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[selectedFeed as CompanyCardFeed]);
 
-    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
+    const [list] = useCardsList(policyID, selectedFeed as CompanyCardFeed);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed]);
 
     const shouldShowExpensifyCard = isExpensifyCardFullySetUp(policy, cardSettings);
@@ -116,27 +124,37 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         setSelectedFeed(feed.value);
         const hasAllCardsData = hasCardListObject(workspaceAccountID, feed.value as CompanyCardFeed);
         if (isCustomFeed(feed.value as CompanyCardFeed) && !hasAllCardsData) {
-            openAssignFeedCardPage(policyID, feed.value as CompanyCardFeed, workspaceAccountID);
+            openAssignFeedCardPage(policyID, feed.value as CompanyCardFeed, domainOrWorkspaceAccountID);
         }
         setShouldShowError(false);
     };
 
-    const companyCardFeeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).map((key) => ({
-        value: key,
-        text: getCustomOrFormattedFeedName(key, cardFeeds?.settings?.companyCardNicknames),
-        keyForList: key,
-        isDisabled: companyFeeds[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        pendingAction: companyFeeds[key]?.pendingAction,
-        isSelected: selectedFeed === key,
-        leftElement: (
-            <Icon
-                src={getCardFeedIcon(key, illustrations)}
-                height={variables.cardIconHeight}
-                width={variables.cardIconWidth}
-                additionalStyles={[styles.mr3, styles.cardIcon]}
-            />
-        ),
-    }));
+    const companyCardFeeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).map((key) => {
+        const plaidUrl = getPlaidInstitutionIconUrl(key);
+
+        return {
+            value: key,
+            text: getCustomOrFormattedFeedName(key, cardFeeds?.settings?.companyCardNicknames),
+            keyForList: key,
+            isDisabled: companyFeeds[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingAction: companyFeeds[key]?.pendingAction,
+            isSelected: selectedFeed === key,
+
+            leftElement: plaidUrl ? (
+                <PlaidCardFeedIcon
+                    plaidUrl={plaidUrl}
+                    style={styles.mr3}
+                />
+            ) : (
+                <Icon
+                    src={getCardFeedIcon(key, illustrations)}
+                    height={variables.cardIconHeight}
+                    width={variables.cardIconWidth}
+                    additionalStyles={[styles.mr3, styles.cardIcon]}
+                />
+            ),
+        };
+    });
 
     const feeds = shouldShowExpensifyCard
         ? [

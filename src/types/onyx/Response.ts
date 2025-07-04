@@ -93,8 +93,11 @@ type Response = {
     /** The ID of the original user (returned when in delegate mode) */
     requesterID?: number;
 
-    /** If there are httponly OldDot authentication cookies stored */
+    /** If there are http only OldDot authentication cookies stored */
     hasOldDotAuthCookies?: boolean;
+
+    /** Whether the account already exists */
+    accountExists?: boolean;
 };
 
 export default Response;

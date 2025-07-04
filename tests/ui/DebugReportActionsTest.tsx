@@ -9,7 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => {
@@ -29,8 +29,9 @@ describe('DebugReportActions', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
     });
 
     afterEach(async () => {
@@ -70,7 +71,7 @@ describe('DebugReportActions', () => {
         await waitForBatchedUpdatesWithAct();
 
         const input = screen.getByTestId('selection-list-text-input');
-        fireEvent.changeText(input, 'testtesttesttest');
+        fireEvent.changeText(input, 'Should show no results found');
         expect(await screen.findByText('No results found')).toBeOnTheScreen();
     });
 });

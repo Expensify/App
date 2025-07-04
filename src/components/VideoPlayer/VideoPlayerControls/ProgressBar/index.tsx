@@ -23,13 +23,13 @@ function getProgress(currentPosition: number, maxPosition: number): number {
 
 function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
     const styles = useThemeStyles();
-    const {pauseVideo, playVideo, checkVideoPlaying} = usePlaybackContext();
+    const {pauseVideo, playVideo, checkIfVideoIsPlaying} = usePlaybackContext();
     const [sliderWidth, setSliderWidth] = useState(1);
     const [isSliderPressed, setIsSliderPressed] = useState(false);
     const progressWidth = useSharedValue(0);
     const wasVideoPlayingOnCheck = useSharedValue(false);
 
-    const onCheckVideoPlaying = (isPlaying: boolean) => {
+    const onCheckIfVideoIsPlaying = (isPlaying: boolean) => {
         wasVideoPlayingOnCheck.set(isPlaying);
     };
 
@@ -47,7 +47,7 @@ function ProgressBar({duration, position, seekPosition}: ProgressBarProps) {
         .runOnJS(true)
         .onBegin((event) => {
             setIsSliderPressed(true);
-            checkVideoPlaying(onCheckVideoPlaying);
+            checkIfVideoIsPlaying(onCheckIfVideoIsPlaying);
             pauseVideo();
             progressBarInteraction(event);
         })

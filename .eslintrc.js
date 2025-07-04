@@ -88,8 +88,22 @@ const restrictedImportPaths = [
         message: "Please use '@src/libs/memoize' instead.",
     },
     {
+        name: 'lodash/isEqual',
+        message: "Please use 'deepEqual' from 'fast-equals' instead.",
+    },
+    {
+        name: 'lodash',
+        importNames: ['isEqual'],
+        message: "Please use 'deepEqual' from 'fast-equals' instead.",
+    },
+    {
         name: 'react-native-animatable',
         message: "Please use 'react-native-reanimated' instead.",
+    },
+    {
+        name: 'react-native-onyx',
+        importNames: ['useOnyx'],
+        message: "Please use '@hooks/useOnyx' instead.",
     },
 ];
 
@@ -145,6 +159,7 @@ module.exports = {
         '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/no-import-type-side-effects': 'error',
         '@typescript-eslint/array-type': ['error', {default: 'array-simple'}],
+        '@typescript-eslint/max-params': ['error', {max: 10}],
         '@typescript-eslint/naming-convention': [
             'error',
             {
@@ -236,6 +251,16 @@ module.exports = {
                 selector: 'TSEnumDeclaration',
                 message: "Please don't declare enums, use union types instead.",
             },
+
+            // These are the original rules from AirBnB's style guide, modified to allow for...of loops and for...in loops
+            {
+                selector: 'LabeledStatement',
+                message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.',
+            },
+            {
+                selector: 'WithStatement',
+                message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.',
+            },
         ],
         'no-restricted-properties': [
             'error',
@@ -281,6 +306,7 @@ module.exports = {
                     '@libs': './src/libs',
                     '@navigation': './src/libs/Navigation',
                     '@pages': './src/pages',
+                    '@prompts': './prompts',
                     '@styles': './src/styles',
                     // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                     '@src': './src',

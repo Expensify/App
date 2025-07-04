@@ -63,6 +63,9 @@ type OfflineWithFeedbackProps = ChildrenProps & {
 
     /** Whether we should force opacity */
     shouldForceOpacity?: boolean;
+
+    /** A function to dismiss error */
+    dismissError?: () => void;
 };
 
 type StrikethroughProps = Partial<ChildrenProps> & {style: AllStyles[]};
@@ -82,6 +85,7 @@ function OfflineWithFeedback({
     style,
     shouldDisplayErrorAbove = false,
     shouldForceOpacity = false,
+    dismissError = () => {},
     ...rest
 }: OfflineWithFeedbackProps) {
     const styles = useThemeStyles();
@@ -103,7 +107,7 @@ function OfflineWithFeedback({
      */
     const applyStrikeThrough = useCallback(
         (childrenProp: React.ReactNode): React.ReactNode => {
-            const strikedThroughChildren = mapChildrenFlat(childrenProp, (child) => {
+            const strikeThroughChildren = mapChildrenFlat(childrenProp, (child) => {
                 if (!React.isValidElement(child)) {
                     return child;
                 }
@@ -121,7 +125,7 @@ function OfflineWithFeedback({
                 return React.cloneElement(child, props);
             });
 
-            return strikedThroughChildren;
+            return strikeThroughChildren;
         },
         [StyleUtils, styles],
     );
@@ -138,6 +142,7 @@ function OfflineWithFeedback({
                     errorRowStyles={errorRowStyles}
                     onClose={onClose}
                     canDismissError={canDismissError}
+                    dismissError={dismissError}
                 />
             )}
             {!hideChildren && (
@@ -154,6 +159,7 @@ function OfflineWithFeedback({
                     errorRowStyles={errorRowStyles}
                     onClose={onClose}
                     canDismissError={canDismissError}
+                    dismissError={dismissError}
                 />
             )}
         </View>

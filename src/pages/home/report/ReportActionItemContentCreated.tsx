@@ -1,7 +1,6 @@
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -13,6 +12,7 @@ import type {ShowContextMenuContextProps} from '@components/ShowContextMenuConte
 import SpacerView from '@components/SpacerView';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMessageDeleted, isReversedTransaction as isReversedTransactionReportActionsUtils, isTransactionThread} from '@libs/ReportActionsUtils';
@@ -31,6 +31,9 @@ type ReportActionItemContentCreatedProps = {
     /**  The context value containing the report and action data, along with the show context menu props */
     contextValue: ShowContextMenuContextProps;
 
+    /** The parent report */
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -44,13 +47,12 @@ type ReportActionItemContentCreatedProps = {
     shouldHideThreadDividerLine: boolean;
 };
 
-function ReportActionItemContentCreated({contextValue, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
+function ReportActionItemContentCreated({contextValue, parentReport, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {report, action, transactionThreadReport} = contextValue;
-
     const policy = usePolicy(report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? undefined : report?.policyID);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
 
     const transactionCurrency = getCurrency(transaction);
 
@@ -139,7 +141,11 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />
                 <View>
-                    <TaskView report={report} />
+                    <TaskView
+                        report={report}
+                        parentReport={parentReport}
+                        action={action}
+                    />
                     {renderThreadDivider}
                 </View>
             </View>
@@ -157,7 +163,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                             isCombinedReport
                             pendingAction={action?.pendingAction}
                             shouldShowTotal={transaction ? transactionCurrency !== report?.currency : false}
-                            shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                            shouldHideThreadDividerLine={false}
                         />
                         <ShowContextMenuContext.Provider value={contextMenuValue}>
                             <View>
@@ -194,8 +200,8 @@ ReportActionItemContentCreated.displayName = 'ReportActionItemContentCreated';
 export default memo(
     ReportActionItemContentCreated,
     (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.contextValue, nextProps.contextValue) &&
-        lodashIsEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
+        deepEqual(prevProps.contextValue, nextProps.contextValue) &&
+        deepEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
         prevProps.transactionID === nextProps.transactionID &&
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine,

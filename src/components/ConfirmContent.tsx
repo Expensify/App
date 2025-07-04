@@ -97,7 +97,7 @@ type ConfirmContentProps = {
     /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
 
-    /** Whether the modal is visibile */
+    /** Whether the modal is visible */
     isVisible: boolean;
 
     /** Whether the confirm button is loading */
@@ -177,7 +177,7 @@ function ConfirmContent({
                         <View style={[shouldCenterIcon ? styles.justifyContentCenter : null, styles.flexRow, styles.mb3]}>
                             <Icon
                                 src={iconSource}
-                                fill={iconFill === false ? undefined : iconFill ?? theme.icon}
+                                fill={iconFill === false ? undefined : (iconFill ?? theme.icon)}
                                 width={iconWidth}
                                 height={iconHeight}
                                 additionalStyles={iconAdditionalStyles}

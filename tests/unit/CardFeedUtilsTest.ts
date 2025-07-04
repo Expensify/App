@@ -1,6 +1,9 @@
 import {getCardFeedNamesWithType, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
 import {translateLocal} from '@libs/Localize';
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {WorkspaceCardsList} from '@src/types/onyx';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 const fakeWorkspace: Record<string, WorkspaceCardsList> = {
@@ -11,7 +14,7 @@ const fakeWorkspace: Record<string, WorkspaceCardsList> = {
             bank: 'Expensify Card',
             cardID: 11111111,
             cardName: '111111XXXXXX1111',
-            domainName: 'expensify-policyxxxxxxxxxxxxxxxx.exfy',
+            domainName: 'expensify-policy1234567891011121.exfy',
             fraud: 'none',
             fundID: '11111111',
             lastFourPAN: '1234',
@@ -26,7 +29,7 @@ const fakeWorkspace: Record<string, WorkspaceCardsList> = {
             bank: 'Expensify Card',
             cardID: 22222222,
             cardName: '222222XXXXXX2222',
-            domainName: 'expensify-policyxxxxxxxxxxxxxxxx.exfy',
+            domainName: 'expensify-policy1234567891011121.exfy',
             fraud: 'none',
             fundID: '11111111',
             lastFourPAN: '5678',
@@ -43,7 +46,7 @@ const fakeWorkspace: Record<string, WorkspaceCardsList> = {
             bank: 'Expensify Card',
             cardID: 33333333,
             cardName: '333333XXXXXX3333',
-            domainName: 'expensify-policyxxxxxxxxxxxxxxxx.exfy',
+            domainName: 'expensify-policy1234567891011121.exfy',
             fraud: 'none',
             fundID: '22222222',
             lastFourPAN: '9101',
@@ -57,8 +60,12 @@ const fakeWorkspace: Record<string, WorkspaceCardsList> = {
 /* eslint-enable @typescript-eslint/naming-convention */
 
 describe('Card Feed Utils', () => {
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
+    });
     it('returns display name of workspace & domain cards', () => {
-        const cardFeedNamesWithType = getCardFeedNamesWithType({workspaceCardFeeds: fakeWorkspace, userCardList: {}, translate: translateLocal});
+        const cardFeedNamesWithType = getCardFeedNamesWithType({workspaceCardFeeds: fakeWorkspace, translate: translateLocal});
         expect(Object.keys(cardFeedNamesWithType).length).toBe(2);
         expect(Object.values(cardFeedNamesWithType).every((cardFeedName) => cardFeedName.name === 'All Expensify')).toBe(true);
     });
@@ -71,7 +78,7 @@ describe('Card Feed Utils', () => {
     });
 
     it('returns empty object when workspaceCardFeeds is empty', () => {
-        const names = getCardFeedNamesWithType({workspaceCardFeeds: {key: {}}, userCardList: {}, translate: translateLocal});
+        const names = getCardFeedNamesWithType({workspaceCardFeeds: {key: {}}, translate: translateLocal});
         expect(names).toEqual({});
     });
 

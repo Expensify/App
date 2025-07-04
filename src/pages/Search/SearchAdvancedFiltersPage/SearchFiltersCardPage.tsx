@@ -1,33 +1,34 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import SelectionList from '@components/SelectionList';
 import CardListItem from '@components/SelectionList/Search/CardListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openSearchFiltersCardPage, updateAdvancedFilters} from '@libs/actions/Search';
 import type {CardFilterItem} from '@libs/CardFeedUtils';
-import {buildCardFeedsData, buildCardsData, generateDomainFeedData, generateSelectedCards, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
+import {buildCardFeedsData, buildCardsData, generateSelectedCards, getDomainFeedData, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function SearchFiltersCardPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useThemeIllustrations();
 
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
 
     const [selectedCards, setSelectedCards] = useState<string[]>([]);
@@ -51,7 +52,7 @@ function SearchFiltersCardPage() {
         [workspaceCardFeeds, userCardList, personalDetails, selectedCards, illustrations],
     );
 
-    const domainFeedsData = useMemo(() => generateDomainFeedData(userCardList), [userCardList]);
+    const domainFeedsData = useMemo(() => getDomainFeedData(workspaceCardFeeds), [workspaceCardFeeds]);
 
     const cardFeedsSectionData = useMemo(
         () => buildCardFeedsData(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, domainFeedsData, selectedCards, translate, illustrations),
@@ -146,17 +147,18 @@ function SearchFiltersCardPage() {
 
     const headerMessage = debouncedSearchTerm.trim() && sections.every((section) => !section.data.length) ? translate('common.noResultsFound') : '';
 
+    const resetChanges = useCallback(() => {
+        setSelectedCards([]);
+    }, [setSelectedCards]);
+
     const footerContent = useMemo(
         () => (
-            <Button
-                success
-                text={translate('common.save')}
-                pressOnEnter
-                onPress={handleConfirmSelection}
-                large
+            <SearchFilterPageFooterButtons
+                applyChanges={handleConfirmSelection}
+                resetChanges={resetChanges}
             />
         ),
-        [translate, handleConfirmSelection],
+        [resetChanges, handleConfirmSelection],
     );
 
     return (
@@ -166,34 +168,37 @@ function SearchFiltersCardPage() {
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={translate('common.card')}
-                onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-                }}
-            />
-            <View style={[styles.flex1]}>
-                <SelectionList<CardFilterItem>
-                    sections={sections}
-                    onSelectRow={updateNewCards}
-                    footerContent={footerContent}
-                    headerMessage={headerMessage}
-                    shouldStopPropagation
-                    shouldShowTooltips
-                    canSelectMultiple
-                    shouldPreventDefaultFocusOnSelectRow={false}
-                    shouldKeepFocusedItemAtTopOfViewableArea={false}
-                    shouldScrollToFocusedIndex={false}
-                    ListItem={CardListItem}
-                    shouldShowTextInput={shouldShowSearchInput}
-                    textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
-                    textInputValue={searchTerm}
-                    onChangeText={(value) => {
-                        setSearchTerm(value);
-                    }}
-                    showLoadingPlaceholder
-                />
-            </View>
+            {({didScreenTransitionEnd}) => (
+                <>
+                    <HeaderWithBackButton
+                        title={translate('common.card')}
+                        onBackButtonPress={() => {
+                            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                        }}
+                    />
+                    <View style={[styles.flex1]}>
+                        <SelectionList<CardFilterItem>
+                            sections={sections}
+                            onSelectRow={updateNewCards}
+                            footerContent={footerContent}
+                            headerMessage={headerMessage}
+                            shouldStopPropagation
+                            shouldShowTooltips
+                            canSelectMultiple
+                            shouldPreventDefaultFocusOnSelectRow={false}
+                            shouldKeepFocusedItemAtTopOfViewableArea={false}
+                            ListItem={CardListItem}
+                            shouldShowTextInput={shouldShowSearchInput}
+                            textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
+                            textInputValue={searchTerm}
+                            onChangeText={(value) => {
+                                setSearchTerm(value);
+                            }}
+                            showLoadingPlaceholder={isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata) || !didScreenTransitionEnd}
+                        />
+                    </View>
+                </>
+            )}
         </ScreenWrapper>
     );
 }

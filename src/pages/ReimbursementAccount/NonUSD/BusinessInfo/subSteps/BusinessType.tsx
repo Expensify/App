@@ -1,15 +1,16 @@
 import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD/utils/getListOptionsFromCorpayPicklist';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -22,30 +23,11 @@ function BusinessType({onNext, isEditing}: BusinessTypeProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: false});
 
-    const incorporationTypeListOptions = useMemo(() => {
-        if (!corpayOnboardingFields?.picklists.ApplicantType) {
-            return {};
-        }
-
-        return corpayOnboardingFields.picklists.ApplicantType.reduce((accumulator, currentValue) => {
-            accumulator[currentValue.name] = currentValue.stringValue;
-            return accumulator;
-        }, {} as Record<string, string>);
-    }, [corpayOnboardingFields]);
-
-    const natureOfBusinessListOptions = useMemo(() => {
-        if (!corpayOnboardingFields?.picklists.NatureOfBusiness) {
-            return {};
-        }
-
-        return corpayOnboardingFields.picklists.NatureOfBusiness.reduce((accumulator, currentValue) => {
-            accumulator[currentValue.name] = currentValue.stringValue;
-            return accumulator;
-        }, {} as Record<string, string>);
-    }, [corpayOnboardingFields]);
+    const incorporationTypeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.ApplicantType), [corpayOnboardingFields]);
+    const natureOfBusinessListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.NatureOfBusiness), [corpayOnboardingFields]);
 
     const incorporationTypeDefaultValue = reimbursementAccount?.achData?.corpay?.[APPLICANT_TYPE_ID] ?? '';
     const businessCategoryDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_CATEGORY] ?? '';

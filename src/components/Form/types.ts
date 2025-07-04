@@ -6,7 +6,6 @@ import type AddressSearch from '@components/AddressSearch';
 import type AmountForm from '@components/AmountForm';
 import type AmountPicker from '@components/AmountPicker';
 import type AmountTextInput from '@components/AmountTextInput';
-import type {FileObject} from '@components/AttachmentModal';
 import type CheckboxWithLabel from '@components/CheckboxWithLabel';
 import type CountryPicker from '@components/CountryPicker';
 import type CountrySelector from '@components/CountrySelector';
@@ -27,6 +26,8 @@ import type TimeModalPicker from '@components/TimeModalPicker';
 import type UploadFile from '@components/UploadFile';
 import type ValuePicker from '@components/ValuePicker';
 import type ConstantSelector from '@pages/Debug/ConstantSelector';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type OnboardingCurrencyPicker from '@pages/OnboardingWorkspaceConfirmation/OnboardingCurrencyPicker';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/USD/BusinessInfo/subSteps/TypeBusiness/BusinessTypePicker';
 import type DimensionTypeSelector from '@pages/workspace/accounting/intacct/import/DimensionTypeSelector';
 import type NetSuiteCustomFieldMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomFieldMappingPicker';
@@ -71,7 +72,8 @@ type ValidInputs =
     | typeof ConstantSelector
     | typeof UploadFile
     | typeof PushRowWithModal
-    | typeof TimeModalPicker;
+    | typeof TimeModalPicker
+    | typeof OnboardingCurrencyPicker;
 
 type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues' | 'entityChart';
 type ValueTypeMap = {
@@ -164,6 +166,8 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     /** Disable press on enter for submit button */
     disablePressOnEnter?: boolean;
 
+    /** Render extra button above submit button */
+    shouldRenderFooterAboveSubmit?: boolean;
     /**
      * Determines whether the form should automatically scroll to the end upon rendering or when the value changes.
      * If `true`, the form will smoothly scroll to the bottom after interactions have completed.
@@ -175,23 +179,11 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
     resetForm: (optionalValue: FormOnyxValues<TFormID>) => void;
     resetErrors: () => void;
     resetFormFieldError: (fieldID: keyof Form) => void;
+    submit: () => void;
 };
 
 type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
 
 type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, string | undefined>>;
 
-export type {
-    FormProps,
-    ValidInputs,
-    InputComponentValueProps,
-    FormValue,
-    ValueTypeKey,
-    FormOnyxValues,
-    FormOnyxKeys,
-    FormInputErrors,
-    InputRefs,
-    InputComponentBaseProps,
-    ValueTypeMap,
-    FormRef,
-};
+export type {FormProps, ValidInputs, InputComponentValueProps, FormValue, ValueTypeKey, FormOnyxValues, FormOnyxKeys, FormInputErrors, InputRefs, InputComponentBaseProps, FormRef};

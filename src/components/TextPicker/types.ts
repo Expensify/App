@@ -24,6 +24,9 @@ type TextSelectorModalProps = {
 
     /** The ID used to uniquely identify the input in a Form */
     inputID: string;
+
+    /** Whether the field is required */
+    required?: boolean;
 } & Pick<MenuItemBaseProps, 'subtitle' | 'description'> &
     TextProps;
 
@@ -48,6 +51,9 @@ type TextPickerProps = {
 
     /** The ID used to uniquely identify the input in a Form */
     inputID: string;
+
+    /** Whether the field is required */
+    required?: boolean;
 } & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'interactive'> &
     TextProps;
 

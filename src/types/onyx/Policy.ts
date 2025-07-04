@@ -476,6 +476,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Credentials of the current QBO connection */
     credentials: QBOCredentials;
+
+    /** The accounting Method for NetSuite connection config */
+    accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 }>;
 
 /**
@@ -982,7 +985,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The Item record to associate with lines on an invoice created via Expensify */
         invoiceItem?: string;
 
-        /** The internaID of the selected subsidiary in NetSuite */
+        /** The internalID of the selected subsidiary in NetSuite */
         subsidiaryID?: string;
 
         /** The default vendor to use for Transactions in NetSuite */
@@ -1009,7 +1012,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether this account is using the newer version of tax in NetSuite, SuiteTax */
         suiteTaxEnabled?: boolean;
 
-        /** The accounting Method for NetSuite conenction config */
+        /** The accounting Method for NetSuite connection config */
         accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 
         /** Collection of errors coming from BE */
@@ -1072,96 +1075,6 @@ type NetSuiteConnection = {
     tokenSecret: string;
 };
 
-/**
- *  NSQS Payment account
- */
-type NSQSPaymentAccount = {
-    /** ID assigned to the account in NSQS */
-    id: string;
-
-    /** Name of the account */
-    name: string;
-
-    /** Display name of the account */
-    displayName: string;
-
-    /** Number of the account */
-    number: string;
-
-    /** Type of the account */
-    type: string;
-};
-
-/**
- * Connection data for NSQS
- */
-type NSQSConnectionData = {
-    /** Collection of the payments accounts */
-    paymentAccounts: NSQSPaymentAccount[];
-};
-
-/**
- * Connection config for NSQS
- */
-type NSQSConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Configuration of automatic synchronization from NSQS to the app */
-    autoSync?: {
-        /** Job ID of the synchronization */
-        jobID: string;
-
-        /** Whether changes made in NSQS should be reflected into the app automatically */
-        enabled: boolean;
-    };
-
-    /** Configuration options pertaining to sync */
-    syncOptions?: {
-        /** Configuration of import settings from NSQS to Expensify */
-        mapping?: {
-            /** How NSQS customers are displayed as */
-            customers: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>;
-
-            /** How NSQS projects are displayed as */
-            projects: ValueOf<typeof CONST.NSQS_INTEGRATION_ENTITY_MAP_TYPES>;
-        };
-    };
-
-    /** The company currency */
-    currency: string;
-
-    /** The e-mail of the exporter */
-    exporter: string;
-
-    /** Export date type */
-    exportDate: ValueOf<typeof CONST.NSQS_EXPORT_DATE>;
-
-    /** NSQS credentials */
-    credentials: {
-        /** Encrypted token for NSQS authentication */
-        accessToken: string;
-
-        /** The company ID */
-        companyID: string;
-
-        /** Token expiration date */
-        expires: string;
-
-        /** The current scope of the NSQS connection */
-        scope: string;
-
-        /** The access token type */
-        tokenType: string;
-    };
-
-    /** Whether the connection is configured */
-    isConfigured: boolean;
-
-    /** The account used for payments in NSQS */
-    paymentAccount: string;
-
-    /** Collections of form field errors */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
-
 /** One of the SageIntacctConnectionData object elements */
 type SageIntacctDataElement = {
     /** Element ID */
@@ -1213,10 +1126,10 @@ type SageIntacctMappingName = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>
  * Sage Intacct dimension type
  */
 type SageIntacctDimension = {
-    /** Name of user defined dimention */
+    /** Name of user defined dimension */
     dimension: string;
 
-    /** Mapping value for user defined dimention */
+    /** Mapping value for user defined dimension */
     mapping: typeof CONST.SAGE_INTACCT_MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD;
 };
 
@@ -1240,7 +1153,7 @@ type SageIntacctMappingType = {
     /** Mapping type for Sage Intacct */
     projects: SageIntacctMappingValue;
 
-    /** User defined dimention type for Sage Intacct */
+    /** User defined dimension type for Sage Intacct */
     dimensions: SageIntacctDimension[];
 };
 
@@ -1466,9 +1379,6 @@ type Connections = {
     /** NetSuite integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: NetSuiteConnection;
 
-    /** NSQS integration connection */
-    [CONST.POLICY.CONNECTIONS.NAME.NSQS]: Connection<NSQSConnectionData, NSQSConnectionConfig>;
-
     /** Sage Intacct integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: Connection<SageIntacctConnectionData, SageIntacctConnectionsConfig>;
 
@@ -1522,6 +1432,24 @@ type ACHAccount = {
     reimburser: string;
 };
 
+/** Prohibited expense types */
+type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Whether the policy prohibits alcohol expenses */
+    alcohol?: boolean;
+
+    /** Whether the policy prohibits hotel incidental expenses */
+    hotelIncidentals?: boolean;
+
+    /** Whether the policy prohibits gambling expenses */
+    gambling?: boolean;
+
+    /** Whether the policy prohibits tobacco expenses */
+    tobacco?: boolean;
+
+    /** Whether the policy prohibits adult entertainment expenses */
+    adultEntertainment?: boolean;
+}>;
+
 /** Day of the month to schedule submission  */
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
 
@@ -1563,7 +1491,7 @@ type PolicyReportField = {
     /** list of externalIDs, this are either imported from the integrations or auto generated by us, each externalID */
     externalIDs: string[];
 
-    /** Collection of flags that state whether droplist field options are disabled */
+    /** Collection of flags that state whether drop down field options are disabled */
     disabledOptions: boolean[];
 
     /** Is this a tax user defined report field */
@@ -1754,6 +1682,12 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
 
+        /** The set reimburser for the policy */
+        reimburser?: string;
+
+        /** The set exporter for the policy */
+        exporter?: string;
+
         /** Detailed settings for the autoReimbursement */
         autoReimbursement?: OnyxCommon.OnyxValueWithOfflineFeedback<
             {
@@ -1787,11 +1721,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             },
             'limit' | 'auditRate'
         >;
-
-        /**
-         * Whether the custom report name options are enabled in the policy rules
-         */
-        shouldShowCustomReportTitleOption?: boolean;
 
         /** Whether to leave the calling account as an admin on the policy */
         makeMeAdmin?: boolean;
@@ -1851,12 +1780,12 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of tax rates attached to a policy */
         taxRates?: TaxRatesWithDefault;
 
-        /** A set of rules related to the workpsace */
+        /** A set of rules related to the workspace */
         rules?: {
-            /** A set of rules related to the workpsace approvals */
+            /** A set of rules related to the workspace approvals */
             approvalRules?: ApprovalRule[];
 
-            /** A set of rules related to the workpsace expenses */
+            /** A set of rules related to the workspace expenses */
             expenseRules?: ExpenseRule[];
         };
 
@@ -1917,6 +1846,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the eReceipts are enabled */
         eReceipts?: boolean;
 
+        /** Settings for the Policy's prohibited expenses */
+        prohibitedExpenses?: ProhibitedExpenses;
+
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
 
@@ -1929,7 +1861,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the Policy ownership change is failed */
         isChangeOwnerFailed?: boolean;
 
-        /** Object containing all policy information necessary to connect with Spontana */
+        /** Object containing all policy information necessary to connect with Spotnana */
         travelSettings?: WorkspaceTravelSettings;
 
         /** Indicates if the policy is pending an upgrade */
@@ -1967,6 +1899,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicate whether the Workspace plan can be downgraded */
         canDowngrade?: boolean;
+
+        /** Whether Attendee Tracking is enabled */
+        isAttendeeTrackingEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;
@@ -2006,7 +1941,6 @@ export type {
     IntegrationEntityMap,
     PolicyFeatureName,
     PolicyDetailsForNonMembers,
-    PendingJoinRequestPolicy,
     PolicyConnectionName,
     PolicyConnectionSyncStage,
     PolicyConnectionSyncProgress,
@@ -2027,15 +1961,12 @@ export type {
     NetSuiteSubsidiary,
     NetSuiteCustomList,
     NetSuiteCustomSegment,
-    NetSuiteCustomListSource,
     NetSuiteCustomFieldMapping,
     NetSuiteAccount,
     NetSuiteVendor,
     InvoiceItem,
     NetSuiteTaxAccount,
-    NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
-    NSQSPaymentAccount,
     SageIntacctMappingValue,
     SageIntacctMappingType,
     SageIntacctMappingName,
@@ -2051,4 +1982,5 @@ export type {
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,
+    ProhibitedExpenses,
 };

@@ -11,6 +11,10 @@ export default {
         margin: 0,
     },
 
+    m1: {
+        margin: 4,
+    },
+
     m2: {
         margin: 8,
     },
@@ -25,6 +29,10 @@ export default {
 
     m5: {
         margin: 20,
+    },
+
+    mhAuto: {
+        marginHorizontal: 'auto',
     },
 
     mh0: {
@@ -57,6 +65,10 @@ export default {
 
     mhn2: {
         marginHorizontal: -8,
+    },
+
+    mhn4: {
+        marginHorizontal: -16,
     },
 
     mhn5: {
@@ -165,6 +177,10 @@ export default {
 
     ml2: {
         marginLeft: 8,
+    },
+
+    mln2: {
+        marginLeft: -12,
     },
 
     ml3: {
@@ -355,6 +371,10 @@ export default {
         marginBottom: 40,
     },
 
+    mb11: {
+        marginBottom: 44,
+    },
+
     mb12: {
         marginBottom: 48,
     },
@@ -383,6 +403,12 @@ export default {
         padding: 0,
         paddingHorizontal: 0,
         paddingVertical: 0,
+        // Set all individual padding properties to 0 to ensure they override any granular padding styles
+        // that may not be affected by the shorthand padding properties above
+        paddingLeft: 0,
+        paddingRight: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
     },
 
     p1: {
@@ -433,7 +459,7 @@ export default {
         paddingVertical: 4,
     },
 
-    pv1half: {
+    pv1Half: {
         paddingVertical: 6,
     },
 
@@ -621,6 +647,10 @@ export default {
         paddingTop: 20,
     },
 
+    pt6: {
+        paddingTop: 24,
+    },
+
     pt8: {
         paddingTop: 32,
     },
@@ -643,6 +673,10 @@ export default {
 
     pb2: {
         paddingBottom: 8,
+    },
+
+    pb2half: {
+        paddingBottom: 10,
     },
 
     pb3: {
@@ -689,6 +723,10 @@ export default {
         gap: 4,
     },
 
+    gapHalf: {
+        gap: 2,
+    },
+
     gap2: {
         gap: 8,
     },
@@ -725,8 +763,16 @@ export default {
         columnGap: 12,
     },
 
+    minHeight4: {
+        minHeight: 16,
+    },
+
     minHeight5: {
         minHeight: 20,
+    },
+
+    minHeight22: {
+        minHeight: 88,
     },
 
     minHeight65: {

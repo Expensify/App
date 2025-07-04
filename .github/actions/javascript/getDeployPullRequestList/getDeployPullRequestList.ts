@@ -25,7 +25,6 @@ async function run() {
             ({data}, done) => {
                 // For production deploys, look only at other production deploys.
                 // staging deploys can be compared with other staging deploys or production deploys.
-                // The reason is that the final staging release in each deploy cycle will BECOME a production release
                 const filteredData = isProductionDeploy ? data.filter((release) => !release.prerelease) : data;
 
                 // Release was in the last page, meaning the previous release is the first item in this page
@@ -61,7 +60,7 @@ async function run() {
         }
 
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
-        const prList = await GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
+        const prList = await GitUtils.getPullRequestsDeployedBetween(priorTag, inputTag);
         console.log('Found the pull request list: ', prList);
         core.setOutput('PR_LIST', prList);
     } catch (error) {

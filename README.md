@@ -20,6 +20,8 @@
 * [Security](#Security)
 * [Internationalization](#Internationalization)
 * [Deploying](#deploying)
+* [Onyx derived values](#onyx-derived-values)
+* [canBeMissing onyx param](#canbemissing-onyx-param)
 
 #### Additional Reading
 * [API Details](contributingGuides/API.md)
@@ -83,6 +85,42 @@ If you want to run the app on an actual physical iOS device, please follow the i
 * If you are an Expensify employee and want to point the emulator to your local VM, follow [this](https://stackoverflow.com/c/expensify/questions/7699)
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
+
+### Enabling prebuilt `react-native` artifacts on Android
+#### Disabling build from source
+
+By default, `react-native` is built from source when building the Android app. However, you can enable prebuilt artifacts to speed up the build process:
+
+   - Open `android/gradle.properties` (for Standalone NewDot) or `Mobile-Expensify/Android/gradle.properties` (for HybridApp)
+   - Set `patchedArtifacts.forceBuildFromSource=false`
+
+#### Configuring GitHub CLI
+
+To use prebuilt artifacts, you need to have GitHub CLI installed and configured:
+
+1. Install GitHub CLI by following the instructions from [cli.github.com](https://cli.github.com/)
+
+2. Create a GitHub Personal Access Token:
+   - Go to [GitHub Settings > Developer Settings > Personal Access Tokens](https://github.com/settings/tokens)
+   - Click "Generate new token (classic)"
+   - Select the following scopes:
+     - `repo`
+     - `read:org`
+     - `gist`
+     - `read:packages`
+   - Copy the generated token
+
+3. Login to GitHub CLI:
+   ```bash
+   echo "YOUR_TOKEN" | gh auth login --with-token
+   ```
+4. Verify the login was successful:
+   ```bash
+   gh auth status
+   ```
+   You should see a message confirming you are authenticated with your GitHub account.
+
+After completing these steps, you should be able to build Android apps with prebuilt `react-native` artifacts.
 
 ## Running the MacOS desktop app 🖥
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
@@ -414,14 +452,14 @@ Different platforms come with varying storage capacities and Onyx has a way to g
 By default, Onyx will not evict anything from storage and will presume all keys are "unsafe" to remove unless explicitly told otherwise.
 
 **To flag a key as safe for removal:**
-- Add the key to the `safeEvictionKeys` option in `Onyx.init(options)`
+- Add the key to the `evictableKeys` option in `Onyx.init(options)`
 - Implement `canEvict` in the Onyx config for each component subscribing to a key
 - The key will only be deleted when all subscribers return `true` for `canEvict`
 
 e.g.
 ```js
 Onyx.init({
-    safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+    evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
 });
 ```
 
@@ -458,19 +496,21 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
 ## Getting started with HybridApp
 
 1. If you haven't, please follow [these instructions](https://github.com/Expensify/App?tab=readme-ov-file#getting-started) to setup the NewDot local environment.
-2. Run `git submodule update --init --progress --depth 100` to download the `Mobile-Expensify` sourcecode.
-- If you have access to `Mobile-Expensify` and the command fails, add this to your `~/.gitconfig` file:
+2. In the root directory, run `git submodule init`
+3. Run `git submodule update`
+    - If this takes too long, try `git submodule update --init --progress --depth 100` (Note: this makes it difficult to checkout remote branches in the submodule)
+    - If you have access to `Mobile-Expensify` and the command fails, add this to your `~/.gitconfig` file:
 
     ```
     [url "https://github.com/"]
         insteadOf = ssh://git@github.com/
     ```
-- To prevent `Mobile-Expensify` submodule commit hash changes from appearing in `git status`, configure Git to ignore them by adding this to your local `.git/config`:
+    - To prevent `Mobile-Expensify` submodule commit hash changes from appearing in `git status`, configure Git to ignore them by adding this to your local `.git/config` (This ensures that submodule changes are ignored unless you deliberately update them):
     ```
     [submodule "Mobile-Expensify"]
         ignore = all
     ```
-    This ensures that submodule changes are ignored unless you deliberately update them.
+4. Run `git config --global submodule.recurse true` in order to have the submodule updated when you pull App.
 
 
 > [!Note]  
@@ -559,7 +599,7 @@ If you'd like to add HybridApp-specific patches, use the `--patch-dir` flag:
 
 ### Additional information and troubleshooting
 
-If you seek some addtional information you can always refer to the [extended version](contributingGuides/HYBRID_APP.md) of the docs for HybridApp. You can find there extended explanation of some of the concepts, pro tips, and most common errors.
+If you seek some additional information you can always refer to the [extended version](contributingGuides/HYBRID_APP.md) of the docs for HybridApp. You can find there extended explanation of some of the concepts, pro tips, and most common errors.
 
 ----
 
@@ -617,8 +657,8 @@ Updated rules for managing members across all types of chats in New Expensify.
 - **Nobody can leave or be removed from something they were automatically added to. For example:**
 
     - DM members can't leave or be removed from their DMs
-    - Members can't leave or be removed from their own workspace chats
-    - Admins can't leave or be removed from workspace chats
+    - Members can't leave or be removed from their own expense chats
+    - Admins can't leave or be removed from expense chats
     - Members can't leave or be removed from the #announce room
     - Admins can't leave or be removed from #admins
     - Domain members can't leave or be removed from their domain chat
@@ -687,7 +727,7 @@ Updated rules for managing members across all types of chats in New Expensify.
         - Everyone can be removed/can leave from the room including creator
         - Guests are not able to remove anyone from the room
 
-    4. #### Workspace chats
+    4. #### Expense chats
         |                    | Admin | Member(default) | Member(invited) |
         | :----------------: | :---: | :-------------: | :-------------: |
         |     **Invite**     |   ✅   |        ✅        |        ❌        |
@@ -695,10 +735,10 @@ Updated rules for managing members across all types of chats in New Expensify.
         |     **Leave**      |   ❌   |        ❌        |        ✅        |
         | **Can be removed** |   ❌   |        ❌        |        ✅        |
 
-        - Admins are not able to leave/be removed from the workspace chat
-        - Default members(automatically invited) are not able to leave/be removed from the workspace chat
-        - Invited members(invited by members) are not able to invite or remove from the workspace chat
-        - Invited members(invited by members) are able to leave the workspace chat
+        - Admins are not able to leave/be removed from the expense chat
+        - Default members(automatically invited) are not able to leave/be removed from the expense chat
+        - Invited members(invited by members) are not able to invite or remove from the expense chat
+        - Invited members(invited by members) are able to leave the expense chat
         - Default members and admins are able to remove invited members
 
 3. ### Domain chat
@@ -731,7 +771,7 @@ localize the following types of data when presented to the user (even accessibil
 - Numbers and amounts: see [NumberFormatUtils](https://github.com/Expensify/App/blob/55b2372d1344e3b61854139806a53f8a3d7c2b8b/src/libs/NumberFormatUtils.js) and [LocaleDigitUtils](https://github.com/Expensify/App/blob/55b2372d1344e3b61854139806a53f8a3d7c2b8b/src/libs/LocaleDigitUtils.js)
 - Phones: see [LocalPhoneNumber](https://github.com/Expensify/App/blob/bdfbafe18ee2d60f766c697744f23fad64b62cad/src/libs/LocalePhoneNumber.js#L51-L52)
 
-In most cases, you will be needing to localize data used in a component, if that's the case, there's a HOC [withLocalize](https://github.com/Expensify/App/blob/37465dbd07da1feab8347835d82ed3d2302cde4c/src/components/withLocalize.js).
+In most cases, you will be needing to localize data used in a component, if that's the case, there's a hook [useLocalize](https://github.com/Expensify/App/blob/4510fc76bbf5df699a2575bfb49a276af90f3ed7/src/hooks/useLocalize.ts).
 It will abstract most of the logic you need (mostly subscribe to the [NVP_PREFERRED_LOCALE](https://github.com/Expensify/App/blob/6cf1a56df670a11bf61aa67eeb64c1f87161dea1/src/ONYXKEYS.js#L88) Onyx key)
 and is the preferred way of localizing things inside components.
 
@@ -743,8 +783,13 @@ Some pointers:
 - Always prefer longer and more complex strings in the translation files. For example
   if you need to generate the text `User has sent $20.00 to you on Oct 25th at 10:05am`, add just one
   key to the translation file and use the arrow function version, like so:
-  `nameOfTheKey: ({amount, dateTime}) => "User has sent " + amount + " to you on " + dateTime,`.
+
+  ```
+  nameOfTheKey: ({amount, dateTime}) => `User has sent ${amount} to you on ${datetime}`,
+  ```
+
   This is because the order of the phrases might vary from one language to another.
+
 - When working with translations that involve plural forms, it's important to handle different cases correctly.
 
   For example:
@@ -769,6 +814,25 @@ Some pointers:
   In your code, you can use the translation like this:
 
   `translate('common.messages', {count: 1});`
+
+## Generating translations
+`src/languages/en.ts` is the source of truth for static strings in the App. `src/languages/es.ts` is (for now) manually-curated. The remainder are AI-generated. The script to perform this transformation is `scripts/generateTranslations.ts`.
+
+### Running the translation script
+To run the translation script:
+
+```bash
+npx ts-node scripts/generateTranslations.ts
+```
+
+You will need `OPENAI_API_KEY` set in your `.env`. Expensify employees can follow [these instructions](https://stackoverflowteams.com/c/expensify/questions/20012).  If you want to test the script without actually talking to ChatGPT, you can pass the `--dry-run` flag to the script.
+
+### Fine-tuning translations
+If you are unhappy with the results of an AI translation, there are currently two methods of recourse:
+
+1. If you are adding a string that can have an ambiguous meaning without proper context, you can add a context annotation in `en.ts`. This takes the form of a comment before your string starting with `@context`.
+2. The base prompt(s) can be found in `prompts/translation`, and can be adjusted if necessary.
+
 ----
 
 # Deploying
@@ -809,10 +873,7 @@ The [`lockDeploys` workflow](https://github.com/Expensify/App/blob/main/.github/
 The [`finishReleaseCycle` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/finishReleaseCycle.yml) executes when the `StagingDeployCash` is closed. It updates the `production` branch from `staging` (triggering a production deploy), deploys `main` to staging (with a new `PATCH` version), and creates a new `StagingDeployCash` deploy checklist.
 
 ### testBuild
-The [`testBuild` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuild.yml) builds ad-hoc staging apps (standalone iOS, standalone Android, web, and desktop) directly from pull requests in the App repository. This process enables testers to review modifications before they are merged into the main branch and deployed to the staging environment. To initiate this workflow, the PR number from the App repository is required as input.
-
-### testBuildHybrid
-The [`testBuildHybrid` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuildHybrid.yml) builds ad-hoc staging versions of hybrid apps (iOS and Android) from pull requests submitted to the App and Mobile-Expensify repositories. This workflow facilitates testing changes by accepting up to two inputs:
+The [`testBuild` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/testBuild.yml) builds ad-hoc staging apps (hybrid iOS, hybrid Android, web, and desktop) from pull requests submitted to the App and Mobile-Expensify repositories. This process enables testers to review modifications before they are merged into the main branch and deployed to the staging environment. This workflow accepts up to two inputs:
 - A PR number from the App repository for testing New Dot (ND) changes.
 - A PR number from the Mobile-Expensify repository for testing Old Dot (OD) changes.
 
@@ -853,6 +914,43 @@ To build an APK to share run (e.g. via Slack), run `npm run android-build`, this
 # Onyx derived values
 Onyx derived values are special Onyx keys which contain values derived from other Onyx values. These are available as a performance optimization, so that if the result of a common computation of Onyx values is needed in many places across the app, the computation can be done only as needed in a centralized location, and then shared across the app. Once created, Onyx derived values are stored and consumed just like any other Onyx value.
 
+## When to use derived values?
+
+1. **Complex Computations Across Multiple Components**
+   - Multiple components need the same computed value from one or more Onyx keys
+   - The computation is expensive (e.g., filtering large arrays, complex object transformations)
+   - The result needs to be cached and shared to avoid redundant calculations
+
+2. **Performance Critical Paths**
+   - The computation appears in frequently rendered components
+   - Profiling shows the same calculation being done repeatedly
+   - The computation involves multiple Onyx dependencies that change independently
+
+3. **Data Aggregation and Transformation**
+   - You need to combine data from multiple Onyx keys into a single, normalized structure
+   - The transformation logic is complex and reusable
+   - The derived data structure is used in multiple places
+
+4. **State-Dependent Calculations**
+   - The value depends on multiple pieces of state that can change independently
+   - The relationship between states is complex (e.g., filtering + sorting + grouping)
+   - Changes in any dependency should trigger a recalculation
+
+## When not to use derived values?
+
+1. **Simple or Local Computations**
+   - The computation is trivial (e.g., simple string manipulation, basic math)
+   - The value is only used in one component
+
+2. **Component-Specific Logic**
+   - The computation is specific to a single component's UI state
+   - The logic involves component-local state
+
+3. **Temporary or Volatile Data**
+   - The computed value is only needed temporarily
+   - The data doesn't need to persist across component unmounts
+   - The computation depends on non-Onyx values
+
 ## Creating new Onyx derived values
 1. Add the new Onyx key. The keys for Onyx derived values are stored in `ONYXKEYS.ts`, in the `ONYXKEYS.DERIVED` object.
 2. Declare the type for the derived value in `ONYXKEYS.ts`, in the `OnyxDerivedValuesMapping` type.
@@ -860,3 +958,68 @@ Onyx derived values are special Onyx keys which contain values derived from othe
    1. The Onyx key for the derived value
    2. An array of dependent Onyx keys (which can be any keys, not including the one from the previous step. Including other derived values!)
    3. A `compute` function, which takes an array of dependent Onyx values (in the same order as the array of keys from the previous step), and returns a value matching the type you declared in `OnyxDerivedValuesMapping`
+
+## Best practices
+
+1. **Keep computations pure and predictable**
+   ```typescript
+      // GOOD ✅
+   compute: ([reports, personalDetails]) => {
+     // Pure function, only depends on input
+     return reports.map(report => ({
+       ...report,
+       authorName: personalDetails[report.authorID]?.displayName
+     }));
+   }
+
+   // BAD ❌
+   compute: ([reports]) => {
+     // Don't use external state or cause side effects
+     const currentUser = getCurrentUser(); // External dependency!
+     sendAnalytics('computation-done'); // Side effect!
+     return reports;
+   }
+   ```
+2. **Handle edge cases**
+   ```typescript
+   // GOOD ✅
+   compute: ([reports, personalDetails]: [Report[], PersonalDetails]): DerivedType => {
+     if (!reports?.length || !personalDetails) {
+       return { items: [], count: 0 };
+     }
+     // Rest of computation...
+   }
+
+   // BAD ❌
+   compute: ([reports, personalDetails]) => {
+     // Missing type safety and edge cases
+     return reports.map(report => personalDetails[report.id]);
+   }
+   ```
+
+3. **Document derived values**
+   - Explain the purpose and dependencies
+   - Document any special cases or performance considerations
+
+# canBeMissing onyx param
+
+Context https://expensify.slack.com/archives/C03TQ48KC/p1741208342513379
+
+## What is this param and lint error for?
+
+The idea of the param is to indicate if the component connecting to onyx expects the data to be there (and thus does not need to handle the case when it is not) or not (and thus has to handle the case when it is not).
+
+It was added because in some places we are assuming some data will be there, but actually we never load it, which leads to hard to debug bugs.
+
+The linter error is there till we add the param to all callers, once that happens we can make the param mandatory and remove the linter.
+
+
+## How do I determine if the param should be false or true?
+
+The main things to look at for the `canBeMissing` param are:
+- Where/who loads the data? If the data is always ensured to be loaded before this component renders, then `canBeMissing` would be set to `false`. So any data that is always returned by `OpenApp` used in a component where we have a user (so not in the homepage for example) will have `canBeMissing` set to `false`
+- Will the user always have data? Maybe we always try to load a piece of data, but the data can be missing/empty, in this case `canBeMissing` would be set to `false`
+- If neither of above, then the param should probably be `true`, but additionally we need to make sure that the code using the data manages correctly the fact that the data might be missing
+
+
+

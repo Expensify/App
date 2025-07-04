@@ -20,7 +20,7 @@ type ReviewFieldsProps<K extends keyof ReviewDuplicates> = {
     /* Step Names which are displayed in stepper */
     stepNames: string[];
 
-    /* Label which is displyed to describe current step  */
+    /* Label which is displayed to describe current step  */
     label: string;
 
     /* Values to choose from */

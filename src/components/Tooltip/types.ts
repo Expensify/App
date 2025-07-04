@@ -5,7 +5,7 @@ import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type SharedTooltipProps = {
-    /** The text to display in the tooltip. If text is ommitted, only children will be rendered. */
+    /** The text to display in the tooltip. If text is omitted, only children will be rendered. */
     text?: string;
 
     /** Maximum number of lines to show in tooltip */
@@ -45,6 +45,9 @@ type SharedTooltipProps = {
 
     /** Callback when tooltip is clicked */
     onTooltipPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
+
+    /** Whether to compute horizontal shift for native */
+    computeHorizontalShiftForNative?: boolean;
 };
 
 type GenericTooltipState = {
@@ -67,7 +70,7 @@ type GenericTooltipProps = SharedTooltipProps & {
     /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
     shouldRender?: boolean;
 
-    /** Whether to ignore TooltipSense activity and always triger animation */
+    /** Whether to ignore TooltipSense activity and always trigger animation */
     shouldForceAnimate?: boolean;
 
     /** Whether it is education tooltip */
@@ -78,6 +81,9 @@ type TooltipProps = ChildrenProps &
     SharedTooltipProps & {
         /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
         shouldHandleScroll?: boolean;
+
+        /** Whether the current screen or component is actively focused via navigation */
+        isFocused?: boolean;
     };
 
 type EducationalTooltipProps = ChildrenProps &

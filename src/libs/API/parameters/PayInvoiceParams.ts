@@ -6,6 +6,8 @@ type PayInvoiceParams = Partial<CreateWorkspaceParams> & {
     reportActionID: string;
     paymentMethodType: PaymentMethodType;
     payAsBusiness: boolean;
+    bankAccountID?: number;
+    fundID?: number;
 };
 
 export default PayInvoiceParams;

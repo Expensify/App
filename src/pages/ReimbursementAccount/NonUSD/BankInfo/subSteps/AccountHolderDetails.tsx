@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import AddressSearch from '@components/AddressSearch';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
@@ -8,16 +8,27 @@ import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {BankInfoSubStepProps} from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
+import type BankInfoSubStepProps from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
+import getInputForValueSet from '@pages/ReimbursementAccount/NonUSD/utils/getInputForValueSet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import type {CorpayFormField} from '@src/types/onyx';
 
 const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const {COUNTRY, ACCOUNT_HOLDER_NAME} = INPUT_IDS.ADDITIONAL_DATA;
+
+function getInputComponent(field: CorpayFormField) {
+    if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
+        return AddressSearch;
+    }
+    return TextInput;
+}
 
 function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStepProps) {
     const {translate} = useLocalize();
@@ -28,22 +39,26 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
     }, [corpayFields]);
     const fieldIds = accountHolderDetailsFields?.map((field) => field.id);
 
-    const subStepKeys = accountHolderDetailsFields?.reduce((acc, field) => {
-        acc[field.id as keyof ReimbursementAccountForm] = field.id as keyof ReimbursementAccountForm;
-        return acc;
-    }, {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>);
+    const subStepKeys = accountHolderDetailsFields?.reduce(
+        (acc, field) => {
+            acc[field.id as keyof ReimbursementAccountForm] = field.id as keyof ReimbursementAccountForm;
+            return acc;
+        },
+        {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>,
+    );
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const defaultValues = useMemo(
         () => getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount),
         [subStepKeys, reimbursementAccount, reimbursementAccountDraft],
     );
+    const defaultBankAccountCountry = reimbursementAccount?.achData?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: fieldIds as Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>>,
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     const validate = useCallback(
@@ -77,6 +92,10 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
 
     const inputs = useMemo(() => {
         return accountHolderDetailsFields?.map((field) => {
+            if (field.valueSet !== undefined) {
+                return getInputForValueSet(field, String(defaultValues[field.id as keyof typeof defaultValues]), isEditing, styles);
+            }
+
             if (field.id === ACCOUNT_HOLDER_COUNTRY) {
                 return (
                     <View
@@ -88,7 +107,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                             optionsList={CONST.ALL_COUNTRIES}
                             description={field.label}
                             shouldSaveDraft={!isEditing}
-                            defaultValue={String(defaultValues[field.id as keyof typeof defaultValues]) ?? ''}
+                            defaultValue={String(defaultValues[field.id] !== '' ? defaultValues[field.id] : defaultBankAccountCountry)}
                             modalHeaderTitle={translate('countryStep.selectCountry')}
                             searchInputTitle={translate('countryStep.findCountry')}
                             inputID={field.id}
@@ -103,18 +122,24 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                     key={field.id}
                 >
                     <InputWrapper
-                        InputComponent={TextInput}
+                        InputComponent={getInputComponent(field)}
                         inputID={field.id}
                         label={field.label}
                         aria-label={field.label}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={String(defaultValues[field.id as keyof typeof defaultValues]) ?? ''}
                         shouldSaveDraft={!isEditing}
+                        limitSearchesToCountry={defaultValues.accountHolderCountry || defaultBankAccountCountry}
+                        renamedInputKeys={{
+                            street: 'accountHolderAddress1',
+                            city: 'accountHolderCity',
+                        }}
+                        hint={field.id === ACCOUNT_HOLDER_NAME ? translate('bankInfoStep.accountHolderNameDescription') : undefined}
                     />
                 </View>
             );
         });
-    }, [accountHolderDetailsFields, styles.mb6, styles.mhn5, defaultValues, isEditing, translate]);
+    }, [accountHolderDetailsFields, styles, defaultValues, isEditing, defaultBankAccountCountry, translate]);
 
     return (
         <FormProvider
@@ -123,6 +148,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
             validate={validate}
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
+            shouldHideFixErrorsAlert={(accountHolderDetailsFields?.length ?? 0) <= 1}
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankInfoStep.whatAreYour')}</Text>

@@ -53,6 +53,9 @@ export default function (): Promise<boolean> {
                     console.debug('[E2E] Signing in…');
                     Authenticate(e2eUserCredentials)
                         .then((response) => {
+                            if (!response) {
+                                return;
+                            }
                             Onyx.merge(ONYXKEYS.SESSION, {
                                 authToken: response.authToken,
                                 creationDate: new Date().getTime(),

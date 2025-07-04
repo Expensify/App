@@ -35,7 +35,7 @@ const clearReportNotifications: ClearReportNotifications = (reportID: string | u
             reportNotificationIDs.forEach((notificationID) => Airship.push.clearNotification(notificationID));
         })
         .catch((error: unknown) => {
-            Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} [PushNotification] BrowserNotifications.clearReportNotifications threw an error. This should never happen.`, {reportID, error});
+            Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} [PushNotification] BrowserNotifications.clearReportNotifications threw an error. This should never happen.`, {reportID, error});
         });
 };
 

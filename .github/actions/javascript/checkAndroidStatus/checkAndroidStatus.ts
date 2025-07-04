@@ -6,8 +6,9 @@ import GithubUtils from '@github/libs/GithubUtils';
 const PACKAGE_NAME = core.getInput('PACKAGE_NAME', {required: true});
 const GOOGLE_KEY_FILE = core.getInput('GOOGLE_KEY_FILE', {required: true});
 const HALTED_STATUS = 'halted';
+const COMPLETED_STATUS = 'completed';
 
-async function checkAndroidStatus() {
+async function checkAndroidStatus(): Promise<string> {
     const auth = new google.auth.GoogleAuth({
         keyFile: GOOGLE_KEY_FILE,
         scopes: ['https://www.googleapis.com/auth/androidpublisher'],
@@ -38,9 +39,15 @@ async function checkAndroidStatus() {
         // Check if the status is halted
         const HALTED = status === HALTED_STATUS;
         core.setOutput('HALTED', HALTED);
+
+        // Check if the status is completed
+        const COMPLETED = status === COMPLETED_STATUS;
+        core.setOutput('COMPLETED', COMPLETED);
+
+        return status;
     } catch (error) {
         console.error('Error checking track status:', error);
-        process.exit(1);
+        throw error;
     }
 }
 

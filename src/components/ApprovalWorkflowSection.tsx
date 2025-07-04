@@ -4,7 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {sortAlphabetically} from '@libs/OptionsListUtils';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -37,7 +37,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
             return translate('workspace.common.everyone');
         }
 
-        return OptionsListUtils.sortAlphabetically(approvalWorkflow.members, 'displayName')
+        return sortAlphabetically(approvalWorkflow.members, 'displayName')
             .map((m) => m.displayName)
             .join(', ');
     }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
@@ -70,7 +70,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                     title={translate('workflowsExpensesFromPage.title')}
                     style={styles.p0}
                     titleStyle={styles.textLabelSupportingNormal}
-                    descriptionTextStyle={styles.textNormalThemeText}
+                    descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
                     description={members}
                     numberOfLinesDescription={4}
                     icon={Expensicons.Users}
@@ -89,11 +89,12 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                             title={approverTitle(index)}
                             style={styles.p0}
                             titleStyle={styles.textLabelSupportingNormal}
-                            descriptionTextStyle={styles.textNormalThemeText}
+                            descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
                             description={approver.displayName}
                             icon={Expensicons.UserCheck}
                             iconHeight={20}
                             iconWidth={20}
+                            numberOfLinesDescription={1}
                             iconFill={theme.icon}
                             onPress={onPress}
                             shouldRemoveBackground
