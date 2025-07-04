@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
+import {Animated, View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
@@ -45,6 +45,9 @@ type TabSelectorItemProps = {
 
     /** Function to render the content of the product training tooltip. */
     renderProductTrainingTooltip?: () => React.JSX.Element;
+
+    /** Width of parent tab selector, for computing tooltip placement */
+    selectorWidth: number;
 };
 
 function TabSelectorItem({
@@ -59,37 +62,47 @@ function TabSelectorItem({
     testID,
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
+    selectorWidth,
 }: TabSelectorItemProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
-
+    const childRef = useRef<View>(null);
     const shouldShowEducationalTooltip = shouldShowProductTrainingTooltip && isActive;
 
+    // useLayoutEffect(() => {
+    //     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    //     childRef.current?.measure((x, y, width) => {
+    //         console.info(`TabSelector x=${x} y=${y} width=${width}`);
+    //     });
+    // }, []);
+
     const children = (
-        <AnimatedPressableWithFeedback
-            accessibilityLabel={title}
-            style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
-            wrapperStyle={[styles.flexGrow1]}
-            onPress={onPress}
-            onHoverIn={() => setIsHovered(true)}
-            onHoverOut={() => setIsHovered(false)}
-            role={CONST.ROLE.BUTTON}
-            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-            testID={testID}
-        >
-            <TabIcon
-                icon={icon}
-                activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
-                inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
-            />
-            {(shouldShowLabelWhenInactive || isActive) && (
-                <TabLabel
-                    title={title}
+        // <View ref={childRef}>
+            <AnimatedPressableWithFeedback
+                accessibilityLabel={title}
+                style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
+                wrapperStyle={[styles.flexGrow1]}
+                onPress={onPress}
+                onHoverIn={() => setIsHovered(true)}
+                onHoverOut={() => setIsHovered(false)}
+                role={CONST.ROLE.BUTTON}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                testID={testID}
+            >
+                <TabIcon
+                    icon={icon}
                     activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
                     inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
                 />
-            )}
-        </AnimatedPressableWithFeedback>
+                {(shouldShowLabelWhenInactive || isActive) && (
+                    <TabLabel
+                        title={title}
+                        activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                        inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+                    />
+                )}
+            </AnimatedPressableWithFeedback>
+        // </View>
     );
 
     return shouldShowEducationalTooltip ? (

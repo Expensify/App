@@ -1,5 +1,5 @@
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -74,6 +74,8 @@ function TabSelector({
     const styles = useThemeStyles();
     const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: state.routes.length}, (v, i) => i), [state.routes.length]);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
+    const viewRef = useRef<View>(null);
+    const [selectorWidth, setSelectorWidth] = React.useState(0);
 
     useEffect(() => {
         // It is required to wait transition end to reset affectedAnimatedTabs because tabs style is still animating during transition.
@@ -82,9 +84,15 @@ function TabSelector({
         }, CONST.ANIMATED_TRANSITION);
     }, [defaultAffectedAnimatedTabs, state.index]);
 
+    useLayoutEffect(() => {
+        viewRef.current?.measure((x, y, width) => {
+            setSelectorWidth(width);
+        });
+    }, []);
+
     return (
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
-            <View style={styles.tabSelector}>
+            <View style={styles.tabSelector} ref={viewRef}>
                 {state.routes.map((route, index) => {
                     const isActive = index === state.index;
                     const activeOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: true, affectedTabs: affectedAnimatedTabs, position, isActive});
@@ -126,6 +134,7 @@ function TabSelector({
                             shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                             shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                             renderProductTrainingTooltip={renderProductTrainingTooltip}
+                            selectorWidth={selectorWidth}
                         />
                     );
                 })}
