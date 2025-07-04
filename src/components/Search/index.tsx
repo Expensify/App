@@ -206,9 +206,11 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
             }
             return;
         }
-        if (selectedKeys.length > 0 && !selectionMode) {
+        if (selectedKeys.length > 0 && !selectionMode && !isSearchResultsEmpty) {
             turnOnMobileSelectionMode();
         }
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth, selectedTransactions, selectionMode]);
 
     useEffect(() => {
