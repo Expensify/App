@@ -1,7 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import Badge from '@components/Badge';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -17,6 +15,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useLocalize from '@hooks/useLocalize';
 import useMemberInviteSearch from '@hooks/useMemberInviteSearch';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {searchInServer} from '@libs/actions/Report';
@@ -184,8 +183,13 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             .map((item) => formatMemberForList(item))
             .map((member) => ({
                 ...member,
-                // For external users, show Badge for admin role
-                rightElement: policy?.employeeList?.[member.login]?.role === CONST.REPORT.ROLE.ADMIN ? <Badge text={translate('common.admin')} /> : undefined,
+                rightElement: (
+                    <MemberRightIcon
+                        role={policy?.employeeList?.[member.login]?.role}
+                        owner={policy?.owner}
+                        login={member.login}
+                    />
+                ),
             }));
 
         const hasUnselectedUserToInvite = inviteOptions.userToInvite && !selectedLogins.includes(inviteOptions.userToInvite.login ?? '');
@@ -215,7 +219,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         policy?.employeeList,
         policy?.owner,
         selectedMembers,
-        translate,
         approversEmail,
         personalDetailLogins,
         inviteOptions.personalDetails,
