@@ -1288,6 +1288,13 @@ function AddWorkEmail(workEmail: string) {
                 isLoading: false,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_ONBOARDING,
+            value: {
+                isMergingAccountBlocked: true,
+            },
+        },
     ];
 
     API.write(

@@ -129,8 +129,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         },
     ];
 
-    const isMergingAccountBlocked = onboardingErrorMessage === CONST.ERROR.ONBOARDING_2FA_REQUIRED_ERROR_MESSAGE;
-
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -142,7 +140,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 progressBarPercentage={10}
                 shouldShowBackButton={false}
             />
-            {isMergingAccountBlocked ? (
+            {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                     <OnboardingMergingAccountBlockedView
                         workEmail={workEmail}
