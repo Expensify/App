@@ -2901,14 +2901,6 @@ const CONST = {
                 SAP: 'sap',
                 MICROSOFT_DYNAMICS: 'microsoftDynamics',
             },
-            CONTROL: [
-                'quickbooksDesktop',
-                'netsuite',
-                'intacct',
-                'oracle',
-                'sap',
-                'microsoftDynamics',
-            ],
             ROUTE: {
                 QBO: 'quickbooks-online',
                 XERO: 'xero',
@@ -3007,6 +2999,16 @@ const CONST = {
                 SAGE_INTACCT_SYNC_IMPORT_SYNC_REIMBURSED_REPORTS: 'intacctImportSyncBillPayments',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
+        },
+        get POLICY_CONNECTIONS_TYPE_CORPORATE() {
+            return [
+                this.CONNECTIONS.NAME.QBD,
+                this.CONNECTIONS.NAME.NETSUITE,
+                this.CONNECTIONS.NAME.SAGE_INTACCT,
+                this.CONNECTIONS.NAME.ORACLE,
+                this.CONNECTIONS.NAME.SAP,
+                this.CONNECTIONS.NAME.MICROSOFT_DYNAMICS,
+            ];
         },
         ACCESS_VARIANTS: {
             PAID: 'paid',

@@ -1885,7 +1885,7 @@ function buildPolicyData(
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // Determine workspace type based on user reported integration
-    const workspaceType = userReportedIntegration && (CONST.POLICY.CONNECTIONS.CONTROL as readonly string[]).includes(userReportedIntegration)
+    const workspaceType = userReportedIntegration && (CONST.POLICY.POLICY_CONNECTIONS_TYPE_CORPORATE as readonly string[]).includes(userReportedIntegration)
         ? CONST.POLICY.TYPE.CORPORATE
         : CONST.POLICY.TYPE.TEAM;
 
