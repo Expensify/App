@@ -58,14 +58,16 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     const subscriptionPlan = useSubscriptionPlan();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const navigationState = useNavigationState(findFocusedRoute);
+    const initialNavigationRouteState = getWorkspaceNavigationRouteState();
+    const [lastWorkspacesTabNavigatorRoute, setLastWorkspacesTabNavigatorRoute] = useState(initialNavigationRouteState.lastWorkspacesTabNavigatorRoute);
+    const [workspacesTabState, setWorkspacesTabState] = useState(initialNavigationRouteState.workspacesTabState);
+    const params = workspacesTabState?.routes?.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
+
     const [lastViewedPolicy] = useOnyx(
         ONYXKEYS.COLLECTION.POLICY,
         {
             canBeMissing: true,
             selector: (val) => {
-                const {lastWorkspacesTabNavigatorRoute, workspacesTabState} = getWorkspaceNavigationRouteState();
-                const params = workspacesTabState?.routes?.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
-
                 if (!lastWorkspacesTabNavigatorRoute || lastWorkspacesTabNavigatorRoute.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || !params?.policyID) {
                     return undefined;
                 }
@@ -75,6 +77,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         },
         [navigationState],
     );
+
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (value) => value?.reports, canBeMissing: true});
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -88,6 +91,15 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
     } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP, isTooltipAllowed && selectedTab !== NAVIGATION_TABS.HOME);
 
     const StyleUtils = useStyleUtils();
+
+    useEffect(() => {
+        const newWorkspacesTabState = getWorkspaceNavigationRouteState();
+        const newLastRoute = newWorkspacesTabState.lastWorkspacesTabNavigatorRoute;
+        const newTabState = newWorkspacesTabState.workspacesTabState;
+
+        setLastWorkspacesTabNavigatorRoute(newLastRoute);
+        setWorkspacesTabState(newTabState);
+    }, [navigationState]);
 
     // On a wide layout DebugTabView should be rendered only within the navigation tab bar displayed directly on screens.
     const shouldRenderDebugTabViewOnWideLayout = !!account?.isDebugModeEnabled && !isTopLevelBar;
