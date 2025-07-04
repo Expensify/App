@@ -1842,6 +1842,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         const {paddingBottom: safeAreaPaddingBottom} = getPlatformSafeAreaPadding(insets);
 
         const paddingBottom = getCombinedSpacing(styles.pb5.paddingBottom, safeAreaPaddingBottom, true);
+        // Forces scroll on modal when keyboard is open and the modal larger than remaining screen height.
         return {
             style: isMobileChrome()
                 ? {

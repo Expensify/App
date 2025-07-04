@@ -227,6 +227,9 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     justifyContent: 'center',
                     overflow: 'hidden',
                     boxShadow: theme.shadow,
+                    // Workaround for Safari not supporting interactive-widget=resizes-content, sets max height of a container modal.
+                    // This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
+                    // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
                     ...(isMobileSafari() ? {maxHeight: `${windowDimensions.windowHeight}px`} : {}),
                 };
 
