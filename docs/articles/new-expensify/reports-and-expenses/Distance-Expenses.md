@@ -2,6 +2,7 @@
 title: Distance Expenses
 description: Learn how to create a distance expense and how the reimbursement rate is determined in New Expensify.
 keywords: [New Expensify, distance expense, mileage reimbursement, create expense, distance rate, workspace policy, personal policy, map route, reimbursement rate]
+date: 2025-06-18T00:00:00Z
 ---
 <div id="new-expensify" markdown="1">
 
@@ -64,7 +65,7 @@ Yes! When selecting the **Start** and **Finish** addresses, recently used locati
 
 To create a round-trip distance expense, enter the same location for both the starting point and destination, and add one or more waypoints in between.
 
-For example, if you're starting and ending in San Francisco but making a stop in Los Angeles, enter:  
+For example, if you're starting and ending in San Francisco but making a stop in Los Angeles, enter:
 **San Francisco → Los Angeles → San Francisco**
 
 </div>

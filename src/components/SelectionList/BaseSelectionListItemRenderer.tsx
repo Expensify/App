@@ -3,7 +3,7 @@ import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
 import {isMobileChrome} from '@libs/Browser';
-import {isReportListItemType} from '@libs/SearchUIUtils';
+import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import type {BaseListItemProps, ExtendedTargetedEvent, ListItem, SelectionListProps} from './types';
 
 type BaseSelectionListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
@@ -47,7 +47,7 @@ function BaseSelectionListItemRenderer<TItem extends ListItem>({
     shouldAddCurrentUserPostfix,
 }: BaseSelectionListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
-        if (isReportListItemType(item)) {
+        if (isTransactionGroupListItemType(item)) {
             return onCheckboxPress;
         }
         return onCheckboxPress ? () => onCheckboxPress(item) : undefined;

@@ -1,7 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -9,6 +8,7 @@ import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -41,13 +41,13 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.accountID});
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [selectedOptions, setSelectedOptions] = useState<Option[]>(() => {
-        return value.reduce<OptionData[]>((acc, accountID) => {
-            const participant = personalDetails?.[accountID];
+        return value.reduce<OptionData[]>((acc, id) => {
+            const participant = personalDetails?.[id];
             if (!participant) {
                 return acc;
             }
@@ -84,7 +84,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         } = filterAndOrderOptions(optionsList, cleanSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-            selectedOptions,
         });
 
         const personalDetailList = filteredOptionsList
@@ -94,19 +93,19 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             }))
             .sort((a, b) => {
                 // Put the current user at the top of the list
-                if (a.accountID === session?.accountID) {
+                if (a.accountID === accountID) {
                     return -1;
                 }
-                if (b.accountID === session?.accountID) {
+                if (b.accountID === accountID) {
                     return 1;
                 }
                 return 0;
             });
 
-        const userOption = {...currentUserOption, isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === currentUserOption?.accountID)};
+        const userOption = currentUserOption ? [{...currentUserOption, isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === currentUserOption?.accountID)}] : [];
 
-        return [...(personalDetailList ?? []), ...(recentReports ?? []), ...(currentUserOption ? [userOption] : [])];
-    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, session?.accountID]);
+        return [...userOption, ...(personalDetailList ?? []), ...(recentReports ?? [])];
+    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, accountID]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
