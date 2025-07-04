@@ -82,7 +82,7 @@ function TabSelectorItem({
                 setShiftHorizontal(parentCenter - currentCenter); // ...equals the shift needed
             });
         });
-    }, [isActive, parentView, childRef, shiftHorizontal, title]);
+    }, [isActive, parentView, childRef]);
 
     const children = (
         <AnimatedPressableWithFeedback
