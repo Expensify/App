@@ -84,8 +84,7 @@ import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import {buildTaskData} from '@userActions/Task';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
-import CONST from '@src/CONST';
-import type {OnboardingAccounting} from '@src/CONST';
+import CONST, {type OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     IntroSelected,
