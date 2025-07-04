@@ -1,9 +1,9 @@
 import {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import useOnyx from './useOnyx';
 
 function useSubscriptionPlan() {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
