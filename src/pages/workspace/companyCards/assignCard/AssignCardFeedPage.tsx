@@ -1,8 +1,8 @@
 import React, {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useInitial from '@hooks/useInitial';
+import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import PlaidConnectionStep from '@pages/workspace/companyCards/addNew/PlaidConnectionStep';

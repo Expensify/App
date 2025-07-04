@@ -1,8 +1,8 @@
 import {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import {importPlaidAccounts} from '@userActions/Plaid';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 
 export default function useImportPlaidAccounts(policyID?: string) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});

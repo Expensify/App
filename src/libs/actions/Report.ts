@@ -3404,7 +3404,7 @@ function openReportFromDeepLink(url: string) {
                         // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
                         // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
                         // which is already called when AuthScreens mounts.
-                        if (url && new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                        if (!CONFIG.IS_HYBRID_APP && url && new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
                             return;
                         }
 
@@ -3422,10 +3422,6 @@ function openReportFromDeepLink(url: string) {
                             }
 
                             if (shouldSkipDeepLinkNavigation(route)) {
-                                return;
-                            }
-
-                            if (isAuthenticated) {
                                 return;
                             }
 
