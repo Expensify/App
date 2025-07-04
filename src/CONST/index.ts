@@ -1041,7 +1041,10 @@ const CONST = {
             APPROVE: 'approve',
             UNAPPROVE: 'unapprove',
             CANCEL_PAYMENT: 'cancelPayment',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
+            MARK_AS_EXPORTED: 'markAsExported',
             HOLD: 'hold',
+            DOWNLOAD_CSV: 'downloadCSV',
             DOWNLOAD_PDF: 'downloadPDF',
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
@@ -1051,7 +1054,6 @@ const CONST = {
             DECLINE: 'decline',
             SPLIT: 'split',
             REOPEN: 'reopen',
-            EXPORT: 'export',
             PAY: 'pay',
         },
         PRIMARY_ACTIONS: {
@@ -1403,7 +1405,6 @@ const CONST = {
         EXPORT_OPTIONS: {
             EXPORT_TO_INTEGRATION: 'exportToIntegration',
             MARK_AS_EXPORTED: 'markAsExported',
-            DOWNLOAD_CSV: 'downloadCSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -6173,6 +6174,7 @@ const CONST = {
             CHAT: 'chat',
         },
         ACTION_FILTERS: {
+            APPROVE: 'approve',
             PAY: 'pay',
             EXPORT: 'export',
         },
