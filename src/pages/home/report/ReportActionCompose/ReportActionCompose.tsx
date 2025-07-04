@@ -44,10 +44,13 @@ import {
     canShowReportRecipientLocalTime,
     chatIncludesChronos,
     chatIncludesConcierge,
+    getParentReport,
     getReportRecipientAccountIDs,
     isExpenseReport,
     isIOUReport,
+    isReportApproved,
     isReportTransactionThread,
+    isSettled,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
@@ -91,6 +94,9 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    /** Report transactions */
+    reportTransactions?: OnyxEntry<OnyxTypes.Transaction[]>;
+
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction;
 
@@ -131,6 +137,7 @@ function ReportActionCompose({
     onComposerFocus,
     onComposerBlur,
     didHideComposerInput,
+    reportTransactions,
 }: ReportActionComposeProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
@@ -218,13 +225,10 @@ function ReportActionCompose({
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
 
-    const shouldDisplayDualDropZone = useMemo(() => {
-        return !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs).length;
-    }, [report, policy, reportParticipantIDs]);
-
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
+    const isTransactionsView = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
 
-    const shouldAddOrReplaceReceipt = isTransactionThreadView || isIOUReport(report) || isExpenseReport(report);
+    const shouldAddOrReplaceReceipt = (isTransactionThreadView || isIOUReport(report) || isExpenseReport(report)) && !isTransactionsView;
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
         canEvict: false,
@@ -238,6 +242,13 @@ function ReportActionCompose({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
 
     const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
+    const isSingleTransactionView = useMemo(() => !!transaction && reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
+
+    const shouldDisplayDualDropZone = useMemo(() => {
+        const parentReport = getParentReport(report);
+        const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
+        return (shouldAddOrReplaceReceipt && !isSettledOrApproved) || !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs).length;
+    }, [shouldAddOrReplaceReceipt, report, policy, reportParticipantIDs]);
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
@@ -630,6 +641,7 @@ function ReportActionCompose({
                                                 }
                                             }}
                                             onReceiptDrop={handleAddingReceipt}
+                                            shouldAcceptSingleReceipt={isSingleTransactionView}
                                         />
                                     )}
                                     {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && !shouldDisplayDualDropZone && (
