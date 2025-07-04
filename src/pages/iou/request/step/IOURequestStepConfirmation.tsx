@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -20,6 +19,7 @@ import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
@@ -32,10 +32,11 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
+import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {generateReportID, getBankAccountRoute, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
-import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, isScanRequest} from '@libs/TransactionUtils';
+import {getAttendees, getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints, isScanRequest} from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {GpsPoint} from '@userActions/IOU';
@@ -483,6 +484,11 @@ function IOURequestStepConfirmation({
                 return;
             }
 
+            const optimisticChatReportID = generateReportID();
+            const optimisticCreatedReportActionID = rand64();
+            const optimisticIOUReportID = generateReportID();
+            const optimisticReportPreviewActionID = rand64();
+
             transactions.forEach((item, index) => {
                 const receipt = receiptFiles[item.transactionID];
                 const isTestReceipt = receipt?.isTestReceipt ?? false;
@@ -494,6 +500,10 @@ function IOURequestStepConfirmation({
 
                 requestMoneyIOUActions({
                     report,
+                    optimisticChatReportID,
+                    optimisticCreatedReportActionID,
+                    optimisticIOUReportID,
+                    optimisticReportPreviewActionID,
                     participantParams: {
                         payeeEmail: currentUserPersonalDetails.login,
                         payeeAccountID: currentUserPersonalDetails.accountID,
@@ -525,6 +535,8 @@ function IOURequestStepConfirmation({
                         waypoints: Object.keys(item.comment?.waypoints ?? {}).length ? getValidWaypoints(item.comment?.waypoints, true) : undefined,
                         customUnitRateID,
                         isTestDrive: item.receipt?.isTestDriveReceipt,
+                        originalTransactionID: item.comment?.originalTransactionID,
+                        source: item.comment?.source,
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
                     backToReport,
@@ -1133,7 +1145,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={Math.abs(transaction?.amount ?? 0)}
-                        iouAttendees={transaction?.comment?.attendees ?? []}
+                        iouAttendees={getAttendees(transaction)}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}

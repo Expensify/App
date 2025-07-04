@@ -1,19 +1,19 @@
 import React, {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanel from '@hooks/useSidePanel';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
-import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -117,6 +117,13 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         return highestPriorityTooltip.name;
     }, [activeTooltips]);
 
+    const isUserInPaidPolicy = useMemo(() => {
+        if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
+            return false;
+        }
+        return getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies).length > 0;
+    }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
+
     const shouldTooltipBeVisible = useCallback(
         (tooltipName: ProductTrainingTooltipName) => {
             if (isLoadingOnyxValue(isOnboardingCompletedMetadata) || isLoadingApp) {
@@ -154,18 +161,20 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 isUserPolicyEmployee,
                 isUserPolicyAdmin,
                 hasBeenAddedToNudgeMigration,
+                isUserInPaidPolicy,
             });
         },
         [
+            isOnboardingCompletedMetadata,
+            isLoadingApp,
             dismissedProductTraining,
             hasBeenAddedToNudgeMigration,
             isOnboardingCompleted,
-            isOnboardingCompletedMetadata,
-            shouldUseNarrowLayout,
             isModalVisible,
-            isLoadingApp,
+            shouldUseNarrowLayout,
             isUserPolicyEmployee,
             isUserPolicyAdmin,
+            isUserInPaidPolicy,
         ],
     );
 

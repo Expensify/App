@@ -4,7 +4,6 @@ import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useSta
 import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
@@ -29,6 +28,7 @@ import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLen
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,6 +43,7 @@ import {
     canShowReportRecipientLocalTime,
     chatIncludesChronos,
     chatIncludesConcierge,
+    getParentReport,
     getReportRecipientAccountIDs,
     isAdminRoom,
     isAnnounceRoom,
@@ -51,6 +52,7 @@ import {
     isGroupChat,
     isInvoiceReport,
     isReportTransactionThread,
+    isSettled,
     isUserCreatedPolicyRoom,
 } from '@libs/ReportUtils';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
@@ -219,6 +221,7 @@ function ReportActionCompose({
     const includesConcierge = useMemo(() => chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
+    const parentReport = useMemo(() => getParentReport(report), [report]);
     const shouldDisplayDualDropZone = useMemo(
         () =>
             !isChatRoom(report) &&
@@ -227,8 +230,10 @@ function ReportActionCompose({
             !isAdminRoom(report) &&
             !isConciergeChatReport(report) &&
             !isInvoiceReport(report) &&
-            !isGroupChat(report),
-        [report],
+            !isGroupChat(report) &&
+            !isSettled(parentReport) &&
+            !isSettled(report),
+        [report, parentReport],
     );
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const transactionID = useMemo(() => getTransactionID(reportID), [reportID]);

@@ -11,6 +11,7 @@
  */
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
+import type {OnboardingCompanySize, OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
@@ -44,6 +45,7 @@ import type {
     BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
+    BusinessTaxIDParams,
     CanceledRequestParams,
     CardEndingParams,
     CardInfoParams,
@@ -64,6 +66,8 @@ import type {
     ConfirmThatParams,
     ConnectionNameParams,
     ConnectionParams,
+    ContactMethodParams,
+    ContactMethodsRouteParams,
     CreateExpensesParams,
     CurrencyCodeParams,
     CurrencyInputDisabledTextParams,
@@ -100,7 +104,6 @@ import type {
     FlightParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
-    GoToRoomParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -193,6 +196,7 @@ import type {
     StepCounterParams,
     StripePaidParams,
     SubmitsToParams,
+    SubmittedToVacationDelegateParams,
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
@@ -244,6 +248,7 @@ import type {
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
     UserSplitParams,
+    VacationDelegateParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,
@@ -270,6 +275,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -328,6 +334,7 @@ const translations = {
         workspaces: 'ワークスペース',
         inbox: '受信トレイ',
         group: 'グループ',
+        success: '成功',
         profile: 'プロフィール',
         referral: '紹介',
         payments: '支払い',
@@ -543,6 +550,7 @@ const translations = {
         userID: 'ユーザーID',
         disable: '無効にする',
         export: 'エクスポート',
+        basicExport: '基本エクスポート',
         initialValue: '初期値',
         currentDate: '現在の日付',
         value: '値段',
@@ -605,10 +613,10 @@ const translations = {
         after: '後',
         reschedule: '再スケジュールする',
         general: '一般',
-        never: '決して',
         workspacesTabTitle: 'ワークスペース',
         getTheApp: 'アプリを入手',
         scanReceiptsOnTheGo: '携帯電話から領収書をスキャンする',
+        headsUp: 'ご注意ください！',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -969,6 +977,7 @@ const translations = {
         deleteReceipt: '領収書を削除',
         deleteConfirmation: 'この領収書を削除してもよろしいですか？',
         addReceipt: '領収書を追加',
+        scanFailed: '販売者、日付、または金額が不足しているため、レシートをスキャンできませんでした。',
     },
     quickAction: {
         scanReceipt: '領収書をスキャン',
@@ -1013,6 +1022,7 @@ const translations = {
         share: '共有',
         participants: '参加者',
         createExpense: '経費を作成',
+        trackDistance: '距離を追跡する',
         createExpenses: ({expensesNumber}: CreateExpensesParams) => `${expensesNumber}件の経費を作成`,
         addExpense: '経費を追加',
         chooseRecipient: '受取人を選択',
@@ -1474,6 +1484,7 @@ const translations = {
             noLogsToShare: '共有するログはありません',
             useProfiling: 'プロファイリングを使用する',
             profileTrace: 'プロファイルトレース',
+            results: '結果',
             releaseOptions: 'リリースオプション',
             testingPreferences: '設定のテスト',
             useStagingServer: 'Stagingサーバーを使用',
@@ -1494,6 +1505,7 @@ const translations = {
             invalidFile: '無効なファイル',
             invalidFileDescription: 'インポートしようとしているファイルは無効です。もう一度お試しください。',
             invalidateWithDelay: '遅延で無効にする',
+            recordTroubleshootData: 'トラブルシューティングデータの記録',
         },
         debugConsole: {
             saveLog: 'ログを保存',
@@ -1622,14 +1634,13 @@ const translations = {
         mergeFailureGenericHeading: 'アカウントを統合できません',
     },
     lockAccountPage: {
+        reportSuspiciousActivity: '疑わしい活動を報告',
         lockAccount: 'アカウントをロックする',
-        unlockAccount: 'アカウントを解除する',
-        compromisedDescription:
-            'Expensifyアカウントが不正アクセスされた疑いがある場合、新しいExpensifyカードの取引を防ぎ、不要なアカウント変更をブロックするためにアカウントをロックすることができます。',
-        domainAdminsDescriptionPartOne: 'ドメイン管理者向け、',
-        domainAdminsDescriptionPartTwo: 'この操作は、すべてのExpensifyカードのアクティビティと管理者のアクションを停止します。',
-        domainAdminsDescriptionPartThree: 'あなたのドメイン全体で。',
-        warning: `アカウントがロックされると、当社のチームが調査を行い、不正アクセスを削除します。アクセスを回復するには、Conciergeと協力してアカウントを保護する必要があります。`,
+        unlockAccount: 'アカウントをアンロック',
+        compromisedDescription: 'アカウントに不安を感じましたか？報告すると、すぐにアカウントがロックされ、Expensifyカードの新しい取引が停止され、変更も防止されます。',
+        domainAdminsDescription: 'ドメイン管理者へ：これにより、ドメイン全体のExpensifyカード活動と管理操作も一時停止されます。',
+        areYouSure: '本当にExpensifyアカウントをロックしますか？',
+        ourTeamWill: 'チームが調査を行い、不正アクセスを削除します。アクセスを回復するには、Conciergeと連携する必要があります。',
     },
     failedToLockAccountPage: {
         failedToLockAccount: 'アカウントのロックに失敗しました',
@@ -2182,6 +2193,247 @@ const translations = {
             title: '勤務用メールを追加できませんでした。',
             subtitle: ({workEmail}: WorkEmailMergingBlockedParams) => `${workEmail}を追加できませんでした。後で設定で再試行するか、ガイダンスが必要な場合はConciergeとチャットしてください。`,
         },
+        tasks: {
+            testDriveAdminTask: {
+                title: ({testDriveURL}) => `\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6](${testDriveURL})\u3092\u884C\u3046`,
+                description: ({testDriveURL}) =>
+                    `Expensify\u304C\u6700\u3082\u5B89\u3044\u65B9\u6CD5\u3067\u3042\u308B\u7406\u7531\u3092\u78BA\u304B\u3081\u308B\u305F\u3081\u306B\u3001\u30D7\u30ED\u30C0\u30AF\u30C8\u30C4\u30A2\u30FC\u3092\u7D76\u597D\u306A\u3008\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6\u3092\u884C\u3046\u3009(${testDriveURL})\u305F\u3081\u306B\u3001\u30D7\u30ED\u30C0\u30AF\u30C8\u30C4\u30A2\u30FC\u3092\u7D76\u597D\u306A\u3008\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6\u3092\u884C\u3046\u3009(${testDriveURL})\u3092\u3057\u307E\u3059\u3002`,
+            },
+            testDriveEmployeeTask: {
+                title: ({testDriveURL}) => `\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6](${testDriveURL})\u3092\u884C\u3046`,
+                description: ({testDriveURL}) =>
+                    `\u5F7C\u3089\u306B](${testDriveURL})\u3092\u884C\u3044\u3001Expensify\u306E*\u30AF\u30FC\u30DD\u30F3\u3092\u6700\u521D\u306E3\u304B\u6708\u3067\u5165\u624B\u3057\u307E\u305B\u3093\u304B*`,
+            },
+            createTestDriveAdminWorkspaceTask: {
+                title: ({workspaceConfirmationLink}) => `\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u306E\u4F5C\u6210](${workspaceConfirmationLink})`,
+                description:
+                    '\u30BB\u30C3\u30C8\u30A2\u30C3\u30D7\u30B9\u30DA\u30B7\u30E3\u30EA\u30B9\u30C8\u3068\u5171\u306B\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u3092\u4F5C\u6210\u3057\u3001\u8A2D\u5B9A\u3092\u69CB\u6210\u3057\u307E\u3059\uFF01',
+            },
+            createWorkspaceTask: {
+                title: ({workspaceSettingsLink}) => `\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u306E\u4F5C\u6210](${workspaceSettingsLink})`,
+                description: ({workspaceSettingsLink}) =>
+                    '*\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u3092\u4F5C\u6210\u3057\u307E\u3059* \u306B\u306F\u3001\u7D4C\u8CBB\u3092\u8FFD\u8DE1\u3057\u3001\u9818\u53CE\u66F8\u3092\u30B9\u30AD\u30E3\u30F3\u3057\u3001\u30C1\u30E3\u30C3\u30C8\u306A\u3069\u3092\u884C\u3044\u307E\u3059\u3002\n' +
+                    '\n' +
+                    '1. *\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9* > *\u65B0\u3057\u3044\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '\n' +
+                    `*\u65B0\u3057\u3044\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u306E\u6E96\u5099\u304C\u3067\u304D\u307E\u3057\u305F\uFF01* [\u78BA\u8A8D\u3059\u308B](${workspaceSettingsLink})\u3002`,
+            },
+            setupCategoriesTask: {
+                title: ({workspaceCategoriesLink}) => `\u30AB\u30C6\u30B4\u30EA\u30FC\u306E\u8A2D\u5B9A](${workspaceCategoriesLink})`,
+                description: ({workspaceCategoriesLink}) =>
+                    '*\u30AB\u30C6\u30B4\u30EA\u30FC\u3092\u8A2D\u5B9A\u3057\u307E\u3059* \u3068\u3001\u30C1\u30FC\u30E0\u306F\u7C21\u5358\u306A\u5831\u544A\u306E\u305F\u3081\u306B\u7D4C\u8CBB\u3092\u30B3\u30FC\u30C9\u5316\u3067\u304D\u307E\u3059\u3002\n' +
+                    '\n' +
+                    '1. *\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '3. \u3042\u306A\u305F\u306E\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u3092\u9078\u629E\u3057\u307E\u3059\u3002\n' +
+                    '4. *\u30AB\u30C6\u30B4\u30EA\u30FC*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '5. \u4E0D\u8981\u306A\u30AB\u30C6\u30B4\u30EA\u30FC\u3092\u7121\u52B9\u306B\u3057\u307E\u3059\u3002\n' +
+                    '6. \u53F3\u4E0A\u306B\u81EA\u5206\u306E\u30AB\u30C6\u30B4\u30EA\u30FC\u3092\u8FFD\u52A0\u3057\u307E\u3059\u3002\n' +
+                    '\n' +
+                    `[\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u30AB\u30C6\u30B4\u30EA\u30FC\u8A2D\u5B9A\u3078](${workspaceCategoriesLink})\u3002\n` +
+                    '\n' +
+                    `![\u30AB\u30C6\u30B4\u30EA\u30FC\u3092\u8A2D\u5B9A](${CONST.CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4)`,
+            },
+            combinedTrackSubmitExpenseTask: {
+                title: '\u7D4C\u8CBB\u3092\u63D0\u51FA\u3059\u308B',
+                description:
+                    '*\u7D4C\u8CBB\u3092\u63D0\u51FA\u3059\u308B* \u306B\u306F\u3001\u91D1\u984D\u3092\u5165\u529B\u3059\u308B\u304B\u3001\u9818\u53CE\u66F8\u3092\u30B9\u30AD\u30E3\u30F3\u3057\u307E\u3059\u3002\n' +
+                    '\n' +
+                    '1. \u7DD1\u8272\u306E*+*\u30DC\u30BF\u30F3\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '2. *\u7D4C\u8CBB\u306E\u4F5C\u6210*\u3092\u9078\u629E\u3057\u307E\u3059\u3002\n' +
+                    '3. \u91D1\u984D\u3092\u5165\u529B\u3059\u308B\u304B\u3001\u9818\u53CE\u66F8\u3092\u30B9\u30AD\u30E3\u30F3\u3057\u307E\u3059\u3002\n' +
+                    `4. \u4E0A\u53F8\u306E\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u307E\u305F\u306F\u96FB\u8A71\u756A\u53F7\u3092\u8FFD\u52A0\u3057\u307E\u3059\u3002\n` +
+                    '5. *\u4F5C\u6210*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '\n' +
+                    '\u3053\u308C\u3067\u5B8C\u4E86\u3067\u3059\uFF01',
+            },
+            adminSubmitExpenseTask: {
+                title: '\u7D4C\u8CBB\u3092\u63D0\u51FA\u3059\u308B',
+                description:
+                    '*\u7D4C\u8CBB\u3092\u63D0\u51FA\u3059\u308B* \u306B\u306F\u3001\u91D1\u984D\u3092\u5165\u529B\u3059\u308B\u304B\u3001\u9818\u53CE\u66F8\u3092\u30B9\u30AD\u30E3\u30F3\u3057\u307E\u3059\u3002\n' +
+                    '\n' +
+                    '1. \u7DD1\u8272\u306E*+*\u30DC\u30BF\u30F3\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '2. *\u7D4C\u8CBB\u306E\u4F5C\u6210*\u3092\u9078\u629E\u3057\u307E\u3059\u3002\n' +
+                    '3. \u91D1\u984D\u3092\u5165\u529B\u3059\u308B\u304B\u3001\u9818\u53CE\u66F8\u3092\u30B9\u30AD\u30E3\u30F3\u3057\u307E\u3059\u3002\n' +
+                    '4. \u8A73\u7D30\u3092\u78BA\u8A8D\u3057\u307E\u3059\u3002\n' +
+                    '5. *\u4F5C\u6210*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '\n' +
+                    `\u3053\u308C\u3067\u5B8C\u4E86\u3067\u3059\uFF01`,
+            },
+            trackExpenseTask: {
+                title: '\u7D4C\u8CBB\u3092\u8FFD\u8DE1\u3059\u308B',
+                description:
+                    '*\u7D4C\u8CBB\u3092\u8FFD\u8DE1\u3059\u308B* \u306B\u306F\u3001\u3042\u306A\u305F\u304C\u9818\u53CE\u66F8\u3092\u6301\u3063\u3066\u3044\u308B\u304B\u3069\u3046\u304B\u306B\u304B\u304B\u308F\u3089\u305A\u3001\u3044\u304B\u306A\u308B\u901A\u8CA8\u3067\u3082\u53EF\u80FD\u3067\u3059\u3002\n' +
+                    '\n' +
+                    '1. \u7DD1\u8272\u306E*+*\u30DC\u30BF\u30F3\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '2. *\u7D4C\u8CBB\u306E\u4F5C\u6210*\u3092\u9078\u629E\u3057\u307E\u3059\u3002\n' +
+                    '3. \u91D1\u984D\u3092\u5165\u529B\u3059\u308B\u304B\u3001\u9818\u53CE\u66F8\u3092\u30B9\u30AD\u30E3\u30F3\u3057\u307E\u3059\u3002\n' +
+                    '4. *\u500B\u4EBA*\u30B9\u30DA\u30FC\u30B9\u3092\u9078\u629E\u3057\u307E\u3059\u3002\n' +
+                    '5. *\u4F5C\u6210*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '\n' +
+                    '\u3053\u308C\u3067\u5B8C\u4E86\u3067\u3059\uFF01\u306F\u3044\u3001\u305D\u308C\u307B\u3069\u7C21\u5358\u3067\u3059\u3002',
+            },
+            addAccountingIntegrationTask: {
+                title: ({integrationName, workspaceAccountingLink}) =>
+                    `${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : '\u3068'}[${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '\u3042\u306A\u305F\u306E' : ''} ${integrationName}](${workspaceAccountingLink})\u3068\u63A5\u7D9A\u3059\u308B`,
+                description: ({integrationName, workspaceAccountingLink}) =>
+                    `${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '\u3042\u306A\u305F\u306E' : ''} ${integrationName}\u3068\u63A5\u7D9A\u3059\u308B\u3068\u3001\u7D4C\u8CBB\u306E\u81EA\u52D5\u30B3\u30FC\u30C7\u30A3\u30F3\u30B0\u3068\u540C\u671F\u304C\u53EF\u80FD\u306B\u306A\u308A\u3001\u6708\u672B\u306E\u7D50\u7B97\u304C\u5BB9\u6613\u306B\u306A\u308A\u307E\u3059\u3002\n` +
+                    '\n' +
+                    '1. *\u8A2D\u5B9A*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '2. *\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9*\u306B\u79FB\u52D5\u3057\u307E\u3059\u3002\n' +
+                    '3. \u3042\u306A\u305F\u306E\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u3092\u9078\u629E\u3057\u307E\u3059\u3002\n' +
+                    '4. *\u4F1A\u8A08*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    `5. ${integrationName}\u3092\u63A2\u3057\u307E\u3059\u3002\n` +
+                    '6. *\u63A5\u7D9A*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '\n' +
+                    `${
+                        integrationName && CONST.connectionsVideoPaths[integrationName]
+                            ? `[\u4F1A\u8A08\u306B\u79FB\u52D5\u3059\u308B](${workspaceAccountingLink}).\n\n![${integrationName}\u3068\u63A5\u7D9A\u3059\u308B](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                            : `[\u4F1A\u8A08\u306B\u79FB\u52D5\u3059\u308B](${workspaceAccountingLink}).`
+                    }`,
+            },
+            connectCorporateCardTask: {
+                title: ({corporateCardLink}) => `[\u3042\u306A\u305F\u306E\u6CD5\u4EBA\u30AB\u30FC\u30C9](${corporateCardLink})\u3092\u63A5\u7D9A\u3059\u308B`,
+                description: ({corporateCardLink}) =>
+                    `\u6CD5\u4EBA\u30AB\u30FC\u30C9\u3092\u63A5\u7D9A\u3059\u308B\u3068\u3001\u7D4C\u8CBB\u3092\u81EA\u52D5\u7684\u306B\u30A4\u30F3\u30DD\u30FC\u30C8\u3057\u3001\u30B3\u30FC\u30C9\u5316\u3059\u308B\u3053\u3068\u304C\u3067\u304D\u307E\u3059\u3002\n` +
+                    '\n' +
+                    '1. *\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '2. \u3042\u306A\u305F\u306E\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u3092\u9078\u629E\u3057\u307E\u3059\u3002\n' +
+                    '3. *\u6CD5\u4EBA\u30AB\u30FC\u30C9*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '4. \u30D7\u30ED\u30F3\u30D7\u30C8\u306B\u5F93\u3063\u3066\u30AB\u30FC\u30C9\u3092\u63A5\u7D9A\u3057\u307E\u3059\u3002\n' +
+                    '\n' +
+                    `[\u79C1\u306E\u6CD5\u4EBA\u30AB\u30FC\u30C9\u3092\u63A5\u7D9A\u3059\u308B](${corporateCardLink})\u3002`,
+            },
+
+            inviteTeamTask: {
+                title: ({workspaceMembersLink}) => `[\u3042\u306A\u305F\u306E\u30C1\u30FC\u30E0](${workspaceMembersLink})\u3092\u62DB\u5F85\u3059\u308B`,
+                description: ({workspaceMembersLink}) =>
+                    '*\u3042\u306A\u305F\u306E\u30C1\u30FC\u30E0\u3092\u62DB\u5F85\u3057\u307E\u3059* \u3068\u3001\u5F7C\u3089\u306F\u4ECA\u65E5\u304B\u3089\u7D4C\u8CBB\u306E\u8FFD\u8DE1\u3092\u958B\u59CB\u3067\u304D\u307E\u3059\u3002\n' +
+                    '\n' +
+                    '1. *\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '3. \u3042\u306A\u305F\u306E\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u3092\u9078\u629E\u3057\u307E\u3059\u3002\n' +
+                    '4. *\u30E1\u30F3\u30D0\u30FC* > *\u30E1\u30F3\u30D0\u30FC\u3092\u62DB\u5F85*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '5. \u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u307E\u305F\u306F\u96FB\u8A71\u756A\u53F7\u3092\u5165\u529B\u3057\u307E\u3059\u3002\n' +
+                    '6. \u5FC5\u8981\u306B\u5FDC\u3058\u3066\u30AB\u30B9\u30BF\u30E0\u62DB\u5F85\u30E1\u30C3\u30BB\u30FC\u30B8\u3092\u8FFD\u52A0\u3057\u307E\u3059\uFF01\n' +
+                    '\n' +
+                    `[\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u30E1\u30F3\u30D0\u30FC\u3078](${workspaceMembersLink})\u3002\n` +
+                    '\n' +
+                    `![\u3042\u306A\u305F\u306E\u30C1\u30FC\u30E0\u3092\u62DB\u5F85](${CONST.CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+            },
+
+            setupCategoriesAndTags: {
+                title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) =>
+                    `[\u30AB\u30C6\u30B4\u30EA\u30FC](${workspaceCategoriesLink})\u3068[\u30BF\u30B0](${workspaceMoreFeaturesLink})\u3092\u8A2D\u5B9A\u3059\u308B`,
+                description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
+                    '*\u30AB\u30C6\u30B4\u30EA\u30FC\u3068\u30BF\u30B0\u3092\u8A2D\u5B9A\u3057\u307E\u3059* \u3068\u3001\u30C1\u30FC\u30E0\u306F\u7D4C\u8CBB\u3092\u30B3\u30FC\u30C9\u5316\u3057\u3066\u5BB9\u6613\u306B\u5831\u544A\u3067\u304D\u307E\u3059\u3002\n' +
+                    '\n' +
+                    `[\u4F1A\u8A08\u30BD\u30D5\u30C8\u30A6\u30A7\u30A2\u3092\u63A5\u7D9A\u3059\u308B](${workspaceAccountingLink})\u3053\u3068\u3067\u81EA\u52D5\u7684\u306B\u30A4\u30F3\u30DD\u30FC\u30C8\u3059\u308B\u304B\u3001[\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u8A2D\u5B9A](${workspaceCategoriesLink})\u3067\u624B\u52D5\u3067\u8A2D\u5B9A\u3057\u307E\u305B\u3093\u304B\u3002`,
+            },
+            setupTagsTask: {
+                title: ({workspaceMoreFeaturesLink}) => `[\u30BF\u30B0](${workspaceMoreFeaturesLink})\u3092\u8A2D\u5B9A\u3059\u308B`,
+                description: ({workspaceMoreFeaturesLink}) =>
+                    '\u30BF\u30B0\u3092\u4F7F\u7528\u3057\u3066\u3001\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u3001\u30AF\u30E9\u30A4\u30A2\u30F3\u30C8\u3001\u5834\u6240\u3001\u90E8\u7F72\u306A\u3069\u306E\u8FFD\u52A0\u306E\u7D4C\u8CBB\u8A73\u7D30\u3092\u8FFD\u52A0\u3057\u307E\u3059\u3002\u8907\u6570\u306E\u30EC\u30D9\u30EB\u306E\u30BF\u30B0\u304C\u5FC5\u8981\u306A\u5834\u5408\u306F\u3001Control\u30D7\u30E9\u30F3\u306B\u30A2\u30C3\u30D7\u30B0\u30EC\u30FC\u30C9\u3067\u304D\u307E\u3059\u3002\n' +
+                    '\n' +
+                    '1. *\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '3. \u3042\u306A\u305F\u306E\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u3092\u9078\u629E\u3057\u307E\u3059\u3002\n' +
+                    '4. *\u305D\u306E\u4ED6\u306E\u6A5F\u80FD*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '5. *\u30BF\u30B0*\u3092\u6709\u52B9\u306B\u3057\u307E\u3059\u3002\n' +
+                    '6. \u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u30A8\u30C7\u30A3\u30BF\u30FC\u3067*\u30BF\u30B0*\u306B\u79FB\u52D5\u3057\u307E\u3059\u3002\n' +
+                    '7. *+\u30BF\u30B0\u3092\u8FFD\u52A0*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u3066\u3001\u81EA\u5206\u306E\u30BF\u30B0\u3092\u4F5C\u6210\u3057\u307E\u3059\u3002\n' +
+                    '\n' +
+                    `[\u305D\u306E\u4ED6\u306E\u6A5F\u80FD\u3078](${workspaceMoreFeaturesLink})\u3002\n` +
+                    '\n' +
+                    `![\u30BF\u30B0\u3092\u8A2D\u5B9A](${CONST.CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
+            },
+
+            inviteAccountantTask: {
+                title: ({workspaceMembersLink}) => `\u3042\u306A\u305F\u306E[ \u4F1A\u8A08\u58EB ](${workspaceMembersLink})\u3092\u62DB\u5F85`,
+                description: ({workspaceMembersLink}) =>
+                    '*\u3042\u306A\u305F\u306E\u4F1A\u8A08\u58EB\u3092\u62DB\u5F85* \u3057\u3066\u3001\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u3067\u5354\u529B\u3057\u3001\u4F01\u696D\u7D4C\u8CBB\u3092\u7BA1\u7406\u3057\u307E\u3057\u3087\u3046\u3002\n' +
+                    '\n' +
+                    '1. *\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9* \u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '2. \u3042\u306A\u305F\u306E\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u3092\u9078\u629E\u3057\u307E\u3059\u3002\n' +
+                    '3. *\u30E1\u30F3\u30D0\u30FC* \u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '4. *\u30E1\u30F3\u30D0\u30FC\u3092\u62DB\u5F85* \u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '5. \u4F1A\u8A08\u58EB\u306E\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u3092\u5165\u529B\u3057\u307E\u3059\u3002\n' +
+                    '\n' +
+                    `[\u4ECA\u3059\u3050\u4F1A\u8A08\u58EB\u3092\u62DB\u5F85](${workspaceMembersLink})\u3002`,
+            },
+
+            startChatTask: {
+                title: '\u30C1\u30E3\u30C3\u30C8\u3092\u958B\u59CB\u3059\u308B',
+                description:
+                    '*\u30C1\u30E3\u30C3\u30C8\u3092\u958B\u59CB\u3059\u308B* \u306B\u306F\u3001\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u307E\u305F\u306F\u96FB\u8A71\u756A\u53F7\u3092\u4F7F\u7528\u3057\u3066\u8AB0\u3068\u3067\u3082\u30C1\u30E3\u30C3\u30C8\u3067\u304D\u307E\u3059\u3002\n' +
+                    '\n' +
+                    '1. \u7DD1\u8272\u306E*+*\u30DC\u30BF\u30F3\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '2. *\u30C1\u30E3\u30C3\u30C8\u3092\u958B\u59CB*\u3092\u9078\u629E\u3057\u307E\u3059\u3002\n' +
+                    '3. \u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u307E\u305F\u306F\u96FB\u8A71\u756A\u53F7\u3092\u5165\u529B\u3057\u307E\u3059\u3002\n' +
+                    '\n' +
+                    '\u5F7C\u3089\u304C\u307E\u3060Expensify\u3092\u4F7F\u7528\u3057\u3066\u3044\u306A\u3044\u5834\u5408\u306F\u3001\u81EA\u52D5\u7684\u306B\u62DB\u5F85\u3055\u308C\u307E\u3059\u3002\n' +
+                    '\n' +
+                    '\u3059\u3079\u3066\u306E\u30C1\u30E3\u30C3\u30C8\u306F\u3001\u30C0\u30A4\u30EC\u30AF\u30C8\u306B\u8FD4\u4FE1\u3067\u304D\u308B\u30E1\u30FC\u30EB\u307E\u305F\u306F\u30C6\u30AD\u30B9\u30C8\u306B\u3082\u5909\u63DB\u3055\u308C\u307E\u3059\u3002',
+            },
+
+            splitExpenseTask: {
+                title: '\u7D4C\u8CBB\u3092\u5206\u5272\u3059\u308B',
+                description:
+                    '*\u7D4C\u8CBB\u3092\u5206\u5272\u3059\u308B* \u306B\u306F\u30011\u4EBA\u307E\u305F\u306F\u8907\u6570\u306E\u4EBA\u3068\u5171\u6709\u3057\u307E\u3059\u3002\n' +
+                    '\n' +
+                    '1. \u7DD1\u8272\u306E*+*\u30DC\u30BF\u30F3\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '2. *\u30C1\u30E3\u30C3\u30C8\u3092\u958B\u59CB*\u3092\u9078\u629E\u3057\u307E\u3059\u3002\n' +
+                    '3. \u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9\u307E\u305F\u306F\u96FB\u8A71\u756A\u53F7\u3092\u5165\u529B\u3057\u307E\u3059\u3002\n' +
+                    '4. \u30C1\u30E3\u30C3\u30C8\u5185\u306E\u7070\u8272\u306E*+*\u30DC\u30BF\u30F3\u3092\u30AF\u30EA\u30C3\u30AF > *\u7D4C\u8CBB\u3092\u5206\u5272*\u3002\n' +
+                    '5. *\u624B\u52D5* \u3001*\u30B9\u30AD\u30E3\u30F3* \u3001\u307E\u305F\u306F*\u8DDD\u96E2*\u3092\u9078\u629E\u3057\u3066\u7D4C\u8CBB\u3092\u4F5C\u6210\u3057\u307E\u3059\u3002\n' +
+                    '\n' +
+                    '\u5FC5\u8981\u306A\u3089\u3070\u8A73\u7D30\u3092\u8FFD\u52A0\u3059\u308B\u304B\u3001\u5358\u306B\u9001\u4FE1\u3057\u307E\u3059\u3002\u6255\u3044\u623B\u3057\u3092\u3042\u308A\u307E\u3057\u3087\u3046\uFF01',
+            },
+
+            reviewWorkspaceSettingsTask: {
+                title: ({workspaceSettingsLink}) => `[\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u8A2D\u5B9A](${workspaceSettingsLink})\u3092\u78BA\u8A8D\u3059\u308B`,
+                description: ({workspaceSettingsLink}) =>
+                    '\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u8A2D\u5B9A\u3092\u78BA\u8A8D\u304A\u3088\u3073\u66F4\u65B0\u3059\u308B\u65B9\u6CD5\u306F\u6B21\u306E\u3068\u304A\u308A\u3067\u3059\uFF1A\n' +
+                    '1. \u8A2D\u5B9A\u30BF\u30D6\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '2. *\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9* > [\u3042\u306A\u305F\u306E\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9]\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    `[\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u3078\u79FB\u52D5](${workspaceSettingsLink})\u3002#admins\u30EB\u30FC\u30E0\u3067\u3068\u3082\u306B\u8FFD\u8DE1\u3057\u307E\u3059\u3002`,
+            },
+            createReportTask: {
+                title: '\u521D\u3081\u3066\u306E\u30EC\u30DD\u30FC\u30C8\u3092\u4F5C\u6210\u3059\u308B',
+                description:
+                    '\u30EC\u30DD\u30FC\u30C8\u3092\u4F5C\u6210\u3059\u308B\u65B9\u6CD5\u306F\u6B21\u306E\u3068\u304A\u308A\u3067\u3059\uFF1A\n' +
+                    '\n' +
+                    '1. \u7DD1\u8272\u306E*+*\u30DC\u30BF\u30F3\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '2. *\u30EC\u30DD\u30FC\u30C8\u306E\u4F5C\u6210*\u3092\u9078\u629E\u3057\u307E\u3059\u3002\n' +
+                    '3. *\u7D4C\u8CBB\u3092\u8FFD\u52A0*\u3092\u30AF\u30EA\u30C3\u30AF\u3057\u307E\u3059\u3002\n' +
+                    '4. \u6700\u521D\u306E\u7D4C\u8CBB\u3092\u8FFD\u52A0\u3057\u307E\u3059\u3002\n' +
+                    '\n' +
+                    '\u3053\u308C\u3067\u5B8C\u4E86\u3067\u3059\uFF01',
+            },
+        } satisfies Record<string, Pick<OnboardingTask, 'title' | 'description'>>,
+        testDrive: {
+            name: ({testDriveURL}: {testDriveURL?: string}) =>
+                testDriveURL ? `\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6](${testDriveURL})\u3092\u884C\u3046` : '\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6\u3092\u884C\u3046',
+            embeddedDemoIframeTitle: '\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6',
+            employeeFakeReceipt: {
+                description: '\u79C1\u306E\u30C6\u30B9\u30C8\u30C9\u30E9\u30A4\u30D6\u306E\u9818\u53CE\u66F8\uFF01',
+            },
+        },
+        messages: {
+            onboardingEmployerOrSubmitMessage:
+                '\u652F\u6255\u3044\u3092\u53D7\u3051\u53D6\u308B\u306E\u306F\u3001\u30E1\u30C3\u30BB\u30FC\u30B8\u3092\u9001\u308B\u306E\u3068\u540C\u3058\u304F\u3089\u3044\u7C21\u5358\u3067\u3059\u3002\u57FA\u672C\u3092\u78BA\u8A8D\u3057\u307E\u3057\u3087\u3046\u3002',
+            onboardingPersonalSpendMessage:
+                '\u6570\u56DE\u30AF\u30EA\u30C3\u30AF\u3059\u308B\u3060\u3051\u3067\u3042\u306A\u305F\u306E\u652F\u51FA\u3092\u8FFD\u8DE1\u3059\u308B\u65B9\u6CD5\u306F\u6B21\u306E\u3068\u304A\u308A\u3067\u3059\u3002',
+            onboardingMangeTeamMessage: ({onboardingCompanySize}: {onboardingCompanySize?: OnboardingCompanySize}) =>
+                `\u3042\u306A\u305F\u306E\u4F1A\u793E\u306E\u898F\u6A21\u3067\u306F\u3001${onboardingCompanySize}\u4EBA\u306E\u63D0\u51FA\u8005\u304C\u3044\u308B\u5834\u5408\u306B\u304A\u52E7\u3081\u3059\u308B\u30BF\u30B9\u30AF\u30EA\u30B9\u30C8\u3092\u7D39\u4ECB\u3057\u307E\u3059\uFF1A`,
+            onboardingTrackWorkspaceMessage:
+                '# \u30BB\u30C3\u30C8\u30A2\u30C3\u30D7\u3057\u307E\u3057\u3087\u3046\n\u3063\u3066\u3001\u304A\u624B\u4F1D\u3044\u3057\u307E\u3059\uFF01\u958B\u59CB\u306B\u3042\u305F\u3063\u3066\u3001\u3042\u306A\u305F\u306E\u30ef\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u8A2D\u5B9A\u3092\u500B\u4EBA\u4E8B\u696D\u4E3B\u3084\u985E\u4F3C\u306E\u4F01\u696D\u306B\u5408\u308F\u305B\u3066\u8ABF\u6574\u3057\u307E\u3057\u305F\u3002\u4EE5\u4E0B\u306E\u30EA\u30F3\u30AF\u3092\u30AF\u30EA\u30C3\u30AF\u3059\u308B\u3068\u3001\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u3092\u8ABF\u6574\u3067\u304D\u307E\u3059\uFF01\n\n\u6570\u56DE\u30AF\u30EA\u30C3\u30AF\u3059\u308B\u3060\u3051\u3067\u3042\u306A\u305F\u306E\u652F\u51FA\u3092\u8FFD\u8DE1\u3059\u308B\u65B9\u6CD5\u306F\u6B21\u306E\u3068\u304A\u308A\u3067\u3059\u3002',
+            onboardingChatSplitMessage:
+                '\u53CB\u9054\u3068\u306E\u8ACB\u6C42\u66F8\u306E\u5206\u5272\u306F\u3001\u30E1\u30C3\u30BB\u30FC\u30B8\u3092\u9001\u308B\u306E\u3068\u540C\u3058\u304F\u3089\u3044\u7C21\u5358\u3067\u3059\u3002\u65B9\u6CD5\u306F\u6B21\u306E\u3068\u304A\u308A\u3067\u3059\u3002',
+            onboardingAdminMessage:
+                '\u7BA1\u7406\u8005\u3068\u3057\u3066\u30C1\u30FC\u30E0\u306E\u30EF\u30FC\u30AF\u30B9\u30DA\u30FC\u30B9\u3092\u7BA1\u7406\u3057\u3001\u81EA\u5206\u306E\u7D4C\u8CBB\u3092\u63D0\u51FA\u3059\u308B\u65B9\u6CD5\u3092\u5B66\u3073\u307E\u3057\u3087\u3046\u3002',
+            onboardingLookingAroundMessage:
+                'Expensify\u306F\u7D4C\u8CBB\u3001\u51FA\u5F35\u3001\u6CD5\u4EBA\u30AB\u30FC\u30C9\u7BA1\u7406\u3067\u6700\u3082\u3088\u304F\u77E5\u3089\u308C\u3066\u3044\u307E\u3059\u304C\u3001\u305D\u308C\u4EE5\u5916\u306B\u3082\u305F\u304F\u3055\u3093\u306E\u3053\u3068\u304C\u3067\u304D\u307E\u3059\u3002\u4F55\u306B\u8208\u5473\u304C\u3042\u308B\u304B\u304A\u77E5\u3089\u305B\u304F\u3060\u3055\u3044\u3002\u304A\u624B\u4F1D\u3044\u3057\u307E\u3059\u3002',
+            onboardingTestDriveReceiverMessage:
+                '*\u3042\u306A\u305F\u306B\u306F3\u304B\u6708\u304C\u7121\u6599\u3067\u5229\u7528\u3067\u304D\u307E\u3059\uFF01\u4EE5\u4E0B\u304B\u3089\u958B\u59CB\u3057\u3066\u304F\u3060\u3055\u3044\u3002*',
+        },
         workspace: {
             title: 'ワークスペースで整理整頓を保つ',
             subtitle: '経費管理を簡素化するための強力なツールをすべて一か所で利用できます。ワークスペースを使用すると、次のことができます。',
@@ -2348,6 +2600,13 @@ const translations = {
             afterWeek: '1週間',
             custom: 'カスタム',
         },
+        vacationDelegate: '休暇代理人',
+        setVacationDelegate: `不在中にレポートを承認してもらうため、休暇代理人を設定してください。`,
+        vacationDelegateError: '休暇代理人の更新中にエラーが発生しました。',
+        asVacationDelegate: ({nameOrEmail: managerName}: VacationDelegateParams) => `${managerName}の休暇代理人として`,
+        toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `${submittedToName}へ、${vacationDelegateName}の休暇代理人として`,
+        vacationDelegateWarning: ({nameOrEmail}: VacationDelegateParams) =>
+            `${nameOrEmail} を休暇代理人として設定しています。まだすべてのワークスペースに参加していません。続行すると、すべてのワークスペース管理者に追加を依頼するメールが送信されます。`,
         untilTomorrow: '明日まで',
         untilTime: ({time}: UntilTimeParams) => `${time}まで`,
         date: '日付',
@@ -2384,17 +2643,11 @@ const translations = {
         toGetStarted: '銀行口座を追加して、経費を払い戻し、Expensifyカードを発行し、請求書の支払いを受け取り、すべてを一箇所で支払います。',
         plaidBodyCopy: '従業員に会社の経費を支払う、そして払い戻しを受ける、より簡単な方法を提供しましょう。',
         checkHelpLine: '口座の小切手にルーティング番号と口座番号が記載されています。',
-        hasPhoneLoginError: {
-            phrase1: '銀行口座を接続するには、お願いします',
-            link: 'メールをプライマリーログインとして追加する',
-            phrase2: 'もう一度試してください。電話番号をセカンダリログインとして追加できます。',
-        },
+        hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
+            `銀行口座を接続するには、お願いします <a href="${contactMethodRoute}">メールをプライマリーログインとして追加する</a> もう一度試してください。電話番号をセカンダリログインとして追加できます。`,
         hasBeenThrottledError: '銀行口座の追加中にエラーが発生しました。数分待ってから再試行してください。',
-        hasCurrencyError: {
-            phrase1: 'おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、こちらにアクセスしてください。',
-            link: 'ワークスペースの設定',
-            phrase2: 'USDに設定して、もう一度お試しください。',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、こちらにアクセスしてください。<a href="${workspaceRoute}">ワークスペースの設定</a> USDに設定して、もう一度お試しください。`,
         error: {
             youNeedToSelectAnOption: 'オプションを選択してください',
             noBankAccountAvailable: '申し訳ありませんが、利用可能な銀行口座がありません。',
@@ -2674,14 +2927,40 @@ const translations = {
         whatsTheBusinessAddress: '会社の住所は何ですか？',
         whatsTheBusinessContactInformation: 'ビジネス連絡先情報は何ですか？',
         whatsTheBusinessRegistrationNumber: '事業登録番号は何ですか?',
-        whatsTheBusinessTaxIDEIN: '事業者の税務ID/EIN/VAT/GST登録番号は何ですか？',
+        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return '雇用者識別番号（EIN）とは何ですか？';
+                case CONST.COUNTRY.CA:
+                    return '法人番号（BN）とは何ですか？';
+                case CONST.COUNTRY.GB:
+                    return 'VAT登録番号（VRN）とは何ですか？';
+                case CONST.COUNTRY.AU:
+                    return 'オーストラリア事業番号（ABN）とは何ですか？';
+                default:
+                    return 'EUのVAT番号とは何ですか？';
+            }
+        },
         whatsThisNumber: 'この番号は何ですか？',
         whereWasTheBusinessIncorporated: '事業はどこで法人化されましたか?',
         whatTypeOfBusinessIsIt: 'それはどのような種類のビジネスですか？',
         whatsTheBusinessAnnualPayment: 'ビジネスの年間支払い額はどれくらいですか？',
         whatsYourExpectedAverageReimbursements: 'あなたの期待される平均払い戻し額はいくらですか？',
         registrationNumber: '登録番号',
-        taxIDEIN: '税務ID/EIN番号',
+        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            switch (country) {
+                case CONST.COUNTRY.US:
+                    return 'EIN';
+                case CONST.COUNTRY.CA:
+                    return 'BN';
+                case CONST.COUNTRY.GB:
+                    return 'VRN';
+                case CONST.COUNTRY.AU:
+                    return 'ABN';
+                default:
+                    return 'EU VAT';
+            }
+        },
         businessAddress: 'ビジネス住所',
         businessType: '業種',
         incorporation: '法人化',
@@ -2705,6 +2984,20 @@ const translations = {
         findAverageReimbursement: '平均払い戻し額を見つける',
         error: {
             registrationNumber: '有効な登録番号を提供してください。',
+            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+                switch (country) {
+                    case CONST.COUNTRY.US:
+                        return '有効な雇用者識別番号（EIN）を入力してください';
+                    case CONST.COUNTRY.CA:
+                        return '有効な法人番号（BN）を入力してください';
+                    case CONST.COUNTRY.GB:
+                        return '有効なVAT登録番号（VRN）を入力してください';
+                    case CONST.COUNTRY.AU:
+                        return '有効なオーストラリア事業番号（ABN）を入力してください';
+                    default:
+                        return '有効なEU VAT番号を入力してください';
+                }
+            },
         },
     },
     beneficialOwnerInfoStep: {
@@ -3108,7 +3401,6 @@ const translations = {
             unavailable: '利用できないワークスペース',
             memberNotFound: 'メンバーが見つかりません。新しいメンバーをワークスペースに招待するには、上の招待ボタンを使用してください。',
             notAuthorized: `このページにアクセスする権限がありません。このワークスペースに参加しようとしている場合は、ワークスペースのオーナーにメンバーとして追加してもらってください。他に何かお困りですか？${CONST.EMAIL.CONCIERGE}にお問い合わせください。`,
-            goToRoom: ({roomName}: GoToRoomParams) => `${roomName} ルームに行く`,
             goToWorkspace: 'ワークスペースに移動',
             goToWorkspaces: 'ワークスペースに移動',
             clearFilter: 'フィルターをクリア',
@@ -3976,6 +4268,11 @@ const translations = {
                     pleaseSelectFeedType: '続行する前にフィードタイプを選択してください',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '月の最終日',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: '月の最終営業日',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'カスタム月日',
+            },
             assignCard: 'カードを割り当てる',
             findCard: 'カードを探す',
             cardNumber: 'カード番号',
@@ -3992,6 +4289,7 @@ const translations = {
             startDateDescription: 'この日付以降のすべての取引をインポートします。日付が指定されていない場合は、銀行が許可する限り遡ります。',
             fromTheBeginning: '最初から',
             customStartDate: 'カスタム開始日',
+            customCloseDate: 'カスタムクローズ日',
             letsDoubleCheck: 'すべてが正しいかどうかをもう一度確認しましょう。',
             confirmationDescription: 'すぐに取引のインポートを開始します。',
             cardholder: 'カードホルダー',
@@ -4214,6 +4512,7 @@ const translations = {
                 removeCardFeedDescription: 'このカードフィードを削除してもよろしいですか？これにより、すべてのカードの割り当てが解除されます。',
                 error: {
                     feedNameRequired: 'カードフィード名は必須です',
+                    statementCloseDateRequired: '明細書の締め日を選択してください。',
                 },
                 corporate: '取引の削除を制限する',
                 personal: '取引の削除を許可',
@@ -4225,7 +4524,7 @@ const translations = {
                 pendingFeedDescription: `現在、フィードの詳細を確認しています。それが完了次第、経由でご連絡いたします。`,
                 pendingBankTitle: 'ブラウザウィンドウを確認してください。',
                 pendingBankDescription: ({bankName}: CompanyCardBankName) => `${bankName}に接続するには、開いたブラウザウィンドウを使用してください。ウィンドウが開かない場合は、`,
-                pendingBankLink: 'こちらをクリックしてください。',
+                pendingBankLink: 'こちらをクリックしてください',
                 giveItNameInstruction: 'カードに他と区別できる名前を付けてください。',
                 updating: '更新中...',
                 noAccountsFound: 'アカウントが見つかりません',
@@ -4238,6 +4537,8 @@ const translations = {
                 expensifyCardBannerTitle: 'Expensifyカードを取得する',
                 expensifyCardBannerSubtitle: 'すべての米国での購入でキャッシュバックを楽しみ、Expensifyの請求書が最大50%オフ、無制限のバーチャルカードなど、さらに多くの特典があります。',
                 expensifyCardBannerLearnMoreButton: '詳細を確認',
+                statementCloseDateTitle: '利用明細書の締め日',
+                statementCloseDateDescription: 'カード利用明細書の締め日をお知らせいただければ、Expensifyで一致する明細書を作成します。',
             },
             workflows: {
                 title: 'ワークフロー',
@@ -5570,7 +5871,14 @@ const translations = {
                 title: 'エクスポートする経費はありません',
                 subtitle: 'ゆっくりする時間です。お疲れ様でした。',
             },
+            emptyUnapprovedResults: {
+                title: '承認する経費はありません',
+                subtitle: '経費ゼロ。最大限のリラックス。よくやった！',
+            },
         },
+        unapproved: '未承認',
+        unapprovedCash: '未承認現金',
+        unapprovedCompanyCards: '未承認の社用カード',
         saveSearch: '検索を保存',
         deleteSavedSearch: '保存された検索を削除',
         deleteSavedSearchConfirm: 'この検索を削除してもよろしいですか？',
@@ -5591,6 +5899,10 @@ const translations = {
                 before: ({date}: OptionalParam<DateParams> = {}) => `${date ?? ''}の前に`,
                 after: ({date}: OptionalParam<DateParams> = {}) => `After ${date ?? ''}`,
                 on: ({date}: OptionalParam<DateParams> = {}) => `On ${date ?? ''}`,
+                presets: {
+                    [CONST.SEARCH.DATE_PRESETS.NEVER]: '未承認',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
+                },
             },
             status: 'ステータス',
             keyword: 'キーワード',
@@ -5623,7 +5935,13 @@ const translations = {
             posted: '投稿日',
             billable: 'ビラブル',
             reimbursable: '払い戻し可能',
+            groupBy: {
+                reports: '報告',
+                members: 'メンバー',
+                cards: 'カード',
+            },
         },
+        groupBy: 'グループ',
         moneyRequestReport: {
             emptyStateTitle: 'このレポートには経費がありません。',
             emptyStateSubtitle: 'このレポートに経費を追加するには、上のボタンを使用してください。',
@@ -5784,7 +6102,8 @@ const translations = {
                 unshare: ({to}: UnshareParams) => `削除されたメンバー${to}`,
                 stripePaid: ({amount, currency}: StripePaidParams) => `${currency}${amount} を支払いました`,
                 takeControl: `制御を取りました`,
-                integrationSyncFailed: ({label, errorMessage}: IntegrationSyncFailedParams) => `${label}${errorMessage ? ` ("${errorMessage}")` : ''}との同期に失敗しました`,
+                integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
+                    `${label}との同期中に問題が発生しました${errorMessage ? `（"${errorMessage}"）` : ''}。<a href="${workspaceAccountingLink}">ワークスペースの設定</a>で問題を修正してください。`,
                 addEmployee: ({email, role}: AddEmployeeParams) => `${email}を${role === 'member' ? 'a' : 'an'} ${role}として追加しました`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `${email} の役割を ${newRole} に更新しました（以前は ${currentRole}）`,
                 updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
@@ -5929,8 +6248,8 @@ const translations = {
         principalWorkEmail: '主要な勤務先のメールアドレス',
         updateYourEmail: 'メールアドレスを更新してください',
         updateEmail: 'メールアドレスを更新する',
-        contactMethods: '連絡方法。',
-        schoolMailAsDefault: '先に進む前に、学校のメールをデフォルトの連絡方法として設定してください。設定 > プロフィール > で行うことができます。',
+        schoolMailAsDefault: ({contactMethodsRoute}: ContactMethodsRouteParams) =>
+            `先に進む前に、学校のメールをデフォルトの連絡方法として設定してください。設定 > プロフィール > <a href="${contactMethodsRoute}">連絡方法</a> で行うことができます。`,
         error: {
             enterPhoneEmail: '有効なメールアドレスまたは電話番号を入力してください',
             enterEmail: 'メールアドレスを入力してください',
@@ -5964,7 +6283,6 @@ const translations = {
         },
     },
     reportCardLostOrDamaged: {
-        report: '物理カードの紛失/破損を報告する',
         screenTitle: '成績表が紛失または損傷しました',
         nextButtonLabel: '次へ',
         reasonTitle: 'なぜ新しいカードが必要なのですか？',
@@ -5978,6 +6296,8 @@ const translations = {
         shipNewCardButton: '新しいカードを発送する',
         addressError: '住所が必要です',
         reasonError: '理由が必要です',
+        successTitle: '新しいカードが発送中です！',
+        successDescription: '数営業日で届きます。届いたら有効化する必要があります。それまでは仮想カードを使用できます。',
     },
     eReceipt: {
         guaranteed: '保証付きeレシート',
@@ -6088,10 +6408,10 @@ const translations = {
         customRules: ({message}: ViolationsCustomRulesParams) => message,
         reviewRequired: 'レビューが必要です',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member, rterType}: ViolationsRterParams) => {
-            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
-                return '';
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
+                return '銀行接続が切れているため、領収書を自動照合できません。';
             }
-            if (brokenBankConnection) {
+            if (brokenBankConnection || rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return isAdmin
                     ? `${email}が修正する必要がある銀行接続の問題のため、領収書を自動マッチングできません。`
                     : '壊れた銀行接続のため、領収書を自動マッチングできません。修正が必要です。';
@@ -6270,14 +6590,9 @@ const translations = {
             earlyDiscount: {
                 claimOffer: 'オファーを請求する',
                 noThanks: '結構です',
-                subscriptionPageTitle: {
-                    phrase1: ({discountType}: EarlyDiscountTitleParams) => `最初の1年間は${discountType}%オフ！`,
-                    phrase2: `支払いカードを追加して、年間サブスクリプションを開始するだけです。`,
-                },
-                onboardingChatTitle: {
-                    phrase1: '期間限定オファー:',
-                    phrase2: ({discountType}: EarlyDiscountTitleParams) => `最初の1年間は${discountType}%オフ！`,
-                },
+                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
+                    `<strong>最初の1年間は${discountType}%オフ！</strong> 支払いカードを追加して、年間サブスクリプションを開始するだけです。`,
+                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `期間限定オファー: 最初の1年間は${discountType}%オフ！`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `${hours}時間 ${minutes}分 ${seconds}秒以内に${days > 0 ? `${days}日 :` : ''}を請求してください`,
             },
         },
@@ -6295,8 +6610,7 @@ const translations = {
             authenticatePayment: '支払いを認証する',
             requestRefund: '返金をリクエスト',
             requestRefundModal: {
-                phrase1: '返金を受けるのは簡単です。次の請求日までにアカウントをダウングレードするだけで、返金されます。',
-                phrase2: 'ご注意: アカウントをダウングレードすると、ワークスペースが削除されます。この操作は元に戻せませんが、気が変わった場合はいつでも新しいワークスペースを作成できます。',
+                full: '返金を受けるのは簡単です。次の請求日までにアカウントをダウングレードするだけで、返金されます。<br /> <br /> ご注意: アカウントをダウングレードすると、ワークスペースが削除されます。この操作は元に戻せませんが、気が変わった場合はいつでも新しいワークスペースを作成できます。',
                 confirm: 'ワークスペースを削除してダウングレード',
             },
             viewPaymentHistory: '支払い履歴を表示',
@@ -6435,11 +6749,7 @@ const translations = {
                     part2: '.',
                 },
             },
-            acknowledgement: {
-                part1: '早期キャンセルをリクエストすることにより、Expensify が Expensify の下でそのようなリクエストを承認する義務を負わないことを認め、同意します。',
-                link: '利用規約',
-                part2: 'または、私とExpensifyの間の他の適用されるサービス契約に基づき、Expensifyがそのような要求を許可するかどうかについての唯一の裁量権を保持していること。',
-            },
+            acknowledgement: `早期キャンセルをリクエストすることにより、Expensify が Expensify の下でそのようなリクエストを承認する義務を負わないことを認め、同意します。<a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>利用規約</a>または、私とExpensifyの間の他の適用されるサービス契約に基づき、Expensifyがそのような要求を許可するかどうかについての唯一の裁量権を保持していること。`,
         },
     },
     feedbackSurvey: {
