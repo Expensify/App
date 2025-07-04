@@ -1,7 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,6 +8,7 @@ import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getPerDiemCustomUnit, getPerDiemCustomUnits, isUserInvitedToWorkspace} from '@libs/PolicyUtils';
+import {getPerDiemCustomUnit, getPerDiemCustomUnits} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
@@ -150,10 +150,11 @@ function IOURequestStartPage({
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
     const {isBetaEnabled} = usePermissions();
+    const manualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
     const setTestReceiptAndNavigateRef = useRef<() => void>(() => {});
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        !getIsUserSubmittedExpenseOrScannedReceipt() && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedTab === CONST.TAB_REQUEST.SCAN && !isUserInvitedToWorkspace(),
+        !getIsUserSubmittedExpenseOrScannedReceipt() && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedTab === CONST.TAB_REQUEST.SCAN,
         {
             onConfirm: () => {
                 setTestReceiptAndNavigateRef?.current?.();
@@ -234,16 +235,18 @@ function IOURequestStartPage({
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
                                 </TopTab.Screen>
-                                <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
-                                    {() => (
-                                        <TabScreenWithFocusTrapWrapper>
-                                            <IOURequestStepDistance
-                                                route={route}
-                                                navigation={navigation}
-                                            />
-                                        </TabScreenWithFocusTrapWrapper>
-                                    )}
-                                </TopTab.Screen>
+                                {!manualDistanceTrackingEnabled && (
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
+                                        {() => (
+                                            <TabScreenWithFocusTrapWrapper>
+                                                <IOURequestStepDistance
+                                                    route={route}
+                                                    navigation={navigation}
+                                                />
+                                            </TabScreenWithFocusTrapWrapper>
+                                        )}
+                                    </TopTab.Screen>
+                                )}
                                 {!!shouldShowPerDiemOption && (
                                     <TopTab.Screen name={CONST.TAB_REQUEST.PER_DIEM}>
                                         {() => (
