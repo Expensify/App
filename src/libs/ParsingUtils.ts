@@ -82,6 +82,16 @@ function addDomainToShortMention(mention: string, availableMentionLogins: string
     return undefined;
 }
 
+type GetParsedMessageWithShortMentionsArgs = {
+    text: string;
+    availableMentionLogins: string[];
+    userEmailDomain?: string;
+    parserOptions: {
+        disabledRules?: string[];
+        extras?: Extras;
+    };
+};
+
 /**
  * This function receives raw text of the message, parses it with ExpensiMark, then transforms short-mentions
  * into full mentions by adding a user domain to them.
@@ -92,22 +102,9 @@ function addDomainToShortMention(mention: string, availableMentionLogins: string
  * However, ExpensiMark can also produce a special `<mention-short>` tag, which is just the @login part of a full user login.
  * This is handled inside `react-native-live-markdown` with a special function `parseExpensiMark` and then processed with `decorateRangesWithShortMentions`.
  * However, we cannot use `parseExpensiMark` for the text that is being sent to backend, as we need html mention tags.
- * This function is the missing piece that will use ExpensiMark for parsing, but and then strip+transform `mention-short` into full mentions.
+ * This function is the missing piece that will use ExpensiMark for parsing, but will also strip+transform `mention-short` into full mentions.
  */
-function getParsedMessageWithShortMentions({
-    text,
-    availableMentionLogins,
-    userEmailDomain,
-    parserOptions,
-}: {
-    text: string;
-    availableMentionLogins: string[];
-    userEmailDomain?: string;
-    parserOptions: {
-        disabledRules?: string[];
-        extras?: Extras;
-    };
-}) {
+function getParsedMessageWithShortMentions({text, availableMentionLogins, userEmailDomain, parserOptions}: GetParsedMessageWithShortMentionsArgs) {
     const parsedText = Parser.replace(text, {
         shouldEscapeText: true,
         disabledRules: parserOptions.disabledRules,
