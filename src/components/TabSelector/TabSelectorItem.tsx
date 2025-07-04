@@ -47,7 +47,7 @@ type TabSelectorItemProps = {
     renderProductTrainingTooltip?: () => React.JSX.Element;
 
     /** Parent tab selector, for computing tooltip placement */
-    parentRef?: RefObject<View|null>;
+    parentView?: View|null;
 };
 
 function TabSelectorItem({
@@ -62,7 +62,7 @@ function TabSelectorItem({
     testID,
     shouldShowProductTrainingTooltip = false,
     renderProductTrainingTooltip,
-    parentRef,
+    parentView,
 }: TabSelectorItemProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
@@ -72,10 +72,10 @@ function TabSelectorItem({
 
     useLayoutEffect(() => {
         if (!isActive) { return }
-        console.info(`useLayoutEffect title = ${title} parentRef = ${parentRef != null} parentref.current = ${parentRef?.current != null}`)
-        parentRef?.current?.measureInWindow((parentX, _parentY, parentWidth) => {
+        console.info(`useLayoutEffect title = ${title} parentView = ${parentView != null} `)
+        parentView?.measureInWindow((parentX, _parentY, parentWidth) => {
             childRef.current?.measureInWindow((x, _y, width) => {
-                console.info(`parentRef measureInWindow x=${parentX} width=${parentWidth}`);
+                console.info(`parentView measureInWindow x=${parentX} width=${parentWidth}`);
                 console.info(`childRef measureInWindow x=${x} width=${width}`);
                 // To center tooltip in parent:
                 const currentCenter = x + width / 2;            // where it is now...
@@ -84,7 +84,7 @@ function TabSelectorItem({
                 console.info(`shiftHorizontal =  ${shiftHorizontal}`);
             });
         });
-    }, [isActive, parentRef, childRef, shiftHorizontal]);
+    }, [isActive, parentView, childRef, shiftHorizontal, title]);
 
     const children = (
             <AnimatedPressableWithFeedback

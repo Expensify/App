@@ -1,5 +1,5 @@
 import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs/lib/typescript/src/types';
-import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -86,15 +86,19 @@ function TabSelector({
 
     useLayoutEffect(() => {
         viewRef.current?.measure((x, y, width) => {
+            console.info(`measure ${x} ${width}`)
             setSelectorWidth(width);
         });
     }, []);
+
+
+    const [view, setView] = useState<View | null>(null);
 
     // console.info(`TabSelector shouldShowProductTrainingTooltip ${shouldShowProductTrainingTooltip}`);
 
     return (
         <FocusTrapContainerElement onContainerElementChanged={onFocusTrapContainerElementChanged}>
-            <View style={styles.tabSelector} ref={viewRef}>
+            <View style={styles.tabSelector} ref={setView}>
                 {state.routes.map((route, index) => {
                     const isActive = index === state.index;
                     const activeOpacity = getOpacity({routesLength: state.routes.length, tabIndex: index, active: true, affectedTabs: affectedAnimatedTabs, position, isActive});
@@ -138,7 +142,7 @@ function TabSelector({
                             shouldShowLabelWhenInactive={shouldShowLabelWhenInactive}
                             shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                             renderProductTrainingTooltip={renderProductTrainingTooltip}
-                            parentRef={viewRef}
+                            parentView={view}
                         />
                     );
                 })}
