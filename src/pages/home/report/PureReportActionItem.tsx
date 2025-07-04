@@ -451,7 +451,7 @@ function PureReportActionItem({
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        () => ((isReportActionLinked || shouldBeHighlightedTemporary) ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
+        () => (isReportActionLinked || shouldBeHighlightedTemporary ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG, shouldBeHighlightedTemporary],
     );
 
