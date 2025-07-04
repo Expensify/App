@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
-import {getCurrentUserAccountID} from './actions/Report';
+import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getConnectedIntegration,
@@ -13,6 +13,7 @@ import {
     getValidConnectedIntegration,
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
+    isPolicyMember,
     isPreferredExporter,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
@@ -97,8 +98,9 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = (report.managerID ?? CONST.DEFAULT_NUMBER_ID) === getCurrentUserAccountID();
+    const currentUserEmail = getCurrentUserEmail();
 
-    return isSubmitter || isAdmin || isManager;
+    return (isSubmitter || isAdmin || isManager) && isPolicyMember(currentUserEmail, report.policyID);
 }
 
 function isSubmitAction(
