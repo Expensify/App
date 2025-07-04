@@ -17,7 +17,11 @@ import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {ButtonWithDropdownMenuProps} from './types';
 
-function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuProps<IValueType>, ref: React.Ref<{setIsMenuVisible: (visible: boolean) => void}>) {
+type ButtonWithDropdownMenuRef = {
+    setIsMenuVisible: (visible: boolean) => void;
+};
+
+function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuProps<IValueType>, ref: React.Ref<ButtonWithDropdownMenuRef>) {
     const {
         success = true,
         isSplitButton = true,
@@ -263,5 +267,7 @@ function ButtonWithDropdownMenuInner<IValueType>(props: ButtonWithDropdownMenuPr
 }
 
 ButtonWithDropdownMenuInner.displayName = 'ButtonWithDropdownMenu';
-const ButtonWithDropdownMenu = forwardRef(ButtonWithDropdownMenuInner);
+const ButtonWithDropdownMenu = forwardRef(ButtonWithDropdownMenuInner) as <IValueType>(
+    props: ButtonWithDropdownMenuProps<IValueType> & {ref?: React.Ref<ButtonWithDropdownMenuRef>},
+) => ReturnType<typeof ButtonWithDropdownMenuInner>;
 export default ButtonWithDropdownMenu;
