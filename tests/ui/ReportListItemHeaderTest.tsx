@@ -32,8 +32,8 @@ const mockSearchContext = {
     setCurrentSearchHash: jest.fn(),
     setSelectedTransactions: jest.fn(),
     setShouldShowFiltersBarLoading: jest.fn(),
-    setShouldShowExportModeOption: jest.fn(),
-    setExportMode: jest.fn(),
+    shouldShowSelectAllMatchingItems: jest.fn(),
+    selectAllMatchingItems: jest.fn(),
 };
 
 const mockPersonalDetails: Record<string, SearchPersonalDetails> = {

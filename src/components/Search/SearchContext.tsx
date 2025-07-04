@@ -17,8 +17,8 @@ const defaultSearchContextData: SearchContextData = {
 const defaultSearchContext: SearchContext = {
     ...defaultSearchContextData,
     lastSearchType: undefined,
-    isExportMode: false,
-    shouldShowExportModeOption: false,
+    areAllMatchingItemsSelected: false,
+    showSelectAllMatchingItems: false,
     shouldShowFiltersBarLoading: false,
     setLastSearchType: () => {},
     setCurrentSearchHash: () => {},
@@ -26,15 +26,15 @@ const defaultSearchContext: SearchContext = {
     removeTransaction: () => {},
     clearSelectedTransactions: () => {},
     setShouldShowFiltersBarLoading: () => {},
-    setShouldShowExportModeOption: () => {},
-    setExportMode: () => {},
+    shouldShowSelectAllMatchingItems: () => {},
+    selectAllMatchingItems: () => {},
 };
 
 const Context = React.createContext<SearchContext>(defaultSearchContext);
 
 function SearchContextProvider({children}: ChildrenProps) {
-    const [shouldShowExportModeOption, setShouldShowExportModeOption] = useState(false);
-    const [isExportMode, setExportMode] = useState(false);
+    const [showSelectAllMatchingItems, shouldShowSelectAllMatchingItems] = useState(false);
+    const [areAllMatchingItemsSelected, selectAllMatchingItems] = useState(false);
     const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
     const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
     const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
@@ -113,8 +113,10 @@ function SearchContextProvider({children}: ChildrenProps) {
                 selectedTransactions: {},
                 selectedReports: [],
             }));
-            setShouldShowExportModeOption(false);
-            setExportMode(false);
+
+            // Unselect all transactions and hide the "select all matching items" option
+            shouldShowSelectAllMatchingItems(false);
+            selectAllMatchingItems(false);
         },
         [searchContextData.currentSearchHash, setSelectedTransactions],
     );
@@ -144,10 +146,10 @@ function SearchContextProvider({children}: ChildrenProps) {
             setShouldShowFiltersBarLoading,
             lastSearchType,
             setLastSearchType,
-            shouldShowExportModeOption,
-            setShouldShowExportModeOption,
-            isExportMode,
-            setExportMode,
+            showSelectAllMatchingItems,
+            shouldShowSelectAllMatchingItems,
+            areAllMatchingItemsSelected,
+            selectAllMatchingItems,
         }),
         [
             searchContextData,
@@ -156,10 +158,10 @@ function SearchContextProvider({children}: ChildrenProps) {
             clearSelectedTransactions,
             shouldShowFiltersBarLoading,
             lastSearchType,
-            shouldShowExportModeOption,
-            setShouldShowExportModeOption,
-            isExportMode,
-            setExportMode,
+            showSelectAllMatchingItems,
+            shouldShowSelectAllMatchingItems,
+            areAllMatchingItemsSelected,
+            selectAllMatchingItems,
             removeTransaction,
         ],
     );

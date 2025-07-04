@@ -541,7 +541,6 @@ const translations = {
         userID: 'User ID',
         disable: 'Disable',
         export: 'Export',
-        basicExport: 'Basic export',
         initialValue: 'Initial value',
         currentDate: 'Current date',
         value: 'Value',
@@ -7009,6 +7008,13 @@ const translations = {
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} invited you to test drive Expensify\nHey! I just got us *3 months free* to test drive Expensify, the fastest way to do expenses.\n\nHere’s a *test receipt* to show you how it works:`,
+    },
+    export: {
+        basicExport: 'Basic export',
+        reportLevelExport: 'All Data - report level',
+        expenseLevelExport: 'All Data - expense level',
+        exportInProgress: 'Export in progress',
+        conciergeWillSend: 'Concierge will send you the file shortly.',
     },
 };
 
