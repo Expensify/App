@@ -253,7 +253,11 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                   }}
                   onPassword={() => {
                       validatedPDFs.current = [...(validatedPDFs.current ?? []), file];
-                      collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE});
+                      if (isValidatingReceipts) {
+                          collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.PROTECTED_FILE});
+                      } else {
+                          validFiles.current = [...(validFiles.current ?? []), file];
+                      }
                       checkIfAllValidatedAndProceed();
                   }}
                   onLoadError={() => {
