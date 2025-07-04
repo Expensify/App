@@ -356,6 +356,9 @@ type PureReportActionItemProps = {
 
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
+
+    /** Animate highlight action in few seconds */
+    shouldBeHighlightedTemporary?: boolean;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -419,6 +422,7 @@ function PureReportActionItem({
     userBillingFundID,
     policies,
     shouldShowBorder,
+    shouldBeHighlightedTemporary = false,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, datetimeToCalendarTime} = useLocalize();
@@ -446,8 +450,9 @@ function PureReportActionItem({
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
-        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
-        [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        () => ((isReportActionLinked || shouldBeHighlightedTemporary) ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
+        [StyleUtils, isReportActionLinked, theme.messageHighlightBG, shouldBeHighlightedTemporary],
     );
 
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1, undefined, undefined);
@@ -1600,6 +1605,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
+        prevProps.shouldBeHighlightedTemporary === nextProps.shouldBeHighlightedTemporary &&
         prevProps.userBillingFundID === nextProps.userBillingFundID
     );
 });

@@ -5431,7 +5431,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
     }
 
     if (activeReportID && !isMoneyRequestReport) {
-        notifyNewAction(activeReportID, payeeAccountID);
+        notifyNewAction(activeReportID, payeeAccountID, reportPreviewAction);
     }
 }
 
