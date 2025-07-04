@@ -28,6 +28,7 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop, shouldAcceptS
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const shouldStackVertically = shouldUseNarrowLayout || isMediumScreenWidth;
+    const scanReceiptsText = shouldAcceptSingleReceipt ? 'quickAction.scanReceipt' : 'dropzone.scanReceipts';
 
     return (
         <DragAndDropConsumer>
@@ -48,7 +49,7 @@ function DualDropZone({isEditing, onAttachmentDrop, onReceiptDrop, shouldAcceptS
                     {({isDraggingOver}) => (
                         <DropZoneUI
                             icon={isEditing ? Expensicons.ReplaceReceipt : Expensicons.SmartScan}
-                            dropTitle={translate(isEditing ? 'dropzone.replaceReceipt' : shouldAcceptSingleReceipt ? 'quickAction.scanReceipt' : 'dropzone.scanReceipts')}
+                            dropTitle={translate(isEditing ? 'dropzone.replaceReceipt' : scanReceiptsText)}
                             dropStyles={styles.receiptDropOverlay(isDraggingOver)}
                             dropTextStyles={styles.receiptDropText}
                             dropInnerWrapperStyles={styles.receiptDropInnerWrapper(isDraggingOver)}
