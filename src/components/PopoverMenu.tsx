@@ -432,7 +432,7 @@ function PopoverMenu({
                     style={[menuContainerStyle, containerStyles, styles.pv0]}
                 >
                     {renderHeaderText()}
-                    <View style={{paddingTop, paddingBottom, paddingVertical}}>
+                    <View style={{paddingTop, paddingBottom, paddingVertical, ...styles.flex1}}>
                         {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                         {renderWithConditionalWrapper(shouldUseScrollView, restScrollContainerStyle, renderedMenuItems)}
                     </View>
