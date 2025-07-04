@@ -849,8 +849,8 @@ describe('PolicyUtils', () => {
             ['when orderWeight is 0', 0, policyTags.TagListTest0.name],
             ['when orderWeight is 2', 2, policyTags.TagListTest2.name],
             ['when orderWeight is out of range', 1, ''],
-        ])('%s', (_description, index, expected) => {
-            const tagList = getTagListByOrderWeight(policyTags, index);
+        ])('%s', (_description, orderWeight, expected) => {
+            const tagList = getTagListByOrderWeight(policyTags, orderWeight);
             expect(tagList.name).toEqual(expected);
         });
     });
