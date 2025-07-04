@@ -4037,6 +4037,7 @@ describe('ReportUtils', () => {
             });
 
             it('cannot be flagged if the report does not exist', () => {
+                // cspell:disable-next-line
                 expect(canFlagReportAction(nonWhisperReportAction, 'starwarsisthebest')).toBe(false);
             });
 
