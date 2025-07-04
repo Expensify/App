@@ -658,6 +658,25 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
 }
 
 /**
+ * Verify that the transaction is in Self DM and that its distance rate is invalid.
+ */
+function isUnreportedAndHasInvalidDistanceRateTransaction(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined) {
+    if (transaction && isDistanceRequest(transaction)) {
+        const report = getReportOrDraftReport(transaction.reportID);
+        // eslint-disable-next-line deprecation/deprecation
+        const policy = policyParam ?? getPolicy(report?.policyID);
+        const {rate} = DistanceRequestUtils.getRate({transaction, policy});
+        const isUnreported = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+        if (isUnreported && !rate) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined): string {
@@ -669,9 +688,11 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
         const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
         const {unit, rate} = mileageRate;
         const distanceInMeters = getDistanceInMeters(transaction, unit);
-        return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
-            toLocaleDigit(IntlStore.getCurrentLocale(), digit),
-        );
+        if (!isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) {
+            return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
+                toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+            );
+        }
     }
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '');
 }
@@ -1740,6 +1761,7 @@ export {
     getTransactionPendingAction,
     isTransactionPendingDelete,
     createUnreportedExpenseSections,
+    isUnreportedAndHasInvalidDistanceRateTransaction,
 };
 
 export type {TransactionChanges};

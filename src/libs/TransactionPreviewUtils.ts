@@ -35,6 +35,7 @@ import {
     isPending,
     isPerDiemRequest,
     isScanning,
+    isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
@@ -209,12 +210,14 @@ function getTransactionPreviewTextAndTranslationPaths({
         RBRMessage = actionsWithErrors.length > 1 ? {translationPath: 'violations.reviewRequired'} : {text: actionsWithErrors.at(0)};
     }
 
-    RBRMessage ??= {text: ''};
-
     let previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
 
     if (isDistanceRequest(transaction)) {
         previewHeaderText = [{translationPath: 'common.distance'}];
+
+        if (RBRMessage === undefined && isUnreportedAndHasInvalidDistanceRateTransaction(transaction)) {
+            RBRMessage = {translationPath: 'violations.customUnitOutOfPolicy'};
+        }
     } else if (isPerDiemRequest(transaction)) {
         previewHeaderText = [{translationPath: 'common.perDiem'}];
     } else if (isTransactionScanning) {
@@ -222,6 +225,8 @@ function getTransactionPreviewTextAndTranslationPaths({
     } else if (isBillSplit) {
         previewHeaderText = [{translationPath: 'iou.split'}];
     }
+
+    RBRMessage ??= {text: ''};
 
     if (!isCreatedMissing(transaction)) {
         const created = getFormattedCreated(transaction);
@@ -317,8 +322,12 @@ function createTransactionPreviewConditionals({
 
     const shouldShowCategory = !!categoryForDisplay && isReportAPolicyExpenseChat;
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const hasAnyViolations = hasViolationsOfTypeNotice || hasWarningTypeViolation(transaction, violations, true) || hasViolation(transaction, violations, true);
+    const hasAnyViolations =
+        isUnreportedAndHasInvalidDistanceRateTransaction(transaction) ||
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        hasViolationsOfTypeNotice ||
+        hasWarningTypeViolation(transaction, violations, true) ||
+        hasViolation(transaction, violations, true);
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
     const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionsWithErrors(iouReport?.reportID);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors;
