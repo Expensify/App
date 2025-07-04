@@ -240,7 +240,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
-    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
+    const isDataLoaded = isSearchDataLoaded(currentSearchResults?.search, lastNonEmptySearchResults?.search, queryJSON) ?? false;
 
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || (!!searchResults?.search.isLoading && Array.isArray(searchResults?.data) && searchResults?.data.length === 0));
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
