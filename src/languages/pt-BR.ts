@@ -6100,8 +6100,12 @@ const translations = {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `alterado ${fieldName} de ${oldValue} para ${newValue}`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `alterado ${fieldName} para ${newValue}`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) =>
-                    `alterou o espaço de trabalho para ${toPolicyName}${fromPolicyName ? `(anteriormente ${fromPolicyName})` : ''}`,
+                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                    if (!toPolicyName) {
+                        return 'alterou o espaço de trabalho';
+                    }
+                    return `alterou o espaço de trabalho para ${toPolicyName}${fromPolicyName ? `(anteriormente ${fromPolicyName})` : ''}`;
+                },
                 changeType: ({oldType, newType}: ChangeTypeParams) => `alterado o tipo de ${oldType} para ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `enviei este relatório para ${delegateUser} já que ${originalManager} está de férias`,
                 exportedToCSV: `exportado para CSV`,
