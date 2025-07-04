@@ -24,6 +24,467 @@ type HelpContent = {
 
 const helpContentMap: HelpContent = {
     children: {
+        settings: {
+            children: {
+                wallet: {
+                    content: ({styles}: {styles: ThemeStyles}) => (
+                        <View>
+                            <Text style={[styles.textHeadlineH1, styles.mv4]}>Business Bank Accounts</Text>
+                            <Text style={[styles.textNormal]}>
+                                Connect a verified business bank account to unlock payment features like reimbursements, bill pay, invoice collections, and Expensify Card issuance. Supported
+                                currencies: USD, CAD, GBP, EUR, and AUD.
+                            </Text>
+                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Getting Started</Text>
+                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Enable Payment Features</Text>
+
+                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Connect Your Bank Account</Text>
+
+                            <Text style={[styles.textHeadlineH2, styles.mv4]}>What You Can Do</Text>
+                            <Text style={[styles.textNormal]}>Once your account is verified, you’ll be able to:</Text>
+                            <BulletList
+                                styles={styles}
+                                items={[
+                                    <Text style={styles.textNormal}>
+                                        <Text style={styles.textBold}>Reimburse employees</Text> via ACH
+                                    </Text>,
+                                    <Text style={styles.textNormal}>
+                                        <Text style={styles.textBold}>Pay vendors and suppliers</Text>
+                                    </Text>,
+                                    <Text style={styles.textNormal}>
+                                        <Text style={styles.textBold}>Issue Expensify Cards</Text> to your team
+                                    </Text>,
+                                    <Text style={styles.textNormal}>
+                                        <Text style={styles.textBold}>Collect invoice payments</Text> from clients
+                                    </Text>,
+                                ]}
+                            />
+                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Sharing Access</Text>
+
+                            <Text style={[styles.textNormal]}>
+                                <Text style={styles.textBold}>Heads up:</Text> Your bank account must be fully verified before any payment features go live. The process usually takes 1–2
+                                business days.
+                            </Text>
+
+                            <Text style={[styles.textHeadlineH1, styles.mv4]}>Personal Bank Accounts</Text>
+                            <Text style={[styles.textNormal]}>
+                                Add your personal bank account to get reimbursed or paid — no paper checks, no waiting around. Expensify supports banks in over 190 countries.
+                            </Text>
+                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Adding a Personal Bank Account</Text>
+
+                            <Text style={[styles.textHeadlineH2, styles.mv4]}>What You Can Do</Text>
+                            <BulletList
+                                styles={styles}
+                                items={[
+                                    <Text style={styles.textNormal}>
+                                        <Text style={styles.textBold}>Get reimbursed</Text> for expense reports
+                                    </Text>,
+                                    <Text style={styles.textNormal}>
+                                        <Text style={styles.textBold}>Receive invoice payments</Text>
+                                    </Text>,
+                                    <Text style={styles.textNormal}>
+                                        <Text style={styles.textBold}>Use multi-currency support</Text> to get paid in your local currency
+                                    </Text>,
+                                ]}
+                            />
+
+                            <Text style={[styles.textNormal]}>
+                                <Text style={styles.textBold}>Heads up:</Text> Personal accounts are for receiving funds only. If you want to send payments or issue Expensify Cards, you’ll
+                                need to connect a verified business bank account.
+                            </Text>
+                        </View>
+                    ),
+                },
+                preferences: {
+                    content: ({styles}: {styles: ThemeStyles}) => (
+                        <View>
+                            <Text style={[styles.textHeadlineH1, styles.mv4]}>Preferences</Text>
+                            <Text style={[styles.textNormal]}>Customize your Expensify experience with these preference settings:</Text>
+                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Theme</Text>
+                            <Text style={[styles.textNormal]}>Change the app’s appearance to suit your preference:</Text>
+                            <BulletList
+                                styles={styles}
+                                items={[
+                                    <Text style={styles.textNormal}>
+                                        <Text style={styles.textBold}>Dark Mode</Text> - Easy on the eyes in low-light environments
+                                    </Text>,
+                                    <Text style={styles.textNormal}>
+                                        <Text style={styles.textBold}>Light Mode</Text> - Bright, clean interface for well-lit spaces
+                                    </Text>,
+                                    <Text style={styles.textNormal}>
+                                        <Text style={styles.textBold}>Use Device Settings</Text> - Automatically match your device’s theme
+                                    </Text>,
+                                ]}
+                            />
+                            <Text style={[styles.textNormal, styles.mt4]}>
+                                <Text style={styles.textBold}>To change your theme:</Text>
+                            </Text>
+
+                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Language</Text>
+                            <Text style={[styles.textNormal]}>Expensify supports multiple languages including:</Text>
+                            <BulletList
+                                styles={styles}
+                                items={[
+                                    <Text style={styles.textNormal}>English, Español, Deutsch, Français, Italiano</Text>,
+                                    <Text style={styles.textNormal}>日本語, Nederlands, Polski, Português (BR)</Text>,
+                                    <Text style={styles.textNormal}>中文 (简体)</Text>,
+                                ]}
+                            />
+                            <Text style={[styles.textNormal, styles.mt4]}>
+                                <Text style={styles.textBold}>To change your language:</Text>
+                            </Text>
+
+                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Notifications</Text>
+                            <Text style={[styles.textNormal]}>Control how and when you receive updates:</Text>
+                            <BulletList
+                                styles={styles}
+                                items={[
+                                    <Text style={styles.textNormal}>
+                                        <Text style={styles.textBold}>Receive relevant feature updates and Expensify news</Text>
+                                    </Text>,
+                                    <Text style={styles.textNormal}>
+                                        <Text style={styles.textBold}>Mute all sounds from Expensify</Text>
+                                    </Text>,
+                                ]}
+                            />
+                            <Text style={[styles.textNormal, styles.mt4]}>
+                                <Text style={styles.textBold}>To manage notifications:</Text>
+                            </Text>
+
+                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Payment Currency</Text>
+                            <Text style={[styles.textNormal]}>Set your default currency for expense tracking and reimbursements.</Text>
+
+                            <Text style={[styles.textNormal]}>
+                                <Text style={styles.textBold}>Note:</Text> Preference changes only affect your personal account view. Workspace members must update their own settings
+                                individually.
+                            </Text>
+                        </View>
+                    ),
+                },
+                workspaces: {
+                    children: {
+                        ':policyID': {
+                            children: {
+                                accounting: {
+                                    content: ({styles}: {styles: ThemeStyles}) => (
+                                        <View>
+                                            <Text style={[styles.textHeadlineH1, styles.mv4]}>Accounting Integrations</Text>
+                                            <Text style={[styles.textNormal]}>Connect your workspace to accounting software to sync expenses and streamline financial management.</Text>
+                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Supported Integrations</Text>
+                                            <Text style={[styles.textNormal]}>
+                                                <Text style={styles.textBold}>QuickBooks Online</Text>
+                                            </Text>
+                                            <BulletList
+                                                styles={styles}
+                                                items={[
+                                                    <Text style={styles.textNormal}>Real-time expense sync</Text>,
+                                                    <Text style={styles.textNormal}>Category and vendor mapping</Text>,
+                                                    <Text style={styles.textNormal}>Tax rate synchronization</Text>,
+                                                ]}
+                                            />
+                                            <Text style={[styles.textNormal, styles.mt4]}>
+                                                <Text style={styles.textBold}>QuickBooks Desktop</Text>
+                                            </Text>
+                                            <BulletList
+                                                styles={styles}
+                                                items={[
+                                                    <Text style={styles.textNormal}>File-based import/export</Text>,
+                                                    <Text style={styles.textNormal}>Chart of accounts import</Text>,
+                                                    <Text style={styles.textNormal}>Custom field mapping</Text>,
+                                                ]}
+                                            />
+                                            <Text style={[styles.textNormal, styles.mt4]}>
+                                                <Text style={styles.textBold}>Xero</Text>
+                                            </Text>
+                                            <BulletList
+                                                styles={styles}
+                                                items={[
+                                                    <Text style={styles.textNormal}>Automatic report sync</Text>,
+                                                    <Text style={styles.textNormal}>Tracking category import</Text>,
+                                                    <Text style={styles.textNormal}>Tax rate management</Text>,
+                                                ]}
+                                            />
+                                            <Text style={[styles.textNormal, styles.mt4]}>
+                                                <Text style={styles.textBold}>NetSuite</Text>
+                                            </Text>
+                                            <BulletList
+                                                styles={styles}
+                                                items={[
+                                                    <Text style={styles.textNormal}>Advanced multi-entity support</Text>,
+                                                    <Text style={styles.textNormal}>Custom dimension mapping</Text>,
+                                                    <Text style={styles.textNormal}>Automated bill payments</Text>,
+                                                ]}
+                                            />
+                                            <Text style={[styles.textNormal, styles.mt4]}>
+                                                <Text style={styles.textBold}>Sage Intacct</Text>
+                                            </Text>
+                                            <BulletList
+                                                styles={styles}
+                                                items={[
+                                                    <Text style={styles.textNormal}>Department/class tracking</Text>,
+                                                    <Text style={styles.textNormal}>Multi-currency support</Text>,
+                                                    <Text style={styles.textNormal}>Advanced approval workflows</Text>,
+                                                ]}
+                                            />
+                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Getting Started</Text>
+
+                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>What Gets Synced</Text>
+                                            <Text style={[styles.textNormal]}>
+                                                <Text style={styles.textBold}>From your accounting system:</Text>
+                                            </Text>
+                                            <BulletList
+                                                styles={styles}
+                                                items={[
+                                                    <Text style={styles.textNormal}>Chart of accounts (as categories)</Text>,
+                                                    <Text style={styles.textNormal}>Classes, departments, locations (as tags)</Text>,
+                                                    <Text style={styles.textNormal}>Tax rates and customers</Text>,
+                                                    <Text style={styles.textNormal}>Vendors and bill payment accounts</Text>,
+                                                ]}
+                                            />
+                                            <Text style={[styles.textNormal, styles.mt4]}>
+                                                <Text style={styles.textBold}>To your accounting system:</Text>
+                                            </Text>
+                                            <BulletList
+                                                styles={styles}
+                                                items={[
+                                                    <Text style={styles.textNormal}>Approved expense reports</Text>,
+                                                    <Text style={styles.textNormal}>Company card transactions</Text>,
+                                                    <Text style={styles.textNormal}>Vendor bills and journal entries</Text>,
+                                                    <Text style={styles.textNormal}>Payment records and reconciliation data</Text>,
+                                                ]}
+                                            />
+                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Related Links</Text>
+                                            <BulletList
+                                                styles={styles}
+                                                items={[
+                                                    <Text style={styles.textNormal}>
+                                                        <TextLink
+                                                            href="https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online"
+                                                            style={styles.link}
+                                                        >
+                                                            Connect to QuickBooks Online
+                                                        </TextLink>
+                                                    </Text>,
+                                                    <Text style={styles.textNormal}>
+                                                        <TextLink
+                                                            href="https://help.expensify.com/articles/new-expensify/connections/xero/Connect-to-Xero"
+                                                            style={styles.link}
+                                                        >
+                                                            Connect to Xero
+                                                        </TextLink>
+                                                    </Text>,
+                                                    <Text style={styles.textNormal}>
+                                                        <TextLink
+                                                            href="https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-To-NetSuite"
+                                                            style={styles.link}
+                                                        >
+                                                            Connect to NetSuite
+                                                        </TextLink>
+                                                    </Text>,
+                                                ]}
+                                            />
+                                        </View>
+                                    ),
+                                },
+                                members: {
+                                    content: ({styles}: {styles: ThemeStyles}) => (
+                                        <View>
+                                            <Text style={[styles.textHeadlineH1, styles.mv4]}>Workspace Members</Text>
+                                            <Text style={[styles.textNormal]}>Manage team access, roles, and permissions for your workspace.</Text>
+                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Member Roles</Text>
+                                            <Text style={[styles.textNormal]}>
+                                                <Text style={styles.textBold}>Admin</Text>
+                                            </Text>
+                                            <BulletList
+                                                styles={styles}
+                                                items={[
+                                                    <Text style={styles.textNormal}>Full workspace control and settings access</Text>,
+                                                    <Text style={styles.textNormal}>Add/remove members and change roles</Text>,
+                                                    <Text style={styles.textNormal}>Set up integrations and payment methods</Text>,
+                                                    <Text style={styles.textNormal}>Approve and pay expenses</Text>,
+                                                ]}
+                                            />
+                                            <Text style={[styles.textNormal, styles.mt4]}>
+                                                <Text style={styles.textBold}>Member</Text>
+                                            </Text>
+                                            <BulletList
+                                                styles={styles}
+                                                items={[
+                                                    <Text style={styles.textNormal}>Submit expenses and create reports</Text>,
+                                                    <Text style={styles.textNormal}>Participate in workspace chats</Text>,
+                                                    <Text style={styles.textNormal}>View assigned expenses and reports</Text>,
+                                                ]}
+                                            />
+                                            <Text style={[styles.textNormal, styles.mt4]}>
+                                                <Text style={styles.textBold}>Auditor</Text>
+                                            </Text>
+                                            <BulletList
+                                                styles={styles}
+                                                items={[
+                                                    <Text style={styles.textNormal}>View all workspace reports (read-only)</Text>,
+                                                    <Text style={styles.textNormal}>Add comments but cannot modify expenses</Text>,
+                                                    <Text style={styles.textNormal}>No approval or payment permissions</Text>,
+                                                ]}
+                                            />
+                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Adding Members</Text>
+
+                                            <Text style={[styles.textNormal]}>
+                                                <Text style={styles.textBold}>Alternative:</Text> Share workspace URL or QR code from{' '}
+                                                <Text style={styles.textBold}>Settings &amp;gt; Profile &amp;gt; Share</Text>
+                                            </Text>
+                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Managing Members</Text>
+                                            <Text style={[styles.textNormal]}>
+                                                <Text style={styles.textBold}>Change Role:</Text>
+                                            </Text>
+
+                                            <Text style={[styles.textNormal]}>
+                                                <Text style={styles.textBold}>Remove Member:</Text>
+                                            </Text>
+
+                                            <Text style={[styles.textNormal]}>
+                                                <Text style={styles.textBold}>Bulk Actions:</Text>
+                                            </Text>
+                                            <BulletList
+                                                styles={styles}
+                                                items={[
+                                                    <Text style={styles.textNormal}>Select multiple members with checkboxes</Text>,
+                                                    <Text style={styles.textNormal}>Use dropdown to remove or modify multiple members</Text>,
+                                                ]}
+                                            />
+                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Transfer Ownership</Text>
+
+                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Related Links</Text>
+                                            <BulletList
+                                                styles={styles}
+                                                items={[
+                                                    <Text style={styles.textNormal}>
+                                                        <TextLink
+                                                            href="https://help.expensify.com/articles/new-expensify/workspaces/Managing-Workspace-Members"
+                                                            style={styles.link}
+                                                        >
+                                                            Managing Workspace Members
+                                                        </TextLink>
+                                                    </Text>,
+                                                    <Text style={styles.textNormal}>
+                                                        <TextLink
+                                                            href="https://help.expensify.com/articles/new-expensify/workspaces/Add-Approvals"
+                                                            style={styles.link}
+                                                        >
+                                                            Add Approvals
+                                                        </TextLink>
+                                                    </Text>,
+                                                ]}
+                                            />
+                                        </View>
+                                    ),
+                                },
+                            },
+                            content: ({styles}: {styles: ThemeStyles}) => (
+                                <View>
+                                    <Text style={[styles.textHeadlineH1, styles.mv4]}>Workspace</Text>
+                                    <Text style={[styles.textNormal]}>This is where you configure all the settings of the many features associated with your workspace.</Text>
+                                    <Text style={[styles.textHeadlineH2, styles.mv4]}>Default features</Text>
+                                    <Text style={[styles.textNormal]}>Here are the features that are enabled by default:</Text>
+                                    <BulletList
+                                        styles={styles}
+                                        items={[
+                                            <Text style={styles.textNormal}>
+                                                <Text style={styles.textBold}>Overview</Text> - Configure how it appears to others.
+                                            </Text>,
+                                            <Text style={styles.textNormal}>
+                                                <Text style={styles.textBold}>Members</Text> - Add/remove members and admins.
+                                            </Text>,
+                                            <Text style={styles.textNormal}>
+                                                <Text style={styles.textBold}>Workflows</Text> - Configure submission, approval, and reimbursement.
+                                            </Text>,
+                                            <Text style={styles.textNormal}>
+                                                <Text style={styles.textBold}>Categories</Text> - Group expenses into a chart of accounts.
+                                            </Text>,
+                                            <Text style={styles.textNormal}>
+                                                <Text style={styles.textBold}>Expensify Card</Text> - Issue native Expensify Cards to employees.
+                                            </Text>,
+                                            <Text style={styles.textNormal}>
+                                                <Text style={styles.textBold}>Accounting</Text> - Sync with external accounting systems.
+                                            </Text>,
+                                        ]}
+                                    />
+                                    <Text style={[styles.textHeadlineH2, styles.mv4]}>Optional features</Text>
+                                    <Text style={[styles.textNormal]}>These can be enabled via More Features:</Text>
+                                    <BulletList
+                                        styles={styles}
+                                        items={[
+                                            <Text style={styles.textNormal}>
+                                                <Text style={styles.textBold}>Distance rates</Text> - Configure mileage reimbursement.
+                                            </Text>,
+                                            <Text style={styles.textNormal}>
+                                                <Text style={styles.textBold}>Company card</Text> - Connect and manage third-party corporate card feeds.
+                                            </Text>,
+                                            <Text style={styles.textNormal}>
+                                                <Text style={styles.textBold}>Per diem</Text> - Configure daily rates.
+                                            </Text>,
+                                            <Text style={styles.textNormal}>
+                                                <Text style={styles.textBold}>Rules</Text> - Customize expense violations and set policy.
+                                            </Text>,
+                                            <Text style={styles.textNormal}>
+                                                <Text style={styles.textBold}>Invoices</Text> - Collect revenue from customers.
+                                            </Text>,
+                                            <Text style={styles.textNormal}>
+                                                <Text style={styles.textBold}>Tags</Text> - Group expenses by project or client.
+                                            </Text>,
+                                            <Text style={styles.textNormal}>
+                                                <Text style={styles.textBold}>Taxes</Text> - Track VAT and other taxes.
+                                            </Text>,
+                                            <Text style={styles.textNormal}>
+                                                <Text style={styles.textBold}>Report fields</Text> - Capture extra expense report information.
+                                            </Text>,
+                                        ]}
+                                    />
+                                </View>
+                            ),
+                        },
+                    },
+                    content: ({styles}: {styles: ThemeStyles}) => (
+                        <View>
+                            <Text style={[styles.textHeadlineH1, styles.mv4]}>Workspaces 101</Text>
+                            <Text style={[styles.textNormal]}>
+                                Think of a workspace as mission control for your company’s expenses. It’s where you set the rules, invite the team, and connect to your accounting tools. Each
+                                workspace runs independently, so you can keep things tidy across departments, entities, or clients.
+                            </Text>
+                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Create a new workspace</Text>
+                            <Text style={[styles.textNormal]}>
+                                Hit the <Text style={styles.textBold}>New workspace</Text> button to get started. Add a name, set a default currency, and you’re ready to get started
+                                customizing the workspace settings!
+                            </Text>
+                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Invite your team</Text>
+                            <Text style={[styles.textNormal]}>Add teammates to your workspace to manage expenses and approvals in one central place:</Text>
+                            <BulletList
+                                styles={styles}
+                                items={[
+                                    <Text style={styles.textNormal}>Members can submit and approve reports they’re assigned to.</Text>,
+                                    <Text style={styles.textNormal}>Admins can approve all reports and manage workspace settings.</Text>,
+                                ]}
+                            />
+                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Automate approvals</Text>
+                            <Text style={[styles.textNormal]}>
+                                Toggle on <Text style={styles.textBold}>Add Approvals</Text> under <Text style={styles.textBold}>Workflows</Text> to set a default first approver. Create
+                                custom approval flows for individual team members if needed.
+                            </Text>
+                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Connect your accounting system</Text>
+                            <Text style={[styles.textNormal]}>Link your workspace with QuickBooks Online, Xero, NetSuite, or Sage Intacct to sync expenses like a pro.</Text>
+                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Enhance your workspace with extra features</Text>
+                            <Text style={[styles.textNormal]}>
+                                Under <Text style={styles.textBold}>More Features</Text>, enable extras like the Expensify Card, distance rates, custom categories and tags, and company card
+                                connections.
+                            </Text>
+
+                            <Text style={[styles.textNormal]}>
+                                <Text style={styles.textBold}>Tip:</Text> If you manage multiple departments, clients, or entities, consider creating multiple workspaces. Separate workspaces
+                                can help keep settings, approvals, and payments organized and more automated.
+                            </Text>
+                        </View>
+                    ),
+                },
+            },
+        },
         home: {
             content: ({styles}: {styles: ThemeStyles}) => (
                 <View>
@@ -78,7 +539,7 @@ const helpContentMap: HelpContent = {
                                 <Text style={styles.textBold}>Text messages</Text> with rich formatting support
                             </Text>,
                             <Text style={styles.textNormal}>
-                                <Text style={styles.textBold}>Images & Documents</Text> via copy/paste, drag/drop, or attach button
+                                <Text style={styles.textBold}>Images &amp;amp; Documents</Text> via copy/paste, drag/drop, or attach button
                             </Text>,
                             <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Expenses</Text> to track and submit for reimbursement
@@ -368,38 +829,21 @@ const helpContentMap: HelpContent = {
                         </View>
                     ),
                 },
-                ':policyAdmins': {
+                ':expenseReport': {
                     content: ({styles}: {styles: ThemeStyles}) => (
                         <View>
-                            <Text style={[styles.textHeadlineH1, styles.mv4]}>#admins</Text>
-                            <Text style={[styles.textNormal]}>
-                                Every workspace automatically receives a special #admins chat room. Every admin is automatically added to this room as a member. The #admins room is used for
-                                several purposes:
-                            </Text>
+                            <Text style={[styles.textHeadlineH1, styles.mv4]}>Expense Report</Text>
+                            <Text style={[styles.textNormal]}>Every expense report gets a dedicated chat to discuss expenses, approvals, or anything you like. The expense report chat:</Text>
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text style={styles.textNormal}>
-                                        <Text style={[styles.textNormal]}>
-                                            <Text style={styles.textBold}>Talking with Concierge, your setup specialist, or your account manager</Text> – When you first create the workspace,
-                                            Concierge and a setup specialist will be added. Feel free to ask any setup questions you have about how to configure the workspace, onboard your
-                                            team, connect your accounting, or anything else you might need.
-                                        </Text>
-                                    </Text>,
-                                    <Text style={styles.textNormal}>
-                                        <Text style={[styles.textNormal]}>
-                                            <Text style={styles.textBold}>Monitoring workspace changes</Text> – Every #admins room shows an audit trail of any configuration changes or
-                                            significant events happening inside the workspace.
-                                        </Text>
-                                    </Text>,
-                                    <Text style={styles.textNormal}>
-                                        <Text style={[styles.textNormal]}>
-                                            <Text style={styles.textBold}>Chatting with other admins</Text> – The #admins room is a useful space for workspace admins to chat with each other
-                                            about anything, whether or not it relates to Expensify.
-                                        </Text>
-                                    </Text>,
+                                    <Text style={styles.textNormal}>Is shared with everyone in the approval flow configured inside the workspace.</Text>,
+                                    <Text style={styles.textNormal}>Will maintain an audit trail of all historical workflow actions (i.e., approvals).</Text>,
                                 ]}
                             />
+                            <Text style={[styles.textNormal, styles.mt4]}>
+                                Press the attach button to add more expenses, or press the header for more options. Press on any expense to go deeper.
+                            </Text>
                         </View>
                     ),
                 },
@@ -461,21 +905,38 @@ const helpContentMap: HelpContent = {
                         </View>
                     ),
                 },
-                ':expenseReport': {
+                ':policyAdmins': {
                     content: ({styles}: {styles: ThemeStyles}) => (
                         <View>
-                            <Text style={[styles.textHeadlineH1, styles.mv4]}>Expense Report</Text>
-                            <Text style={[styles.textNormal]}>Every expense report gets a dedicated chat to discuss expenses, approvals, or anything you like. The expense report chat:</Text>
+                            <Text style={[styles.textHeadlineH1, styles.mv4]}>#admins</Text>
+                            <Text style={[styles.textNormal]}>
+                                Every workspace automatically receives a special #admins chat room. Every admin is automatically added to this room as a member. The #admins room is used for
+                                several purposes:
+                            </Text>
                             <BulletList
                                 styles={styles}
                                 items={[
-                                    <Text style={styles.textNormal}>Is shared with everyone in the approval flow configured inside the workspace.</Text>,
-                                    <Text style={styles.textNormal}>Will maintain an audit trail of all historical workflow actions (i.e., approvals).</Text>,
+                                    <Text style={styles.textNormal}>
+                                        <Text style={[styles.textNormal]}>
+                                            <Text style={styles.textBold}>Talking with Concierge, your setup specialist, or your account manager</Text> – When you first create the workspace,
+                                            Concierge and a setup specialist will be added. Feel free to ask any setup questions you have about how to configure the workspace, onboard your
+                                            team, connect your accounting, or anything else you might need.
+                                        </Text>
+                                    </Text>,
+                                    <Text style={styles.textNormal}>
+                                        <Text style={[styles.textNormal]}>
+                                            <Text style={styles.textBold}>Monitoring workspace changes</Text> – Every #admins room shows an audit trail of any configuration changes or
+                                            significant events happening inside the workspace.
+                                        </Text>
+                                    </Text>,
+                                    <Text style={styles.textNormal}>
+                                        <Text style={[styles.textNormal]}>
+                                            <Text style={styles.textBold}>Chatting with other admins</Text> – The #admins room is a useful space for workspace admins to chat with each other
+                                            about anything, whether or not it relates to Expensify.
+                                        </Text>
+                                    </Text>,
                                 ]}
                             />
-                            <Text style={[styles.textNormal, styles.mt4]}>
-                                Press the attach button to add more expenses, or press the header for more options. Press on any expense to go deeper.
-                            </Text>
                         </View>
                     ),
                 },
@@ -500,8 +961,8 @@ const helpContentMap: HelpContent = {
                                 <Text style={styles.textBold}>Text</Text> – Rich text messages stored securely and delivered via web, app, email, or SMS.
                             </Text>,
                             <Text style={styles.textNormal}>
-                                <Text style={styles.textBold}>Images & Documents</Text> – Insert photos, screenshots, movies, PDFs, or more, using copy/paste, drag/drop, or the attach
-                                button.
+                                <Text style={styles.textBold}>Images &amp;amp; Documents</Text> – Insert photos, screenshots, movies, PDFs, or more, using copy/paste, drag/drop, or the
+                                attach button.
                             </Text>,
                             <Text style={styles.textNormal}>
                                 <Text style={styles.textBold}>Expenses</Text> – Share an expense in the chat, either to simply track and document it, or to submit for reimbursement.
@@ -578,405 +1039,6 @@ const helpContentMap: HelpContent = {
                     />
                 </View>
             ),
-        },
-        settings: {
-            children: {
-                preferences: {
-                    content: ({styles}: {styles: ThemeStyles}) => (
-                        <View>
-                            <Text style={[styles.textHeadlineH1, styles.mv4]}>Preferences</Text>
-                            <Text style={[styles.textNormal]}>Customize your Expensify experience with these preference settings:</Text>
-                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Theme</Text>
-                            <Text style={[styles.textNormal]}>Change the app’s appearance to suit your preference:</Text>
-                            <BulletList
-                                styles={styles}
-                                items={[
-                                    <Text style={styles.textNormal}>
-                                        <Text style={styles.textBold}>Dark Mode</Text> - Easy on the eyes in low-light environments
-                                    </Text>,
-                                    <Text style={styles.textNormal}>
-                                        <Text style={styles.textBold}>Light Mode</Text> - Bright, clean interface for well-lit spaces
-                                    </Text>,
-                                    <Text style={styles.textNormal}>
-                                        <Text style={styles.textBold}>Use Device Settings</Text> - Automatically match your device’s theme
-                                    </Text>,
-                                ]}
-                            />
-                            <Text style={[styles.textNormal, styles.mt4]}>
-                                <Text style={styles.textBold}>To change your theme:</Text>
-                            </Text>
-
-                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Language</Text>
-                            <Text style={[styles.textNormal]}>Expensify supports multiple languages including:</Text>
-                            <BulletList
-                                styles={styles}
-                                items={[
-                                    <Text style={styles.textNormal}>English, Español, Deutsch, Français, Italiano</Text>,
-                                    <Text style={styles.textNormal}>日本語, Nederlands, Polski, Português (BR)</Text>,
-                                    <Text style={styles.textNormal}>中文 (简体)</Text>,
-                                ]}
-                            />
-                            <Text style={[styles.textNormal, styles.mt4]}>
-                                <Text style={styles.textBold}>To change your language:</Text>
-                            </Text>
-
-                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Notifications</Text>
-                            <Text style={[styles.textNormal]}>Control how and when you receive updates:</Text>
-                            <BulletList
-                                styles={styles}
-                                items={[
-                                    <Text style={styles.textNormal}>
-                                        <Text style={styles.textBold}>Receive relevant feature updates and Expensify news</Text>
-                                    </Text>,
-                                    <Text style={styles.textNormal}>
-                                        <Text style={styles.textBold}>Mute all sounds from Expensify</Text>
-                                    </Text>,
-                                ]}
-                            />
-                            <Text style={[styles.textNormal, styles.mt4]}>
-                                <Text style={styles.textBold}>To manage notifications:</Text>
-                            </Text>
-
-                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Payment Currency</Text>
-                            <Text style={[styles.textNormal]}>Set your default currency for expense tracking and reimbursements.</Text>
-
-                            <Text style={[styles.textNormal]}>
-                                <Text style={styles.textBold}>Note:</Text> Preference changes only affect your personal account view. Workspace members must update their own settings
-                                individually.
-                            </Text>
-                        </View>
-                    ),
-                },
-                workspaces: {
-                    children: {
-                        ':policyID': {
-                            children: {
-                                accounting: {
-                                    content: ({styles}: {styles: ThemeStyles}) => (
-                                        <View>
-                                            <Text style={[styles.textHeadlineH1, styles.mv4]}>Accounting Integrations</Text>
-                                            <Text style={[styles.textNormal]}>Connect your workspace to accounting software to sync expenses and streamline financial management.</Text>
-                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Supported Integrations</Text>
-                                            <Text style={[styles.textNormal]}>
-                                                <Text style={styles.textBold}>QuickBooks Online</Text>
-                                            </Text>
-                                            <BulletList
-                                                styles={styles}
-                                                items={[
-                                                    <Text style={styles.textNormal}>Real-time expense sync</Text>,
-                                                    <Text style={styles.textNormal}>Category and vendor mapping</Text>,
-                                                    <Text style={styles.textNormal}>Tax rate synchronization</Text>,
-                                                ]}
-                                            />
-                                            <Text style={[styles.textNormal, styles.mt4]}>
-                                                <Text style={styles.textBold}>QuickBooks Desktop</Text>
-                                            </Text>
-                                            <BulletList
-                                                styles={styles}
-                                                items={[
-                                                    <Text style={styles.textNormal}>File-based import/export</Text>,
-                                                    <Text style={styles.textNormal}>Chart of accounts import</Text>,
-                                                    <Text style={styles.textNormal}>Custom field mapping</Text>,
-                                                ]}
-                                            />
-                                            <Text style={[styles.textNormal, styles.mt4]}>
-                                                <Text style={styles.textBold}>Xero</Text>
-                                            </Text>
-                                            <BulletList
-                                                styles={styles}
-                                                items={[
-                                                    <Text style={styles.textNormal}>Automatic report sync</Text>,
-                                                    <Text style={styles.textNormal}>Tracking category import</Text>,
-                                                    <Text style={styles.textNormal}>Tax rate management</Text>,
-                                                ]}
-                                            />
-                                            <Text style={[styles.textNormal, styles.mt4]}>
-                                                <Text style={styles.textBold}>NetSuite</Text>
-                                            </Text>
-                                            <BulletList
-                                                styles={styles}
-                                                items={[
-                                                    <Text style={styles.textNormal}>Advanced multi-entity support</Text>,
-                                                    <Text style={styles.textNormal}>Custom dimension mapping</Text>,
-                                                    <Text style={styles.textNormal}>Automated bill payments</Text>,
-                                                ]}
-                                            />
-                                            <Text style={[styles.textNormal, styles.mt4]}>
-                                                <Text style={styles.textBold}>Sage Intacct</Text>
-                                            </Text>
-                                            <BulletList
-                                                styles={styles}
-                                                items={[
-                                                    <Text style={styles.textNormal}>Department/class tracking</Text>,
-                                                    <Text style={styles.textNormal}>Multi-currency support</Text>,
-                                                    <Text style={styles.textNormal}>Advanced approval workflows</Text>,
-                                                ]}
-                                            />
-                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Getting Started</Text>
-
-                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>What Gets Synced</Text>
-                                            <Text style={[styles.textNormal]}>
-                                                <Text style={styles.textBold}>From your accounting system:</Text>
-                                            </Text>
-                                            <BulletList
-                                                styles={styles}
-                                                items={[
-                                                    <Text style={styles.textNormal}>Chart of accounts (as categories)</Text>,
-                                                    <Text style={styles.textNormal}>Classes, departments, locations (as tags)</Text>,
-                                                    <Text style={styles.textNormal}>Tax rates and customers</Text>,
-                                                    <Text style={styles.textNormal}>Vendors and bill payment accounts</Text>,
-                                                ]}
-                                            />
-                                            <Text style={[styles.textNormal, styles.mt4]}>
-                                                <Text style={styles.textBold}>To your accounting system:</Text>
-                                            </Text>
-                                            <BulletList
-                                                styles={styles}
-                                                items={[
-                                                    <Text style={styles.textNormal}>Approved expense reports</Text>,
-                                                    <Text style={styles.textNormal}>Company card transactions</Text>,
-                                                    <Text style={styles.textNormal}>Vendor bills and journal entries</Text>,
-                                                    <Text style={styles.textNormal}>Payment records and reconciliation data</Text>,
-                                                ]}
-                                            />
-                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Related Links</Text>
-                                            <BulletList
-                                                styles={styles}
-                                                items={[
-                                                    <Text style={styles.textNormal}>
-                                                        <TextLink
-                                                            href="https://help.expensify.com/articles/new-expensify/connections/quickbooks-online/Connect-to-QuickBooks-Online"
-                                                            style={styles.link}
-                                                        >
-                                                            Connect to QuickBooks Online
-                                                        </TextLink>
-                                                    </Text>,
-                                                    <Text style={styles.textNormal}>
-                                                        <TextLink
-                                                            href="https://help.expensify.com/articles/new-expensify/connections/xero/Connect-to-Xero"
-                                                            style={styles.link}
-                                                        >
-                                                            Connect to Xero
-                                                        </TextLink>
-                                                    </Text>,
-                                                    <Text style={styles.textNormal}>
-                                                        <TextLink
-                                                            href="https://help.expensify.com/articles/new-expensify/connections/netsuite/Connect-To-NetSuite"
-                                                            style={styles.link}
-                                                        >
-                                                            Connect to NetSuite
-                                                        </TextLink>
-                                                    </Text>,
-                                                ]}
-                                            />
-                                        </View>
-                                    ),
-                                },
-                                members: {
-                                    content: ({styles}: {styles: ThemeStyles}) => (
-                                        <View>
-                                            <Text style={[styles.textHeadlineH1, styles.mv4]}>Workspace Members</Text>
-                                            <Text style={[styles.textNormal]}>Manage team access, roles, and permissions for your workspace.</Text>
-                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Member Roles</Text>
-                                            <Text style={[styles.textNormal]}>
-                                                <Text style={styles.textBold}>Admin</Text>
-                                            </Text>
-                                            <BulletList
-                                                styles={styles}
-                                                items={[
-                                                    <Text style={styles.textNormal}>Full workspace control and settings access</Text>,
-                                                    <Text style={styles.textNormal}>Add/remove members and change roles</Text>,
-                                                    <Text style={styles.textNormal}>Set up integrations and payment methods</Text>,
-                                                    <Text style={styles.textNormal}>Approve and pay expenses</Text>,
-                                                ]}
-                                            />
-                                            <Text style={[styles.textNormal, styles.mt4]}>
-                                                <Text style={styles.textBold}>Member</Text>
-                                            </Text>
-                                            <BulletList
-                                                styles={styles}
-                                                items={[
-                                                    <Text style={styles.textNormal}>Submit expenses and create reports</Text>,
-                                                    <Text style={styles.textNormal}>Participate in workspace chats</Text>,
-                                                    <Text style={styles.textNormal}>View assigned expenses and reports</Text>,
-                                                ]}
-                                            />
-                                            <Text style={[styles.textNormal, styles.mt4]}>
-                                                <Text style={styles.textBold}>Auditor</Text>
-                                            </Text>
-                                            <BulletList
-                                                styles={styles}
-                                                items={[
-                                                    <Text style={styles.textNormal}>View all workspace reports (read-only)</Text>,
-                                                    <Text style={styles.textNormal}>Add comments but cannot modify expenses</Text>,
-                                                    <Text style={styles.textNormal}>No approval or payment permissions</Text>,
-                                                ]}
-                                            />
-                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Adding Members</Text>
-
-                                            <Text style={[styles.textNormal]}>
-                                                <Text style={styles.textBold}>Alternative:</Text> Share workspace URL or QR code from{' '}
-                                                <Text style={styles.textBold}>Settings &gt Profile &gt Share</Text>
-                                            </Text>
-                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Managing Members</Text>
-                                            <Text style={[styles.textNormal]}>
-                                                <Text style={styles.textBold}>Change Role:</Text>
-                                            </Text>
-
-                                            <Text style={[styles.textNormal]}>
-                                                <Text style={styles.textBold}>Remove Member:</Text>
-                                            </Text>
-
-                                            <Text style={[styles.textNormal]}>
-                                                <Text style={styles.textBold}>Bulk Actions:</Text>
-                                            </Text>
-                                            <BulletList
-                                                styles={styles}
-                                                items={[
-                                                    <Text style={styles.textNormal}>Select multiple members with checkboxes</Text>,
-                                                    <Text style={styles.textNormal}>Use dropdown to remove or modify multiple members</Text>,
-                                                ]}
-                                            />
-                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Transfer Ownership</Text>
-
-                                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Related Links</Text>
-                                            <BulletList
-                                                styles={styles}
-                                                items={[
-                                                    <Text style={styles.textNormal}>
-                                                        <TextLink
-                                                            href="https://help.expensify.com/articles/new-expensify/workspaces/Managing-Workspace-Members"
-                                                            style={styles.link}
-                                                        >
-                                                            Managing Workspace Members
-                                                        </TextLink>
-                                                    </Text>,
-                                                    <Text style={styles.textNormal}>
-                                                        <TextLink
-                                                            href="https://help.expensify.com/articles/new-expensify/workspaces/Add-Approvals"
-                                                            style={styles.link}
-                                                        >
-                                                            Add Approvals
-                                                        </TextLink>
-                                                    </Text>,
-                                                ]}
-                                            />
-                                        </View>
-                                    ),
-                                },
-                            },
-                        },
-                    },
-                    content: ({styles}: {styles: ThemeStyles}) => (
-                        <View>
-                            <Text style={[styles.textHeadlineH1, styles.mv4]}>Workspaces 101</Text>
-                            <Text style={[styles.textNormal]}>
-                                Think of a workspace as mission control for your company’s expenses. It’s where you set the rules, invite the team, and connect to your accounting tools. Each
-                                workspace runs independently, so you can keep things tidy across departments, entities, or clients.
-                            </Text>
-                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Create a new workspace</Text>
-                            <Text style={[styles.textNormal]}>
-                                Hit the <Text style={styles.textBold}>New workspace</Text> button to get started. Add a name, set a default currency, and you’re ready to get started
-                                customizing the workspace settings!
-                            </Text>
-                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Invite your team</Text>
-                            <Text style={[styles.textNormal]}>Add teammates to your workspace to manage expenses and approvals in one central place:</Text>
-                            <BulletList
-                                styles={styles}
-                                items={[
-                                    <Text style={styles.textNormal}>Members can submit and approve reports they’re assigned to.</Text>,
-                                    <Text style={styles.textNormal}>Admins can approve all reports and manage workspace settings.</Text>,
-                                ]}
-                            />
-                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Automate approvals</Text>
-                            <Text style={[styles.textNormal]}>
-                                Toggle on <Text style={styles.textBold}>Add Approvals</Text> under <Text style={styles.textBold}>Workflows</Text> to set a default first approver. Create
-                                custom approval flows for individual team members if needed.
-                            </Text>
-                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Connect your accounting system</Text>
-                            <Text style={[styles.textNormal]}>Link your workspace with QuickBooks Online, Xero, NetSuite, or Sage Intacct to sync expenses like a pro.</Text>
-                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Enhance your workspace with extra features</Text>
-                            <Text style={[styles.textNormal]}>
-                                Under <Text style={styles.textBold}>More Features</Text>, enable extras like the Expensify Card, distance rates, custom categories and tags, and company card
-                                connections.
-                            </Text>
-
-                            <Text style={[styles.textNormal]}>
-                                <Text style={styles.textBold}>Tip:</Text> If you manage multiple departments, clients, or entities, consider creating multiple workspaces. Separate workspaces
-                                can help keep settings, approvals, and payments organized and more automated.
-                            </Text>
-                        </View>
-                    ),
-                },
-                wallet: {
-                    content: ({styles}: {styles: ThemeStyles}) => (
-                        <View>
-                            <Text style={[styles.textHeadlineH1, styles.mv4]}>Business Bank Accounts</Text>
-                            <Text style={[styles.textNormal]}>
-                                Connect a verified business bank account to unlock payment features like reimbursements, bill pay, invoice collections, and Expensify Card issuance. Supported
-                                currencies: USD, CAD, GBP, EUR, and AUD.
-                            </Text>
-                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Getting Started</Text>
-                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Enable Payment Features</Text>
-
-                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Connect Your Bank Account</Text>
-
-                            <Text style={[styles.textHeadlineH2, styles.mv4]}>What You Can Do</Text>
-                            <Text style={[styles.textNormal]}>Once your account is verified, you’ll be able to:</Text>
-                            <BulletList
-                                styles={styles}
-                                items={[
-                                    <Text style={styles.textNormal}>
-                                        <Text style={styles.textBold}>Reimburse employees</Text> via ACH
-                                    </Text>,
-                                    <Text style={styles.textNormal}>
-                                        <Text style={styles.textBold}>Pay vendors and suppliers</Text>
-                                    </Text>,
-                                    <Text style={styles.textNormal}>
-                                        <Text style={styles.textBold}>Issue Expensify Cards</Text> to your team
-                                    </Text>,
-                                    <Text style={styles.textNormal}>
-                                        <Text style={styles.textBold}>Collect invoice payments</Text> from clients
-                                    </Text>,
-                                ]}
-                            />
-                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Sharing Access</Text>
-
-                            <Text style={[styles.textNormal]}>
-                                <Text style={styles.textBold}>Heads up:</Text> Your bank account must be fully verified before any payment features go live. The process usually takes 1–2
-                                business days.
-                            </Text>
-
-                            <Text style={[styles.textHeadlineH1, styles.mv4]}>Personal Bank Accounts</Text>
-                            <Text style={[styles.textNormal]}>
-                                Add your personal bank account to get reimbursed or paid — no paper checks, no waiting around. Expensify supports banks in over 190 countries.
-                            </Text>
-                            <Text style={[styles.textHeadlineH2, styles.mv4]}>Adding a Personal Bank Account</Text>
-
-                            <Text style={[styles.textHeadlineH2, styles.mv4]}>What You Can Do</Text>
-                            <BulletList
-                                styles={styles}
-                                items={[
-                                    <Text style={styles.textNormal}>
-                                        <Text style={styles.textBold}>Get reimbursed</Text> for expense reports
-                                    </Text>,
-                                    <Text style={styles.textNormal}>
-                                        <Text style={styles.textBold}>Receive invoice payments</Text>
-                                    </Text>,
-                                    <Text style={styles.textNormal}>
-                                        <Text style={styles.textBold}>Use multi-currency support</Text> to get paid in your local currency
-                                    </Text>,
-                                ]}
-                            />
-
-                            <Text style={[styles.textNormal]}>
-                                <Text style={styles.textBold}>Heads up:</Text> Personal accounts are for receiving funds only. If you want to send payments or issue Expensify Cards, you’ll
-                                need to connect a verified business bank account.
-                            </Text>
-                        </View>
-                    ),
-                },
-            },
         },
         search: {
             content: ({styles}: {styles: ThemeStyles}) => (
