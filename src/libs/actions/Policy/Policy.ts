@@ -85,6 +85,7 @@ import {buildTaskData} from '@userActions/Task';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
+import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     IntroSelected,
@@ -1855,6 +1856,7 @@ function buildPolicyData(
     file?: File,
     shouldAddOnboardingTasks = true,
     companySize?: OnboardingCompanySize,
+    userReportedIntegration?: OnboardingAccounting,
 ) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -1883,6 +1885,12 @@ function buildPolicyData(
         engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
+    // Determine workspace type based on user reported integration
+    const integrationRequiringCorporateType = ['quickbooksDesktop', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics'];
+    const workspaceType = userReportedIntegration && integrationRequiringCorporateType.includes(userReportedIntegration)
+        ? CONST.POLICY.TYPE.CORPORATE
+        : CONST.POLICY.TYPE.TEAM;
+
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1890,7 +1898,7 @@ function buildPolicyData(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 id: policyID,
-                type: CONST.POLICY.TYPE.TEAM,
+                type: workspaceType,
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
@@ -2157,7 +2165,7 @@ function buildPolicyData(
         ownerEmail: policyOwnerEmail,
         makeMeAdmin,
         policyName: workspaceName,
-        type: CONST.POLICY.TYPE.TEAM,
+        type: workspaceType,
         adminsCreatedReportActionID,
         expenseCreatedReportActionID,
         customUnitID,
@@ -2166,6 +2174,7 @@ function buildPolicyData(
         currency: outputCurrency,
         file: clonedFile,
         companySize,
+        userReportedIntegration: userReportedIntegration || undefined,
     };
 
     if (
@@ -2216,6 +2225,7 @@ function createWorkspace(
     file?: File,
     shouldAddOnboardingTasks = true,
     companySize?: OnboardingCompanySize,
+    userReportedIntegration?: OnboardingAccounting,
 ): CreateWorkspaceParams {
     const {optimisticData, failureData, successData, params} = buildPolicyData(
         policyOwnerEmail,
@@ -2228,6 +2238,7 @@ function createWorkspace(
         file,
         shouldAddOnboardingTasks,
         companySize,
+        userReportedIntegration,
     );
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
