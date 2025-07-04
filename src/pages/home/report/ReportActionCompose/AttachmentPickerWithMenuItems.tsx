@@ -315,12 +315,13 @@ function AttachmentPickerWithMenuItems({
         <AttachmentPicker
             allowMultiple={isMultipleDragAndDropEnabled}
             fileLimit={isMultipleDragAndDropEnabled ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
+            shouldValidateImage={false}
         >
             {({openPicker}) => {
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
                     openPicker({
-                        onPicked: (data) => displayFilesInModal([data.at(0) ?? {}]),
+                        onPicked: (data) => displayFilesInModal(data),
                         onCanceled: onCanceledAttachmentPicker,
                     });
                 };

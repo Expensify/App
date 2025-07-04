@@ -4,10 +4,11 @@ import {InteractionManager} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Animated, {FadeIn, LayoutAnimationConfig} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanFileName, getFileValidationErrorText, validateAttachment, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
+import {cleanFileName, getFileValidationErrorText} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import type ModalType from '@src/types/utils/ModalType';
 import viewRef from '@src/types/utils/viewRef';
@@ -74,6 +75,7 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
     const [page, setPage] = useState<number>(0);
     const [currentAttachment, setCurrentAttachment] = useState<Attachment | null>(null);
 
+    // TODO: remove unnecessary logic, ideally in a follow-up PR to avoid breaking changes/regressions
     /**
      * If our attachment is a PDF, return the unswipeable Modal type.
      */
@@ -109,26 +111,6 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
         setIsFileErrorModalVisible(false);
     }, []);
 
-    const isValidFile = useCallback(
-        (fileObject: FileObject, isCheckingMultipleFiles?: boolean) =>
-            validateImageForCorruption(fileObject)
-                .then(() => {
-                    const error = validateAttachment(fileObject, isCheckingMultipleFiles);
-                    if (error) {
-                        setFileError(error);
-                        setIsFileErrorModalVisible(true);
-                        return false;
-                    }
-                    return true;
-                })
-                .catch(() => {
-                    setFileError(CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED);
-                    setIsFileErrorModalVisible(true);
-                    return false;
-                }),
-        [],
-    );
-
     // TODO: Check if this function is still needed, as it doesn't work.
     const isDirectoryCheck = useCallback((data: FileObject) => {
         if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
@@ -139,6 +121,9 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
         return true;
     }, []);
 
+    /**
+     * Sanitizes file names and ensures proper URI references for file system compatibility
+     */
     const cleanFileObjectName = useCallback((fileObject: FileObject): FileObject => {
         if (fileObject instanceof File) {
             const cleanName = cleanFileName(fileObject.name);
@@ -190,17 +175,7 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
         }
     }, [fileError, validFilesToUpload, convertFileToAttachment, getModalType]);
 
-    const validateFiles = useCallback(
-        (data: FileObject[]) => {
-            let validFiles: FileObject[] = [];
-
-            Promise.all(data.map((fileToUpload) => isValidFile(fileToUpload, true).then((isValid) => (isValid ? cleanFileObjectName(fileToUpload) : null)))).then((results) => {
-                validFiles = results.filter((validFile): validFile is FileObject => validFile !== null);
-                setValidFilesToUpload(validFiles);
-            });
-        },
-        [isValidFile, cleanFileObjectName],
-    );
+    const {ErrorModal, validateFiles, PDFValidationComponent} = useFilesValidation(setValidFilesToUpload);
 
     const confirmAndContinue = () => {
         if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
@@ -224,7 +199,7 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
                     if ('getAsFile' in item && typeof item.getAsFile === 'function') {
                         fileObject = item.getAsFile() as FileObject;
                     }
-                    return fileObject;
+                    return cleanFileObjectName(fileObject);
                 })
                 .filter((fileObject): fileObject is FileObject => fileObject !== null);
 
@@ -240,7 +215,7 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
             }
             validateFiles(fileObjects);
         },
-        [isDirectoryCheck, validateFiles],
+        [cleanFileObjectName, isDirectoryCheck, validateFiles],
     );
 
     const closeModal = useCallback(() => {
@@ -266,6 +241,7 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
 
     return (
         <>
+            {PDFValidationComponent}
             <Modal
                 type={modalType}
                 onClose={closeModal}
@@ -353,11 +329,11 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
                 shouldShowCancelButton={!!validFilesToUpload.length}
                 cancelText={translate('common.cancel')}
             />
-
             {children?.({
                 displayFilesInModal: validateAndDisplayMultipleFilesToUpload,
                 show: openModal,
             })}
+            {ErrorModal}
         </>
     );
 }
