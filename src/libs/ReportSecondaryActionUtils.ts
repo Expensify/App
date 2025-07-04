@@ -293,8 +293,7 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportClosed = isClosedReportUtils(report);
 
-    const isReportSettled = isSettled(report);
-    if (isReportPayer && arePaymentsEnabled && (isReportApproved || isReportClosed || isReportSettled)) {
+    if (isReportPayer && arePaymentsEnabled && (isReportApproved || isReportClosed)) {
         return true;
     }
 
