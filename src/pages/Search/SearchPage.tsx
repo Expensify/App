@@ -155,7 +155,7 @@ function SearchPage({route}: SearchPageProps) {
                                 setIsDownloadErrorModalVisible(true);
                             },
                         );
-                        clearSelectedTransactions();
+                        clearSelectedTransactions(undefined, true);
                     },
                 },
             ],
