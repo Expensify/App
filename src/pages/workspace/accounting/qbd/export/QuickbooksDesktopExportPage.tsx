@@ -35,8 +35,8 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
     );
 
     const shouldGoBackToSpecificRoute = useMemo(
-        () => qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK,
-        [qbdConfig?.export?.nonReimbursable],
+        () => qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK || shouldShowVendorMenuItems,
+        [qbdConfig?.export?.nonReimbursable, shouldShowVendorMenuItems],
     );
 
     const goBack = useCallback(() => {

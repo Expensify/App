@@ -12,6 +12,8 @@ import variables from '@styles/variables';
 import viewRef from '@src/types/utils/viewRef';
 import type PopoverWithoutOverlayProps from './types';
 
+const NOOP = () => {};
+
 function PopoverWithoutOverlay(
     {
         anchorPosition = {},
@@ -49,12 +51,13 @@ function PopoverWithoutOverlay(
         let removeOnClose: () => void;
         if (isVisible) {
             onModalShow();
+
             onOpen?.({
                 ref: withoutOverlayRef,
-                close: onClose,
+                close: onClose ?? NOOP,
                 anchorRef,
             });
-            removeOnClose = setCloseModal(onClose);
+            removeOnClose = setCloseModal(onClose ?? NOOP);
         } else {
             onModalHide();
             close(anchorRef);
@@ -91,7 +94,7 @@ function PopoverWithoutOverlay(
 
     return (
         <View
-            style={[modalStyle, {zIndex: variables.popoverzIndex}]}
+            style={[modalStyle, {zIndex: variables.popoverZIndex}]}
             ref={viewRef(withoutOverlayRef)}
             // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
             onClick={(e) => e.stopPropagation()}

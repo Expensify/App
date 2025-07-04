@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,6 +8,7 @@ import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {requestValidateCodeAction} from '@libs/actions/User';
@@ -36,6 +36,7 @@ function ReportVirtualCardFraudPage({
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD, {canBeMissing: true});
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const primaryLogin = account?.primaryLogin ?? '';
 
     const virtualCard = cardList?.[cardID];
@@ -57,7 +58,7 @@ function ReportVirtualCardFraudPage({
         if (!prevIsLoading || formData?.isLoading) {
             return;
         }
-        if (!isEmptyObject(virtualCard?.errors)) {
+        if (!isEmptyObject(virtualCard?.errors) || !isEmptyObject(validateCodeAction?.errorFields?.reportVirtualCard)) {
             return;
         }
 
@@ -66,7 +67,7 @@ function ReportVirtualCardFraudPage({
             Navigation.goBack(ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.getRoute(latestIssuedVirtualCardID));
             setIsValidateCodeActionModalVisible(false);
         }
-    }, [formData?.isLoading, latestIssuedVirtualCardID, prevIsLoading, virtualCard?.errors]);
+    }, [formData?.isLoading, latestIssuedVirtualCardID, prevIsLoading, virtualCard?.errors, validateCodeAction?.errorFields]);
 
     const handleValidateCodeEntered = useCallback(
         (validateCode: string) => {

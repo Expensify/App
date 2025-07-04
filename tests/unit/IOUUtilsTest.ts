@@ -1,5 +1,7 @@
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import {canSubmitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -11,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import currencyList from './currencyList.json';
@@ -218,7 +220,7 @@ describe('hasRTERWithoutViolation', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
-        expect(hasAnyTransactionWithoutRTERViolation([String(transactionIDWithoutViolation), String(transactionIDWithViolation)], violations)).toBe(true);
+        expect(hasAnyTransactionWithoutRTERViolation([transactionWithoutViolation, transactionWithViolation], violations)).toBe(true);
     });
 
     test('Return false if there is no rter without violation in all transactionViolations with given transactionIDs.', async () => {
@@ -247,7 +249,7 @@ describe('hasRTERWithoutViolation', () => {
         };
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
-        expect(hasAnyTransactionWithoutRTERViolation([String(transactionIDWithViolation)], violations)).toBe(false);
+        expect(hasAnyTransactionWithoutRTERViolation([transactionWithViolation], violations)).toBe(false);
     });
 });
 
@@ -259,6 +261,10 @@ describe('canSubmitReport', () => {
             ownerAccountID: currentUserAccountID,
             areRulesEnabled: true,
             preventSelfApproval: false,
+            autoReportingFrequency: 'immediate',
+            harvesting: {
+                enabled: false,
+            },
         };
         const expenseReport: Report = {
             ...createRandomReport(6),
@@ -323,6 +329,31 @@ describe('canSubmitReport', () => {
         };
 
         expect(canSubmitReport(expenseReport, fakePolicy, [], undefined)).toBe(false);
+    });
+
+    it('returns false if the report is archived', async () => {
+        const policy: Policy = {
+            ...createRandomPolicy(7),
+            ownerAccountID: currentUserAccountID,
+            areRulesEnabled: true,
+            preventSelfApproval: false,
+        };
+        const report: Report = {
+            ...createRandomReport(7),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            managerID: currentUserAccountID,
+            ownerAccountID: currentUserAccountID,
+            policyID: policy.id,
+        };
+
+        // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {
+            private_isArchived: new Date().toString(),
+        });
+
+        // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
+        const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+        expect(canSubmitReport(report, policy, [], undefined, isReportArchived.current)).toBe(false);
     });
 });
 

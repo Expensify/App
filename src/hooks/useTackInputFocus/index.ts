@@ -1,6 +1,7 @@
 import {useCallback, useEffect} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {isChromeIOS} from '@libs/Browser';
+import CONST from '@src/CONST';
 
 /**
  * Detects input or text area focus on browsers, to avoid scrolling on virtual viewports
@@ -11,7 +12,7 @@ export default function useTackInputFocus(enable = false): boolean {
     const handleFocusIn = useCallback(
         (event: FocusEvent) => {
             const targetElement = event.target as HTMLElement;
-            if (targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA') {
+            if (targetElement.tagName === CONST.ELEMENT_NAME.INPUT || targetElement.tagName === CONST.ELEMENT_NAME.TEXTAREA) {
                 setIsInputFocus(true);
             }
         },
@@ -21,7 +22,7 @@ export default function useTackInputFocus(enable = false): boolean {
     const handleFocusOut = useCallback(
         (event: FocusEvent) => {
             const targetElement = event.target as HTMLElement;
-            if (targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA') {
+            if (targetElement.tagName === CONST.ELEMENT_NAME.INPUT || targetElement.tagName === CONST.ELEMENT_NAME.TEXTAREA) {
                 setIsInputFocus(false);
             }
         },

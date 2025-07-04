@@ -1,9 +1,9 @@
 import type {ValueOf} from 'type-fest';
 import type {SearchStatus} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
-import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
+import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from './OnyxCommon';
@@ -21,17 +21,17 @@ type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
 type ListItemType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
     ? typeof ChatListItem
     : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-    ? typeof TransactionListItem
-    : typeof ReportListItem;
+      ? typeof TransactionListItem
+      : typeof TransactionGroupListItem;
 
 /** Model of search list item data type */
 type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
     ? ReportActionListItemType[]
     : C extends typeof CONST.SEARCH.DATA_TYPES.TASK
-    ? TaskListItemType[]
-    : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-    ? TransactionListItemType[]
-    : ReportListItemType[];
+      ? TaskListItemType[]
+      : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
+        ? TransactionListItemType[]
+        : TransactionGroupListItemType[];
 
 /** Model of columns to show for search results */
 type ColumnsToShow = {
@@ -179,6 +179,15 @@ type SearchReport = {
 
     /** The policy name to use for an archived report */
     oldPolicyName?: string;
+
+    /** Pending fields for the report */
+    pendingFields?: {
+        /** Pending action for the preview */
+        preview?: OnyxCommon.PendingAction;
+    };
+
+    /** Pending action for the report */
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 /** Model of report action search result */
@@ -234,6 +243,12 @@ type SearchPolicy = {
     /** Whether the rules feature is enabled */
     areRulesEnabled?: boolean;
 
+    /** Scheduled submit data */
+    harvesting?: {
+        /** Whether the scheduled submit is enabled */
+        enabled: boolean;
+    };
+
     /**
      * The scheduled submit frequency set up on this policy.
      * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
@@ -274,12 +289,12 @@ type SearchPolicy = {
     /** The approver of the policy */
     approver?: string;
 
-    /** A set of rules related to the workpsace */
+    /** A set of rules related to the workspace */
     rules?: {
-        /** A set of rules related to the workpsace approvals */
+        /** A set of rules related to the workspace approvals */
         approvalRules?: ApprovalRule[];
 
-        /** A set of rules related to the workpsace expenses */
+        /** A set of rules related to the workspace expenses */
         expenseRules?: ExpenseRule[];
     };
 };
@@ -437,6 +452,22 @@ type SearchTask = {
     statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 };
 
+/** Model of card search result */
+// s77rt sync with BE
+type SearchCard = {
+    /** Bank name */
+    bank: string;
+
+    /** Last four Primary Account Number digits */
+    lastFourPAN: string;
+
+    /** Card name */
+    cardName: string;
+
+    /** Cardholder account ID */
+    accountID: number;
+};
+
 /** Types of searchable transactions */
 type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
@@ -458,6 +489,7 @@ type SearchResults = {
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, SearchCard> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
 
@@ -482,4 +514,5 @@ export type {
     SearchReport,
     SearchReportAction,
     SearchPolicy,
+    SearchCard,
 };

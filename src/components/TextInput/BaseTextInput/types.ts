@@ -33,6 +33,9 @@ type CustomBaseTextInputProps = {
     /** Customize the TextInput container */
     textInputContainerStyles?: StyleProp<ViewStyle>;
 
+    /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
+    shouldApplyPaddingToContainer?: boolean;
+
     /** Customizes the touchable wrapper of the TextInput component */
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
@@ -52,7 +55,7 @@ type CustomBaseTextInputProps = {
     disableKeyboard?: boolean;
 
     /**
-     * Autogrow input container length based on the entered text.
+     *   input container length based on the entered text.
      */
     autoGrow?: boolean;
 
@@ -60,7 +63,13 @@ type CustomBaseTextInputProps = {
     autoGrowExtraSpace?: number;
 
     /**
-     * Autogrow input container height based on the entered text
+     * Specifies the side ('left' or 'right') where the autoGrow margin should be applied.
+     * This determines which side of the input container will expand when autoGrow is enabled.
+     */
+    autoGrowMarginSide?: 'left' | 'right';
+
+    /**
+     * Auto grow input container height based on the entered text
      */
     autoGrowHeight?: boolean;
 
@@ -171,6 +180,9 @@ type CustomBaseTextInputProps = {
 
     /** Callback when the input is cleared using the clear button */
     onClearInput?: () => void;
+
+    /** Whether the input should be enforced to take full height of container. Default is `false` */
+    shouldUseFullInputHeight?: boolean;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;

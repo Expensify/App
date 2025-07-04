@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -53,6 +54,7 @@ function BaseAnchorForCommentsOnly({
     const defaultTextStyle = canUseTouchScreen() || shouldUseNarrowLayout ? {} : {...styles.userSelectText, ...styles.cursorPointer};
     const isEmail = Str.isValidEmail(href.replace(/mailto:/i, ''));
     const linkHref = !linkHasImage ? href : undefined;
+    const isFocused = useIsFocused();
 
     return (
         <PressableWithSecondaryInteraction
@@ -81,7 +83,10 @@ function BaseAnchorForCommentsOnly({
             accessibilityLabel={href}
             wrapperStyle={wrapperStyle}
         >
-            <Tooltip text={linkHref}>
+            <Tooltip
+                text={linkHref}
+                isFocused={isFocused}
+            >
                 <Text
                     ref={linkRef}
                     style={StyleSheet.flatten([style, defaultTextStyle])}

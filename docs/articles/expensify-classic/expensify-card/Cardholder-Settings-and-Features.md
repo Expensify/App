@@ -13,9 +13,8 @@ If you’ve received an Expensify Card, this guide will help you activate and st
 
 To activate your Expensify Card:
 1. Log in to your Expensify account.
-2. Head to **Settings > Account > Wallet**.
-3. Locate the card and click **Activate**.
-4. Complete the **Activate your Expensify Card** task -- You'll be asked to enter the last 4-digits of the physical card. 
+2. Head to **Home** and view your inbox of tasks.
+3. Complete the **Activate your Expensify Card** task -- You'll be asked to enter the last 4-digits of the physical card. 
 
 Once activated, your card is ready for immediate use.
 

@@ -70,7 +70,7 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                 >
                     {row.map((column, columnIndex) => {
                         // Adding margin between buttons except first column to
-                        // avoid unccessary space before the first column.
+                        // avoid unnecessary space before the first column.
                         const marginLeft = columnIndex > 0 ? styles.ml3 : {};
 
                         return (

@@ -1,7 +1,6 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 // @ts-expect-error This is a workaround to display HelpPane on top of everything,
 // Modal from react-native can't be used here, as it would block interactions with the rest of the app
 import ModalPortal from 'react-native-web/dist/exports/Modal/ModalPortal';
@@ -9,9 +8,11 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import HelpContent from '@components/SidePanel/HelpComponents/HelpContent';
 import HelpOverlay from '@components/SidePanel/HelpComponents/HelpOverlay';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type HelpProps from './types';
@@ -20,7 +21,9 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
     const styles = useThemeStyles();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingTop, paddingBottom} = useSafeAreaPaddings();
-    const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED});
+
+    const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED, canBeMissing: true});
+    const uniqueModalId = useMemo(() => ComposerFocusManager.getId(), []);
 
     const onCloseSidePanelOnSmallScreens = () => {
         if (isExtraLargeScreenWidth) {
@@ -40,6 +43,7 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
 
     // Web back button: push history state and close Side Panel on popstate
     useEffect(() => {
+        ComposerFocusManager.resetReadyToFocus(uniqueModalId);
         window.history.pushState({isSidePanelOpen: true}, '', null);
         const handlePopState = () => {
             if (isExtraLargeScreenWidth) {
@@ -50,7 +54,10 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
         };
 
         window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+            ComposerFocusManager.setReadyToFocus(uniqueModalId);
+        };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 

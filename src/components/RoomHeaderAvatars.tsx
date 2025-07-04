@@ -24,7 +24,7 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
         }
 
         if (icon.id) {
-            Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(Number(icon.id)));
+            Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(Number(icon.id), Navigation.getActiveRoute()));
         }
     };
 
@@ -53,7 +53,7 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
                 <Avatar
                     source={icon.source}
                     imageStyles={styles.avatarXLarge}
-                    size={CONST.AVATAR_SIZE.XLARGE}
+                    size={CONST.AVATAR_SIZE.X_LARGE}
                     name={icon.name}
                     avatarID={icon.id}
                     type={icon.type}

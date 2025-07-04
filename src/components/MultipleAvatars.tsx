@@ -37,7 +37,7 @@ type MultipleAvatarsProps = {
     /** Whether the avatars are hovered */
     isHovered?: boolean;
 
-    /** Whether the avatars are actived */
+    /** Whether the avatars are active */
     isActive?: boolean;
 
     /** Whether the avatars are in an element being pressed */

@@ -20,7 +20,7 @@ type BaseHTMLEngineProviderProps = ChildrenProps & {
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
 // context to RenderHTMLSource components. See https://git.io/JRcZb
-// Beware that each prop should be referentialy stable between renders to avoid
+// Beware that each prop should be referentially stable between renders to avoid
 // costly invalidations and commits.
 function BaseHTMLEngineProvider({textSelectable = false, children, enableExperimentalBRCollapsing = false}: BaseHTMLEngineProviderProps) {
     const styles = useThemeStyles();
@@ -46,6 +46,16 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'deleted-action': HTMLElementModel.fromCustomModel({
                 tagName: 'alert-text',
                 mixedUAStyles: {...styles.formError, ...styles.mb0},
+                contentModel: HTMLContentModel.block,
+            }),
+            rbr: HTMLElementModel.fromCustomModel({
+                tagName: 'rbr',
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.issmall === undefined) {
+                        return {...styles.formError, ...styles.mb0};
+                    }
+                    return {...styles.formError, ...styles.mb0, ...styles.textMicro};
+                },
                 contentModel: HTMLContentModel.block,
             }),
             'muted-text': HTMLElementModel.fromCustomModel({
@@ -129,29 +139,30 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
         }),
         [
+            styles.taskTitleMenuItem,
             styles.formError,
             styles.mb0,
             styles.colorMuted,
+            styles.mutedNormalTextLabel,
             styles.textLabelSupporting,
             styles.lh16,
             styles.textSupporting,
             styles.textLineThrough,
-            styles.mutedNormalTextLabel,
+            styles.textMicro,
             styles.onlyEmojisText,
-            styles.onlyEmojisTextLineHeight,
-            styles.taskTitleMenuItem,
+            styles.strong,
             styles.taskTitleMenuItemItalic,
             styles.em,
-            styles.strong,
             styles.h1,
             styles.blockquote,
+            styles.onlyEmojisTextLineHeight,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
 
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps: TextProps = useMemo(() => ({selectable: textSelectable, allowFontScaling: false, textBreakStrategy: 'simple'}), [textSelectable]);
-    const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText]};
+    const defaultViewProps = {style: [styles.alignItemsStart, styles.userSelectText, styles.mw100]};
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}

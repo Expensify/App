@@ -13,7 +13,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked permissions library, as some components that are rendered
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
-jest.mock('@components/ConfirmedRoute.tsx');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
@@ -35,7 +34,7 @@ xdescribe('Sidebar', () => {
     beforeAll(() =>
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         }),
     );
 

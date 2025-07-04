@@ -1,9 +1,8 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {ActivityIndicator} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {filterInactiveCards} from '@libs/CardUtils';
@@ -34,7 +33,9 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     const {isOffline} = useNetwork({onReconnect: fetchExpensifyCards});
 
-    useFocusEffect(fetchExpensifyCards);
+    useEffect(() => {
+        fetchExpensifyCards();
+    }, [fetchExpensifyCards]);
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isLoading = !isOffline && (!cardSettings || cardSettings.isLoading);

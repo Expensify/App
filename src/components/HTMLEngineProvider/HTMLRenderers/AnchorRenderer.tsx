@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useContext, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import type {StyleProp, TextStyle} from 'react-native';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
@@ -10,6 +10,9 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import useOnyx from '@hooks/useOnyx';
+import useParentReport from '@hooks/useParentReport';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getInternalExpensifyPath, getInternalNewExpensifyPath, openExternalLink, openLink} from '@libs/actions/Link';
 import {isAnonymousUser} from '@libs/actions/Session';
@@ -35,8 +38,10 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
-    const canModifyViewTourTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
-    const canActionViewTourTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const parentReport = useParentReport(report?.reportID);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const canModifyViewTourTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isParentReportArchived);
+    const canActionViewTourTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
 
     const styles = useThemeStyles();
     const htmlAttribs = tnode.attributes;
@@ -82,9 +87,24 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
         // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
+
+        // Define link style based on context
+        let linkStyle: StyleProp<TextStyle> = styles.link;
+
+        // Special handling for links in RBR to maintain consistent font size
+        if (HTMLEngineUtils.isChildOfRBR(tnode)) {
+            linkStyle = [
+                styles.link,
+                {
+                    fontSize: HTMLEngineUtils.getFontSizeOfRBRChild(tnode),
+                    textDecorationLine: 'underline',
+                },
+            ];
+        }
+
         return (
             <Text
-                style={styles.link}
+                style={linkStyle}
                 onPress={() => openLink(attrHref, environmentURL, isAttachment)}
                 suppressHighlighting
             >

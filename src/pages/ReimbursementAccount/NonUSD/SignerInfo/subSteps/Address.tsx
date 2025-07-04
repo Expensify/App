@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import AddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import CONST from '@src/CONST';
@@ -14,7 +14,7 @@ const {STREET, CITY, STATE, ZIP_CODE, COUNTRY} = CONST.NON_USD_BANK_ACCOUNT.SIGN
 
 function Address({onNext, isEditing, onMove}: NameProps) {
     const {translate} = useLocalize();
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
     const countryInputKey = COUNTRY;
     const inputKeys = {
@@ -39,6 +39,7 @@ function Address({onNext, isEditing, onMove}: NameProps) {
     const [shouldDisplayStateSelector, setShouldDisplayStateSelector] = useState<boolean>(
         defaultValues.country === CONST.COUNTRY.US || defaultValues.country === CONST.COUNTRY.CA || defaultValues.country === '',
     );
+    const [shouldValidateZipCodeFormat, setShouldValidateZipCodeFormat] = useState<boolean>(defaultValues.country === CONST.COUNTRY.US);
 
     const stepFieldsWithState = useMemo(
         () => [inputKeys.street, inputKeys.city, inputKeys.state, inputKeys.zipCode, countryInputKey],
@@ -56,6 +57,7 @@ function Address({onNext, isEditing, onMove}: NameProps) {
             return;
         }
         setShouldDisplayStateSelector(country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA);
+        setShouldValidateZipCodeFormat(country === CONST.COUNTRY.US);
     };
 
     const handleNextStep = () => {
@@ -89,6 +91,7 @@ function Address({onNext, isEditing, onMove}: NameProps) {
             onCountryChange={handleCountryChange}
             shouldDisplayStateSelector={shouldDisplayStateSelector}
             shouldDisplayCountrySelector
+            shouldValidateZipCodeFormat={shouldValidateZipCodeFormat}
         />
     );
 }

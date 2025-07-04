@@ -1,7 +1,6 @@
 import {format} from 'date-fns';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -14,12 +13,13 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import OpenWorkspacePlanPage from '@libs/actions/Policy/Plan';
 import Navigation from '@navigation/Navigation';
 import CardSectionUtils from '@pages/settings/Subscription/CardSection/utils';
-import type {PersonalPolicyTypeExludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
+import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -57,8 +57,8 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         .filter((type) => type !== CONST.POLICY.TYPE.PERSONAL)
         .map<WorkspacePlanTypeItem>((policyType) => ({
             value: policyType,
-            text: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExludedProps}.label`),
-            alternateText: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExludedProps}.description`),
+            text: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExcludedProps}.label`),
+            alternateText: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExcludedProps}.description`),
             keyForList: policyType,
             isSelected: policyType === currentPlan,
         }))

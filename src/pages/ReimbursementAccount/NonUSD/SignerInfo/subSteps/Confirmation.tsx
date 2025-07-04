@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForSignerInfo';
 import getValuesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForSignerInfo';
@@ -59,7 +59,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
         });
     }
 
-    if (isDocumentNeededStatus.isProofOfDirecorsNeeded && values.proofOfDirectors.length > 0) {
+    if (isDocumentNeededStatus.isProofOfDirectorsNeeded && values.proofOfDirectors.length > 0) {
         summaryItems.push({
             title: values.proofOfDirectors.map((proof) => proof.name).join(', '),
             description: translate('signerInfoStep.proofOfDirectors'),

@@ -557,17 +557,20 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
     const optimisticDistanceRateCustomUnit = distanceRateCustomUnit && {
         ...distanceRateCustomUnit,
         rates: {
-            ...Object.keys(distanceRateCustomUnit.rates).reduce((rates, rateID) => {
-                if (distanceRateCustomUnit.rates[rateID].attributes?.taxRateExternalID === oldTaxCode) {
-                    // eslint-disable-next-line no-param-reassign
-                    rates[rateID] = {
-                        attributes: {
-                            taxRateExternalID: newTaxCode,
-                        },
-                    };
-                }
-                return rates;
-            }, {} as Record<string, NullishDeep<Rate>>),
+            ...Object.keys(distanceRateCustomUnit.rates).reduce(
+                (rates, rateID) => {
+                    if (distanceRateCustomUnit.rates[rateID].attributes?.taxRateExternalID === oldTaxCode) {
+                        // eslint-disable-next-line no-param-reassign
+                        rates[rateID] = {
+                            attributes: {
+                                taxRateExternalID: newTaxCode,
+                            },
+                        };
+                    }
+                    return rates;
+                },
+                {} as Record<string, NullishDeep<Rate>>,
+            ),
         },
     };
     const oldDefaultExternalID = policy?.taxRates?.defaultExternalID;

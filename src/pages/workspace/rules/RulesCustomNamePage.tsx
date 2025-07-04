@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import BulletList from '@components/BulletList';
@@ -40,7 +41,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
         translate('workspace.rules.expenseReportRules.customNameTotalExample'),
     ] as const satisfies string[];
 
-    const customNameDefaultValue = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue;
+    const customNameDefaultValue = Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '');
 
     const validateCustomName = ({customName}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM> = {};
@@ -59,8 +60,6 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            shouldBeBlocked={!policy?.shouldShowCustomReportTitleOption}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

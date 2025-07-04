@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -8,12 +7,14 @@ import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import mapCurrencyToCountry from '@pages/ReimbursementAccount/utils/mapCurrencyToCountry';
 import {clearErrors, setDraftValues} from '@userActions/FormActions';
+import {setIsComingFromGlobalReimbursementsFlow} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,7 +31,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const currency = policy?.outputCurrency ?? '';
@@ -38,7 +39,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
     const currencyMappedToCountry = mapCurrencyToCountry(currency);
 
-    const countryDefaultValue = reimbursementAccount?.achData?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
+    const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
     const [selectedCountry, setSelectedCountry] = useState<string>(countryDefaultValue);
 
     const disableSubmit = !(currency in CONST.CURRENCY);
@@ -48,6 +49,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
             return;
         }
 
+        setIsComingFromGlobalReimbursementsFlow(true);
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
     };
 
@@ -69,7 +71,6 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
             return;
         }
 
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: currencyMappedToCountry});
         setSelectedCountry(currencyMappedToCountry);
     }, [currency, currencyMappedToCountry]);
 
@@ -109,6 +110,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
                 shouldAllowChange={shouldAllowChange}
                 value={selectedCountry}
                 inputID={COUNTRY}
+                shouldSaveDraft={false}
             />
         </FormProvider>
     );

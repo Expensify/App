@@ -3,6 +3,7 @@
 .well-known
 desktop/dist/**/*.js
 dist/**/*.js
+.rnef
 assets/animations
 android
 ios

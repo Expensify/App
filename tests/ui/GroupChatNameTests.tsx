@@ -83,12 +83,8 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
             const hintText = translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
-
-            await act(async () => {
-                await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
-            });
-            return waitForBatchedUpdatesWithAct();
         })
+        .then(async () => TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A'))
         .then(() => {
             subscribeToUserEvents();
             return waitForBatchedUpdates();
@@ -212,7 +208,7 @@ describe('Tests for group chat name', () => {
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => transitionEndCB?.());
+                act(() => transitionEndCB?.());
                 const name = 'A, B, C, D';
                 const displayNameTexts = screen.queryAllByLabelText(name);
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
@@ -220,26 +216,35 @@ describe('Tests for group chat name', () => {
 
     it('Should show only 5 names with ellipsis when there are 8 participants in the report header', () =>
         signInAndGetApp('', participantAccountIDs8)
-            .then(() => {
-                // Verify the sidebar links are rendered
+            .then(async () => {
+                // Wait for sidebar to be rendered
+                await waitForBatchedUpdatesWithAct();
+
                 const sidebarLinksHintText = translateLocal('sidebarScreen.listOfChats');
-                const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
-                expect(sidebarLinks).toHaveLength(1);
-
-                // Verify there is only one option in the sidebar
-                const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
-                expect(optionRows).toHaveLength(1);
-
                 const displayNameHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
-                const displayNameText = screen.queryByLabelText(displayNameHintText);
 
-                expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E...');
+                // Check sidebar links
+                await waitFor(() => {
+                    const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
+                    expect(sidebarLinks).toHaveLength(1);
+                });
 
-                return navigateToSidebarOption(0);
+                // Check option rows
+                await waitFor(() => {
+                    const optionRows = screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
+                    expect(optionRows).toHaveLength(1);
+                });
+
+                // Check display name
+                await waitFor(() => {
+                    const displayNameText = screen.queryByLabelText(displayNameHintText);
+                    expect(displayNameText?.props?.children?.[0]).toBe('A, B, C, D, E...');
+                });
             })
+            .then(() => navigateToSidebarOption(0))
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => transitionEndCB?.());
+                act(() => transitionEndCB?.());
                 const name = 'A, B, C, D, E...';
                 const displayNameTexts = screen.queryAllByLabelText(name);
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
@@ -266,7 +271,7 @@ describe('Tests for group chat name', () => {
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => transitionEndCB?.());
+                act(() => transitionEndCB?.());
                 const name = 'Test chat';
                 const displayNameTexts = screen.queryAllByLabelText(name);
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));
@@ -293,7 +298,7 @@ describe('Tests for group chat name', () => {
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => transitionEndCB?.());
+                act(() => transitionEndCB?.());
                 const name = "Let's talk";
                 const displayNameTexts = screen.queryAllByLabelText(name);
                 return waitFor(() => expect(displayNameTexts).toHaveLength(1));

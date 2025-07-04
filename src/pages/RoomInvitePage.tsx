@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,6 +14,7 @@ import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteToRoom, searchInServer} from '@libs/actions/Report';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
@@ -37,7 +37,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
@@ -48,17 +47,17 @@ type Sections = Array<SectionListData<MemberForList, Section<MemberForList>>>;
 function RoomInvitePage({
     betas,
     report,
-    policies,
+    policy,
     route: {
-        params: {role, backTo},
+        params: {backTo},
     },
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
+    const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 
     const {options, areOptionsInitialized} = useOptionsList();
 
@@ -183,13 +182,10 @@ function RoomInvitePage({
 
     // Non policy members should not be able to view the participants of a room
     const reportID = report?.reportID;
-    const isPolicyEmployee = useMemo(() => (report?.policyID ? isPolicyEmployeeUtil(report.policyID, policies as Record<string, Policy>) : false), [report?.policyID, policies]);
+    const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
     const backRoute = useMemo(() => {
-        if (role === CONST.IOU.SHARE.ROLE.ACCOUNTANT) {
-            return ROUTES.REPORT_WITH_ID.getRoute(reportID);
-        }
         return reportID && (isPolicyEmployee ? ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo));
-    }, [isPolicyEmployee, reportID, role, backTo]);
+    }, [isPolicyEmployee, reportID, backTo]);
     const reportName = useMemo(() => getReportName(report), [report]);
     const inviteUsers = useCallback(() => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
@@ -214,12 +210,8 @@ function RoomInvitePage({
     }, [selectedOptions, backRoute, reportID, validate]);
 
     const goBack = useCallback(() => {
-        if (role === CONST.IOU.SHARE.ROLE.ACCOUNTANT) {
-            Navigation.dismissModalWithReport({reportID});
-            return;
-        }
         Navigation.goBack(backRoute);
-    }, [role, reportID, backRoute]);
+    }, [backRoute]);
 
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();

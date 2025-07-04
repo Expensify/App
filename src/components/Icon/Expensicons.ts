@@ -6,6 +6,7 @@ import ArrowCollapse from '@assets/images/arrow-collapse.svg';
 import ArrowDownLong from '@assets/images/arrow-down-long.svg';
 import ArrowRightLong from '@assets/images/arrow-right-long.svg';
 import ArrowRight from '@assets/images/arrow-right.svg';
+import ArrowSplit from '@assets/images/arrow-split.svg';
 import ArrowUpLong from '@assets/images/arrow-up-long.svg';
 import UpArrow from '@assets/images/arrow-up.svg';
 import ArrowsLeftRight from '@assets/images/arrows-leftright.svg';
@@ -69,6 +70,7 @@ import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crosshair from '@assets/images/crosshair.svg';
+import DocumentMerge from '@assets/images/document-merge.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
 import DocumentSlash from '@assets/images/document-slash.svg';
 import Document from '@assets/images/document.svg';
@@ -83,6 +85,7 @@ import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EmptySquare from '@assets/images/empty-square.svg';
 import EmptyStateAttachReceipt from '@assets/images/empty-state__attach-receipt.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
+import EmptyStateSpyPigeon from '@assets/images/emptystate__spy-pigeon.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
@@ -118,11 +121,23 @@ import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
+import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
+import MicrosoftDynamicsExport from '@assets/images/integrationicons/export/microsoft-dynamics-icon.svg';
+import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
+import NetSuiteOracleExport from '@assets/images/integrationicons/export/netsuite-oracle-icon.svg';
+import OracleExport from '@assets/images/integrationicons/export/oracle-icon.svg';
+import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
+import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
+import SapExport from '@assets/images/integrationicons/export/sap-icon.svg';
+import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
+import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
+import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
 import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
 import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
 import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
+import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
@@ -144,9 +159,11 @@ import Meter from '@assets/images/meter.svg';
 import Minus from '@assets/images/minus.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
+import MoneyHourglass from '@assets/images/money-hourglass.svg';
 import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
+import MultiTag from '@assets/images/multi-tag.svg';
 import Mute from '@assets/images/mute.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
@@ -167,6 +184,7 @@ import Profile from '@assets/images/profile.svg';
 import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptBody from '@assets/images/receipt-body.svg';
+import ReceiptMultiple from '@assets/images/receipt-multiple.svg';
 import ReceiptPlaceholderPlus from '@assets/images/receipt-placeholder-plus.svg';
 import ReceiptPlus from '@assets/images/receipt-plus.svg';
 import ReceiptScan from '@assets/images/receipt-scan.svg';
@@ -182,6 +200,9 @@ import Shield from '@assets/images/shield.svg';
 import AppleLogo from '@assets/images/signIn/apple-logo.svg';
 import GoogleLogo from '@assets/images/signIn/google-logo.svg';
 import AdvancedApprovalsSquare from '@assets/images/simple-illustrations/advanced-approvals-icon-square.svg';
+import MessageInABottle from '@assets/images/simple-illustrations/simple-illustration__messageinabottle.svg';
+import ReplaceReceipt from '@assets/images/simple-illustrations/simple-illustration__replace-receipt.svg';
+import SmartScan from '@assets/images/simple-illustrations/simple-illustration__smartscan.svg';
 import Facebook from '@assets/images/social-facebook.svg';
 import Instagram from '@assets/images/social-instagram.svg';
 import Linkedin from '@assets/images/social-linkedin.svg';
@@ -207,6 +228,7 @@ import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
 import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
+import UserLock from '@assets/images/user-lock.svg';
 import UserPlus from '@assets/images/user-plus.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
@@ -230,6 +252,7 @@ export {
     AnnounceRoomAvatar,
     Apple,
     AppleLogo,
+    ArrowSplit,
     ArrowCollapse,
     ArrowRight,
     ArrowRightLong,
@@ -274,9 +297,11 @@ export {
     CreditCard,
     CreditCardHourglass,
     CreditCardExclamation,
+    CircleSlash,
     DeletedRoomAvatar,
     Document,
     DocumentSlash,
+    DocumentMerge,
     DomainRoomAvatar,
     DotIndicator,
     DotIndicatorUnfilled,
@@ -308,6 +333,7 @@ export {
     Fullscreen,
     Folder,
     Tag,
+    MultiTag,
     Coins,
     Thread,
     Gallery,
@@ -338,10 +364,12 @@ export {
     Menu,
     Meter,
     Megaphone,
+    MessageInABottle,
     MoneyBag,
     MoneyCircle,
     MoneySearch,
     MoneyWaving,
+    MoneyHourglass,
     Monitor,
     Mute,
     ExpensifyLogoNew,
@@ -371,11 +399,14 @@ export {
     ReceiptSlash,
     RemoveMembers,
     ReceiptSearch,
+    ReplaceReceipt,
+    ReceiptMultiple,
     Rotate,
     RotateLeft,
     Scan,
     Send,
     Shield,
+    SmartScan,
     Stopwatch,
     Suitcase,
     Sync,
@@ -423,6 +454,9 @@ export {
     NetSuiteSquare,
     XeroCircle,
     QBOCircle,
+    MicrosoftDynamicsSquare,
+    OracleSquare,
+    SapSquare,
     Filters,
     CalendarSolid,
     Filter,
@@ -442,4 +476,14 @@ export {
     EmptySquare,
     CheckSquare,
     Minus,
+    UserLock,
+    EmptyStateSpyPigeon,
+    MicrosoftDynamicsExport,
+    NetSuiteExport,
+    NetSuiteOracleExport,
+    OracleExport,
+    QBOExport,
+    SageIntacctExport,
+    SapExport,
+    XeroExport,
 };

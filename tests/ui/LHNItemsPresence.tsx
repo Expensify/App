@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
 import {buildOptimisticExpenseReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
@@ -14,6 +15,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction, ViolationName} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import {chatReportR14932} from '../../__mocks__/reportData/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -23,8 +25,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked permissions library, as some components that are rendered
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
-jest.mock('@hooks/useActiveWorkspace', () => jest.fn(() => ({activeWorkspaceID: undefined})));
-jest.mock('@components/ConfirmedRoute.tsx');
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
@@ -105,8 +105,9 @@ describe('SidebarLinksData', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
-            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+        initOnyxDerivedValues();
     });
 
     // Helper to initialize common state
@@ -126,6 +127,7 @@ describe('SidebarLinksData', () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         // Initialize the network key for OfflineWithFeedback
         Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         signUpWithTestUser();
     });
 
@@ -149,8 +151,9 @@ describe('SidebarLinksData', () => {
             expect(getOptionRows()).toHaveLength(0);
 
             // When the SidebarLinks are rendered again with the current active report ID.
-            LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
+            await LHNTestUtils.getDefaultRenderedSidebarLinks(report.reportID);
 
+            await waitForBatchedUpdatesWithAct();
             // Then the active report should be displayed as part of LHN,
             expect(getOptionRows()).toHaveLength(1);
 
@@ -229,12 +232,17 @@ describe('SidebarLinksData', () => {
                 ...createReport(false, undefined, undefined, undefined, TEST_POLICY_ID),
                 ownerAccountID: TEST_USER_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: report.reportID,
             };
             const transaction = LHNTestUtils.getFakeTransaction(expenseReport.reportID);
             const transactionViolation = createFakeTransactionViolation();
+            const reportAction = LHNTestUtils.getFakeAdvancedReportAction();
 
             // When the report has outstanding violations
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [reportAction.reportActionID]: reportAction,
+            });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [transactionViolation]);
 
@@ -426,7 +434,7 @@ describe('SidebarLinksData', () => {
         it('should not display the single transaction thread', async () => {
             // Given the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
-            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+            const expenseReport = buildOptimisticExpenseReport(chatReportR14932.reportID, '123', 100, 122, 'USD');
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -451,13 +459,13 @@ describe('SidebarLinksData', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`]: transactionThreadReport,
             });
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportR14932.reportID}`, chatReportR14932);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
                 [expenseCreatedAction.reportActionID]: expenseCreatedAction,
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${expenseTransaction.transactionID}`, expenseTransaction);
 
-            // Then such report should not appear in the sidebar because the highest level context is on the workspace chat with GBR that is visible in the LHN
+            // Then such report should not appear in the sidebar because the highest level context is on the expense chat with GBR that is visible in the LHN
             expect(getOptionRows()).toHaveLength(0);
         });
 

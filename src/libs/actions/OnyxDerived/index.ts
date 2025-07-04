@@ -8,6 +8,8 @@
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import Log from '@libs/Log';
+import IntlStore from '@src/languages/IntlStore';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import ONYX_DERIVED_VALUES from './ONYX_DERIVED_VALUES';
 import type {DerivedValueContext} from './types';
@@ -17,9 +19,14 @@ import type {DerivedValueContext} from './types';
  */
 function init() {
     for (const [key, {compute, dependencies}] of ObjectUtils.typedEntries(ONYX_DERIVED_VALUES)) {
+        let areAllConnectionsSet = false;
+        let connectionsEstablishedCount = 0;
+        const totalConnections = dependencies.length;
+        const connectionInitializedFlags = new Array(totalConnections).fill(false);
+
         // Create an array to hold the current values for each dependency.
         // We cast its type to match the tuple expected by config.compute.
-        let dependencyValues = new Array(dependencies.length) as Parameters<typeof compute>[0];
+        let dependencyValues = new Array(totalConnections) as Parameters<typeof compute>[0];
 
         OnyxUtils.get(key).then((storedDerivedValue) => {
             let derivedValue = storedDerivedValue;
@@ -27,8 +34,12 @@ function init() {
                 Log.info(`Derived value for ${key} restored from disk`);
             } else {
                 OnyxUtils.tupleGet(dependencies).then((values) => {
-                    // @ts-expect-error TypeScript can't confirm the shape of tupleGet's return value matches the compute function's parameters
-                    derivedValue = compute(values, {currentValue: derivedValue});
+                    const initialContext: DerivedValueContext<typeof key, typeof dependencies> = {
+                        currentValue: derivedValue,
+                        sourceValues: undefined,
+                        areAllConnectionsSet: false,
+                    };
+                    derivedValue = compute(dependencyValues, initialContext);
                     dependencyValues = values;
                     Onyx.set(key, derivedValue ?? null);
                 });
@@ -37,11 +48,29 @@ function init() {
             const setDependencyValue = <Index extends number>(i: Index, value: Parameters<typeof compute>[0][Index]) => {
                 dependencyValues[i] = value;
             };
+            const checkAndMarkConnectionInitialized = (index: number) => {
+                if (connectionInitializedFlags.at(index)) {
+                    return;
+                }
 
-            const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown) => {
+                connectionInitializedFlags[index] = true;
+                connectionsEstablishedCount++;
+                if (connectionsEstablishedCount === totalConnections) {
+                    areAllConnectionsSet = true;
+                    Log.info(`[OnyxDerived] All connections initialized for key: ${key}`);
+                }
+            };
+
+            const recomputeDerivedValue = (sourceKey?: string, sourceValue?: unknown, triggeredByIndex?: number) => {
+                // If this recompute was triggered by a connection callback, check if it initializes the connection
+                if (triggeredByIndex !== undefined) {
+                    checkAndMarkConnectionInitialized(triggeredByIndex);
+                }
+
                 const context: DerivedValueContext<typeof key, typeof dependencies> = {
                     currentValue: derivedValue,
                     sourceValues: undefined,
+                    areAllConnectionsSet,
                 };
 
                 // If we got a source key and value, add it to the sourceValues object
@@ -50,24 +79,45 @@ function init() {
                         [sourceKey]: sourceValue,
                     };
                 }
-                // @ts-expect-error TypeScript can't confirm the shape of dependencyValues matches the compute function's parameters
                 const newDerivedValue = compute(dependencyValues, context);
-                Log.info(`[OnyxDerived] updating value for ${key} in Onyx`, false, {old: derivedValue ?? null, new: newDerivedValue ?? null});
+                Log.info(`[OnyxDerived] updating value for ${key} in Onyx`);
                 derivedValue = newDerivedValue;
                 Onyx.set(key, derivedValue ?? null);
             };
 
             for (let i = 0; i < dependencies.length; i++) {
-                // eslint-disable-next-line rulesdir/prefer-at
-                const dependencyOnyxKey = dependencies[i];
+                const dependencyIndex = i;
+                const dependencyOnyxKey = dependencies[dependencyIndex];
+
                 if (OnyxUtils.isCollectionKey(dependencyOnyxKey)) {
                     Onyx.connect({
                         key: dependencyOnyxKey,
                         waitForCollectionCallback: true,
                         callback: (value, collectionKey, sourceValue) => {
                             Log.info(`[OnyxDerived] dependency ${collectionKey} for derived key ${key} changed, recomputing`);
-                            setDependencyValue(i, value as Parameters<typeof compute>[0][typeof i]);
-                            recomputeDerivedValue(dependencyOnyxKey, sourceValue);
+                            setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
+                            recomputeDerivedValue(dependencyOnyxKey, sourceValue, dependencyIndex);
+                        },
+                    });
+                } else if (dependencyOnyxKey === ONYXKEYS.NVP_PREFERRED_LOCALE) {
+                    // Special case for locale, we want to recompute derived values when the locale change actually loads.
+                    Onyx.connect({
+                        key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
+                        initWithStoredValues: false,
+                        callback: (value) => {
+                            if (value ?? true) {
+                                Log.info(`[OnyxDerived] translations are still loading, not recomputing derived value for ${key}`);
+                                return;
+                            }
+                            Log.info(`[OnyxDerived] translations loaded, recomputing derived value for ${key}`);
+                            const localeValue = IntlStore.getCurrentLocale();
+                            if (!localeValue) {
+                                Log.info(`[OnyxDerived] No locale found for derived key ${key}, skipping recompute`);
+                                return;
+                            }
+                            Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
+                            setDependencyValue(dependencyIndex, localeValue as Parameters<typeof compute>[0][typeof dependencyIndex]);
+                            recomputeDerivedValue(dependencyOnyxKey, localeValue, dependencyIndex);
                         },
                     });
                 } else {
@@ -75,8 +125,9 @@ function init() {
                         key: dependencyOnyxKey,
                         callback: (value) => {
                             Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
-                            setDependencyValue(i, value as Parameters<typeof compute>[0][typeof i]);
-                            recomputeDerivedValue(dependencyOnyxKey);
+                            setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
+                            // if the dependency is not a collection, pass the entire value as the source value
+                            recomputeDerivedValue(dependencyOnyxKey, value, dependencyIndex);
                         },
                     });
                 }

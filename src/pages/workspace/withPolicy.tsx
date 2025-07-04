@@ -1,7 +1,7 @@
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, ReimbursementAccountNavigatorParamList, SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import {updateLastAccessedWorkspace} from '@userActions/Policy/Policy';
@@ -22,6 +22,7 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.COMPANY_CARDS
     | typeof SCREENS.WORKSPACE.INVITE
     | typeof SCREENS.WORKSPACE.INVITE_MESSAGE
+    | typeof SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE
     | typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER
     | typeof SCREENS.WORKSPACE.WORKFLOWS
     | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW
@@ -31,12 +32,14 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET
     | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY
     | typeof SCREENS.WORKSPACE.MEMBER_DETAILS
+    | typeof SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD
     | typeof SCREENS.WORKSPACE.MEMBER_NEW_CARD
     | typeof SCREENS.WORKSPACE.INVOICES
     | typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK
     | typeof SCREENS.WORKSPACE.TAX_EDIT
     | typeof SCREENS.WORKSPACE.ADDRESS
     | typeof SCREENS.WORKSPACE.CATEGORIES_SETTINGS
+    | typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS
     | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT
     | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT
     | typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE
@@ -78,10 +81,11 @@ export default function <TProps extends WithPolicyProps, TRef>(
 ): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps> & RefAttributes<TRef>> {
     function WithPolicy(props: Omit<TProps, keyof WithPolicyOnyxProps>, ref: ForwardedRef<TRef>) {
         const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
-
+        const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP, {canBeMissing: true});
         const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
         const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
-        const isLoadingPolicy = isLoadingOnyxValue(policyResults, policyDraftResults);
+        /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
+        const isLoadingPolicy = !hasLoadedApp || isLoadingOnyxValue(policyResults, policyDraftResults);
 
         if (policyID && policyID.length > 0) {
             updateLastAccessedWorkspace(policyID);

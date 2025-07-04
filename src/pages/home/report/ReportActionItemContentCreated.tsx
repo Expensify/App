@@ -1,4 +1,4 @@
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -31,6 +31,9 @@ type ReportActionItemContentCreatedProps = {
     /**  The context value containing the report and action data, along with the show context menu props */
     contextValue: ShowContextMenuContextProps;
 
+    /** The parent report */
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -44,13 +47,12 @@ type ReportActionItemContentCreatedProps = {
     shouldHideThreadDividerLine: boolean;
 };
 
-function ReportActionItemContentCreated({contextValue, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
+function ReportActionItemContentCreated({contextValue, parentReport, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {report, action, transactionThreadReport} = contextValue;
-
     const policy = usePolicy(report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? undefined : report?.policyID);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
 
     const transactionCurrency = getCurrency(transaction);
 
@@ -141,6 +143,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                 <View>
                     <TaskView
                         report={report}
+                        parentReport={parentReport}
                         action={action}
                     />
                     {renderThreadDivider}
@@ -197,8 +200,8 @@ ReportActionItemContentCreated.displayName = 'ReportActionItemContentCreated';
 export default memo(
     ReportActionItemContentCreated,
     (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.contextValue, nextProps.contextValue) &&
-        lodashIsEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
+        deepEqual(prevProps.contextValue, nextProps.contextValue) &&
+        deepEqual(prevProps.parentReportAction, nextProps.parentReportAction) &&
         prevProps.transactionID === nextProps.transactionID &&
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine,

@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {inviteMemberToWorkspace} from '@libs/actions/Policy/Member';
 import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
@@ -21,7 +21,7 @@ type WorkspaceJoinUserPageProps = WorkspaceJoinUserPageRoute;
 function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
     const styles = useThemeStyles();
     const policyID = route?.params?.policyID;
-    const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const isPolicyLoading = isLoadingOnyxValue(policyResult);
     const inviterEmail = route?.params?.email;
     const isUnmounted = useRef(false);
@@ -32,7 +32,11 @@ function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
         }
         if (!isEmptyObject(policy) && !policy?.isJoinRequestPending && !isPendingDeletePolicy(policy)) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.goBack(undefined, {shouldPopToTop: true});
+                if (Navigation.getShouldPopToSidebar()) {
+                    Navigation.popToSidebar();
+                } else {
+                    Navigation.goBack();
+                }
                 Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
             });
             return;

@@ -78,6 +78,7 @@ function AddressSearch(
         shouldSaveDraft = false,
         value,
         locationBias,
+        caretHidden,
     }: AddressSearchProps,
     ref: ForwardedRef<HTMLElement>,
 ) {
@@ -162,13 +163,7 @@ function AddressSearch(
 
         // Make sure that the order of keys remains such that the country is always set above the state.
         // Refer to https://github.com/Expensify/App/issues/15633 for more information.
-        const {
-            country: countryFallbackLongName = '',
-            state: stateAutoCompleteFallback = '',
-            city: cityAutocompleteFallback = '',
-            street: streetAutocompleteFallback = '',
-            streetNumber: streetNumberAutocompleteFallback = '',
-        } = getPlaceAutocompleteTerms(autocompleteData?.terms ?? []);
+        const {country: countryFallbackLongName = '', state: stateAutoCompleteFallback = '', city: cityAutocompleteFallback = ''} = getPlaceAutocompleteTerms(autocompleteData?.terms ?? []);
 
         const countryFallback = Object.keys(CONST.ALL_COUNTRIES).find((country) => country === countryFallbackLongName);
 
@@ -176,7 +171,7 @@ function AddressSearch(
         const country = countryPrimary || countryFallback || '';
 
         const values = {
-            street: `${streetNumber || streetNumberAutocompleteFallback} ${streetName || streetAutocompleteFallback}`.trim(),
+            street: `${streetNumber} ${streetName}`.trim(),
             name: details.name ?? '',
             // Autocomplete returns any additional valid address fragments (e.g. Apt #) as subpremise.
             street2: subpremise,
@@ -186,7 +181,7 @@ function AddressSearch(
             // When locality is not returned, many countries return the city as postalTown (e.g. 5 New Street
             // Square, London), otherwise as sublocality (e.g. 384 Court Street Brooklyn). If postalTown is
             // returned, the sublocality will be a city subdivision so shouldn't take precedence (e.g.
-            // Salagatan, Upssala, Sweden).
+            // Salagatan, Uppsala, Sweden).
             city: locality || postalTown || sublocality || cityAutocompleteFallback,
             zipCode,
 
@@ -450,6 +445,7 @@ function AddressSearch(
                             maxLength: maxInputLength,
                             spellCheck: false,
                             selectTextOnFocus: true,
+                            caretHidden,
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],

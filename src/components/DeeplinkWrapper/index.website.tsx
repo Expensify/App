@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import {isMobile} from '@libs/Browser';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldPreventDeeplinkPrompt from '@libs/Navigation/helpers/shouldPreventDeeplinkPrompt';
@@ -44,7 +44,7 @@ function promptToOpenInDesktopApp(currentUserAccountID?: number, initialUrl = ''
 function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}: DeeplinkWrapperProps) {
     const [currentScreen, setCurrentScreen] = useState<string | undefined>();
     const [hasShownPrompt, setHasShownPrompt] = useState(false);
-    const removeListener = useRef<() => void>();
+    const removeListener = useRef<(() => void) | undefined>(undefined);
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (account) => !!account?.delegatedAccess?.delegate,
         canBeMissing: true,

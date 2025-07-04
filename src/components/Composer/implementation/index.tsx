@@ -20,6 +20,7 @@ import {isMobileSafari, isSafari} from '@libs/Browser';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
+import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
@@ -54,10 +55,10 @@ function Composer(
     }: ComposerProps,
     ref: ForwardedRef<TextInput | HTMLInputElement>,
 ) {
-    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(value ?? ''), [value]);
+    const textContainsOnlyEmojis = useMemo(() => containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? ''))), [value]);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
+    const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const StyleUtils = useStyleUtils();
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
     const [selection, setSelection] = useState<
@@ -145,7 +146,7 @@ function Composer(
                 const eventTarget = event.target as HTMLInputElement | HTMLTextAreaElement | null;
                 // To make sure the composer does not capture paste events from other inputs, we check where the event originated
                 // If it did originate in another input, we return early to prevent the composer from handling the paste
-                const isTargetInput = eventTarget?.nodeName === 'INPUT' || eventTarget?.nodeName === 'TEXTAREA' || eventTarget?.contentEditable === 'true';
+                const isTargetInput = eventTarget?.nodeName === CONST.ELEMENT_NAME.INPUT || eventTarget?.nodeName === CONST.ELEMENT_NAME.TEXTAREA || eventTarget?.contentEditable === 'true';
                 if (isTargetInput || (!isFocused && isContenteditableDivFocused && event.clipboardData?.files.length)) {
                     return true;
                 }
@@ -289,28 +290,24 @@ function Composer(
         onClear(currentText);
     }, [onClear, onSelectionChange]);
 
-    useImperativeHandle(
-        ref,
-        () => {
-            const textInputRef = textInput.current;
-            if (!textInputRef) {
-                throw new Error('textInputRef is not available. This should never happen and indicates a developer error.');
-            }
+    useImperativeHandle(ref, () => {
+        const textInputRef = textInput.current;
+        if (!textInputRef) {
+            throw new Error('textInputRef is not available. This should never happen and indicates a developer error.');
+        }
 
-            return {
-                ...textInputRef,
-                // Overwrite clear with our custom implementation, which mimics how the native TextInput's clear method works
-                clear,
-                // We have to redefine these methods as they are inherited by prototype chain and are not accessible directly
-                blur: () => textInputRef.blur(),
-                focus: () => textInputRef.focus(),
-                get scrollTop() {
-                    return textInputRef.scrollTop;
-                },
-            };
-        },
-        [clear],
-    );
+        return {
+            ...textInputRef,
+            // Overwrite clear with our custom implementation, which mimics how the native TextInput's clear method works
+            clear,
+            // We have to redefine these methods as they are inherited by prototype chain and are not accessible directly
+            blur: () => textInputRef.blur(),
+            focus: () => textInputRef.focus(),
+            get scrollTop() {
+                return textInputRef.scrollTop;
+            },
+        };
+    }, [clear]);
 
     const handleKeyPress = useCallback(
         (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
@@ -351,7 +348,9 @@ function Composer(
             autoComplete="off"
             autoCorrect={!isMobileSafari()}
             placeholderTextColor={theme.placeholderText}
-            ref={(el) => (textInput.current = el)}
+            ref={(el) => {
+                textInput.current = el;
+            }}
             selection={selection}
             style={[inputStyleMemo]}
             markdownStyle={markdownStyle}

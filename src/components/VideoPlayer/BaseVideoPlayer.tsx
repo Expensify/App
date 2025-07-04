@@ -54,7 +54,7 @@ function BaseVideoPlayer({
     isVideoHovered = false,
     isPreview,
     reportID,
-}: VideoPlayerProps) {
+}: VideoPlayerProps & {reportID: string}) {
     const styles = useThemeStyles();
     const {
         pauseVideo,
@@ -77,7 +77,7 @@ function BaseVideoPlayer({
     const [isEnded, setIsEnded] = useState(false);
     const [isBuffering, setIsBuffering] = useState(true);
     const [hasError, setHasError] = useState(false);
-    // we add "#t=0.001" at the end of the URL to skip first milisecond of the video and always be able to show proper video preview when video is paused at the beginning
+    // we add "#t=0.001" at the end of the URL to skip first millisecond of the video and always be able to show proper video preview when video is paused at the beginning
     const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url), 0.001));
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState({horizontal: 0, vertical: 0});
@@ -237,9 +237,9 @@ function BaseVideoPlayer({
             const isVideoPlaying = status.isPlaying;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const currentDuration = status.durationMillis || videoDuration * 1000;
-            const currentPositon = status.positionMillis || 0;
+            const currentPosition = status.positionMillis || 0;
 
-            if (shouldReplayVideo(status, isVideoPlaying, currentDuration, currentPositon) && !isEnded) {
+            if (shouldReplayVideo(status, isVideoPlaying, currentDuration, currentPosition) && !isEnded) {
                 videoPlayerRef.current?.setStatusAsync({positionMillis: 0, shouldPlay: true});
             }
 
@@ -248,7 +248,7 @@ function BaseVideoPlayer({
             setIsLoading(Number.isNaN(status.durationMillis)); // when video is ready to display duration is not NaN
             setIsBuffering(status.isBuffering);
             setDuration(currentDuration);
-            setPosition(currentPositon);
+            setPosition(currentPosition);
 
             videoStateRef.current = status;
             onPlaybackStatusUpdate?.(status);
@@ -336,7 +336,7 @@ function BaseVideoPlayer({
         currentVideoPlayerRef.current = videoPlayerRef.current;
     }, [url, currentVideoPlayerRef, isUploading, pauseVideo]);
 
-    const isCurrentlyURLSetRef = useRef<boolean>();
+    const isCurrentlyURLSetRef = useRef<boolean | undefined>(undefined);
     isCurrentlyURLSetRef.current = isCurrentlyURLSet;
 
     useEffect(
@@ -494,6 +494,9 @@ function BaseVideoPlayer({
                                                 videoPlayerRef.current?.setStatusAsync?.({rate: currentPlaybackSpeed});
                                             }}
                                             onLoad={() => {
+                                                if (hasError) {
+                                                    setHasError(false);
+                                                }
                                                 if (!isCurrentlyURLSet || isUploading) {
                                                     return;
                                                 }
@@ -502,6 +505,11 @@ function BaseVideoPlayer({
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                                             onFullscreenUpdate={handleFullscreenUpdate}
                                             onError={() => {
+                                                // No need to set hasError while offline, since the offline indicator is already shown.
+                                                // Once the user reconnects, if the video is unsupported, the error will be triggered again.
+                                                if (isOffline) {
+                                                    return;
+                                                }
                                                 setHasError(true);
                                             }}
                                             testID={CONST.VIDEO_PLAYER_TEST_ID}

@@ -24,13 +24,14 @@ If your business bank account is based in Canada, you can send global reimbursem
 ---
 
 # Step 1: Connect Your Canadian Bank Account
-1. Go to **Settings > Workspaces > [Workspace Name] > Reports**.
-2. Confirm the workspace currency is set to **CAD**.
-3. Click the **Reimbursements** tab.
-4. Set the reimbursement method to **Direct**.
-5. Click **Add business bank account**.
-6. Click **Switch country** and set the **currency** to CAD.
-7. Enter your Canadian bank account details and click **Save & Continue**.
+1. Go to **Settings > Workspaces [Workspace Name] > Overview**.
+2. In the **Report Currency** dropdown, select **CAD**.
+3. Navigate to **Settings > Workspaces [Workspace Name] > Workflows**.
+4. Scroll to **Make or track payments**
+5. Set the reimbursement method to **Direct**.
+6. Click **Add business bank account**.
+7. Click **Switch country** and confirm the currency shows CAD.
+8. Enter your Canadian bank account details and click **Save & Continue**.
 
 ---
 
@@ -47,7 +48,7 @@ If your business bank account is based in Canada, you can send global reimbursem
 
 # Step 3: Confirm Test Transactions
 1. **Expensify will send test deposits to the provided bank account:** Once those are sent, our support team will ask you to verify the deposit amounts.
-2. Once the test deposit amounts are confirmed, the bank account is verified to use for global reimbursement.
+2. Once the test deposit amounts are confirmed, the bank account is verified for global reimbursement.
 
 ---
 
@@ -56,9 +57,10 @@ If your business bank account is based in Canada, you can send global reimbursem
 ⏳**Timeline:** From the time you submit all requested documentation, you can expect to start using global reimbursement within one to two weeks. Once the verification is complete, the bank account is typically ready to go within two business days
 
 After the account is verified:
-1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
-2. Select the verified Canadian account as the default reimbursement method.
-3. Instruct employees to connect their deposit account:
+1. Go to **Settings > Workspaces > [Workspace Name] > Workflows**.
+2. Scroll to **Make or track payments**.
+3. Select the verified Canadian account as the default reimbursement method.
+4. Instruct employees to connect their deposit account:
    - Go to **Settings > Account > Wallet**.
    - Click **Add deposit-only bank account** and enter their deposit account details.
 

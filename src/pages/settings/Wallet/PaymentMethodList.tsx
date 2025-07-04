@@ -3,7 +3,6 @@ import type {ReactElement, Ref} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg/lib/typescript/ReactNativeSVG';
 import type {ValueOf} from 'type-fest';
 import type {RenderSuggestionMenuItemProps} from '@components/AutoCompleteSuggestions/types';
@@ -13,15 +12,15 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
-import useAccountValidation from '@hooks/useAccountValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import type {FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {getCardFeedIcon, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getPlaidInstitutionIconUrl, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
@@ -124,6 +123,7 @@ type PaymentMethodItem = PaymentMethod & {
     iconRight?: React.FC<SvgProps>;
     isMethodActive?: boolean;
     cardID?: number;
+    plaidUrl?: string;
 } & BankIcon;
 
 function dismissError(item: PaymentMethodItem) {
@@ -158,10 +158,10 @@ function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefau
     if (!isDefault) {
         return false;
     }
-    const defaultablePaymentMethodCount = filteredPaymentMethods.filter(
+    const defaultPaymentMethodCount = filteredPaymentMethods.filter(
         (method) => method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
     ).length;
-    return defaultablePaymentMethodCount > 1;
+    return defaultPaymentMethodCount > 1;
 }
 
 function isPaymentMethodActive(actionPaymentMethodType: string, activePaymentMethodID: string | number, paymentMethod: PaymentMethod) {
@@ -199,20 +199,20 @@ function PaymentMethodList({
     const {isOffline} = useNetwork();
     const illustrations = useThemeIllustrations();
 
-    const isUserValidated = useAccountValidation();
-    const [bankAccountList = {}, bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
+    const [bankAccountList = {}, bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
-    const [cardList = {}, cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [cardList = {}, cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST);
-    const [isLoadingPaymentMethods = true, isLoadingPaymentMethodsResult] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
+    const [isLoadingPaymentMethods = true, isLoadingPaymentMethodsResult] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const isLoadingPaymentMethodsOnyx = isLoadingOnyxValue(isLoadingPaymentMethodsResult);
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
-            const assignedCards = Object.values(isLoadingCardList ? {} : cardList ?? {})
+            const assignedCards = Object.values(isLoadingCardList ? {} : (cardList ?? {}))
                 // Filter by active cards associated with a domain
                 .filter((card) => !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
             const assignedCardsSorted = lodashSortBy(assignedCards, (card) => !isExpensifyCard(card.cardID));
@@ -225,8 +225,10 @@ function PaymentMethodList({
                 if (!isExpensifyCard(card.cardID)) {
                     const pressHandler = onPress as CardPressHandler;
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
+                    const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
+                        plaidUrl,
                         title: maskCardNumber(card.cardName, card.bank),
                         description: lastFourPAN
                             ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
@@ -289,7 +291,7 @@ function PaymentMethodList({
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     title: isTravelCard ? translate('cardPage.expensifyTravelCard') : card?.nameValuePairs?.cardTitle || card.bank,
                     description: isTravelCard ? translate('cardPage.expensifyTravelCard') : cardDescription,
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(card.cardID))),
+                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
                     cardID: card.cardID,
                     isGroupedCardDomain: !isAdminIssuedVirtualCard && !isTravelCard,
                     shouldShowRightIcon: true,
@@ -316,7 +318,7 @@ function PaymentMethodList({
         // const paymentCardList = fundList ?? {};
         // const filteredCardList = Object.values(paymentCardList).filter((card) => !!card.accountData?.additionalData?.isP2PDebitCard);
         const filteredCardList = {};
-        let combinedPaymentMethods = formatPaymentMethods(isLoadingBankAccountList ? {} : bankAccountList ?? {}, filteredCardList, styles);
+        let combinedPaymentMethods = formatPaymentMethods(isLoadingBankAccountList ? {} : (bankAccountList ?? {}), filteredCardList, styles);
 
         if (filterType !== '') {
             combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterType);
@@ -381,7 +383,7 @@ function PaymentMethodList({
 
     const onPressItem = useCallback(() => {
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
+            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route));
             return;
         }
         onPress();
@@ -428,7 +430,9 @@ function PaymentMethodList({
                     title={item.title}
                     description={item.description}
                     icon={item.icon}
+                    plaidUrl={item.plaidUrl}
                     disabled={item.disabled}
+                    iconType={item.plaidUrl ? CONST.ICON_TYPE_PLAID : CONST.ICON_TYPE_ICON}
                     displayInDefaultIconColor
                     iconHeight={item.iconHeight ?? item.iconSize}
                     iconWidth={item.iconWidth ?? item.iconSize}

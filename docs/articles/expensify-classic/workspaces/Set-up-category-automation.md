@@ -20,10 +20,9 @@ You can also set up automatic category assignments based on the merchant categor
 
 Expensify automatically detects the merchant type for most imported credit card expenses based on the MCC. To categorize these expenses under a custom category, follow these steps:
 
-1. Go to **Settings > Workspaces > Group > [Workspace Name]**
-3. Click the **Categories** tab.
-4. Scroll to the **Default Categories** section.
-5. Click the **Edit** icon next to the default category you want to update.
-6. Select the appropriate category and save your changes.
+1. Go to **Settings > Workspace > [Workspace Name] > Categories**.
+2. Scroll to the **Default Categories** section.
+3. Click the **Edit** icon next to the default category you want to update.
+4. Select the appropriate category and save your changes.
 
 </div>

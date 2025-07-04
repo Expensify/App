@@ -22,18 +22,19 @@ If your business operates in the European Union, you can send international reim
 
 ## Special Requirements:
 - 🇮🇹 **Italy:** Requires "Codice Fiscale" (Tax ID).
-- 🇪🇸 **Spain:** A driver’s license is not accepted as a valid form ID.
+- 🇪🇸 **Spain:** A driver’s license is not accepted as a valid form of ID.
 
 ---
 
 # Step 1: Connect Your EU Bank Account
-1. Go to **Settings > Workspaces > [Workspace Name] > Reports**.
-2. Confirm the workspace currency is **EUR**.
-3. Click the **Reimbursements** tab.
-4. Set the reimbursement method to **Direct**.
-5. Click **Add business bank account**.
-6. Select your country and make sure the currency is set to EUR.
-7. Enter your account details and click **Save & Continue**.
+1. Go to **Settings > Workspaces [Workspace Name] > Overview**.
+2. In the **Report Currency** dropdown, select **EUR**.
+3. Navigate to **Settings > Workspaces [Workspace Name] > Workflows**.
+4. Scroll to **Make or track payments**
+5. Set the reimbursement method to **Direct**.
+6. Click **Add business bank account**.
+7. Select your country and make sure the currency is set to EUR.
+8. Enter your account details and click **Save & Continue**.
 
 ---
 
@@ -62,7 +63,7 @@ If your business operates in the European Union, you can send international reim
 
 # Step 4: Confirm Test Payment
 1. **Expensify will send a test payment to the bank account:** Once sent, our support team will ask you to verify the payment amount.
-2. Once the test payment is confirmed, the bank account is verified to use for global reimbursement.
+2. Once the test payment is confirmed, the bank account is verified for global reimbursement.
 
 ---
 
@@ -71,9 +72,10 @@ If your business operates in the European Union, you can send international reim
 ⏳**Timeline:** After the executed mandate (authorization form) is signed and sent to your bank, it takes 10–12 business days for the bank account to be set up for direct debits.
 
 Once the bank account is approved for global reimbursement:
-1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
-2. Choose your verified EU account as the default reimbursement method.
-3. Instruct employees to connect their deposit account:
+1. Go to **Settings > Workspaces > [Workspace Name] > Workflows**.
+2. Scroll to **Make or track payments**.
+3. Choose your verified EU account as the default reimbursement method.
+4. Instruct employees to connect their deposit account:
    - Go to **Settings > Account > Wallet**.
    - Click **Add deposit-only bank account** and input their account details.
 

@@ -1,5 +1,4 @@
 import React, {useEffect, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
@@ -7,12 +6,13 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useOnyx from '@hooks/useOnyx';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOptimisticChatReport, saveReportDraft, searchInServer} from '@libs/actions/Report';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
-import {combineOrderingOfReportsAndPersonalDetails, getHeaderMessage, getSearchOptions} from '@libs/OptionsListUtils';
+import {combineOrderingOfReportsAndPersonalDetails, getHeaderMessage, getSearchOptions, optionsOrderBy, recentReportComparator} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
@@ -32,11 +32,11 @@ function ShareTab() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
 
     const {options, areOptionsInitialized} = useOptionsList();
-    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
@@ -45,19 +45,19 @@ function ShareTab() {
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, betas ?? [], false);
+        return getSearchOptions(options, betas ?? [], false, false);
     }, [areOptionsInitialized, betas, options]);
 
-    const filterOptions = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
+    const {search: filterOptions} = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {
-            return searchOptions.recentReports.slice(0, 20);
+            return optionsOrderBy(searchOptions.recentReports, 20, recentReportComparator);
         }
         const filteredOptions = filterOptions(textInputValue);
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filteredOptions, textInputValue, {
             sortByReportTypeInSearch: true,
-            preferChatroomsOverThreads: true,
+            preferChatRoomsOverThreads: true,
         });
 
         const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];

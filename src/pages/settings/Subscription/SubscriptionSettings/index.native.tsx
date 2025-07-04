@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -11,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
@@ -94,7 +94,7 @@ function SubscriptionSettings() {
                     </View>
                 ) : (
                     <>
-                        {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAYPERUSE ? (
+                        {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE ? (
                             <OptionItem
                                 title="subscription.details.payPerUse"
                                 icon={Illustrations.SubscriptionPPU}

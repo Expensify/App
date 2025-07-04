@@ -33,6 +33,7 @@ import * as Expensicons from './Icon/Expensicons';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import MultipleAvatars from './MultipleAvatars';
+import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
@@ -50,7 +51,7 @@ type IconProps = {
 };
 
 type AvatarProps = {
-    iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+    iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE | typeof CONST.ICON_TYPE_PLAID;
 
     icon: AvatarSource | IconType[];
 };
@@ -83,6 +84,9 @@ type MenuItemBaseProps = {
 
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Styles to apply on the title wrapper */
+    titleWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Any additional styles to apply on the outer element */
     containerStyle?: StyleProp<ViewStyle>;
@@ -350,6 +354,9 @@ type MenuItemBaseProps = {
     /** Callback to fire when the education tooltip is pressed */
     onEducationTooltipPress?: () => void;
 
+    /** Whether the tooltip should hide on scroll */
+    shouldHideOnScroll?: boolean;
+
     shouldShowLoadingSpinnerIcon?: boolean;
 
     /** Should selected item be marked with checkmark */
@@ -369,11 +376,14 @@ type MenuItemBaseProps = {
 
     /** The value to copy on secondary interaction */
     copyValue?: string;
+
+    /** Plaid image for the bank */
+    plaidUrl?: string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
 
-const getSubscriptpAvatarBackgroundColor = (isHovered: boolean, isPressed: boolean, hoveredBackgroundColor: string, pressedBackgroundColor: string) => {
+const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolean, hoveredBackgroundColor: string, pressedBackgroundColor: string) => {
     if (isPressed) {
         return pressedBackgroundColor;
     }
@@ -388,6 +398,7 @@ function MenuItem(
         badgeText,
         style,
         wrapperStyle,
+        titleWrapperStyle,
         outerWrapperStyle,
         containerStyle,
         titleStyle,
@@ -474,6 +485,7 @@ function MenuItem(
         onBlur,
         avatarID,
         shouldRenderTooltip = false,
+        shouldHideOnScroll = false,
         tooltipAnchorAlignment,
         tooltipWrapperStyle = {},
         tooltipShiftHorizontal = 0,
@@ -487,6 +499,7 @@ function MenuItem(
         pressableTestID,
         shouldTeleportPortalToModalLayer,
         copyValue,
+        plaidUrl,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -498,10 +511,12 @@ function MenuItem(
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
 
+    const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
-    const fallbackAvatarSize = viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
+    const fallbackAvatarSize = isCompact ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
     const firstRightIcon = floatRightAvatars.at(0);
+
     const combinedTitleTextStyle = StyleUtils.combineStyles(
         [
             styles.flexShrink1,
@@ -514,6 +529,7 @@ function MenuItem(
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : {},
             shouldBreakWord ? styles.breakWord : {},
+            styles.mw100,
         ],
         titleStyle ?? {},
     );
@@ -524,6 +540,7 @@ function MenuItem(
         styles.textLabelSupporting,
         icon && !Array.isArray(icon) ? styles.ml3 : {},
         title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
+        title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight),
         (descriptionTextStyle as TextStyle) || styles.breakWord,
         isDeleted ? styles.offlineFeedback.deleted : {},
     ]);
@@ -545,7 +562,7 @@ function MenuItem(
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
         if (shouldRenderAsHTML) {
-            titleToWrap = title ? convertToLTR(title) : '';
+            titleToWrap = title ?? '';
         }
 
         if (shouldParseTitle) {
@@ -638,6 +655,7 @@ function MenuItem(
                 shiftVertical={tooltipShiftVertical}
                 shouldTeleportPortalToModalLayer={shouldTeleportPortalToModalLayer}
                 onTooltipPress={onEducationTooltipPress}
+                shouldHideOnScroll={shouldHideOnScroll}
             >
                 <View>
                     <Hoverable>
@@ -656,6 +674,8 @@ function MenuItem(
                                         containerStyle,
                                         combinedStyle,
                                         !interactive && styles.cursorDefault,
+                                        isCompact && styles.alignItemsCenter,
+                                        isCompact && styles.optionRowCompact,
                                         !shouldRemoveBackground &&
                                             StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
@@ -698,7 +718,7 @@ function MenuItem(
                                                     )}
                                                     {shouldShowAvatar && shouldShowSubscriptAvatar && (
                                                         <SubscriptAvatar
-                                                            backgroundColor={getSubscriptpAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
+                                                            backgroundColor={getSubscriptAvatarBackgroundColor(isHovered, pressed, theme.hoverComponentBG, theme.buttonHoveredBG)}
                                                             mainAvatar={firstIcon as IconType}
                                                             secondaryAvatar={(icon as IconType[]).at(1)}
                                                             size={avatarSize}
@@ -734,12 +754,12 @@ function MenuItem(
                                                                         fill={
                                                                             displayInDefaultIconColor
                                                                                 ? undefined
-                                                                                : iconFill ??
+                                                                                : (iconFill ??
                                                                                   StyleUtils.getIconFillColor(
                                                                                       getButtonState(focused || isHovered, pressed, success, disabled, interactive),
                                                                                       true,
                                                                                       isPaneMenu,
-                                                                                  )
+                                                                                  ))
                                                                         }
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
@@ -770,6 +790,7 @@ function MenuItem(
                                                                     type={CONST.ICON_TYPE_AVATAR}
                                                                 />
                                                             )}
+                                                            {iconType === CONST.ICON_TYPE_PLAID && !!plaidUrl && <PlaidCardFeedIcon plaidUrl={plaidUrl} />}
                                                         </View>
                                                     )}
                                                     {!!secondaryIcon && (
@@ -790,7 +811,7 @@ function MenuItem(
                                                         style={[
                                                             styles.justifyContentCenter,
                                                             styles.flex1,
-                                                            StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu),
+                                                            StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu || isCompact),
                                                             titleContainerStyle,
                                                         ]}
                                                     >
@@ -803,7 +824,7 @@ function MenuItem(
                                                             </Text>
                                                         )}
                                                         {(!!title || !!shouldShowTitleIcon) && (
-                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100]}>
+                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, titleWrapperStyle]}>
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={styles.renderHTMLTitle}>
                                                                         <RenderHTML html={processedTitle} />
@@ -862,7 +883,7 @@ function MenuItem(
                                                     </View>
                                                 </View>
                                             </View>
-                                            <View style={[styles.flexRow, styles.menuItemTextContainer, !hasPressableRightComponent && styles.pointerEventsNone]}>
+                                            <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(isCompact), !hasPressableRightComponent && styles.pointerEventsNone]}>
                                                 {!!badgeText && (
                                                     <Badge
                                                         text={badgeText}
@@ -912,7 +933,11 @@ function MenuItem(
                                                 )}
                                                 {shouldShowRightIcon && (
                                                     <View
-                                                        style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled]}
+                                                        style={[
+                                                            styles.pointerEventsAuto,
+                                                            StyleUtils.getMenuItemIconStyle(isCompact),
+                                                            disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
+                                                        ]}
                                                     >
                                                         <Icon
                                                             src={iconRight}

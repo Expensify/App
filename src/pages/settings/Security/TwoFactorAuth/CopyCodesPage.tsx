@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -11,9 +10,9 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
-import useAccountValidation from '@hooks/useAccountValidation';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -45,7 +44,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
 
-    const isUserValidated = useAccountValidation();
+    const isUserValidated = account?.validated ?? false;
     const contactMethod = account?.primaryLogin ?? '';
 
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
@@ -61,7 +60,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
         }
         toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, accountMetadata]);
+    }, [isUserValidated, accountMetadata.status]);
 
     useBeforeRemove(() => setIsValidateModalVisible(false));
 

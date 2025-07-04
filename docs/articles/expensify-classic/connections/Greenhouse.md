@@ -1,16 +1,16 @@
 ---
-title: Greenhouse-Integration.md
+title: Greenhouse
 description: Learn how to integrate Greenhouse with Expensify to automatically send candidates for seamless reimbursement.
-keywords: [Greenhouse, Expensify, integration, candidate reimbursement, workspace setup]
+keywords: [Greenhouse, Expensify Classic, integration, candidate reimbursement]
 ---
 
-# Greenhouse Integration with Expensify
-
+<div id="expensify-classic" markdown="1">
+   
 Expensify's integration with Greenhouse allows you to automatically send candidate details from Greenhouse to Expensify for easy reimbursement. You can also set the candidate's recruiter or recruiting coordinator as their expense approver.
 
 ---
 
-## Prerequisites
+# Prerequisites
 
 Before setting up the integration, ensure you meet these requirements:
 
@@ -20,26 +20,26 @@ Before setting up the integration, ensure you meet these requirements:
 
 ---
 
-# Connecting Greenhouse to Expensify
+# Connect Greenhouse to Expensify
 
 ## Step 1: Establish the Connection
 
-1. Log into Expensify as a **Workspace Admin**.
-2. Navigate to **Settings > Workspaces > _[Workspace Name]_ > Connections**.
+1. Log in to Expensify as a **Workspace Admin**.
+2. Navigate to **Settings > Workspaces > [Workspace Name] > Accounting**.
 3. Under **Greenhouse**, click **Connect to Greenhouse**.
 4. Click **Sync with Greenhouse** to open the Greenhouse Integration instructions in a new tab.
 
-## Step 2: Create the Web Hook
+## Step 2: Create the WebHook
 
 1. In the Greenhouse Integration instructions page, click the link under Step 1, or:
-   - Log into Greenhouse.
+   - Log in to Greenhouse.
    - Go to **Configure > Dev Center > Web Hooks > Web Hooks**.
-2. Follow the Greenhouse Integration instructions to complete the web hook setup.
+2. Follow the Greenhouse Integration instructions to complete the webhook setup.
 
 ## Step 3: Create the Custom Candidate Field
 
 1. In the Greenhouse Integration instructions page, click the link under Step 2, or:
-   - Log into Greenhouse.
+   - Log in to Greenhouse.
    - Navigate to **Configure > Custom Options > Custom Company Fields > Candidates**.
 2. Follow the Greenhouse Integration instructions to create the custom candidate field.
 3. Click **Finish** (Step 3 in the Greenhouse Integration instructions) to complete the integration.
@@ -58,7 +58,7 @@ Before setting up the integration, ensure you meet these requirements:
 
 ## In Expensify
 
-1. Go to **Settings > Workspaces > Group > _[Workspace Name]_ > Members**.
+1. Go to **Settings > Workspaces > Group > [Workspace Name] > Members**.
 2. The candidate should now appear in the workspace members list.
 3. If the **Recruiter** (or **Recruiting Coordinator**) field was selected in Greenhouse, the candidate will submit expense reports to that approver.  
    - If no approver was selected, the candidate will follow the default Expensify workspace approval workflow.
@@ -75,3 +75,5 @@ Yes. Contact **concierge@expensify.com** or your account manager to modify the d
 
 ## What if I want candidates to use different Categories or Tags than employees?
 We recommend setting up a **separate Expensify workspace** for candidates to configure a customized workflow.
+
+</div>

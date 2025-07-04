@@ -1,19 +1,19 @@
 ---
-title: Delegate when out of office
+title: Delegate When Out of Office
 description: Assign a vacation delegate to act on your behalf or on behalf of another employee
 keywords: [Expensify Classic, delegate approvals, out-of-office approver]
 ---
 <div id="expensify-classic" markdown="1">
 
-When you're out of the office or on vacation, you can assign a Vacation Delegate to manage your reports while you're away. Domain Admins can also assign delegates for other members of their domain. 
+When you're out of the office or on vacation, you can assign a **Vacation Delegate** to manage your reports while you're away. Domain Admins can also assign delegates for other members of their domain. 
 
-A Vacation Delegate approves expense reports on behalf of another workspace member when needed. Once they are assigned, any reports sent to the member for approval will immediately start going to their delegate. Then when the member is ready to take over their reports again, they’ll be able to disable the delegate. 
+A **Vacation Delegate** approves expense reports on behalf of another workspace member when needed. Once they are assigned, any reports sent to the member for approval will immediately start going to their delegate. When the member is ready to take over their reports again, they’ll be able to disable the delegate. 
 
 Expensify maintains a detailed audit trail, tracking when a delegate approves reports and their specific actions.
 
 ---
 
-# Assign a delegate for yourself
+# Assign a Delegate for Yourself
 
 1. Head to **Settings > Account > Profile**. 
 2. Scroll to the Vacation Delegate section.
@@ -22,13 +22,13 @@ Expensify maintains a detailed audit trail, tracking when a delegate approves re
 
 Any reports that usually come to you will now go to your delegate instead. You can see every action your Vacation Delegate takes on your behalf for each report under the report history and comments.
 
-## Remove a delegate
+## Remove a Delegate
 
 When you’re ready to take over your reports again, remove the delegate by clicking the Return from Vacation banner at the top of your account.
 
 ---
 
-# Assign a delegate for an employee
+# Assign a Delegate for an Employee
 
 **Note:** You must be a Domain Admin to complete this process. 
 
@@ -44,11 +44,11 @@ When you’re ready to take over your reports again, remove the delegate by clic
 
 # FAQ
 
-## Why can’t my Vacation Delegate reimburse reports that they approve?**
+## Why can’t my Vacation Delegate reimburse reports that they approve?
 
 If your Vacation Delegate also needs to reimburse reports on your behalf while you’re away, they’ll also need access to the reimbursement account. If they do not have access to the reimbursement account used on your workspace, they won’t have the option to reimburse reports, even as your Vacation Delegate.
 
-## What if my Vacation Delegate is also on vacation?**
+## What if my Vacation Delegate is also on vacation?
 
 Your delegate can also pick their own Vacation Delegate. This way, expense reports continue to get approved even if multiple members are away at the same time.
 

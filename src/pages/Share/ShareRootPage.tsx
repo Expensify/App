@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Alert, AppState, View} from 'react-native';
-import type {FileObject} from '@components/AttachmentModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabNavigatorSkeleton from '@components/Skeletons/TabNavigatorSkeleton';
@@ -13,6 +12,7 @@ import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/file
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ShareTempFile} from '@src/types/onyx';
@@ -39,7 +39,7 @@ function ShareRootPage() {
     const {translate} = useLocalize();
     const [isFileScannable, setIsFileScannable] = useState(false);
     const receiptFileFormats = Object.values(CONST.RECEIPT_ALLOWED_FILE_TYPES) as string[];
-    const shareFileMimetypes = Object.values(CONST.SHARE_FILE_MIMETYPE) as string[];
+    const shareFileMimeTypes = Object.values(CONST.SHARE_FILE_MIMETYPE) as string[];
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
@@ -57,7 +57,7 @@ function ShareRootPage() {
             if (errorTitle) {
                 return;
             }
-            if (!tempFile?.mimeType || !shareFileMimetypes.includes(tempFile?.mimeType)) {
+            if (!tempFile?.mimeType || !shareFileMimeTypes.includes(tempFile?.mimeType)) {
                 setErrorTitle(translate('attachmentPicker.wrongFileType'));
                 setErrorMessage(translate('attachmentPicker.notAllowedExtension'));
                 return;
@@ -100,7 +100,7 @@ function ShareRootPage() {
                 addTempShareFile(tempFile);
             }
         });
-    }, [receiptFileFormats, shareFileMimetypes, translate, errorTitle]);
+    }, [receiptFileFormats, shareFileMimeTypes, translate, errorTitle]);
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {

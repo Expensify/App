@@ -25,11 +25,17 @@ function queueOnyxUpdates(updates: OnyxUpdate[]): Promise<void> {
 }
 
 function flushQueue(): Promise<void> {
+    let copyUpdates = [...queuedOnyxUpdates];
+
+    // Clear queue immediately to prevent race conditions with new updates during Onyx processing
+    queuedOnyxUpdates = [];
+
     if (!currentAccountID && !CONFIG.IS_TEST_ENV && !CONFIG.E2E_TESTING) {
         const preservedKeys: OnyxKey[] = [
             ONYXKEYS.NVP_TRY_FOCUS_MODE,
             ONYXKEYS.PREFERRED_THEME,
             ONYXKEYS.NVP_PREFERRED_LOCALE,
+            ONYXKEYS.ARE_TRANSLATIONS_LOADING,
             ONYXKEYS.SESSION,
             ONYXKEYS.IS_LOADING_APP,
             ONYXKEYS.HAS_LOADED_APP,
@@ -43,12 +49,9 @@ function flushQueue(): Promise<void> {
             ONYXKEYS.PRESERVED_USER_SESSION,
         ];
 
-        queuedOnyxUpdates = queuedOnyxUpdates.filter((update) => preservedKeys.includes(update.key as OnyxKey));
+        copyUpdates = copyUpdates.filter((update) => preservedKeys.includes(update.key as OnyxKey));
     }
-
-    return Onyx.update(queuedOnyxUpdates).then(() => {
-        queuedOnyxUpdates = [];
-    });
+    return Onyx.update(copyUpdates);
 }
 
 function isEmpty() {

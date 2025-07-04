@@ -123,6 +123,8 @@ key "key"
       / taxRate
       / cardID
       / from
+      / payer
+      / exporter
       / expenseType
       / submitted
       / approved
@@ -135,6 +137,7 @@ key "key"
       / createdBy
       / reimbursable
       / billable
+      / action
     )
 
 filterKey

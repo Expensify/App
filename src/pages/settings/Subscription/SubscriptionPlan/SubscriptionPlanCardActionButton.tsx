@@ -1,25 +1,26 @@
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
+import {upgradeToCorporate} from '@libs/actions/Policy/Policy';
+import {canModifyPlan, getOwnedPaidPolicies} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import AddMembersButton from './AddMembersButton';
-import type {PersonalPolicyTypeExludedProps} from './SubscriptionPlanCard';
+import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
 
 type SubscriptionPlanCardActionButtonProps = {
     /** Subscription plan to display */
-    subscriptionPlan: PersonalPolicyTypeExludedProps | null;
+    subscriptionPlan: PersonalPolicyTypeExcludedProps | null;
 
     /** Whether the plan card was rendered inside the comparison modal */
     isFromComparisonModal: boolean;
@@ -39,12 +40,20 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const {translate} = useLocalize();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const currentUserAccountID = getCurrentUserAccountID();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: false});
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const ownerPolicies = useMemo(() => getOwnedPaidPolicies(policies, currentUserAccountID), [policies, currentUserAccountID]);
 
-    const handlePlanPress = (planType: PersonalPolicyTypeExludedProps) => {
+    const [canPerformUpgrade, policy] = useMemo(() => {
+        const firstPolicy = ownerPolicies.at(0);
+        if (!firstPolicy || ownerPolicies.length > 1) {
+            return [false, undefined];
+        }
+        return [canModifyPlan(firstPolicy.id), firstPolicy];
+    }, [ownerPolicies]);
+
+    const handlePlanPress = (planType: PersonalPolicyTypeExcludedProps) => {
         closeComparisonModal?.();
 
         // If user has no policies, return.
@@ -52,15 +61,18 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             return;
         }
 
-        const ownerPolicy = ownerPolicies.length === 1 ? ownerPolicies.at(0)?.id : undefined;
-
         if (planType === CONST.POLICY.TYPE.TEAM) {
-            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(ownerPolicy, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(policy?.id, Navigation.getActiveRoute()));
             return;
         }
 
         if (planType === CONST.POLICY.TYPE.CORPORATE) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(ownerPolicy, undefined, Navigation.getActiveRoute()));
+            if (canPerformUpgrade && !!policy?.id) {
+                upgradeToCorporate(policy.id);
+                closeComparisonModal?.();
+                return;
+            }
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy?.id, undefined, Navigation.getActiveRoute()));
         }
     };
 

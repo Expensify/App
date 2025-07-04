@@ -159,6 +159,7 @@ function Section({
                                 webStyle={styles.h100}
                                 autoPlay
                                 loop
+                                shouldLoadAfterInteractions={shouldUseNarrowLayout}
                             />
                         ) : (
                             <ImageSVG
@@ -170,7 +171,7 @@ function Section({
                     {overlayContent?.()}
                 </View>
             )}
-            <View style={[styles.w100, isCentralPane && (shouldUseNarrowLayout ? styles.p5 : contentPaddingOnLargeScreens ?? styles.p8)]}>
+            <View style={[styles.w100, isCentralPane && (shouldUseNarrowLayout ? styles.p5 : (contentPaddingOnLargeScreens ?? styles.p8))]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
                     {cardLayout === CARD_LAYOUT.ICON_ON_LEFT && (
                         <IconSection

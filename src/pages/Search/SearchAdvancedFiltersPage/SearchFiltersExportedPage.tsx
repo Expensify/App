@@ -1,12 +1,13 @@
 import React from 'react';
-import SearchDateFilterBase from '@components/Search/SearchDateFilterBase';
+import SearchDatePresetFilterBase from '@components/Search/SearchDatePresetFilterBase';
 import CONST from '@src/CONST';
 
 function SearchFiltersExportedPage() {
     return (
-        <SearchDateFilterBase
+        <SearchDatePresetFilterBase
             dateKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED}
             titleKey="search.filters.exported"
+            presets={[CONST.SEARCH.DATE_PRESETS.NEVER]}
         />
     );
 }

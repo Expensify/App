@@ -1,12 +1,11 @@
 ---
-title: accelo.md
+title: Connect to Accelo
 description: Learn how to integrate Accelo with Expensify to seamlessly import expense details and associate them with projects, tickets, or retainers.
-keywords: [Accelo, Expensify integration, expense management, project expenses]
+order: 1
+keywords: [Accelo, Expensify Classic, expense management, project expenses]
 ---
 <div id="expensify-classic" markdown="1">
    
-## Integrating Accelo with Expensify
-
 Accelo is a cloud-based business management platform designed for professional service companies. By integrating Accelo with Expensify, you can automatically import expenses and associate them with the correct project, ticket, or retainer.
 
 **Before you begin:**
@@ -15,7 +14,7 @@ Accelo is a cloud-based business management platform designed for professional s
 
 ---
 
-## How to Connect Expensify to Accelo
+# Connect Expensify to Accelo
 
 Follow these steps to set up the integration:
 
@@ -29,10 +28,5 @@ Follow these steps to set up the integration:
    - *(Optional)* If you are using the Integration Server for another integration, update the Partner User Secret in that platform.
 6. Click **Save**.
 7. Your Expensify account is now successfully connected to Accelo.
-
----
-
-This revised version improves clarity, ensures AI-friendly formatting, and follows Expensify’s style guidelines.
-Let me know if you'd like any refinements!
 
 </div>

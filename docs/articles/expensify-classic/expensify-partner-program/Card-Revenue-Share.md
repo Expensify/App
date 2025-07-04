@@ -28,9 +28,7 @@ Steps to becoming a Domain Admin:
 ---
 
 ## 2. Connect a Deposit-Only Business Bank Account
-To receive your revenue share, connect a **deposit-only business bank account**:
-
-[Follow these instructions](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#connect-a-business-deposit-only-account) to complete the setup.
+To receive your revenue share, connect a **deposit-only business bank account**: [Follow these instructions](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#connect-a-business-deposit-only-account) to complete the setup.
 
 Once connected, all earned revenue will be deposited directly into this account.
 

@@ -11,6 +11,10 @@ export default {
         margin: 0,
     },
 
+    m1: {
+        margin: 4,
+    },
+
     m2: {
         margin: 8,
     },
@@ -25,6 +29,10 @@ export default {
 
     m5: {
         margin: 20,
+    },
+
+    mhAuto: {
+        marginHorizontal: 'auto',
     },
 
     mh0: {
@@ -169,6 +177,10 @@ export default {
 
     ml2: {
         marginLeft: 8,
+    },
+
+    mln2: {
+        marginLeft: -12,
     },
 
     ml3: {
@@ -447,7 +459,7 @@ export default {
         paddingVertical: 4,
     },
 
-    pv1half: {
+    pv1Half: {
         paddingVertical: 6,
     },
 
@@ -711,6 +723,10 @@ export default {
         gap: 4,
     },
 
+    gapHalf: {
+        gap: 2,
+    },
+
     gap2: {
         gap: 8,
     },
@@ -747,8 +763,16 @@ export default {
         columnGap: 12,
     },
 
+    minHeight4: {
+        minHeight: 16,
+    },
+
     minHeight5: {
         minHeight: 20,
+    },
+
+    minHeight22: {
+        minHeight: 88,
     },
 
     minHeight65: {

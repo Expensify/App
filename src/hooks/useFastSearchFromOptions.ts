@@ -1,11 +1,15 @@
 import deburr from 'lodash/deburr';
-import {useMemo} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
+import Timing from '@libs/actions/Timing';
 import FastSearch from '@libs/FastSearch';
-import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
+import Log from '@libs/Log';
 import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@libs/OptionsListUtils';
+import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
+import Performance from '@libs/Performance';
+import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-
-type AllOrSelectiveOptions = ReportAndPersonalDetailOptions | OptionsListType;
+import CONST from '@src/CONST';
 
 type Options = {
     includeUserToInvite: boolean;
@@ -14,12 +18,50 @@ type Options = {
 const emptyResult = {
     personalDetails: [],
     recentReports: [],
+    userToInvite: null,
+    currentUserOption: undefined,
+};
+
+const personalDetailToSearchString = (option: OptionData) => {
+    const displayName = option.participantsList?.[0]?.displayName ?? '';
+    return deburr([option.login ?? '', option.login !== displayName ? displayName : ''].join());
+};
+
+const recentReportToSearchString = (option: OptionData) => {
+    const searchStringForTree = [option.text ?? '', option.login ?? ''];
+
+    if (option.isThread) {
+        searchStringForTree.push(option.alternateText ?? '');
+    } else if (option.isChatRoom) {
+        searchStringForTree.push(option.subtitle ?? '');
+    } else if (option.isPolicyExpenseChat) {
+        searchStringForTree.push(...[option.subtitle ?? '', option.policyName ?? '']);
+    }
+
+    return deburr(searchStringForTree.join());
+};
+
+const getPersonalDetailUniqueId = (option: OptionData) => {
+    return option.login ? `personalDetail-${option.login}` : undefined;
+};
+
+const getRecentReportUniqueId = (option: OptionData) => {
+    return option.reportID ? `recentReport-${option.reportID}` : undefined;
 };
 
 // You can either use this to search within report and personal details options
-function useFastSearchFromOptions(options: ReportAndPersonalDetailOptions, config?: {includeUserToInvite: false}): (searchInput: string) => ReportAndPersonalDetailOptions;
+function useFastSearchFromOptions(
+    options: ReportAndPersonalDetailOptions,
+    config?: {includeUserToInvite: false},
+): {search: (searchInput: string) => ReportAndPersonalDetailOptions; isInitialized: boolean};
 // Or you can use this to include the user invite option. This will require passing all options
-function useFastSearchFromOptions(options: OptionsListType, config?: {includeUserToInvite: true}): (searchInput: string) => OptionsListType;
+function useFastSearchFromOptions(
+    options: OptionsListType,
+    config?: {includeUserToInvite: true},
+): {
+    search: (searchInput: string) => OptionsListType;
+    isInitialized: boolean;
+};
 
 /**
  * Hook for making options from OptionsListUtils searchable with FastSearch.
@@ -33,53 +75,142 @@ function useFastSearchFromOptions(options: OptionsListType, config?: {includeUse
 function useFastSearchFromOptions(
     options: ReportAndPersonalDetailOptions | OptionsListType,
     {includeUserToInvite}: Options = {includeUserToInvite: false},
-): (searchInput: string) => AllOrSelectiveOptions {
-    const findInSearchTree = useMemo(() => {
-        const fastSearch = FastSearch.createFastSearch([
-            {
-                data: options.personalDetails,
-                toSearchableString: (option) => {
-                    const displayName = option.participantsList?.[0]?.displayName ?? '';
-                    return deburr([option.login ?? '', option.login !== displayName ? displayName : ''].join());
-                },
-                uniqueId: (option) => option.login,
-            },
-            {
-                data: options.recentReports,
-                toSearchableString: (option) => {
-                    const searchStringForTree = [option.text ?? '', option.login ?? ''];
+): {search: (searchInput: string) => OptionsListType; isInitialized: boolean} {
+    const [fastSearch, setFastSearch] = useState<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
+    const [isInitialized, setIsInitialized] = useState(false);
+    const prevOptionsRef = useRef<typeof options | null>(null);
+    const prevFastSearchRef = useRef<ReturnType<typeof FastSearch.createFastSearch<OptionData>> | null>(null);
 
-                    if (option.isThread) {
-                        if (option.alternateText) {
-                            searchStringForTree.push(option.alternateText);
-                        }
-                    } else if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
-                        if (option.subtitle) {
-                            searchStringForTree.push(option.subtitle);
-                        }
-                    }
+    useEffect(() => {
+        let newFastSearch: ReturnType<typeof FastSearch.createFastSearch<OptionData>>;
+        const prevOptions = prevOptionsRef.current;
+        if (prevOptions && shallowCompareOptions(prevOptions, options)) {
+            return;
+        }
 
-                    return deburr(searchStringForTree.join());
-                },
-            },
-        ]);
+        const actionId = `fast_search_tree_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-        function search(searchInput: string): AllOrSelectiveOptions {
-            const searchWords = deburr(searchInput).split(' ');
+        InteractionManager.runAfterInteractions(() => {
+            const startTime = Date.now();
+
+            Performance.markStart(CONST.TIMING.FAST_SEARCH_TREE_CREATION);
+            Log.info('[CMD_K_DEBUG] FastSearch tree creation started', false, {
+                actionId,
+                personalDetailsCount: options.personalDetails.length,
+                recentReportsCount: options.recentReports.length,
+                hasExistingTree: !!prevFastSearchRef.current,
+                timestamp: startTime,
+            });
+
+            try {
+                prevOptionsRef.current = options;
+
+                // Dispose existing tree if present
+                if (prevFastSearchRef.current) {
+                    const disposeStartTime = Date.now();
+                    prevFastSearchRef.current.dispose();
+                    Log.info('[CMD_K_DEBUG] FastSearch tree disposed', false, {
+                        actionId,
+                        disposeTime: Date.now() - disposeStartTime,
+                        timestamp: Date.now(),
+                    });
+                }
+
+                newFastSearch = FastSearch.createFastSearch(
+                    [
+                        {
+                            data: options.personalDetails,
+                            toSearchableString: personalDetailToSearchString,
+                            uniqueId: getPersonalDetailUniqueId,
+                        },
+                        {
+                            data: options.recentReports,
+                            toSearchableString: recentReportToSearchString,
+                            uniqueId: getRecentReportUniqueId,
+                        },
+                    ],
+
+                    {shouldStoreSearchableStrings: true},
+                );
+
+                setFastSearch(newFastSearch);
+                prevFastSearchRef.current = newFastSearch;
+                setIsInitialized(true);
+
+                const endTime = Date.now();
+                Performance.markEnd(CONST.TIMING.FAST_SEARCH_TREE_CREATION);
+                Log.info('[CMD_K_DEBUG] FastSearch tree creation completed', false, {
+                    actionId,
+                    duration: endTime - startTime,
+                    totalItems: options.personalDetails.length + options.recentReports.length,
+                    isInitialized: true,
+                    timestamp: endTime,
+                });
+            } catch (error) {
+                const endTime = Date.now();
+                Performance.markEnd(CONST.TIMING.FAST_SEARCH_TREE_CREATION);
+                Log.alert('[CMD_K_FREEZE] FastSearch tree creation failed', {
+                    actionId,
+                    error: String(error),
+                    duration: endTime - startTime,
+                    personalDetailsCount: options.personalDetails.length,
+                    recentReportsCount: options.recentReports.length,
+                    timestamp: endTime,
+                });
+                throw error;
+            }
+        });
+
+        return () => {
+            try {
+                if (newFastSearch) {
+                    Log.info('[CMD_K_DEBUG] FastSearch tree cleanup', false, {
+                        actionId,
+                        timestamp: Date.now(),
+                    });
+                    newFastSearch.dispose();
+                }
+            } catch (error) {
+                Log.alert('[CMD_K_FREEZE] FastSearch tree cleanup failed', {
+                    actionId,
+                    error: String(error),
+                    timestamp: Date.now(),
+                });
+            }
+        };
+    }, [options]);
+
+    useEffect(() => () => prevFastSearchRef.current?.dispose(), []);
+
+    const findInSearchTree = useCallback(
+        (searchInput: string): OptionsListType => {
+            if (!fastSearch) {
+                return emptyResult;
+            }
+            const deburredInput = deburr(searchInput);
+            const searchWords = deburredInput.split(/\s+/);
             const searchWordsSorted = StringUtils.sortStringArrayByLength(searchWords);
             const longestSearchWord = searchWordsSorted.at(searchWordsSorted.length - 1); // longest word is the last element
             if (!longestSearchWord) {
                 return emptyResult;
             }
 
-            // The user might separated words with spaces to do a search such as: "jo d" -> "john doe"
+            // The user might have separated words with spaces to do a search such as: "jo d" -> "john doe"
             // With the suffix search tree you can only search for one word at a time. Its most efficient to search for the longest word,
             // (as this will limit the results the most) and then afterwards run a quick filter on the results to see if the other words are present.
             let [personalDetails, recentReports] = fastSearch.search(longestSearchWord);
 
             if (searchWords.length > 1) {
-                personalDetails = personalDetails.filter((pd) => isSearchStringMatch(searchInput, pd.text));
-                recentReports = recentReports.filter((rr) => isSearchStringMatch(searchInput, rr.text));
+                personalDetails = personalDetails.filter((pd) => {
+                    const id = getPersonalDetailUniqueId(pd);
+                    const searchableString = id ? fastSearch.searchableStringsMap.get(id) : deburr(pd.text);
+                    return isSearchStringMatch(deburredInput, searchableString);
+                });
+                recentReports = recentReports.filter((rr) => {
+                    const id = getRecentReportUniqueId(rr);
+                    const searchableString = id ? fastSearch.searchableStringsMap.get(id) : deburr(rr.text);
+                    return isSearchStringMatch(deburredInput, searchableString);
+                });
             }
 
             if (includeUserToInvite && 'currentUserOption' in options) {
@@ -102,13 +233,50 @@ function useFastSearchFromOptions(
             return {
                 personalDetails,
                 recentReports,
+                userToInvite: null,
+                currentUserOption: undefined,
             };
+        },
+        [includeUserToInvite, options, fastSearch],
+    );
+
+    return {search: findInSearchTree, isInitialized};
+}
+
+/**
+ * Compares two ReportAndPersonalDetailOptions objects shallowly.
+ * @returns true if the options are shallowly equal, false otherwise.
+ */
+function shallowCompareOptions(prev: ReportAndPersonalDetailOptions, next: ReportAndPersonalDetailOptions): boolean {
+    if (!prev || !next) {
+        return false;
+    }
+
+    // Compare lengths first
+    if (prev.personalDetails.length !== next.personalDetails.length || prev.recentReports.length !== next.recentReports.length) {
+        return false;
+    }
+    Timing.start(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+    Performance.markStart(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+
+    for (let i = 0; i < prev.personalDetails.length; i++) {
+        if (prev.personalDetails.at(i)?.keyForList !== next.personalDetails.at(i)?.keyForList) {
+            Timing.end(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+            Performance.markEnd(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+            return false;
         }
+    }
 
-        return search;
-    }, [includeUserToInvite, options]);
-
-    return findInSearchTree;
+    for (let i = 0; i < prev.recentReports.length; i++) {
+        if (prev.recentReports.at(i)?.keyForList !== next.recentReports.at(i)?.keyForList) {
+            Timing.end(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+            Performance.markEnd(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+            return false;
+        }
+    }
+    Timing.end(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+    Performance.markEnd(CONST.TIMING.SEARCH_OPTIONS_COMPARISON);
+    return true;
 }
 
 export default useFastSearchFromOptions;

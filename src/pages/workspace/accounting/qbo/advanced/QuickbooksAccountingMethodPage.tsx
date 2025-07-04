@@ -17,14 +17,20 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
-function QuickbooksAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
+type QuickbooksAccountingMethodPageRouteParams = {
+    backTo?: Route;
+};
+
+function QuickbooksAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
+    const {backTo} = route.params as QuickbooksAccountingMethodPageRouteParams;
     const styles = useThemeStyles();
     const config = policy?.connections?.quickbooksOnline?.config;
     const accountingMethod = config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
@@ -53,9 +59,9 @@ function QuickbooksAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
             if (row.value !== config?.accountingMethod) {
                 updateQuickbooksOnlineAccountingMethod(policyID, row.value, config?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH);
             }
-            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID));
+            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, backTo));
         },
-        [config?.accountingMethod, policyID],
+        [config?.accountingMethod, policyID, backTo],
     );
 
     return (
@@ -70,7 +76,7 @@ function QuickbooksAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, backTo))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             pendingAction={pendingAction}
         />

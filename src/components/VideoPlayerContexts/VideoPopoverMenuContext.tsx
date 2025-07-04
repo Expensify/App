@@ -73,11 +73,11 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
 }
 
 function useVideoPopoverMenuContext() {
-    const videoPopooverMenuContext = useContext(Context);
-    if (!videoPopooverMenuContext) {
+    const videoPopoverMenuContext = useContext(Context);
+    if (!videoPopoverMenuContext) {
         throw new Error('useVideoPopoverMenuContext must be used within a VideoPopoverMenuContext');
     }
-    return videoPopooverMenuContext;
+    return videoPopoverMenuContext;
 }
 
 VideoPopoverMenuContextProvider.displayName = 'VideoPopoverMenuContextProvider';

@@ -7,7 +7,8 @@ import DebugTabView from '@components/Navigation/DebugTabView';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import OnyxProvider from '@components/OnyxProvider';
-import {SidebarOrderedReportIDsContextProvider} from '@hooks/useSidebarOrderedReportIDs';
+import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -16,14 +17,16 @@ jest.mock('@src/hooks/useRootNavigationState');
 describe('NavigationTabBar', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+        initOnyxDerivedValues();
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
     });
     beforeEach(() => {
-        Onyx.clear();
+        Onyx.clear([ONYXKEYS.NVP_PREFERRED_LOCALE]);
     });
     describe('Home tab', () => {
         describe('Debug mode enabled', () => {
             beforeEach(() => {
-                Onyx.set(ONYXKEYS.USER, {isDebugModeEnabled: true});
+                Onyx.set(ONYXKEYS.ACCOUNT, {isDebugModeEnabled: true});
             });
             describe('Has GBR', () => {
                 it('renders DebugTabView', async () => {
@@ -37,7 +40,7 @@ describe('NavigationTabBar', () => {
                     });
 
                     render(
-                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, SidebarOrderedReportIDsContextProvider]}>
+                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, SidebarOrderedReportsContextProvider]}>
                             <NavigationContainer>
                                 <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />
                             </NavigationContainer>
@@ -63,7 +66,7 @@ describe('NavigationTabBar', () => {
                     });
 
                     render(
-                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, SidebarOrderedReportIDsContextProvider]}>
+                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, SidebarOrderedReportsContextProvider]}>
                             <NavigationContainer>
                                 <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />
                             </NavigationContainer>
@@ -78,7 +81,7 @@ describe('NavigationTabBar', () => {
     describe('Settings tab', () => {
         describe('Debug mode enabled', () => {
             beforeEach(() => {
-                Onyx.set(ONYXKEYS.USER, {isDebugModeEnabled: true});
+                Onyx.set(ONYXKEYS.ACCOUNT, {isDebugModeEnabled: true});
             });
             describe('Has GBR', () => {
                 it('renders DebugTabView', async () => {
@@ -96,7 +99,7 @@ describe('NavigationTabBar', () => {
                     });
 
                     render(
-                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, SidebarOrderedReportIDsContextProvider]}>
+                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, SidebarOrderedReportsContextProvider]}>
                             <NavigationContainer>
                                 <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />
                             </NavigationContainer>{' '}
@@ -121,7 +124,7 @@ describe('NavigationTabBar', () => {
                     });
 
                     render(
-                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, SidebarOrderedReportIDsContextProvider]}>
+                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, SidebarOrderedReportsContextProvider]}>
                             <NavigationContainer>
                                 <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />
                             </NavigationContainer>{' '}

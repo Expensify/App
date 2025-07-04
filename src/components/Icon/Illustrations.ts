@@ -6,6 +6,7 @@ import CapitalOneCompanyCardDetail from '@assets/images/companyCards/card-capita
 import ChaseCompanyCardDetail from '@assets/images/companyCards/card-chase.svg';
 import CitibankCompanyCardDetail from '@assets/images/companyCards/card-citi.svg';
 import MasterCardCompanyCardDetail from '@assets/images/companyCards/card-mastercard.svg';
+import PlaidCompanyCardDetail from '@assets/images/companyCards/card-plaid.svg';
 import StripeCompanyCardDetail from '@assets/images/companyCards/card-stripe.svg';
 import VisaCompanyCardDetail from '@assets/images/companyCards/card-visa.svg';
 import WellsFargoCompanyCardDetail from '@assets/images/companyCards/card-wellsfargo.svg';
@@ -17,6 +18,7 @@ import CapitalOneCompanyCardDetailLarge from '@assets/images/companyCards/large/
 import ChaseCompanyCardDetailLarge from '@assets/images/companyCards/large/card-chase-large.svg';
 import CitibankCompanyCardDetailLarge from '@assets/images/companyCards/large/card-citi-large.svg';
 import MasterCardCompanyCardDetailLarge from '@assets/images/companyCards/large/card-mastercard-large.svg';
+import PlaidCompanyCardDetailLarge from '@assets/images/companyCards/large/card-plaid-large.svg';
 import StripeCompanyCardDetailLarge from '@assets/images/companyCards/large/card-stripe-large.svg';
 import VisaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-visa-large.svg';
 import WellsFargoCompanyCardDetailLarge from '@assets/images/companyCards/large/card-wellsfargo-large.svg';
@@ -42,6 +44,7 @@ import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__t
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import GpsTrackOrange from '@assets/images/product-illustrations/gps-track--orange.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
+import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
 import InvoiceOrange from '@assets/images/product-illustrations/invoice--orange.svg';
 import JewelBoxBlue from '@assets/images/product-illustrations/jewel-box--blue.svg';
 import JewelBoxGreen from '@assets/images/product-illustrations/jewel-box--green.svg';
@@ -54,6 +57,7 @@ import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-ha
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
 import ReceiptYellow from '@assets/images/product-illustrations/receipt--yellow.svg';
 import ReceiptsSearchYellow from '@assets/images/product-illustrations/receipts-search--yellow.svg';
+import ReceiptsStackedOnPin from '@assets/images/product-illustrations/receipts-stacked-on-pin.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
 import RocketOrange from '@assets/images/product-illustrations/rocket--orange.svg';
 import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
@@ -66,7 +70,6 @@ import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_l
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
-import ReportReceipt from '@assets/images/simple-illustration__report-receipt.svg';
 import BigVault from '@assets/images/simple-illustrations/emptystate__big-vault.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
@@ -102,6 +105,7 @@ import FolderOpen from '@assets/images/simple-illustrations/simple-illustration_
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
 import HandEarth from '@assets/images/simple-illustrations/simple-illustration__handearth.svg';
+import HeadSet from '@assets/images/simple-illustrations/simple-illustration__headset.svg';
 import HotDogStand from '@assets/images/simple-illustrations/simple-illustration__hotdogstand.svg';
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
@@ -120,6 +124,7 @@ import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustra
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
+import PaperAirplane from '@assets/images/simple-illustrations/simple-illustration__paperairplane.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import PerDiem from '@assets/images/simple-illustrations/simple-illustration__perdiem.svg';
 import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__piggybank.svg';
@@ -131,6 +136,7 @@ import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustra
 import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
+import ReportReceipt from '@assets/images/simple-illustrations/simple-illustration__report-receipt.svg';
 import Rules from '@assets/images/simple-illustrations/simple-illustration__rules.svg';
 import SanFrancisco from '@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
 import SendMoney from '@assets/images/simple-illustrations/simple-illustration__sendmoney.svg';
@@ -221,6 +227,7 @@ export {
     ThumbsUpStars,
     Hands,
     HandEarth,
+    HeadSet,
     SmartScan,
     Hourglass,
     CommentBubbles,
@@ -312,4 +319,9 @@ export {
     Flash,
     ExpensifyMobileApp,
     ReportReceipt,
+    PlaidCompanyCardDetailLarge,
+    PlaidCompanyCardDetail,
+    ReceiptsStackedOnPin,
+    PaperAirplane,
+    CardReplacementSuccess,
 };

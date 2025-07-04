@@ -3,7 +3,7 @@ import type {GestureResponderEvent, PanResponderGestureState, ViewStyle} from 'r
 import type {Direction, ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type BottomDockedModalProps from './BottomDockedModal/types';
+import type ReanimatedModalProps from './ReanimatedModal/types';
 
 type FocusTrapOptions = Exclude<FocusTrapProps['focusTrapOptions'], undefined>;
 
@@ -19,7 +19,7 @@ type WindowState = {
 };
 
 type BaseModalProps = Partial<ReactNativeModalProps> &
-    Partial<BottomDockedModalProps> & {
+    Partial<ReanimatedModalProps> & {
         /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
         fullscreen?: boolean;
 
@@ -30,7 +30,7 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
         shouldSetModalVisibility?: boolean;
 
         /** Callback method fired when the user requests to close the modal */
-        onClose: () => void;
+        onClose?: () => void;
 
         /** Function to call when the user presses on the modal backdrop */
         onBackdropPress?: () => void;
@@ -102,14 +102,14 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
         /** In which direction modal will swipe */
         swipeDirection?: Direction;
 
-        /** Whether modals with type CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED should use new modal component */
-        shouldUseNewModal?: boolean;
-
         /** Used to set the element that should receive the initial focus */
         initialFocus?: FocusTrapOptions['initialFocus'];
 
         /** Whether to prevent the focus trap from scrolling the element into view. */
         shouldPreventScrollOnFocus?: boolean;
+
+        /** Whether to disable the animation in */
+        disableAnimationIn?: boolean;
 
         /**
          * Temporary flag to disable safe area bottom spacing in modals and to allow edge-to-edge content.
@@ -123,11 +123,6 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
          * This is used to adjust the modal position when the Side Panel is open.
          */
         shouldApplySidePanelOffset?: boolean;
-
-        /**
-         * Whether the modal can be closed by other modals
-         */
-        canBeClosedByOtherModal?: boolean;
     };
 
 export default BaseModalProps;

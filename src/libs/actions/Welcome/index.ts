@@ -7,7 +7,6 @@ import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import CONFIG from '@src/CONFIG';
-import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
@@ -15,6 +14,7 @@ import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearInitialPath} from './OnboardingFlow';
+import type {OnboardingCompanySize} from './OnboardingFlow';
 
 type OnboardingData = Onboarding | undefined;
 
@@ -140,7 +140,7 @@ function completeHybridAppOnboarding() {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_TRYNEWDOT,
+            key: ONYXKEYS.NVP_TRY_NEW_DOT,
             value: {
                 classicRedirect: {
                     completedHybridAppOnboarding: true,
@@ -179,7 +179,7 @@ Onyx.connect({
 });
 
 Onyx.connect({
-    key: ONYXKEYS.NVP_TRYNEWDOT,
+    key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (value) => {
         tryNewDotData = value;
         checkTryNewDotDataReady();

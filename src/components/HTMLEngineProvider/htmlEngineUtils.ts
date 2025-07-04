@@ -1,4 +1,5 @@
 import type {TNode} from 'react-native-render-html';
+import variables from '@styles/variables';
 
 type Predicate = (node: TNode) => boolean;
 
@@ -71,4 +72,30 @@ function isDeletedNode(tnode: TNode): boolean {
     return 'textDecorationLine' in parentStyle && parentStyle.textDecorationLine === 'line-through';
 }
 
-export {computeEmbeddedMaxWidth, isChildOfComment, isChildOfH1, isDeletedNode, isChildOfTaskTitle};
+/**
+ * @returns Whether the node is a child of RBR
+ */
+function isChildOfRBR(tnode: TNode): boolean {
+    if (!tnode.parent) {
+        return false;
+    }
+    if (tnode.parent.tagName === 'rbr') {
+        return true;
+    }
+    return isChildOfRBR(tnode.parent);
+}
+
+function getFontSizeOfRBRChild(tnode: TNode): number {
+    if (!tnode.parent) {
+        return 0;
+    }
+    if (tnode.parent.tagName === 'rbr' && tnode.parent.attributes?.issmall !== undefined) {
+        return variables.fontSizeSmall;
+    }
+    if (tnode.parent.tagName === 'rbr' && tnode.parent.attributes?.issmall === undefined) {
+        return variables.fontSizeLabel;
+    }
+    return 0;
+}
+
+export {computeEmbeddedMaxWidth, isChildOfComment, isChildOfH1, isDeletedNode, isChildOfTaskTitle, isChildOfRBR, isCommentTag, getFontSizeOfRBRChild};

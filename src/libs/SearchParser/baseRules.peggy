@@ -26,6 +26,8 @@ currency = "currency"i { return "currency"; }
 tag = "tag"i { return "tag"; }
 category = "category"i { return "category"; }
 to = "to"i { return "to"; }
+exporter = "exporter"i { return "exporter"; }
+payer = "payer"i { return "payer"; }
 taxRate
   = "taxRate"i
   / "tax-rate"i { return "taxRate"; }
@@ -59,6 +61,7 @@ feed = "feed"i { return "feed"; }
 title = "title"i { return "title"; }
 assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
+action = "action"i { return "action"; }
 
 operator "operator"
   = (":" / "=") { return "eq"; }

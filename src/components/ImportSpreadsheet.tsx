@@ -4,16 +4,18 @@ import RNFetchBlob from 'react-native-blob-util';
 import type {TupleToUnion} from 'type-fest';
 import * as XLSX from 'xlsx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSpreadsheetData} from '@libs/actions/ImportSpreadsheet';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as Routes} from '@src/ROUTES';
-import type {FileObject} from './AttachmentModal';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import DragAndDropConsumer from './DragAndDrop/Consumer';
@@ -25,7 +27,7 @@ import ImageSVG from './ImageSVG';
 import ScreenWrapper from './ScreenWrapper';
 import Text from './Text';
 
-type ImportSpreedsheetProps = {
+type ImportSpreadsheetProps = {
     // The route to navigate to when the back button is pressed.
     backTo?: Routes;
 
@@ -33,19 +35,19 @@ type ImportSpreedsheetProps = {
     goTo: Routes;
 };
 
-function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
+function ImportSpreadsheet({backTo, goTo}: ImportSpreadsheetProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isReadingFile, setIsReadingFIle] = useState(false);
+    const [isReadingFile, setIsReadingFile] = useState(false);
     const [fileTopPosition, setFileTopPosition] = useState(0);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
-
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use different copies depending on the screen size
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
 
     const panResponder = useRef(
         PanResponder.create({
@@ -77,6 +79,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
         if (!validateFile(file)) {
             return;
         }
+
         let fileURI = file.uri ?? URL.createObjectURL(file);
         if (!fileURI) {
             return;
@@ -84,19 +87,30 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
         if (Platform.OS === 'ios') {
             fileURI = fileURI.replace(/^.*\/Documents\//, `${RNFetchBlob.fs.dirs.DocumentDir}/`);
         }
-
-        fetch(fileURI)
-            .then((data) => {
-                setIsReadingFIle(true);
-                return data.arrayBuffer();
-            })
-            .then((arrayBuffer) => {
-                const workbook = XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer'});
+        const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
+        const shouldReadAsText = CONST.TEXT_SPREADSHEET_EXTENSIONS.includes(fileExtension as TupleToUnion<typeof CONST.TEXT_SPREADSHEET_EXTENSIONS>);
+        const readWorkbook = () => {
+            if (shouldReadAsText) {
+                return fetch(fileURI)
+                    .then((data) => {
+                        setIsReadingFile(true);
+                        return data.text();
+                    })
+                    .then((text) => XLSX.read(text, {type: 'string'}));
+            }
+            return fetch(fileURI)
+                .then((data) => {
+                    setIsReadingFile(true);
+                    return data.arrayBuffer();
+                })
+                .then((arrayBuffer) => XLSX.read(new Uint8Array(arrayBuffer), {type: 'buffer'}));
+        };
+        readWorkbook()
+            .then((workbook) => {
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                 const data = XLSX.utils.sheet_to_json(worksheet, {header: 1, blankrows: false}) as string[][] | unknown[][];
                 const formattedSpreadsheetData = data.map((row) => row.map((cell) => String(cell)));
-
-                setSpreadsheetData(formattedSpreadsheetData)
+                setSpreadsheetData(formattedSpreadsheetData, fileURI, file.type, file.name, spreadsheet?.isImportingMultiLevelTags ?? false)
                     .then(() => {
                         Navigation.navigate(goTo);
                     })
@@ -105,10 +119,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
                     });
             })
             .finally(() => {
-                setIsReadingFIle(false);
-                if (fileURI && !file.uri) {
-                    URL.revokeObjectURL(fileURI);
-                }
+                setIsReadingFile(false);
             });
     };
 

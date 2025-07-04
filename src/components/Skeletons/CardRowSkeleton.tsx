@@ -1,6 +1,5 @@
 import React from 'react';
 import {Circle, Rect} from 'react-native-svg';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -16,8 +15,7 @@ type CardRowSkeletonProps = {
 const barHeight = 7;
 const longBarWidth = 120;
 const shortBarWidth = 60;
-// @TODO: When canUseLeftHandBar beta is no longer needed, uncomment this variable and remove the one defined inside the component
-// const leftPaneWidth = variables.sideBarWidth;
+const leftPaneWidth = variables.sideBarWithLHBWidth;
 const gapWidth = 12;
 const rightSideElementWidth = 50;
 const centralPanePadding = 50;
@@ -27,8 +25,6 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {canUseLeftHandBar} = usePermissions();
-    const leftPaneWidth = canUseLeftHandBar ? variables.sideBarWithLHBWidth : variables.sideBarWidth;
 
     return (
         <ItemListSkeletonView

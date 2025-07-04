@@ -1,11 +1,11 @@
 ---
-title: Workday-Integration.md
+title: Integrate Workday with Expensify
 description: Learn how to integrate Workday with Expensify to automatically sync employees and manage user provisioning.
-keywords: [Workday, Expensify, integration, employee sync, API, HR integrations]
+keywords: [Expensify Classic, Workday, Expensify, integration, employee sync, API, HR integrations]
 ---
 
-<div id="new-expensify" markdown="1">
-
+<div id="expensify-classic" markdown="1">
+   
 Expensify’s integration with Workday allows businesses to automatically sync employees, update approval workflows, and manage user provisioning. This guide walks you through setting up an Advanced Custom Report in Workday and enabling the integration with Expensify.
 
 ---
@@ -18,7 +18,7 @@ By using Expensify's [Employee Updater API](https://integrations.expensify.com/I
 - **Real-Time Updates:** Changes to employee email addresses and managers sync automatically.
 - **Deprovisioning Employees:** Employees can be removed from Expensify upon termination.
 
-**Note:** The Expensify API is a self-serve tool. While your Account Manager can provide guidance, configuration is managed on your end.
+**Note:** The Expensify API is a self-serve tool. While your Account Manager can provide guidance, your team manages the configuration.
 
 ---
 
@@ -97,7 +97,7 @@ To create an **Advanced Custom Report** in Workday:
    - `lastName`
    - `employeeEmail`
    - `managerEmail`
-   - `workspaceID`
+   - `policyID`
    - `domainGroupID`
    - `approvesTo`
 
@@ -130,7 +130,7 @@ Alternatively, Expensify can perform the sync on your behalf:
 
 ## Step 2: Connect Expensify to Workday
 
-1. Navigate to **Settings > Workspaces > Group > [Workspace Name] > Connections > HR Integrations**.
+1. Navigate to **Settings > Workspaces > Group > [Workspace Name] > Accounting > HR Integrations**.
 2. Click **Connect to Workday**.
 3. Fill out the form with the following details:
    - `partnerUserID`

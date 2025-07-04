@@ -1,12 +1,14 @@
 ---
 title: QuickBooks Online Troubleshooting
 description: Learn how to troubleshoot common QuickBooks Online (QBO) export errors in Expensify and resolve them effectively.
-keywords: [QuickBooks Online, Expensify, troubleshooting, export errors, QuickBooks integration]
+keywords: [QuickBooks Online, Expensify Classic, troubleshooting, export errors, QuickBooks integration]
 ---
 
 <div id="expensify-classic" markdown="1">
 
 If you're encountering errors when exporting expenses from Expensify to QuickBooks Online, this guide will help you understand the cause and provide step-by-step solutions.
+
+---
 
 # ExpensiError QBO022: Billable Expenses Not Enabled
 
@@ -22,7 +24,7 @@ This error occurs when the account category applied to an expense in Expensify i
 6. If enabled, go to **Chart of Accounts** and click **Edit** on the relevant account.
 7. Mark the account as billable and select an **income account**.
 8. Sync your QuickBooks Online connection:  
-   **Settings > Workspaces > [Workspace Name] > Connections**.
+   **Settings > Workspaces > [Workspace Name] > Accounting**.
 9. Reattempt exporting: Open the report, click **Export**, and select **QuickBooks Online**.
 
 ---
@@ -51,28 +53,29 @@ This occurs when a submitter has an **Employee Record** in QuickBooks Online, pr
 1. Log in to **QuickBooks Online**.
 2. Go to **Employee Records**.
 3. Edit the employee’s name to differentiate it from their Expensify account.
-4. Sync your QuickBooks Online connection.
-5. Reattempt exporting.
+4. If you already have a vendor record for your employees, make sure there is an email on the profile that is an exact match with their Expensify login.
+5. Sync your QuickBooks Online connection.
+6. Reattempt exporting.
 
 ### **Option 2: Manually Create Vendor Records**
 1. Log in to **QuickBooks Online**.
 2. Manually create Vendor Records with emails matching the ones in Expensify.
 3. Disable **Automatically Create Entities**:  
-   **Settings > Workspaces > [Workspace Name] > Connections > Configure > Advanced**.
+   **Settings > Workspaces > [Workspace Name] > Accounting > Configure > Advanced**.
 
 ---
 
 # ExpensiError QBO097: Accounts Payable Requires Vendor Selection
 
 **Why does this happen?**  
-This error occurs when exporting **reimbursable expenses** as **Journal Entries** to an **Accounts Payable (A/P) account**, while Employee Records are in use.
+This error occurs when exporting reimbursable expenses as Journal Entries to an Accounts Payable (A/P) account while Employee Records are in use.
 
 ## How to Fix It
 You have three options:
 - Change the **export type** for reimbursable expenses:  
-  **Settings > Workspaces > [Workspace Name] > Connections > Configure > Export**.
+  **Settings > Workspaces > [Workspace Name] > Accounting > Configure > Export**.
 - Enable **Automatically Create Entities**:  
-  **Settings > Workspaces > Workspace Name > Connections > Configure > Advanced**.
+  **Settings > Workspaces > [Workspace Name] > Accounting > Configure > Advanced**.
 - Manually create vendor records in QuickBooks Online.
 
 ---
@@ -101,7 +104,7 @@ This error occurs when the QuickBooks Online credentials used to establish the c
 _Alternate error message: "QuickBooks Reconnect Error: OAuth Token Rejected."_
 
 ## How to Fix It
-1. Go to **Settings > Workspaces > [Workspace Name] > Connections**.
+1. Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
 2. Click **Sync Now**.
 3. In the pop-up window, click **Reconnect** and enter your QuickBooks Online credentials.
 4. If using new credentials, reconfigure your settings and reselect your categories/tags.  
@@ -138,7 +141,7 @@ The currency on the **Vendor Record** in QuickBooks Online does not match the cu
 5. Reattempt exporting.
 
 _If the issue persists, confirm the A/P account currency:_  
-1. Navigate to **Settings > Workspaces > [Workspace Name] > Connections**.
+1. Navigate to **Settings > Workspaces > [Workspace Name] > Accounting**.
 2. Under **Exports**, verify that both A/P accounts have the correct currency.
 
 ---
@@ -156,7 +159,7 @@ _If the issue persists, confirm the A/P account currency:_
 
 3. **Exporter Must Be a Domain Admin:**  
    - Verify that the person exporting the report is a **Domain Admin**.
-   - If reports export automatically via Concierge, the **Preferred Exporter** in **Settings > Workspaces > Workspace Name > Connections > Configure** must be a **Domain Admin**.
+   - If reports export automatically via Concierge, the **Preferred Exporter** in **Settings > Workspaces > [Workspace Name] > Accounting > Configure** must be a **Domain Admin**.
 
 4. **Workspace Selection:**  
    - If multiple workspaces are connected to QuickBooks Online, ensure the correct one is selected.  
@@ -164,9 +167,12 @@ _If the issue persists, confirm the A/P account currency:_
 
 ---
 
-# Can I Export Negative Expenses to QuickBooks Online?
+# FAQ
+
+## Can I Export Negative Expenses to QuickBooks Online?
 
 Yes, you can export negative expenses regardless of the export method.  
+
 **Exception:** If **Check** is selected as the export method, the total report amount cannot be negative.
 
 </div>

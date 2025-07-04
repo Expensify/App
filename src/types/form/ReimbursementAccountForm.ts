@@ -1,4 +1,4 @@
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type {Country} from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type Form from './Form';
@@ -109,6 +109,7 @@ const INPUT_IDS = {
             BANK_COUNTRY: 'bankCountry',
             BANK_CURRENCY: 'bankCurrency',
             COMPANY_NAME: 'companyName',
+            COMPANY_WEBSITE: 'websiteUrl',
             COMPANY_STREET: 'companyStreetAddress',
             COMPANY_CITY: 'companyCity',
             COMPANY_STATE: 'companyState',
@@ -146,6 +147,7 @@ const INPUT_IDS = {
             SIGNER_EMAIL: 'signerEmail',
             SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'signerCompleteResidentialAddress',
             SECOND_SIGNER_EMAIL: 'secondSignerEmail',
+            DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
         },
     },
 } as const;
@@ -298,6 +300,9 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Company name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME]: string;
+
+    /** Company website */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_WEBSITE]: string;
 
     /** Company street */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_STREET]: string;

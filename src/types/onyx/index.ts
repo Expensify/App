@@ -1,4 +1,4 @@
-import type {OnboardingPurpose} from '@src/CONST';
+import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
@@ -12,13 +12,13 @@ import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
-import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
+import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
 import type CardFeeds from './CardFeeds';
 import type {AddNewCompanyCardFeed, CompanyCardFeed, FundID} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
-import type CorpayOnboardingFields from './CorpayOnboardingFields';
+import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
@@ -40,6 +40,7 @@ import type LastExportMethod from './LastExportMethod';
 import type {LastPaymentMethod, LastPaymentMethodType} from './LastPaymentMethod';
 import type LastSelectedDistanceRates from './LastSelectedDistanceRates';
 import type Locale from './Locale';
+import type LockAccountDetails from './LockAccountDetails';
 import type {LoginList} from './Login';
 import type Login from './Login';
 import type MapboxAccessToken from './MapboxAccessToken';
@@ -91,6 +92,7 @@ import type Request from './Request';
 import type Response from './Response';
 import type ReviewDuplicates from './ReviewDuplicates';
 import type {SaveSearch} from './SaveSearch';
+import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
@@ -99,7 +101,6 @@ import type Session from './Session';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
-import type TalkToAISales from './TalkToAISales';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
@@ -107,7 +108,6 @@ import type TransactionViolations from './TransactionViolation';
 import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
-import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
@@ -132,6 +132,7 @@ export type {
     Card,
     CardList,
     CardOnWaitlist,
+    ProvisioningCardData,
     Credentials,
     CorpayOnboardingFields,
     Currency,
@@ -152,6 +153,7 @@ export type {
     CompanyCardFeed,
     LastExportMethod,
     Locale,
+    LockAccountDetails,
     Login,
     LoginList,
     PendingContactAction,
@@ -210,7 +212,6 @@ export type {
     TransactionViolation,
     TransactionViolations,
     TravelSettings,
-    User,
     UserLocation,
     UserMetadata,
     UserWallet,
@@ -259,7 +260,7 @@ export type {
     SidePanel,
     LastPaymentMethodType,
     ReportAttributesDerivedValue,
-    TalkToAISales,
+    ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
 };

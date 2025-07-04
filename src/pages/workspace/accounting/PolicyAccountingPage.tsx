@@ -1,7 +1,6 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
@@ -21,8 +20,10 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -32,7 +33,6 @@ import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, r
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -41,6 +41,7 @@ import {
     getCurrentXeroOrganizationName,
     getIntegrationLastSuccessfulDate,
     getXeroTenants,
+    hasAccountingConnections,
     hasUnsupportedIntegration,
     isControlPolicy,
     settingsPendingAction,
@@ -67,15 +68,13 @@ type RouteParams = {
 };
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {canBeMissing: true});
-    const [conciergeChatReportID] = useOnyx(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
+    const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseNetSuiteUSATax} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
@@ -89,7 +88,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const newConnectionName = params?.newConnectionName;
     const integrationToDisconnect = params?.integrationToDisconnect;
     const shouldDisconnectIntegrationBeforeConnecting = params?.shouldDisconnectIntegrationBeforeConnecting;
-
+    const policyID = policy?.id;
+    const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
@@ -99,9 +99,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
 
-    const policyID = policy?.id;
     // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
     const successfulDate = getIntegrationLastSuccessfulDate(
+        getLocalDateFromDatetime,
         connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined,
         connectedIntegration === connectionSyncProgress?.connectionName ? connectionSyncProgress : undefined,
     );
@@ -113,8 +113,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
-    const shouldShowCardReconciliationOption = isExpensifyCardFullySetUp(policy, cardSettings);
-
+    const shouldShowCardReconciliationOption = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
             ...(shouldShowReinstallConnectorMenuItem
@@ -331,7 +330,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return [];
         }
         const isConnectionVerified = !isConnectionUnverified(policy, connectedIntegration);
-        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, undefined, undefined, canUseNetSuiteUSATax);
+        const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, undefined, undefined, isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX));
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
         let connectionMessage;
@@ -446,7 +445,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
-        canUseNetSuiteUSATax,
+        isBetaEnabled,
         shouldShowCardReconciliationOption,
     ]);
 
@@ -522,8 +521,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return [translate('workspace.accounting.talkYourAccountManager'), account?.accountManagerReportID];
         }
         // Else, display the following and link to their Concierge DM.
-        return [translate('workspace.accounting.talkToConcierge'), conciergeChatReportID];
-    }, [account, conciergeChatReportID, translate]);
+        return [translate('workspace.accounting.talkToConcierge'), conciergeReportID];
+    }, [account, conciergeReportID, translate]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -541,7 +540,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     icon={Illustrations.Accounting}
                     shouldUseHeadlineHeader
                     threeDotsAnchorPosition={threeDotsAnchorPosition}
-                    onBackButtonPress={() => goBackFromWorkspaceCentralScreen(policyID)}
+                    onBackButtonPress={Navigation.popToSidebar}
                 />
                 <ScrollView
                     contentContainerStyle={styles.pt3}
@@ -616,7 +615,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     />
                                 </CollapsibleSection>
                             )}
-                            {!!account?.guideDetails?.email && (
+                            {!!account?.guideDetails?.email && !hasAccountingConnections(policy) && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
                                     <Icon
                                         src={Expensicons.QuestionMark}

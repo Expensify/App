@@ -5,7 +5,7 @@ import type Navigation from '@libs/Navigation/Navigation';
 import HeaderView from '@pages/home/HeaderView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import createRandomReport from '../../utils/collections/reports';
+import {createRandomReport} from '../../utils/collections/reports';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@react-navigation/native', () => {
@@ -15,7 +15,8 @@ jest.mock('@react-navigation/native', () => {
         useRoute: () => jest.fn(),
     };
 });
-jest.mock('@components/ConfirmedRoute.tsx');
+
+jest.mock('@hooks/useCurrentUserPersonalDetails');
 
 describe('HeaderView', () => {
     afterEach(() => {

@@ -1,7 +1,13 @@
+import Onyx from 'react-native-onyx';
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
-import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
+import {createTransactionPreviewConditionals, getTransactionPreviewTextAndTranslationPaths, getUniqueActionErrors, getViolationTranslatePath} from '@libs/TransactionPreviewUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import * as ReportUtils from '@src/libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportActions} from '@src/types/onyx';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
     iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD'),
@@ -35,6 +41,15 @@ const basicProps = {
 };
 
 describe('TransactionPreviewUtils', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+    beforeEach(() => {
+        return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
     describe('getTransactionPreviewTextAndTranslationPaths', () => {
         it('should return an empty RBR message when shouldShowRBR is false and no transaction is given', () => {
             const result = getTransactionPreviewTextAndTranslationPaths({...basicProps, shouldShowRBR: false});
@@ -45,6 +60,7 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {
                 ...basicProps,
                 transaction: {...basicProps.transaction, comment: {hold: 'true'}},
+                originalTransaction: undefined,
                 shouldShowRBR: true,
             };
 
@@ -53,10 +69,10 @@ describe('TransactionPreviewUtils', () => {
         });
 
         it('should handle missing iouReport and transaction correctly', () => {
-            const functionArgs = {...basicProps, iouReport: undefined, transaction: undefined};
+            const functionArgs = {...basicProps, iouReport: undefined, transaction: undefined, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.RBRMessage.text).toEqual('');
-            expect(result.previewHeaderText).toContainEqual({text: ''});
+            expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.cash'});
             expect(result.displayAmountText.text).toEqual('$0.00');
         });
 
@@ -64,6 +80,7 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {
                 ...basicProps,
                 transaction: {...basicProps.transaction, merchant: '', amount: 0},
+                originalTransaction: undefined,
                 shouldShowRBR: true,
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
@@ -77,28 +94,29 @@ describe('TransactionPreviewUtils', () => {
                     ...basicProps.transaction,
                     managedCard: true,
                 },
+                originalTransaction: undefined,
             };
             const cardTransaction = getTransactionPreviewTextAndTranslationPaths(functionArgsWithCardTransaction);
-            const cashTransaction = getTransactionPreviewTextAndTranslationPaths(basicProps);
+            const cashTransaction = getTransactionPreviewTextAndTranslationPaths({...basicProps});
 
             expect(cardTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.card'}]));
             expect(cashTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.cash'}]));
         });
 
         it('displays appropriate header text if the transaction is bill split', () => {
-            const functionArgs = {...basicProps, isBillSplit: true};
+            const functionArgs = {...basicProps, isBillSplit: true, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.split'}]));
         });
 
         it('displays description when receipt is being scanned', () => {
-            const functionArgs = {...basicProps, transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}}};
+            const functionArgs = {...basicProps, transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'common.receipt'}]));
         });
 
         it('should apply correct text when transaction is pending and not a bill split', () => {
-            const functionArgs = {...basicProps, transaction: {...basicProps.transaction, status: CONST.TRANSACTION.STATUS.PENDING}};
+            const functionArgs = {...basicProps, transaction: {...basicProps.transaction, status: CONST.TRANSACTION.STATUS.PENDING}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.pending'}]));
         });
@@ -108,15 +126,56 @@ describe('TransactionPreviewUtils', () => {
                 ...basicProps,
                 transactionDetails: {amount: 300, currency: 'EUR'},
                 transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}},
+                originalTransaction: undefined,
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.displayAmountText.translationPath).toEqual('iou.receiptStatusTitle');
         });
 
+        it('handles currency and amount display correctly for scan split bill manually completed', async () => {
+            const modifiedAmount = 300;
+            const currency = 'EUR';
+            const originalTransactionID = '2';
+            const functionArgs = {
+                ...basicProps,
+                transactionDetails: {amount: modifiedAmount / 2, currency},
+                transaction: {...basicProps.transaction, amount: modifiedAmount / 2, currency, comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT}},
+                isBillSplit: true,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                transactionID: originalTransactionID,
+                comment: {
+                    splits: [
+                        {accountID: 1, email: 'aa@gmail.com'},
+                        {accountID: 2, email: 'cc@gmail.com'},
+                    ],
+                },
+                modifiedAmount,
+                amount: 0,
+                currency,
+            });
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
+        });
+
         it('shows approved message when the iouReport is canceled', () => {
-            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}};
+            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.canceled'});
+        });
+
+        it('should include "Approved" in the preview when the report is approved, regardless of whether RBR is shown', () => {
+            const functionArgs = {
+                ...basicProps,
+                iouReport: {...basicProps.iouReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
+                shouldShowRBR: true,
+                originalTransaction: undefined,
+            };
+            jest.spyOn(ReportUtils, 'isPaidGroupPolicyExpenseReport').mockReturnValue(true);
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+
+            expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.approved'});
         });
     });
 
@@ -201,6 +260,83 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, transactionDetails: {comment: 'A valid comment', merchant: ''}};
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowDescription).toBeTruthy();
+        });
+    });
+
+    describe('getViolationTranslatePath', () => {
+        const message = 'Message';
+        const reviewRequired = {translationPath: 'violations.reviewRequired'};
+        const longMessage = 'x'.repeat(CONST.REPORT_VIOLATIONS.RBR_MESSAGE_MAX_CHARACTERS_FOR_PREVIEW + 1);
+
+        const mockViolations = (count: number) =>
+            [
+                {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                {name: CONST.VIOLATIONS.CUSTOM_RULES, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+                {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
+            ].slice(0, count);
+
+        test('returns translationPath when there is at least one violation and transaction is on hold', () => {
+            expect(getViolationTranslatePath(mockViolations(1), false, message, true)).toEqual(reviewRequired);
+        });
+
+        test('returns translationPath if violation message is too long', () => {
+            expect(getViolationTranslatePath(mockViolations(1), false, longMessage, false)).toEqual(reviewRequired);
+        });
+
+        test('returns translationPath when there are multiple violations', () => {
+            expect(getViolationTranslatePath(mockViolations(2), false, message, false)).toEqual(reviewRequired);
+        });
+
+        test('returns translationPath when there is at least one violation and there are field errors', () => {
+            expect(getViolationTranslatePath(mockViolations(1), true, message, false)).toEqual(reviewRequired);
+        });
+
+        test('returns text when there are no violations, no hold, no field errors, and message is short', () => {
+            expect(getViolationTranslatePath(mockViolations(0), false, message, false)).toEqual({text: message});
+        });
+
+        test('returns translationPath when there are no violations but message is too long', () => {
+            expect(getViolationTranslatePath(mockViolations(0), false, longMessage, false)).toEqual(reviewRequired);
+        });
+    });
+
+    describe('getUniqueActionErrors', () => {
+        test('returns an empty array if there are no actions', () => {
+            expect(getUniqueActionErrors({})).toEqual([]);
+        });
+
+        test('returns unique error messages from report actions', () => {
+            const actions = {
+                /* eslint-disable @typescript-eslint/naming-convention */
+                1: {errors: {a: 'Error A', b: 'Error B'}},
+                2: {errors: {c: 'Error C', a: 'Error A2'}},
+                3: {errors: {a: 'Error A', d: 'Error D'}},
+                /* eslint-enable @typescript-eslint/naming-convention */
+            } as unknown as ReportActions;
+
+            const expectedErrors = ['Error B', 'Error C', 'Error D'];
+            expect(getUniqueActionErrors(actions).sort()).toEqual(expectedErrors.sort());
+        });
+
+        test('returns the latest error message if multiple errors exist under a single action', () => {
+            const actions = {
+                /* eslint-disable @typescript-eslint/naming-convention */
+                1: {errors: {z: 'Error Z2', a: 'Error A', f: 'Error Z'}},
+                /* eslint-enable @typescript-eslint/naming-convention */
+            } as unknown as ReportActions;
+
+            expect(getUniqueActionErrors(actions)).toEqual(['Error Z2']);
+        });
+
+        test('filters out non-string error messages', () => {
+            const actions = {
+                /* eslint-disable @typescript-eslint/naming-convention */
+                1: {errors: {a: 404, b: 'Error B'}},
+                2: {errors: {c: null, d: 'Error D'}},
+                /* eslint-enable @typescript-eslint/naming-convention */
+            } as unknown as ReportActions;
+
+            expect(getUniqueActionErrors(actions)).toEqual(['Error B', 'Error D']);
         });
     });
 });

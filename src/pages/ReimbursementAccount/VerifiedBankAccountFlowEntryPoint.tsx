@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {Bank, Connect, Lightbulb, Lock, RotateLeft} from '@components/Icon/Expensicons';
@@ -15,8 +14,8 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
-import useAccountValidation from '@hooks/useAccountValidation';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -98,7 +97,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const pendingAction = reimbursementAccount?.pendingAction ?? null;
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const optionPressed = useRef('');
-    const isAccountValidated = useAccountValidation();
+    const isAccountValidated = account?.validated ?? false;
 
     const contactMethod = account?.primaryLogin ?? '';
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
@@ -139,6 +138,7 @@ function VerifiedBankAccountFlowEntryPoint({
             setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
             setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
         } else if (optionPressed.current === CONST.BANK_ACCOUNT.SUBSTEP.PLAID) {
+            setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
             setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
             openPlaidView();
         }
@@ -192,7 +192,7 @@ function VerifiedBankAccountFlowEntryPoint({
                 <Section
                     title={translate(shouldShowContinueSetupButton === true ? 'workspace.bankAccount.almostDone' : 'workspace.bankAccount.streamlinePayments')}
                     titleStyles={styles.textHeadline}
-                    subtitle={translate(shouldShowContinueSetupButton === true ? 'workspace.bankAccount.youreAlmostDone' : 'bankAccount.toGetStarted')}
+                    subtitle={translate(shouldShowContinueSetupButton === true ? 'workspace.bankAccount.youAreAlmostDone' : 'bankAccount.toGetStarted')}
                     subtitleStyles={styles.textSupporting}
                     subtitleMuted
                     illustration={LottieAnimations.FastMoney}

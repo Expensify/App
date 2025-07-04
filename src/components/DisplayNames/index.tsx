@@ -1,12 +1,14 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+import Parser from '@libs/Parser';
+import StringUtils from '@libs/StringUtils';
 import DisplayNamesWithoutTooltip from './DisplayNamesWithoutTooltip';
 import DisplayNamesWithToolTip from './DisplayNamesWithTooltip';
 import type DisplayNamesProps from './types';
 
 function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, shouldAddEllipsis, shouldUseFullTitle, displayNamesWithTooltips, renderAdditionalText}: DisplayNamesProps) {
     const {translate} = useLocalize();
-    const title = fullTitle || translate('common.hidden');
+    const title = StringUtils.lineBreaksToSpaces(Parser.htmlToText(fullTitle)) || translate('common.hidden');
 
     if (!tooltipEnabled) {
         return (

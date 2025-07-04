@@ -1,14 +1,16 @@
 ---
-title: Expensify-and-QuickBooks-Time-Integration-Guide.md
+title: QuickBooks Time
 description: Learn how to connect QuickBooks Time (formerly TSheets) to your Expensify workspace for seamless time tracking and expense management.
-keywords: [QuickBooks Time, TSheets, Expensify integration, time tracking, expense management]
+keywords: [QuickBooks Time, TSheets, Expensify Classic, time tracking, expense management]
 ---
 
 <div id="expensify-classic" markdown="1">
 
 Expensify integrates with **QuickBooks Time** (formerly TSheets) to automate time tracking and expense reporting. This guide walks you through setting up and using the integration.
 
-# How to Connect QuickBooks Time to Expensify
+---
+
+# Connect QuickBooks Time to Expensify
 
 ## Prerequisites
 
@@ -21,7 +23,7 @@ Before you begin, ensure you have:
 Follow these steps to connect Expensify with QuickBooks Time:
 
 1. **Log into Expensify** on your web browser.
-2. Navigate to **Settings > Workspaces > [Workspace Name] > Connections**.
+2. Navigate to **Settings > Workspaces > [Workspace Name] > Accounting**.
 3. Select **QuickBooks Time** and click **Connect**.
 4. Sign in to your QuickBooks Time account and authorize the integration.
 5. Configure your preferences:

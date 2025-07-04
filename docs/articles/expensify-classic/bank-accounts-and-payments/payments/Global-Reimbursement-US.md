@@ -28,12 +28,13 @@ If you haven't already, follow the instructions to [connect a U.S. business bank
 ---
 
 # Step 2: Enable Global Reimbursement
-1. Go to **Settings > Workspaces > [Workspace Name] > Reports**.
-2. Make sure the workspace currency is set to **USD**.
-3. Click the **Reimbursements** tab.
-4. Ensure the reimbursement method is set to **Direct** and select the correct U.S. bank account.
-5. Go to **Settings > Account > Wallet**.
-6. Click **Enable global reimbursement** next to the connected U.S. bank account.
+1. Go to **Settings > Workspaces [Workspace Name] > Overview**.
+2. In the **Report Currency** dropdown, select **USD**.
+3. Navigate to **Settings > Workspaces [Workspace Name] > Workflows**.
+4. Scroll to **Make or track payments**.
+5. Set the reimbursement method to **Direct** and select the correct U.S. bank account.
+6. Go to **Settings > Account > Wallet**.
+7. Click **Enable global reimbursement** next to the connected U.S. bank account.
 
 ---
 
@@ -49,7 +50,7 @@ If you haven't already, follow the instructions to [connect a U.S. business bank
 
 # Step 4: Confirm Test Transactions
 1. **Expensify will send test deposits to the provided bank account:** Once those are sent, our support team will ask you to verify the deposit amounts.
-2. Once the test deposit amounts are confirmed, the bank account is verified to use for global reimbursement.
+2. Once the test deposit amounts are confirmed, the bank account is verified for global reimbursement.
 
 ---
 
@@ -58,9 +59,10 @@ If you haven't already, follow the instructions to [connect a U.S. business bank
 ⏳**Timeline:** The account is typically set up to issue global reimbursements within two business days after onboarding is complete and the bank account is verified.
 
 Once your U.S. bank account is verified for global reimbursements:
-1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
-2. Select the verified bank account as the default reimbursement bank account.
-3. Instruct employees to connect their deposit account::
+1. Go to **Settings > Workspaces > [Workspace Name] > Workflows**.
+2. Scroll to **Make or track payments**.
+3. Select the verified bank account as the default reimbursement bank account.
+4. Instruct employees to connect their deposit account:
    - Go to **Settings > Account > Wallet**.
    - Click **Add deposit-only bank account** to enter their deposit account details.
 

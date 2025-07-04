@@ -142,7 +142,7 @@ function AboutPage() {
                 title={translate('initialSettingsPage.about')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS, {shouldPopToTop: true})}
+                onBackButtonPress={Navigation.popToSidebar}
                 icon={Illustrations.PalmTree}
                 shouldUseHeadlineHeader
             />

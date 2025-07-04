@@ -89,7 +89,9 @@ Automatically capture receipt details like merchant, date, total, and currency w
 ---
 
 # 5. Connect Your Expense Accounts
-[Sync your bank accounts and credit cards](https://help.expensify.com/expensify-classic/hubs/connect-credit-cards/) to import transactions into Expensify. This feature automatically:
+[Sync your bank accounts and credit cards](https://help.expensify.com/expensify-classic/hubs/connect-credit-cards/) to import transactions into Expensify. 
+
+This feature automatically:
 - Links bank/card transactions to SmartScanned expenses.
 - Generates IRS-compliant eReceipts (if enabled).
 
@@ -107,8 +109,8 @@ Automatically capture receipt details like merchant, date, total, and currency w
 ---
 
 # 6. See Your Spending Insights
-Monitor spending trends, forecast budgets, and build reports with [the Insights dashboard}(https://help.expensify.com/expensify-classic/hubs/spending-insights/) (desktop only):
-1. Click the **Insights** tab.
+Monitor spending trends, forecast budgets, and build reports with [the Insights Dashboard](https://help.expensify.com/expensify-classic/hubs/spending-insights/) (desktop only):
+1. Click the **Insights** tab on the left-hand menu.
 2. Use filters (e.g., date range, categories) to customize your view.
 3. Click the ☰ icon in the **View Raw Data** column to see detailed expenses.
 
@@ -120,19 +122,20 @@ Monitor spending trends, forecast budgets, and build reports with [the Insights 
 2. Toggle on 2FA and save your recovery codes. **Note on Backup Codes:** Download or copy them to a secure location.
 3. Link your authenticator app by scanning the QR code or entering a code.
 
-When logging in, use a Magic Code from your email _**and**_ the 6-digit code from your authenticator app.
+When logging in, use the Magic Code from your email and the 6-digit code from your authenticator app.
 
 ---
 
-# FAQs
+# FAQ
 
-## Is the Individual workspace free??** 
+## Is the Individual workspace free?
 
 Yes, individuals can use Expensify for free to track expenses.
 
-## Can I create a Group workspace just for myself?**
+## Can I create a Group workspace to use just for myself?
 
-Yes, group workspaces include features like accounting, HR, and travel tool integrations, which you can use even as the only member.
-See pricing details [here](https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing)
+Yes, group workspaces include key features such as more robust approval rules, direct connections to accounting integrations, and access to Expensify Travel. These are helpful features for automating expense tracking, even if you are the only member of the workspace. 
+
+See pricing details [here](https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing).
 
 </div>
