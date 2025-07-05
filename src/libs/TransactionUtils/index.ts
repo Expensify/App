@@ -82,6 +82,7 @@ type BuildOptimisticTransactionParams = {
     existingTransaction?: OnyxEntry<Transaction>;
     policy?: OnyxEntry<Policy>;
     transactionParams: TransactionParams;
+    isDemoTransactionParam?: boolean;
 };
 
 let allTransactions: OnyxCollection<Transaction> = {};
@@ -234,7 +235,7 @@ function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>)
  * it's transactionID match what was already generated.
  */
 function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): Transaction {
-    const {originalTransactionID = '', existingTransactionID, existingTransaction, policy, transactionParams} = params;
+    const {originalTransactionID = '', existingTransactionID, existingTransaction, policy, transactionParams, isDemoTransactionParam} = params;
     const {
         amount,
         currency,
@@ -262,6 +263,9 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     const transactionID = existingTransactionID ?? rand64();
 
     const commentJSON: Comment = {comment, attendees};
+    if (isDemoTransactionParam) {
+        commentJSON.isDemoTransaction = true;
+    }
     if (source) {
         commentJSON.source = source;
     }
@@ -322,6 +326,10 @@ function hasReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boo
 /** Check if the receipt has the source file */
 function hasReceiptSource(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.receipt?.source;
+}
+
+function isDemoTransaction(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    return transaction?.comment?.isDemoTransaction ?? false;
 }
 
 function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
@@ -1740,6 +1748,7 @@ export {
     getTransactionPendingAction,
     isTransactionPendingDelete,
     createUnreportedExpenseSections,
+    isDemoTransaction,
 };
 
 export type {TransactionChanges};
