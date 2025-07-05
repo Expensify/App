@@ -504,8 +504,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
     const [chatTextLink, chatReportID] = useMemo(() => {
         // If they have an onboarding specialist assigned display the following and link to the #admins room with the setup specialist.
-        if (account?.adminsRoomReportID) {
-            return [translate('workspace.accounting.talkYourOnboardingSpecialist'), account?.adminsRoomReportID];
+        if (policy?.chatReportIDAdmins) {
+            return [translate('workspace.accounting.talkYourOnboardingSpecialist'), policy?.chatReportIDAdmins];
         }
 
         // If not, if they have an account manager assigned display the following and link to the DM with their account manager.
@@ -618,7 +618,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     />
                                     <View style={[!isLargeScreenWidth ? styles.flexColumn : styles.flexRow]}>
                                         <Text style={styles.textSupporting}>{translate('workspace.accounting.needAnotherAccounting')}</Text>
-                                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID))}>{chatTextLink}</TextLink>
+                                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(chatReportID)))}>{chatTextLink}</TextLink>
                                     </View>
                                 </View>
                             )}
