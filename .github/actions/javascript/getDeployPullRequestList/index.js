@@ -11664,7 +11664,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getStringInput = exports.getJSONInput = void 0;
+exports.convertToNumber = exports.getStringInput = exports.getJSONInput = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 /**
  * Safely parse a JSON input to a GitHub Action.
@@ -11693,6 +11693,23 @@ function getStringInput(name, options, defaultValue) {
     return input;
 }
 exports.getStringInput = getStringInput;
+/**
+ * Converts a value to a number, returning 0 for non-numeric values.
+ */
+function convertToNumber(value) {
+    switch (typeof value) {
+        case 'number':
+            return value;
+        case 'string':
+            if (!Number.isNaN(Number(value))) {
+                return Number(value);
+            }
+            return 0;
+        default:
+            return 0;
+    }
+}
+exports.convertToNumber = convertToNumber;
 
 
 /***/ }),

@@ -3,11 +3,11 @@ import {context} from '@actions/github';
 import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, IssueCommentEvent} from '@octokit/webhooks-types';
 import {format} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
+import {convertToNumber} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import type {ListCommentsResponse} from '@github/libs/GithubUtils';
 import sanitizeJSONStringValues from '@github/libs/sanitizeJSONStringValues';
-import {convertToNumber} from '@libs/NumberUtils';
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
 
 type AssistantResponse = {
