@@ -122,6 +122,7 @@ import type {
     LastSyncAccountingParams,
     LastSyncDateParams,
     LeftWorkspaceParams,
+    LicensesParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -206,6 +207,7 @@ import type {
     SyncStageNameConnectionsParams,
     TaskCreatedActionParams,
     TaxAmountParams,
+    TermsOfUseRouteParams,
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
@@ -2069,12 +2071,10 @@ const translations = {
         chooseThemeBelowOrSync: '选择下面的主题，或与您的设备设置同步。',
     },
     termsOfUse: {
-        phrase1: '通过登录，您同意',
-        phrase2: '服务条款',
-        phrase3: '和',
-        phrase4: '隐私',
-        phrase5: `资金传输由${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}（NMLS ID:2017010）根据其提供`,
-        phrase6: '许可证',
+        terms: ({termsURL, privacyURL}: TermsOfUseRouteParams) =>
+            `<comment><mtm issmall>通过登录，您同意 <a href="${termsURL}" style="color: #5ab0ff;">服务条款</a> 和 <a href="${privacyURL}" style="color: #5ab0ff;">隐私</a>.</mtm></comment>`,
+        licenses: ({licensesURL}: LicensesParams) =>
+            `<comment><mtm issmall>资金传输由${CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS}(NMLS ID:2017010)根据其提供 <a href="${licensesURL}" style="color: #5ab0ff;">许可证</a>.</mtm></comment>`,
     },
     validateCodeForm: {
         magicCodeNotReceived: '没有收到魔法代码？',
