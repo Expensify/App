@@ -25,6 +25,7 @@ import type {
     AddOrDeletePolicyCustomUnitRateParams,
     AddressLineParams,
     AdminCanceledRequestParams,
+    AdminsChatReportRouteParams,
     AirlineParams,
     AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
@@ -6765,12 +6766,8 @@ const translations = {
             whatsMainReason: 'Wat is de belangrijkste reden dat je automatische verlenging uitschakelt?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Wordt verlengd op ${date}.`,
             pricingConfiguration: 'De prijs is afhankelijk van de configuratie. Voor de laagste prijs, kies een jaarlijks abonnement en krijg de Expensify Card.',
-            learnMore: {
-                part1: 'Meer informatie op onze',
-                pricingPage: 'prijs pagina',
-                part2: 'of chat met ons team in uw',
-                adminsRoom: '#admins kamer.',
-            },
+            learnMore: ({adminsChatReportRoute, pricingURL}: AdminsChatReportRouteParams) =>
+                `<muted-text>Meer informatie op onze  <a href="${pricingURL}">prijs pagina</a>  of chat met ons team in uw  <a href="${adminsChatReportRoute}">#admins kamer.</a></muted-text>`,
             estimatedPrice: 'Geschatte prijs',
             changesBasedOn: 'Dit verandert op basis van je gebruik van de Expensify Card en de onderstaande abonnementsopties.',
         },
