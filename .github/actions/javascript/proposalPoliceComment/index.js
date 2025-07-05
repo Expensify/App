@@ -11554,12 +11554,30 @@ const date_fns_tz_1 = __nccwpck_require__(99297);
 const CONST_1 = __importDefault(__nccwpck_require__(29873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(19296));
 const sanitizeJSONStringValues_1 = __importDefault(__nccwpck_require__(40136));
+const ActionUtils_1 = __nccwpck_require__(96981);
 const OpenAIUtils_1 = __importDefault(__nccwpck_require__(23956));
 function isCommentCreatedEvent(payload) {
     return payload.action === CONST_1.default.ACTIONS.CREATED;
 }
 function isCommentEditedEvent(payload) {
     return payload.action === CONST_1.default.ACTIONS.EDITED;
+}
+class ProposalPoliceTemplates {
+    static getPromptForNewProposalTemplateCheck(commentBody) {
+        return `I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${commentBody}`;
+    }
+    static getPromptForNewProposalDuplicateCheck(existingProposal, newProposalBody) {
+        return `I NEED HELP WITH CASE (3.) [INSTRUCTIONS SECTION: IX. DUPLICATE PROPOSAL DETECTION], COMPARE THE FOLLOWING TWO PROPOSALS AND RETURN A SIMILARITY PERCENTAGE (0-100) REPRESENTING HOW SIMILAR THESE TWO PROPOSALS ARE IN THOSE SECTIONS AS PER THE INSTRUCTIONS. \n\nProposal 1:\n${existingProposal}\n\nProposal 2:\n${newProposalBody}`;
+    }
+    static getPromptForEditedProposal(previousBody, editedBody) {
+        return `I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${previousBody}.\n\nEdited comment content: ${editedBody}`;
+    }
+    static getDuplicateCheckWithdrawMessage() {
+        return '#### 🚫 Duplicated proposal withdrawn by 🤖 ProposalPolice.';
+    }
+    static getDuplicateCheckNoticeMessage(proposalAuthor) {
+        return `⚠️ @${proposalAuthor} Your proposal is a duplicate of an already existing proposal and has been automatically withdrawn to prevent spam. Please review the existing proposals before submitting a new one.`;
+    }
 }
 // Main function to process the workflow event
 async function run() {
@@ -11572,8 +11590,9 @@ async function run() {
         throw new Error('ProposalPolice™ only supports the issue_comment webhook event');
     }
     const payload = github_1.context.payload;
-    // check if the issue is open and the has labels
-    if (payload.issue?.state !== 'open' && !payload.issue?.labels.some((issueLabel) => issueLabel.name === CONST_1.default.LABELS.HELP_WANTED)) {
+    // Return early unless issue is open AND has the "Help Wanted" label
+    if (payload.issue?.state !== CONST_1.default.STATE.OPEN || !payload.issue?.labels.some((issueLabel) => issueLabel.name === CONST_1.default.LABELS.HELP_WANTED)) {
+        console.log('Issue is not open or does not have the "Help Wanted" label, skipping checks.');
         return;
     }
     // Verify that the comment is not empty and contains the case sensitive `Proposal` keyword
@@ -11596,18 +11615,78 @@ async function run() {
     const apiKey = (0, core_1.getInput)('PROPOSAL_POLICE_API_KEY', { required: true });
     const assistantID = (0, core_1.getInput)('PROPOSAL_POLICE_ASSISTANT_ID', { required: true });
     const openAI = new OpenAIUtils_1.default(apiKey);
+    /* eslint-disable rulesdir/no-default-id-values */
+    const issueNumber = payload.issue?.number ?? -1;
+    /* eslint-disable rulesdir/no-default-id-values */
+    const commentID = payload.comment?.id ?? -1;
+    // DUPLICATE PROPOSAL DETECTION
+    if (isCommentCreatedEvent(payload)) {
+        console.log('Starting DUPLICATE PROPOSAL DETECTION Check');
+        const newProposalCreatedAt = new Date(payload.comment.created_at).getTime();
+        const newProposalBody = payload.comment.body;
+        const newProposalAuthor = payload.comment.user.login;
+        // Fetch all comments in the issue
+        console.log('Get comments for issue #', issueNumber);
+        const commentsResponse = await GithubUtils_1.default.getAllCommentDetails(issueNumber);
+        console.log('commentsResponse', commentsResponse);
+        // Find previous proposals
+        const previousProposals = commentsResponse?.filter((comment) => new Date(comment.created_at).getTime() < newProposalCreatedAt && comment.body?.includes(CONST_1.default.PROPOSAL_KEYWORD));
+        let didFindDuplicate = false;
+        for (const previousProposal of previousProposals) {
+            const isProposal = !!previousProposal.body?.includes(CONST_1.default.PROPOSAL_KEYWORD);
+            const isAuthorBot = previousProposal.user?.login === CONST_1.default.COMMENT.NAME_GITHUB_ACTIONS || previousProposal.user?.type === CONST_1.default.COMMENT.TYPE_BOT;
+            // Skip prompting if comment is author is the GH bot or comment is empty / not a proposal
+            if (isAuthorBot || !isProposal) {
+                continue;
+            }
+            const duplicateCheckPrompt = ProposalPoliceTemplates.getPromptForNewProposalDuplicateCheck(previousProposal.body, newProposalBody);
+            const duplicateCheckResponse = await openAI.promptAssistant(assistantID, duplicateCheckPrompt);
+            let similarityPercentage = 0;
+            try {
+                const parsedDuplicateCheckResponse = JSON.parse((0, sanitizeJSONStringValues_1.default)(duplicateCheckResponse));
+                console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
+                const { similarity = 0 } = parsedDuplicateCheckResponse ?? {};
+                similarityPercentage = (0, ActionUtils_1.convertToNumber)(similarity);
+            }
+            catch (e) {
+                console.error('Failed to parse AI response:', duplicateCheckResponse);
+            }
+            if (similarityPercentage >= 90) {
+                console.log(`Found duplicate with ${similarityPercentage}% similarity.`);
+                didFindDuplicate = true;
+                break;
+            }
+        }
+        if (didFindDuplicate) {
+            const duplicateCheckWithdrawMessage = ProposalPoliceTemplates.getDuplicateCheckWithdrawMessage();
+            const duplicateCheckNoticeMessage = ProposalPoliceTemplates.getDuplicateCheckNoticeMessage(newProposalAuthor);
+            // If a duplicate proposal is detected, update the comment to withdraw it
+            console.log('ProposalPolice™ withdrawing duplicated proposal...');
+            await GithubUtils_1.default.octokit.issues.updateComment({
+                ...github_1.context.repo,
+                /* eslint-disable @typescript-eslint/naming-convention */
+                comment_id: commentID,
+                body: duplicateCheckWithdrawMessage,
+            });
+            // Post a comment to notify the user about the withdrawn duplicated proposal
+            console.log('ProposalPolice™ notifying contributor of withdrawn proposal...');
+            await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, issueNumber, duplicateCheckNoticeMessage);
+            console.log('DUPLICATE PROPOSAL DETECTION Check Completed, returning early.');
+            return;
+        }
+    }
     const prompt = isCommentCreatedEvent(payload)
-        ? `I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${payload.comment?.body}`
-        : `I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST_1.default.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${payload.changes.body?.from}.\n\nEdited comment content: ${payload.comment?.body}`;
+        ? ProposalPoliceTemplates.getPromptForNewProposalTemplateCheck(payload.comment?.body)
+        : ProposalPoliceTemplates.getPromptForEditedProposal(payload.changes.body?.from, payload.comment?.body);
     const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
     const parsedAssistantResponse = JSON.parse((0, sanitizeJSONStringValues_1.default)(assistantResponse));
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
-    // fallback to empty strings to avoid crashing in case parsing fails and we fallback to empty object
+    // fallback to empty strings to avoid crashing in case parsing fails
     const { action = '', message = '' } = parsedAssistantResponse ?? {};
     const isNoAction = action.trim() === CONST_1.default.NO_ACTION;
     const isActionEdit = action.trim() === CONST_1.default.ACTION_EDIT;
     const isActionRequired = action.trim() === CONST_1.default.ACTION_REQUIRED;
-    // If assistant response is NO_ACTION and there's no message, do nothing
+    // If assistant response is NO_ACTION and there's no message, return early
     if (isNoAction && !message) {
         console.log('Detected NO_ACTION for comment, returning early.');
         return;
@@ -11618,16 +11697,16 @@ async function run() {
             .replaceAll('{user}', `@${payload.comment?.user.login}`);
         // Create a comment with the assistant's response
         console.log('ProposalPolice™ commenting on issue...');
-        await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, github_1.context.issue.number, formattedResponse);
+        await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, issueNumber, formattedResponse);
         // edit comment if assistant detected substantial changes
     }
     else if (isActionEdit) {
         const formattedResponse = message.replace('{updated_timestamp}', formattedDate);
-        console.log('ProposalPolice™ editing issue comment...', payload.comment.id);
+        console.log('ProposalPolice™ editing issue comment...', commentID);
         await GithubUtils_1.default.octokit.issues.updateComment({
             ...github_1.context.repo,
             /* eslint-disable @typescript-eslint/naming-convention */
-            comment_id: payload.comment.id,
+            comment_id: commentID,
             body: `${formattedResponse}\n\n${payload.comment?.body}`,
         });
     }
@@ -11638,6 +11717,85 @@ run().catch((error) => {
     // which means that no failure notification is sent to issue's subscribers
     process.exit(0);
 });
+
+
+/***/ }),
+
+/***/ 96981:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.convertToNumber = exports.getStringInput = exports.getJSONInput = void 0;
+const core = __importStar(__nccwpck_require__(42186));
+/**
+ * Safely parse a JSON input to a GitHub Action.
+ *
+ * @param name - The name of the input.
+ * @param options - Options to pass to core.getInput
+ * @param [defaultValue] - A default value to provide for the input.
+ *                         Not required if the {required: true} option is given in the second arg to this function.
+ */
+function getJSONInput(name, options, defaultValue) {
+    const input = core.getInput(name, options);
+    if (input) {
+        return JSON.parse(input);
+    }
+    return defaultValue;
+}
+exports.getJSONInput = getJSONInput;
+/**
+ * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
+ */
+function getStringInput(name, options, defaultValue) {
+    const input = core.getInput(name, options);
+    if (!input) {
+        return defaultValue;
+    }
+    return input;
+}
+exports.getStringInput = getStringInput;
+/**
+ * Converts a value to a number, returning 0 for non-numeric values.
+ */
+function convertToNumber(value) {
+    switch (typeof value) {
+        case 'number':
+            return value;
+        case 'string':
+            if (!Number.isNaN(Number(value))) {
+                return Number(value);
+            }
+            return 0;
+        default:
+            return 0;
+    }
+}
+exports.convertToNumber = convertToNumber;
 
 
 /***/ }),
@@ -11665,6 +11823,13 @@ const CONST = {
         HELP_WANTED: 'Help Wanted',
         CP_STAGING: 'CP Staging',
     },
+    STATE: {
+        OPEN: 'open',
+    },
+    COMMENT: {
+        TYPE_BOT: 'Bot',
+        NAME_GITHUB_ACTIONS: 'github-actions',
+    },
     ACTIONS: {
         CREATED: 'created',
         EDITED: 'edited',
@@ -11683,6 +11848,7 @@ const CONST = {
     NO_ACTION: 'NO_ACTION',
     ACTION_EDIT: 'ACTION_EDIT',
     ACTION_REQUIRED: 'ACTION_REQUIRED',
+    ACTION_HIDE_DUPLICATE: 'ACTION_HIDE_DUPLICATE',
 };
 exports["default"] = CONST;
 
@@ -12042,6 +12208,14 @@ class GithubUtils {
             issue_number: issueNumber,
             per_page: 100,
         }, (response) => response.data.map((comment) => comment.body));
+    }
+    static getAllCommentDetails(issueNumber) {
+        return this.paginate(this.octokit.issues.listComments, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            issue_number: issueNumber,
+            per_page: 100,
+        }, (response) => response.data);
     }
     /**
      * Create comment on pull request
