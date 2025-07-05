@@ -332,7 +332,7 @@ function BaseValidateCodeForm({
                         isDisabled={isOffline}
                         text={submitButtonText ?? translate('common.verify')}
                         onPress={validateAndSubmitForm}
-                        style={[styles.mt4]}
+                        style={[shouldShowSkipButton ? styles.mt3 : styles.mt4]}
                         success
                         large
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
