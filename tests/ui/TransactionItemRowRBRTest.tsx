@@ -145,7 +145,7 @@ describe('TransactionItemRowRBRWithOnyx', () => {
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with both violations
-        expect(screen.getByText('Missing category. Duplicate.')).toBeOnTheScreen();
+        expect(screen.getByText('Missing category. Potential duplicate.')).toBeOnTheScreen();
     });
 
     it('should display RBR message for transaction with report action errors', async () => {
@@ -320,7 +320,7 @@ describe('TransactionItemRowRBR', () => {
         await waitForBatchedUpdates();
 
         // Then the RBR message should be displayed with both violations
-        expect(screen.getByText('Missing category. Duplicate.')).toBeOnTheScreen();
+        expect(screen.getByText('Missing category. Potential duplicate.')).toBeOnTheScreen();
     });
 
     it('should display RBR message for transaction with violations, and missing merchant error', async () => {
