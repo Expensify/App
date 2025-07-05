@@ -58,6 +58,16 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 },
                 contentModel: HTMLContentModel.block,
             }),
+            mtm: HTMLElementModel.fromCustomModel({
+                tagName: 'mtm',
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.issmall === undefined) {
+                        return {...styles.mutedNormalTextLabel, ...styles.mb0};
+                    }
+                    return {...styles.mutedNormalTextLabel, ...styles.mb0, ...styles.textMicro};
+                },
+                contentModel: HTMLContentModel.block,
+            }),
             'muted-text': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-text',
                 mixedUAStyles: {...styles.colorMuted, ...styles.mb0},
@@ -168,7 +178,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             customHTMLElementModels={customHTMLElementModels}
             baseStyle={styles.webViewStyles.baseFontStyle}
             tagsStyles={styles.webViewStyles.tagStyles}
-            enableCSSInlineProcessing={false}
+            enableCSSInlineProcessing
             systemFonts={Object.values(FontUtils.fontFamily.single).map((font) => font.fontFamily)}
             htmlParserOptions={{
                 recognizeSelfClosing: true,
