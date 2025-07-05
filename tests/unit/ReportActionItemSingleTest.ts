@@ -1,21 +1,20 @@
-import {screen, waitFor} from '@testing-library/react-native';
+import {renderHook, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
+import * as PersonalDetailsUtils from '@src/libs/PersonalDetailsUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {DO_NOT_USE__EXPORT_FOR_TESTS__useIDOfReportPreviewSender as useIDOfReportPreviewSender} from '@src/pages/home/report/ReportActionItemSingle';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';
+import personalDetails from '../../__mocks__/reportData/personalDetails';
+import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
+import {transactionR14932} from '../../__mocks__/reportData/transactions';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-const ONYXKEYS = {
-    PERSONAL_DETAILS_LIST: 'personalDetailsList',
-    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
-    COLLECTION: {
-        REPORT_ACTIONS: 'reportActions_',
-        POLICY: 'policy_',
-    },
-    NETWORK: 'network',
-} as const;
+import PropertyKeysOf = jest.PropertyKeysOf;
 
 describe('ReportActionItemSingle', () => {
     beforeAll(() =>
@@ -87,5 +86,121 @@ describe('ReportActionItemSingle', () => {
                 });
             });
         });
+    });
+});
+
+const reportActions = [{[actionR14932.reportActionID]: actionR14932}];
+const transactions = [transactionR14932];
+
+const transactionCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.TRANSACTION, transactions, (transaction) => transaction.transactionID);
+const reportActionCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT_ACTIONS, reportActions, (actions) => Object.values(actions).at(0)?.childReportID);
+
+const validAction = {
+    ...actionR98765,
+    childReportID: iouReportR14932.reportID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+    childOwnerAccountID: iouReportR14932.ownerAccountID,
+    childManagerAccountID: iouReportR14932.managerID,
+};
+
+describe('useIDOfReportPreviewSender', () => {
+    const mockedEmailToID: Record<string, PropertyKeysOf<typeof personalDetails>> = {
+        [personalDetails[15593135].login]: 15593135,
+        [personalDetails[51760358].login]: 51760358,
+    };
+
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+        jest.spyOn(PersonalDetailsUtils, 'getPersonalDetailByEmail').mockImplementation((email) => personalDetails[mockedEmailToID[email]]);
+    });
+
+    beforeEach(() => {
+        Onyx.multiSet({
+            ...reportActionCollectionDataSet,
+            ...transactionCollectionDataSet,
+        });
+        return waitForBatchedUpdates();
+    });
+
+    afterEach(() => {
+        Onyx.clear();
+        return waitForBatchedUpdates();
+    });
+
+    it('returns undefined when action is not a report preview', () => {
+        const {result} = renderHook(() =>
+            useIDOfReportPreviewSender({
+                action: actionR14932,
+                iouReport: iouReportR14932,
+                report: chatReportR14932,
+            }),
+        );
+        expect(result.current).toBeUndefined();
+    });
+
+    it('returns childManagerAccountID when all conditions are met for Send Money flow', () => {
+        const {result} = renderHook(() =>
+            useIDOfReportPreviewSender({
+                action: {...validAction, childMoneyRequestCount: 0},
+                iouReport: iouReportR14932,
+                report: chatReportR14932,
+            }),
+        );
+        expect(result.current).toBe(iouReportR14932.managerID);
+    });
+
+    it('returns undefined when there are multiple attendees', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}`, {
+            ...transactionR14932,
+            comment: {
+                attendees: [{email: personalDetails[15593135].login, displayName: 'Test One', avatarUrl: 'https://none.com/none'}],
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}2`, {
+            ...transactionR14932,
+            comment: {
+                attendees: [{email: personalDetails[51760358].login, displayName: 'Test Two', avatarUrl: 'https://none.com/none2'}],
+            },
+        });
+        const {result} = renderHook(() =>
+            useIDOfReportPreviewSender({
+                action: validAction,
+                iouReport: iouReportR14932,
+                report: chatReportR14932,
+            }),
+        );
+        expect(result.current).toBeUndefined();
+    });
+
+    it('returns undefined when amounts have different signs', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}`, {
+            ...transactionR14932,
+            amount: 100,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}2`, {
+            ...transactionR14932,
+            amount: -100,
+        });
+        const {result} = renderHook(() =>
+            useIDOfReportPreviewSender({
+                action: validAction,
+                iouReport: iouReportR14932,
+                report: chatReportR14932,
+            }),
+        );
+        expect(result.current).toBeUndefined();
+    });
+
+    it('returns childOwnerAccountID when all conditions are met', () => {
+        const {result} = renderHook(() =>
+            useIDOfReportPreviewSender({
+                action: validAction,
+                iouReport: iouReportR14932,
+                report: chatReportR14932,
+            }),
+        );
+        expect(result.current).toBe(iouReportR14932.ownerAccountID);
     });
 });
