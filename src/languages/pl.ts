@@ -6976,8 +6976,7 @@ const translations = {
             part3: 'here.',
         },
         scanTestTooltip: {
-            part1: 'Chcesz zobaczyć, jak działa Skanowanie?',
-            part2: 'Wypróbuj paragon testowy!',
+            scanTestReceipt: '<strong>Chcesz zobaczyć, jak działa Skanowanie?</strong> Wypróbuj paragon testowy!',
             part3: 'Wybierz nasz',
             part4: 'kierownik testów',
             part5: 'aby to wypróbować!',
