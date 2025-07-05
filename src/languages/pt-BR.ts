@@ -6951,10 +6951,7 @@ const translations = {
             part1: 'Comece agora',
             part2: 'aqui!',
         },
-        saveSearchTooltip: {
-            part1: 'Renomeie suas pesquisas salvas',
-            part2: 'aqui!',
-        },
+        saveSearchTooltip: '<strong>Renomeie suas pesquisas salvas</strong> aqui!',
         bottomNavInboxTooltip: {
             part1: 'Verificar o quê?',
             part2: 'precisa da sua atenção',
