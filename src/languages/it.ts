@@ -2574,6 +2574,8 @@ const translations = {
         pageNotFound: 'Ops, questa pagina non può essere trovata',
         noAccess: 'Questa chat o spesa potrebbe essere stata eliminata o potresti non avere accesso ad essa.\n\nPer qualsiasi domanda, contatta concierge@expensify.com',
         goBackHome: 'Torna alla pagina principale',
+        commentYouLookingForCannotBeFound: 'Il commento che stai cercando non è stato trovato. Torna alla chat',
+        contactConcierge: 'Per qualsiasi domanda, contatta concierge@expensify.com',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oops... ${isBreakLine ? '\n' : ''}Qualcosa è andato storto`,

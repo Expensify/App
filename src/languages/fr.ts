@@ -2562,6 +2562,8 @@ const translations = {
         pageNotFound: 'Oups, cette page est introuvable',
         noAccess: "Ce chat ou cette dépense a peut-être été supprimé ou vous n'y avez pas accès.\n\nPour toute question, veuillez contacter concierge@expensify.com",
         goBackHome: "Retourner à la page d'accueil",
+        commentYouLookingForCannotBeFound: 'Le commentaire que vous recherchez est introuvable. Retournez à la discussion',
+        contactConcierge: 'Pour toute question, veuillez contacter concierge@expensify.com',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oups... ${isBreakLine ? '\n' : ''}Quelque chose a mal tourné`,
