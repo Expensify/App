@@ -6,6 +6,7 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useSearchTypeMenu from '@hooks/useSearchTypeMenu';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 
 type SearchTypeMenuNarrowProps = {
@@ -19,13 +20,14 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
+    const currentRoute = Navigation.getActiveRouteWithoutParams();
 
     return (
         <>
             <Button
                 innerStyles={[{backgroundColor: theme.sidebarHover}]}
                 icon={Expensicons.Menu}
-                onPress={openMenu}
+                onPress={() => openMenu(currentRoute)}
             />
             {!delayPopoverMenuFirstRender && (
                 <PopoverMenu

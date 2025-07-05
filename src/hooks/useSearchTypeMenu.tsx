@@ -202,13 +202,24 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         setProcessedMenuItems(items as PopoverMenuItem[]);
     }, [savedSearches, popoverMenuItems, savedSearchesMenuItems, translate, styles.textSupporting]);
 
-    const openMenu = useCallback(() => {
-        setIsPopoverVisible(true);
-        // Defer heavy processing until after interactions
-        InteractionManager.runAfterInteractions(() => {
-            processSavedSearches();
-        });
-    }, [processSavedSearches]);
+    const openMenu = useCallback(
+        (triggerRoute?: string) => {
+            if (triggerRoute) {
+                const currentRoute = Navigation.getActiveRouteWithoutParams();
+
+                if (currentRoute !== triggerRoute) {
+                    return;
+                }
+            }
+
+            setIsPopoverVisible(true);
+            // Defer heavy processing until after interactions
+            InteractionManager.runAfterInteractions(() => {
+                processSavedSearches();
+            });
+        },
+        [processSavedSearches],
+    );
 
     return {
         isPopoverVisible,
