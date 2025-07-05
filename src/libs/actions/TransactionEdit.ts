@@ -1,9 +1,11 @@
+import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import type {Connection, OnyxEntry} from 'react-native-onyx';
+import {formatCurrentUserToAttendee} from '@libs/IOUUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
-import {getDraftTransactions} from './Transaction';
+import type {PersonalDetails, Transaction} from '@src/types/onyx';
+import {generateTransactionID, getDraftTransactions} from './Transaction';
 
 let connection: Connection;
 
@@ -117,6 +119,31 @@ function removeTransactionReceipt(transactionID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: null});
 }
 
+type BuildOptimisticTransactionParams = {
+    initialTransaction: Partial<Transaction>;
+    currentUserPersonalDetails: PersonalDetails;
+    reportID: string;
+};
+
+function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUserPersonalDetails, reportID}: BuildOptimisticTransactionParams): Transaction {
+    const newTransactionID = generateTransactionID();
+    const {currency, iouRequestType, isFromGlobalCreate, splitPayerAccountIDs} = initialTransaction ?? {};
+    const newTransaction = {
+        amount: 0,
+        created: format(new Date(), 'yyyy-MM-dd'),
+        currency,
+        comment: {attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID)},
+        iouRequestType,
+        reportID,
+        transactionID: newTransactionID,
+        isFromGlobalCreate,
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        splitPayerAccountIDs,
+    } as Transaction;
+    createDraftTransaction(newTransaction);
+    return newTransaction;
+}
+
 export {
     createBackupTransaction,
     removeBackupTransaction,
@@ -126,4 +153,5 @@ export {
     removeTransactionReceipt,
     removeDraftTransactions,
     removeDraftSplitTransaction,
+    buildOptimisticTransactionAndCreateDraft,
 };

@@ -1,7 +1,6 @@
 import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import Modal from '@components/Modal';
-import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
@@ -9,9 +8,8 @@ import AttachmentModalContext from '@pages/media/AttachmentModalScreen/Attachmen
 import CONST from '@src/CONST';
 import type AttachmentModalContainerProps from './types';
 
-const onCloseNoop = () => {};
-
-function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: AttachmentModalContainerProps) {
+function AttachmentModalContainer({contentProps, modalType, onShow, onClose, shouldHandleNavigationBack}: AttachmentModalContainerProps) {
+    const [isVisible, setIsVisible] = useState(true);
     const attachmentsContext = useContext(AttachmentModalContext);
     const [shouldDisableAnimationAfterInitialMount, setShouldDisableAnimationAfterInitialMount] = useState(false);
 
@@ -24,25 +22,17 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
      */
     const closeModal = useCallback(
         (options?: OnCloseOptions) => {
-            if (typeof onClose === 'function') {
-                if (options?.shouldCallDirectly) {
-                    onClose();
-                } else {
-                    attachmentModalHandler.handleModalClose(onClose);
-                }
-            }
-
             attachmentsContext.setCurrentAttachment(undefined);
+            setIsVisible(false);
 
-            // If a custom navigation callback is provided, call it instead of navigating back
-            if (options?.navigateBack) {
-                options?.navigateBack();
-                return;
+            onClose?.();
+            Navigation.dismissModal();
+
+            if (options?.onAfterClose) {
+                options?.onAfterClose();
             }
-
-            Navigation.goBack(contentProps.fallbackRoute);
         },
-        [attachmentsContext, contentProps.fallbackRoute, onClose],
+        [attachmentsContext, onClose],
     );
 
     // After the modal has initially been mounted and animated in,
@@ -61,9 +51,8 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
     return (
         <Modal
             disableAnimationIn={shouldDisableAnimationAfterInitialMount}
-            isVisible
+            isVisible={isVisible}
             type={modalType ?? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
-            onClose={onClose ?? onCloseNoop}
             propagateSwipe
             initialFocus={() => {
                 if (!contentProps.submitRef?.current) {
@@ -71,6 +60,7 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
                 }
                 return contentProps.submitRef.current;
             }}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
         >
             <AttachmentModalBaseContent
                 // eslint-disable-next-line react/jsx-props-no-spreading
