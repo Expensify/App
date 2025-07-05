@@ -7006,10 +7006,7 @@ const translations = {
             part1: 'Filter voor uitgaven die',
             part2: 'goedkeuring nodig',
         },
-        scanTestDriveTooltip: {
-            part1: 'Verzend deze bon naar',
-            part2: 'voltooi de proefrit!',
-        },
+        scanTestDriveTooltip: 'Verzend deze bon naar <br /> <strong>voltooi de proefrit!</strong>',
     },
     discardChangesConfirmation: {
         title: 'Wijzigingen negeren?',
