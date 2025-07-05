@@ -248,13 +248,8 @@ function ComposerWithSuggestions(
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
-    const draftComment = getDraftComment(reportID) ?? '';
-    const [value, setValue] = useState(() => {
-        if (draftComment) {
-            emojisPresentBefore.current = extractEmojis(draftComment);
-        }
-        return draftComment;
-    });
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
+    const value = draftComment ?? '';
 
     const commentRef = useRef(value);
 
@@ -400,7 +395,7 @@ function ComposerWithSuggestions(
             }
             emojisPresentBefore.current = emojis;
 
-            setValue(newCommentConverted);
+            // setValue(newCommentConverted);
             if (commentValue !== newComment) {
                 const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), cursorPosition ?? 0);
 
@@ -437,7 +432,7 @@ function ComposerWithSuggestions(
         (text: string) => {
             // selection replacement should be debounced to avoid conflicts with text typing
             // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
-            updateComment(insertText(commentRef.current, selection, text), true);
+            updateComment(insertText(commentRef.current, selection, text), false);
         },
         [selection, updateComment],
     );
@@ -495,7 +490,7 @@ function ComposerWithSuggestions(
                         positionX: prevSelection.positionX,
                         positionY: prevSelection.positionY,
                     }));
-                    updateComment(newText, true);
+                    updateComment(newText, false);
                 }
             }
         },
@@ -504,7 +499,7 @@ function ComposerWithSuggestions(
 
     const onChangeText = useCallback(
         (commentValue: string) => {
-            updateComment(commentValue, true);
+            updateComment(commentValue, false);
 
             if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
                 const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
@@ -726,7 +721,7 @@ function ComposerWithSuggestions(
             mobileInputScrollPosition.current = 0;
             // Note: use the value when the clear happened, not the current value which might have changed already
             onCleared(text);
-            updateComment('', true);
+            updateComment('', false);
         },
         [onCleared, updateComment],
     );
