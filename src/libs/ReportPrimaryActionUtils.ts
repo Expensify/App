@@ -127,6 +127,10 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
         return false;
     }
 
+    if (reportTransactions.length > 0 && !reportTransactions.some((transaction) => !isPending(transaction))) {
+        return false;
+    }
+
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
 
