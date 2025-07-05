@@ -1,4 +1,5 @@
-import React, {Ref, useCallback, useImperativeHandle, useMemo, useState} from 'react';
+import React, {useCallback, useImperativeHandle, useMemo, useState} from 'react';
+import type {Ref} from 'react';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import MenuItem from '@components/MenuItem';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
@@ -132,7 +133,7 @@ function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, on
                 setDateValue(selectedDateModifier, undefined);
             },
         }),
-        [selectedDateModifier, dateValues, ephemeralDateValue],
+        [selectedDateModifier, dateValues, ephemeralDateValue, setDateValue],
     );
 
     return !selectedDateModifier ? (
