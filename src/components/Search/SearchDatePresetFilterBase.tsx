@@ -183,5 +183,5 @@ function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, on
 
 SearchDatePresetFilterBase.displayName = 'SearchDatePresetFilterBase';
 
-export type {SearchDatePresetFilterBaseHandle};
+export type {SearchDateValues, SearchDatePresetFilterBaseHandle};
 export default SearchDatePresetFilterBase;
