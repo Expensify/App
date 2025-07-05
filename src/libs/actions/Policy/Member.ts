@@ -993,6 +993,8 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
 type PolicyMember = {
     email: string;
     role: string;
+    submitsTo?: string;
+    forwardsTo?: string;
 };
 
 function importPolicyMembers(policyID: string, members: PolicyMember[]) {
@@ -1003,7 +1005,7 @@ function importPolicyMembers(policyID: string, members: PolicyMember[]) {
         (acc, curr) => {
             const employee = policy?.employeeList?.[curr.email];
             if (employee) {
-                if (curr.role !== employee.role) {
+                if (curr.role !== employee.role || curr.submitsTo !== employee.submitsTo || curr.forwardsTo !== employee.forwardsTo) {
                     acc.updated++;
                 }
             } else {
@@ -1017,7 +1019,7 @@ function importPolicyMembers(policyID: string, members: PolicyMember[]) {
 
     const parameters = {
         policyID,
-        employees: JSON.stringify(members.map((member) => ({email: member.email, role: member.role}))),
+        employees: JSON.stringify(members.map((member) => ({email: member.email, role: member.role, submitsTo: member.submitsTo, forwardsTo: member.forwardsTo}))),
     };
 
     API.write(WRITE_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters, onyxData);
