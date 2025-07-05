@@ -265,7 +265,7 @@ function getExportMenuItem(
                         companyCard?.nameValuePairs?.intacct_export_charge_card === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE ||
                         (defaultAccount && !companyCard?.nameValuePairs?.intacct_export_charge_card)
                     );
-                    const selectedVendorID = companyCard?.nameValuePairs?.intacct_export_charge_card ?? defaultAccount;
+                    const selectedVendorID = companyCard?.nameValuePairs?.intacct_export_charge_card ?? (defaultAccount ? CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE : undefined);
                     const selectedCard = (intacctCreditCards ?? []).find(({id}) => id === selectedVendorID);
                     title = isDefaultTitle ? defaultCard : selectedCard?.name;
                     const resultData = (intacctCreditCards ?? []).length > 0 ? [defaultMenuItem, ...(intacctCreditCards ?? [])] : intacctCreditCards;
