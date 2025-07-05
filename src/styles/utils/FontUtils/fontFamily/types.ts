@@ -11,12 +11,13 @@ type FontFamilyKey =
     | 'EXP_NEUE_ITALIC'
     | 'EXP_NEUE_BOLD_ITALIC'
     | 'EXP_NEW_KANSAS_MEDIUM'
-    | 'EXP_NEW_KANSAS_MEDIUM_ITALIC';
+    | 'EXP_NEW_KANSAS_MEDIUM_ITALIC'
+    | 'CUSTOM_EMOJI_FONT';
 
 type FontFamily = {
     fontFamily: string;
-    fontStyle: TextStyle['fontStyle'];
-    fontWeight: TextStyle['fontWeight'];
+    fontStyle?: TextStyle['fontStyle'];
+    fontWeight?: TextStyle['fontWeight'];
 };
 
 type FontFamilyStyles = Record<FontFamilyKey, FontFamily>;

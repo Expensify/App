@@ -22,6 +22,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
+import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
@@ -36,6 +37,7 @@ import {
     isSystemChat,
     isThread,
 } from '@libs/ReportUtils';
+import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
@@ -135,7 +137,7 @@ function OptionRowLHN({
     const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-
+    const alternateTextContainsCustomEmojiWithText = containsCustomEmojiUtils(optionItem.alternateText) && !containsOnlyCustomEmoji(optionItem.alternateText);
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -187,7 +189,6 @@ function OptionRowLHN({
         hideProductTrainingTooltip();
         onSelectRow(optionItem, popoverAnchor);
     };
-
     return (
         <OfflineWithFeedback
             pendingAction={optionItem.pendingAction}
@@ -307,15 +308,23 @@ function OptionRowLHN({
                                                     </Tooltip>
                                                 )}
                                             </View>
-                                            {optionItem.alternateText ? (
+                                            {!!optionItem.alternateText && (
                                                 <Text
                                                     style={alternateTextStyle}
                                                     numberOfLines={1}
                                                     accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                                 >
-                                                    {Parser.htmlToText(optionItem.alternateText)}
+                                                    {alternateTextContainsCustomEmojiWithText ? (
+                                                        <TextWithEmojiFragment
+                                                            message={Parser.htmlToText(optionItem.alternateText)}
+                                                            style={[alternateTextStyle, styles.mh0]}
+                                                            isAlternateText
+                                                        />
+                                                    ) : (
+                                                        Parser.htmlToText(optionItem.alternateText)
+                                                    )}
                                                 </Text>
-                                            ) : null}
+                                            )}
                                         </View>
                                         {optionItem?.descriptiveText ? (
                                             <View style={[styles.flexWrap]}>
