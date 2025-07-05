@@ -275,6 +275,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -549,9 +550,8 @@ const translations = {
         userID: 'ID użytkownika',
         disable: 'Wyłącz',
         export: 'Eksportuj',
-        basicExport: 'Eksport podstawowy',
         initialValue: 'Wartość początkowa',
-        currentDate: 'Aktualna data',
+        currentDate: 'Current date',
         value: 'Wartość',
         downloadFailedTitle: 'Pobieranie nie powiodło się',
         downloadFailedDescription: 'Nie udało się zakończyć pobierania. Spróbuj ponownie później.',
@@ -2639,11 +2639,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Aby połączyć konto bankowe, proszę <a href="${contactMethodRoute}">dodaj e-mail jako swoje główne dane logowania</a> i spróbuj ponownie. Możesz dodać swój numer telefonu jako dodatkowy login.`,
         hasBeenThrottledError: 'Wystąpił błąd podczas dodawania Twojego konta bankowego. Proszę poczekać kilka minut i spróbować ponownie.',
-        hasCurrencyError: {
-            phrase1: 'Ups! Wygląda na to, że waluta Twojego miejsca pracy jest ustawiona na inną niż USD. Aby kontynuować, przejdź do',
-            link: 'ustawienia Twojego miejsca pracy',
-            phrase2: 'ustawić na USD i spróbować ponownie.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Ups! Wygląda na to, że waluta Twojego miejsca pracy jest ustawiona na inną niż USD. Aby kontynuować, przejdź do <a href="${workspaceRoute}">ustawienia Twojego miejsca pracy</a> ustawić na USD i spróbować ponownie.`,
         error: {
             youNeedToSelectAnOption: 'Proszę wybrać opcję, aby kontynuować',
             noBankAccountAvailable: 'Przepraszamy, nie ma dostępnego konta bankowego.',
@@ -3417,7 +3414,7 @@ const translations = {
             welcomeNote: 'Proszę użyć Expensify do przesyłania paragonów do zwrotu kosztów, dziękuję!',
             subscription: 'Subskrypcja',
             markAsEntered: 'Oznacz jako wprowadzone ręcznie',
-            markAsExported: 'Oznacz jako wyeksportowane',
+            markAsExported: 'Oznacz jako wyeksportowane ręcznie',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Eksportuj do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Sprawdźmy podwójnie, czy wszystko wygląda dobrze.',
             lineItemLevel: 'Poziom pozycji linii',
