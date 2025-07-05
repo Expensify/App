@@ -5,6 +5,5 @@ type CreateAppReportParams = {
     reportID: string;
     reportActionID: string;
     reportPreviewReportActionID: string;
-    shouldUpdateQAB: boolean;
 };
 export default CreateAppReportParams;
