@@ -1204,7 +1204,7 @@ function isReportSelected(reportOption: OptionData, selectedOptions: Array<Parti
 }
 
 function processReport(
-    report: OnyxEntry<Report>,
+    report: OnyxEntry<Report> | null,
     personalDetails: OnyxEntry<PersonalDetailsList>,
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
