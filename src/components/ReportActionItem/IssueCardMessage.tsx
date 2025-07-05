@@ -7,7 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getExpensifyCardFromReportAction} from '@libs/CardMessageUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCardIssuedMessage, getOriginalMessage, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
+import {getCardIssuedMessage, getOriginalMessage, shouldShowActivateCard, shouldShowAddMissingDetails, shouldShowReplacedCard} from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
@@ -22,11 +22,13 @@ type IssueCardMessageProps = {
 function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const assigneeAccountID = (getOriginalMessage(action) as IssueNewCardOriginalMessage)?.assigneeAccountID;
     const card = getExpensifyCardFromReportAction({reportAction: action, policyID});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
     const isAssigneeCurrentUser = !isEmptyObject(session) && session.accountID === assigneeAccountID;
-    const shouldShowAddMissingDetailsButton = isAssigneeCurrentUser && shouldShowAddMissingDetails(action?.actionName, card);
+    const shouldShowAddMissingDetailsButton = isAssigneeCurrentUser && shouldShowAddMissingDetails(action?.actionName, card, privatePersonalDetails);
+    const shouldShowActivateButton = isAssigneeCurrentUser && (shouldShowActivateCard(action?.actionName, card, privatePersonalDetails) || shouldShowReplacedCard(action?.actionName, card));
 
     return (
         <>
@@ -37,6 +39,19 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
                     success
                     style={[styles.alignSelfStart, styles.mt3]}
                     text={translate('workspace.expensifyCard.addShippingDetails')}
+                />
+            )}
+            {shouldShowActivateButton && (
+                <Button
+                    onPress={() => {
+                        if (!card?.cardID) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(card.cardID)));
+                    }}
+                    success
+                    style={[styles.alignSelfStart, styles.mt3]}
+                    text={translate('activateCardPage.activateCard')}
                 />
             )}
         </>
