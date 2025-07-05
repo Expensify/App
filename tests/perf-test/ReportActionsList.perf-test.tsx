@@ -13,7 +13,7 @@ import ReportActionsList from '@src/pages/home/report/ReportActionsList';
 import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
