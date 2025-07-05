@@ -866,15 +866,6 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     }
 
-    if (reportID && !lastMessageTextFromReport && lastReportAction) {
-        const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-        // If the report is a one-transaction report, get the last message text from combined report actions so the LHN can display modifications to the transaction thread or the report itself
-        const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allSortedReportActions[reportID]);
-        if (transactionThreadReportID) {
-            lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
-        }
-    }
-
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
