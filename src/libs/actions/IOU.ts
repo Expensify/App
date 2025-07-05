@@ -198,7 +198,7 @@ import {
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
-    removeSettledAndApprovedTransactions,
+    updateDuplicatesTransactionsViolations,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
@@ -4322,9 +4322,14 @@ function getUpdateMoneyRequestParams(
         (hasModifiedTag || hasModifiedCategory || hasModifiedComment || hasModifiedDistanceRate || hasModifiedAmount || hasModifiedCreated)
     ) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+        const hasModifiedDate = 'date' in transactionChanges;
+        const optimisticViolations =
+            hasModifiedAmount || hasModifiedDate
+                ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
+                : currentTransactionViolations;
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
-            currentTransactionViolations,
+            optimisticViolations,
             policy,
             policyTagList ?? {},
             policyCategories ?? {},
@@ -4563,6 +4568,7 @@ function getUpdateTrackExpenseParams(
 function updateMoneyRequestDate(
     transactionID: string,
     transactionThreadReportID: string,
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>,
     value: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>,
@@ -4578,6 +4584,7 @@ function updateMoneyRequestDate(
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories);
+        updateDuplicatesTransactionsViolations(transactionID, transactionViolations, data.onyxData);
     }
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, params, onyxData);
@@ -7365,6 +7372,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
     taxCode: string;
+    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
 };
 
 /** Updates the amount and currency fields of an expense */
@@ -7378,6 +7386,7 @@ function updateMoneyRequestAmountAndCurrency({
     policyTagList,
     policyCategories,
     taxCode,
+    transactionViolations,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
@@ -7392,6 +7401,7 @@ function updateMoneyRequestAmountAndCurrency({
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList ?? null, policyCategories ?? null);
+        updateDuplicatesTransactionsViolations(transactionID, transactionViolations, data.onyxData);
     }
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
@@ -7767,7 +7777,12 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
  * @param isSingleTransactionView - whether we are in the transaction thread report
  * @return the url to navigate back once the money request is deleted
  */
-function deleteMoneyRequest(transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+function deleteMoneyRequest(
+    transactionID: string | undefined,
+    reportAction: OnyxTypes.ReportAction,
+    isSingleTransactionView = false,
+    violations: OnyxCollection<OnyxTypes.TransactionViolations> = {},
+) {
     if (!transactionID) {
         return;
     }
@@ -7814,51 +7829,7 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
         },
     ];
 
-    if (transactionViolations) {
-        const duplicates = transactionViolations
-            .filter((violation) => violation?.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-            .flatMap((violation) => violation?.data?.duplicates ?? [])
-            .map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]);
-
-        removeSettledAndApprovedTransactions(duplicates).forEach((duplicate) => {
-            const duplicateID = duplicate?.transactionID;
-            const duplicateTransactionsViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`];
-            if (!duplicateTransactionsViolations) {
-                return;
-            }
-
-            const duplicateViolation = duplicateTransactionsViolations.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-            if (!duplicateViolation?.data?.duplicates) {
-                return;
-            }
-
-            const duplicateTransactionIDs = duplicateViolation.data.duplicates.filter((duplicateTransactionID) => duplicateTransactionID !== transactionID);
-
-            const optimisticViolations: OnyxTypes.TransactionViolations = duplicateTransactionsViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
-
-            if (duplicateTransactionIDs.length > 0) {
-                optimisticViolations.push({
-                    ...duplicateViolation,
-                    data: {
-                        ...duplicateViolation.data,
-                        duplicates: duplicateTransactionIDs,
-                    },
-                });
-            }
-
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
-                value: optimisticViolations.length > 0 ? optimisticViolations : null,
-            });
-
-            failureData.push({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
-                value: duplicateTransactionsViolations,
-            });
-        });
-    }
+    updateDuplicatesTransactionsViolations(transactionID, violations, {optimisticData, failureData});
 
     if (shouldDeleteTransactionThread) {
         optimisticData.push(
@@ -8100,7 +8071,13 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
     return urlToNavigateBack;
 }
 
-function deleteTrackExpense(chatReportID: string | undefined, transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+function deleteTrackExpense(
+    chatReportID: string | undefined,
+    transactionID: string | undefined,
+    reportAction: OnyxTypes.ReportAction,
+    isSingleTransactionView = false,
+    violations: OnyxCollection<OnyxTypes.TransactionViolations> = {},
+) {
     if (!chatReportID || !transactionID) {
         return;
     }
@@ -8110,7 +8087,7 @@ function deleteTrackExpense(chatReportID: string | undefined, transactionID: str
     // STEP 1: Get all collections we're updating
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
     if (!isSelfDM(chatReport)) {
-        deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView);
+        deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView, violations);
         return urlToNavigateBack;
     }
 
