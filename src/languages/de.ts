@@ -6959,12 +6959,7 @@ const translations = {
             part1: 'Benennen Sie Ihre gespeicherten Suchen um',
             part2: 'hier!',
         },
-        bottomNavInboxTooltip: {
-            part1: 'Überprüfen Sie was',
-            part2: 'benötigt Ihre Aufmerksamkeit',
-            part3: 'und',
-            part4: 'über Ausgaben chatten.',
-        },
+        bottomNavInboxTooltip: 'Überprüfen Sie was <strong>benötigt Ihre Aufmerksamkeit</strong>\nund <strong>über Ausgaben chatten.</strong>',
         workspaceChatTooltip: {
             part1: 'Chatten mit',
             part2: 'Genehmiger',
