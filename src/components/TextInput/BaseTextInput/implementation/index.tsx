@@ -340,6 +340,7 @@ function BaseTextInput(
                                     labelTranslateY={labelTranslateY}
                                     labelScale={labelScale}
                                     for={inputProps.nativeID}
+                                    isMultiline={isMultiline}
                                 />
                             </>
                         ) : null}
