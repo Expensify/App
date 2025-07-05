@@ -35,7 +35,7 @@ class ChatGPTTranslator extends Translator {
                     userPrompt: text,
                 });
 
-                if (this.validateTemplatePlaceholders(text, result)) {
+                if (this.validateTemplatePlaceholders(text, result) && this.validateTemplateHTML(text, result)) {
                     if (attempt > 0) {
                         console.log(`🙃 Translation succeeded after ${attempt + 1} attempts`);
                     }
@@ -43,7 +43,7 @@ class ChatGPTTranslator extends Translator {
                     return result;
                 }
 
-                console.warn(`⚠️ Translation for "${text}" failed placeholder validation (attempt ${attempt + 1}/${ChatGPTTranslator.MAX_RETRIES + 1})`);
+                console.warn(`⚠️ Translation for "${text}" failed validation (attempt ${attempt + 1}/${ChatGPTTranslator.MAX_RETRIES + 1})`);
 
                 if (attempt === ChatGPTTranslator.MAX_RETRIES) {
                     console.error(`❌ Final attempt failed placeholder validation. Falling back to original.`);
@@ -62,19 +62,6 @@ class ChatGPTTranslator extends Translator {
 
         // Should never hit this, but fallback just in case
         return text;
-    }
-
-    /**
-     * Validate that placeholders are all present and unchanged before and after translation.
-     */
-    private validateTemplatePlaceholders(original: string, translated: string): boolean {
-        const extractPlaceholders = (s: string) =>
-            Array.from(s.matchAll(/\$\{[^}]*}/g))
-                .map((m) => m[0])
-                .sort();
-        const originalSpans = extractPlaceholders(original);
-        const translatedSpans = extractPlaceholders(translated);
-        return JSON.stringify(originalSpans) === JSON.stringify(translatedSpans);
     }
 }
 
