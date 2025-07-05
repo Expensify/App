@@ -6990,11 +6990,7 @@ const translations = {
             part3: ',\ne 🔴 su',
             part4: 'elementi da rivedere.',
         },
-        accountSwitcher: {
-            part1: 'Accedi al tuo',
-            part2: 'Account Copilot',
-            part3: 'qui',
-        },
+        accountSwitcher: 'Accedi al tuo <strong>Account Copilot</strong> qui',
         expenseReportsFilter: {
             part1: 'Benvenuto! Trova tutti i tuoi',
             part2: "rapporti dell'azienda",
