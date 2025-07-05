@@ -56,15 +56,18 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true});
+
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [getTagListsUtil(policyTags), isMultiLevelTagsUtil(policyTags)], [policyTags]);
     const isLoading = !getTagListsUtil(policyTags)?.at(0) || Object.keys(policyTags ?? {}).at(0) === 'undefined';
     const {isOffline} = useNetwork();
     const hasEnabledOptions = hasEnabledOptionsUtil(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
-            setPolicyRequiresTag(policyID, value);
+            setPolicyRequiresTag(policyID, value, policyCategories, allTransactionViolations);
         },
-        [policyID],
+        [policyID, policyCategories, allTransactionViolations],
     );
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS;
 
