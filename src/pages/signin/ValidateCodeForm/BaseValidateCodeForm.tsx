@@ -292,8 +292,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
     return (
         <SafariFormWrapper>
-            {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
-            {account?.requiresTwoFactorAuth ? (
+            {/* At this point, show 2FA only after the user has submitted a magic code and account requires 2FA */}
+            {account?.requiresTwoFactorAuth && !!credentials?.validateCode ? (
                 <View style={[styles.mv3]}>
                     {isUsingRecoveryCode ? (
                         <TextInput
