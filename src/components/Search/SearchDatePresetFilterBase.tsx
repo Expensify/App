@@ -3,7 +3,9 @@ import type {Ref} from 'react';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import MenuItem from '@components/MenuItem';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SpacerView from '@components/SpacerView';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {isSearchDatePreset} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -38,6 +40,9 @@ type SearchDatePresetFilterBaseProps = {
     /** The date presets */
     presets?: SearchDatePreset[];
 
+    /** Whether we should display the horizontal rule after the presets list */
+    shouldShowHorizontalRule?: boolean;
+
     /** The ref handle */
     ref: Ref<SearchDatePresetFilterBaseHandle>;
 };
@@ -52,7 +57,8 @@ type SearchDatePresetFilterBaseProps = {
  * - On save: if a date modifier is selected (i.e. user clicked save at the calendar picker) you should `setDateValueOfSelectedDateModifier` otherwise `getDateValues`
  * - On reset: if a date modifier is selected (i.e. user clicked reset at the calendar picker) you should `clearDateValueOfSelectedDateModifier` otherwise `clearDateValues`
  */
-function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, ref}: SearchDatePresetFilterBaseProps) {
+function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, shouldShowHorizontalRule = false, ref}: SearchDatePresetFilterBaseProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [dateValues, setDateValues] = useState<SearchDateValues>(defaultDateValues);
@@ -149,6 +155,10 @@ function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, on
                     onSelectRow={() => setDateValue(CONST.SEARCH.DATE_MODIFIERS.ON, preset)}
                 />
             ))}
+            <SpacerView
+                shouldShow={shouldShowHorizontalRule}
+                style={shouldShowHorizontalRule ? [styles.horizontalRule, styles.mh3] : undefined}
+            />
             <MenuItem
                 shouldShowRightIcon
                 viewMode={CONST.OPTION_MODE.COMPACT}
