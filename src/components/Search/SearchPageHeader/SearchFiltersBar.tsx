@@ -110,6 +110,27 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
     }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
+    const [date, displayDate] = useMemo(() => {
+        const value: SearchDateValues = {
+            [CONST.SEARCH.DATE_MODIFIERS.ON]: filterFormValues.dateOn,
+            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterFormValues.dateBefore,
+            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterFormValues.dateAfter,
+        };
+
+        const displayText: string[] = [];
+        if (value.On) {
+            displayText.push(isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`);
+        }
+        if (value.Before) {
+            displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
+        }
+        if (value.After) {
+            displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
+        }
+
+        return [value, displayText];
+    }, [filterFormValues.dateOn, filterFormValues.dateBefore, filterFormValues.dateAfter]);
+
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
             const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
@@ -190,12 +211,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
 
     const datePickerComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
-            const value: SearchDateValues = {
-                [CONST.SEARCH.DATE_MODIFIERS.ON]: filterFormValues.dateOn,
-                [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterFormValues.dateBefore,
-                [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterFormValues.dateAfter,
-            };
-
             const onChange = (selectedDates: SearchDateValues) => {
                 const dateFormValues = {
                     dateOn: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON],
@@ -209,13 +224,13 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             return (
                 <DateSelectPopup
                     label={translate('common.date')}
-                    value={value}
+                    value={date}
                     onChange={onChange}
                     closeOverlay={closeOverlay}
                 />
             );
         },
-        [filterFormValues.dateAfter, filterFormValues.dateBefore, filterFormValues.dateOn, translate, updateFilterForm],
+        [date, translate, updateFilterForm],
     );
 
     const userPickerComponent = useCallback(
@@ -238,15 +253,6 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
      * filter bar
      */
     const filters = useMemo(() => {
-        const dateValue = [
-            filterFormValues.dateAfter ? `${translate('common.after')} ${DateUtils.formatToReadableString(filterFormValues.dateAfter)}` : null,
-            filterFormValues.dateBefore ? `${translate('common.before')} ${DateUtils.formatToReadableString(filterFormValues.dateBefore)}` : null,
-            filterFormValues.dateOn
-                ? isSearchDatePreset(filterFormValues.dateOn)
-                    ? translate(`search.filters.date.presets.${filterFormValues.dateOn}`)
-                    : `${translate('common.on')} ${DateUtils.formatToReadableString(filterFormValues.dateOn)}`
-                : null,
-        ].filter(Boolean) as string[];
         const fromValue = filterFormValues.from?.map((accountID) => personalDetails?.[accountID]?.displayName ?? accountID) ?? [];
 
         const filterList = [
@@ -276,7 +282,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
             {
                 label: translate('common.date'),
                 PopoverComponent: datePickerComponent,
-                value: dateValue,
+                value: displayDate,
                 keyForList: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             },
             {
@@ -291,9 +297,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
     }, [
         type,
         groupBy,
-        filterFormValues.dateAfter,
-        filterFormValues.dateBefore,
-        filterFormValues.dateOn,
+        displayDate,
         filterFormValues.from,
         translate,
         typeComponent,
