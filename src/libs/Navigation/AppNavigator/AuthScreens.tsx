@@ -8,6 +8,7 @@ import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProv
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
+import PresenceController from '@components/PresenceController';
 import PriorityModeController from '@components/PriorityModeController';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRouterContext';
@@ -768,6 +769,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             </RootStack.Navigator>
             <SearchRouterModal />
             <PriorityModeController />
+            <PresenceController />
         </ComposeProviders>
     );
 }
