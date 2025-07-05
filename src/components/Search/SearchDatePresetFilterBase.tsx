@@ -45,7 +45,7 @@ type SearchDatePresetFilterBaseProps = {
 /**
  * SearchDatePresetFilterBase is a partially controlled component:
  * - The selected date modifier is controlled.
- * - The date values are uncontrolled. This is done to avoid duplicating the `setDateValue` logic and also to avoid exposting the `ephemeralDateValue` state.
+ * - The date values are uncontrolled. This is done to avoid duplicating the `setDateValue` logic and also to avoid exposing the `ephemeralDateValue` state.
  *
  * There are cases where the parent is required to alter the internal date values e.g. reset the values, in such cases you should use the ref handle.
  * Typically you are expected to use this component with a save and a reset button.

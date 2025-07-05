@@ -2,15 +2,15 @@ import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import SearchDatePresetFilterBase from '@components/Search/SearchDatePresetFilterBase';
+import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from '@components/Search/SearchDatePresetFilterBase';
+import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SearchDateModifier, SearchDateModifierLower} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
-import SearchDatePresetFilterBase from '../SearchDatePresetFilterBase';
-import type {SearchDatePresetFilterBaseHandle, SearchDateValues} from '../SearchDatePresetFilterBase';
-import {SearchDatePreset} from '../types';
 
 type DateSelectPopupProps = {
     /** The label to show when in an overlay on mobile */
@@ -94,7 +94,6 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange}: DateSe
                     presets={presets}
                 />
             </View>
-
             <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
                 <Button
                     medium

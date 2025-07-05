@@ -16,6 +16,7 @@ import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopu
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
+import type {SearchDateValues} from '@components/Search/SearchDatePresetFilterBase';
 import type {SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useEnvironment from '@hooks/useEnvironment';
@@ -37,7 +38,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import {SearchDateValues} from '../SearchDatePresetFilterBase';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
 type SearchFiltersBarProps = {
