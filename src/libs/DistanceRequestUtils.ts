@@ -77,6 +77,8 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
 
 /**
  * Retrieves the default mileage rate based on a given policy.
+ * Default rate is the first created rate when you create the policy.
+ * It's NOT always the rate whose name is "Default rate" because rate name is now changeable.
  *
  * @param policy - The policy from which to extract the default mileage rate.
  *
@@ -96,7 +98,7 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | 
     }
     const mileageRates = Object.values(getMileageRates(policy));
 
-    const distanceRate = mileageRates.find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? mileageRates.at(0) ?? ({} as MileageRate);
+    const distanceRate = mileageRates.at(0) ?? ({} as MileageRate);
 
     return {
         customUnitRateID: distanceRate.customUnitRateID,
