@@ -58,6 +58,16 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 },
                 contentModel: HTMLContentModel.block,
             }),
+            mtm: HTMLElementModel.fromCustomModel({
+                tagName: 'mtm',
+                getMixedUAStyles: (tnode) => {
+                    if (tnode.attributes.issmall === undefined) {
+                        return {...styles.mutedNormalTextLabel, ...styles.mb0};
+                    }
+                    return {...styles.mutedNormalTextLabel, ...styles.mb0, ...styles.textMicro};
+                },
+                contentModel: HTMLContentModel.block,
+            }),
             'muted-text': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-text',
                 mixedUAStyles: {...styles.colorMuted, ...styles.mb0},
@@ -75,7 +85,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                         if (tnode.attributes.center === undefined) {
                             return {whiteSpace: 'pre'};
                         }
-                        return {whiteSpace: 'pre', flex: 1, justifyContent: 'center'};
+                        return {whiteSpace: 'pre', flex: 1, justifyContent: 'center', textDecorationLine: 'none'};
                     }
                     return {whiteSpace: 'pre', ...styles.onlyEmojisText};
                 },

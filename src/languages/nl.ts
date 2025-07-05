@@ -157,6 +157,7 @@ import type {
     PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
     RailTicketParams,
+    ReadTheTermsAndPrivacyRouteParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -1535,12 +1536,8 @@ const translations = {
         restoreStashed: 'Herstel opgeslagen login',
         signOutConfirmationText: 'U verliest alle offline wijzigingen als u zich afmeldt.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: 'Lees de',
-            phrase2: 'Servicevoorwaarden',
-            phrase3: 'en',
-            phrase4: 'Privacy',
-        },
+        readTheTermsAndPrivacy: ({termsURL, privacyURL}: ReadTheTermsAndPrivacyRouteParams) =>
+            `<comment center><mtm issmall>Lees de <a href="${termsURL}">Servicevoorwaarden</a> en <a href="${privacyURL}">Privacy</a>.</mtm></comment>`,
         help: 'Help',
         accountSettings: 'Accountinstellingen',
         account: 'Account',

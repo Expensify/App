@@ -157,6 +157,7 @@ import type {
     PolicyDisabledReportFieldOptionParams,
     PolicyExpenseChatNameParams,
     RailTicketParams,
+    ReadTheTermsAndPrivacyRouteParams,
     ReconciliationWorksParams,
     RemovedFromApprovalWorkflowParams,
     RemovedTheRequestParams,
@@ -1540,12 +1541,8 @@ const translations = {
         restoreStashed: 'Restaurer la connexion mise en attente',
         signOutConfirmationText: 'Vous perdrez toutes les modifications hors ligne si vous vous déconnectez.',
         versionLetter: 'v',
-        readTheTermsAndPrivacy: {
-            phrase1: 'Lire le',
-            phrase2: "Conditions d'utilisation",
-            phrase3: 'et',
-            phrase4: 'Confidentialité',
-        },
+        readTheTermsAndPrivacy: ({termsURL, privacyURL}: ReadTheTermsAndPrivacyRouteParams) =>
+            `<comment center><mtm issmall>Lire le <a href="${termsURL}">Conditions d'utilisation</a> et <a href="${privacyURL}">Confidentialité</a>.</mtm></comment>`,
         help: 'Aide',
         accountSettings: 'Paramètres du compte',
         account: 'Compte',
