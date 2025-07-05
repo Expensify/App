@@ -108,20 +108,20 @@ function sanitizeSearchValue(str: string) {
  * Returns date filter value for QueryString.
  */
 function buildDateFilterQuery(filterValues: Partial<SearchAdvancedFiltersForm>, filterKey: SearchDateFilterKeys) {
+    const dateOn = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`];
     const dateBefore = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`];
     const dateAfter = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`];
-    const dateOn = filterValues[`${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`];
 
     const dateFilters = [];
 
+    if (dateOn) {
+        dateFilters.push(`${filterKey}:${dateOn}`);
+    }
     if (dateBefore) {
         dateFilters.push(`${filterKey}<${dateBefore}`);
     }
     if (dateAfter) {
         dateFilters.push(`${filterKey}>${dateAfter}`);
-    }
-    if (dateOn) {
-        dateFilters.push(`${filterKey}:${dateOn}`);
     }
 
     return dateFilters.join(' ');

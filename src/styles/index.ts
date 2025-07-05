@@ -4499,6 +4499,10 @@ const styles = (theme: ThemeColors) =>
             ...spacing.mr3,
         },
 
+        horizontalRule: {
+            borderColor: theme.border,
+        },
+
         reportHorizontalRule: {
             borderColor: theme.border,
             ...spacing.mh5,

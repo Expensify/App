@@ -1,5 +1,5 @@
 import React from 'react';
-import SearchDatePresetFilterBase from '@components/Search/SearchDatePresetFilterBase';
+import SearchDatePresetFilterBasePage from '@components/Search/SearchDatePresetFilterBasePage';
 import useEnvironment from '@hooks/useEnvironment';
 import CONST from '@src/CONST';
 
@@ -10,7 +10,7 @@ function SearchFiltersPostedPage() {
     const presets = isDevelopment ? [CONST.SEARCH.DATE_PRESETS.LAST_MONTH] : undefined;
 
     return (
-        <SearchDatePresetFilterBase
+        <SearchDatePresetFilterBasePage
             dateKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED}
             titleKey="search.filters.posted"
             presets={presets}

@@ -6368,9 +6368,9 @@ const CONST = {
             ACTION: 'action',
         },
         DATE_MODIFIERS: {
+            ON: 'On',
             BEFORE: 'Before',
             AFTER: 'After',
-            ON: 'On',
         },
         DATE_PRESETS: {
             NEVER: 'never',
