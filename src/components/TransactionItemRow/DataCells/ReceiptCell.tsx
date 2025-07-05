@@ -3,6 +3,8 @@ import React from 'react';
 import {View} from 'react-native';
 import {Receipt} from '@components/Icon/Expensicons';
 import ReceiptImage from '@components/ReceiptImage';
+import ReceiptPreview from '@components/TransactionItemRow/ReceiptPreview';
+import useHover from '@hooks/useHover';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,7 +20,7 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const backgroundStyles = isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
-
+    const {hovered, bind} = useHover();
     let source = transactionItem?.receipt?.source ?? '';
 
     if (source && typeof source === 'string') {
@@ -36,6 +38,8 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
                 styles.overflowHidden,
                 backgroundStyles,
             ]}
+            onMouseEnter={bind.onMouseEnter}
+            onMouseLeave={bind.onMouseLeave}
         >
             <ReceiptImage
                 source={source}
@@ -51,6 +55,10 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
                 loadingIconSize="small"
                 loadingIndicatorStyles={styles.bgTransparent}
                 transactionItem={transactionItem}
+            />
+            <ReceiptPreview
+                source={source}
+                hovered={hovered}
             />
         </View>
     );

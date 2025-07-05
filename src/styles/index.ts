@@ -5929,6 +5929,16 @@ const styles = (theme: ThemeColors) =>
             aspectRatio: 1.7,
         },
 
+        receiptPreview: {
+            position: 'absolute',
+            left: 70,
+            top: 100,
+            width: 360,
+            height: 600,
+            borderRadius: variables.componentBorderRadiusRounded,
+            overflow: 'hidden',
+        },
+
         topBarWrapper: {
             zIndex: 15,
         },
