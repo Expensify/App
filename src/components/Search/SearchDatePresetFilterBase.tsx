@@ -155,10 +155,12 @@ function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, on
                     onSelectRow={() => setDateValue(CONST.SEARCH.DATE_MODIFIERS.ON, preset)}
                 />
             ))}
-            <SpacerView
-                shouldShow={shouldShowHorizontalRule}
-                style={shouldShowHorizontalRule ? [styles.horizontalRule, styles.mh3] : undefined}
-            />
+            {shouldShowHorizontalRule && (
+                <SpacerView
+                    shouldShow
+                    style={[styles.horizontalRule, styles.mh3]}
+                />
+            )}
             <MenuItem
                 shouldShowRightIcon
                 viewMode={CONST.OPTION_MODE.COMPACT}
