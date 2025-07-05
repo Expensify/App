@@ -30,9 +30,9 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {getMoneyRequestSpendBreakdown, isIOUReport} from '@libs/ReportUtils';
+import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import {compareValues, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {getCategory, getDescription, getTag, getTransactionPendingAction, isScanning, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -76,17 +76,6 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-];
-
-const allReportColumns = [
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
 ];
 
 type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
@@ -186,6 +175,43 @@ function MoneyRequestReportTransactionList({
             }));
     }, [newTransactions, sortBy, sortOrder, transactions]);
 
+    const columnsToShow = useMemo(() => {
+        const columns: Record<string, boolean> = {
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: true,
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE]: true,
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE]: true,
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: false,
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: false,
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY]: false,
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG]: false,
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: true,
+            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: true,
+        };
+
+        transactions.forEach((transactionItem) => {
+            const merchant = transactionItem.modifiedMerchant ? transactionItem.modifiedMerchant : (transactionItem.merchant ?? '');
+            if ((merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) || isScanning(transactionItem)) {
+                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT] = true;
+            }
+
+            if (getDescription(transactionItem) !== '') {
+                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION] = true;
+            }
+
+            if (getCategory(transactionItem) !== '') {
+                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = true;
+            }
+
+            if (getTag(transactionItem) !== '') {
+                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] = true;
+            }
+        });
+
+        return Object.keys(columns).filter((columnName: string) => {
+            return columns[columnName];
+        }) as SortableColumnName[];
+    }, [transactions]);
+
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
             const iouAction = getIOUActionForTransactionID(reportActions, activeTransaction.transactionID);
@@ -257,7 +283,7 @@ function MoneyRequestReportTransactionList({
 
                                         setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
                                     }}
-                                    isIOUReport={isIOUReport(report)}
+                                    columnsToShow={columnsToShow}
                                 />
                             )}
                         </View>
@@ -314,7 +340,7 @@ function MoneyRequestReportTransactionList({
                                         shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
                                         shouldShowCheckbox={!!selectionMode?.isEnabled || !isSmallScreenWidth}
                                         onCheckboxPress={toggleTransaction}
-                                        columns={allReportColumns}
+                                        columns={columnsToShow}
                                         scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
                                         isInReportTableView
                                     />
