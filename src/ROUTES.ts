@@ -925,6 +925,21 @@ const ROUTES = {
                 label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
             }` as const,
     },
+    DISTANCE_REQUEST_CREATE: {
+        route: ':action/:iouType/start/:transactionID/:reportID/distance/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance/${backToReport ?? ''}` as const,
+    },
+    DISTANCE_REQUEST_CREATE_TAB_MAP: {
+        route: ':action/:iouType/start/:transactionID/:reportID/distance/map/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance/map/${backToReport ?? ''}` as const,
+    },
+    DISTANCE_REQUEST_CREATE_TAB_MANUAL: {
+        route: ':action/:iouType/start/:transactionID/:reportID/distance/manual/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance/manual/${backToReport ?? ''}` as const,
+    },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
     IOU_SEND_ENABLE_PAYMENTS: 'pay/new/enable-payments',
