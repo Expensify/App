@@ -34,7 +34,7 @@ To book travel from the Expensify web app,
 
 The traveler is emailed an itinerary of the booking. Additionally,  
 - Their travel details are added to a Trip chat room under their primary workspace. 
-- An expense report for the trip is created.
+- Travel expenses are automatically added to expense reports following your workspace's scheduled submit rules.
 - If booked with an Expensify Card, the trip is automatically reconciled.
 
 {% include info.html %}

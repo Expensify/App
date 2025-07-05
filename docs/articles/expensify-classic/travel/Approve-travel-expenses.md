@@ -3,7 +3,9 @@ title: Approve travel expenses
 description: Determine how travel expenses are approved
 ---
 
-Travel expenses follow the same approval workflow as other expenses. Admins can configure travel expenses to be approved as soft approval, hard approval or passive approval. The approval method for in-policy and out-of-policy bookings can be managed under the **Policies** section in the **Program** menu for Expensify Travel. 
+Travel expenses follow the same approval workflow as other expenses. Admins can configure travel expenses to be approved as soft approval, hard approval or passive approval. The approval method for in-policy and out-of-policy bookings can be managed under the **Policies** section in the **Program** menu for Expensify Travel.
+
+Trip itineraries are maintained with complete booking information, ensuring accurate trip details are always available regardless of how individual expenses are handled. 
  
 - **Soft Approval**: Bookings are automatically approved as long as a manager does not decline them within 24 hours. However, this also means that if a manager does not decline the expenses, the arrangements will be booked even if they are out of policy. If a booking is declined, it is refunded based on the voiding/refund terms of the service provider.
 - **Hard Approval**: Bookings are automatically canceled/voided and refunded if a manager does not approve them within 24 hours. 
