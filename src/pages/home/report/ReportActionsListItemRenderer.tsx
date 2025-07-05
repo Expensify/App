@@ -58,6 +58,9 @@ type ReportActionsListItemRendererProps = {
 
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
+
+    /** Animate highlight action in few seconds */
+    shouldBeHighlightedTemporary?: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -77,6 +80,7 @@ function ReportActionsListItemRenderer({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
+    shouldBeHighlightedTemporary = false,
     parentReportActionForTransactionThread,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
@@ -198,6 +202,7 @@ function ReportActionsListItemRenderer({
             index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+            shouldBeHighlightedTemporary={shouldBeHighlightedTemporary}
         />
     );
 }
