@@ -47,7 +47,7 @@ function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], re
             }
 
             if (fieldName === OWNERSHIP_PERCENTAGE) {
-                ownerDetails[ownerDetailsKey] = `${String(reimbursementAccountDraft?.[ownerDetailsKey])}%`;
+                ownerDetails[ownerDetailsKey] = String(reimbursementAccountDraft?.[ownerDetailsKey]);
                 return;
             }
 
