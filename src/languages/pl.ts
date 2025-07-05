@@ -6970,11 +6970,7 @@ const translations = {
             part2: 'Konta Copilot',
             part3: 'tutaj',
         },
-        expenseReportsFilter: {
-            part1: 'Witamy! Znajdź wszystkie swoje',
-            part2: 'raporty firmy',
-            part3: 'here.',
-        },
+        expenseReportsFilter: 'Witamy! Znajdź wszystkie swoje <strong>\nraporty firmy</strong> here.',
         scanTestTooltip: {
             part1: 'Chcesz zobaczyć, jak działa Skanowanie?',
             part2: 'Wypróbuj paragon testowy!',

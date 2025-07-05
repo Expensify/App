@@ -296,10 +296,10 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     />
                     <Text style={[styles.productTrainingTooltipText, styles.textWrap, styles.mw100]}>
                         {tooltip.content.map(({text, isBold}) => {
-                            const translatedText = translate(text);
+                            const translatedText = typeof text === 'string' ? translate(text) : text();
                             return (
                                 <Text
-                                    key={text}
+                                    key={typeof text === 'string' ? text : text.toString()}
                                     style={[styles.productTrainingTooltipText, isBold && styles.textBold]}
                                 >
                                     {translatedText}

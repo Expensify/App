@@ -6855,11 +6855,7 @@ const translations = {
             part2: 'Copilot 账户',
             part3: '这里',
         },
-        expenseReportsFilter: {
-            part1: '欢迎！查找您的所有',
-            part2: '公司的报告',
-            part3: 'here.',
-        },
+        expenseReportsFilter: '欢迎！查找您的所有 <strong>\n公司的报告</strong> here.',
         scanTestTooltip: {
             part1: '想看看扫描功能如何运作吗？',
             part2: '试用测试收据！',

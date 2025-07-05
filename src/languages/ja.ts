@@ -6949,11 +6949,7 @@ const translations = {
             part2: 'Copilotアカウント',
             part3: 'ここ',
         },
-        expenseReportsFilter: {
-            part1: 'ようこそ！すべてのあなたの',
-            part2: '会社のレポート',
-            part3: 'here.',
-        },
+        expenseReportsFilter: 'ようこそ！すべてのあなたの <strong>会社のレポート</strong> here.',
         scanTestTooltip: {
             part1: 'Scanの動作を確認しますか？',
             part2: 'テスト領収書を試してみてください！',
