@@ -10,6 +10,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
+import TextWithTooltip from '@components/TextWithTooltip';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -230,14 +231,11 @@ function WorkspacesListRow({
                             name={title}
                             type={CONST.ICON_TYPE_WORKSPACE}
                         />
-                        <Tooltip text={title}>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
-                            >
-                                {title}
-                            </Text>
-                        </Tooltip>
+                        <TextWithTooltip
+                            text={title}
+                            shouldShowTooltip
+                            style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                        />
                     </View>
                     {shouldUseNarrowLayout && ThreeDotMenuOrPendingIcon}
                 </View>
