@@ -13,7 +13,11 @@ if (expensifyClassicContent || showExpensifyClassicBadge) {
     const tab = document.createElement('div');
     tab.innerHTML = 'Expensify Classic';
     tab.id = 'platform-tab-expensify-classic';
-    tab.classList.add('active');
+    if (!newExpensifyContent) {
+        tab.classList.toggle('badge');
+    } else {
+        tab.classList.toggle('active');
+    }
     platformTabs.appendChild(tab);
 }
 
@@ -26,9 +30,10 @@ if (newExpensifyContent || showNewExpensifyBadge) {
     const tab = document.createElement('div');
     tab.innerHTML = 'New Expensify';
     tab.id = 'platform-tab-new-expensify';
-
     if (!expensifyClassicContent) {
-        tab.classList.add('active');
+        tab.classList.toggle('badge');
+    } else {
+        tab.classList.toggle('active');
     }
     platformTabs.appendChild(tab);
 }
