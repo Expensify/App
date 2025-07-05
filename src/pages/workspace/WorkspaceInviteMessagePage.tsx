@@ -64,6 +64,9 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     });
     const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID.toString()}`, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+
+    // Check if we're coming from approval workflow based on backTo route
+    const isFromApprovalWorkflow = route.params.backTo?.includes('workflows/approvals/expenses-from');
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
 
     const welcomeNoteSubject = useMemo(
@@ -104,6 +107,14 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
         addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs, workspaceInviteRoleDraft);
         setWorkspaceInviteMessageDraft(route.params.policyID, welcomeNote ?? null);
         clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
+
+        // Check if we're coming from approval workflow
+        if (isFromApprovalWorkflow) {
+            // Continue to the approver page
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0), {forceReplace: true});
+            return;
+        }
+
         if ((route.params?.backTo as string)?.endsWith('members')) {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
             return;

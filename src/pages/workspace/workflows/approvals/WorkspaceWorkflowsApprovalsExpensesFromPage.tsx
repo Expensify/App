@@ -14,20 +14,23 @@ import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useLocalize from '@hooks/useLocalize';
+import useMemberInviteSearch from '@hooks/useMemberInviteSearch';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
+import {searchInServer} from '@libs/actions/Report';
 import {setApprovalWorkflowMembers} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {formatMemberForList, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
-import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,6 +49,7 @@ type SelectionListMember = {
     login: string;
     rightElement?: React.ReactNode;
     icons?: Icon[];
+    accountID?: number;
 };
 
 type MembersSection = SectionListData<SelectionListMember, Section<SelectionListMember>>;
@@ -59,9 +63,22 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListMember[]>([]);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+
+    const {
+        options: inviteOptions,
+        areOptionsInitialized,
+        headerMessage,
+    } = useMemberInviteSearch({
+        shouldInitialize: true,
+        searchTerm: debouncedSearchTerm,
+        betas: betas ?? [],
+        includeRecentReports: false,
+        policyName: policy?.name ?? '',
+    });
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
@@ -71,15 +88,28 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     const personalDetailLogins = useDeepCompareRef(Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])));
 
+    const stablePersonalDetails = useDeepCompareRef(inviteOptions.personalDetails);
+    const stableUserToInvite = useDeepCompareRef(inviteOptions.userToInvite);
+
     useEffect(() => {
         if (!approvalWorkflow?.members) {
             return;
         }
 
-        setSelectedMembers(
-            approvalWorkflow.members.map((member) => {
+        setSelectedMembers((prevSelectedMembers) => {
+            const workflowMemberEmails = new Set<string>();
+            const workflowMembers = approvalWorkflow.members.map((member) => {
+                workflowMemberEmails.add(member.email);
+
                 const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-                const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
+                let accountID = Number(policyMemberEmailsToAccountIDs[member.email]);
+
+                if (!accountID) {
+                    const personalDetail = stablePersonalDetails?.find((detail) => detail.login === member.email);
+                    const userToInvite = stableUserToInvite?.login === member.email ? stableUserToInvite : null;
+                    accountID = personalDetail?.accountID ?? userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+                }
+
                 const login = personalDetailLogins?.[accountID];
 
                 return {
@@ -96,15 +126,22 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                             login={login}
                         />
                     ),
+                    accountID,
                 };
-            }),
-        );
-    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate]);
+            });
+
+            const workflowMemberLogins = new Set(workflowMembers.map((member) => member.login));
+            const preservedSelectedMembers = prevSelectedMembers.filter((member) => !workflowMemberLogins.has(member.login));
+
+            return [...workflowMembers, ...preservedSelectedMembers];
+        });
+    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate, stablePersonalDetails, stableUserToInvite]);
 
     const approversEmail = useMemo(() => approvalWorkflow?.approvers.map((member) => member?.email), [approvalWorkflow?.approvers]);
     const sections: MembersSection[] = useMemo(() => {
         const members: SelectionListMember[] = [...selectedMembers];
 
+        const workspaceMembers: SelectionListMember[] = [];
         if (approvalWorkflow?.availableMembers) {
             const availableMembers = approvalWorkflow.availableMembers
                 .map((member) => {
@@ -126,26 +163,67 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                                 login={login}
                             />
                         ),
+                        accountID,
                     };
                 })
                 .filter(
                     (member) => (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) && !selectedMembers.some((selectedOption) => selectedOption.login === member.login),
                 );
 
-            members.push(...availableMembers);
+            workspaceMembers.push(...availableMembers);
         }
 
-        const filteredMembers =
-            debouncedSearchTerm !== '' ? tokenizedSearch(members, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']) : members;
+        const availableMemberLogins = new Set(approvalWorkflow?.availableMembers?.map((member) => member.email) ?? []);
+        const selectedLogins = selectedMembers.map(({login}) => login);
+
+        const personalDetailsWithoutExisting = inviteOptions.personalDetails.filter(
+            (detail) => !availableMemberLogins.has(detail.login ?? '') && !selectedLogins.includes(detail.login ?? ''),
+        );
+        const personalDetailsFormatted = personalDetailsWithoutExisting
+            .map((item) => formatMemberForList(item))
+            .map((member) => ({
+                ...member,
+                rightElement: (
+                    <MemberRightIcon
+                        role={policy?.employeeList?.[member.login]?.role}
+                        owner={policy?.owner}
+                        login={member.login}
+                    />
+                ),
+            }));
+
+        const hasUnselectedUserToInvite = inviteOptions.userToInvite && !selectedLogins.includes(inviteOptions.userToInvite.login ?? '');
+        const userToInviteFormatted = hasUnselectedUserToInvite && inviteOptions.userToInvite ? [formatMemberForList(inviteOptions.userToInvite)] : [];
+
+        const externalUsers = [...personalDetailsFormatted, ...userToInviteFormatted];
+        members.push(...workspaceMembers, ...externalUsers);
+
+        let filteredMembers: SelectionListMember[];
+        if (debouncedSearchTerm !== '') {
+            filteredMembers = tokenizedSearch(members, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']);
+        } else {
+            filteredMembers = [...selectedMembers, ...workspaceMembers, ...externalUsers];
+        }
 
         return [
             {
                 title: undefined,
-                data: sortAlphabetically(filteredMembers, 'text'),
+                data: filteredMembers,
                 shouldShow: true,
             },
         ];
-    }, [approvalWorkflow?.availableMembers, debouncedSearchTerm, policy?.preventSelfApproval, policy?.employeeList, policy?.owner, selectedMembers, approversEmail, personalDetailLogins]);
+    }, [
+        approvalWorkflow?.availableMembers,
+        debouncedSearchTerm,
+        policy?.preventSelfApproval,
+        policy?.employeeList,
+        policy?.owner,
+        selectedMembers,
+        approversEmail,
+        personalDetailLogins,
+        inviteOptions.personalDetails,
+        inviteOptions.userToInvite,
+    ]);
 
     const goBack = useCallback(() => {
         let backTo;
@@ -161,12 +239,33 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         const members: Member[] = selectedMembers.map((member) => ({displayName: member.text, avatar: member.icons?.[0]?.source, email: member.login}));
         setApprovalWorkflowMembers(members);
 
+        const existingMemberEmails = new Set(Object.keys(policy?.employeeList ?? {}));
+        const newUsersSelected = selectedMembers.filter((member) => !existingMemberEmails.has(member.login));
+
+        if (newUsersSelected.length > 0) {
+            const invitedEmailsToAccountIDs: Record<string, number> = {};
+            newUsersSelected.forEach((member) => {
+                const login = member.login ?? '';
+                const accountID = member.accountID ?? CONST.DEFAULT_NUMBER_ID;
+                if (login.toLowerCase().trim() && accountID !== undefined) {
+                    invitedEmailsToAccountIDs[login] = Number(accountID);
+                }
+            });
+
+            if (Object.keys(invitedEmailsToAccountIDs).length > 0) {
+                setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
+                const backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID);
+                Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID, backTo));
+                return;
+            }
+        }
+
         if (isInitialCreationFlow) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
         } else {
             goBack();
         }
-    }, [route.params.policyID, selectedMembers, isInitialCreationFlow, goBack]);
+    }, [route.params.policyID, selectedMembers, isInitialCreationFlow, goBack, policy?.employeeList]);
 
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
@@ -188,10 +287,13 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     const toggleMember = (member: SelectionListMember) => {
         const isAlreadySelected = selectedMembers.some((selectedOption) => selectedOption.login === member.login);
+
         setSelectedMembers(isAlreadySelected ? selectedMembers.filter((selectedOption) => selectedOption.login !== member.login) : [...selectedMembers, {...member, isSelected: true}]);
     };
 
-    const headerMessage = useMemo(() => (searchTerm && !sections.at(0)?.data?.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
+    useEffect(() => {
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     const listEmptyContent = useMemo(
         () => (
@@ -247,7 +349,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         footerContent={button}
                         listEmptyContent={listEmptyContent}
                         shouldShowListEmptyContent={shouldShowListEmptyContent}
-                        showLoadingPlaceholder={isLoadingApprovalWorkflow}
+                        showLoadingPlaceholder={isLoadingApprovalWorkflow || !areOptionsInitialized}
+                        isLoadingNewOptions={!!isSearchingForReports}
                         addBottomSafeAreaPadding
                     />
                 </FullPageNotFoundView>
