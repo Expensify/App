@@ -5155,6 +5155,7 @@ const translations = {
         invite: {
             member: 'Convidar membro',
             members: 'Convidar membros',
+            inviteNewMember: 'Convidar novo membro',
             invitePeople: 'Convidar novos membros',
             genericFailureMessage: 'Ocorreu um erro ao convidar o membro para o espaço de trabalho. Por favor, tente novamente.',
             pleaseEnterValidLogin: `Por favor, certifique-se de que o e-mail ou número de telefone é válido (por exemplo, ${CONST.EXAMPLE_PHONE_NUMBER}).`,
