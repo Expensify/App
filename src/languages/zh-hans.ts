@@ -6838,18 +6838,8 @@ const translations = {
             part1: '与 交谈',
             part2: '审批人',
         },
-        globalCreateTooltip: {
-            part1: '创建费用',
-            part2: '，开始聊天，',
-            part3: '和更多。',
-            part4: '试试看！',
-        },
-        GBRRBRChat: {
-            part1: '您将在 🟢 上看到',
-            part2: '采取的行动',
-            part3: '，和🔴在',
-            part4: '待审核项目。',
-        },
+        globalCreateTooltip: '<strong>创建费用</strong>，开始聊天，\n和更多。试试看！',
+        GBRRBRChat: '您将在 🟢 上看到 <strong>采取的行动</strong>，和🔴在 <strong>待审核项目。</strong>',
         accountSwitcher: {
             part1: '访问您的',
             part2: 'Copilot 账户',
@@ -6876,10 +6866,7 @@ const translations = {
             part1: '筛选符合以下条件的费用：',
             part2: '需要批准',
         },
-        scanTestDriveTooltip: {
-            part1: '将此收据发送给',
-            part2: '完成试驾！',
-        },
+        scanTestDriveTooltip: '将此收据发送给\n<strong>完成试驾！</strong>',
     },
     discardChangesConfirmation: {
         title: '放弃更改？',

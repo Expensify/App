@@ -6978,18 +6978,8 @@ const translations = {
             part1: 'Chatta con',
             part2: 'approvatori',
         },
-        globalCreateTooltip: {
-            part1: 'Crea spese',
-            part2: ', inizia a chattare,',
-            part3: 'e altro ancora.',
-            part4: 'Provalo!',
-        },
-        GBRRBRChat: {
-            part1: 'Vedrai 🟢 su',
-            part2: 'azioni da intraprendere',
-            part3: ',\ne 🔴 su',
-            part4: 'elementi da rivedere.',
-        },
+        globalCreateTooltip: '<strong>Crea spese</strong>, inizia a chattare,\ne altro ancora. Provalo!',
+        GBRRBRChat: 'Vedrai 🟢 su <strong>azioni da intraprendere</strong>,\ne 🔴 su <strong>elementi da rivedere.</strong>',
         accountSwitcher: {
             part1: 'Accedi al tuo',
             part2: 'Account Copilot',
@@ -7016,10 +7006,7 @@ const translations = {
             part1: 'Filtra per spese che',
             part2: 'necessita approvazione',
         },
-        scanTestDriveTooltip: {
-            part1: 'Invia questa ricevuta a',
-            part2: 'completa il test drive!',
-        },
+        scanTestDriveTooltip: 'Invia questa ricevuta a\n<strong>completa il test drive!</strong>',
     },
     discardChangesConfirmation: {
         title: 'Eliminare le modifiche?',
