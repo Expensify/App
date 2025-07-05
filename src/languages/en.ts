@@ -6943,11 +6943,7 @@ const translations = {
             part2: 'Copilot accounts',
             part3: ' here',
         },
-        expenseReportsFilter: {
-            part1: 'Welcome! Find all of your',
-            part2: "\ncompany's reports",
-            part3: ' here.',
-        },
+        expenseReportsFilter: "Welcome! Find all of your <strong>\ncompany's reports</strong> here.",
         scanTestTooltip: {
             part1: 'Scan our test receipt',
             part2: ' to see how it works!',

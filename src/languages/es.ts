@@ -7436,11 +7436,7 @@ const translations = {
             part2: 'cuentas copiloto',
             part3: ' aquí',
         },
-        expenseReportsFilter: {
-            part1: '¡Bienvenido! Aquí encontrarás todos los',
-            part2: '\ninformes de tu empresa',
-            part3: '.',
-        },
+        expenseReportsFilter: '¡Bienvenido! Aquí encontrarás todos los <strong>\ninformes de tu empresa</strong>.',
         scanTestTooltip: {
             part1: '¡Escanea nuestro recibo de prueba',
             part2: ' para ver cómo funciona!',
