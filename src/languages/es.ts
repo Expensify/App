@@ -119,6 +119,7 @@ import type {
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
+    MovedReportParams,
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
@@ -1036,6 +1037,8 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe, ${merchant} - ${amount}`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `movió un gasto${reportName ? ` desde ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto${reportName ? ` a <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedReport: ({movedReportURL, newParentReportURL, toPolicyName}: MovedReportParams) =>
+            `movió este <a href="${movedReportURL}">informe</a> al espacio de trabajo <a href="${newParentReportURL}">${toPolicyName}</a>`,
         unreportedTransaction: 'movió este gasto a tu espacio personal',
         receiptIssuesFound: () => ({
             one: 'Problema encontrado',

@@ -132,6 +132,7 @@ import type {
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
+    MovedReportParams,
     MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
@@ -1052,6 +1053,8 @@ const translations = {
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `supprimé une dépense sur ce rapport, ${merchant} - ${amount}`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `a déplacé une dépense${reportName ? `de ${reportName}` : ''}`,
         movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `déplacé cette dépense${reportName ? `à <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedReport: ({movedReportURL, newParentReportURL, toPolicyName}: MovedReportParams) =>
+            `a déplacé ce <a href="${movedReportURL}">rapport</a> vers l'espace de travail <a href="${newParentReportURL}">${toPolicyName}</a>`,
         unreportedTransaction: 'déplacé cette dépense vers votre espace personnel',
         pendingMatchWithCreditCard: 'Reçu en attente de correspondance avec la transaction par carte',
         pendingMatch: 'Correspondance en attente',
