@@ -677,6 +677,7 @@ function MoneyRequestConfirmationList({
                     maxLength={formattedTotalAmount.length + 1}
                     contentWidth={(formattedTotalAmount.length + 1) * 8}
                     shouldApplyPaddingToContainer
+                    shouldPrefixUseDefaultLineHeight={false}
                 />
             ),
         }));

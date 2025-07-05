@@ -78,6 +78,7 @@ function BaseTextInput(
         placeholderTextColor,
         onClearInput,
         iconContainerStyle,
+        shouldPrefixUseDefaultLineHeight = true,
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -300,7 +301,7 @@ function BaseTextInput(
                                 variables.componentSizeLarge,
                                 typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0,
                             ),
-                        isAutoGrowHeightMarkdown && {minHeight: variables.componentSizeLarge},
+                        isAutoGrowHeightMarkdown && {minHeight: variables.inputHeight},
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
                     ]}
@@ -345,7 +346,7 @@ function BaseTextInput(
                                 </View>
                             )}
                             {!!prefixCharacter && (
-                                <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
+                                <View style={[styles.textInputPrefixWrapper, prefixContainerStyle, shouldApplyHeight && {height}]}>
                                     <Text
                                         onLayout={(event) => {
                                             if (event.nativeEvent.layout.width === 0 && event.nativeEvent.layout.height === 0) {
@@ -357,6 +358,7 @@ function BaseTextInput(
                                         tabIndex={-1}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                        shouldUseDefaultLineHeight={!!shouldPrefixUseDefaultLineHeight && !shouldApplyHeight}
                                     >
                                         {prefixCharacter}
                                     </Text>
