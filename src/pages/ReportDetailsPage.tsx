@@ -242,9 +242,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
     });
 
+    const iouAction = reportActions.find((action) => isMoneyRequestAction(action) && !!getOriginalMessage(action)?.IOUTransactionID);
+    const requestIOUTransactionID = isMoneyRequestAction(iouAction) ? getOriginalMessage(iouAction)?.IOUTransactionID : undefined;
+    const [childTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${requestIOUTransactionID}`, {canBeMissing: true});
     const isPrivateNotesFetchTriggered = reportMetadata?.isLoadingPrivateNotes !== undefined;
-    const iouAction = reportActions.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !!getOriginalMessage(action)?.IOUTransactionID);
-    const [childTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getOriginalMessage(iouAction)?.IOUTransactionID}`, {canBeMissing: true});
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyReport case
         if (caseID === CASES.MONEY_REPORT) {
