@@ -395,7 +395,7 @@ function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
  */
 function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvancedFiltersForm>) {
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    const {type, status, policyID, groupBy, ...otherFilters} = filterValues;
+    const {type, status, groupBy, ...otherFilters} = filterValues;
     const filtersString: string[] = [];
 
     // When switching types/setting the type, ensure we aren't polluting our query with filters that are
@@ -434,11 +434,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     if (status && Array.isArray(status)) {
         const filterValueArray = [...new Set<string>(status)];
         filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS}:${filterValueArray.map(sanitizeSearchValue).join(',')}`);
-    }
-
-    if (policyID) {
-        const sanitizedPolicyIDs = Array.isArray(policyID) ? policyID.map((id) => sanitizeSearchValue(id)).join(',') : sanitizeSearchValue(policyID);
-        filtersString.push(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID}:${sanitizedPolicyIDs}`);
     }
 
     const mappedFilters = Object.entries(otherFilters)
@@ -776,7 +771,7 @@ function buildUserReadableQueryString(
         title += ` group-by:${groupBy}`;
     }
 
-    if (policyID) {
+    if (policyID && policyID.length > 0) {
         title += ` workspace:${policyID.map((id) => sanitizeSearchValue(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]?.name ?? id)).join(',')}`;
     }
 

@@ -70,7 +70,7 @@ function SearchFiltersWorkspacePage() {
     }, [selectedOptions]);
 
     const resetChanges = useCallback(() => {
-        updateWorkspaceFilter(null);
+        setSelectedOptions([]);
     }, []);
 
     return (
