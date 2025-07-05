@@ -2632,8 +2632,8 @@ const CONST = {
             MANUAL: 'manual',
             SCAN: 'scan',
             PER_DIEM: 'per-diem',
-            DISTANCE_MAP: 'distanceMap',
-            DISTANCE_MANUAL: 'distanceManual',
+            DISTANCE_MAP: 'distance-map',
+            DISTANCE_MANUAL: 'distance-manual',
         },
         EXPENSE_TYPE: {
             DISTANCE: 'distance',
