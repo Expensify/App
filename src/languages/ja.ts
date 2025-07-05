@@ -1540,6 +1540,7 @@ const translations = {
             phrase4: 'プライバシー',
         },
         help: '助けて',
+        whatIsNew: '新着情報',
         accountSettings: 'アカウント設定',
         account: 'アカウント',
         general: '一般',

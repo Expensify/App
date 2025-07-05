@@ -1547,6 +1547,7 @@ const translations = {
             phrase4: 'Confidentialité',
         },
         help: 'Aide',
+        whatIsNew: 'Quoi de neuf',
         accountSettings: 'Paramètres du compte',
         account: 'Compte',
         general: 'Général',
