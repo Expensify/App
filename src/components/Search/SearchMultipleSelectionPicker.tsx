@@ -45,8 +45,7 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         const remainingItemsSection = items
             .filter(
                 (item) =>
-                    selectedItems.some((selectedItem) => selectedItem.value.toString() === item.value.toString()) === false &&
-                    item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()),
+                    !selectedItems.some((selectedItem) => selectedItem.value.toString() === item.value.toString()) && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()),
             )
             .sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString()))
             .map((item) => ({
