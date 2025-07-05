@@ -204,6 +204,7 @@ function Expensify() {
         Linking.getInitialURL().then((url) => {
             // We use custom deeplink handler in setup/hybridApp
             if (CONFIG.IS_HYBRID_APP) {
+                Report.doneCheckingPublicRoom();
                 return;
             }
             setInitialUrl(url);
@@ -214,7 +215,6 @@ function Expensify() {
         Linking.addEventListener('url', (state) => {
             // We use custom deeplink handler in setup/hybridApp
             if (CONFIG.IS_HYBRID_APP) {
-                Report.doneCheckingPublicRoom();
                 return;
             }
             Report.openReportFromDeepLink(state.url);
