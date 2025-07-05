@@ -31,7 +31,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
-import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import {
     areSettingsInErrorFields,
@@ -178,13 +177,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         setDateTimeToRelative('');
     }, [getDatetimeToRelative, successfulDate]);
-
-    useEffect(() => {
-        if (!policyID) {
-            return;
-        }
-        getAssignedSupportData(policyID);
-    }, [policyID]);
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
         if (shouldUseNarrowLayout) {
