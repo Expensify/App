@@ -1,10 +1,10 @@
-import { useBetas } from '@components/OnyxProvider';
-import { useOptionsList } from '@components/OptionListContextProvider';
-import { appendCountryCode } from '@libs/LoginUtils';
-import { filterAndOrderOptions, getHeaderMessage, getMemberInviteOptions } from '@libs/OptionsListUtils';
-import { addSMSDomainIfPhoneNumber, parsePhoneNumber } from '@libs/PhoneNumber';
+import {useMemo} from 'react';
+import {useBetas} from '@components/OnyxProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
+import {appendCountryCode} from '@libs/LoginUtils';
+import {filterAndOrderOptions, getHeaderMessage, getMemberInviteOptions} from '@libs/OptionsListUtils';
+import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import CONST from '@src/CONST';
-import { useMemo } from 'react';
 import useLocalize from './useLocalize';
 
 type UseMemberInviteSearchConfig = {
