@@ -95,10 +95,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         }
 
         setSelectedMembers((prevSelectedMembers) => {
-            const workflowMemberEmails = new Set<string>();
             const workflowMembers = approvalWorkflow.members.map((member) => {
-                workflowMemberEmails.add(member.email);
-
                 const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
                 let accountID = Number(policyMemberEmailsToAccountIDs[member.email]);
 
@@ -139,7 +136,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const sections: MembersSection[] = useMemo(() => {
         const members: SelectionListMember[] = [...selectedMembers];
 
-        const workspaceMembers: SelectionListMember[] = [];
         if (approvalWorkflow?.availableMembers) {
             const availableMembers = approvalWorkflow.availableMembers
                 .map((member) => {
@@ -168,7 +164,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     (member) => (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) && !selectedMembers.some((selectedOption) => selectedOption.login === member.login),
                 );
 
-            workspaceMembers.push(...availableMembers);
+            members.push(...availableMembers);
         }
 
         const availableMemberLogins = new Set(approvalWorkflow?.availableMembers?.map((member) => member.email) ?? []);
@@ -190,18 +186,10 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 ),
             }));
 
-        const hasUnselectedUserToInvite = inviteOptions.userToInvite && !selectedLogins.includes(inviteOptions.userToInvite.login ?? '');
-        const userToInviteFormatted = hasUnselectedUserToInvite && inviteOptions.userToInvite ? [formatMemberForList(inviteOptions.userToInvite)] : [];
+        members.push(...personalDetailsFormatted);
 
-        const externalUsers = [...personalDetailsFormatted, ...userToInviteFormatted];
-        members.push(...workspaceMembers, ...externalUsers);
-
-        let filteredMembers: SelectionListMember[];
-        if (debouncedSearchTerm !== '') {
-            filteredMembers = tokenizedSearch(members, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']);
-        } else {
-            filteredMembers = [...selectedMembers, ...workspaceMembers, ...externalUsers];
-        }
+        const filteredMembers =
+            debouncedSearchTerm !== '' ? tokenizedSearch(members, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']) : members;
 
         return [
             {
@@ -220,7 +208,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         approversEmail,
         personalDetailLogins,
         inviteOptions.personalDetails,
-        inviteOptions.userToInvite,
     ]);
 
     const goBack = useCallback(() => {
@@ -250,10 +237,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 }
             });
 
-            if (Object.keys(invitedEmailsToAccountIDs).length > 0) {
+            if (!isEmptyObject(invitedEmailsToAccountIDs)) {
                 setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
-                const backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID);
-                Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID, backTo));
+                Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID, Navigation.getActiveRoute()));
                 return;
             }
         }
