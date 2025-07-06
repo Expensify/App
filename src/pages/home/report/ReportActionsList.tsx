@@ -630,16 +630,13 @@ function ReportActionsList({
     const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
     const canShowHeader = isOffline || hasHeaderRendered.current;
 
-    const onLayoutInner = useCallback(
-        (event: LayoutChangeEvent) => {
-            onLayout(event);
-            if (isScrollToBottomEnabled) {
-                reportScrollManager.scrollToBottom();
-                setIsScrollToBottomEnabled(false);
-            }
-        },
-        [isScrollToBottomEnabled, onLayout, reportScrollManager],
-    );
+    const onContentSizeChange = useCallback(() => {
+        if (!isScrollToBottomEnabled) {
+            return;
+        }
+        reportScrollManager.scrollToBottom();
+        setIsScrollToBottomEnabled(false);
+    }, [isScrollToBottomEnabled, reportScrollManager]);
 
     const retryLoadNewerChatsError = useCallback(() => {
         loadNewerChats(true);
@@ -717,7 +714,8 @@ function ReportActionsList({
                     ListHeaderComponent={listHeaderComponent}
                     ListFooterComponent={listFooterComponent}
                     keyboardShouldPersistTaps="handled"
-                    onLayout={onLayoutInner}
+                    onLayout={onLayout}
+                    onContentSizeChange={onContentSizeChange}
                     onScroll={trackVerticalScrolling}
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
