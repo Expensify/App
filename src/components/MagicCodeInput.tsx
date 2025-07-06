@@ -6,8 +6,7 @@ import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
-import {isMobileChrome, isMobileSafari} from '@libs/Browser';
+import {isMobileChrome, isMobileSafari, isMobileWebKit} from '@libs/Browser';
 import {isNumeric} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
@@ -215,8 +214,8 @@ function MagicCodeInput(
             setInputAndIndex(lastFocusedIndex.current);
         }
         event.preventDefault();
-
-        if (!Browser.isMobileWebKit() || !shouldHandleScrollOnVirtualViewPort) {
+        
+        if (!isMobileWebKit() || !shouldHandleScrollOnVirtualViewPort) {
             return;
         }
 
@@ -224,7 +223,7 @@ function MagicCodeInput(
         // This occurs even when there is enough space to display both the input field and the submit button in the current view.
         // so this change to correct the scroll position when the input field gains focus.
         InteractionManager.runAfterInteractions(() => {
-            htmlDivElementRef(containerRef).current?.scrollIntoView?.({behavior: 'smooth', block: 'end'});
+            htmlDivElementRef(containerRef).current?.scrollIntoView?.({behavior: 'instant', block: 'end'});
         });
     };
 
