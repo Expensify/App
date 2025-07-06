@@ -51,6 +51,7 @@ function ButtonWithDropdownMenu<IValueType>({
     secondLineText = '',
     icon,
     shouldUseModalPaddingStyle = true,
+    shouldUseOptionIcon = false,
 }: ButtonWithDropdownMenuProps<IValueType>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -72,7 +73,7 @@ function ButtonWithDropdownMenu<IValueType>({
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
     const nullCheckRef = (ref: RefObject<View | null>) => ref ?? null;
-    const shouldShowRightIcon = !!options.at(0)?.iconRight;
+    const shouldShowRightIcon = !!options.at(0)?.shouldShowRightIcon;
 
     useEffect(() => {
         if (!dropdownAnchor.current) {
@@ -215,8 +216,8 @@ function ButtonWithDropdownMenu<IValueType>({
                     iconRightStyles={shouldShowRightIcon && styles.ml2}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     secondLineText={secondLineText}
-                    icon={icon ?? options.at(0)?.iconLeft}
-                    iconRight={options.at(0)?.iconRight}
+                    icon={shouldUseOptionIcon ? options.at(0)?.icon : icon}
+                    iconRight={shouldShowRightIcon ? options.at(0)?.icon : undefined}
                     shouldShowRightIcon={shouldShowRightIcon}
                 />
             )}
