@@ -67,7 +67,7 @@ import * as Environment from '@libs/Environment/Environment';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import getEnvironment from '@libs/Environment/getEnvironment';
 import type EnvironmentType from '@libs/Environment/getEnvironment/types';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
@@ -5642,7 +5642,7 @@ function buildOptimisticChangePolicyData(report: Report, policyID: string, repor
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         value: {
             [optimisticMovedReportAction.reportActionID]: {
-                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                errors: getMicroSecondTranslationErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     });

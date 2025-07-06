@@ -7,9 +7,10 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isReceiptError} from '@libs/ErrorUtils';
+import {isReceiptError, isTranslationPathError} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import handleRetryPress from '@libs/ReceiptUploadRetryHandler';
+import type {TranslationPathError} from '@src/languages/types';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
@@ -25,7 +26,7 @@ type DotIndicatorMessageProps = {
      *      timestamp: 'message',
      *  }
      */
-    messages: Record<string, string | ReceiptError | ReactElement | null>;
+    messages: Record<string, string | ReceiptError | TranslationPathError | ReactElement | null>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';
@@ -109,7 +110,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                 key={index}
                 style={[StyleUtils.getDotIndicatorTextStyles(isErrorMessage), textStyles]}
             >
-                {message}
+                {isTranslationPathError(message) ? translate(message.translationPath) : message}
             </Text>
         );
     };

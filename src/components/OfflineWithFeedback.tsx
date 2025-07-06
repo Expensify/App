@@ -12,6 +12,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { TranslationPathErrors } from '@src/languages/types';
 import CustomStylesForChildrenProvider from './CustomStylesForChildrenProvider';
 import ErrorMessageRow from './ErrorMessageRow';
 
@@ -29,7 +30,7 @@ type OfflineWithFeedbackProps = ChildrenProps & {
     shouldHideOnDelete?: boolean;
 
     /** The errors to display  */
-    errors?: OnyxCommon.Errors | ReceiptErrors | null;
+    errors?: OnyxCommon.Errors | ReceiptErrors | TranslationPathErrors | null;
 
     /** Whether we should show the error messages */
     shouldShowErrorMessages?: boolean;
