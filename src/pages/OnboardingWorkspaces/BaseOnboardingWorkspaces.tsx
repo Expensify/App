@@ -1,11 +1,11 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
-import useOnyx from '@hooks/useOnyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import PrivateDomainWorkspacesList from '@components/PrivateDomainWorkspacesList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
