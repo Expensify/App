@@ -221,7 +221,7 @@ function IOURequestStepParticipants({
             setMoneyRequestTag(transaction.transactionID, '');
             setMoneyRequestCategory(transaction.transactionID, '');
             if (participants?.at(0)?.reportID !== newReportID) {
-                setTransactionReport(transaction.transactionID, newReportID, true);
+                setTransactionReport(transaction.transactionID, {reportID: newReportID}, true);
             }
         });
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
