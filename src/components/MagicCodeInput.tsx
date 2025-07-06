@@ -1,14 +1,16 @@
 import type {ForwardedRef, KeyboardEvent} from 'react';
 import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
-import {StyleSheet, View} from 'react-native';
+import {InteractionManager, StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
 import {isNumeric} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
+import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import FormHelpMessage from './FormHelpMessage';
 import Text from './Text';
 import TextInput from './TextInput';
@@ -57,6 +59,9 @@ type MagicCodeInputProps = {
 
     /** TestID for test */
     testID?: string;
+
+    /** Should handle scroll on virtual view port */
+    shouldHandleScrollOnVirtualViewPort?: boolean;
 };
 
 type MagicCodeInputHandle = {
@@ -105,6 +110,7 @@ function MagicCodeInput(
         autoComplete,
         hasError = false,
         testID = '',
+        shouldHandleScrollOnVirtualViewPort = false,
     }: MagicCodeInputProps,
     ref: ForwardedRef<MagicCodeInputHandle>,
 ) {
@@ -199,6 +205,7 @@ function MagicCodeInput(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [value, shouldSubmitOnComplete]);
 
+    const containerRef = useRef<View>(null);
     /**
      * Focuses on the input when it is pressed.
      */
@@ -208,6 +215,17 @@ function MagicCodeInput(
             setInputAndIndex(lastFocusedIndex.current);
         }
         event.preventDefault();
+
+        if (!Browser.isMobileWebKit() || !shouldHandleScrollOnVirtualViewPort) {
+            return;
+        }
+
+        // On mobile WebKit browsers, when an input field gains focus, the keyboard appears and the virtual viewport is resized and scrolled to make the input field visible.
+        // This occurs even when there is enough space to display both the input field and the submit button in the current view.
+        // so this change to correct the scroll position when the input field gains focus.
+        InteractionManager.runAfterInteractions(() => {
+            htmlDivElementRef(containerRef).current?.scrollIntoView?.({behavior: 'smooth', block: 'end'});
+        });
     };
 
     /**
