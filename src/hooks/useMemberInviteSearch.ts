@@ -1,15 +1,14 @@
-import {useMemo} from 'react';
-import {useOptionsList} from '@components/OptionListContextProvider';
-import {appendCountryCode} from '@libs/LoginUtils';
-import {filterAndOrderOptions, getHeaderMessage, getMemberInviteOptions} from '@libs/OptionsListUtils';
-import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
+import { useBetas } from '@components/OnyxProvider';
+import { useOptionsList } from '@components/OptionListContextProvider';
+import { appendCountryCode } from '@libs/LoginUtils';
+import { filterAndOrderOptions, getHeaderMessage, getMemberInviteOptions } from '@libs/OptionsListUtils';
+import { addSMSDomainIfPhoneNumber, parsePhoneNumber } from '@libs/PhoneNumber';
 import CONST from '@src/CONST';
-import type {Beta} from '@src/types/onyx';
+import { useMemo } from 'react';
 import useLocalize from './useLocalize';
 
 type UseMemberInviteSearchConfig = {
     shouldInitialize: boolean;
-    betas?: Beta[];
     excludeLogins?: Record<string, boolean>;
     includeSelectedOptions?: boolean;
     includeRecentReports?: boolean;
@@ -23,7 +22,6 @@ type UseMemberInviteSearchConfig = {
  */
 function useMemberInviteSearch({
     shouldInitialize,
-    betas = [],
     excludeLogins = {},
     includeSelectedOptions = true,
     includeRecentReports = false,
@@ -34,6 +32,7 @@ function useMemberInviteSearch({
         shouldInitialize,
     });
     const {translate} = useLocalize();
+    const betas = useBetas();
 
     const excludedUsers = useMemo(() => {
         return {
@@ -47,7 +46,7 @@ function useMemberInviteSearch({
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions(options.personalDetails, betas, excludedUsers, includeSelectedOptions, options.reports, includeRecentReports);
+        const inviteOptions = getMemberInviteOptions(options.personalDetails, betas ?? [], excludedUsers, includeSelectedOptions, options.reports, includeRecentReports);
 
         return {
             ...inviteOptions,

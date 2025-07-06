@@ -65,7 +65,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListMember[]>([]);
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 
     const {
@@ -75,7 +74,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     } = useMemberInviteSearch({
         shouldInitialize: true,
         searchTerm: debouncedSearchTerm,
-        betas: betas ?? [],
         includeRecentReports: false,
         policyName: policy?.name ?? '',
     });
