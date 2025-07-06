@@ -99,7 +99,6 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
-    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -276,6 +275,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -550,7 +550,6 @@ const translations = {
         userID: 'ID utilisateur',
         disable: 'Désactiver',
         export: 'Exportation',
-        basicExport: 'Exportation basique',
         initialValue: 'Valeur initiale',
         currentDate: 'Current date',
         value: 'Valeur',
@@ -666,13 +665,6 @@ const translations = {
         attachmentImageTooLarge: 'Cette image est trop grande pour être prévisualisée avant le téléchargement.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `Vous pouvez télécharger jusqu'à ${fileLimit} fichiers à la fois.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Les fichiers dépassent ${maxUploadSizeInMB} MB. Veuillez réessayer.`,
-        someFilesCantBeUploaded: 'Certains fichiers ne peuvent pas être téléchargés',
-        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) =>
-            `Les fichiers doivent faire moins de ${maxUploadSizeInMB} MB. Les fichiers plus volumineux ne seront pas téléchargés.`,
-        maxFileLimitExceeded: "Vous pouvez télécharger jusqu'à 30 reçus à la fois. Les fichiers supplémentaires ne seront pas téléchargés.",
-        unsupportedFileType: ({fileType}: FileTypeParams) => `Les fichiers ${fileType} ne sont pas pris en charge. Seuls les types de fichiers pris en charge seront téléchargés.`,
-        learnMoreAboutSupportedFiles: 'En savoir plus sur les formats pris en charge.',
-        passwordProtected: 'Les PDF protégés par mot de passe ne sont pas pris en charge. Seuls les fichiers pris en charge seront téléchargés.',
     },
     dropzone: {
         addAttachments: 'Ajouter des pièces jointes',
@@ -2634,11 +2626,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Pour connecter un compte bancaire, veuillez <a href="${contactMethodRoute}">ajoutez un e-mail comme identifiant principal</a> et réessayez. Vous pouvez ajouter votre numéro de téléphone comme connexion secondaire.`,
         hasBeenThrottledError: "Une erreur s'est produite lors de l'ajout de votre compte bancaire. Veuillez attendre quelques minutes et réessayer.",
-        hasCurrencyError: {
-            phrase1: "Oups ! Il semble que la devise de votre espace de travail soit différente de l'USD. Pour continuer, veuillez aller sur",
-            link: "vos paramètres d'espace de travail",
-            phrase2: 'pour le régler sur USD et réessayer.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Oups ! Il semble que la devise de votre espace de travail soit différente de l'USD. Pour continuer, veuillez aller sur <a href="${workspaceRoute}">vos paramètres d'espace de travail</a> pour le régler sur USD et réessayer.`,
         error: {
             youNeedToSelectAnOption: 'Veuillez sélectionner une option pour continuer',
             noBankAccountAvailable: "Désolé, aucun compte bancaire n'est disponible.",
@@ -3418,7 +3407,7 @@ const translations = {
             welcomeNote: 'Veuillez utiliser Expensify pour soumettre vos reçus pour remboursement, merci !',
             subscription: 'Abonnement',
             markAsEntered: 'Marquer comme saisi manuellement',
-            markAsExported: 'Marquer comme exporté',
+            markAsExported: 'Marquer comme exporté manuellement',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exporter vers ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Vérifions que tout est correct.',
             lineItemLevel: 'Niveau des postes de dépense',

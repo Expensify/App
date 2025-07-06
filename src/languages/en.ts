@@ -87,7 +87,6 @@ import type {
     ExportIntegrationSelectedParams,
     FeatureNameParams,
     FileLimitParams,
-    FileTypeParams,
     FiltersAmountBetweenParams,
     FlightLayoverParams,
     FlightParams,
@@ -264,6 +263,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -541,7 +541,6 @@ const translations = {
         userID: 'User ID',
         disable: 'Disable',
         export: 'Export',
-        basicExport: 'Basic export',
         initialValue: 'Initial value',
         currentDate: 'Current date',
         value: 'Value',
@@ -656,12 +655,6 @@ const translations = {
         attachmentImageTooLarge: 'This image is too large to preview before uploading.',
         tooManyFiles: ({fileLimit}: FileLimitParams) => `You can only upload up to ${fileLimit} files at a time.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Files exceeds ${maxUploadSizeInMB} MB. Please try again.`,
-        someFilesCantBeUploaded: "Some files can't be uploaded",
-        sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Files must be under ${maxUploadSizeInMB} MB. Any larger files won't be uploaded.`,
-        maxFileLimitExceeded: "You can upload up to 30 receipts at a time. Any extras won't be uploaded.",
-        unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType} files aren't supported. Only supported file types will be uploaded.`,
-        learnMoreAboutSupportedFiles: 'Learn more about supported formats.',
-        passwordProtected: "Password-protected PDFs aren't supported. Only supported files will be uploaded.",
     },
     dropzone: {
         addAttachments: 'Add attachments',
@@ -2629,11 +2622,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `To connect a bank account, please <a href="${contactMethodRoute}">add an email as your primary login</a> and try again. You can add your phone number as a secondary login.`,
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
-        hasCurrencyError: {
-            phrase1: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to ',
-            link: 'your workspace settings',
-            phrase2: ' to set it to USD and try again.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to <a href="${workspaceRoute}">your workspace settings</a> to set it to USD and try again.`,
         error: {
             youNeedToSelectAnOption: 'Please select an option to proceed',
             noBankAccountAvailable: "Sorry, there's no bank account available",
@@ -3307,8 +3297,8 @@ const translations = {
             message: `Your admin has turned off Expensify Travel. Please follow your company's booking policy for travel arrangements.`,
         },
         verifyCompany: {
-            title: 'Get started with travel today!',
-            message: `Please contact your Account manager or salesteam@expensify.com to get a demo of travel and have it enabled for your company.`,
+            title: "We're reviewing your request...",
+            message: `We're running a few checks on our end to verify your account is ready for Expensify Travel. We'll be in touch shortly!`,
         },
         updates: {
             bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
@@ -3404,7 +3394,7 @@ const translations = {
             welcomeNote: 'Please use Expensify to submit your receipts for reimbursement, thanks!',
             subscription: 'Subscription',
             markAsEntered: 'Mark as manually entered',
-            markAsExported: 'Mark as exported',
+            markAsExported: 'Mark as manually exported',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: "Let's double check that everything looks right.",
             lineItemLevel: 'Line-item level',
@@ -6349,7 +6339,7 @@ const translations = {
         categoryOutOfPolicy: 'Category no longer valid',
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `Applied ${surcharge}% conversion surcharge`,
         customUnitOutOfPolicy: 'Rate not valid for this workspace',
-        duplicatedTransaction: 'Duplicate',
+        duplicatedTransaction: 'Potential duplicate',
         fieldRequired: 'Report fields are required',
         futureDate: 'Future date not allowed',
         invoiceMarkup: ({invoiceMarkup}: ViolationsInvoiceMarkupParams) => `Marked up by ${invoiceMarkup}%`,
