@@ -214,7 +214,7 @@ function MagicCodeInput(
             setInputAndIndex(lastFocusedIndex.current);
         }
         event.preventDefault();
-        
+
         if (!isMobileWebKit() || !shouldHandleScrollOnVirtualViewPort) {
             return;
         }
