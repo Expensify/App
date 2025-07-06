@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -28,6 +27,7 @@ import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -192,6 +192,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     pendingAction: getPendingAction(policyTagList),
                     enabled: true,
                     required: policyTagList.required,
+                    isDisabledCheckbox: isSwitchDisabled,
                     rightElement:
                         isBetaEnabled(CONST.BETAS.MULTI_LEVEL_TAGS) && hasDependentTags ? (
                             <ListItemRightCaretWithLabel
@@ -250,7 +251,17 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         const normalizeSearchInput = StringUtils.normalize(searchInput.toLowerCase());
         return tagText.includes(normalizeSearchInput) || tagValue.includes(normalizeSearchInput);
     }, []);
-    const sortTags = useCallback((tags: TagListItem[]) => tags.sort((a, b) => localeCompare(a.value, b.value)), []);
+    const sortTags = useCallback(
+        (tags: TagListItem[]) => {
+            // For multi-level tags, preserve the policy order (by orderWeight) instead of sorting alphabetically
+            if (hasDependentTags || isMultiLevelTags) {
+                return tags.sort((a, b) => (a.orderWeight ?? 0) - (b.orderWeight ?? 0));
+            }
+            // For other cases, sort alphabetically by name
+            return tags.sort((a, b) => localeCompare(a.value, b.value));
+        },
+        [hasDependentTags, isMultiLevelTags],
+    );
     const [inputValue, setInputValue, filteredTagList] = useSearchResults(tagList, filterTag, sortTags);
 
     const filteredTagListKeyedByName = useMemo(
@@ -272,7 +283,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const toggleAllTags = () => {
-        const availableTags = filteredTagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const availableTags = filteredTagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !tag.isDisabledCheckbox);
         setSelectedTags(selectedTags.length > 0 ? [] : availableTags.map((item) => item.value));
     };
 

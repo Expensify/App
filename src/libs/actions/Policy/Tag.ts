@@ -28,7 +28,6 @@ import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
-import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportedSpreadsheet, Policy, PolicyCategories, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report, TransactionViolations} from '@src/types/onyx';
@@ -820,9 +819,7 @@ function enablePolicyTags(policyID: string, enabled: boolean, policyCategories: 
 
     const parameters: EnablePolicyTagsParams = {policyID, enabled};
 
-    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData, {
-        checkAndFixConflictingRequest: (persistedRequests) => resolveEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_TAGS, persistedRequests, parameters),
-    });
+    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);

@@ -3,7 +3,6 @@ import {isPast} from 'date-fns';
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
@@ -26,6 +25,7 @@ import Tooltip from '@components/Tooltip';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
@@ -210,7 +210,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         [firstDayFreeTrial, lastDayFreeTrial, hasTeam2025Pricing, reportNameValuePairs, subscriptionPlan],
     );
 
-    const shouldShowSubscript = shouldReportShowSubscript(report);
+    const isArchived = isArchivedReport(reportNameValuePairs);
+    const shouldShowSubscript = shouldReportShowSubscript(report, isArchived);
     const defaultSubscriptSize = isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const icons = getIcons(reportHeaderData, personalDetails, null, '', -1, policy, invoiceReceiverPolicy);
     const brickRoadIndicator = hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
@@ -224,7 +225,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
     const shouldShowRegisterForWebinar = introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && (isChatUsedForOnboarding || isAdminRoom(report));
-    const isArchived = isArchivedReport(reportNameValuePairs);
     const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isArchived;
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
     const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
