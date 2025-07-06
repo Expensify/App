@@ -5062,6 +5062,8 @@ const CONST = {
         SCAN: 'scan',
         DISTANCE: 'distance',
         PER_DIEM: 'per-diem',
+        DISTANCE_MAP: 'distance-map',
+        DISTANCE_MANUAL: 'distance-manual',
     },
 
     STATUS_TEXT_MAX_LENGTH: 100,

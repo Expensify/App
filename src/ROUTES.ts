@@ -931,14 +931,14 @@ const ROUTES = {
             `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance/${backToReport ?? ''}` as const,
     },
     DISTANCE_REQUEST_CREATE_TAB_MAP: {
-        route: ':action/:iouType/start/:transactionID/:reportID/distance/map/:backToReport?',
+        route: 'distance-map/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance/map/${backToReport ?? ''}` as const,
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance/distance-map/${backToReport ?? ''}` as const,
     },
     DISTANCE_REQUEST_CREATE_TAB_MANUAL: {
-        route: ':action/:iouType/start/:transactionID/:reportID/distance/manual/:backToReport?',
+        route: 'distance-manual/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance/manual/${backToReport ?? ''}` as const,
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance/distance-manual/${backToReport ?? ''}` as const,
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
@@ -2605,6 +2605,8 @@ const HYBRID_APP_ROUTES = {
     MONEY_REQUEST_CREATE_TAB_SCAN: '/submit/new/scan',
     MONEY_REQUEST_CREATE_TAB_MANUAL: '/submit/new/manual',
     MONEY_REQUEST_CREATE_TAB_DISTANCE: '/submit/new/distance',
+    DISTANCE_REQUEST_CREATE_TAB_MAP: '/submit/new/distance/distance-map',
+    DISTANCE_REQUEST_CREATE_TAB_MANUAL: '/submit/new/distance/distance-manual',
 } as const;
 
 /**
