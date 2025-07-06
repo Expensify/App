@@ -14,6 +14,7 @@ import FormHelpMessage from './FormHelpMessage';
 import Text from './Text';
 import TextInput from './TextInput';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
+import viewRef from '@src/types/utils/viewRef';
 
 const TEXT_INPUT_EMPTY_STATE = '';
 
@@ -406,6 +407,8 @@ function MagicCodeInput(
                     <View
                         style={[StyleSheet.absoluteFillObject, styles.w100, styles.h100, styles.invisibleOverlay]}
                         collapsable={false}
+                        // eslint-disable-next-line react-compiler/react-compiler
+                        ref={viewRef(containerRef)}
                     >
                         <TextInput
                             disableKeyboard={isDisableKeyboard}
