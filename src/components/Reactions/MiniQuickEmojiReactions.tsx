@@ -42,14 +42,16 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
 
     const openEmojiPicker = () => {
         onPressOpenPicker();
-        showEmojiPicker({
-            onModalHide: onEmojiPickerClosed,
-            onEmojiSelected: (_emojiCode, emojiObject) => {
+        showEmojiPicker(
+            onEmojiPickerClosed,
+            (emojiCode, emojiObject) => {
                 onEmojiSelected(emojiObject, emojiReactions);
             },
-            emojiPopoverAnchor: ref,
-            id: reportAction.reportActionID,
-        });
+            ref,
+            undefined,
+            () => {},
+            reportAction.reportActionID,
+        );
     };
 
     return (

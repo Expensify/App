@@ -170,14 +170,11 @@ function ScreenWrapper(
     const shouldOffsetMobileOfflineIndicator = displaySmallScreenOfflineIndicator && addSmallScreenOfflineIndicatorBottomSafeAreaPadding && isOffline;
 
     const {initialURL} = useContext(InitialURLContext);
-    const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: true});
+    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: true});
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
-    usePreventRemove(true, () => {
-        const isOnInitialURL = initialURL === Navigation.getActiveRouteWithoutParams();
-        const shouldGoBackToOldDot = isSingleNewDotEntry && isOnInitialURL;
-
-        if (!CONFIG.IS_HYBRID_APP || !shouldGoBackToOldDot) {
+    usePreventRemove((isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
+        if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
         HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
