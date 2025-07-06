@@ -903,6 +903,7 @@ const translations = {
         distance: 'Distancia',
         manual: 'Manual',
         scan: 'Escanear',
+        map: 'Map'
     },
     spreadsheet: {
         upload: 'Importar',

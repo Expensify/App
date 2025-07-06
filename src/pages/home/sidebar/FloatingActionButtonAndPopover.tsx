@@ -22,7 +22,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {startMoneyRequest} from '@libs/actions/IOU';
+import {startMoneyRequest, startDistanceRequest} from '@libs/actions/IOU';
 import {openOldDotLink, openTravelDotLink} from '@libs/actions/Link';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
@@ -416,7 +416,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   return;
                               }
                               // Start the flow to start tracking a distance request
-                              return null;
+                              startDistanceRequest(
+                                CONST.IOU.TYPE.CREATE,
+                                // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                // for all of the routes in the creation flow.
+                                generateReportID(),
+                              );
                           });
                       },
                   },
