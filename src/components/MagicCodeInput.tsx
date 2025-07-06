@@ -10,11 +10,11 @@ import {isMobileChrome, isMobileSafari, isMobileWebKit} from '@libs/Browser';
 import {isNumeric} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
+import viewRef from '@src/types/utils/viewRef';
 import FormHelpMessage from './FormHelpMessage';
 import Text from './Text';
 import TextInput from './TextInput';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
-import viewRef from '@src/types/utils/viewRef';
 
 const TEXT_INPUT_EMPTY_STATE = '';
 
