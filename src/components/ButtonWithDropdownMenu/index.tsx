@@ -245,6 +245,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     headerText={menuHeaderText}
                     menuItems={options.map((item, index) => ({
                         ...item,
+                        shouldShowRightIcon: undefined,
                         onSelected: item.onSelected
                             ? () => item.onSelected?.()
                             : () => {
