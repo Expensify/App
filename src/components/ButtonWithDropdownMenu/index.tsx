@@ -216,7 +216,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     iconRightStyles={shouldShowRightIcon && styles.ml2}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     secondLineText={secondLineText}
-                    icon={shouldUseOptionIcon ? options.at(0)?.icon : icon}
+                    icon={shouldUseOptionIcon && !shouldShowRightIcon ? options.at(0)?.icon : icon}
                     iconRight={shouldShowRightIcon ? options.at(0)?.icon : undefined}
                     shouldShowRightIcon={shouldShowRightIcon}
                 />

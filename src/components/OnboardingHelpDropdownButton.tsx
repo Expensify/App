@@ -127,6 +127,7 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             success={!!hasActiveScheduledCall}
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             options={options}
+            shouldUseOptionIcon
             isSplitButton={false}
             customText={hasActiveScheduledCall ? translate('scheduledCall.callScheduled') : translate('getAssistancePage.onboardingHelp')}
             wrapperStyle={shouldUseNarrowLayout && styles.earlyDiscountButton}
