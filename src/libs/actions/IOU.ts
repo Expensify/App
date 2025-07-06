@@ -7,6 +7,7 @@ import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import * as API from '@libs/API';
+import {generateReportID} from '@libs/ReportUtils';
 import type {
     ApproveMoneyRequestParams,
     CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams,
@@ -11503,7 +11504,12 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
         // 1. Update report total
         // 2. Remove expense from report
         // 3. Add to existing draft report or create new one
-        const existingOpenReport = Object.values(allReports ?? {}).find((r) => r?.chatReportID === report.chatReportID && r?.type === CONST.REPORT.TYPE.EXPENSE && isOpenReport(r));
+        const existingOpenReport = Object.values(allReports ?? {}).find((r) =>
+            r?.reportID !== reportID &&
+            r?.chatReportID === report.chatReportID && 
+            r?.type === CONST.REPORT.TYPE.EXPENSE &&
+            isOpenReport(r) &&
+            r?.ownerAccountID === report.ownerAccountID);
 
         if (existingOpenReport) {
             movedToReport = existingOpenReport;
@@ -11517,12 +11523,12 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 },
             });
         } else {
-            const transactionOwner = reportAction?.actorAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
-            const personalDetails = getPersonalDetailsForAccountID(transactionOwner);
-            if (!personalDetails) {
-                return;
-            }
-            movedToReportID = createNewReport(personalDetails as OnyxTypes.PersonalDetails, policy?.id);
+            // const transactionOwner = reportAction?.actorAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+            // const personalDetails = getPersonalDetailsForAccountID(transactionOwner);
+            // if (!personalDetails) {
+            //     return;
+            // }
+            movedToReportID = generateReportID();
         }
         optimisticData.push(
             {

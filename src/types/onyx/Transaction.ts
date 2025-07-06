@@ -97,6 +97,10 @@ type Comment = {
     rterRjectedExpense?: {
         /** The comment of the rejected expense */
         comment: string;
+        /** Who rejected the expense */
+        rejectedBy?: string;
+        /** When the expense was rejected */
+        rejectedDate?: string;
     };
 };
 
