@@ -224,8 +224,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         const members: Member[] = selectedMembers.map((member) => ({displayName: member.text, avatar: member.icons?.[0]?.source, email: member.login}));
         setApprovalWorkflowMembers(members);
 
-        const existingMemberEmails = new Set(Object.keys(policy?.employeeList ?? {}));
-        const newUsersSelected = selectedMembers.filter((member) => !existingMemberEmails.has(member.login));
+        const newUsersSelected = selectedMembers.filter((member) => !policy?.employeeList?.[member.login]);
 
         if (newUsersSelected.length > 0) {
             const invitedEmailsToAccountIDs: Record<string, number> = {};
