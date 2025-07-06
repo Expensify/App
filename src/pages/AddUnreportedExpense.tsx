@@ -1,5 +1,4 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -11,6 +10,7 @@ import type {ListItem, SectionListDataType, SelectionListHandle} from '@componen
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';

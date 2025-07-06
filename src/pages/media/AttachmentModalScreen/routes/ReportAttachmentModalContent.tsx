@@ -1,10 +1,10 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {Attachment} from '@components/Attachments/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import {openReport} from '@libs/actions/Report';
 import validateAttachmentFile from '@libs/AttachmentUtils';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
