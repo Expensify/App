@@ -3,7 +3,6 @@ import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef} from '
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Animated, {FadeIn} from 'react-native-reanimated';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemWithLink} from '@components/MenuItemList';
@@ -18,6 +17,7 @@ import Text from '@components/Text';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAllFilters} from '@libs/actions/Search';
@@ -238,7 +238,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                             const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
                             const flattenedIndex = previousItemCount + itemIndex;
                             const focused = activeItemIndex === flattenedIndex;
-                            const shouldShowTooltip = item.translationPath === 'common.expenseReports' && !focused && shouldShowExpenseReportsTypeTooltip;
+                            const shouldShowTooltip = item.translationPath === 'common.reports' && !focused && shouldShowExpenseReportsTypeTooltip;
 
                             const onPress = singleExecution(() => {
                                 if (shouldShowTooltip) {
