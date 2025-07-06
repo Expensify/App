@@ -39,6 +39,7 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
     const [errorQueue, setErrorQueue] = useState<ErrorObject[]>([]);
     const [currentErrorIndex, setCurrentErrorIndex] = useState(0);
     const {setIsLoaderVisible} = useFullScreenLoader();
+
     const validatedPDFs = useRef<FileObject[]>([]);
     const validFiles = useRef<FileObject[]>([]);
     const filesToValidate = useRef<FileObject[]>([]);
@@ -143,47 +144,47 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
         Promise.all(files.map((file) => isValidFile(file, files.length > 1).then((isValid) => (isValid ? file : null))))
             .then((validationResults) => {
                 const filteredResults = validationResults.filter((result): result is FileObject => result !== null);
-                const validImages = filteredResults.filter((file) => !Str.isPDF(file.name ?? ''));
                 const pdfsToLoad = filteredResults.filter((file) => Str.isPDF(file.name ?? ''));
+                const otherFiles = filteredResults.filter((file) => !Str.isPDF(file.name ?? ''));
 
                 // Check if we need to convert images
-                if (validImages.some((file) => isHeicOrHeifImage(file))) {
+                if (otherFiles.some((file) => isHeicOrHeifImage(file))) {
                     setIsLoaderVisible(true);
 
-                    return Promise.all(validImages.map((file) => convertHeicImageToJpegPromise(file))).then((convertedImages) => {
+                    return Promise.all(otherFiles.map((file) => convertHeicImageToJpegPromise(file))).then((convertedImages) => {
                         // Check if we need to resize images
                         if (convertedImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
-                            return Promise.all(convertedImages.map((file) => resizeImageIfNeeded(file))).then((processedImages) => {
+                            return Promise.all(convertedImages.map((file) => resizeImageIfNeeded(file))).then((processedFiles) => {
                                 setIsLoaderVisible(false);
-                                return Promise.resolve({processedImages, pdfsToLoad});
+                                return Promise.resolve({processedFiles, pdfsToLoad});
                             });
                         }
 
                         // No resizing needed, just return the converted images
                         setIsLoaderVisible(false);
-                        return Promise.resolve({processedImages: convertedImages, pdfsToLoad});
+                        return Promise.resolve({processedFiles: convertedImages, pdfsToLoad});
                     });
                 }
 
                 // No conversion needed, but check if we need to resize images
-                if (validImages.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
+                if (otherFiles.some((file) => (file.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE)) {
                     setIsLoaderVisible(true);
-                    return Promise.all(validImages.map((file) => resizeImageIfNeeded(file))).then((processedImages) => {
+                    return Promise.all(otherFiles.map((file) => resizeImageIfNeeded(file))).then((processedFiles) => {
                         setIsLoaderVisible(false);
-                        return Promise.resolve({processedImages, pdfsToLoad});
+                        return Promise.resolve({processedFiles, pdfsToLoad});
                     });
                 }
 
                 // No conversion or resizing needed, just return the valid images
-                return Promise.resolve({processedImages: validImages, pdfsToLoad});
+                return Promise.resolve({processedFiles: otherFiles, pdfsToLoad});
             })
-            .then(({processedImages, pdfsToLoad}) => {
+            .then(({processedFiles, pdfsToLoad}) => {
                 if (pdfsToLoad.length) {
-                    validFiles.current = processedImages;
+                    validFiles.current = processedFiles;
                     setPdfFilesToRender(pdfsToLoad);
                 } else {
-                    if (processedImages.length > 0) {
-                        setValidFilesToUpload(processedImages);
+                    if (processedFiles.length > 0) {
+                        setValidFilesToUpload(processedFiles);
                     }
 
                     if (collectedErrors.current.length > 0) {
@@ -198,8 +199,8 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
                             }
                             setIsErrorModalVisible(true);
                         }
-                    } else if (processedImages.length > 0) {
-                        proceedWithFilesAction(processedImages);
+                    } else if (processedFiles.length > 0) {
+                        proceedWithFilesAction(processedFiles);
                         resetValidationState();
                     }
                 }
@@ -229,6 +230,9 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
             const nextIndex = currentErrorIndex + 1;
             const nextError = errorQueue.at(nextIndex);
             if (nextError) {
+                if (validFiles.current.length === 0) {
+                    setIsValidatingMultipleFiles(false);
+                }
                 setCurrentErrorIndex(nextIndex);
                 setFileError(nextError.error);
                 setInvalidFileExtension(nextError.fileExtension ?? '');
