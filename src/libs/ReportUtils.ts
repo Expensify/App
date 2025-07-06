@@ -1840,53 +1840,83 @@ function pushTransactionViolationsOnyxData(
     policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
     policyTagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
 ): OnyxData {
-    if (isEmptyObject(policyUpdate) && (isEmptyObject(policyCategoriesUpdate) || isEmptyObject(policyTagListsUpdate))) {
+    if (isEmptyObject(policyUpdate) && isEmptyObject(policyCategoriesUpdate) && isEmptyObject(policyTagListsUpdate)) {
         return onyxData;
     }
-    const optimisticPolicyTagLists = Object.keys(policyTagLists).reduce<PolicyTagLists>((acc, tagName) => {
-        acc[tagName] = {...policyTagLists[tagName], ...(policyTagListsUpdate?.[tagName] ?? {})};
-        return acc;
-    }, {});
+    const optimisticPolicyTagLists = isEmptyObject(policyTagListsUpdate)
+        ? policyTagLists
+        : Object.keys(policyTagLists).reduce<PolicyTagLists>((acc, tagName) => {
+              acc[tagName] = {...policyTagLists[tagName], ...(policyTagListsUpdate?.[tagName] ?? {})};
+              return acc;
+          }, {});
 
-    const optimisticPolicyCategories = Object.keys(policyCategories).reduce<PolicyCategories>((acc, categoryName) => {
-        acc[categoryName] = {...policyCategories[categoryName], ...(policyCategoriesUpdate?.[categoryName] ?? {})};
-        return acc;
-    }, {});
+    const optimisticPolicyCategories = isEmptyObject(policyCategoriesUpdate)
+        ? policyCategories
+        : Object.keys(policyCategories).reduce<PolicyCategories>((acc, categoryName) => {
+              acc[categoryName] = {...policyCategories[categoryName], ...(policyCategoriesUpdate?.[categoryName] ?? {})};
+              return acc;
+          }, {});
 
     const optimisticPolicy = {...allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ...policyUpdate} as Policy;
     const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticPolicyTagLists);
 
-    getAllPolicyReports(policyID).forEach((report) => {
+    const processedTransactionIDs = new Set<string>();
+    const optimisticData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    const reports = getAllPolicyReports(policyID);
+
+    if (!reports || reports.length === 0) {
+        return onyxData;
+    }
+
+    reports.forEach((report) => {
         if (!report?.reportID) {
             return;
         }
 
-        const isReportAnInvoice = isInvoiceReport(report);
+        const isInvoice = isInvoiceReport(report);
+        const transactions = getReportTransactions(report.reportID) ?? [];
 
-        getReportTransactions(report.reportID).forEach((transaction: Transaction) => {
-            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+        transactions.forEach((transaction) => {
+            const transactionID = transaction?.transactionID;
+            if (!transactionID || processedTransactionIDs.has(transactionID)) {
+                return;
+            }
 
-            const optimisticTransactionViolations = ViolationsUtils.getViolationsOnyxData(
+            processedTransactionIDs.add(transactionID);
+
+            const existingViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+
+            const optimisticViolations = ViolationsUtils.getViolationsOnyxData(
                 transaction,
-                transactionViolations ?? [],
+                existingViolations ?? [],
                 optimisticPolicy,
                 optimisticPolicyTagLists,
                 optimisticPolicyCategories,
                 hasDependentTags,
-                isReportAnInvoice,
+                isInvoice,
             );
 
-            if (optimisticTransactionViolations) {
-                onyxData?.optimisticData?.push(optimisticTransactionViolations);
-                onyxData?.failureData?.push({
+            if (optimisticViolations) {
+                optimisticData.push(optimisticViolations);
+                failureData.push({
                     onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                    value: transactionViolations ?? null,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    value: existingViolations ?? null,
                 });
             }
         });
     });
-    return onyxData;
+
+    if (optimisticData.length === 0) {
+        return onyxData;
+    }
+    return {
+        ...onyxData,
+        optimisticData: optimisticData.length > 0 ? [...(onyxData?.optimisticData ?? []), ...optimisticData] : onyxData.optimisticData,
+        failureData: failureData.length > 0 ? [...(onyxData?.failureData ?? []), ...failureData] : onyxData.failureData,
+    };
 }
 
 /**
