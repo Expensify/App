@@ -1,6 +1,6 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {ListItem} from '@components/SelectionList/types';
+import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -12,7 +12,7 @@ import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNo
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
-type ReportListItem = ListItem & {
+type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
     value: string;
 };
@@ -26,7 +26,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
-    const selectReport = (item: ReportListItem) => {
+    const selectReport = (item: TransactionGroupListItem) => {
         if (!transaction) {
             return;
         }
@@ -36,7 +36,11 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 changeTransactionsReport([transaction.transactionID], item.value);
             }
         }
-        Navigation.dismissModalWithReport({reportID: item.value});
+        if (isEditing) {
+            Navigation.dismissModalWithReport({reportID: item.value});
+        } else {
+            Navigation.goBack(backTo);
+        }
     };
 
     return (

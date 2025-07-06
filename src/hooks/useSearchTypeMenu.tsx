@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -20,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import useDeleteSavedSearch from './useDeleteSavedSearch';
 import useLocalize from './useLocalize';
+import useOnyx from './useOnyx';
 import useSingleExecution from './useSingleExecution';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
@@ -45,11 +45,14 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [processedMenuItems, setProcessedMenuItems] = useState<PopoverMenuItem[]>([]);
 
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
+    const [allCards, hasCardFeed] = useMemo(() => {
+        const mergedCards = mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList);
+        return [mergedCards, Object.keys(mergedCards).length > 0];
+    }, [userCardList, workspaceCardFeeds]);
 
     const cardFeedNamesWithType = useMemo(() => getCardFeedNamesWithType({workspaceCardFeeds, translate}), [workspaceCardFeeds, translate]);
 
-    const typeMenuSections = useMemo(() => createTypeMenuSections(session, allPolicies), [allPolicies, session]);
+    const typeMenuSections = useMemo(() => createTypeMenuSections(session, hasCardFeed, allPolicies), [session, hasCardFeed, allPolicies]);
 
     // this is a performance fix, rendering popover menu takes a lot of time and we don't need this component initially, that's why we postpone rendering it until everything else is rendered
     const [delayPopoverMenuFirstRender, setDelayPopoverMenuFirstRender] = useState(true);
@@ -58,14 +61,6 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             setDelayPopoverMenuFirstRender(false);
         }, 100);
     }, []);
-
-    const activeItemIndex = useMemo(() => {
-        const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-        return flattenedMenuItems.findIndex((item) => {
-            const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
-            return searchQueryJSON?.hash === hash;
-        });
-    }, [hash, typeMenuSections]);
 
     const closeMenu = useCallback(() => {
         setIsPopoverVisible(false);
@@ -76,55 +71,17 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         [showDeleteModal, closeMenu],
     );
 
-    const popoverMenuItems = useMemo(() => {
-        return typeMenuSections
-            .map((section, sectionIndex) => {
-                const sectionItems: PopoverMenuItem[] = [
-                    {
-                        shouldShowBasicTitle: true,
-                        text: translate(section.translationPath),
-                        style: [styles.textSupporting],
-                        disabled: true,
-                    },
-                ];
+    const {savedSearchesMenuItems, isSavedSearchActive} = useMemo(() => {
+        let savedSearchFocused = false;
 
-                section.menuItems.forEach((item, itemIndex) => {
-                    const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
-                    const flattenedIndex = previousItemCount + itemIndex;
-                    const isSelected = flattenedIndex === activeItemIndex;
-
-                    sectionItems.push({
-                        text: translate(item.translationPath),
-                        isSelected,
-                        icon: item.icon,
-                        iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
-                        iconRight: Expensicons.Checkmark,
-                        shouldShowRightIcon: isSelected,
-                        success: isSelected,
-                        containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
-                        shouldCallAfterModalHide: true,
-                        onSelected: singleExecution(() => {
-                            clearAllFilters();
-                            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.getSearchQuery()}));
-                        }),
-                    });
-                });
-
-                return sectionItems;
-            })
-            .flat();
-    }, [typeMenuSections, translate, styles.textSupporting, activeItemIndex, theme.iconSuccessFill, theme.icon, theme.border, singleExecution]);
-
-    const processSavedSearches = useCallback(() => {
         if (!savedSearches) {
-            setProcessedMenuItems(popoverMenuItems);
-            return;
+            return {
+                isSavedSearchActive: false,
+                savedSearchesMenuItems: [],
+            };
         }
 
-        const items = [];
-        items.push(...popoverMenuItems);
-
-        const savedSearchItems = Object.entries(savedSearches).map(([key, item], index) => {
+        const menuItems = Object.entries(savedSearches).map(([key, item], index) => {
             let savedSearchTitle = item.name;
 
             if (savedSearchTitle === item.query) {
@@ -134,6 +91,8 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
             const isItemFocused = Number(key) === hash;
             const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, savedSearchTitle, isItemFocused);
+
+            savedSearchFocused ||= isItemFocused;
 
             return {
                 ...baseMenuItem,
@@ -162,17 +121,86 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             };
         });
 
-        if (savedSearchItems.length > 0) {
+        return {
+            savedSearchesMenuItems: menuItems,
+            isSavedSearchActive: savedSearchFocused,
+        };
+    }, [savedSearches, hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies]);
+
+    const activeItemIndex = useMemo(() => {
+        // If we have a suggested search, then none of the menu items are active
+        if (isSavedSearchActive) {
+            return -1;
+        }
+
+        const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
+        return flattenedMenuItems.findIndex((item) => {
+            const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
+            return searchQueryJSON?.hash === hash;
+        });
+    }, [hash, isSavedSearchActive, typeMenuSections]);
+
+    const popoverMenuItems = useMemo(() => {
+        return typeMenuSections
+            .map((section, sectionIndex) => {
+                const sectionItems: PopoverMenuItem[] = [
+                    {
+                        shouldShowBasicTitle: true,
+                        text: translate(section.translationPath),
+                        style: [styles.textSupporting],
+                        disabled: true,
+                    },
+                ];
+
+                section.menuItems.forEach((item, itemIndex) => {
+                    const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
+                    const flattenedIndex = previousItemCount + itemIndex;
+                    const isSelected = flattenedIndex === activeItemIndex;
+
+                    sectionItems.push({
+                        text: translate(item.translationPath),
+                        isSelected,
+                        icon: item.icon,
+                        ...(isSelected ? {iconFill: theme.iconSuccessFill} : {}),
+                        iconRight: Expensicons.Checkmark,
+                        shouldShowRightIcon: isSelected,
+                        success: isSelected,
+                        containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
+                        shouldCallAfterModalHide: true,
+                        onSelected: singleExecution(() => {
+                            clearAllFilters();
+                            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.getSearchQuery()}));
+                        }),
+                    });
+                });
+
+                return sectionItems;
+            })
+            .flat();
+    }, [typeMenuSections, translate, styles.textSupporting, activeItemIndex, theme.iconSuccessFill, theme.icon, theme.border, singleExecution]);
+
+    const processSavedSearches = useCallback(() => {
+        if (!savedSearches) {
+            setProcessedMenuItems(popoverMenuItems);
+            return;
+        }
+
+        const items = [];
+        items.push(...popoverMenuItems);
+
+        if (savedSearchesMenuItems.length > 0) {
             items.push({
+                shouldShowBasicTitle: true,
                 text: translate('search.savedSearchesMenuItemTitle'),
                 styles: [styles.textSupporting],
                 disabled: true,
             });
-            items.push(...savedSearchItems);
+
+            items.push(...savedSearchesMenuItems);
         }
 
         setProcessedMenuItems(items as PopoverMenuItem[]);
-    }, [savedSearches, popoverMenuItems, hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies, translate]);
+    }, [savedSearches, popoverMenuItems, savedSearchesMenuItems, translate, styles.textSupporting]);
 
     const openMenu = useCallback(() => {
         setIsPopoverVisible(true);

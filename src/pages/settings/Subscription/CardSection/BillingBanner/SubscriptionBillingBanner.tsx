@@ -17,7 +17,7 @@ type SubscriptionBillingBannerProps = Omit<BillingBannerProps, 'titleStyle' | 's
 function SubscriptionBillingBanner({title, subtitle, rightIcon, icon, isError = false, onRightIconPress, rightIconAccessibilityLabel}: SubscriptionBillingBannerProps) {
     const styles = useThemeStyles();
 
-    const iconAsset = icon ?? isError ? Illustrations.CreditCardEyes : Illustrations.CheckmarkCircle;
+    const iconAsset = (icon ?? isError) ? Illustrations.CreditCardEyes : Illustrations.CheckmarkCircle;
 
     return (
         <BillingBanner

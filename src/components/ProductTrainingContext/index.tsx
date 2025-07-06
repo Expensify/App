@@ -1,26 +1,26 @@
 import React, {createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanel from '@hooks/useSidePanel';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
-import getPlatform from '@libs/getPlatform';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
-import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import createPressHandler from './createPressHandler';
 import type {ProductTrainingTooltipName} from './TOOLTIPS';
 import TOOLTIPS from './TOOLTIPS';
 
@@ -117,6 +117,13 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         return highestPriorityTooltip.name;
     }, [activeTooltips]);
 
+    const isUserInPaidPolicy = useMemo(() => {
+        if (!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) {
+            return false;
+        }
+        return getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies).length > 0;
+    }, [allPolicies, currentUserLogin, allPoliciesMetadata, currentUserLoginMetadata]);
+
     const shouldTooltipBeVisible = useCallback(
         (tooltipName: ProductTrainingTooltipName) => {
             if (isLoadingOnyxValue(isOnboardingCompletedMetadata) || isLoadingApp) {
@@ -154,18 +161,20 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 isUserPolicyEmployee,
                 isUserPolicyAdmin,
                 hasBeenAddedToNudgeMigration,
+                isUserInPaidPolicy,
             });
         },
         [
+            isOnboardingCompletedMetadata,
+            isLoadingApp,
             dismissedProductTraining,
             hasBeenAddedToNudgeMigration,
             isOnboardingCompleted,
-            isOnboardingCompletedMetadata,
-            shouldUseNarrowLayout,
             isModalVisible,
-            isLoadingApp,
+            shouldUseNarrowLayout,
             isUserPolicyEmployee,
             isUserPolicyAdmin,
+            isUserInPaidPolicy,
         ],
     );
 
@@ -274,11 +283,10 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         styles.alignItemsCenter,
                         styles.flexRow,
                         tooltip?.shouldRenderActionButtons ? styles.justifyContentStart : styles.justifyContentCenter,
-                        styles.flexWrap,
                         styles.textAlignCenter,
                         styles.gap3,
                         styles.pv2,
-                        styles.ph1,
+                        styles.ph2,
                     ]}
                 >
                     <Icon
@@ -301,26 +309,11 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     </Text>
                     {!tooltip?.shouldRenderActionButtons && (
                         <PressableWithoutFeedback
-                            // On some Samsung devices, `onPress` is never triggered.
-                            // So, we use `onPressIn` for Android to ensure the button is pressable.
-                            onPressIn={
-                                getPlatform() === CONST.PLATFORM.ANDROID
-                                    ? () => {
-                                          hideTooltip(true);
-                                      }
-                                    : undefined
-                            }
-                            // For other platforms, we stick with `onPress`.
-                            onPress={
-                                getPlatform() !== CONST.PLATFORM.ANDROID
-                                    ? () => {
-                                          hideTooltip(true);
-                                      }
-                                    : undefined
-                            }
                             shouldUseAutoHitSlop
                             accessibilityLabel={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
                             role={CONST.ROLE.BUTTON}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...createPressHandler(() => hideTooltip(true))}
                         >
                             <Icon
                                 src={Expensicons.Close}
@@ -337,12 +330,14 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             success
                             text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
                             style={[styles.flex1]}
-                            onPress={config.onConfirm}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...createPressHandler(config.onConfirm)}
                         />
                         <Button
                             text={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
                             style={[styles.flex1]}
-                            onPress={config.onDismiss}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...createPressHandler(config.onDismiss)}
                         />
                     </View>
                 )}
@@ -354,11 +349,9 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.flexRow,
         styles.justifyContentStart,
         styles.justifyContentCenter,
-        styles.flexWrap,
         styles.textAlignCenter,
         styles.gap3,
         styles.pv2,
-        styles.ph1,
         styles.productTrainingTooltipText,
         styles.textWrap,
         styles.mw100,

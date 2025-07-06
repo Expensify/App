@@ -25,7 +25,7 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
         const filename = getFileName(source);
         const receiptURIs = getThumbnailAndImageURIs(transactionItem, null, filename);
         const isReceiptPDF = Str.isPDF(filename);
-        source = tryResolveUrlFromApiRoot(isReceiptPDF && !receiptURIs.isLocalFile ? receiptURIs.thumbnail ?? '' : receiptURIs.image ?? '');
+        source = tryResolveUrlFromApiRoot(isReceiptPDF && !receiptURIs.isLocalFile ? (receiptURIs.thumbnail ?? '') : (receiptURIs.image ?? ''));
     }
 
     return (

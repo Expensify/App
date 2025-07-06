@@ -33,6 +33,7 @@ import * as Expensicons from './Icon/Expensicons';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import MultipleAvatars from './MultipleAvatars';
+import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
@@ -50,7 +51,7 @@ type IconProps = {
 };
 
 type AvatarProps = {
-    iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
+    iconType?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE | typeof CONST.ICON_TYPE_PLAID;
 
     icon: AvatarSource | IconType[];
 };
@@ -83,6 +84,9 @@ type MenuItemBaseProps = {
 
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Styles to apply on the title wrapper */
+    titleWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Any additional styles to apply on the outer element */
     containerStyle?: StyleProp<ViewStyle>;
@@ -372,6 +376,9 @@ type MenuItemBaseProps = {
 
     /** The value to copy on secondary interaction */
     copyValue?: string;
+
+    /** Plaid image for the bank */
+    plaidUrl?: string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -391,6 +398,7 @@ function MenuItem(
         badgeText,
         style,
         wrapperStyle,
+        titleWrapperStyle,
         outerWrapperStyle,
         containerStyle,
         titleStyle,
@@ -491,6 +499,7 @@ function MenuItem(
         pressableTestID,
         shouldTeleportPortalToModalLayer,
         copyValue,
+        plaidUrl,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -745,12 +754,12 @@ function MenuItem(
                                                                         fill={
                                                                             displayInDefaultIconColor
                                                                                 ? undefined
-                                                                                : iconFill ??
+                                                                                : (iconFill ??
                                                                                   StyleUtils.getIconFillColor(
                                                                                       getButtonState(focused || isHovered, pressed, success, disabled, interactive),
                                                                                       true,
                                                                                       isPaneMenu,
-                                                                                  )
+                                                                                  ))
                                                                         }
                                                                         additionalStyles={additionalIconStyles}
                                                                     />
@@ -781,6 +790,7 @@ function MenuItem(
                                                                     type={CONST.ICON_TYPE_AVATAR}
                                                                 />
                                                             )}
+                                                            {iconType === CONST.ICON_TYPE_PLAID && !!plaidUrl && <PlaidCardFeedIcon plaidUrl={plaidUrl} />}
                                                         </View>
                                                     )}
                                                     {!!secondaryIcon && (
@@ -814,7 +824,7 @@ function MenuItem(
                                                             </Text>
                                                         )}
                                                         {(!!title || !!shouldShowTitleIcon) && (
-                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100]}>
+                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, titleWrapperStyle]}>
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={styles.renderHTMLTitle}>
                                                                         <RenderHTML html={processedTitle} />

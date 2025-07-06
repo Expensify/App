@@ -1,5 +1,6 @@
+import {useNavigation, useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {Fragment, useState} from 'react';
+import React, {Fragment, useEffect, useState} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
@@ -37,15 +38,38 @@ type CurrencyPickerProps = {
 
     /** Should show the full page offline view (whenever the user is offline) */
     shouldShowFullPageOfflineView?: boolean;
+
+    /** Should sync picker visibility with navigation params (for modal state restoration) */
+    shouldSyncPickerVisibilityWithNavigation?: boolean;
+
+    /** Should save currency value in navigation params */
+    shouldSaveCurrencyInNavigation?: boolean;
 };
 
-function CurrencyPicker({label, value, errorText, headerContent, excludeCurrencies, disabled = false, shouldShowFullPageOfflineView = false, onInputChange = () => {}}: CurrencyPickerProps) {
+function CurrencyPicker({
+    label,
+    value,
+    errorText,
+    headerContent,
+    excludeCurrencies,
+    disabled = false,
+    shouldShowFullPageOfflineView = false,
+    shouldSyncPickerVisibilityWithNavigation = false,
+    shouldSaveCurrencyInNavigation = false,
+    onInputChange = () => {},
+}: CurrencyPickerProps) {
     const {translate} = useLocalize();
-    const [isPickerVisible, setIsPickerVisible] = useState(false);
+    const route = useRoute();
+    const navigation = useNavigation();
+    const isPickerVisibleParam = route.params && 'isPickerVisible' in route.params && route.params.isPickerVisible === 'true';
+    const [isPickerVisible, setIsPickerVisible] = useState(isPickerVisibleParam ?? false);
     const styles = useThemeStyles();
 
     const hidePickerModal = () => {
         setIsPickerVisible(false);
+        if (shouldSaveCurrencyInNavigation) {
+            Navigation.setParams({currency: value});
+        }
     };
 
     const updateInput = (item: CurrencyListItem) => {
@@ -54,6 +78,13 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
     };
 
     const BlockingComponent = shouldShowFullPageOfflineView ? FullPageOfflineBlockingView : Fragment;
+
+    useEffect(() => {
+        if (!shouldSyncPickerVisibilityWithNavigation) {
+            return;
+        }
+        Navigation.setParams({isPickerVisible: String(isPickerVisible)});
+    }, [isPickerVisible, navigation, shouldSyncPickerVisibilityWithNavigation]);
 
     return (
         <>

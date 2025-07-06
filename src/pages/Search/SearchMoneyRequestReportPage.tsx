@@ -2,12 +2,12 @@ import {PortalHost} from '@gorhom/portal';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList} from 'react-native';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -39,7 +39,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
-    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true});
+    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: false});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
@@ -93,13 +93,15 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                             shouldShowBackButton={shouldUseNarrowLayout}
                             onBackButtonPress={Navigation.goBack}
                         >
-                            <MoneyRequestReportView
-                                report={report}
-                                reportMetadata={reportMetadata}
-                                policy={policy}
-                                shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
-                                backToRoute={route.params.backTo}
-                            />
+                            <DragAndDropProvider isDisabled={isEditingDisabled}>
+                                <MoneyRequestReportView
+                                    report={report}
+                                    reportMetadata={reportMetadata}
+                                    policy={policy}
+                                    shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                    backToRoute={route.params.backTo}
+                                />
+                            </DragAndDropProvider>
                         </FullPageNotFoundView>
                     </ScreenWrapper>
                 </ReactionListWrapper>

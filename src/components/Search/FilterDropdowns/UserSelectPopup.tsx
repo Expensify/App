@@ -1,7 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -9,6 +8,7 @@ import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/Search/UserSelectionListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function getSelectedOptionData(option: Option) {
-    return {...option, selected: true};
+    return {...option, reportID: `${option.reportID}`, selected: true};
 }
 
 type UserSelectPopupProps = {
@@ -38,34 +38,28 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {options} = useOptionsList();
+    const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const personalDetails = usePersonalDetails();
-
-    // Since accountIDs are passed as value, we need to "populate" them into OptionData
-    const initialSelectedData: OptionData[] = useMemo(() => {
-        const initialOptions = value
-            .map((accountID) => {
-                const participant = personalDetails?.[accountID];
-
-                if (!participant) {
-                    return;
-                }
-
-                return getSelectedOptionData(participant);
-            })
-            .filter(Boolean) as OptionData[];
-
-        return initialOptions;
-
-        // The initial value of a useState only gets calculated once, so we dont need to keep calculating this initial state
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.accountID});
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOptions, setSelectedOptions] = useState<Option[]>(initialSelectedData);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [selectedOptions, setSelectedOptions] = useState<Option[]>(() => {
+        return value.reduce<OptionData[]>((acc, id) => {
+            const participant = personalDetails?.[id];
+            if (!participant) {
+                return acc;
+            }
+
+            const optionData = getSelectedOptionData(participant);
+            if (optionData) {
+                acc.push(optionData);
+            }
+
+            return acc;
+        }, []);
+    });
 
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
 
@@ -80,7 +74,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 selectedOptions,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeSelectedOptions: true,
-                includeSelfDM: true,
+                includeCurrentUser: true,
             },
         );
 
@@ -89,13 +83,24 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
 
-        const personalDetailList = filteredOptionsList.map((participant) => ({
-            ...participant,
-            isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
-        }));
+        const personalDetailList = filteredOptionsList
+            .map((participant) => ({
+                ...participant,
+                isSelected: selectedOptions.some((selectedOption) => selectedOption.accountID === participant.accountID),
+            }))
+            .sort((a, b) => {
+                // Put the current user at the top of the list
+                if (a.accountID === accountID) {
+                    return -1;
+                }
+                if (b.accountID === accountID) {
+                    return 1;
+                }
+                return 0;
+            });
 
-        return [...(recentReports ?? []), ...(personalDetailList ?? [])];
-    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions]);
+        return [...(personalDetailList ?? []), ...(recentReports ?? [])];
+    }, [cleanSearchTerm, options.personalDetails, options.reports, selectedOptions, accountID]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [
@@ -158,11 +163,11 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
             <SelectionList
                 canSelectMultiple
+                textInputAutoFocus
                 shouldClearInputOnSelect={false}
                 headerMessage={headerMessage}
                 sections={sections}
                 ListItem={UserSelectionListItem}
-                showScrollIndicator={false}
                 containerStyle={[!shouldUseNarrowLayout && styles.pt4]}
                 contentContainerStyle={[styles.pb2]}
                 textInputLabel={translate('selectionList.searchForSomeone')}

@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -71,7 +71,6 @@ const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = n
                             action={mockAction}
                             iouReportID={mockIOUReport.iouReportID}
                             chatReportID={mockChatReport.chatReportID}
-                            containerStyles={[]}
                             contextMenuAnchor={contextMenuAnchor}
                             checkIfContextMenuActive={() => {}}
                             onPaymentOptionsShow={() => {}}
@@ -94,6 +93,12 @@ const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
     const transactionHeaderText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
     const transactionDisplayAmount = convertToDisplayString(transaction.amount, transaction.currency);
     return {transactionHeaderText, transactionDisplayAmount};
+};
+
+const setCurrentWidth = () => {
+    fireEvent(screen.getByTestId('carouselWidthSetter'), 'layout', {
+        nativeEvent: {layout: {width: 500}},
+    });
 };
 
 const mockSecondTransaction: Transaction = {
@@ -136,8 +141,9 @@ describe('MoneyRequestReportPreview', () => {
     it('renders transaction details and associated report name correctly', async () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
         await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions).then(waitForBatchedUpdates);
-        const {childReportName: moneyRequestReportPreviewName = ''} = mockAction;
+        const {reportName: moneyRequestReportPreviewName = ''} = mockChatReport;
         for (const transaction of arrayOfTransactions) {
             const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
 
@@ -151,6 +157,7 @@ describe('MoneyRequestReportPreview', () => {
     it('renders RBR for every transaction with violations', async () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
         await Onyx.multiSet({...mockOnyxTransactions, ...mockOnyxViolations});
         expect(screen.getAllByText(translateLocal('violations.reviewRequired'))).toHaveLength(2);
     });
@@ -158,6 +165,7 @@ describe('MoneyRequestReportPreview', () => {
     it('renders a skeleton if the transaction is empty', async () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
+        setCurrentWidth();
         expect(screen.getAllByTestId(TransactionPreviewSkeletonView.displayName)).toHaveLength(2);
     });
 });

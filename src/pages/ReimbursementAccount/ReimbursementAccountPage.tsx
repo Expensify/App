@@ -2,19 +2,20 @@ import {Str} from 'expensify-common';
 import lodashPick from 'lodash/pick';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxProvider';
 import ReimbursementAccountLoadingIndicator from '@components/ReimbursementAccountLoadingIndicator';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useBeforeRemove from '@hooks/useBeforeRemove';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -58,6 +59,7 @@ type ReimbursementAccountPageProps = WithPolicyOnyxProps & PlatformStackScreenPr
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function ReimbursementAccountPage({route, policy, isLoadingPolicy}: ReimbursementAccountPageProps) {
+    const {environmentURL} = useEnvironment();
     const session = useSession();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
@@ -67,23 +69,29 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
-    const {canUseGlobalReimbursementsOnND} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name ?? '';
     const policyIDParam = route.params?.policyID;
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const requestorStepRef = useRef(null);
+    const requestorStepRef = useRef<View>(null);
     const prevReimbursementAccount = usePrevious(reimbursementAccount);
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
-    const hasUnsupportedCurrency = !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType, canUseGlobalReimbursementsOnND ?? false);
+    const hasUnsupportedCurrency = !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) ?? false);
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
     // shouldUseNarrowLayout cannot be used here because this page is displayed in a RHP
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+
+    const workspaceRoute = isSmallScreenWidth
+        ? `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())}`
+        : `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute())}`;
+
+    const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`;
 
     /**
      The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
@@ -96,7 +104,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const isPreviousPolicy = policyIDParam === achData?.policyID;
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
 
-    const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+    const currentStep = !isPreviousPolicy ? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT : (achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
     const [nonUSDBankAccountStep, setNonUSDBankAccountStep] = useState<string | null>(null);
     const [USDBankAccountStep, setUSDBankAccountStep] = useState<string | null>(null);
 
@@ -145,8 +153,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
         // We can specify a step to navigate to by using route params when the component mounts.
         // We want to use the same stepToOpen variable when the network state changes because we can be redirected to a different step when the account refreshes.
         const stepToOpen = getStepToOpenFromRouteParams(route);
-        const subStep = isPreviousPolicy ? achData?.subStep ?? '' : '';
-        const localCurrentStep = isPreviousPolicy ? achData?.currentStep ?? '' : '';
+        const subStep = isPreviousPolicy ? (achData?.subStep ?? '') : '';
+        const localCurrentStep = isPreviousPolicy ? (achData?.currentStep ?? '') : '';
 
         if (policyIDParam) {
             openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep, policyIDParam);
@@ -329,7 +337,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 break;
 
             default:
-                Navigation.goBack();
+                Navigation.dismissModal();
         }
     };
 
@@ -385,14 +393,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     if (userHasPhonePrimaryEmail) {
         errorText = (
             <Text style={styles.flexRow}>
-                <Text>{translate('bankAccount.hasPhoneLoginError.phrase1')}</Text>{' '}
-                <TextLink
-                    style={styles.link}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
-                >
-                    {translate('bankAccount.hasPhoneLoginError.link')}
-                </TextLink>
-                {translate('bankAccount.hasPhoneLoginError.phrase2')}
+                <RenderHTML html={translate('bankAccount.hasPhoneLoginError', {contactMethodRoute})} />
             </Text>
         );
     } else if (throttledDate) {
@@ -400,19 +401,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     } else if (hasUnsupportedCurrency) {
         errorText = (
             <Text style={styles.flexRow}>
-                {translate('bankAccount.hasCurrencyError.phrase1')}
-                <TextLink
-                    style={styles.link}
-                    onPress={() => {
-                        const routeToNavigate = isSmallScreenWidth
-                            ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())
-                            : ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute());
-                        Navigation.goBack(routeToNavigate);
-                    }}
-                >
-                    {translate('bankAccount.hasCurrencyError.link')}
-                </TextLink>
-                {translate('bankAccount.hasCurrencyError.phrase2')}
+                <RenderHTML html={translate('bankAccount.hasCurrencyError', {workspaceRoute})} />
             </Text>
         );
     }

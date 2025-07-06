@@ -1,7 +1,6 @@
 import {format, getMonth, getYear} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,16 +8,16 @@ import WalletStatementModal from '@components/WalletStatementModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemePreference from '@hooks/useThemePreference';
-import DateUtils from '@libs/DateUtils';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {addTrailingForwardSlash} from '@libs/Url';
 import type {WalletStatementNavigatorParamList} from '@navigation/types';
-import * as User from '@userActions/User';
+import {generateStatementPDF} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -26,13 +25,13 @@ import type SCREENS from '@src/SCREENS';
 type WalletStatementPageProps = PlatformStackScreenProps<WalletStatementNavigatorParamList, typeof SCREENS.WALLET_STATEMENT_ROOT>;
 
 function WalletStatementPage({route}: WalletStatementPageProps) {
-    const [walletStatement] = useOnyx(ONYXKEYS.WALLET_STATEMENT);
+    const [walletStatement] = useOnyx(ONYXKEYS.WALLET_STATEMENT, {canBeMissing: true});
     const themePreference = useThemePreference();
     const yearMonth = route.params.yearMonth ?? null;
     const isWalletStatementGenerating = walletStatement?.isGenerating ?? false;
     const prevIsWalletStatementGenerating = usePrevious(isWalletStatementGenerating);
     const [isDownloading, setIsDownloading] = useState(isWalletStatementGenerating);
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const {environment} = useEnvironment();
     const {isOffline} = useNetwork();
 
@@ -45,10 +44,6 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we want this effect to run only on mount
     }, []);
-
-    useEffect(() => {
-        DateUtils.setLocale(preferredLocale);
-    }, [preferredLocale]);
 
     const processDownload = useCallback(() => {
         if (isWalletStatementGenerating) {
@@ -65,7 +60,7 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
             return;
         }
 
-        User.generateStatementPDF(yearMonth);
+        generateStatementPDF(yearMonth);
     }, [baseURL, isWalletStatementGenerating, walletStatement, yearMonth]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return

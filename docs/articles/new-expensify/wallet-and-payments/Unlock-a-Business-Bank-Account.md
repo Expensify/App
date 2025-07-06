@@ -1,29 +1,64 @@
 ---
 title: Unlock a Business Bank Account
-description: How to fix a locked Bank Account
+description: Learn how to resolve issues with a locked business bank account in Expensify.
+keywords: [New Expensify, unlock bank account, reimbursements, direct debit, ACH, bank rejected withdrawal]
 ---
 <div id="new-expensify" markdown="1">
 
-When you reimburse a report, you authorize Expensify to withdraw the funds from your account. If your bank rejects Expensify’s withdrawal request, your verified bank account is locked until the issue is resolved.
+When you reimburse a report, Expensify initiates a withdrawal from your connected business bank account. If your bank rejects this withdrawal—due to **insufficient funds**, **missing authorization**, or **direct debit restrictions**—your account will be **locked** until the issue is resolved.
 
-Withdrawal requests can be rejected due to insufficient funds, or if the bank account has not been enabled for direct debit.
+---
 
-## To request to unlock a bank account:
-1. Go to **Settings > Workspaces > _Workspace Name_ > Bank account** and click **Fix**
-2. This sends a request to our support team to review why the bank account was locked, who will send you a message outlining some next steps
+# Why Is My Bank Account Locked?
 
-Unlocking a bank account can take several business days to process due to ACH processing times and clawback periods.
+Common reasons include:
 
-**If you need to enable direct debits from your verified bank account, your bank will require the following details:**
-- The ACH CompanyIDs (1270239450, 4270239450 and 2270239450) 
-- The ACH Originator Name (Expensify)
+- Your bank account is not enabled for **ACH direct debits**
+- There were **insufficient funds** available during a reimbursement attempt
+- Your bank blocked the debit attempt
 
-**If using Expensify to process Bill payments, you'll also need to whitelist the ACH IDs from our partner [Stripe](https://support.stripe.com/questions/ach-direct-debit-company-ids-for-stripe?):**
-- The ACH CompanyIDs (1800948598 and 4270465600)
-- The ACH Originator Name (expensify.com)
+When this occurs, Expensify pauses reimbursements and locks the verified account as a precaution.
 
-**If using Expensify to process international reimbursements from your USD bank account, you'll need to whitelist the ACH IDs from our payment partner CorPay:**
-- The ACH CompanyIDs (1522304924 and 2522304924)
-- The ACH Originator Name (Cambridge Global Payments)
+---
+
+# How to Request an Unlock
+
+To unlock your account:
+
+1. Go to **Workspaces > [Workspace Name] > Bank Account**.
+2. Click the **Fix** button next to the locked account.
+
+This sends a request to the Expensify support team. A Concierge agent will contact you with the next steps.
+
+> **Note:** Unlocking a bank account may take several business days due to ACH processing timelines and clawback periods.
+
+---
+
+# Enable Direct Debit with Your Bank
+
+To ensure your bank allows direct debit from Expensify, share the following ACH details with your financial institution:
+
+### For Reimbursements via Expensify:
+
+- **ACH Company IDs**:  
+  `1270239450`, `4270239450`, `2270239450`  
+- **ACH Originator Name**: `Expensify`
+
+### For Bill Payments via Stripe:
+
+- **ACH Company IDs**:  
+  `1800948598`, `4270465600`  
+- **ACH Originator Name**: `expensify.com`  
+- [Stripe ACH ID Reference](https://support.stripe.com/questions/ach-direct-debit-company-ids-for-stripe)
+
+### For International Reimbursements via CorPay:
+
+- **ACH Company IDs**:  
+  `1522304924`, `2522304924`  
+- **ACH Originator Name**: `Cambridge Global Payments`
+
+---
+
+Once your bank has approved these IDs and your account is reviewed, Concierge will notify you when it is unlocked and reimbursements can resume.
 
 </div>

@@ -1,9 +1,8 @@
 import {Str} from 'expensify-common';
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
@@ -14,6 +13,8 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import SwipeableView from '@components/SwipeableView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -102,10 +103,10 @@ function ReportFooter({
         },
         canBeMissing: true,
     });
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: false});
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
-    const isArchivedRoom = isArchivedNonExpenseReport(report, reportNameValuePairs);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
 
     const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth) < variables.anonymousReportFooterBreakpoint;
 
@@ -238,12 +239,12 @@ ReportFooter.displayName = 'ReportFooter';
 export default memo(
     ReportFooter,
     (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.report, nextProps.report) &&
+        deepEqual(prevProps.report, nextProps.report) &&
         prevProps.pendingAction === nextProps.pendingAction &&
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
-        lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
-        lodashIsEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
-        lodashIsEqual(prevProps.policy?.role, nextProps.policy?.role),
+        deepEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
+        deepEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
+        deepEqual(prevProps.policy?.role, nextProps.policy?.role),
 );

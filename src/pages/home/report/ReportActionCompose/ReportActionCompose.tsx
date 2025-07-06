@@ -1,15 +1,16 @@
 import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import {runOnUI, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
-import type {FileObject} from '@components/AttachmentModal';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import AttachmentModal from '@components/AttachmentModal';
-import DropZoneUI from '@components/DropZoneUI';
+import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
+import DropZoneUI from '@components/DropZone/DropZoneUI';
+import DualDropZone from '@components/DropZone/DualDropZone';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -20,10 +21,12 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,17 +36,41 @@ import DomUtils from '@libs/DomUtils';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
 import Performance from '@libs/Performance';
-import {canShowReportRecipientLocalTime, chatIncludesChronos, chatIncludesConcierge, getReportRecipientAccountIDs} from '@libs/ReportUtils';
+import {
+    canShowReportRecipientLocalTime,
+    chatIncludesChronos,
+    chatIncludesConcierge,
+    getParentReport,
+    getReportRecipientAccountIDs,
+    isAdminRoom,
+    isAnnounceRoom,
+    isChatRoom,
+    isConciergeChatReport,
+    isGroupChat,
+    isInvoiceReport,
+    isReportTransactionThread,
+    isSelfDM,
+    isSettled,
+    isUserCreatedPolicyRoom,
+} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import Navigation from '@navigation/Navigation';
+import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportDropUI from '@pages/home/report/ReportDropUI';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
+import {initMoneyRequest, replaceReceipt, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {addAttachment as addAttachmentReportActions, setIsComposerFullSize} from '@userActions/Report';
 import Timing from '@userActions/Timing';
+import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -110,6 +137,7 @@ function ReportActionCompose({
     onComposerBlur,
     didHideComposerInput,
 }: ReportActionComposeProps) {
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -120,9 +148,10 @@ function ReportActionCompose({
     const personalDetails = usePersonalDetails();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, {canBeMissing: true});
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
 
-    // TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled
-    const {canUseMultiFilesDragAndDrop} = usePermissions();
+    // TODO: remove beta check after the feature is enabled
+    const {isBetaEnabled} = usePermissions();
 
     /**
      * Updates the Highlight state of the composer
@@ -190,6 +219,28 @@ function ReportActionCompose({
     const includesConcierge = useMemo(() => chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
+    const parentReport = useMemo(() => getParentReport(report), [report]);
+    const shouldDisplayDualDropZone = useMemo(
+        () =>
+            !isChatRoom(report) &&
+            !isUserCreatedPolicyRoom(report) &&
+            !isAnnounceRoom(report) &&
+            !isAdminRoom(report) &&
+            !isConciergeChatReport(report) &&
+            !isInvoiceReport(report) &&
+            !isGroupChat(report) &&
+            !isSettled(parentReport) &&
+            !isSettled(report),
+        [report, parentReport],
+    );
+    const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
+    const transactionID = useMemo(() => getTransactionID(reportID), [reportID]);
+
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+
+    const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
+
+    const isEditingReceipt = isTransactionThreadView && transactionID && hasReceipt;
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
@@ -340,6 +391,7 @@ function ReportActionCompose({
     const composerRefShared = useSharedValue<{
         clear: (() => void) | undefined;
     }>({clear: undefined});
+
     const handleSendMessage = useCallback(() => {
         'worklet';
 
@@ -356,15 +408,44 @@ function ReportActionCompose({
         clearComposer();
     }, [isSendDisabled, isReportReadyForDisplay, composerRefShared]);
 
+    const measureComposer = useCallback(
+        (e: LayoutChangeEvent) => {
+            actionSheetAwareScrollViewContext.transitionActionSheetState({
+                type: ActionSheetAwareScrollView.Actions.MEASURE_COMPOSER,
+                payload: {
+                    composerHeight: e.nativeEvent.layout.height,
+                },
+            });
+        },
+        [actionSheetAwareScrollViewContext],
+    );
+
     // eslint-disable-next-line react-compiler/react-compiler
     onSubmitAction = handleSendMessage;
 
+    const emojiPositionValues = useMemo(
+        () => ({
+            secondaryRowHeight: styles.chatItemComposeSecondaryRow.height,
+            secondaryRowMarginTop: styles.chatItemComposeSecondaryRow.marginTop,
+            secondaryRowMarginBottom: styles.chatItemComposeSecondaryRow.marginBottom,
+            composeBoxMinHeight: styles.chatItemComposeBox.minHeight,
+            emojiButtonHeight: styles.chatItemEmojiButton.height,
+        }),
+        [
+            styles.chatItemComposeSecondaryRow.height,
+            styles.chatItemComposeSecondaryRow.marginTop,
+            styles.chatItemComposeSecondaryRow.marginBottom,
+            styles.chatItemComposeBox.minHeight,
+            styles.chatItemEmojiButton.height,
+        ],
+    );
+
     const emojiShiftVertical = useMemo(() => {
-        const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
-        const reportActionComposeHeight = styles.chatItemComposeBox.minHeight + chatItemComposeSecondaryRowHeight;
-        const emojiOffsetWithComposeBox = (styles.chatItemComposeBox.minHeight - styles.chatItemEmojiButton.height) / 2;
+        const chatItemComposeSecondaryRowHeight = emojiPositionValues.secondaryRowHeight + emojiPositionValues.secondaryRowMarginTop + emojiPositionValues.secondaryRowMarginBottom;
+        const reportActionComposeHeight = emojiPositionValues.composeBoxMinHeight + chatItemComposeSecondaryRowHeight;
+        const emojiOffsetWithComposeBox = (emojiPositionValues.composeBoxMinHeight - emojiPositionValues.emojiButtonHeight) / 2;
         return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
-    }, [styles]);
+    }, [emojiPositionValues]);
 
     const validateMaxLength = useCallback(
         (value: string) => {
@@ -393,12 +474,81 @@ function ReportActionCompose({
         [isComposerFullSize, reportID, debouncedValidate],
     );
 
+    const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
+        if (files.length === 0) {
+            return;
+        }
+        if (isEditingReceipt) {
+            const source = URL.createObjectURL(files.at(0) as Blob);
+            replaceReceipt({transactionID, file: files.at(0) as File, source});
+        } else {
+            const initialTransaction = initMoneyRequest({
+                reportID,
+                newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            });
+
+            files.forEach((file, index) => {
+                const source = URL.createObjectURL(file as Blob);
+                const newTransaction =
+                    index === 0
+                        ? (initialTransaction as Partial<OnyxTypes.Transaction>)
+                        : buildOptimisticTransactionAndCreateDraft({
+                              initialTransaction: initialTransaction as Partial<OnyxTypes.Transaction>,
+                              currentUserPersonalDetails,
+                              reportID,
+                          });
+                const newTransactionID = newTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+                setMoneyRequestReceipt(newTransactionID, source, file.name ?? '', true);
+                setMoneyRequestParticipantsFromReport(newTransactionID, report);
+            });
+            Navigation.navigate(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    CONST.IOU.ACTION.CREATE,
+                    isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT,
+                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                    reportID,
+                ),
+            );
+        }
+    };
+
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
+
+    const handleAddingReceipt = (e: DragEvent) => {
+        if (policy && shouldRestrictUserBillableActions(policy.id)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+            return;
+        }
+        if (isEditingReceipt) {
+            const file = e?.dataTransfer?.files?.[0];
+            if (file) {
+                file.uri = URL.createObjectURL(file);
+                validateFiles([file]);
+                return;
+            }
+        }
+
+        const files = Array.from(e?.dataTransfer?.files ?? []);
+        if (files.length === 0) {
+            return;
+        }
+        files.forEach((file) => {
+            // eslint-disable-next-line no-param-reassign
+            file.uri = URL.createObjectURL(file);
+        });
+
+        validateFiles(files);
+    };
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
                 {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
             </OfflineWithFeedback>
-            <View style={isComposerFullSize ? styles.flex1 : {}}>
+            <View
+                onLayout={measureComposer}
+                style={isComposerFullSize ? styles.flex1 : {}}
+            >
                 <OfflineWithFeedback
                     shouldDisableOpacity
                     pendingAction={pendingAction}
@@ -415,6 +565,7 @@ function ReportActionCompose({
                             !!exceededMaxLength && styles.borderColorDanger,
                         ]}
                     >
+                        {PDFValidationComponent}
                         <AttachmentModal
                             headerTitle={translate('reportActionCompose.sendAttachment')}
                             onConfirm={addAttachment}
@@ -422,6 +573,7 @@ function ReportActionCompose({
                             onModalHide={onAttachmentPreviewClose}
                             shouldDisableSendButton={!!exceededMaxLength}
                             reportID={reportID}
+                            shouldHandleNavigationBack
                         >
                             {({displayFileInModal}) => (
                                 <>
@@ -483,9 +635,25 @@ function ReportActionCompose({
                                         onValueChange={onValueChange}
                                         didHideComposerInput={didHideComposerInput}
                                     />
-                                    {/* TODO: remove canUseMultiFilesDragAndDrop check after the feature is enabled */}
-                                    {canUseMultiFilesDragAndDrop ? (
-                                        <DropZoneUI
+                                    {/* TODO: remove beta check after the feature is enabled */}
+                                    {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && shouldDisplayDualDropZone && (
+                                        <DualDropZone
+                                            isEditing={isTransactionThreadView && hasReceipt}
+                                            onAttachmentDrop={(event: DragEvent) => {
+                                                if (isAttachmentPreviewActive) {
+                                                    return;
+                                                }
+                                                const data = event.dataTransfer?.files[0];
+                                                if (data) {
+                                                    data.uri = URL.createObjectURL(data);
+                                                    displayFileInModal(data);
+                                                }
+                                            }}
+                                            onReceiptDrop={handleAddingReceipt}
+                                        />
+                                    )}
+                                    {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && !shouldDisplayDualDropZone && (
+                                        <DragAndDropConsumer
                                             onDrop={(event: DragEvent) => {
                                                 if (isAttachmentPreviewActive) {
                                                     return;
@@ -496,13 +664,17 @@ function ReportActionCompose({
                                                     displayFileInModal(data);
                                                 }
                                             }}
-                                            icon={Expensicons.MessageInABottle}
-                                            dropTitle={translate('dropzone.addAttachments')}
-                                            dropStyles={styles.attachmentDropOverlay}
-                                            dropTextStyles={styles.attachmentDropText}
-                                            dropInnerWrapperStyles={styles.attachmentDropInnerWrapper}
-                                        />
-                                    ) : (
+                                        >
+                                            <DropZoneUI
+                                                icon={Expensicons.MessageInABottle}
+                                                dropTitle={translate('dropzone.addAttachments')}
+                                                dropStyles={styles.attachmentDropOverlay(true)}
+                                                dropTextStyles={styles.attachmentDropText}
+                                                dropInnerWrapperStyles={styles.attachmentDropInnerWrapper(true)}
+                                            />
+                                        </DragAndDropConsumer>
+                                    )}
+                                    {!isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && (
                                         <ReportDropUI
                                             onDrop={(event: DragEvent) => {
                                                 if (isAttachmentPreviewActive) {
@@ -542,6 +714,7 @@ function ReportActionCompose({
                             handleSendMessage={handleSendMessage}
                         />
                     </View>
+                    {ErrorModal}
                     <View
                         style={[
                             styles.flexRow,
@@ -551,6 +724,7 @@ function ReportActionCompose({
                         ]}
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                        <AgentZeroProcessingRequestIndicator reportID={reportID} />
                         <ReportTypingIndicator reportID={reportID} />
                         {!!exceededMaxLength && (
                             <ExceededCommentLength

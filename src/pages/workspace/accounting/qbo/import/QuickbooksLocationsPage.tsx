@@ -71,8 +71,8 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                         isSwitchOn
                             ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE
                             : shouldShowLineItemsRestriction
-                            ? CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD
-                            : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                              ? CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD
+                              : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                     )
                 }
                 errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS)}

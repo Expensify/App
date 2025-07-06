@@ -2,7 +2,6 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {useRoute} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo} from 'react';
 import {InteractionManager} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import type {ConfirmationPageProps} from '@components/ConfirmationPage';
@@ -14,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -226,6 +226,13 @@ function MergeResultPage() {
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 illustration: Illustrations.LockClosedOrange,
             },
+            [CONST.MERGE_ACCOUNT_RESULTS.ERR_MERGE_SELF]: {
+                heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
+                description: translate('mergeAccountsPage.mergeFailureSelfMerge.description'),
+                buttonText: translate('common.buttonConfirm'),
+                onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
+                illustration: Illustrations.LockClosedOrange,
+            },
         };
     }, [setRootStatusBarEnabled, login, translate, userEmailOrPhone, styles]);
 
@@ -283,7 +290,7 @@ function MergeResultPage() {
                 secondaryButtonText={secondaryButtonText}
                 onSecondaryButtonPress={onSecondaryButtonPress}
                 description={description}
-                descriptionStyle={{...descriptionStyle, ...styles.textSupporting}}
+                descriptionStyle={[descriptionStyle, styles.textSupporting]}
                 illustration={illustration}
                 illustrationStyle={illustrationStyle}
                 cta={cta}

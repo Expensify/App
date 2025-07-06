@@ -26,20 +26,23 @@ export default function () {
                 }
 
                 Log.info('[Migrate Onyx] Running  RenameCardIsVirtual migration');
-                const dataToSave = cardsWithIsVirtualProp.reduce((acc, card) => {
-                    if (!card) {
+                const dataToSave = cardsWithIsVirtualProp.reduce(
+                    (acc, card) => {
+                        if (!card) {
+                            return acc;
+                        }
+
+                        acc[card.cardID] = {
+                            nameValuePairs: {
+                                isVirtual: card?.nameValuePairs?.isVirtual,
+                            },
+                            isVirtual: undefined,
+                        };
+
                         return acc;
-                    }
-
-                    acc[card.cardID] = {
-                        nameValuePairs: {
-                            isVirtual: card?.nameValuePairs?.isVirtual,
-                        },
-                        isVirtual: undefined,
-                    };
-
-                    return acc;
-                }, {} as Record<string, NullishDeep<OldCard>>);
+                    },
+                    {} as Record<string, NullishDeep<OldCard>>,
+                );
 
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
                 Onyx.merge(ONYXKEYS.CARD_LIST, dataToSave).then(() => {

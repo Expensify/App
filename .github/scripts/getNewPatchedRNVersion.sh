@@ -21,7 +21,7 @@ PACKAGE_VERSIONS="$(gh api "/orgs/Expensify/packages/maven/com.expensify.${PACKA
 PACKAGE_VERSIONS="$(echo "$PACKAGE_VERSIONS" | grep "$VERSION")"
 
 # Grab the highest patch version from there
-LATEST_PATCHED_VERSION="$(echo "$PACKAGE_VERSIONS" | sort | tail -n1)"
+LATEST_PATCHED_VERSION="$(echo "$PACKAGE_VERSIONS" | sort -V | tail -n1)"
 
 if [[ -n "$LATEST_PATCHED_VERSION" ]]; then
     PATCH_ITERATION=${LATEST_PATCHED_VERSION##*-}

@@ -1,16 +1,18 @@
+import {useRoute} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useMemo, useState} from 'react';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {ActivityIndicator, View} from 'react-native';
+import React, {useMemo} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {isIOUReportPendingCurrencyConversion} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {
     getOriginalMessage,
     isDeletedParentAction as isDeletedParentActionReportActionsUtils,
@@ -22,11 +24,11 @@ import {
 import {generateReportID} from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TransactionPreview from './TransactionPreview';
@@ -82,27 +84,21 @@ function MoneyRequestAction({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`, {canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false, canBeMissing: true});
-
+    const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
+    const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
-    const [previewWidth, setPreviewWidth] = useState(0);
     const containerStyles = useMemo(
-        () => [
-            {
-                width: previewWidth,
-                maxWidth: previewWidth,
-            },
-            styles.cursorPointer,
-            isHovered ? styles.reportPreviewBoxHoverBorder : undefined,
-            style,
-            styles.borderNone,
-        ],
-        [isHovered, previewWidth, style, styles.borderNone, styles.cursorPointer, styles.reportPreviewBoxHoverBorder],
+        () => [styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, style],
+        [isHovered, style, styles.cursorPointer, styles.reportPreviewBoxHoverBorder],
     );
+
+    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, 1, undefined, undefined);
 
     const onMoneyRequestPreviewPressed = () => {
         if (contextMenuRef.current?.isContextMenuOpening) {
@@ -149,47 +145,28 @@ function MoneyRequestAction({
         return <RenderHTML html={`<deleted-action ${CONST.REVERSED_TRANSACTION_ATTRIBUTE}="${isReversedTransaction}">${translate(message)}</deleted-action>`} />;
     }
 
-    // Condition extracted from MoneyRequestPreview
-    const renderCondition = lodashIsEmpty(iouReport) && !(isSplitBillAction || isTrackExpenseAction);
-    const isLayoutWidthInvalid = (layoutWidth: number) => {
-        const isNarrowLayout = getIsNarrowLayout();
-        return (isNarrowLayout && layoutWidth > variables.mobileResponsiveWidthBreakpoint) || (!isNarrowLayout && layoutWidth > variables.sideBarWidth);
-    };
+    if (lodashIsEmpty(iouReport) && !(isSplitBillAction || isTrackExpenseAction)) {
+        return null;
+    }
 
-    return renderCondition ? null : (
-        <View
-            onLayout={(e: LayoutChangeEvent) => {
-                if (isLayoutWidthInvalid(e.nativeEvent.layout.width)) {
-                    return;
-                }
-                setPreviewWidth(e.nativeEvent.layout.width);
-            }}
-        >
-            {!previewWidth ? (
-                <ActivityIndicator
-                    color={theme.spinner}
-                    size={40}
-                />
-            ) : (
-                <TransactionPreview
-                    iouReportID={requestReportID}
-                    chatReportID={chatReportID}
-                    reportID={reportID}
-                    action={action}
-                    transactionPreviewWidth={previewWidth}
-                    isBillSplit={isSplitBillAction}
-                    isTrackExpense={isTrackExpenseAction}
-                    contextMenuAnchor={contextMenuAnchor}
-                    checkIfContextMenuActive={checkIfContextMenuActive}
-                    shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-                    onPreviewPressed={onMoneyRequestPreviewPressed}
-                    containerStyles={containerStyles}
-                    isHovered={isHovered}
-                    isWhisper={isWhisper}
-                    shouldDisplayContextMenu={shouldDisplayContextMenu}
-                />
-            )}
-        </View>
+    return (
+        <TransactionPreview
+            iouReportID={requestReportID}
+            chatReportID={chatReportID}
+            reportID={reportID}
+            action={action}
+            transactionPreviewWidth={reportPreviewStyles.transactionPreviewStandaloneStyle.width}
+            isBillSplit={isSplitBillAction}
+            isTrackExpense={isTrackExpenseAction}
+            contextMenuAnchor={contextMenuAnchor}
+            checkIfContextMenuActive={checkIfContextMenuActive}
+            shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
+            onPreviewPressed={onMoneyRequestPreviewPressed}
+            containerStyles={[reportPreviewStyles.transactionPreviewStandaloneStyle, isReviewDuplicateTransactionPage ? [containerStyles, styles.borderNone] : styles.mt2]}
+            isHovered={isHovered}
+            isWhisper={isWhisper}
+            shouldDisplayContextMenu={shouldDisplayContextMenu}
+        />
     );
 }
 

@@ -1,8 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -17,6 +16,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -139,7 +139,11 @@ function useOptions() {
     };
 }
 
-function NewChatPage() {
+type NewChatPageRef = {
+    focus?: () => void;
+};
+
+function NewChatPage(_: unknown, ref: React.Ref<NewChatPageRef>) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
@@ -148,7 +152,11 @@ function NewChatPage() {
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
-    const selectionListRef = useRef<SelectionListHandle>(null);
+    const selectionListRef = useRef<SelectionListHandle | null>(null);
+
+    useImperativeHandle(ref, () => ({
+        focus: selectionListRef.current?.focusTextInput,
+    }));
 
     const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
         useOptions();
@@ -367,6 +375,7 @@ function NewChatPage() {
                 initiallyFocusedOptionKey={firstKeyForList}
                 shouldTextInputInterceptSwipe
                 addBottomSafeAreaPadding
+                textInputAutoFocus={false}
             />
         </ScreenWrapper>
     );
@@ -374,4 +383,4 @@ function NewChatPage() {
 
 NewChatPage.displayName = 'NewChatPage';
 
-export default NewChatPage;
+export default forwardRef(NewChatPage);

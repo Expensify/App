@@ -1,5 +1,5 @@
 import type {NativeSyntheticEvent, StyleProp, TextInputProps, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 
 type TextSelection = {
     start: number;

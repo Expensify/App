@@ -3,7 +3,6 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -13,6 +12,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -80,9 +80,6 @@ type ValidateCodeFormProps = {
     /** Whether the form is loading or not */
     isLoading?: boolean;
 
-    /** Whether to allow auto submit again after the previous attempt fails */
-    allowResubmit?: boolean;
-
     /** Whether to show skip button */
     shouldShowSkipButton?: boolean;
 
@@ -104,7 +101,6 @@ function BaseValidateCodeForm({
     hideSubmitButton,
     submitButtonText,
     isLoading,
-    allowResubmit,
     shouldShowSkipButton = false,
     handleSkipButtonPress,
 }: ValidateCodeFormProps) {
@@ -271,7 +267,6 @@ function BaseValidateCodeForm({
                 hasError={canShowError && !isEmptyObject(finalValidateError)}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
-                allowResubmit={allowResubmit}
             />
             {shouldShowTimer && (
                 <Text style={[styles.mt5]}>
@@ -327,6 +322,7 @@ function BaseValidateCodeForm({
                     <Button
                         text={translate('common.skip')}
                         onPress={handleSkipButtonPress}
+                        style={[styles.mt4]}
                         success={false}
                         large
                     />
