@@ -19,7 +19,7 @@ type MoneyRequestReportRHPNavigationButtonsProps = {
     backTo?: string;
 };
 
-function MoneyRequestReportTransactionsNavigation({currentReportID, parentReportID, backTo}: MoneyRequestReportRHPNavigationButtonsProps) {
+function MoneyRequestReportTransactionsNavigation({currentReportID, parentReportID}: MoneyRequestReportRHPNavigationButtonsProps) {
     const [reportIDsList = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
         canBeMissing: true,
     });
