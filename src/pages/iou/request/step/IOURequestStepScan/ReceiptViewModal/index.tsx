@@ -12,8 +12,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {getTransactionOrDraftTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
-import {removeTransactionReceipt} from '@userActions/TransactionEdit';
+import {removeDraftTransaction, removeTransactionReceipt, updateDraftTransactions} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -66,11 +67,31 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
         }
 
         InteractionManager.runAfterInteractions(() => {
-            removeTransactionReceipt(currentReceipt.transactionID);
+            if (currentReceipt.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+                if (receipts.length === 1) {
+                    removeTransactionReceipt(currentReceipt.transactionID);
+                    return;
+                }
+
+                const secondTransactionID = receipts.at(1)?.transactionID;
+                const secondTransaction = secondTransactionID ? getTransactionOrDraftTransaction(secondTransactionID) : undefined;
+
+                if (secondTransaction) {
+                    updateDraftTransactions({
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`]: {
+                            ...secondTransaction,
+                            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                        },
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`]: null,
+                    });
+                }
+                return;
+            }
+            removeDraftTransaction(currentReceipt.transactionID);
         });
 
         Navigation.goBack();
-    }, [currentReceipt]);
+    }, [currentReceipt, receipts]);
 
     const handleCloseConfirmModal = () => {
         setIsDeleteReceiptConfirmModalVisible(false);

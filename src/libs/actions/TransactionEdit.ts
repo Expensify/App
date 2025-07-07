@@ -5,6 +5,7 @@ import {formatCurrentUserToAttendee} from '@libs/IOUUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import {generateTransactionID, getDraftTransactions} from './Transaction';
 
 let connection: Connection;
@@ -112,6 +113,10 @@ function removeDraftTransactions(shouldExcludeInitialTransaction = false) {
     return Onyx.multiSet(draftTransactionsSet);
 }
 
+function updateDraftTransactions(transactions: CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT>) {
+    Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, transactions);
+}
+
 function removeTransactionReceipt(transactionID: string | undefined) {
     if (!transactionID) {
         return;
@@ -153,5 +158,6 @@ export {
     removeTransactionReceipt,
     removeDraftTransactions,
     removeDraftSplitTransaction,
+    updateDraftTransactions,
     buildOptimisticTransactionAndCreateDraft,
 };
