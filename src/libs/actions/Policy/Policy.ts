@@ -137,8 +137,6 @@ type WorkspaceFromIOUCreationData = {
     adminsChatReportID: string;
 };
 
-
-
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -1886,9 +1884,10 @@ function buildPolicyData(
     const shouldSetCreatedWorkspaceAsActivePolicy = !!activePolicyID && allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // Determine workspace type based on user reported integration
-    const workspaceType = userReportedIntegration && (CONST.POLICY.POLICY_CONNECTIONS_TYPE_CORPORATE as readonly string[]).includes(userReportedIntegration)
-        ? CONST.POLICY.TYPE.CORPORATE
-        : CONST.POLICY.TYPE.TEAM;
+    const workspaceType =
+        userReportedIntegration && (CONST.POLICY.POLICY_CONNECTIONS_TYPE_CORPORATE as readonly string[]).includes(userReportedIntegration)
+            ? CONST.POLICY.TYPE.CORPORATE
+            : CONST.POLICY.TYPE.TEAM;
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     const optimisticData: OnyxUpdate[] = [
