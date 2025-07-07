@@ -6,6 +6,7 @@ import type {ValueOf} from 'type-fest';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInput';
 import ScrollView from '@components/ScrollView';
@@ -68,6 +69,9 @@ type MoneyRequestAmountFormProps = {
 
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
+
+    /** Whether to allow flipping the amount */
+    allowFlippingAmount?: boolean;
 };
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
@@ -93,6 +97,7 @@ function MoneyRequestAmountForm(
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
         shouldKeepUserInput = false,
+        allowFlippingAmount = false,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -103,6 +108,8 @@ function MoneyRequestAmountForm(
     const textInput = useRef<BaseTextInputRef | null>(null);
     const moneyRequestAmountInput = useRef<MoneyRequestAmountInputRef | null>(null);
 
+    const [isNegative, setIsNegative] = useState(false);
+
     const [formError, setFormError] = useState<string>('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
@@ -110,6 +117,8 @@ function MoneyRequestAmountForm(
     const wasFocused = usePrevious(isFocused);
 
     const formattedTaxAmount = convertToDisplayString(Math.abs(taxAmount), currency);
+
+    const absoluteAmount = Math.abs(amount);
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
