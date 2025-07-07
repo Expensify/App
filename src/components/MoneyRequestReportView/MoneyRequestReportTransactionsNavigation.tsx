@@ -19,7 +19,7 @@ type MoneyRequestReportRHPNavigationButtonsProps = {
     backTo?: string;
 };
 
-function MoneyRequestReportTransactionsNavigation({currentReportID, parentReportID}: MoneyRequestReportRHPNavigationButtonsProps) {
+function MoneyRequestReportTransactionsNavigation({currentReportID, parentReportID, backTo}: MoneyRequestReportRHPNavigationButtonsProps) {
     const [reportIDsList = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_REPORT_IDS, {
         canBeMissing: true,
     });
@@ -66,18 +66,22 @@ function MoneyRequestReportTransactionsNavigation({currentReportID, parentReport
             isPrevButtonDisabled={!prevReportID}
             isNextButtonDisabled={!nextReportID}
             onNext={(e) => {
-                const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, parentReportActionID: nextParentReportActionID, parentReportID, backTo}), {
-                    forceReplace: true,
-                });
+                Navigation.navigate(
+                    ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, parentReportActionID: nextParentReportActionID, parentReportID, backTo: backTo ?? Navigation.getActiveRoute()}),
+                    {
+                        forceReplace: true,
+                    },
+                );
             }}
             onPrevious={(e) => {
-                const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, parentReportActionID: prevParentReportActionID, parentReportID, backTo}), {
-                    forceReplace: true,
-                });
+                Navigation.navigate(
+                    ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, parentReportActionID: prevParentReportActionID, parentReportID, backTo: backTo ?? Navigation.getActiveRoute()}),
+                    {
+                        forceReplace: true,
+                    },
+                );
             }}
         />
     );
