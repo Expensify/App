@@ -9,13 +9,16 @@ import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
 import Backdrop from './Backdrop';
 import Container from './Container';
-import type ModalProps from './types';
+import type ReanimatedModalProps from './types';
+import type {AnimationInType, AnimationOutType} from './types';
 
-function BottomDockedModal({
+function ReanimatedModal({
     testID,
     animationInDelay,
     animationInTiming = 300,
     animationOutTiming = 300,
+    animationIn = 'fadeIn',
+    animationOut = 'fadeOut',
     avoidKeyboard = false,
     coverScreen = true,
     children,
@@ -32,9 +35,10 @@ function BottomDockedModal({
     onBackdropPress = noop,
     onBackButtonPress = noop,
     style,
+    type,
     statusBarTranslucent = false,
     ...props
-}: ModalProps) {
+}: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
     const [isContainerOpen, setIsContainerOpen] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -140,7 +144,10 @@ function BottomDockedModal({
             animationInDelay={animationInDelay}
             onOpenCallBack={onOpenCallBack}
             onCloseCallBack={onCloseCallBack}
+            animationIn={animationIn as AnimationInType}
+            animationOut={animationOut as AnimationOutType}
             style={style}
+            type={type}
         >
             {children}
         </Container>
@@ -207,6 +214,6 @@ function BottomDockedModal({
     );
 }
 
-BottomDockedModal.displayName = 'BottomDockedModal';
+ReanimatedModal.displayName = 'ReanimatedModal';
 
-export default BottomDockedModal;
+export default ReanimatedModal;

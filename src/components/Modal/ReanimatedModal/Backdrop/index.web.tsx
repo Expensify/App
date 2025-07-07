@@ -1,9 +1,11 @@
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import Animated, {Easing, Keyframe} from 'react-native-reanimated';
-import type {BackdropProps} from '@components/Modal/BottomDockedModal/types';
+import type {BackdropProps} from '@components/Modal/ReanimatedModal/types';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
@@ -14,6 +16,8 @@ function Backdrop({
     onBackdropPress,
     animationInTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN,
     animationOutTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT,
+    isBackdropVisible,
+    backdropOpacity = variables.overlayOpacity,
 }: BackdropProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -26,6 +30,7 @@ function Backdrop({
                 easing,
             },
         });
+
         return FadeIn.duration(animationInTiming);
     }, [animationInTiming]);
 
@@ -41,17 +46,11 @@ function Backdrop({
         return FadeOut.duration(animationOutTiming);
     }, [animationOutTiming]);
 
-    const BackdropOverlay = useMemo(
-        () => (
-            <Animated.View
-                entering={Entering}
-                exiting={Exiting}
-                style={[styles.modalBackdrop, style]}
-            >
-                {!!customBackdrop && customBackdrop}
-            </Animated.View>
-        ),
-        [Entering, Exiting, customBackdrop, style, styles.modalBackdrop],
+    const backdropStyle = useMemo(
+        () => ({
+            opacity: backdropOpacity,
+        }),
+        [backdropOpacity],
     );
 
     if (!customBackdrop) {
@@ -59,14 +58,32 @@ function Backdrop({
             <PressableWithoutFeedback
                 accessible
                 accessibilityLabel={translate('modal.backdropLabel')}
-                onPressIn={onBackdropPress}
+                onPress={onBackdropPress}
+                style={[styles.userSelectNone, styles.cursorAuto]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
-                {BackdropOverlay}
+                {isBackdropVisible && (
+                    <Animated.View
+                        style={[styles.modalBackdrop, backdropStyle, style]}
+                        entering={Entering}
+                        exiting={Exiting}
+                    />
+                )}
             </PressableWithoutFeedback>
         );
     }
-
-    return BackdropOverlay;
+    return (
+        isBackdropVisible && (
+            <Animated.View
+                entering={Entering}
+                exiting={Exiting}
+                style={[styles.userSelectNone]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
+                <View style={[styles.modalBackdrop, backdropStyle, style]}>{!!customBackdrop && customBackdrop}</View>
+            </Animated.View>
+        )
+    );
 }
 
 Backdrop.displayName = 'Backdrop';

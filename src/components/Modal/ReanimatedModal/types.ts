@@ -3,6 +3,7 @@ import type {NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-
 import type {ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 
 type GestureProps = {
     /** Height of the device (used for positioning) */
@@ -12,9 +13,12 @@ type GestureProps = {
     deviceWidth?: number | null;
 };
 
+type AnimationInType = 'fadeIn' | 'slideInUp' | 'slideInRight';
+type AnimationOutType = 'fadeOut' | 'slideOutDown' | 'slideOutRight';
+
 type AnimationOut = ValueOf<Pick<ReactNativeModalProps, 'animationOut'>>;
 
-type ModalProps = ViewProps &
+type ReanimatedModalProps = ViewProps &
     GestureProps & {
         /** Content inside the modal */
         children: ReactNode;
@@ -46,13 +50,13 @@ type ModalProps = ViewProps &
         useNativeDriverForBackdrop?: boolean;
 
         /** Enum for animation type when modal appears */
-        animationIn?: ValueOf<Pick<ReactNativeModalProps, 'animationIn'>>;
+        animationIn?: ValueOf<Pick<ReactNativeModalProps, 'animationIn'>> | AnimationInType;
 
         /** Duration of the animation when modal appears */
         animationInTiming?: number;
 
         /** Enum for animation type when modal disappears */
-        animationOut?: AnimationOut;
+        animationOut?: AnimationOut | AnimationOutType;
 
         /** Duration of the animation when modal disappears */
         animationOutTiming?: number;
@@ -115,6 +119,9 @@ type ModalProps = ViewProps &
         supportedOrientations?: Array<'portrait' | 'portrait-upside-down' | 'landscape' | 'landscape-left' | 'landscape-right'>;
 
         navigationBarTranslucent?: boolean;
+
+        /** Modal type */
+        type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
     };
 
 type BackdropProps = {
@@ -152,7 +159,13 @@ type ContainerProps = {
 
     /** Position animated by pan gesture */
     panPosition?: {translateX: SharedValue<number>; translateY: SharedValue<number>};
+
+    /** Animation played when modal shows */
+    animationIn: AnimationInType;
+
+    /** Animation played when modal disappears */
+    animationOut: AnimationOutType;
 };
 
-export default ModalProps;
-export type {BackdropProps, ContainerProps, AnimationOut};
+export default ReanimatedModalProps;
+export type {BackdropProps, ContainerProps, AnimationOut, AnimationInType, AnimationOutType};
