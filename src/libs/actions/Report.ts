@@ -4874,6 +4874,12 @@ function deleteAppReport(reportID: string | undefined) {
             value: {[unreportedAction.reportActionID]: unreportedAction},
         });
 
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}`,
+            value: {[unreportedAction.reportActionID]: {pendingAction: null}},
+        });
+
         if (transactionID) {
             transactionIDToReportActionAndThreadData[transactionID] = {
                 moneyRequestPreviewReportActionID: newReportActionID,
