@@ -46,7 +46,7 @@ function Backdrop({
                 accessible
                 accessibilityLabel={translate('modal.backdropLabel')}
                 onPress={onBackdropPress}
-                style={[styles.userSelectNone]}
+                style={[styles.userSelectNone, styles.cursorAuto]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {isBackdropVisible && (

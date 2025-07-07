@@ -148,6 +148,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                     width: CONST.POPOVER_DROPDOWN_WIDTH,
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
+                shouldSkipRemeasurement
             >
                 {popoverContent}
             </PopoverWithMeasuredContent>
