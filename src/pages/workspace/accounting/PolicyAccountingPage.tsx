@@ -99,9 +99,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         return connectionName as ConnectionName;
     };
-    
-    const connectedIntegration = getSupportedConnection(getConnectedIntegration(policy, accountingIntegrations)) ?? 
-        getSupportedConnection(connectionSyncProgress?.connectionName);
+
+    const connectedIntegration = getSupportedConnection(getConnectedIntegration(policy, accountingIntegrations)) ?? getSupportedConnection(connectionSyncProgress?.connectionName);
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
 
     const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
