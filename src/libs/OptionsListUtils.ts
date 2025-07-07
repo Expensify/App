@@ -2312,7 +2312,7 @@ function getPersonalDetailSearchTerms(item: Partial<OptionData>) {
 }
 
 function getCurrentUserSearchTerms(item: OptionData) {
-    return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', 'you', 'me'];
+    return [item.text ?? '', item.login ?? '', item.login?.replace(CONST.EMAIL_SEARCH_REGEX, '') ?? '', translateLocal('common.you').toLowerCase(), translateLocal('common.me')];
 }
 
 /**
