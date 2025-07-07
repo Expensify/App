@@ -5482,7 +5482,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         transactionParams,
         moneyRequestReportID,
     });
-    const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
+    const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
 
     const customUnitRate = getPerDiemRateCustomUnitRate(policyParams.policy, customUnit.customUnitRateID);
 
