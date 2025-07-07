@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PerDiemRequestUtils from '@libs/PerDiemRequestUtils';
