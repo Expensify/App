@@ -27,6 +27,7 @@ import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
+    getColumnsToShow,
     getListItem,
     getSections,
     getSortedSections,
@@ -473,6 +474,13 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         [shouldShowLoadingState],
     );
 
+    const columnsToShow = useMemo(() => {
+        if (!searchResults?.data) {
+            return [];
+        }
+        return getColumnsToShow(searchResults?.data);
+    }, [searchResults?.data]);
+
     if (shouldShowLoadingState) {
         return (
             <SearchRowSkeleton
@@ -606,7 +614,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     !shouldShowTableHeader ? undefined : (
                         <SearchTableHeader
                             canSelectMultiple={canSelectMultiple}
-                            data={searchResults?.data}
                             metadata={searchResults?.search}
                             onSortPress={onSortPress}
                             sortOrder={sortOrder}
@@ -615,6 +622,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                             isAmountColumnWide={shouldShowAmountInWideColumn}
                             isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                             shouldShowSorting={shouldShowSorting}
+                            columns={columnsToShow}
                         />
                     )
                 }

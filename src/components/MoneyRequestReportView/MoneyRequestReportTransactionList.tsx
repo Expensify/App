@@ -31,8 +31,8 @@ import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
-import {compareValues, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {getCategory, getDescription, getTag, getTransactionPendingAction, isScanning, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
+import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -176,38 +176,7 @@ function MoneyRequestReportTransactionList({
     }, [newTransactions, sortBy, sortOrder, transactions]);
 
     const columnsToShow = useMemo(() => {
-        const columns: Record<string, boolean> = {
-            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT]: true,
-            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE]: true,
-            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE]: true,
-            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT]: false,
-            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION]: false,
-            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY]: false,
-            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG]: false,
-            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: true,
-            [CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT]: true,
-        };
-
-        transactions.forEach((transactionItem) => {
-            const merchant = transactionItem.modifiedMerchant ? transactionItem.modifiedMerchant : (transactionItem.merchant ?? '');
-            if ((merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) || isScanning(transactionItem)) {
-                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT] = true;
-            }
-
-            if (getDescription(transactionItem) !== '') {
-                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION] = true;
-            }
-
-            if (getCategory(transactionItem) !== '') {
-                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = true;
-            }
-
-            if (getTag(transactionItem) !== '') {
-                columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] = true;
-            }
-        });
-
-        return Object.keys(columns).filter((columnName: string) => columns[columnName]) as SortableColumnName[];
+        return getColumnsToShow(transactions, true) as SortableColumnName[];
     }, [transactions]);
 
     const navigateToTransaction = useCallback(
