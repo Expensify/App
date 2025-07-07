@@ -16,8 +16,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
+import {canSubmitPerDiemExpenseFromWorkspace} from '@libs/PolicyUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {createUnreportedExpenseSections} from '@libs/TransactionUtils';
+import {createUnreportedExpenseSections, isPerDiemRequest} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {startMoneyRequest} from '@userActions/IOU';
@@ -49,7 +50,18 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         if (!transactions) {
             return [];
         }
-        return Object.values(transactions || {}).filter((item) => item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '');
+        return Object.values(transactions || {}).filter((item) => {
+            const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
+            if (!isUnreported) {
+                return false;
+            }
+
+            if (isPerDiemRequest(item)) {
+                return canSubmitPerDiemExpenseFromWorkspace(policy);
+            }
+
+            return true;
+        });
     }
 
     const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
