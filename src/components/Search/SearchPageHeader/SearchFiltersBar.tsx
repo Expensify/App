@@ -140,7 +140,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         }
 
         return [value, displayText];
-    }, [filterFormValues.dateOn, filterFormValues.dateBefore, filterFormValues.dateAfter]);
+    }, [filterFormValues.dateOn, filterFormValues.dateBefore, filterFormValues.dateAfter, translate]);
 
     const [posted, displayPosted] = useMemo(() => {
         const value: SearchDateValues = {
@@ -161,7 +161,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         }
 
         return [value, displayText];
-    }, [filterFormValues.postedOn, filterFormValues.postedBefore, filterFormValues.postedAfter]);
+    }, [filterFormValues.postedOn, filterFormValues.postedBefore, filterFormValues.postedAfter, translate]);
 
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
