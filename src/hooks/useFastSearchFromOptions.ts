@@ -160,24 +160,6 @@ function useFastSearchFromOptions(
                 throw error;
             }
         });
-
-        return () => {
-            try {
-                if (newFastSearch) {
-                    Log.info('[CMD_K_DEBUG] FastSearch tree cleanup', false, {
-                        actionId,
-                        timestamp: Date.now(),
-                    });
-                    newFastSearch.dispose();
-                }
-            } catch (error) {
-                Log.alert('[CMD_K_FREEZE] FastSearch tree cleanup failed', {
-                    actionId,
-                    error: String(error),
-                    timestamp: Date.now(),
-                });
-            }
-        };
     }, [options]);
 
     useEffect(() => () => prevFastSearchRef.current?.dispose(), []);
