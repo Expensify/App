@@ -2,7 +2,6 @@ import {useIsFocused} from '@react-navigation/native';
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import AutoEmailLink from '@components/AutoEmailLink';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
@@ -18,6 +17,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -83,8 +83,13 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             return;
         }
 
+        if (!onboardingValues?.isMergeAccountStepSkipped) {
+            Navigation.navigate(ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(), {forceReplace: true});
+            return;
+        }
+
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-    }, [onboardingValues?.shouldValidate, isVsb, isSmb, isFocused, onboardingValues?.isMergeAccountStepCompleted]);
+    }, [onboardingValues?.shouldValidate, isVsb, isSmb, isFocused, onboardingValues?.isMergeAccountStepCompleted, onboardingValues?.isMergeAccountStepSkipped]);
 
     const submitWorkEmail = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL]);
@@ -165,20 +170,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                                 onPress={() => {
                                     setOnboardingErrorMessage('');
 
-                                    setOnboardingMergeAccountStepValue(true);
-                                    // Once we skip the private email step, we need to force replace the screen
-                                    // so that we don't navigate back on back button press
-                                    if (isVsb) {
-                                        Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
-                                        return;
-                                    }
-
-                                    if (isSmb) {
-                                        Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(), {forceReplace: true});
-                                        return;
-                                    }
-
-                                    Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+                                    setOnboardingMergeAccountStepValue(true, true);
                                 }}
                             />
                         </OfflineWithFeedback>

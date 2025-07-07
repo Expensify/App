@@ -19,6 +19,11 @@ function canUseLinkPreviews(): boolean {
 }
 
 function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>): boolean {
+    // Remove this check once the manual distance tracking feature is fully rolled out
+    if (beta === CONST.BETAS.MANUAL_DISTANCE) {
+        return false;
+    }
+
     return !!betas?.includes(beta) || canUseAllBetas(betas);
 }
 

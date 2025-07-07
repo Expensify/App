@@ -23,21 +23,31 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 import CONST from '@src/CONST';
-import BottomDockedModal from './BottomDockedModal';
-import type ModalProps from './BottomDockedModal/types';
 import ModalContent from './ModalContent';
 import ModalContext from './ModalContext';
+import ReanimatedModal from './ReanimatedModal';
+import type ReanimatedModalProps from './ReanimatedModal/types';
 import type BaseModalProps from './types';
 
-type ModalComponentProps = (ReactNativeModalProps | ModalProps) & {
+const REANIMATED_MODAL_TYPES: Array<ValueOf<typeof CONST.MODAL.MODAL_TYPE>> = [CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED, CONST.MODAL.MODAL_TYPE.FULLSCREEN];
+
+type ModalComponentProps = (ReactNativeModalProps | ReanimatedModalProps) & {
     type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
+    shouldUseReanimatedModal?: boolean;
 };
 
-function ModalComponent({type, ...props}: ModalComponentProps) {
-    if (type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED) {
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        return <BottomDockedModal {...(props as ModalProps)} />;
+function ModalComponent({type, shouldUseReanimatedModal, ...props}: ModalComponentProps) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    if ((type && REANIMATED_MODAL_TYPES.includes(type)) || shouldUseReanimatedModal) {
+        return (
+            <ReanimatedModal
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...(props as ReanimatedModalProps)}
+                type={type}
+            />
+        );
     }
+
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ReactNativeModal {...(props as ReactNativeModalProps)} />;
 }
@@ -83,6 +93,7 @@ function BaseModal(
         disableAnimationIn = false,
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+        shouldUseReanimatedModal = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -327,6 +338,7 @@ function BaseModal(
                         avoidKeyboard={avoidKeyboard}
                         customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                         type={type}
+                        shouldUseReanimatedModal={shouldUseReanimatedModal}
                     >
                         <ModalContent
                             onModalWillShow={saveFocusState}
