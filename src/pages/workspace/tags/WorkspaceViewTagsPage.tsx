@@ -117,7 +117,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true}) ?? [];
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
-            setWorkspaceTagEnabled(policyID, {[tagName]: {name: tagName, enabled: value}}, route.params.orderWeight, policyCategories, allTransactionViolations);
+            setWorkspaceTagEnabled(policy, {[tagName]: {name: tagName, enabled: value}}, route.params.orderWeight, policyCategories, allTransactionViolations);
         },
         [policyID, route.params.orderWeight],
     );
@@ -215,7 +215,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const deleteTags = () => {
-        deletePolicyTags(policyID, selectedTags, policyCategories, allTransactionViolations);
+        deletePolicyTags(policy, selectedTags, policyCategories, allTransactionViolations);
         setIsDeleteTagsConfirmModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
@@ -285,7 +285,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyID, tagsToDisable, route.params.orderWeight, policyCategories, allTransactionViolations);
+                    setWorkspaceTagEnabled(policy, tagsToDisable, route.params.orderWeight, policyCategories, allTransactionViolations);
                 },
             });
         }
@@ -297,7 +297,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyID, tagsToEnable, route.params.orderWeight, policyCategories, allTransactionViolations);
+                    setWorkspaceTagEnabled(policy, tagsToEnable, route.params.orderWeight, policyCategories, allTransactionViolations);
                 },
             });
         }

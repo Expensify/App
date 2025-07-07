@@ -161,9 +161,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
-            setWorkspaceTagEnabled(policyID, {[tagName]: {name: tagName, enabled: value}}, 0);
+            setWorkspaceTagEnabled(policy, {[tagName]: {name: tagName, enabled: value}}, 0);
         },
-        [policyID],
+        [policy],
     );
 
     const updateWorkspaceRequiresTag = useCallback(
@@ -331,7 +331,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const deleteTags = () => {
-        deletePolicyTags(policyID, selectedTags, policyCategories, allTransactionViolations);
+        deletePolicyTags(policy, selectedTags, policyCategories, allTransactionViolations);
         setIsDeleteTagsConfirmModalVisible(false);
 
         InteractionManager.runAfterInteractions(() => {
@@ -486,7 +486,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyID, tagsToDisable, 0);
+                    setWorkspaceTagEnabled(policy, tagsToDisable, 0);
                 },
             });
         }
@@ -498,7 +498,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled(policyID, tagsToEnable, 0);
+                    setWorkspaceTagEnabled(policy, tagsToEnable, 0);
                 },
             });
         }

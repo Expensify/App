@@ -1823,7 +1823,7 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
  */
 function pushTransactionViolationsOnyxData(
     onyxData: OnyxData,
-    policyID: string,
+    policy: Policy,
     policyCategories: PolicyCategories,
     policyTagLists: PolicyTagLists,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
@@ -1834,33 +1834,47 @@ function pushTransactionViolationsOnyxData(
     if (isEmptyObject(policyUpdate) && isEmptyObject(policyCategoriesUpdate) && isEmptyObject(policyTagListsUpdate)) {
         return onyxData;
     }
+
+    const reports = getAllPolicyReports(policy.id);
+
+    if (!reports || reports.length === 0) {
+        return onyxData;
+    }
+
     const optimisticPolicyTagLists = isEmptyObject(policyTagListsUpdate)
         ? policyTagLists
-        : Object.keys(policyTagLists).reduce<PolicyTagLists>((acc, tagName) => {
-              acc[tagName] = {...policyTagLists[tagName], ...(policyTagListsUpdate?.[tagName] ?? {})};
-              return acc;
-          }, {});
+        : {
+              ...policyTagLists,
+              ...Object.keys(policyTagListsUpdate).reduce<PolicyTagLists>((acc, tagName) => {
+                  acc[tagName] = {
+                      ...(policyTagLists?.[tagName] ?? {}),
+                      tags: {
+                          ...(policyTagLists?.[tagName].tags ?? {}),
+                          ...policyTagListsUpdate[tagName].tags,
+                      },
+                  };
+                  return acc;
+              }, {}),
+          };
 
     const optimisticPolicyCategories = isEmptyObject(policyCategoriesUpdate)
         ? policyCategories
-        : Object.keys(policyCategories).reduce<PolicyCategories>((acc, categoryName) => {
-              acc[categoryName] = {...policyCategories[categoryName], ...(policyCategoriesUpdate?.[categoryName] ?? {})};
-              return acc;
-          }, {});
+        : {
+              ...policyCategories,
+              ...Object.keys(policyCategoriesUpdate).reduce<PolicyCategories>((acc, categoryName) => {
+                  acc[categoryName] = {...(policyCategories?.[categoryName] ?? {}), ...(policyCategoriesUpdate?.[categoryName] ?? {})};
+                  return acc;
+              }, {}),
+          };
 
-    const optimisticPolicy = {...allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ...policyUpdate} as Policy;
+    const optimisticPolicy = {...policy, ...policyUpdate};
     const hasDependentTags = hasDependentTagsPolicyUtils(optimisticPolicy, optimisticPolicyTagLists);
 
     const processedTransactionIDs = new Set<string>();
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    const reports = getAllPolicyReports(policyID);
-
-    if (!reports || reports.length === 0) {
-        return onyxData;
-    }
-
+    // Iterate through all reports to find transactions that need optimistic violations
     reports.forEach((report) => {
         if (!report?.reportID) {
             return;

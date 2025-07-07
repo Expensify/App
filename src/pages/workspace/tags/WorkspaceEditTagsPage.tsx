@@ -9,6 +9,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -27,6 +28,7 @@ type WorkspaceEditTagsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_EDIT>;
 
 function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
+    const policy = usePolicy(route.params.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route?.params?.policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`, {canBeMissing: true});
     const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true});
@@ -69,9 +71,9 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
 
     const updateTagListName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
-            if (values[INPUT_IDS.POLICY_TAGS_NAME] !== tagListName) {
+            if (policy !== undefined && values[INPUT_IDS.POLICY_TAGS_NAME] !== tagListName) {
                 renamePolicyTagList(
-                    route.params.policyID,
+                    policy,
                     {oldName: tagListName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]},
                     policyTags,
                     route.params.orderWeight,
@@ -81,7 +83,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             }
             goBackToTagsSettings();
         },
-        [tagListName, goBackToTagsSettings, route.params.policyID, route.params.orderWeight, policyTags],
+        [tagListName, goBackToTagsSettings, route.params.policyID, route.params.orderWeight, policy, policyTags, policyCategories, allTransactionViolations],
     );
 
     return (

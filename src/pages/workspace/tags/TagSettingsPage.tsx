@@ -80,7 +80,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     }
 
     const deleteTagAndHideModal = () => {
-        deletePolicyTags(policyID, [currentPolicyTag.name], policyCategories, allTransactionViolations);
+        deletePolicyTags(policy, [currentPolicyTag.name], policyCategories, allTransactionViolations);
         setIsDeleteTagModalOpen(false);
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
     };
@@ -90,7 +90,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             setIsCannotDeleteOrDisableLastTagModalVisible(true);
             return;
         }
-        setWorkspaceTagEnabled(policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
+        setWorkspaceTagEnabled(policy, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
     };
 
     const navigateToEditTag = () => {

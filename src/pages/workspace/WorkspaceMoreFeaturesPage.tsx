@@ -250,10 +250,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             disabledAction: onDisabledOrganizeSwitchPress,
             pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
-                if (!policyID) {
+                if (policy === undefined) {
                     return;
                 }
-                enablePolicyCategories(policyID, isEnabled, policyTagLists, allTransactionViolations, true);
+                enablePolicyCategories(policy, isEnabled, policyTagLists, allTransactionViolations, true);
             },
         },
         {
@@ -268,7 +268,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 if (!policyID) {
                     return;
                 }
-                enablePolicyTags(policyID, isEnabled, policyCategories, allTransactionViolations);
+                enablePolicyTags(policy, isEnabled, policyCategories, allTransactionViolations);
             },
         },
         {

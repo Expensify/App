@@ -69,8 +69,8 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
-import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTag, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {Participant} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
@@ -80,8 +80,7 @@ import * as NumberUtils from '../../src/libs/NumberUtils';
 import {convertedInvoiceChat} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
-import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import {
     createAdminRoom,
@@ -3929,10 +3928,8 @@ describe('ReportUtils', () => {
     });
 
     describe('pushTransactionViolationsOnyxData', () => {
-        it('should push category violation to the Onyx data when category is pending deletion', async () => {
-            const fakePolicyID = '123';
-
-            // Given policy categories and first is pending deletion
+        it('should push category violation to the Onyx data when category and tag is pending deletion', async () => {
+            // Given policy categories, the first is pending deletion
             const fakePolicyCategories = createRandomPolicyCategories(3);
             const fakePolicyCategoryNameToDelete = Object.keys(fakePolicyCategories).at(0) ?? '';
             const fakePolicyCategoriesUpdate = {
@@ -3942,9 +3939,28 @@ describe('ReportUtils', () => {
                 },
             };
 
+            // Given policy tags, the first is pending deletion
+            const fakePolicyTagListName = 'Tag List';
+            const fakePolicyTagsLists = createRandomPolicyTags(fakePolicyTagListName, 3);
+            const fakePolicyTagsToDelete = Object.entries(fakePolicyTagsLists?.[fakePolicyTagListName]?.tags ?? {}).slice(1, 2);
+            const fakePolicyTagListsUpdate: Record<string, Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>> = {
+                [fakePolicyTagListName]: {
+                    tags: {
+                        ...fakePolicyTagsToDelete.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>>((acc, [tagName]) => {
+                            acc[tagName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
+                            return acc;
+                        }, {}),
+                    },
+                },
+            };
+
+            const fakePolicyID = '0';
+
             const fakePolicy = {
                 ...createRandomPolicy(0),
                 id: fakePolicyID,
+                requiresTag: true,
+                areTagsEnabled: true,
                 requiresCategory: true,
                 areCategoriesEnabled: true,
             };
@@ -3960,9 +3976,9 @@ describe('ReportUtils', () => {
                 },
             };
 
+            // Popluating Onyx with required data
             await Onyx.multiSet({
                 ...fakePolicyReports,
-                [`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: fakePolicy,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`]: {
                     [mockIOUAction.reportActionID]: mockIOUAction,
                 },
@@ -3970,27 +3986,38 @@ describe('ReportUtils', () => {
                     ...mockTransaction,
                     policyID: fakePolicyID,
                     category: fakePolicyCategoryNameToDelete,
+                    tag: fakePolicyTagsToDelete.at(0)?.[0] ?? '',
                 },
             });
 
-            const {optimisticData, failureData} = pushTransactionViolationsOnyxData({}, fakePolicyID, fakePolicyCategories, {}, {}, {}, fakePolicyCategoriesUpdate, {});
-
-            // Checking if one onyx update is in optimisticData for the transaction violations
-            expect(optimisticData?.at(0)).toMatchObject({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
-                value: [
+            expect(pushTransactionViolationsOnyxData({}, fakePolicy, fakePolicyCategories, fakePolicyTagsLists, {}, {}, fakePolicyCategoriesUpdate, fakePolicyTagListsUpdate)).toMatchObject({
+                // Expecting the optimistic data to contain the OUT_OF_POLICY violations for the deleted category and tag
+                optimisticData: [
                     {
-                        name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
-                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                        value: [
+                            {
+                                name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+                                type: CONST.VIOLATION_TYPES.VIOLATION,
+                            },
+
+                            {
+                                name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+                                type: CONST.VIOLATION_TYPES.VIOLATION,
+                            },
+                        ],
                     },
                 ],
-            });
 
-            expect(failureData?.at(0)).toMatchObject({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
-                value: null,
+                // Expecting the failure data to clear the violations.
+                failureData: [
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                        value: null,
+                    },
+                ],
             });
         });
     });
