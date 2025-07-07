@@ -1598,6 +1598,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             iouReportID: iou.report.reportID,
             transactionID: transaction.transactionID,
         });
+        optimisticIOUReportAction.reportActionID = iou.action.reportActionID;
 
         optimisticData.push(
             {

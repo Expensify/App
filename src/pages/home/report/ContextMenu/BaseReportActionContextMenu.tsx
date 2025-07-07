@@ -179,13 +179,7 @@ function BaseReportActionContextMenu({
     const isMoneyRequestReport = useMemo(() => ReportUtilsIsMoneyRequestReport(childReport), [childReport]);
     const isInvoiceReport = useMemo(() => ReportUtilsIsInvoiceReport(childReport), [childReport]);
 
-    const iouAction = paginatedReportActions.find((action) => isMoneyRequestAction(action) && !!getOriginalMessage(action)?.IOUTransactionID);
-    const requestIOUTransactionID = isMoneyRequestAction(iouAction) ? getOriginalMessage(iouAction)?.IOUTransactionID : undefined;
-    const [childTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${requestIOUTransactionID}`, {canBeMissing: true});
     const requestParentReportAction = useMemo(() => {
-        if (isDemoTransaction(childTransaction)) {
-            return iouAction;
-        }
         if (isMoneyRequestReport || isInvoiceReport) {
             if (!paginatedReportActions || !transactionThreadReport?.parentReportActionID) {
                 return undefined;
@@ -193,7 +187,7 @@ function BaseReportActionContextMenu({
             return paginatedReportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
         }
         return parentReportAction;
-    }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID, childTransaction, iouAction]);
+    }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID]);
 
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
     const isChildReportArchived = useReportIsArchived(childReport?.reportID);
