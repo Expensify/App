@@ -1,6 +1,7 @@
 {
     "extends": "../tsconfig.json",
     "ts-node": {
+        "transpileOnly": true,
         "require": ["tsconfig-paths/register"]
     }
 }

@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,8 +9,10 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getPlaidCountry, isPlaidSupportedCountry} from '@libs/CardUtils';
 import searchOptions from '@libs/searchOptions';
 import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
@@ -43,17 +44,13 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         if (addNewCard?.data?.selectedCountry) {
             return addNewCard.data.selectedCountry;
         }
-        const selectedCurrency = policy?.outputCurrency ? currencyList?.[policy.outputCurrency] : null;
-        const countries = selectedCurrency?.countries;
 
-        if (policy?.outputCurrency === CONST.CURRENCY.EUR && countryByIp && countries?.includes(countryByIp)) {
-            return countryByIp;
-        }
-        const country = countries?.[0];
-        return country ?? '';
+        return getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
     }, [addNewCard?.data.selectedCountry, countryByIp, currencyList, policy?.outputCurrency]);
+
     const [currentCountry, setCurrentCountry] = useState<string | undefined>(getCountry);
     const [hasError, setHasError] = useState(false);
+    const doesCountrySupportPlaid = isPlaidSupportedCountry(currentCountry);
 
     const submit = () => {
         if (!currentCountry) {
@@ -63,9 +60,10 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 clearAddNewCardFlow();
             }
             setAddNewCompanyCardStepAndData({
-                step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE,
+                step: doesCountrySupportPlaid ? CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
                 data: {
                     selectedCountry: currentCountry,
+                    selectedFeedType: doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
                 },
                 isEditing: false,
             });

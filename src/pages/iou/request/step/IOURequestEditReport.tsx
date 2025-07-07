@@ -1,14 +1,16 @@
 import React from 'react';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
+import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
-type ReportListItem = ListItem & {
+type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
     value: string;
 };
@@ -20,21 +22,23 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const {selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
 
-    const selectReport = (item: ReportListItem) => {
-        if (selectedTransactionIDs.length === 0) {
+    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
+
+    const selectReport = (item: TransactionGroupListItem) => {
+        if (selectedTransactionIDs.length === 0 || item.value === reportID) {
+            Navigation.dismissModal();
             return;
         }
-        if (item.value !== reportID) {
-            changeTransactionsReport(selectedTransactionIDs, item.value);
-            clearSelectedTransactions(true);
-        }
+
+        changeTransactionsReport(selectedTransactionIDs, item.value);
+        clearSelectedTransactions(true);
         Navigation.dismissModalWithReport({reportID: item.value});
     };
 
     return (
         <IOURequestEditReportCommon
             backTo={backTo}
-            selectedReportID={reportID}
+            transactionsReports={transactionReport ? [transactionReport] : []}
             selectReport={selectReport}
         />
     );

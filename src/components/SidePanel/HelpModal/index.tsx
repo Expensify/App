@@ -1,7 +1,6 @@
 import React, {useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 // @ts-expect-error This is a workaround to display HelpPane on top of everything,
 // Modal from react-native can't be used here, as it would block interactions with the rest of the app
 import ModalPortal from 'react-native-web/dist/exports/Modal/ModalPortal';
@@ -9,6 +8,7 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import HelpContent from '@components/SidePanel/HelpComponents/HelpContent';
 import HelpOverlay from '@components/SidePanel/HelpComponents/HelpOverlay';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';

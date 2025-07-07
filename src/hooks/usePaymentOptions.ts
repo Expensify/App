@@ -1,5 +1,4 @@
 import {useEffect, useMemo, useRef} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type SettlementButtonProps from '@components/SettlementButton/types';
@@ -20,6 +19,7 @@ import type {LastPaymentMethodType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useLocalize from './useLocalize';
+import useOnyx from './useOnyx';
 import useThemeStyles from './useThemeStyles';
 
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
@@ -72,7 +72,10 @@ function usePaymentOptions({
             if (typeof paymentMethod?.[policyIDKey] === 'string') {
                 return paymentMethod?.[policyIDKey];
             }
-            return (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed;
+            if (typeof (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed === 'string') {
+                return (paymentMethod?.[policyIDKey] as LastPaymentMethodType).lastUsed;
+            }
+            return (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed.name;
         },
     });
 

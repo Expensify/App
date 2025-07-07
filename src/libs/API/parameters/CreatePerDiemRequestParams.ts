@@ -2,6 +2,7 @@ type CreatePerDiemRequestParams = {
     policyID: string;
     created: string;
     customUnitID: string;
+    customUnitRate: string;
     customUnitRateID: string;
     subRates: string;
     currency: string;
