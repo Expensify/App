@@ -407,7 +407,10 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                     ((sub_issues_created++))
 
                     # Add Bug-Zero comment to sub-issue
-                    bug_zero_comment="# Bug-Zero Instructions
+                    bug_zero_comment="> [!WARNING]
+> DO NOT POST PROPOSALS ON THIS ISSUE!!
+
+# Bug-Zero Instructions
 - **This issue is CLOSED for proposals**
 - It is a special issue and part of a bigger project
 - A contributor will be manually assigned to work on this issue and they do not need to submit a proposal
