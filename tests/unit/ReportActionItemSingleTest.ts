@@ -1,9 +1,9 @@
 import {renderHook, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import useReportPreviewSenderID from '@pages/home/report/useReportPreviewSenderID';
 import CONST from '@src/CONST';
 import * as PersonalDetailsUtils from '@src/libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DO_NOT_USE__EXPORT_FOR_TESTS__useIDOfReportPreviewSender as useIDOfReportPreviewSender} from '@src/pages/home/report/ReportActionItemSingle';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';
@@ -103,7 +103,7 @@ const validAction = {
     childManagerAccountID: iouReportR14932.managerID,
 };
 
-describe('useIDOfReportPreviewSender', () => {
+describe('useReportPreviewSenderID', () => {
     const mockedEmailToID: Record<string, PropertyKeysOf<typeof personalDetails>> = {
         [personalDetails[15593135].login]: 15593135,
         [personalDetails[51760358].login]: 51760358,
@@ -131,7 +131,7 @@ describe('useIDOfReportPreviewSender', () => {
 
     it('returns undefined when action is not a report preview', () => {
         const {result} = renderHook(() =>
-            useIDOfReportPreviewSender({
+            useReportPreviewSenderID({
                 action: actionR14932,
                 iouReport: iouReportR14932,
                 report: chatReportR14932,
@@ -142,7 +142,7 @@ describe('useIDOfReportPreviewSender', () => {
 
     it('returns childManagerAccountID when all conditions are met for Send Money flow', () => {
         const {result} = renderHook(() =>
-            useIDOfReportPreviewSender({
+            useReportPreviewSenderID({
                 action: {...validAction, childMoneyRequestCount: 0},
                 iouReport: iouReportR14932,
                 report: chatReportR14932,
@@ -165,7 +165,7 @@ describe('useIDOfReportPreviewSender', () => {
             },
         });
         const {result} = renderHook(() =>
-            useIDOfReportPreviewSender({
+            useReportPreviewSenderID({
                 action: validAction,
                 iouReport: iouReportR14932,
                 report: chatReportR14932,
@@ -184,7 +184,7 @@ describe('useIDOfReportPreviewSender', () => {
             amount: -100,
         });
         const {result} = renderHook(() =>
-            useIDOfReportPreviewSender({
+            useReportPreviewSenderID({
                 action: validAction,
                 iouReport: iouReportR14932,
                 report: chatReportR14932,
@@ -195,7 +195,7 @@ describe('useIDOfReportPreviewSender', () => {
 
     it('returns childOwnerAccountID when all conditions are met', () => {
         const {result} = renderHook(() =>
-            useIDOfReportPreviewSender({
+            useReportPreviewSenderID({
                 action: validAction,
                 iouReport: iouReportR14932,
                 report: chatReportR14932,

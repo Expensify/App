@@ -19,10 +19,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
-import {selectAllTransactionsForReport} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getOriginalMessage, getReportActionMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getReportActionMessage} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
@@ -40,11 +39,12 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
+import useReportPreviewSenderID from './useReportPreviewSenderID';
 
 type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** All the data of the action */
@@ -89,83 +89,6 @@ const showWorkspaceDetails = (reportID: string | undefined) => {
     Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, Navigation.getReportRHPActiveRoute()));
 };
 
-function getSplitAuthor(transaction: Transaction, splits?: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>) {
-    const {originalTransactionID, source} = transaction.comment ?? {};
-
-    if (source !== CONST.IOU.TYPE.SPLIT || originalTransactionID === undefined) {
-        return undefined;
-    }
-
-    const splitAction = splits?.find((split) => getOriginalMessage(split)?.IOUTransactionID === originalTransactionID);
-
-    if (!splitAction) {
-        return undefined;
-    }
-
-    return splitAction.actorAccountID;
-}
-
-/**
- * This hook is used to determine the ID of the sender for the report preview action.
- * There are few fallbacks to determine the sender ID.
- *
- * It should not be used outside of this component.
- * The only reason it is exported to a hook is to make it easier to remove it in the future.
- *
- * For a reason why it is here, see https://github.com/Expensify/App/pull/64802 discussion
- */
-function useIDOfReportPreviewSender({action, iouReport, report}: {action: OnyxEntry<ReportAction>; iouReport: OnyxEntry<Report>; report: OnyxEntry<Report>}) {
-    const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`, {
-        canBeMissing: true,
-        selector: (actions) => Object.values(actions ?? {}).filter(isMoneyRequestAction),
-    });
-
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        canBeMissing: true,
-        selector: (allTransactions) => selectAllTransactionsForReport(allTransactions, action?.childReportID, iouActions ?? []),
-    });
-
-    const [splits] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
-        canBeMissing: true,
-        selector: (actions) =>
-            Object.values(actions ?? {})
-                .filter(isMoneyRequestAction)
-                .filter((act) => getOriginalMessage(act)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT),
-    });
-
-    if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-        return;
-    }
-
-    /* We need to perform the following checks to determine if the report preview is a single avatar: */
-
-    // 1. If all amounts have the same sign - either all amounts are positive or all amounts are negative.
-    // We have to do this because there can be a case when actions are not available
-    // See: https://github.com/Expensify/App/pull/64802#issuecomment-3008944401
-
-    const areAmountsSignsTheSame = new Set(transactions?.map((tr) => Math.sign(tr.amount))).size < 2;
-
-    // 2. If there is only one attendee - we check that by counting unique emails converted to account IDs in the attendees list.
-    // This has to be done as there are cases when transaction amounts signs are the same until report is opened.
-    // See: https://github.com/Expensify/App/pull/64802#issuecomment-3007906310
-
-    const attendeesIDs = transactions
-        // If the transaction is a split, then attendees are not present so we need to use a helper function.
-        ?.flatMap<number | undefined>((tr) =>
-            tr.comment?.attendees?.map((att) => (tr.comment?.source === CONST.IOU.TYPE.SPLIT ? getSplitAuthor(tr, splits) : getPersonalDetailByEmail(att.email)?.accountID)),
-        )
-        // We filter out empty ID's
-        .filter((accountID) => !!accountID);
-
-    const isThereOnlyOneAttendee = new Set(attendeesIDs).size <= 1;
-
-    // If the action is a 'Send Money' flow, it will only have one transaction, but the person who sent the money is the child manager account, not the child owner account.
-    const isSendMoneyFlow = action?.childMoneyRequestCount === 0 && transactions?.length === 1;
-    const singleAvatarAccountID = isSendMoneyFlow ? action.childManagerAccountID : action?.childOwnerAccountID;
-
-    return areAmountsSignsTheSame && isThereOnlyOneAttendee ? singleAvatarAccountID : undefined;
-}
-
 function ReportActionItemSingle({
     action,
     children,
@@ -196,7 +119,7 @@ function ReportActionItemSingle({
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
-    const reportPreviewSenderID = useIDOfReportPreviewSender({action, iouReport, report});
+    const reportPreviewSenderID = useReportPreviewSenderID({action, iouReport, report});
     const accountID = reportPreviewSenderID ?? actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const invoiceReceiverPolicy =
@@ -441,4 +364,3 @@ function ReportActionItemSingle({
 ReportActionItemSingle.displayName = 'ReportActionItemSingle';
 
 export default ReportActionItemSingle;
-export {useIDOfReportPreviewSender as DO_NOT_USE__EXPORT_FOR_TESTS__useIDOfReportPreviewSender};
