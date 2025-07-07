@@ -142,6 +142,27 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         return [value, displayText];
     }, [filterFormValues.dateOn, filterFormValues.dateBefore, filterFormValues.dateAfter]);
 
+    const [posted, displayPosted] = useMemo(() => {
+        const value: SearchDateValues = {
+            [CONST.SEARCH.DATE_MODIFIERS.ON]: filterFormValues.postedOn,
+            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterFormValues.postedBefore,
+            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterFormValues.postedAfter,
+        };
+
+        const displayText: string[] = [];
+        if (value.On) {
+            displayText.push(isSearchDatePreset(value.On) ? translate(`search.filters.date.presets.${value.On}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(value.On)}`);
+        }
+        if (value.Before) {
+            displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
+        }
+        if (value.After) {
+            displayText.push(`${translate('common.after')} ${DateUtils.formatToReadableString(value.After)}`);
+        }
+
+        return [value, displayText];
+    }, [filterFormValues.postedOn, filterFormValues.postedBefore, filterFormValues.postedAfter]);
+
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
             const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
@@ -215,6 +236,31 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         [translate, feedOptions, feed, updateFilterForm],
     );
 
+    const postedPickerComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            const onChange = (selectedDates: SearchDateValues) => {
+                const dateFormValues = {
+                    postedOn: selectedDates[CONST.SEARCH.DATE_MODIFIERS.ON],
+                    postedBefore: selectedDates[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+                    postedAfter: selectedDates[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+                };
+
+                updateFilterForm(dateFormValues);
+            };
+
+            return (
+                <DateSelectPopup
+                    label={translate('search.filters.posted')}
+                    value={posted}
+                    onChange={onChange}
+                    closeOverlay={closeOverlay}
+                    presets={[CONST.SEARCH.DATE_PRESETS.LAST_MONTH]}
+                />
+            );
+        },
+        [posted, translate, updateFilterForm],
+    );
+
     const statusComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             const onChange = (selectedItems: Array<MultiSelectItem<SingularSearchStatus>>) => {
@@ -285,6 +331,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         const shouldDisplayGroupByFilter = isDevelopment;
         // s77rt remove DEV lock
         const shouldDisplayFeedFilter = isDevelopment && feedOptions.length > 1;
+        // s77rt remove DEV lock
+        const shouldDisplayPostedilter = isDevelopment && groupBy?.value === CONST.SEARCH.GROUP_BY.CARDS;
 
         const filterList = [
             {
@@ -313,6 +361,16 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                       },
                   ]
                 : []),
+            ...(shouldDisplayPostedilter
+                ? [
+                      {
+                          label: translate('search.filters.posted'),
+                          PopoverComponent: postedPickerComponent,
+                          value: displayPosted,
+                          filterKey: FILTER_KEYS.POSTED_ON,
+                      },
+                  ]
+                : []),
             {
                 label: translate('common.status'),
                 PopoverComponent: statusComponent,
@@ -338,6 +396,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         type,
         groupBy,
         displayDate,
+        displayPosted,
         filterFormValues.from,
         translate,
         typeComponent,
@@ -345,6 +404,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         statusComponent,
         datePickerComponent,
         userPickerComponent,
+        postedPickerComponent,
         status,
         personalDetails,
         isDevelopment,
