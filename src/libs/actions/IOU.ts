@@ -97,6 +97,7 @@ import {
     getTrackExpenseActionableWhisper,
     isActionableTrackExpense,
     isCreatedAction,
+    isDeletedAction,
     isMoneyRequestAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
@@ -958,9 +959,7 @@ function initMoneyRequest({reportID, policy, isFromGlobalCreate, currentIouReque
         }
     }
 
-    // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
-    // Use set() here so that there is no way that data will be leaked between objects when it gets reset
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
+    const newTransaction = {
         amount: 0,
         comment,
         created,
@@ -972,7 +971,13 @@ function initMoneyRequest({reportID, policy, isFromGlobalCreate, currentIouReque
         isFromGlobalCreate,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         splitPayerAccountIDs: currentUserPersonalDetails ? [currentUserPersonalDetails.accountID] : undefined,
-    });
+    };
+
+    // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
+    // Use set() here so that there is no way that data will be leaked between objects when it gets reset
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, newTransaction);
+
+    return newTransaction;
 }
 
 function createDraftTransaction(transaction: OnyxTypes.Transaction) {
@@ -5483,7 +5488,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         transactionParams,
         moneyRequestReportID,
     });
-    const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
+    const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
 
     const customUnitRate = getPerDiemRateCustomUnitRate(policyParams.policy, customUnit.customUnitRateID);
 
@@ -9276,7 +9281,12 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
         // eslint-disable-next-line deprecation/deprecation
         const policy = getPolicy(iouReport?.policyID);
         const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy) || canApproveIOU(iouReport, policy);
-        return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton;
+        return (
+            action.childReportID?.toString() !== excludedIOUReportID &&
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
+            shouldShowSettlementButton &&
+            !isDeletedAction(action)
+        );
     });
 }
 

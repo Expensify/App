@@ -125,7 +125,6 @@ type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
-    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
@@ -144,7 +143,7 @@ type SearchQueryAST = {
     sortOrder: SortOrder;
     groupBy?: SearchGroupBy;
     filters: ASTNode;
-    policyID?: string[];
+    policyID?: string;
 };
 
 type SearchQueryJSON = {
