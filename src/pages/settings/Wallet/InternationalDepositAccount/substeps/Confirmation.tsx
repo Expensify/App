@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
