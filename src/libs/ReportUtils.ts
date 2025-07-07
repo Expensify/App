@@ -9957,9 +9957,11 @@ function isReportOutstanding(
     if (!iouReport || isEmptyObject(iouReport)) {
         return false;
     }
+    const activeReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${Navigation.getTopmostReportId()}`];
     const policy = allPolicies?.[policyID ?? ''];
     const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
-    const shouldAllowSubmittedReport = isInstantSubmitEnabled(policy);
+    const shouldAllowSubmittedReport = isInstantSubmitEnabled(policy) || isProcessingReport(activeReport);
+    console.log(Navigation.getTopmostReportId(), activeReport, shouldAllowSubmittedReport);
     return (
         isExpenseReport(iouReport) &&
         iouReport?.stateNum !== undefined &&

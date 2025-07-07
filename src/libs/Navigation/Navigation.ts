@@ -106,6 +106,8 @@ function canNavigate(methodName: string, params: CanNavigateParams = {}): boolea
  */
 const getTopmostReportId = (state = navigationRef.getState()) => getTopmostReportParams(state)?.reportID;
 
+window.getReportID = getTopmostReportId;
+
 /**
  * Extracts from the topmost report its action id.
  */
