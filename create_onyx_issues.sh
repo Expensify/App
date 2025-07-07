@@ -149,6 +149,7 @@ EOF
 create_issue() {
     local title="$1"
     local body="$2"
+    local labels="$3"
 
     # Check for duplicate issues first
     local duplicate_number
@@ -166,7 +167,7 @@ create_issue() {
         --title "$title" \
         --body "$body" \
         --assignee tgolen \
-        --label "Engineering,Improvement" \
+        --label "$labels" \
         --project "Deprecate Onyx.connect" 2>&1); then
         echo "Error creating issue: $issue_url" >&2
         return 1
@@ -184,6 +185,20 @@ create_issue() {
 
     # Return both number and ID separated by |
     echo "${issue_number}|${issue_id}"
+}
+
+# Function to add a comment to an issue
+add_issue_comment() {
+    local issue_number="$1"
+    local comment_body="$2"
+
+    # Add rate limiting
+    sleep 0.5
+
+    if ! gh issue comment "$issue_number" --body "$comment_body" > /dev/null 2>&1; then
+        echo "Warning: Failed to add comment to issue #$issue_number" >&2
+        return 1
+    fi
 }
 
 # Function to link sub-issue to parent issue using GitHub's native sub-issue feature
@@ -277,7 +292,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             echo ""
         else
             echo "Creating parent issue: $parent_title"
-            if current_parent_id=$(create_issue "$parent_title" "$parent_body"); then
+            if current_parent_id=$(create_issue "$parent_title" "$parent_body" "Engineering,Improvement"); then
                 parent_number=$(echo "$current_parent_id" | cut -d'|' -f1)
                 parent_id=$(echo "$current_parent_id" | cut -d'|' -f2)
 
@@ -355,19 +370,19 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                     echo "    Status: DUPLICATE - issue #$duplicate_number already exists"
                     ((sub_duplicates_skipped++))
                 else
-                    echo "    Status: WOULD CREATE"
+                    echo "    Status: WOULD CREATE (with Bug label and Bug-Zero comment)"
                     ((sub_issues_created++))
                     ((links_created++))  # In dry-run, assume all sub-issues would be linked
                 fi
             else
-                echo "    Status: WOULD CREATE (duplicate check skipped - GitHub CLI not authenticated)"
+                echo "    Status: WOULD CREATE (with Bug label and Bug-Zero comment - duplicate check skipped - GitHub CLI not authenticated)"
                 ((sub_issues_created++))
                 ((links_created++))  # In dry-run, assume all sub-issues would be linked
             fi
             echo ""
         else
             echo "Creating sub-issue: $sub_title"
-            if sub_id=$(create_issue "$sub_title" "$sub_body"); then
+            if sub_id=$(create_issue "$sub_title" "$sub_body" "Engineering,Improvement,Bug"); then
                 sub_number=$(echo "$sub_id" | cut -d'|' -f1)
                 sub_issue_id=$(echo "$sub_id" | cut -d'|' -f2)
 
@@ -390,6 +405,21 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                 else
                     echo "Created sub-issue #$sub_number with ID: $sub_issue_id"
                     ((sub_issues_created++))
+
+                    # Add Bug-Zero comment to sub-issue
+                    bug_zero_comment="# Bug-Zero Instructions
+- **This issue is CLOSED for proposals**
+- It is a special issue and part of a bigger project
+- A contributor will be manually assigned to work on this issue and they do not need to submit a proposal
+- The bug-zero person only needs to take care of payments to the contributor for the PR and the C+ for reviews
+- There do not need to be any regression tests added or updated since this is only refactoring and shouldn't change any existing functionality"
+
+                    echo "Adding Bug-Zero comment to sub-issue..."
+                    if add_issue_comment "$sub_number" "$bug_zero_comment"; then
+                        echo "Added Bug-Zero comment to sub-issue"
+                    else
+                        echo "Warning: Failed to add Bug-Zero comment to sub-issue #$sub_number" >&2
+                    fi
 
                     # Link sub-issue to parent issue
                     if [[ -n "$current_parent_id" ]]; then
@@ -437,7 +467,9 @@ else
     echo "Total duplicates skipped: $((parent_duplicates_skipped + sub_duplicates_skipped))"
     echo ""
     echo "All issues assigned to: tgolen"
-    echo "All issues labeled with: Engineering, Improvement"
+    echo "Parent issues labeled with: Engineering, Improvement"
+    echo "Sub-issues labeled with: Engineering, Improvement, Bug"
+    echo "Sub-issues include Bug-Zero instructions comment"
     echo "You can view all created issues at: https://github.com/$(get_repo_info)/issues"
     echo "=============================================="
 fi
