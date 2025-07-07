@@ -276,6 +276,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -561,6 +562,7 @@ const translations = {
         longID: 'Lang ID',
         bankAccounts: 'Bankrekeningen',
         chooseFile: 'Bestand kiezen',
+        chooseFiles: 'Bestanden kiezen',
         dropTitle: 'Laat het gaan',
         dropMessage: 'Sleep hier je bestand in.',
         ignore: 'Ignore',
@@ -957,9 +959,13 @@ const translations = {
     },
     receipt: {
         upload: 'Bonnetje uploaden',
+        uploadMultiple: 'Bonnetjes uploaden',
         dragReceiptBeforeEmail: 'Sleep een bon naar deze pagina, stuur een bon door naar',
+        dragReceiptsBeforeEmail: 'Sleep bonnen naar deze pagina, stuur bonnen door naar',
         dragReceiptAfterEmail: 'of kies hieronder een bestand om te uploaden.',
+        dragReceiptsAfterEmail: 'of kies hieronder bestanden om te uploaden.',
         chooseReceipt: 'Kies een bon om te uploaden of stuur een bon door naar',
+        chooseReceipts: 'Kies bonnen om te uploaden of stuur bonnen door naar',
         takePhoto: 'Maak een foto',
         cameraAccess: "Cameratoegang is vereist om foto's van bonnetjes te maken.",
         deniedCameraAccess: 'Camera-toegang is nog steeds niet verleend, volg alstublieft',
@@ -2651,11 +2657,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Om een bankrekening te koppelen, graag <a href="${contactMethodRoute}">voeg een e-mail toe als je primaire login</a> en probeer het opnieuw. U kunt uw telefoonnummer toevoegen als secundaire login.`,
         hasBeenThrottledError: 'Er is een fout opgetreden bij het toevoegen van uw bankrekening. Wacht een paar minuten en probeer het opnieuw.',
-        hasCurrencyError: {
-            phrase1: 'Oeps! Het lijkt erop dat de valuta van uw werkruimte is ingesteld op een andere valuta dan USD. Om verder te gaan, ga naar',
-            link: 'uw werkruimte-instellingen',
-            phrase2: 'om het in te stellen op USD en het opnieuw te proberen.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Oeps! Het lijkt erop dat de valuta van uw werkruimte is ingesteld op een andere valuta dan USD. Om verder te gaan, ga naar <a href="${workspaceRoute}">uw werkruimte-instellingen</a> om het in te stellen op USD en het opnieuw te proberen.`,
         error: {
             youNeedToSelectAnOption: 'Selecteer een optie om verder te gaan.',
             noBankAccountAvailable: 'Sorry, er is geen bankrekening beschikbaar',
@@ -4295,6 +4298,11 @@ const translations = {
                     pleaseSelectFeedType: 'Selecteer een feedtype voordat u doorgaat.',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Laatste dag van de maand',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Laatste werkdag van de maand',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Aangepaste dag van de maand',
+            },
             assignCard: 'Kaart toewijzen',
             findCard: 'Kaart vinden',
             cardNumber: 'Kaartnummer',
@@ -4311,6 +4319,7 @@ const translations = {
             startDateDescription: 'We importeren alle transacties vanaf deze datum. Als er geen datum is opgegeven, gaan we zo ver terug als uw bank toestaat.',
             fromTheBeginning: 'Vanaf het begin',
             customStartDate: 'Aangepaste startdatum',
+            customCloseDate: 'Aangepaste sluitingsdatum',
             letsDoubleCheck: 'Laten we dubbel controleren of alles er goed uitziet.',
             confirmationDescription: 'We beginnen onmiddellijk met het importeren van transacties.',
             cardholder: 'Kaart houder',
@@ -4535,6 +4544,7 @@ const translations = {
                 removeCardFeedDescription: 'Weet je zeker dat je deze kaartfeed wilt verwijderen? Dit zal alle kaarten deactiveren.',
                 error: {
                     feedNameRequired: 'Naam van de kaartfeed is vereist',
+                    statementCloseDateRequired: 'Selecteer een datum waarop het afschrift moet worden gesloten.',
                 },
                 corporate: 'Beperk het verwijderen van transacties',
                 personal: 'Verwijderen van transacties toestaan',
@@ -4559,6 +4569,8 @@ const translations = {
                 expensifyCardBannerTitle: 'Verkrijg de Expensify Card',
                 expensifyCardBannerSubtitle: 'Geniet van cashback op elke aankoop in de VS, tot 50% korting op je Expensify-rekening, onbeperkte virtuele kaarten en nog veel meer.',
                 expensifyCardBannerLearnMoreButton: 'Meer informatie',
+                statementCloseDateTitle: 'Datum waarop rekeningafschrift wordt gesloten',
+                statementCloseDateDescription: 'Laat ons weten wanneer je rekeningafschrift wordt gesloten, dan maken we een bijpassend rekeningafschrift in Expensify.',
             },
             workflows: {
                 title: 'Workflows',

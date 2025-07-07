@@ -1595,14 +1595,11 @@ function readNewestAction(reportID: string | undefined, shouldResetUnreadMarker 
         lastReadTime,
     };
 
-    API.write(
+    API.writeWithNoDuplicatesConflictAction(
         WRITE_COMMANDS.READ_NEWEST_ACTION,
         parameters,
         {optimisticData},
-        {
-            checkAndFixConflictingRequest: (persistedRequests) =>
-                resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.READ_NEWEST_ACTION && request.data?.reportID === parameters.reportID),
-        },
+        (request) => request.command === WRITE_COMMANDS.READ_NEWEST_ACTION && request.data?.reportID === parameters.reportID,
     );
 
     if (shouldResetUnreadMarker) {
@@ -3385,11 +3382,6 @@ function openReportFromDeepLink(url: string) {
 
     // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
     if (!isAuthenticated && isPublicScreenRoute(route)) {
-        return;
-    }
-
-    if (CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`${route}`)) {
-        Navigation.navigate(route as Route);
         return;
     }
 
