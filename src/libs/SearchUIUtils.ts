@@ -1132,11 +1132,14 @@ function getColumnsToShow(transactions: OnyxTypes.SearchResults['data'] | OnyxTy
             columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.DESCRIPTION] = true;
         }
 
-        if (getCategory(transaction) !== '') {
+        const category = getCategory(transaction);
+        const categoryEmptyValues = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
+        if (category !== '' && !categoryEmptyValues.includes(category)) {
             columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY] = true;
         }
 
-        if (getTag(transaction) !== '') {
+        const tag = getTag(transaction);
+        if (tag !== '' && tag !== CONST.SEARCH.TAG_EMPTY_VALUE) {
             columns[CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG] = true;
         }
 
@@ -1168,7 +1171,9 @@ function getColumnsToShow(transactions: OnyxTypes.SearchResults['data'] | OnyxTy
         });
     }
 
-    return Object.keys(columns).filter((columnName: string) => columns[columnName]) as SortableColumnName[];
+    const res = Object.keys(columns).filter((columnName: string) => columns[columnName]) as SortableColumnName[];
+    console.log('columns to show', res);
+    return res;
 }
 
 /**
