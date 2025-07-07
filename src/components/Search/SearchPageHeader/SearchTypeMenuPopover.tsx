@@ -1,4 +1,6 @@
-import React, {useRef} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import Button from '@components/Button';
 import PopoverMenu from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -20,7 +22,12 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
-    const currentRoute = Navigation.getActiveRouteWithoutParams();
+    const [currentRoute, setCurrentRoute] = useState('');
+    useFocusEffect(() => {
+        InteractionManager.runAfterInteractions(() => {
+            setCurrentRoute(Navigation.getActiveRouteWithoutParams());
+        });
+    });
 
     return (
         <>
