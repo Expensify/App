@@ -524,7 +524,7 @@ function ReportActionCompose({
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return;
         }
-        if (isEditingReceipt) {
+        if (shouldAddOrReplaceReceipt && transactionID) {
             const file = e?.dataTransfer?.files?.[0];
             if (file) {
                 file.uri = URL.createObjectURL(file);
