@@ -457,6 +457,7 @@ type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
+    columns?: SortableColumnName[];
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
