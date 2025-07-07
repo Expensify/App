@@ -26,7 +26,7 @@ type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) =
 type AccountType = ValueOf<typeof CONST.PAYMENT_METHODS> | undefined;
 
 /**
- * Check to see if user has either a debit card or personal bank account added that can be used with a wallet.
+ * Check to see if user has either a debit card or personal US bank account added that can be used with a wallet.
  */
 function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountList: Record<string, BankAccount>, shouldIncludeDebitCard = true): boolean {
     const validBankAccount = Object.values(bankAccountList).some((bankAccountJSON) => {

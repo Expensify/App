@@ -248,7 +248,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             return;
         }
         if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
-            openPersonalBankAccountSetupView();
+            openPersonalBankAccountSetupView({});
             return;
         }
 
