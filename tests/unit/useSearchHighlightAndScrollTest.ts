@@ -55,7 +55,7 @@ describe('useSearchHighlightAndScroll', () => {
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {operator: 'and', left: 'tag', right: ''},
-            inputQuery: 'type:expense status:all',
+            inputQuery: 'type:expense',
             flatFilters: [],
             hash: 123,
             recentSearchHash: 456,

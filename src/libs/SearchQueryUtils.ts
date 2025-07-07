@@ -818,7 +818,7 @@ function buildCannedSearchQuery({
  *
  * Canned queries are simple predefined queries, that are defined only using type and status and no additional filters.
  * In addition, they can contain an optional policyID.
- * For example: "type:trip status:all" is a canned query.
+ * For example: "type:trip" is a canned query.
  */
 function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
     return !queryJSON.filters && !queryJSON.policyID;
