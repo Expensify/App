@@ -9,11 +9,11 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {getOriginalTransactionWithSplitInfo, isCardTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
-import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
 import {clearWalletTermsError} from '@userActions/PaymentMethods';
@@ -41,9 +41,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
         contextAction,
     } = props;
 
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: true});
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
@@ -54,10 +53,14 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
-    const allDuplicates = useMemo(() => violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [], [violations]);
-    const duplicates = useMemo(() => removeSettledAndApprovedTransactions(allDuplicates), [allDuplicates]);
+    const allDuplicateIDs = useMemo(() => violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [], [violations]);
+    const [allDuplicates] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}`, {
+        selector: (allTransactions) => allDuplicateIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]),
+        canBeMissing: true,
+    });
+    const duplicates = useMemo(() => removeSettledAndApprovedTransactions(allDuplicates ?? []), [allDuplicates]);
     const sessionAccountID = session?.accountID;
-    const areThereDuplicates = allDuplicates.length > 0 && duplicates.length > 0 && allDuplicates.length === duplicates.length;
+    const areThereDuplicates = allDuplicateIDs.length > 0 && duplicates.length > 0 && allDuplicateIDs.length === duplicates.length;
 
     const transactionDetails = useMemo(() => getTransactionDetails(transaction), [transaction]);
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails ?? {};
@@ -75,14 +78,22 @@ function TransactionPreview(props: TransactionPreviewProps) {
     }, [chatReportID]);
 
     const navigateToReviewFields = useCallback(() => {
-        Navigation.navigate(getReviewNavigationRoute(route, report, transaction, duplicates));
-    }, [duplicates, report, route, transaction]);
+        Navigation.navigate(getReviewNavigationRoute(route, transaction, duplicates));
+    }, [route, transaction, duplicates]);
 
-    const transactionPreview = transaction;
+    let transactionPreview = transaction;
 
     const {originalTransaction, isBillSplit} = getOriginalTransactionWithSplitInfo(transaction);
 
-    const iouAction = action;
+    if (isBillSplit) {
+        transactionPreview = originalTransaction;
+    }
+
+    // See description of `transactionRawAmount` prop for more context
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const transactionRawAmount = (transaction?.modifiedAmount || transaction?.amount) ?? 0;
+
+    const iouAction = isBillSplit && originalTransaction ? (getIOUActionForReportID(chatReportID, originalTransaction.transactionID) ?? action) : action;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const isTransactionMadeWithCard = isCardTransaction(transaction);
@@ -104,11 +115,12 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...props}
                     action={iouAction}
-                    isBillSplit={isBillSplit && !transaction?.comment?.originalTransactionID}
+                    isBillSplit={isBillSplit}
                     chatReport={chatReport}
                     personalDetails={personalDetails}
                     transaction={transactionPreview}
-                    iouReport={iouReport}
+                    transactionRawAmount={transactionRawAmount}
+                    report={report}
                     violations={violations}
                     offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
                     navigateToReviewFields={navigateToReviewFields}
@@ -131,7 +143,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
             chatReport={chatReport}
             personalDetails={personalDetails}
             transaction={originalTransaction}
-            iouReport={iouReport}
+            transactionRawAmount={transactionRawAmount}
+            report={report}
             violations={violations}
             offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
             navigateToReviewFields={navigateToReviewFields}

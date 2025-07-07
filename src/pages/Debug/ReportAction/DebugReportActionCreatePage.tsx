@@ -1,7 +1,6 @@
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DebugUtils from '@libs/DebugUtils';
@@ -99,7 +99,8 @@ function DebugReportActionCreatePage({
                                 multiline
                                 value={draftReportAction}
                                 onChangeText={editJSON}
-                                textInputContainerStyles={[styles.border, styles.borderBottom, styles.p5]}
+                                // We need to explicitly add styles.pt5 and styles.pb5 to override the default top and bottom padding of the text input
+                                textInputContainerStyles={[styles.border, styles.borderBottom, styles.ph5, styles.pt5, styles.pb5]}
                             />
                         </View>
                         <View>
