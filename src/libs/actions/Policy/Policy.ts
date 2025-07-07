@@ -82,7 +82,8 @@ import * as PersistedRequests from '@userActions/PersistedRequests';
 import {buildTaskData} from '@userActions/Task';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize, OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
-import CONST, {type OnboardingAccounting} from '@src/CONST';
+import CONST from '@src/CONST';
+import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     IntroSelected,
@@ -134,6 +135,16 @@ type WorkspaceFromIOUCreationData = {
     workspaceChatReportID: string;
     reportPreviewReportActionID?: string;
     adminsChatReportID: string;
+};
+
+type BuildPolicyDataConfig = {
+    expenseReportId?: string;
+    engagementChoice?: OnboardingPurpose;
+    currency?: string;
+    file?: File;
+    shouldAddOnboardingTasks?: boolean;
+    companySize?: OnboardingCompanySize;
+    userReportedIntegration?: OnboardingAccounting;
 };
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -1847,14 +1858,17 @@ function buildPolicyData(
     makeMeAdmin = false,
     policyName = '',
     policyID = generatePolicyID(),
-    expenseReportId?: string,
-    engagementChoice?: OnboardingPurpose,
-    currency = '',
-    file?: File,
-    shouldAddOnboardingTasks = true,
-    companySize?: OnboardingCompanySize,
-    userReportedIntegration?: OnboardingAccounting,
+    config: BuildPolicyDataConfig = {},
 ) {
+    const {
+        expenseReportId,
+        engagementChoice,
+        currency = '',
+        file,
+        shouldAddOnboardingTasks = true,
+        companySize,
+        userReportedIntegration,
+    } = config;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
@@ -2177,7 +2191,7 @@ function buildPolicyData(
         currency: outputCurrency,
         file: clonedFile,
         companySize,
-        userReportedIntegration: userReportedIntegration || undefined,
+        userReportedIntegration: userReportedIntegration ?? undefined,
     };
 
     if (
@@ -2235,13 +2249,15 @@ function createWorkspace(
         makeMeAdmin,
         policyName,
         policyID,
-        undefined,
-        engagementChoice,
-        currency,
-        file,
-        shouldAddOnboardingTasks,
-        companySize,
-        userReportedIntegration,
+        {
+            expenseReportId: undefined,
+            engagementChoice,
+            currency,
+            file,
+            shouldAddOnboardingTasks,
+            companySize,
+            userReportedIntegration,
+        },
     );
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
