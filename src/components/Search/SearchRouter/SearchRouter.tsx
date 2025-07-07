@@ -429,14 +429,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const modalWidth = shouldUseNarrowLayout ? styles.w100 : {width: variables.searchRouterPopoverWidth};
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const dismissKeyboard = () => {
+        Keyboard.dismiss();
+    };
+
     const tap = Gesture.Tap().onFinalize(() => {
         'worklet';
 
-        runOnJS(() => {
-            Keyboard.dismiss();
-        })();
+        runOnJS(dismissKeyboard)();
     });
+
     return (
         <GestureDetector gesture={tap}>
             <View
