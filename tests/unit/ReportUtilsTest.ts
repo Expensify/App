@@ -458,6 +458,45 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('canEditFieldOfMoneyRequest', () => {
+        const reportActionID = 2;
+        const IOUReportID = '1';
+        const IOUTransactionID = '1';
+        const randomReportAction = {...createRandomReportAction(reportActionID), actionName: CONST.REPORT.ACTIONS.TYPE.IOU, actorAccountID: currentUserAccountID};
+        const policyID = '2';
+        const reportAction = {
+            ...randomReportAction,
+            originalMessage: {
+                ...randomReportAction.originalMessage,
+                IOUReportID,
+                IOUTransactionID,
+            },
+        };
+
+        /* CREATE money request report 
+        invoiceReport.reportID = originalMessage.IOUReportID
+        invoiceReport.ownerAccountID = currentUserAccountID
+        invoioiceReport.policyID = policy.id
+        */
+
+        const invoiceReport = {...createInvoiceReport(Number(IOUReportID)), policyID, ownerAccountID: currentUserAccountID};
+
+        /* CREATE policy
+        moneyRequestReport?.policyID = policy.id 
+        */
+        const policy = {...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM), areInvoicesEnabled: true};
+
+        /* CREATE money request transaction
+         moneyRequestReport.reportID = moneyRequestReport.reportID = originalMessage.IOUReportID
+         moneyRequestTransaction.transactionID = originalMessage.IOUTransactionID
+        */
+        const moneyRequestTransaction = createRandomTransaction(Number(IOUTransactionID));
+
+        it('test practice', () => {
+            expect(reportAction.originalMessage?.IOUReportID).toBe('1');
+        });
+    });
+
     describe('getReportName', () => {
         describe('1:1 DM', () => {
             test('with displayName', () => {
