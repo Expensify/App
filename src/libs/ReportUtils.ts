@@ -9958,7 +9958,7 @@ function isReportOutstanding(
         return false;
     }
     const activeReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${Navigation.getTopmostReportId()}`];
-    const policy = allPolicies?.[policyID ?? ''];
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
     const shouldAllowSubmittedReport = isInstantSubmitEnabled(policy) || isProcessingReport(activeReport);
     return (
