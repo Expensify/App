@@ -1,10 +1,10 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,30 +25,25 @@ function SearchFiltersTagPage() {
         }
         return {name: getCleanedTagName(tag), value: tag};
     });
-    const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
+    const policyID = searchAdvancedFiltersForm?.policyID;
     const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
-    const selectedPoliciesTagLists = Object.keys(allPolicyTagLists ?? {})
-        .filter((key) => policyIDs?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`)?.includes(key))
-        ?.map((key) => getTagNamesFromTagsLists(allPolicyTagLists?.[key] ?? {}))
-        .flat();
+    const singlePolicyTagLists = allPolicyTagLists[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
 
     const tagItems = useMemo(() => {
         const items = [{name: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string}];
-        const uniqueTagNames = new Set<string>();
-
-        if (!selectedPoliciesTagLists) {
+        if (!singlePolicyTagLists) {
+            const uniqueTagNames = new Set<string>();
             const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
             tagListsUnpacked
                 .map(getTagNamesFromTagsLists)
                 .flat()
                 .forEach((tag) => uniqueTagNames.add(tag));
+            items.push(...Array.from(uniqueTagNames).map((tagName) => ({name: getCleanedTagName(tagName), value: tagName})));
         } else {
-            selectedPoliciesTagLists.forEach((tag) => uniqueTagNames.add(tag));
+            items.push(...getTagNamesFromTagsLists(singlePolicyTagLists).map((name) => ({name: getCleanedTagName(name), value: name})));
         }
-        items.push(...Array.from(uniqueTagNames).map((tagName) => ({name: getCleanedTagName(tagName), value: tagName})));
-
         return items;
-    }, [allPolicyTagLists, selectedPoliciesTagLists, translate]);
+    }, [allPolicyTagLists, singlePolicyTagLists, translate]);
 
     const updateTagFilter = useCallback((values: string[]) => updateAdvancedFilters({tag: values}), []);
 
