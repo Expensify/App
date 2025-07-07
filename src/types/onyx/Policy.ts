@@ -1403,7 +1403,7 @@ type AllConnections = Connections & {
 };
 
 /** Names of officially supported integration connections */
-type ConnectionName = typeof CONST.POLICY.CONNECTIONS.NAME[keyof typeof CONST.POLICY.CONNECTIONS.NAME];
+type ConnectionName = (typeof CONST.POLICY.CONNECTIONS.NAME)[keyof typeof CONST.POLICY.CONNECTIONS.NAME];
 
 /** Names of all integration connections including onboarding types */
 type AllConnectionName = ConnectionName | keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY;
