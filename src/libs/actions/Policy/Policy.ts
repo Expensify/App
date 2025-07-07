@@ -138,8 +138,6 @@ type WorkspaceFromIOUCreationData = {
 };
 
 type BuildPolicyDataConfig = {
-    expenseReportId?: string;
-    engagementChoice?: OnboardingPurpose;
     currency?: string;
     file?: File;
     shouldAddOnboardingTasks?: boolean;
@@ -1858,11 +1856,11 @@ function buildPolicyData(
     makeMeAdmin = false,
     policyName = '',
     policyID = generatePolicyID(),
+    expenseReportId?: string,
+    engagementChoice?: OnboardingPurpose,
     config: BuildPolicyDataConfig = {},
 ) {
     const {
-        expenseReportId,
-        engagementChoice,
         currency = '',
         file,
         shouldAddOnboardingTasks = true,
@@ -2249,9 +2247,9 @@ function createWorkspace(
         makeMeAdmin,
         policyName,
         policyID,
+        undefined,
+        engagementChoice,
         {
-            expenseReportId: undefined,
-            engagementChoice,
             currency,
             file,
             shouldAddOnboardingTasks,
