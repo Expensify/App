@@ -38,6 +38,7 @@ function SearchContextProvider({children}: ChildrenProps) {
     const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
     const [lastSearchType, setLastSearchType] = useState<string | undefined>(undefined);
     const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
+    const currentSearchHash = useMemo(() => searchContextData.currentSearchHash, [searchContextData.currentSearchHash]);
     const areTransactionsEmpty = useRef(true);
 
     const setCurrentSearchHash = useCallback((searchHash: number) => {
@@ -104,7 +105,7 @@ function SearchContextProvider({children}: ChildrenProps) {
                 return;
             }
 
-            if (searchHashOrClearIDsFlag === searchContextData.currentSearchHash) {
+            if (searchHashOrClearIDsFlag === currentSearchHash) {
                 return;
             }
             setSearchContextData((prevState) => ({
@@ -116,7 +117,7 @@ function SearchContextProvider({children}: ChildrenProps) {
             setShouldShowExportModeOption(false);
             setExportMode(false);
         },
-        [searchContextData.currentSearchHash, setSelectedTransactions],
+        [currentSearchHash, setSelectedTransactions],
     );
 
     const removeTransaction: SearchContext['removeTransaction'] = useCallback(
