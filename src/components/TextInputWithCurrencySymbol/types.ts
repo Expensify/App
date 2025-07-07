@@ -78,6 +78,9 @@ type BaseTextInputWithCurrencySymbolProps = {
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
 
+    /** Whether the amount is negative */
+    isNegative?: boolean;
+
     /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
     shouldApplyPaddingToContainer?: boolean;
 
