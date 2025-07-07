@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
@@ -400,7 +401,7 @@ const getBankCardDetailsImage = (bank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>
     return iconMap[bank];
 };
 
-function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknames?: CompanyCardNicknames): string | undefined {
+function getCustomOrFormattedFeedName(translate: LocaleContextProps['translate'], feed?: CompanyCardFeed, companyCardNicknames?: CompanyCardNicknames): string | undefined {
     if (!feed) {
         return;
     }
@@ -411,7 +412,7 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, companyCardNicknam
         return '';
     }
 
-    const formattedFeedName = translateLocal('workspace.companyCards.feedName', {feedName: getBankName(feed)});
+    const formattedFeedName = translate('workspace.companyCards.feedName', {feedName: getBankName(feed)});
     return customFeedName ?? formattedFeedName;
 }
 

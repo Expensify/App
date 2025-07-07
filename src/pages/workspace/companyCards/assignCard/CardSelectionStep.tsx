@@ -47,7 +47,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
     const plaidUrl = getPlaidInstitutionIconUrl(feed);
-    const formattedFeedName = getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames);
+    const formattedFeedName = getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames);
 
     const isEditing = assignCard?.isEditing;
     const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';

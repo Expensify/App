@@ -5,6 +5,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectCircle from '@components/SelectCircle';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -35,9 +36,10 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentSubscriptionPlan = useSubscriptionPlan();
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
     const preferredCurrency = usePreferredCurrency();
-    const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(subscriptionPlan, privateSubscription?.type, preferredCurrency, isFromComparisonModal);
+    const {translate} = useLocalize();
+    const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(translate, subscriptionPlan, privateSubscription?.type, preferredCurrency, isFromComparisonModal);
     const isSelected = isFromComparisonModal && subscriptionPlan === currentSubscriptionPlan;
     const benefitsColumns = shouldUseNarrowLayout || isFromComparisonModal ? 1 : 2;
 
