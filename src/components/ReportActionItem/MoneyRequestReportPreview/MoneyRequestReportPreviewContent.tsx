@@ -114,7 +114,9 @@ function MoneyRequestReportPreviewContent({
     isInvoice,
     shouldShowBorder = false,
     onPress,
+    chatReportMetadata,
 }: MoneyRequestReportPreviewContentProps) {
+    const shouldShowLoading = !!chatReportMetadata?.isLoadingInitialReportActions && !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0;
     const lastTransaction = transactions?.at(0);
     const shouldShowEmptyPlaceholder = transactions.length === 0;
     const theme = useTheme();
@@ -408,7 +410,7 @@ function MoneyRequestReportPreviewContent({
 
     // The button should expand up to transaction width
     const buttonMaxWidth =
-        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewCarouselStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDE_WIDTH
+        !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewCarouselStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH
             ? {maxWidth: reportPreviewStyles.transactionPreviewCarouselStyle.width}
             : {};
 
@@ -707,11 +709,14 @@ function MoneyRequestReportPreviewContent({
                                             )}
                                         </View>
                                     </View>
-                                    {!currentWidth ? (
+                                    {!currentWidth || shouldShowLoading ? (
                                         <View
                                             style={[
                                                 {
                                                     height: CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDE_HEIGHT,
+                                                    minWidth: shouldUseNarrowLayout
+                                                        ? CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_NARROW_WIDTH
+                                                        : CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH,
                                                 },
                                                 styles.justifyContentCenter,
                                                 styles.mtn1,

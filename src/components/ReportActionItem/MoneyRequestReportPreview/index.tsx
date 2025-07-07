@@ -61,7 +61,7 @@ function MoneyRequestReportPreview({
         () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, currentWidth, currentWrapperWidth),
         [StyleUtils, currentWidth, currentWrapperWidth, shouldUseNarrowLayout, transactions.length],
     );
-
+    const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {canBeMissing: true, allowStaleData: true});
     const shouldShowPayerAndReceiver = useMemo(() => {
         if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
             return false;
@@ -110,6 +110,7 @@ function MoneyRequestReportPreview({
             iouReport={iouReport}
             chatReport={chatReport}
             action={action}
+            chatReportMetadata={chatReportMetadata}
             containerStyles={[reportPreviewStyles.componentStyle]}
             contextMenuAnchor={contextMenuAnchor}
             isHovered={isHovered}
