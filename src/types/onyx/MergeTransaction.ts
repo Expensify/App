@@ -33,8 +33,8 @@ type MergeTransaction = {
     /** Whether the transaction is billable */
     billable: boolean;
 
-    /** The receiptID we want to keep */ 
+    /** The receiptID we want to keep */
     receiptID: string;
 };
 
-export default MergeTransaction; 
+export default MergeTransaction;

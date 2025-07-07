@@ -1677,19 +1677,19 @@ type TransactionDuplicateNavigatorParamList = {
 type MergeTransactionNavigatorParamList = {
     [SCREENS.MERGE_TRANSACTION.LIST_PAGE]: {
         transactionID: string;
-        backTo?: Routes
+        backTo?: Routes;
     };
     [SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE]: {
         transactionID: string;
-        backTo?: Routes
+        backTo?: Routes;
     };
     [SCREENS.MERGE_TRANSACTION.DETAILS_PAGE]: {
         transactionID: string;
-        backTo?: Routes
+        backTo?: Routes;
     };
     [SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE]: {
         transactionID: string;
-        backTo?: Routes
+        backTo?: Routes;
     };
 };
 
