@@ -34,9 +34,7 @@ Our `Composer` component uses `react-native-live-markdown` for writing and editi
 
 ## Parsing mentions outside of Composer/Input
 When a user types in a message and wants to send it, we need to process the message text and then call the appropriate backend command.
-However, backend only accepts text in html format. This means that text payload sent to backend has to be parsed via ExpensiMark. In addition api **will not** accept `<mention-short>` tag - it only accepts full user mention with email. Frontend needs to process every `shortMention` into a `userMention` or stripping it completely from text.
-
-FINISH ME
+However, backend only accepts text in html format. This means that text payload sent to backend has to be parsed via ExpensiMark. In addition, api **will not** accept `<mention-short>` tag - it only accepts full user mention with email. Frontend needs to process every `shortMention` into a `userMention` or stripping it completely from text.
 
 ### Mention processing flow when sending a message
 1. After typing in some text user hits ENTER or presses the send button
