@@ -72,6 +72,12 @@ function ReceiptPreview({source, hovered}: {source: string; hovered: boolean}) {
                     onLoad={handleLoad}
                 />
             </View>
+            <View style={[styles.pAbsolute, {left: 20, top: 12}]}>
+                <ReceiptAudit
+                    shouldShowAuditResult
+                    notes={[]}
+                />
+            </View>
         </Animated.View>,
         document.body,
     );
