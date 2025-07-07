@@ -8,8 +8,8 @@ import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequ
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
-import useOnyx from '@hooks/useOnyx';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
