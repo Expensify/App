@@ -13,7 +13,7 @@ import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense, OriginalMessageMovedTransaction} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
-import {FallbackAvatar, IntacctSquare, NetSuiteExport, NetSuiteSquare, QBDSquare, QBOExport, QBOSquare, SageIntacctExport, XeroExport, XeroSquare} from '@components/Icon/Expensicons';
+import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBDSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
@@ -2482,8 +2482,7 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArc
 /**
  * Checks whether the card transaction support deleting based on liability type
  */
-function canDeleteCardTransactionByLiabilityType(iouTransactionID?: string): boolean {
-    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID}`];
+function canDeleteCardTransactionByLiabilityType(transaction: OnyxEntry<Transaction>): boolean {
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
     if (!isCardTransaction) {
         return true;
@@ -2495,14 +2494,13 @@ function canDeleteCardTransactionByLiabilityType(iouTransactionID?: string): boo
  * Can only delete if the author is this user and the action is an ADD_COMMENT action or an IOU action in an unsettled report, or if the user is a
  * policy admin
  */
-function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string | undefined): boolean {
+function canDeleteReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string | undefined, iouTransaction?: OnyxEntry<Transaction>): boolean {
     const report = getReportOrDraftReport(reportID);
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? null;
 
     if (isMoneyRequestAction(reportAction)) {
-        const iouTransactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
-        const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransactionID);
+        const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
         // For now, users cannot delete split actions
         const isSplitAction = getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 
@@ -4223,7 +4221,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
         const isUnreported = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         return isUnreported
             ? Object.values(allPolicies ?? {}).flatMap((currentPolicy) => getOutstandingReportsForUser(currentPolicy?.id, currentUserAccountID, allReports ?? {})).length > 0
-            : getOutstandingReportsForUser(moneyRequestReport?.policyID, moneyRequestReport?.ownerAccountID, allReports ?? {}).length > 1;
+            : Object.values(allPolicies ?? {}).flatMap((currentPolicy) => getOutstandingReportsForUser(currentPolicy?.id, moneyRequestReport?.ownerAccountID, allReports ?? {})).length > 1;
     }
 
     return true;
@@ -4796,7 +4794,7 @@ function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAct
  * - Individual - a receiver display name.
  * - Policy - a receiver policy name.
  */
-function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy, invoiceReceiverPersonalDetail?: PersonalDetails): string {
+function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: OnyxEntry<Policy> | SearchPolicy, invoiceReceiverPersonalDetail?: PersonalDetails | null): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
@@ -7954,7 +7952,7 @@ function hasViolations(
  */
 function hasWarningTypeViolations(reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
     const transactions = getReportTransactions(reportID);
-    return transactions.some((transaction) => hasWarningTypeViolation(transaction.transactionID, transactionViolations, shouldShowInReview));
+    return transactions.some((transaction) => hasWarningTypeViolation(transaction, transactionViolations, shouldShowInReview));
 }
 
 /**
@@ -7982,7 +7980,7 @@ function hasReceiptErrors(reportID: string | undefined): boolean {
  */
 function hasNoticeTypeViolations(reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
     const transactions = getReportTransactions(reportID);
-    return transactions.some((transaction) => hasNoticeTypeViolation(transaction.transactionID, transactionViolations, shouldShowInReview));
+    return transactions.some((transaction) => hasNoticeTypeViolation(transaction, transactionViolations, shouldShowInReview));
 }
 
 function hasReportViolations(reportID: string | undefined) {
@@ -8381,13 +8379,6 @@ function chatIncludesChronosWithID(reportOrID?: string | SearchReport): boolean 
  * - It's an ADD_COMMENT that is not an attachment
  */
 function canFlagReportAction(reportAction: OnyxInputOrEntry<ReportAction>, reportID: string | undefined): boolean {
-    let report = getReportOrDraftReport(reportID);
-
-    // If the childReportID exists in reportAction and is equal to the reportID,
-    // the report action being evaluated is the parent report action in a thread, and we should get the parent report to evaluate instead.
-    if (reportAction?.childReportID?.toString() === reportID?.toString()) {
-        report = getReportOrDraftReport(report?.parentReportID);
-    }
     const isCurrentUserAction = reportAction?.actorAccountID === currentUserAccountID;
     if (isWhisperAction(reportAction)) {
         // Allow flagging whispers that are sent by other users
@@ -8397,6 +8388,14 @@ function canFlagReportAction(reportAction: OnyxInputOrEntry<ReportAction>, repor
 
         // Disallow flagging the rest of whisper as they are sent by us
         return false;
+    }
+
+    let report = getReportOrDraftReport(reportID);
+
+    // If the childReportID exists in reportAction and is equal to the reportID,
+    // the report action being evaluated is the parent report action in a thread, and we should get the parent report to evaluate instead.
+    if (reportAction?.childReportID?.toString() === reportID?.toString()) {
+        report = getReportOrDraftReport(report?.parentReportID);
     }
 
     return !!(
@@ -8413,12 +8412,10 @@ function canFlagReportAction(reportAction: OnyxInputOrEntry<ReportAction>, repor
 /**
  * Whether flag comment page should show
  */
-function shouldShowFlagComment(reportAction: OnyxInputOrEntry<ReportAction>, report: OnyxInputOrEntry<Report>): boolean {
+function shouldShowFlagComment(reportAction: OnyxInputOrEntry<ReportAction>, report: OnyxInputOrEntry<Report>, isReportArchived = false): boolean {
     return (
         canFlagReportAction(reportAction, report?.reportID) &&
-        // This will get removed as part of https://github.com/Expensify/App/issues/59961
-        // eslint-disable-next-line deprecation/deprecation
-        !isArchivedNonExpenseReport(report, !!getReportNameValuePairs(report?.reportID)?.private_isArchived) &&
+        !isArchivedNonExpenseReport(report, isReportArchived) &&
         !chatIncludesChronos(report) &&
         !isConciergeChatReport(report) &&
         reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE
@@ -10746,23 +10743,6 @@ function getIntegrationIcon(connectionName?: ConnectionName) {
     return undefined;
 }
 
-function getIntegrationExportIcon(connectionName?: ConnectionName) {
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
-        return XeroExport;
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO || connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
-        return QBOExport;
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        return NetSuiteExport;
-    }
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
-        return SageIntacctExport;
-    }
-
-    return undefined;
-}
-
 function canBeExported(report: OnyxEntry<Report>) {
     if (!report?.statusNum) {
         return false;
@@ -11424,7 +11404,6 @@ export {
     getReportViolations,
     findPolicyExpenseChatByPolicyID,
     getIntegrationIcon,
-    getIntegrationExportIcon,
     canBeExported,
     isExported,
     hasExportError,

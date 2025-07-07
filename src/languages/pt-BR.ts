@@ -276,6 +276,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -550,7 +551,6 @@ const translations = {
         userID: 'ID do Usuário',
         disable: 'Desativar',
         export: 'Exportar',
-        basicExport: 'Exporta\u00E7\u00E3o b\u00E1sica',
         initialValue: 'Valor inicial',
         currentDate: 'Data atual',
         value: 'Valor',
@@ -562,6 +562,7 @@ const translations = {
         longID: 'ID longo',
         bankAccounts: 'Contas bancárias',
         chooseFile: 'Escolher arquivo',
+        chooseFiles: 'Escolher arquivos',
         dropTitle: 'Deixe ir',
         dropMessage: 'Solte seu arquivo aqui',
         ignore: 'Ignore',
@@ -958,9 +959,13 @@ const translations = {
     },
     receipt: {
         upload: 'Fazer upload de recibo',
+        uploadMultiple: 'Fazer upload de recibos',
         dragReceiptBeforeEmail: 'Arraste um recibo para esta página, encaminhe um recibo para',
+        dragReceiptsBeforeEmail: 'Arraste recibos para esta página, encaminhe recibos para',
         dragReceiptAfterEmail: 'ou escolha um arquivo para enviar abaixo.',
+        dragReceiptsAfterEmail: 'ou escolha arquivos para enviar abaixo.',
         chooseReceipt: 'Escolha um recibo para enviar ou encaminhe um recibo para',
+        chooseReceipts: 'Escolha recibos para enviar ou encaminhe recibos para',
         takePhoto: 'Tire uma foto',
         cameraAccess: 'O acesso à câmera é necessário para tirar fotos dos recibos.',
         deniedCameraAccess: 'O acesso à câmera ainda não foi concedido, por favor siga',
@@ -2649,11 +2654,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Para conectar uma conta bancária, por favor <a href="${contactMethodRoute}">adicione um e-mail como seu login principal</a> e tente novamente. Você pode adicionar seu número de telefone como um login secundário.`,
         hasBeenThrottledError: 'Ocorreu um erro ao adicionar sua conta bancária. Por favor, aguarde alguns minutos e tente novamente.',
-        hasCurrencyError: {
-            phrase1: 'Ops! Parece que a moeda do seu espaço de trabalho está definida para uma moeda diferente de USD. Para continuar, por favor vá para',
-            link: 'suas configurações de espaço de trabalho',
-            phrase2: 'para definir para USD e tentar novamente.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Ops! Parece que a moeda do seu espaço de trabalho está definida para uma moeda diferente de USD. Para continuar, por favor vá para <a href="${workspaceRoute}">suas configurações de espaço de trabalho</a> para definir para USD e tentar novamente.`,
         error: {
             youNeedToSelectAnOption: 'Por favor, selecione uma opção para continuar',
             noBankAccountAvailable: 'Desculpe, não há nenhuma conta bancária disponível.',
@@ -3428,7 +3430,7 @@ const translations = {
             welcomeNote: 'Por favor, use o Expensify para enviar seus recibos para reembolso, obrigado!',
             subscription: 'Assinatura',
             markAsEntered: 'Marcar como inserido manualmente',
-            markAsExported: 'Marcar como exportado',
+            markAsExported: 'Marcar como exportado manualmente',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Vamos verificar se tudo está correto.',
             lineItemLevel: 'Nível de item linha',
@@ -5979,6 +5981,7 @@ const translations = {
                 members: 'Membro',
                 cards: 'Cartão',
             },
+            feed: 'Feed',
         },
         groupBy: 'Agrupar por',
         moneyRequestReport: {

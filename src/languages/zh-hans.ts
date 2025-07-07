@@ -276,6 +276,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -550,7 +551,6 @@ const translations = {
         userID: '用户 ID',
         disable: '禁用',
         export: '导出',
-        basicExport: '基本导出',
         initialValue: '初始值',
         currentDate: '当前日期',
         value: '值',
@@ -562,6 +562,7 @@ const translations = {
         longID: 'Long ID',
         bankAccounts: '银行账户',
         chooseFile: '选择文件',
+        chooseFiles: '选择文件',
         dropTitle: 'Let it go',
         dropMessage: '在此处拖放您的文件',
         ignore: 'Ignore',
@@ -951,9 +952,13 @@ const translations = {
     },
     receipt: {
         upload: '上传收据',
+        uploadMultiple: '上传收据',
         dragReceiptBeforeEmail: '将收据拖到此页面上，转发收据到',
+        dragReceiptsBeforeEmail: '将收据拖到此页面上，转发收据到',
         dragReceiptAfterEmail: '或选择下面的文件上传。',
+        dragReceiptsAfterEmail: '或选择下面的文件上传。',
         chooseReceipt: '选择要上传的收据或转发收据到',
+        chooseReceipts: '选择要上传的收据或转发收据到',
         takePhoto: '拍照',
         cameraAccess: '需要相机权限来拍摄收据照片。',
         deniedCameraAccess: '相机访问权限仍未授予，请按照以下步骤操作',
@@ -2621,11 +2626,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `要连接银行账户，请 <a href="${contactMethodRoute}">添加一个电子邮件作为您的主要登录方式</a> 并重试。您可以添加电话号码作为辅助登录。`,
         hasBeenThrottledError: '添加您的银行账户时发生错误。请稍等几分钟后重试。',
-        hasCurrencyError: {
-            phrase1: '哎呀！您的工作区货币似乎设置为不同于 USD 的货币。要继续，请前往',
-            link: '您的工作区设置',
-            phrase2: '将其设置为美元，然后重试。',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `哎呀！您的工作区货币似乎设置为不同于 USD 的货币。要继续，请前往 <a href="${workspaceRoute}">您的工作区设置</a> 将其设置为美元，然后重试。`,
         error: {
             youNeedToSelectAnOption: '请选择一个选项继续',
             noBankAccountAvailable: '抱歉，没有可用的银行账户。',
@@ -5875,6 +5877,7 @@ const translations = {
                 members: '成员',
                 cards: '卡片',
             },
+            feed: '通道',
         },
         groupBy: '组别',
         moneyRequestReport: {

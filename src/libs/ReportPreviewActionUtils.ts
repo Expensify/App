@@ -60,6 +60,10 @@ function canSubmit(
     const hasBeenReopened = hasReportBeenReopened(reportActions);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
 
+    if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
+        return false;
+    }
+
     const hasAnyViolations =
         hasMissingSmartscanFields(report.reportID, transactions) ||
         hasViolations(report.reportID, violations) ||
@@ -226,7 +230,7 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
     // We handle RTER violations independently because those are not configured via policy workflows
     const isAdmin = isPolicyAdmin(policy);
     const transactionIDs = transactions?.map((transaction) => transaction.transactionID) ?? [];
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations);
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
 
     if (hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isAdmin || isSubmitter) && !isReportApproved({report}) && !isReportManuallyReimbursed(report))) {

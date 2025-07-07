@@ -16,7 +16,7 @@ import {
     isPreferredExporter,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
-import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
+import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
     canEditReportPolicy,
@@ -108,6 +108,7 @@ function isSubmitAction(
     reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
     isChatReportArchived = false,
+    primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
 ): boolean {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -116,6 +117,10 @@ function isSubmitAction(
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
 
     if (!transactionAreComplete) {
+        return false;
+    }
+
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
         return false;
     }
 
@@ -156,7 +161,7 @@ function isSubmitAction(
 
     const isScheduledSubmitEnabled = policy?.harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
 
-    return !!isScheduledSubmitEnabled;
+    return !!isScheduledSubmitEnabled || primaryAction !== CONST.REPORT.SECONDARY_ACTIONS.SUBMIT;
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
@@ -184,7 +189,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction));
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -196,7 +201,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
 
     const transactionIDs = reportTransactions.map((t) => t.transactionID);
 
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations);
 
     if (hasAllPendingRTERViolations) {
         return true;
@@ -520,7 +525,18 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived)) {
+    const primaryAction = getReportPrimaryAction({
+        report,
+        chatReport,
+        reportTransactions,
+        violations,
+        policy,
+        reportNameValuePairs,
+        reportActions,
+        isChatReportArchived,
+    });
+
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
@@ -534,6 +550,14 @@ function getSecondaryReportActions({
 
     if (isCancelPaymentAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
+    }
+
+    if (isExportAction(report, policy, reportActions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING);
+    }
+
+    if (isMarkAsExportedAction(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
     }
 
     if (isRetractAction(report, policy)) {
@@ -552,7 +576,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
+    options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_CSV);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
@@ -565,22 +589,6 @@ function getSecondaryReportActions({
     if (isDeleteAction(report, reportTransactions, reportActions ?? [], policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
-
-    return options;
-}
-
-function getSecondaryExportReportActions(report: Report, policy?: Policy, reportActions?: ReportAction[]): Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> {
-    const options: Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> = [];
-
-    if (isExportAction(report, policy, reportActions)) {
-        options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
-    }
-
-    if (isMarkAsExportedAction(report, policy)) {
-        options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
-    }
-
-    options.push(CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV);
 
     return options;
 }
@@ -609,4 +617,4 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction, getSecondaryExportReportActions};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isDeleteAction};

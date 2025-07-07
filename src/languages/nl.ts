@@ -276,6 +276,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -550,7 +551,6 @@ const translations = {
         userID: 'Gebruikers-ID',
         disable: 'Uitschakelen',
         export: 'Exporteren',
-        basicExport: 'Basis export',
         initialValue: 'Initiële waarde',
         currentDate: "I'm unable to provide real-time information, including the current date. Please check your device or calendar for the current date.",
         value: 'Waarde',
@@ -562,6 +562,7 @@ const translations = {
         longID: 'Lang ID',
         bankAccounts: 'Bankrekeningen',
         chooseFile: 'Bestand kiezen',
+        chooseFiles: 'Bestanden kiezen',
         dropTitle: 'Laat het gaan',
         dropMessage: 'Sleep hier je bestand in.',
         ignore: 'Ignore',
@@ -958,9 +959,13 @@ const translations = {
     },
     receipt: {
         upload: 'Bonnetje uploaden',
+        uploadMultiple: 'Bonnetjes uploaden',
         dragReceiptBeforeEmail: 'Sleep een bon naar deze pagina, stuur een bon door naar',
+        dragReceiptsBeforeEmail: 'Sleep bonnen naar deze pagina, stuur bonnen door naar',
         dragReceiptAfterEmail: 'of kies hieronder een bestand om te uploaden.',
+        dragReceiptsAfterEmail: 'of kies hieronder bestanden om te uploaden.',
         chooseReceipt: 'Kies een bon om te uploaden of stuur een bon door naar',
+        chooseReceipts: 'Kies bonnen om te uploaden of stuur bonnen door naar',
         takePhoto: 'Maak een foto',
         cameraAccess: "Cameratoegang is vereist om foto's van bonnetjes te maken.",
         deniedCameraAccess: 'Camera-toegang is nog steeds niet verleend, volg alstublieft',
@@ -2652,11 +2657,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Om een bankrekening te koppelen, graag <a href="${contactMethodRoute}">voeg een e-mail toe als je primaire login</a> en probeer het opnieuw. U kunt uw telefoonnummer toevoegen als secundaire login.`,
         hasBeenThrottledError: 'Er is een fout opgetreden bij het toevoegen van uw bankrekening. Wacht een paar minuten en probeer het opnieuw.',
-        hasCurrencyError: {
-            phrase1: 'Oeps! Het lijkt erop dat de valuta van uw werkruimte is ingesteld op een andere valuta dan USD. Om verder te gaan, ga naar',
-            link: 'uw werkruimte-instellingen',
-            phrase2: 'om het in te stellen op USD en het opnieuw te proberen.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `Oeps! Het lijkt erop dat de valuta van uw werkruimte is ingesteld op een andere valuta dan USD. Om verder te gaan, ga naar <a href="${workspaceRoute}">uw werkruimte-instellingen</a> om het in te stellen op USD en het opnieuw te proberen.`,
         error: {
             youNeedToSelectAnOption: 'Selecteer een optie om verder te gaan.',
             noBankAccountAvailable: 'Sorry, er is geen bankrekening beschikbaar',
@@ -3431,7 +3433,7 @@ const translations = {
             welcomeNote: 'Gebruik alstublieft Expensify om uw bonnetjes in te dienen voor terugbetaling, bedankt!',
             subscription: 'Abonnement',
             markAsEntered: 'Markeren als handmatig ingevoerd',
-            markAsExported: 'Markeren als geëxporteerd',
+            markAsExported: 'Markeren als handmatig geëxporteerd',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exporteer naar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Laten we dubbel controleren of alles er goed uitziet.',
             lineItemLevel: 'Regelniveau',
@@ -5981,6 +5983,7 @@ const translations = {
                 members: 'Lid',
                 cards: 'Kaart',
             },
+            feed: 'Feed',
         },
         groupBy: 'Groep per',
         moneyRequestReport: {

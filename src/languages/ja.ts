@@ -276,6 +276,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -550,7 +551,6 @@ const translations = {
         userID: 'ユーザーID',
         disable: '無効にする',
         export: 'エクスポート',
-        basicExport: '基本エクスポート',
         initialValue: '初期値',
         currentDate: '現在の日付',
         value: '値段',
@@ -562,6 +562,7 @@ const translations = {
         longID: 'Long ID',
         bankAccounts: '銀行口座',
         chooseFile: 'ファイルを選択',
+        chooseFiles: 'ファイルを選択',
         dropTitle: 'そのままにしておく',
         dropMessage: 'ここにファイルをドロップしてください',
         ignore: 'Ignore',
@@ -960,9 +961,13 @@ const translations = {
     },
     receipt: {
         upload: '領収書をアップロード',
+        uploadMultiple: '領収書をアップロード',
         dragReceiptBeforeEmail: '領収書をこのページにドラッグするか、領収書を転送する',
+        dragReceiptsBeforeEmail: '領収書をこのページにドラッグするか、領収書を転送する',
         dragReceiptAfterEmail: 'または、以下にアップロードするファイルを選択してください。',
+        dragReceiptsAfterEmail: 'または、以下にアップロードするファイルを選択してください。',
         chooseReceipt: 'アップロードするレシートを選択するか、レシートを転送してください',
+        chooseReceipts: 'アップロードするレシートを選択するか、レシートを転送してください',
         takePhoto: '写真を撮る',
         cameraAccess: '領収書の写真を撮るためにカメラへのアクセスが必要です。',
         deniedCameraAccess: 'カメラへのアクセスがまだ許可されていません。以下の手順に従ってください。',
@@ -2652,11 +2657,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `銀行口座を接続するには、お願いします <a href="${contactMethodRoute}">メールをプライマリーログインとして追加する</a> もう一度試してください。電話番号をセカンダリログインとして追加できます。`,
         hasBeenThrottledError: '銀行口座の追加中にエラーが発生しました。数分待ってから再試行してください。',
-        hasCurrencyError: {
-            phrase1: 'おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、こちらにアクセスしてください。',
-            link: 'ワークスペースの設定',
-            phrase2: 'USDに設定して、もう一度お試しください。',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、こちらにアクセスしてください。<a href="${workspaceRoute}">ワークスペースの設定</a> USDに設定して、もう一度お試しください。`,
         error: {
             youNeedToSelectAnOption: 'オプションを選択してください',
             noBankAccountAvailable: '申し訳ありませんが、利用可能な銀行口座がありません。',
@@ -5949,6 +5951,7 @@ const translations = {
                 members: 'メンバー',
                 cards: 'カード',
             },
+            feed: 'フィード',
         },
         groupBy: 'グループ',
         moneyRequestReport: {
