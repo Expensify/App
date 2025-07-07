@@ -6375,6 +6375,7 @@ const CONST = {
         DATE_PRESETS: {
             NEVER: 'never',
             LAST_MONTH: 'last-month',
+            LAST_STATEMENT: 'last-statement',
         },
         SNAPSHOT_ONYX_KEYS: [
             ONYXKEYS.COLLECTION.REPORT,

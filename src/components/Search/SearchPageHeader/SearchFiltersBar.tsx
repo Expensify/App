@@ -254,7 +254,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                     value={posted}
                     onChange={onChange}
                     closeOverlay={closeOverlay}
-                    presets={[CONST.SEARCH.DATE_PRESETS.LAST_MONTH]}
+                    presets={[CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT, CONST.SEARCH.DATE_PRESETS.LAST_MONTH]}
                 />
             );
         },

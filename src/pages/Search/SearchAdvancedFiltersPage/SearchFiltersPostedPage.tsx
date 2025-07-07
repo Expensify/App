@@ -7,7 +7,7 @@ function SearchFiltersPostedPage() {
     const {isDevelopment} = useEnvironment();
 
     // s77rt remove DEV lock
-    const presets = isDevelopment ? [CONST.SEARCH.DATE_PRESETS.LAST_MONTH] : undefined;
+    const presets = isDevelopment ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT, CONST.SEARCH.DATE_PRESETS.LAST_MONTH] : undefined;
 
     return (
         <SearchDatePresetFilterBasePage
