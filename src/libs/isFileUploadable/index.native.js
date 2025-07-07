@@ -1,0 +1,9 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function isFileUploadable(file) {
+    // Native platforms only require the object to include the `uri` property.
+    // Optionally, it can also have a `name` and `type` properties.
+    // On other platforms, the file must be an instance of `Blob` or one of its subclasses.
+    return !!file && 'uri' in file && !!file.uri && typeof file.uri === 'string';
+}
+exports.default = isFileUploadable;

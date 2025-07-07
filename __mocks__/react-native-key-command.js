@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.unregisterKeyCommands = exports.registerKeyCommands = exports.eventEmitter = exports.constants = exports.addListener = void 0;
+var registerKeyCommands = function () { };
+exports.registerKeyCommands = registerKeyCommands;
+var unregisterKeyCommands = function () { };
+exports.unregisterKeyCommands = unregisterKeyCommands;
+var constants = {};
+exports.constants = constants;
+var eventEmitter = function () { };
+exports.eventEmitter = eventEmitter;
+var addListener = function () { return function () { }; };
+exports.addListener = addListener;

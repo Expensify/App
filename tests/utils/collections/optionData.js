@@ -1,0 +1,52 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = createRandomOptionData;
+var falso_1 = require("@ngneat/falso");
+var CONST_1 = require("@src/CONST");
+function createRandomOptionData(index) {
+    return {
+        login: (0, falso_1.randEmail)(),
+        searchText: (0, falso_1.randWord)(),
+        reportID: "report_".concat(index),
+        text: (0, falso_1.randWord)(),
+        alternateText: (0, falso_1.randWord)(),
+        tooltipText: (0, falso_1.randWord)(),
+        keyForList: "option_".concat(index),
+        descriptiveText: (0, falso_1.randWord)(),
+        isUnread: (0, falso_1.randBoolean)(),
+        isPinned: (0, falso_1.randBoolean)(),
+        isSelected: (0, falso_1.randBoolean)(),
+        phoneNumber: (0, falso_1.randPhoneNumber)(),
+        policyName: (0, falso_1.randWord)(),
+        policyID: "policy_".concat(index),
+        accountID: (0, falso_1.randNumber)(),
+        private_isArchived: new Date().toISOString(),
+        isPolicyExpenseChat: (0, falso_1.randBoolean)(),
+        chatType: (0, falso_1.rand)(Object.values(CONST_1.default.REPORT.CHAT_TYPE)),
+        hasOutstandingChildRequest: (0, falso_1.randBoolean)(),
+        isOwnPolicyExpenseChat: (0, falso_1.randBoolean)(),
+        lastMessageText: (0, falso_1.randWord)(),
+        lastVisibleActionCreated: new Date().toISOString(),
+        lastReadTime: new Date().toISOString(),
+        lastReadSequenceNumber: (0, falso_1.randNumber)(),
+        lastMentionedTime: (0, falso_1.randBoolean)() ? new Date().toISOString() : null,
+        notificationPreference: (0, falso_1.rand)(Object.values(CONST_1.default.REPORT.NOTIFICATION_PREFERENCE)),
+        oldPolicyName: (0, falso_1.randWord)(),
+        hasParentAccess: (0, falso_1.randBoolean)(),
+        description: (0, falso_1.randWord)(),
+        isDeletedParentAction: (0, falso_1.randBoolean)(),
+        reportName: (0, falso_1.randWord)(),
+        chatReportID: "chatReport_".concat(index),
+        stateNum: (0, falso_1.rand)(Object.values(CONST_1.default.REPORT.STATE_NUM)),
+        statusNum: (0, falso_1.rand)(Object.values(CONST_1.default.REPORT.STATUS_NUM)),
+        type: (0, falso_1.rand)(Object.values(CONST_1.default.REPORT.TYPE)),
+        visibility: (0, falso_1.rand)(Object.values(CONST_1.default.REPORT.VISIBILITY)),
+        isCancelledIOU: (0, falso_1.randBoolean)(),
+        iouReportID: "iou_".concat(index),
+        currency: (0, falso_1.randWord)(),
+        isWaitingOnBankAccount: (0, falso_1.randBoolean)(),
+        lastVisibleActionLastModified: new Date().toISOString(),
+        lastActorAccountID: (0, falso_1.randNumber)(),
+        ownerAccountID: (0, falso_1.randNumber)(),
+    };
+}

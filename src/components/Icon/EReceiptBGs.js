@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.EReceiptBG_Pink = exports.EReceiptBG_Tangerine = exports.EReceiptBG_Green = exports.EReceiptBG_Blue = exports.EReceiptBG_Ice = exports.EReceiptBG_Yellow = void 0;
+var eReceiptBG_blue_svg_1 = require("@assets/images/eReceiptBGs/eReceiptBG_blue.svg");
+exports.EReceiptBG_Blue = eReceiptBG_blue_svg_1.default;
+var eReceiptBG_green_svg_1 = require("@assets/images/eReceiptBGs/eReceiptBG_green.svg");
+exports.EReceiptBG_Green = eReceiptBG_green_svg_1.default;
+var eReceiptBG_ice_svg_1 = require("@assets/images/eReceiptBGs/eReceiptBG_ice.svg");
+exports.EReceiptBG_Ice = eReceiptBG_ice_svg_1.default;
+var eReceiptBG_pink_svg_1 = require("@assets/images/eReceiptBGs/eReceiptBG_pink.svg");
+exports.EReceiptBG_Pink = eReceiptBG_pink_svg_1.default;
+var eReceiptBG_tangerine_svg_1 = require("@assets/images/eReceiptBGs/eReceiptBG_tangerine.svg");
+exports.EReceiptBG_Tangerine = eReceiptBG_tangerine_svg_1.default;
+var eReceiptBG_yellow_svg_1 = require("@assets/images/eReceiptBGs/eReceiptBG_yellow.svg");
+exports.EReceiptBG_Yellow = eReceiptBG_yellow_svg_1.default;
