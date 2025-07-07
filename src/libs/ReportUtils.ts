@@ -8335,12 +8335,12 @@ function getInvoiceChatByParticipants(receiverID: string | number, receiverType:
 /**
  * Attempts to find a policy expense report in onyx that is owned by ownerAccountID in a given policy
  */
-function getPolicyExpenseChat(ownerAccountID: number | undefined, policyID: string | undefined): OnyxEntry<Report> {
+function getPolicyExpenseChat(ownerAccountID: number | undefined, policyID: string | undefined, reports = allReports): OnyxEntry<Report> {
     if (!ownerAccountID || !policyID) {
         return;
     }
 
-    return Object.values(allReports ?? {}).find((report: OnyxEntry<Report>) => {
+    return Object.values(reports ?? {}).find((report: OnyxEntry<Report>) => {
         // If the report has been deleted, then skip it
         if (!report) {
             return false;
