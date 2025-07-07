@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -9,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
@@ -197,7 +197,7 @@ function SearchDatePresetFilterBase({dateKey, titleKey, presets}: SearchDatePres
             />
             <FormAlertWithSubmitButton
                 buttonText={translate('common.save')}
-                containerStyles={[styles.m4, styles.mb5]}
+                containerStyles={[styles.m4, styles.mt3, styles.mb5]}
                 onSubmit={save}
                 enabledWhenOffline
             />

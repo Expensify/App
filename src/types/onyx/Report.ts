@@ -4,6 +4,7 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type * as OnyxCommon from './OnyxCommon';
 import type {PolicyReportField} from './Policy';
+import type {TripData} from './TripData';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
@@ -134,7 +135,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         writeCapability?: WriteCapability;
 
         /** The report type */
-        type?: ValueOf<typeof CONST.REPORT.TYPE> | ValueOf<typeof CONST.SEARCH.DATA_TYPES> | ValueOf<typeof CONST.REPORT.UNSUPPORTED_TYPE>;
+        type?: string;
 
         /** The report visibility */
         visibility?: RoomVisibility;
@@ -221,6 +222,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
             /** The trip ID in spotnana */
             tripID: string;
+
+            /** The trip data */
+            payload?: TripData;
         };
 
         /** The report's welcome message */
