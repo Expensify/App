@@ -106,7 +106,7 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
         return false;
     }
 
-    if (!!transactions && transactions?.length > 0 && !transactions.some((transaction) => !isPending(transaction))) {
+    if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
         return false;
     }
 

@@ -127,7 +127,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
         return false;
     }
 
-    if (reportTransactions.length > 0 && !reportTransactions.some((transaction) => !isPending(transaction))) {
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
         return false;
     }
 
