@@ -783,12 +783,6 @@ function ComposerWithSuggestions(
         [setIsFullComposerAvailable, containerComposeStyles],
     );
 
-    const handleFocus = useCallback(() => {
-        // The last composer that had focus should re-gain focus
-        setUpComposeFocusManager(true);
-        onFocus();
-    }, [onFocus, setUpComposeFocusManager]);
-
     return (
         <>
             <View
@@ -809,7 +803,11 @@ function ComposerWithSuggestions(
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
                     maxLines={maxComposerLines}
-                    onFocus={handleFocus}
+                    onFocus={() => {
+                        // The last composer that had focus should re-gain focus
+                        setUpComposeFocusManager(true);
+                        onFocus();
+                    }}
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(file) => {
