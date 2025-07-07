@@ -35,7 +35,7 @@ function SearchFiltersCategoryPage() {
         const items = [{name: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
         const uniqueCategoryNames = new Set<string>();
 
-        if (!selectedPoliciesCategories || selectedPoliciesCategories.length === 0) {
+        if (!selectedPoliciesCategories) {
             Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
         } else {
             selectedPoliciesCategories.forEach((category) => uniqueCategoryNames.add(category.name));

@@ -578,9 +578,6 @@ function getAllTaxRatesNamesAndKeys(): Record<string, string[]> {
                 allTaxRates[taxRate.name] = [taxRateKey];
                 return;
             }
-            if (allTaxRates[taxRate.name].includes(taxRateKey)) {
-                return;
-            }
             allTaxRates[taxRate.name].push(taxRateKey);
         });
     });
