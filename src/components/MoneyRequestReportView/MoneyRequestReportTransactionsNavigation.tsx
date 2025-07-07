@@ -62,7 +62,9 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, parentR
             return;
         }
 
+        const backTo = Navigation.getActiveRoute();
         const action = getIOUActionForTransactionID(Object.values(reportActionsArray), transactionID);
+
         if (action?.childReportID) {
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: action.childReportID, backTo}), {forceReplace: true});
         } else {
@@ -84,12 +86,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, parentR
             isPrevButtonDisabled={!prevTransactionID}
             isNextButtonDisabled={!nextTransactionID}
             onNext={(e) => {
-                const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
                 navigateToReportByTransactionID(nextTransactionID);
             }}
             onPrevious={(e) => {
-                const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
                 navigateToReportByTransactionID(prevTransactionID);
             }}
