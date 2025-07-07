@@ -176,7 +176,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             }
             setPolicyTagsRequired(policy, value, orderWeight, policyTags, policyCategories, allTransactionViolations);
         },
-        [policyID, policyTags, policyCategories, allTransactionViolations],
+        [allTransactionViolations, policy, policyCategories, policyTags],
     );
 
     const tagList = useMemo<TagListItem[]>(() => {

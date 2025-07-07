@@ -77,7 +77,7 @@ function EditTagPage({route}: EditTagPageProps) {
                     : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, route.params.tagName),
             );
         },
-        [allTransactionViolations, currentTagName, policyID, policy, policyCategories, policyTags, route.params.tagName, route.params.orderWeight, isQuickSettingsFlow, backTo],
+        [allTransactionViolations, currentTagName, policyID, policy, policyCategories, route.params.tagName, route.params.orderWeight, isQuickSettingsFlow, backTo],
     );
 
     return (
