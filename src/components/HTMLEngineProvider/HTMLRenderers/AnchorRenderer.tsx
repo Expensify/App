@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useContext, useMemo} from 'react';
+import {StyleSheet} from 'react-native';
 import type {StyleProp, TextStyle} from 'react-native';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
@@ -123,6 +124,8 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         );
     }
 
+    const mergedStyles = StyleSheet.flatten([style, parentStyle]) as TextStyle;
+
     return (
         <AnchorForCommentsOnly
             href={attrHref}
@@ -133,7 +136,12 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             target={htmlAttribs.target || '_blank'}
             rel={htmlAttribs.rel || 'noopener noreferrer'}
-            style={[style, parentStyle, styles.textDecorationLineNone, isChildOfTaskTitle && styles.taskTitleMenuItem, styles.dInlineFlex]}
+            style={[
+                mergedStyles,
+                {textDecorationLine: mergedStyles.textDecorationLine?.replace('underline', '') as TextStyle['textDecorationLine']},
+                isChildOfTaskTitle && styles.taskTitleMenuItem,
+                styles.dInlineFlex,
+            ]}
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
             onPress={onLinkPress}
