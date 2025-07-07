@@ -1364,6 +1364,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
         };
 
         if (showSubmitSuggestion) {
+            const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
             section.menuItems.push({
                 translationPath: 'common.submit',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -1372,39 +1373,41 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptySubmitResults.title',
                     subtitle: 'search.searchResults.emptySubmitResults.subtitle',
-                    buttons: [
-                        {
-                            success: true,
-                            buttonText: 'report.newReport.createReport',
-                            buttonAction: () => {
-                                interceptAnonymousUser(() => {
-                                    const activePolicy = getActivePolicy();
-                                    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
-                                    const personalDetails = getPersonalDetailsForAccountID(session.accountID) as OnyxTypes.PersonalDetails;
+                    buttons:
+                        groupPoliciesWithChatEnabled.length > 0
+                            ? [
+                                  {
+                                      success: true,
+                                      buttonText: 'report.newReport.createReport',
+                                      buttonAction: () => {
+                                          interceptAnonymousUser(() => {
+                                              const activePolicy = getActivePolicy();
+                                              const personalDetails = getPersonalDetailsForAccountID(session.accountID) as OnyxTypes.PersonalDetails;
 
-                                    let workspaceIDForReportCreation: string | undefined;
+                                              let workspaceIDForReportCreation: string | undefined;
 
-                                    // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
-                                    if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                        workspaceIDForReportCreation = activePolicy.id;
-                                    } else if (groupPoliciesWithChatEnabled.length === 1) {
-                                        workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
-                                    }
+                                              // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
+                                              if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+                                                  workspaceIDForReportCreation = activePolicy.id;
+                                              } else if (groupPoliciesWithChatEnabled.length === 1) {
+                                                  workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
+                                              }
 
-                                    if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
-                                        const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
-                                        Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                        });
-                                        return;
-                                    }
+                                              if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
+                                                  const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
+                                                  Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                                  });
+                                                  return;
+                                              }
 
-                                    // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
-                                    Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
-                                });
-                            },
-                        },
-                    ],
+                                              // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
+                                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                                          });
+                                      },
+                                  },
+                              ]
+                            : [],
                 },
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
