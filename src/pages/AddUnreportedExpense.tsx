@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
-import {canSubmitPerDiemExpenseFromWorkspace} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {createUnreportedExpenseSections, isPerDiemRequest} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
@@ -57,7 +57,11 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             }
 
             if (isPerDiemRequest(item)) {
-                return canSubmitPerDiemExpenseFromWorkspace(policy);
+                // Only show per diem expenses if the target workspace has per diem enabled and the per diem expense was created in the same workspace
+                const workspacePerDiemUnit = getPerDiemCustomUnit(policy);
+                const perDiemCustomUnitID = item?.comment?.customUnit?.customUnitID;
+
+                return canSubmitPerDiemExpenseFromWorkspace(policy) && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnit?.customUnitID);
             }
 
             return true;
