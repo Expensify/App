@@ -117,12 +117,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const [allTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}`, {canBeMissing: true}) ?? [];
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
-            if (policy === undefined){
+            if (policy === undefined) {
                 return;
             }
             setWorkspaceTagEnabled(policy, {[tagName]: {name: tagName, enabled: value}}, route.params.orderWeight, policyCategories, allTransactionViolations);
         },
-        [policyID, route.params.orderWeight],
+        [policy, route.params.orderWeight],
     );
 
     const tagList = useMemo<TagListItem[]>(

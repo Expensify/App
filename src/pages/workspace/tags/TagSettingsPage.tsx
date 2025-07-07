@@ -80,7 +80,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     }
 
     const deleteTagAndHideModal = () => {
-        if (policy !== undefined){
+        if (policy !== undefined) {
             deletePolicyTags(policy, [currentPolicyTag.name], policyCategories, allTransactionViolations);
         }
         setIsDeleteTagModalOpen(false);
@@ -92,7 +92,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             setIsCannotDeleteOrDisableLastTagModalVisible(true);
             return;
         }
-        if (policy === undefined){
+        if (policy === undefined) {
             return;
         }
         setWorkspaceTagEnabled(policy, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);

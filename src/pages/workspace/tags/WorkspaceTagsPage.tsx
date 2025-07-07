@@ -161,6 +161,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
+            if (policy === undefined) {
+                return;
+            }
             setWorkspaceTagEnabled(policy, {[tagName]: {name: tagName, enabled: value}}, 0);
         },
         [policy],
@@ -168,9 +171,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean, orderWeight: number) => {
-            setPolicyTagsRequired(policyID, value, orderWeight, policyTags, policyCategories, allTransactionViolations);
+            if (policy === undefined) {
+                return;
+            }
+            setPolicyTagsRequired(policy, value, orderWeight, policyTags, policyCategories, allTransactionViolations);
         },
-        [policyID],
+        [policyID, policyTags, policyCategories, allTransactionViolations],
     );
 
     const tagList = useMemo<TagListItem[]>(() => {

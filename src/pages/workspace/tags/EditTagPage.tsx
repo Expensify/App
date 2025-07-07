@@ -8,8 +8,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -77,7 +77,7 @@ function EditTagPage({route}: EditTagPageProps) {
                     : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, route.params.orderWeight, route.params.tagName),
             );
         },
-        [currentTagName, policy, policyID, route.params.tagName, route.params.orderWeight, isQuickSettingsFlow, backTo],
+        [allTransactionViolations, currentTagName, policyID, policy, policyCategories, policyTags, route.params.tagName, route.params.orderWeight, isQuickSettingsFlow, backTo],
     );
 
     return (
