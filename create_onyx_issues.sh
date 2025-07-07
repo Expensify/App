@@ -58,12 +58,12 @@ get_repo_info() {
 
 # Function to get the GraphQL ID of the main deprecation issue
 get_main_issue_id() {
-    # Issue #507850 in Expensify/Expensify repository
+    # Issue #522215 in Expensify/Expensify repository
     local main_issue_id
     if main_issue_id=$(gh api graphql -f query="
         query {
             repository(owner: \"Expensify\", name: \"Expensify\") {
-                issue(number: 507850) {
+                issue(number: 522215) {
                     id
                 }
             }
@@ -96,7 +96,7 @@ check_duplicate_issue() {
 
 # Common template parts for issue bodies
 get_parent_issue_reference() {
-    echo "This is part of deprecating Onyx.connect. [Parent Issue](https://github.com/Expensify/Expensify/issues/507850)"
+    echo "This is part of deprecating Onyx.connect. [Parent Issue](https://github.com/Expensify/Expensify/issues/522215)"
 }
 
 get_tdd_instructions() {
@@ -296,7 +296,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                     ((parent_issues_created++))
 
                     # Link this parent issue to the main deprecation issue
-                    echo "Linking parent issue to main deprecation issue #507850..."
+                    echo "Linking parent issue to main deprecation issue #522215..."
                     if main_issue_id=$(get_main_issue_id); then
                         if gh api graphql -H "GraphQL-Features: sub_issues" -f "query=mutation addSubIssue {
                             addSubIssue(input: {
