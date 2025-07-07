@@ -1,44 +1,41 @@
 ---
-title: Search and Download Expenses 
-description: Find expenses and export expense data to a CSV file 
-keywords: [New Expensify, download expenses, export expenses to a CSV]
+title: Search and Download Expenses
+description: Learn how to find expenses in New Expensify and export them as a CSV or PDF.
+keywords: [New Expensify, search expenses, download expenses, export CSV, export PDF, download report, download receipt]
 ---
 <div id="new-expensify" markdown="1">
 
-You can easily search for expenses in New Expensify and export them to a CSV file for use in any spreadsheet tool. This guide walks you through how to filter expenses and download your data.
+You can quickly find and download your expenses in New Expensify—either as a spreadsheet-ready CSV or a printable PDF.
 
 ---
 
-# Search Expenses
+# Search for Expenses
 
-Use filters to quickly find the expenses you need before downloading them.
+Use filters to quickly locate the expenses you need.
 
-1. Select the **Search** icon in the bottom-left menu.
-2. Choose the **Expenses** tab at the top-left.
-3. Tap **Filters** in the top-right corner.
-4. Filter your results by:
+1. Click **Reports** in the left-hand menu
+2. Select **Expenses**
+3. Use **Filters** to search for expenses by:
    - Credit card
    - Category or tag
-   - Date Range
+   - Date range
    - Keyword
    - Expense amount
    - And more
-5. Select **View Results** to display matching expenses.
+4. Click **View results** to display the list of expenses matching your search parameters
 
 ---
 
-# Download Expenses
+# Download Expenses as a CSV
 
-Once you’ve found the expenses you need, here’s how to download them.
+Once you’ve filtered the list:
 
-1. Select the checkbox beside each expense, or choose **Select all** at the top.
-2. Click **Selected** in the top-right and choose **Download**.
+1. Select the checkbox beside each expense, or choose to **select all** above the expense list.
+2. Click **Selected > Download**.
 3. A CSV file will automatically download to your device (prefixed with “Expensify”).
-4. Open the file in your preferred spreadsheet tool.
+4. Open it in your spreadsheet tool.
 
-![Select the expenses to download]({{site.url}}/assets/images/search-download.png){:width="100%"}
-
-**The CSV includes the following fields:**
+**Included in the CSV:**
 - Date  
 - Merchant  
 - Description  
@@ -54,22 +51,44 @@ Once you’ve found the expenses you need, here’s how to download them.
 
 ---
 
+# Download a Report (PDF or CSV)
+
+1. In the left-hand menu, select **Reports**
+2. On the **Reports** tab, click the report you want to download
+3. In the upper-right corner, click **More**
+4. Choose either:
+   - **Download as PDF** to generate a printable version
+   - **Download as CSV** to get a spreadsheet version of the report
+
+**Note:** You can only download one report at a time.
+
+---
+
 # FAQ
 
-## Can I export in a different format, like PDF or XLS?
+## Can I export in PDF or XLS format?
 
-No, expense exports are only available in CSV format.
+You can export:
+- CSV for raw expense data
+- PDF for full reports
+
+XLS format is not supported.
+
+## Is it possible to download individual expenses as a PDF?
+
+No, you can only download a PDF of full reports. 
 
 ## Can I customize the columns in the CSV file?
 
-No, the CSV download uses a fixed template and can't be customized.
+No, the CSV download uses a fixed template and cannot be customized.
 
 ## Can I select expenses or reports in bulk?
 
-Yes! Use **Select multiple** or **Select all** to choose multiple items at once.  On mobile, just long-press an item to display these options.
+Yes! Use **Select multiple** or **Select all** to choose multiple expenses for CSV export.  
+PDFs must be downloaded one at a time.
 
-## Why do I see a 404 error when clicking on the receipt image URL in the CSV export?
+## Why do I see a 404 error when clicking the receipt URL in the CSV?
 
-You must be logged into your Expensify account on the browser where the link is being opened. Receipt URLs are only accessible when logged into your Expensify account.
+Make sure you're logged into your Expensify account in the same browser. Receipt links only work when you're signed in.
 
 </div>

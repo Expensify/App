@@ -10,12 +10,15 @@ import CONST from '@src/CONST';
 import Backdrop from './Backdrop';
 import Container from './Container';
 import type ReanimatedModalProps from './types';
+import type {AnimationInType, AnimationOutType} from './types';
 
 function ReanimatedModal({
     testID,
     animationInDelay,
     animationInTiming = 300,
     animationOutTiming = 300,
+    animationIn = 'fadeIn',
+    animationOut = 'fadeOut',
     avoidKeyboard = false,
     coverScreen = true,
     children,
@@ -141,6 +144,8 @@ function ReanimatedModal({
             animationInDelay={animationInDelay}
             onOpenCallBack={onOpenCallBack}
             onCloseCallBack={onCloseCallBack}
+            animationIn={animationIn as AnimationInType}
+            animationOut={animationOut as AnimationOutType}
             style={style}
             type={type}
         >

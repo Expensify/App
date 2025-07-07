@@ -113,7 +113,7 @@ describe('useSearchHighlightAndScroll', () => {
         expect(search).not.toHaveBeenCalled();
     });
 
-    it('should trigger search for chat when report actions change', () => {
+    it('should trigger search for chat when report actions added and focused', () => {
         mockUseIsFocused.mockReturnValue(true);
 
         const chatProps = {
@@ -151,5 +151,78 @@ describe('useSearchHighlightAndScroll', () => {
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).toHaveBeenCalledWith({queryJSON: chatProps.queryJSON, offset: 0});
+    });
+
+    it('should not trigger search when new transaction removed and focused', () => {
+        const initialProps = {
+            ...baseProps,
+            transactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+            },
+            previousTransactions: {
+                '1': {transactionID: '1'},
+                '2': {transactionID: '2'},
+            },
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps,
+        });
+
+        const updatedProps = {
+            ...baseProps,
+            transactions: {
+                '1': {transactionID: '1'},
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should not trigger search for chat when report actions removed and focused', () => {
+        mockUseIsFocused.mockReturnValue(true);
+
+        const chatProps = {
+            ...baseProps,
+            queryJSON: {...baseProps.queryJSON, type: 'chat' as const},
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                    '2': {actionName: 'ADDCOMMENT', reportActionID: '2'},
+                },
+            },
+            previousReportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                    '2': {actionName: 'ADDCOMMENT', reportActionID: '2'},
+                },
+            },
+        };
+
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            initialProps: chatProps,
+        });
+
+        const updatedProps = {
+            ...chatProps,
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'EXISTING', reportActionID: '1'},
+                },
+            },
+        };
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        rerender(updatedProps);
+        expect(search).not.toHaveBeenCalled();
     });
 });

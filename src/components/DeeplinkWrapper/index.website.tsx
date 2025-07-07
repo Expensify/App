@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import {isMobile} from '@libs/Browser';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldPreventDeeplinkPrompt from '@libs/Navigation/helpers/shouldPreventDeeplinkPrompt';

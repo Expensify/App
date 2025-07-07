@@ -137,6 +137,7 @@ key "key"
       / createdBy
       / reimbursable
       / billable
+      / action
     )
 
 filterKey

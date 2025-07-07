@@ -804,6 +804,98 @@ describe('OptionsListUtils', () => {
             // Then the result should include the admin room
             expect(adminRoomOption).toBeDefined();
         });
+
+        it('should include brickRoadIndicator if showRBR is true', () => {
+            const reportID = '1455140530846319';
+            const workspaceChat: SearchOption<Report> = {
+                item: {
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    currency: 'USD',
+                    errorFields: {},
+                    lastActionType: 'CREATED',
+                    lastReadTime: '2025-03-21 07:25:46.279',
+                    lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                    lastVisibleActionLastModified: '2024-12-15 21:13:24.317',
+                    ownerAccountID: 0,
+                    permissions: ['read', 'write'],
+                    participants: {1: {notificationPreference: 'always'}},
+                    policyID: '52A5ABD88FBBD18F',
+                    policyName: "A's Workspace",
+                    reportID,
+                    reportName: "A's Workspace chat",
+                    type: 'chat',
+                    writeCapability: 'all',
+                },
+                text: "A's Workspace chat",
+                alternateText: "A's Workspace",
+                allReportErrors: {},
+                subtitle: "A's Workspace",
+                participantsList: [],
+                reportID,
+                keyForList: '1455140530846319',
+                isDefaultRoom: true,
+                isChatRoom: true,
+                policyID: '52A5ABD88FBBD18F',
+                lastMessageText: '',
+                lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                notificationPreference: 'hidden',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+            const results = getValidOptions(
+                {reports: [workspaceChat], personalDetails: []},
+                {
+                    includeMultipleParticipantReports: true,
+                    showRBR: true,
+                },
+            );
+            expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it('should not include brickRoadIndicator if showRBR is false', () => {
+            const reportID = '1455140530846319';
+            const workspaceChat: SearchOption<Report> = {
+                item: {
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    currency: 'USD',
+                    errorFields: {},
+                    lastActionType: 'CREATED',
+                    lastReadTime: '2025-03-21 07:25:46.279',
+                    lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                    lastVisibleActionLastModified: '2024-12-15 21:13:24.317',
+                    ownerAccountID: 0,
+                    permissions: ['read', 'write'],
+                    participants: {1: {notificationPreference: 'always'}},
+                    policyID: '52A5ABD88FBBD18F',
+                    policyName: "A's Workspace",
+                    reportID,
+                    reportName: "A's Workspace chat",
+                    type: 'chat',
+                    writeCapability: 'all',
+                },
+                text: "A's Workspace chat",
+                alternateText: "A's Workspace",
+                allReportErrors: {},
+                subtitle: "A's Workspace",
+                participantsList: [],
+                reportID,
+                keyForList: '1455140530846319',
+                isDefaultRoom: true,
+                isChatRoom: true,
+                policyID: '52A5ABD88FBBD18F',
+                lastMessageText: '',
+                lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                notificationPreference: 'hidden',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+            const results = getValidOptions(
+                {reports: [workspaceChat], personalDetails: []},
+                {
+                    includeMultipleParticipantReports: true,
+                    showRBR: false,
+                },
+            );
+            expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(null);
+        });
     });
 
     describe('getValidOptions() for chat room', () => {

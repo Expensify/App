@@ -17,7 +17,9 @@ function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolea
     for (const part of routeParts) {
         if (activeHelpContent?.children?.[part]) {
             activeHelpContent = activeHelpContent.children[part];
-            helpContentComponents.push(activeHelpContent.content);
+            if (activeHelpContent.content) {
+                helpContentComponents.push(activeHelpContent.content);
+            }
         } else {
             if (helpContentComponents.length === 0) {
                 // eslint-disable-next-line react/no-unescaped-entities
