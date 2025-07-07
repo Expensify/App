@@ -338,7 +338,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             onyx_key="$content"
         fi
 
-                # Create sub-issue
+        # Create sub-issue
         sub_title="Remove \`Onyx.connect()\` for the key: \`${onyx_key}\` in \`${current_file_path}\`"
         sub_body=$(build_sub_issue_body "$current_file_path" "$onyx_key" "$content")
 
