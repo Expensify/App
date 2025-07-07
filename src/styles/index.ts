@@ -5931,12 +5931,15 @@ const styles = (theme: ThemeColors) =>
 
         receiptPreview: {
             position: 'absolute',
-            left: 70,
-            top: 100,
-            width: 360,
-            height: 600,
-            borderRadius: variables.componentBorderRadiusRounded,
+            left: 60,
+            top: 60,
+            width: 380,
+            maxHeight: 620,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.text,
             overflow: 'hidden',
+            boxShadow: theme.shadow,
         },
 
         topBarWrapper: {
