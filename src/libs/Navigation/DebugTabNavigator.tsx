@@ -1,4 +1,4 @@
-import type {EventMapCore, NavigationProp, NavigationState} from '@react-navigation/native';
+import type {EventMapCore, NavigationProp, NavigationState, ParamListBase} from '@react-navigation/native';
 import {useNavigation} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
@@ -36,7 +36,7 @@ function getIconAndTitle(route: string, translate: LocaleContextProps['translate
     }
 }
 
-const StackNavigator = createStackNavigator();
+const StackNavigator = createStackNavigator<ParamListBase, string>();
 
 type DebugTabNavigatorRoute = {
     name: string;
@@ -119,7 +119,7 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
             <StackNavigator.Navigator
                 id={id}
                 screenOptions={{
-                    animationEnabled: false,
+                    animation: 'none',
                     headerShown: false,
                 }}
                 screenListeners={{

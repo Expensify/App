@@ -14,7 +14,6 @@ import {
     hasIntegrationAutoSync,
     isInstantSubmitEnabled,
     isPreferredExporter,
-    isSubmitAndClose as isSubmitAndCloseUtils,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
 import {isPrimaryPayAction} from './ReportPrimaryActionUtils';
@@ -120,6 +119,10 @@ function isSubmitAction(
         return false;
     }
 
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
 
     if (!isExpenseReport || report?.total === 0) {
@@ -173,10 +176,10 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     if (!isCurrentUserManager) {
         return false;
     }
-    const isExpenseReport = isExpenseReportUtils(report);
-    const isReportApprover = isApproverUtils(policy, currentUserAccountID);
     const isProcessingReport = isProcessingReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
+    if (!isProcessingReport) {
+        return false;
+    }
 
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -184,6 +187,8 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
     }
+    const isExpenseReport = isExpenseReportUtils(report);
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction));
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -191,7 +196,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
 
     const transactionIDs = reportTransactions.map((t) => t.transactionID);
 
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations);
 
     if (hasAllPendingRTERViolations) {
         return true;
@@ -200,7 +205,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
-
+    const isReportApprover = isApproverUtils(policy, currentUserAccountID);
     const userControlsReport = isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
@@ -443,12 +448,11 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
-    const isSubmitAndClose = isSubmitAndCloseUtils(policy);
 
     // This should be removed after we change how instant submit works
     const isInstantSubmit = isInstantSubmitEnabled(policy);
 
-    if (!isExpenseReport || isSubmitAndClose || isInstantSubmit) {
+    if (!isExpenseReport || isInstantSubmit) {
         return false;
     }
 

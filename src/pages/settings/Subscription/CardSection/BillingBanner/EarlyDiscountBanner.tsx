@@ -1,14 +1,14 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import {PressableWithFeedback} from '@components/Pressable';
-import Text from '@components/Text';
+import RenderHTML from '@components/RenderHTML';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -118,16 +118,18 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
     }
 
     const title = isSubscriptionPage ? (
-        <Text style={styles.textStrong}>
-            {translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle.phrase1', {discountType: discountInfo?.discountType})}&nbsp;
-            <Text>{translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle.phrase2')}</Text>
-        </Text>
+        <RenderHTML
+            html={translate('subscription.billingBanner.earlyDiscount.subscriptionPageTitle', {
+                discountType: discountInfo?.discountType,
+            })}
+        />
     ) : (
         <View style={[styles.justifyContentBetween, styles.flexRow]}>
-            <Text style={(styles.textStrong, styles.flexShrink1)}>
-                {translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle.phrase1')}&nbsp;
-                <Text>{translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle.phrase2', {discountType: discountInfo?.discountType})}</Text>
-            </Text>
+            <RenderHTML
+                html={translate('subscription.billingBanner.earlyDiscount.onboardingChatTitle', {
+                    discountType: discountInfo?.discountType,
+                })}
+            />
             {shouldUseNarrowLayout && dismissButton}
         </View>
     );
