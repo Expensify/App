@@ -221,6 +221,7 @@ const SCREENS = {
         DEBUG: 'Debug',
         ADD_UNREPORTED_EXPENSE: 'AddUnreportedExpense',
         SCHEDULE_CALL: 'ScheduleCall',
+        MERGE_TRANSACTION: 'MergeTransaction',
     },
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
     ONBOARDING_MODAL: {
@@ -286,6 +287,13 @@ const SCREENS = {
         REIMBURSABLE: 'Transaction_Duplicate_Reimbursable',
         BILLABLE: 'Transaction_Duplicate_Billable',
         CONFIRMATION: 'Transaction_Duplicate_Confirmation',
+    },
+
+    MERGE_TRANSACTION: {
+        LIST_PAGE: 'Merge_Transaction_Page',
+        RECEIPT_PAGE: 'Merge_Transaction_Receipt_Page',
+        DETAILS_PAGE: 'Merge_Transaction_Details_Page',
+        CONFIRMATION_PAGE: 'Merge_Transaction_Confirmation_Page',
     },
 
     IOU_SEND: {

@@ -39,6 +39,7 @@ import type {
     TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
+    MergeTransactionNavigatorParamList,
 } from '@navigation/types';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
@@ -705,6 +706,13 @@ const TransactionDuplicateStackNavigator = createModalStackNavigator<Transaction
     [SCREENS.TRANSACTION_DUPLICATE.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/Confirmation').default,
 });
 
+const MergeTransactionStackNavigator = createModalStackNavigator<MergeTransactionNavigatorParamList>({
+    [SCREENS.MERGE_TRANSACTION.LIST_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/MergeTransactionsList').default,
+    [SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/ReceiptReview').default,
+    [SCREENS.MERGE_TRANSACTION.DETAILS_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/DetailsReview').default,
+    [SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE]: () => require<ReactComponentModule>('../../../../pages/TransactionMerge/Confirmation').default,
+});
+
 const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>(
     {
         [SCREENS.SEARCH.REPORT_RHP]: () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default,
@@ -829,4 +837,5 @@ export {
     ConsoleModalStackNavigator,
     AddUnreportedExpenseModalStackNavigator,
     ScheduleCallModalStackNavigator,
+    MergeTransactionStackNavigator,
 };

@@ -2086,6 +2086,22 @@ const ROUTES = {
         route: 'r/:threadReportID/duplicates/confirm',
         getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/confirm` as const, backTo),
     },
+    MERGE_TRANSACTION_LIST_PAGE: {
+        route: 'r/:transactionID/merge',
+        getRoute: (transactionID: string | undefined, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge` as const, backTo),
+    },
+    MERGE_TRANSACTION_RECEIPT_PAGE: {
+        route: 'r/:transactionID/merge/receipt',
+        getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/receipt` as const, backTo),
+    },
+    MERGE_TRANSACTION_DETAILS_PAGE: {
+        route: 'r/:transactionID/merge/details',
+        getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/details` as const, backTo),
+    },
+    MERGE_TRANSACTION_CONFIRMATION_PAGE: {
+        route: 'r/:transactionID/merge/confirmation',
+        getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/confirmation` as const, backTo),
+    },
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/xero/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import` as const,

@@ -1298,6 +1298,20 @@ const translations = {
         submitsTo: ({name}: SubmitsToParams) => `Submits to ${name}`,
         moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
     },
+    transactionMerge: {
+        listPage: {
+            header: 'Merge expenses',
+        },
+        receiptPage: {
+            header: 'Select receipt',
+        },
+        detailsPage: {
+            header: 'Select details',
+        },
+        confirmationPage: {
+            header: 'Confirm details',
+        },
+    },
     share: {
         shareToExpensify: 'Share to Expensify',
         messageInputLabel: 'Message',
