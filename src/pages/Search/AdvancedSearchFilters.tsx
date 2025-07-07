@@ -28,15 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getCleanedTagName, getTagNamesFromTagsLists, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportUtils';
-import {
-    buildCannedSearchQuery,
-    buildQueryStringFromFilterFormValues,
-    buildSearchQueryJSON,
-    getAllPolicyValues,
-    isCannedSearchQuery,
-    isSearchDatePreset,
-    sortOptionsWithEmptyValue,
-} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery, isSearchDatePreset, sortOptionsWithEmptyValue} from '@libs/SearchQueryUtils';
 import {getExpenseTypeTranslationKey, getStatusOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -203,10 +195,7 @@ const baseFilterConfig = {
 };
 
 function getFilterWorkspaceDisplayTitle(filters: SearchAdvancedFiltersForm, policies: WorkspaceListItem[]) {
-    return policies
-        .filter((value) => value.policyID && filters.policyID?.includes(value.policyID))
-        .map((value) => value.text)
-        .join(', ');
+    return policies.filter((value) => value.policyID === filters.policyID).at(0)?.text;
 }
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList, translate: LocaleContextProps['translate']) {
@@ -445,9 +434,9 @@ function AdvancedSearchFilters() {
                 }),
             ),
     });
-    const selectedPolicyCategories = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories);
+    const singlePolicyCategories = allPolicyCategories[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
     const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
-    const selectedPolicyTagLists = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_TAGS, allPolicyTagLists);
+    const singlePolicyTagLists = allPolicyTagLists[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
     const tagListsUnpacked = Object.values(allPolicyTagLists ?? {})
         .filter((item): item is NonNullable<PolicyTagLists> => !!item)
         .map(getTagNamesFromTagsLists)
@@ -459,7 +448,7 @@ function AdvancedSearchFilters() {
         policies,
         currentUserLogin,
         shouldShowPendingDeletePolicy: false,
-        selectedPolicyIDs: undefined,
+        selectedPolicyID: undefined,
         searchTerm: '',
     });
 
@@ -476,8 +465,8 @@ function AdvancedSearchFilters() {
         isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED);
     const areTaxEnabled = isFeatureEnabledInPolicies(policies, CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED);
 
-    const shouldDisplayCategoryFilter = shouldDisplayFilter(nonPersonalPolicyCategoryCount, areCategoriesEnabled, !!selectedPolicyCategories);
-    const shouldDisplayTagFilter = shouldDisplayFilter(tagListsUnpacked.length, areTagsEnabled, !!selectedPolicyTagLists);
+    const shouldDisplayCategoryFilter = shouldDisplayFilter(nonPersonalPolicyCategoryCount, areCategoriesEnabled, !!singlePolicyCategories);
+    const shouldDisplayTagFilter = shouldDisplayFilter(tagListsUnpacked.length, areTagsEnabled, !!singlePolicyTagLists);
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length !== 0);
