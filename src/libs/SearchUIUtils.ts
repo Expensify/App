@@ -45,6 +45,7 @@ import type {
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport} from './actions/Report';
+import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
@@ -1553,6 +1554,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
+                        // s77rt this should be update to use the default feed
                         feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
                         status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                     });
@@ -1594,6 +1596,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                 const queryString = buildQueryStringFromFilterFormValues({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
+                    // s77rt this should be update to use the default feed
                     feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
                     status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                 });
@@ -1665,11 +1668,11 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
 
 function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
     const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
-        {translation: 'common.expense', value: CONST.SEARCH.DATA_TYPES.EXPENSE},
-        {translation: 'common.chat', value: CONST.SEARCH.DATA_TYPES.CHAT},
-        {translation: 'common.invoice', value: CONST.SEARCH.DATA_TYPES.INVOICE},
-        {translation: 'common.trip', value: CONST.SEARCH.DATA_TYPES.TRIP},
-        {translation: 'common.task', value: CONST.SEARCH.DATA_TYPES.TASK},
+        {text: translateLocal('common.expense'), value: CONST.SEARCH.DATA_TYPES.EXPENSE},
+        {text: translateLocal('common.chat'), value: CONST.SEARCH.DATA_TYPES.CHAT},
+        {text: translateLocal('common.invoice'), value: CONST.SEARCH.DATA_TYPES.INVOICE},
+        {text: translateLocal('common.trip'), value: CONST.SEARCH.DATA_TYPES.TRIP},
+        {text: translateLocal('common.task'), value: CONST.SEARCH.DATA_TYPES.TASK},
     ];
     const shouldHideInvoiceOption = !canSendInvoice(policies, currentUserLogin) && !hasInvoiceReports();
 
@@ -1678,7 +1681,15 @@ function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserL
 }
 
 function getGroupByOptions() {
-    return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({translation: `search.filters.groupBy.${value}`, value}));
+    return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translateLocal(`search.filters.groupBy.${value}`), value}));
+}
+
+function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList) {
+    // s77rt confirm if the feed value is just the feed key or if it should be prefixed with [fundID]_
+    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards)).map<SingleSelectItem<OnyxTypes.CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK>>((cardFeed) => ({
+        text: cardFeed.name,
+        value: cardFeed.feed,
+    }));
 }
 
 export {
@@ -1708,6 +1719,7 @@ export {
     getStatusOptions,
     getTypeOptions,
     getGroupByOptions,
+    getFeedOptions,
     getWideAmountIndicators,
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
