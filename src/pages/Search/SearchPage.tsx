@@ -19,6 +19,7 @@ import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContex
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -69,7 +70,7 @@ function SearchPage({route}: SearchPageProps) {
     const {isOffline} = useNetwork();
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
@@ -505,6 +506,7 @@ function SearchPage({route}: SearchPageProps) {
                         queryJSON={queryJSON}
                         headerButtonsOptions={headerButtonsOptions}
                         searchResults={currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults.current}
+                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     />
                     <DragAndDropConsumer onDrop={initScanRequest}>
                         <DropZoneUI
@@ -518,7 +520,7 @@ function SearchPage({route}: SearchPageProps) {
                     </DragAndDropConsumer>
                     {ErrorModal}
                 </DragAndDropProvider>
-                {!!selectionMode && (
+                {isMobileSelectionModeEnabled && (
                     <View>
                         <ConfirmModal
                             isVisible={isDeleteExpensesConfirmModalVisible}
@@ -581,16 +583,19 @@ function SearchPage({route}: SearchPageProps) {
                                     queryJSON={queryJSON}
                                     headerButtonsOptions={headerButtonsOptions}
                                     handleSearch={handleSearchAction}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 />
                                 <SearchFiltersBar
                                     queryJSON={queryJSON}
                                     headerButtonsOptions={headerButtonsOptions}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 />
                                 <Search
                                     key={queryJSON.hash}
                                     queryJSON={queryJSON}
                                     searchResults={currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults.current}
                                     handleSearch={handleSearchAction}
+                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                 />
                                 <DragAndDropConsumer onDrop={initScanRequest}>
                                     <DropZoneUI

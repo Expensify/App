@@ -20,7 +20,6 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -78,6 +77,13 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
 
     /** Invoked on mount and layout changes */
     onLayout?: () => void;
+
+    /** Whether mobile selection mode is enabled */
+    isMobileSelectionModeEnabled: boolean;
+};
+
+const keyExtractor = (item: SearchListItem, index: number) => {
+    return item.keyForList ?? `${index}`;
 };
 
 const onScrollToIndexFailed = () => {};
@@ -102,6 +108,7 @@ function SearchList(
         queryJSON,
         onViewableItemsChanged,
         onLayout,
+        isMobileSelectionModeEnabled,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -126,7 +133,6 @@ function SearchList(
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const selectionMode = useMobileSelectionMode();
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
@@ -145,14 +151,14 @@ function SearchList(
             if ('transactions' in item && item.transactions.length === 0) {
                 return;
             }
-            if (selectionMode) {
+            if (isMobileSelectionModeEnabled) {
                 onCheckboxPress(item);
                 return;
             }
             setLongPressedItem(item);
             setIsModalVisible(true);
         },
-        [isFocused, isSmallScreenWidth, onCheckboxPress, selectionMode, shouldPreventLongPressRow],
+        [isFocused, isSmallScreenWidth, onCheckboxPress, isMobileSelectionModeEnabled, shouldPreventLongPressRow],
     );
 
     const turnOnSelectionMode = useCallback(() => {
@@ -325,10 +331,6 @@ function SearchList(
     const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedTransactionWithoutPendingDelete.length;
-
-    const keyExtractor = useCallback((item: SearchListItem, index: number) => {
-        return item.keyForList ?? `${index}`;
-    }, []);
 
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>

@@ -8,7 +8,6 @@ import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
-import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -61,6 +60,7 @@ type SearchProps = {
     contentContainerStyle?: StyleProp<ViewStyle>;
     searchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
+    isMobileSelectionModeEnabled: boolean;
 };
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType, reportActions: ReportAction[]): [string, SelectedTransactionInfo] {
@@ -136,7 +136,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     };
 }
 
-function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch}: SearchProps) {
+function Search({queryJSON, searchResults, onSearchListScroll, contentContainerStyle, handleSearch, isMobileSelectionModeEnabled}: SearchProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -157,7 +157,6 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         isExportMode,
         setExportMode,
     } = useSearchContext();
-    const selectionMode = useMobileSelectionMode();
     const [offset, setOffset] = useState(0);
 
     const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
@@ -191,29 +190,29 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
         }
 
         const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
-        if (selectedKeys.length === 0 && selectionMode && shouldTurnOffSelectionMode) {
+        if (selectedKeys.length === 0 && isMobileSelectionModeEnabled && shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
 
         // We don't want to run the effect on isFocused change as we only need it to early return when it is false.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTransactions, selectionMode, shouldTurnOffSelectionMode]);
+    }, [selectedTransactions, isMobileSelectionModeEnabled, shouldTurnOffSelectionMode]);
 
     useEffect(() => {
         const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
         if (!isSmallScreenWidth) {
-            if (selectedKeys.length === 0 && !!selectionMode) {
+            if (selectedKeys.length === 0 && isMobileSelectionModeEnabled) {
                 turnOffMobileSelectionMode();
             }
             return;
         }
-        if (selectedKeys.length > 0 && !selectionMode && !isSearchResultsEmpty) {
+        if (selectedKeys.length > 0 && !isMobileSelectionModeEnabled && !isSearchResultsEmpty) {
             turnOnMobileSelectionMode();
         }
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSmallScreenWidth, selectedTransactions, selectionMode]);
+    }, [isSmallScreenWidth, selectedTransactions, isMobileSelectionModeEnabled]);
 
     useEffect(() => {
         if (isOffline) {
@@ -404,7 +403,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const openReport = useCallback(
         (item: SearchListItem) => {
-            if (selectionMode) {
+            if (isMobileSelectionModeEnabled) {
                 toggleTransaction(item);
                 return;
             }
@@ -454,7 +453,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
-        [hash, selectionMode, toggleTransaction],
+        [hash, isMobileSelectionModeEnabled, toggleTransaction],
     );
 
     const onViewableItemsChanged = useCallback(
@@ -476,7 +475,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || selectionMode === true);
+    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
     const ListItem = getListItem(type, status, groupBy);
     const sortedSelectedData = useMemo(
         () =>
@@ -639,6 +638,7 @@ function Search({queryJSON, searchResults, onSearchListScroll, contentContainerS
                 queryJSON={queryJSON}
                 onViewableItemsChanged={onViewableItemsChanged}
                 onLayout={onLayout}
+                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
             />
         </SearchScopeProvider>
     );

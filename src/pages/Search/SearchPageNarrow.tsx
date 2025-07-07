@@ -17,7 +17,6 @@ import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -30,7 +29,6 @@ import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import {search} from '@userActions/Search';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
 
@@ -42,15 +40,15 @@ type SearchPageNarrowProps = {
     queryJSON?: SearchQueryJSON;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     searchResults?: SearchResults;
+    isMobileSelectionModeEnabled: boolean;
 };
 
-function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults}: SearchPageNarrowProps) {
+function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMobileSelectionModeEnabled}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
@@ -60,12 +58,12 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults}: Sear
     const triggerScrollEvent = useScrollEventEmitter();
 
     const handleBackButtonPress = useCallback(() => {
-        if (!selectionMode) {
+        if (!isMobileSelectionModeEnabled) {
             return false;
         }
         clearSelectedTransactions(undefined, true);
         return true;
-    }, [selectionMode, clearSelectedTransactions]);
+    }, [isMobileSelectionModeEnabled, clearSelectedTransactions]);
 
     useHandleBackButton(handleBackButtonPress);
 
@@ -147,7 +145,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults}: Sear
             shouldShowOfflineIndicator={!!searchResults}
         >
             <View style={[styles.flex1, styles.overflowHidden]}>
-                {!selectionMode ? (
+                {!isMobileSelectionModeEnabled ? (
                     <View style={[StyleUtils.getSearchPageNarrowHeaderStyles(), searchRouterListVisible && styles.flex1, styles.mh100]}>
                         <View style={[styles.zIndex10, styles.appBG]}>
                             <TopBar
@@ -172,6 +170,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults}: Sear
                                         }}
                                         headerButtonsOptions={headerButtonsOptions}
                                         handleSearch={handleSearchAction}
+                                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                     />
                                 </View>
                                 <View style={[styles.appBG]}>
@@ -179,6 +178,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults}: Sear
                                         <SearchFiltersBar
                                             queryJSON={queryJSON}
                                             headerButtonsOptions={headerButtonsOptions}
+                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                         />
                                     )}
                                 </View>
@@ -199,6 +199,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults}: Sear
                             queryJSON={queryJSON}
                             headerButtonsOptions={headerButtonsOptions}
                             handleSearch={handleSearchAction}
+                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                         />
                     </>
                 )}
@@ -209,8 +210,9 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults}: Sear
                             key={queryJSON.hash}
                             queryJSON={queryJSON}
                             onSearchListScroll={scrollHandler}
-                            contentContainerStyle={!selectionMode ? styles.searchListContentContainerStyles : undefined}
+                            contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined}
                             handleSearch={handleSearchAction}
+                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                         />
                     </View>
                 )}
