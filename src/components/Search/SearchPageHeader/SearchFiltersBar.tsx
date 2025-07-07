@@ -332,7 +332,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
         // s77rt remove DEV lock
         const shouldDisplayFeedFilter = isDevelopment && feedOptions.length > 1;
         // s77rt remove DEV lock
-        const shouldDisplayPostedilter = isDevelopment && groupBy?.value === CONST.SEARCH.GROUP_BY.CARDS;
+        const shouldDisplayPostedFilter = isDevelopment && groupBy?.value === CONST.SEARCH.GROUP_BY.CARDS;
 
         const filterList = [
             {
@@ -361,7 +361,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions}: SearchFiltersBarPro
                       },
                   ]
                 : []),
-            ...(shouldDisplayPostedilter
+            ...(shouldDisplayPostedFilter
                 ? [
                       {
                           label: translate('search.filters.posted'),
