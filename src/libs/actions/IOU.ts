@@ -1338,8 +1338,8 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
         iouReportID: testDriveIOUParams.iouOptimisticParams.report.reportID,
         transactionID: testDriveIOUParams.transaction.transactionID,
     });
-    if (testDriveIOUParams.testDriveCommentReportActionID) {
-        optimisticIOUReportAction.reportActionID = testDriveIOUParams.testDriveCommentReportActionID;
+    if (testDriveIOUParams.iouOptimisticParams.action.reportActionID) {
+        optimisticIOUReportAction.reportActionID = testDriveIOUParams.iouOptimisticParams.action.reportActionID;
     }
 
     const text = Localize.translateLocal('testDrive.employeeInviteMessage', {name: personalDetailsList?.[userAccountID]?.firstName ?? ''});
