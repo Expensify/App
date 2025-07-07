@@ -81,7 +81,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
 
     // Currently Expensify Cards only support USD, once support for more currencies is implemented, we will need to update this
-    const policyCurrency = CONST.CURRENCY.USD;
+    const settlementCurrency = CONST.CURRENCY.USD;
 
     const allCards = useMemo(() => {
         const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList));
@@ -159,13 +159,13 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         cardholder={personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]}
                         limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
                         name={item.nameValuePairs?.cardTitle ?? ''}
-                        currency={policyCurrency}
+                        currency={settlementCurrency}
                         isVirtual={!!item.nameValuePairs?.isVirtual}
                     />
                 </PressableWithFeedback>
             </OfflineWithFeedback>
         ),
-        [personalDetails, policyCurrency, policyID, workspaceAccountID, styles],
+        [personalDetails, settlementCurrency, policyID, workspaceAccountID, styles],
     );
 
     const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;

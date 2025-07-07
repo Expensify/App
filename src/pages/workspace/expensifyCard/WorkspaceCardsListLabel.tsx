@@ -56,7 +56,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     // Currently Expensify Cards only support USD, once support for more currencies is implemented, we will need to update this
-    const policyCurrency = CONST.CURRENCY.USD;
+    const settlementCurrency = CONST.CURRENCY.USD;
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {canBeMissing: true});
     const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`, {canBeMissing: true});
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
@@ -123,7 +123,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                     </PressableWithFeedback>
                 </View>
                 <View style={[styles.flexRow, styles.flexWrap]}>
-                    <Text style={[styles.shortTermsHeadline, isSettleBalanceButtonDisplayed && [styles.mb2, styles.mr3]]}>{convertToDisplayString(value, policyCurrency)}</Text>
+                    <Text style={[styles.shortTermsHeadline, isSettleBalanceButtonDisplayed && [styles.mb2, styles.mr3]]}>{convertToDisplayString(value, settlementCurrency)}</Text>
                     {isSettleBalanceButtonDisplayed && (
                         <View style={[styles.mr2, isLessThanMediumScreen && styles.mb3]}>
                             <Button
