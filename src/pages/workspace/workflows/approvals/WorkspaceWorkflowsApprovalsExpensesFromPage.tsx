@@ -217,6 +217,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             <ScreenWrapper
                 testID={WorkspaceWorkflowsApprovalsExpensesFromPage.displayName}
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
