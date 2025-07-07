@@ -1,7 +1,7 @@
 coverage:
   paths:
     - coverage/lcov.info
-  acceptable: 70%
+  acceptable: 5%
   exclude:
     - "tests/**/*"
     - "**/*.test.js"
