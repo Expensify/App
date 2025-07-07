@@ -137,13 +137,7 @@ type WorkspaceFromIOUCreationData = {
     adminsChatReportID: string;
 };
 
-type BuildPolicyDataConfig = {
-    currency?: string;
-    file?: File;
-    shouldAddOnboardingTasks?: boolean;
-    companySize?: OnboardingCompanySize;
-    userReportedIntegration?: OnboardingAccounting;
-};
+
 
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
@@ -1858,15 +1852,12 @@ function buildPolicyData(
     policyID = generatePolicyID(),
     expenseReportId?: string,
     engagementChoice?: OnboardingPurpose,
-    config: BuildPolicyDataConfig = {},
+    currency = '',
+    file?: File,
+    shouldAddOnboardingTasks = true,
+    companySize?: OnboardingCompanySize,
+    userReportedIntegration?: OnboardingAccounting,
 ) {
-    const {
-        currency = '',
-        file,
-        shouldAddOnboardingTasks = true,
-        companySize,
-        userReportedIntegration,
-    } = config;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
@@ -2249,13 +2240,11 @@ function createWorkspace(
         policyID,
         undefined,
         engagementChoice,
-        {
-            currency,
-            file,
-            shouldAddOnboardingTasks,
-            companySize,
-            userReportedIntegration,
-        },
+        currency,
+        file,
+        shouldAddOnboardingTasks,
+        companySize,
+        userReportedIntegration,
     );
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
