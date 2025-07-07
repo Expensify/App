@@ -104,6 +104,11 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
 
+jest.mock('@libs/Navigation/Navigation', () => ({
+    setNavigationActionToMicrotaskQueue: jest.fn(),
+    getTopmostReportId: jest.fn(() => '2'),
+}));
+
 const testDate = DateUtils.getDBTime();
 const currentUserEmail = 'bjorn@vikings.net';
 const currentUserAccountID = 5;
@@ -3405,6 +3410,24 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
+            expect(isReportOutstanding(report, policy.id)).toBe(false);
+        });
+        it('should return true for submitted reports if top most report ID is processing', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const activeReport: Report = {
+                ...createRandomReport(2),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${activeReport.reportID}`, activeReport);
             expect(isReportOutstanding(report, policy.id)).toBe(true);
         });
         it('should return false for archived report', async () => {
