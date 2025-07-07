@@ -968,13 +968,14 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             if (shouldShow) {
                 const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
+                const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
                     groupedBy: CONST.SEARCH.GROUP_BY.REPORTS,
                     action: getAction(data, allViolations, key),
                     keyForList: reportItem.reportID,
                     from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
-                    to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
+                    to: !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                     transactions,
                     ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
                 };
