@@ -11,7 +11,6 @@ import {updateAdvancedFilters} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PolicyCategory} from '@src/types/onyx';
 
 function SearchFiltersCategoryPage() {
     const styles = useThemeStyles();
@@ -24,25 +23,22 @@ function SearchFiltersCategoryPage() {
         }
         return {name: category, value: category};
     });
-    const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
+    // eslint-disable-next-line rulesdir/no-default-id-values
+    const policyID = searchAdvancedFiltersForm?.policyID ?? '-1';
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: true});
-    const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
-        .filter((key) => policyIDs?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`)?.includes(key))
-        ?.map((key) => Object.values(allPolicyCategories?.[key] ?? {}))
-        .flat();
+    const singlePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
 
     const categoryItems = useMemo(() => {
         const items = [{name: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
-        const uniqueCategoryNames = new Set<string>();
-
-        if (!selectedPoliciesCategories) {
+        if (!singlePolicyCategories) {
+            const uniqueCategoryNames = new Set<string>();
             Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
+            items.push(...Array.from(uniqueCategoryNames).map((categoryName) => ({name: categoryName, value: categoryName})));
         } else {
-            selectedPoliciesCategories.forEach((category) => uniqueCategoryNames.add(category.name));
+            items.push(...Object.values(singlePolicyCategories ?? {}).map((category) => ({name: category.name, value: category.name})));
         }
-        items.push(...Array.from(uniqueCategoryNames).map((categoryName) => ({name: categoryName, value: categoryName})));
         return items;
-    }, [allPolicyCategories, selectedPoliciesCategories, translate]);
+    }, [allPolicyCategories, singlePolicyCategories, translate]);
 
     const onSaveSelection = useCallback((values: string[]) => updateAdvancedFilters({category: values}), []);
 
