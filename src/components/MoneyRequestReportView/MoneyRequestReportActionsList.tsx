@@ -45,6 +45,7 @@ import {
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isUnread} from '@libs/ReportUtils';
+import markOpenReportEnd from '@libs/Telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -121,6 +122,7 @@ function MoneyRequestReportActionsList({
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
     const reportScrollManager = useReportScrollManager();
     const lastMessageTime = useRef<string | null>(null);
+    const didLayout = useRef(false);
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     const isFocused = useIsFocused();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -326,7 +328,7 @@ function MoneyRequestReportActionsList({
         // Scan through each visible report action until we find the appropriate action to show the unread marker
         for (let index = startIndex; index >= endIndex; index--) {
             const reportAction = visibleReportActions.at(index);
-            const nextAction = index > 0 ? visibleReportActions.at(index - 1) : undefined;
+            const nextAction = visibleReportActions.at(index - 1);
             const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
 
             const shouldDisplayNewMarker =
@@ -532,6 +534,19 @@ function MoneyRequestReportActionsList({
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
 
+    /**
+     * Runs when the FlatList finishes laying out
+     */
+    const recordTimeToMeasureItemLayout = useCallback(() => {
+        if (didLayout.current) {
+            return;
+        }
+
+        didLayout.current = true;
+
+        markOpenReportEnd();
+    }, []);
+
     const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
 
     return (
@@ -617,6 +632,7 @@ function MoneyRequestReportActionsList({
                         data={visibleReportActions}
                         renderItem={renderItem}
                         keyExtractor={(item) => item.reportActionID}
+                        onLayout={recordTimeToMeasureItemLayout}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={0.75}
                         onStartReached={onStartReached}
