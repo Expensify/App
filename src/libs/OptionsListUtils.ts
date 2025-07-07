@@ -224,6 +224,7 @@ type GetValidReportsConfig = {
     shouldSeparateSelfDMChat?: boolean;
     excludeNonAdminWorkspaces?: boolean;
     isPerDiemRequest?: boolean;
+    showRBR?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type GetValidReportsReturnTypeCombined = {
@@ -1050,6 +1051,7 @@ function getReportOption(participant: Participant): OptionData {
     option.isDisabled = isDraftReport(participant.reportID);
     option.selected = participant.selected;
     option.isSelected = participant.selected;
+    option.brickRoadIndicator = null;
     return option;
 }
 
@@ -1613,6 +1615,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         shouldSeparateWorkspaceChat,
         excludeNonAdminWorkspaces,
         isPerDiemRequest = false,
+        showRBR = true,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
@@ -1758,6 +1761,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
             isSelected,
             isBold,
             lastIOUCreationDate,
+            brickRoadIndicator: showRBR ? option.brickRoadIndicator : null,
         };
 
         if (shouldSeparateWorkspaceChat && newReportOption.isOwnPolicyExpenseChat && !newReportOption.private_isArchived) {
