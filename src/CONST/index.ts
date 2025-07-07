@@ -3027,6 +3027,15 @@ const CONST = {
                 this.CONNECTIONS.NAME.OTHER,
             ];
         },
+        get POLICY_CONNECTIONS_SUPPORTED() {
+            return [
+                this.CONNECTIONS.NAME.QBO,
+                this.CONNECTIONS.NAME.XERO,
+                this.CONNECTIONS.NAME.NETSUITE,
+                this.CONNECTIONS.NAME.SAGE_INTACCT,
+                this.CONNECTIONS.NAME.QBD,
+            ];
+        },
         ACCESS_VARIANTS: {
             PAID: 'paid',
             ADMIN: 'admin',

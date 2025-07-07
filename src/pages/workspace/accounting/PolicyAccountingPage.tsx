@@ -91,9 +91,17 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
 
-    const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
-    const accountingIntegrations = Object.values(connectionNames);
-    const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
+    // Type guard to ensure we only use supported connections
+    const accountingIntegrations = CONST.POLICY.POLICY_CONNECTIONS_SUPPORTED;
+    const getSupportedConnection = (connectionName: string | undefined): ConnectionName | undefined => {
+        if (!connectionName || !accountingIntegrations.includes(connectionName as any)) {
+            return undefined;
+        }
+        return connectionName as ConnectionName;
+    };
+    
+    const connectedIntegration = getSupportedConnection(getConnectedIntegration(policy, accountingIntegrations)) ?? 
+        getSupportedConnection(connectionSyncProgress?.connectionName);
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
 
     const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
@@ -102,7 +110,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const successfulDate = getIntegrationLastSuccessfulDate(
         getLocalDateFromDatetime,
         connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined,
-        connectedIntegration === connectionSyncProgress?.connectionName ? connectionSyncProgress : undefined,
+        connectedIntegration === getSupportedConnection(connectionSyncProgress?.connectionName) ? connectionSyncProgress : undefined,
     );
 
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
