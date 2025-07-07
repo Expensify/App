@@ -67,12 +67,20 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const reportID = report?.reportID;
 
-    const getOneTransactionID = () => {
+    /**
+     * Retrieves the transactionID for a first transaction associated with the report.
+     * First attempts to get the transaction from the report's transactions, filtering out deleted ones.
+     * If no transaction is found, searches through the current snapshot data for a transaction
+     * that belongs to the current report.
+     *
+     * @returns The transactionID if found, otherwise undefined
+     */
+    const getFirstTransactionID = () => {
         const transactions = getReportTransactions(reportIDFromRoute).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const oneTransactionID = transactions.at(0)?.transactionID;
+        const firstTransactionID = transactions.at(0)?.transactionID;
 
-        if (oneTransactionID) {
-            return oneTransactionID;
+        if (firstTransactionID) {
+            return firstTransactionID;
         }
 
         for (const key in currentSnapshot?.data) {
@@ -93,7 +101,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         // If there is one transaction thread that has not yet been created, we should create it.
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport && currentUserEmail) {
             const optimisticTransactionThreadReportID = generateReportID();
-            const oneTransactionID = getOneTransactionID();
+            const oneTransactionID = getFirstTransactionID();
             const iouAction = getIOUActionForReportID(reportIDFromRoute, oneTransactionID);
             const optimisticTransactionThread = buildTransactionThread(iouAction, report, undefined, optimisticTransactionThreadReportID);
             openReport(

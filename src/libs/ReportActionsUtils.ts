@@ -1212,10 +1212,8 @@ function getSendMoneyFlowOneTransactionThreadID(actions: OnyxEntry<ReportActions
     // ...and can only be triggered on DM chats
     const isDM = type === CONST.REPORT.TYPE.CHAT && !chatType && !(parentReportID && parentReportActionID);
 
-    if (isFirstActionPay && isDM) {
-        // Since we don't always create transaction thread optimistically, we return CONST.FAKE_REPORT_ID
-        return iouActions.at(0)?.childReportID ?? CONST.FAKE_REPORT_ID;
-    }
+    // Since we don't always create transaction thread optimistically, we return CONST.FAKE_REPORT_ID when we know the thread should exist
+    return isFirstActionPay && isDM ? (iouActions.at(0)?.childReportID ?? CONST.FAKE_REPORT_ID) : undefined;
 }
 
 /** Whether action has no linked report by design */
