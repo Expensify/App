@@ -1,7 +1,7 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
+import useOnyx from '@hooks/useOnyx';
 import {clearActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
@@ -32,8 +32,6 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
         return {prevReportID: prevID, nextReportID: nextID};
     }, [currentReportID, reportIDsList]);
 
-    const backTo = Navigation.getActiveRoute();
-
     /**
      * We clear the sibling transactionThreadIDs when unmounting this component
      * only when the mount actually goes to a different SCREEN (and not a different version of the same SCREEN)
@@ -57,10 +55,12 @@ function MoneyRequestReportTransactionsNavigation({currentReportID}: MoneyReques
             isPrevButtonDisabled={!prevReportID}
             isNextButtonDisabled={!nextReportID}
             onNext={(e) => {
+                const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, backTo}), {forceReplace: true});
             }}
             onPrevious={(e) => {
+                const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, backTo}), {forceReplace: true});
             }}
