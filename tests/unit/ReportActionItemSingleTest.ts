@@ -1,6 +1,6 @@
 import {renderHook, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import useReportPreviewSenderID from '@pages/home/report/useReportPreviewSenderID';
+import useReportPreviewDetails from '@pages/home/report/useReportPreviewDetails';
 import CONST from '@src/CONST';
 import * as PersonalDetailsUtils from '@src/libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -8,6 +8,7 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';
 import personalDetails from '../../__mocks__/reportData/personalDetails';
+import {policy420A} from '../../__mocks__/reportData/policies';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
 import {transactionR14932} from '../../__mocks__/reportData/transactions';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -103,7 +104,18 @@ const validAction = {
     childManagerAccountID: iouReportR14932.managerID,
 };
 
-describe('useReportPreviewSenderID', () => {
+describe('useAvatarDetails', () => {
+    const policiesMock = {
+        personalDetails,
+        policies: {
+            [`${ONYXKEYS.COLLECTION.POLICY}420A`]: policy420A,
+        },
+        innerPolicies: {
+            [`${ONYXKEYS.COLLECTION.POLICY}420A`]: policy420A,
+        },
+        policy: policy420A,
+    };
+
     const mockedEmailToID: Record<string, PropertyKeysOf<typeof personalDetails>> = {
         [personalDetails[15593135].login]: 15593135,
         [personalDetails[51760358].login]: 51760358,
@@ -131,24 +143,26 @@ describe('useReportPreviewSenderID', () => {
 
     it('returns undefined when action is not a report preview', () => {
         const {result} = renderHook(() =>
-            useReportPreviewSenderID({
+            useReportPreviewDetails({
                 action: actionR14932,
                 iouReport: iouReportR14932,
                 report: chatReportR14932,
+                ...policiesMock,
             }),
         );
-        expect(result.current).toBeUndefined();
+        expect(result.current.reportPreviewSenderID).toBeUndefined();
     });
 
     it('returns childManagerAccountID when all conditions are met for Send Money flow', () => {
         const {result} = renderHook(() =>
-            useReportPreviewSenderID({
+            useReportPreviewDetails({
                 action: {...validAction, childMoneyRequestCount: 0},
                 iouReport: iouReportR14932,
                 report: chatReportR14932,
+                ...policiesMock,
             }),
         );
-        expect(result.current).toBe(iouReportR14932.managerID);
+        expect(result.current.reportPreviewSenderID).toBe(iouReportR14932.managerID);
     });
 
     it('returns undefined when there are multiple attendees', async () => {
@@ -165,13 +179,14 @@ describe('useReportPreviewSenderID', () => {
             },
         });
         const {result} = renderHook(() =>
-            useReportPreviewSenderID({
+            useReportPreviewDetails({
                 action: validAction,
                 iouReport: iouReportR14932,
                 report: chatReportR14932,
+                ...policiesMock,
             }),
         );
-        expect(result.current).toBeUndefined();
+        expect(result.current.reportPreviewSenderID).toBeUndefined();
     });
 
     it('returns undefined when amounts have different signs', async () => {
@@ -184,23 +199,25 @@ describe('useReportPreviewSenderID', () => {
             amount: -100,
         });
         const {result} = renderHook(() =>
-            useReportPreviewSenderID({
+            useReportPreviewDetails({
                 action: validAction,
                 iouReport: iouReportR14932,
                 report: chatReportR14932,
+                ...policiesMock,
             }),
         );
-        expect(result.current).toBeUndefined();
+        expect(result.current.reportPreviewSenderID).toBeUndefined();
     });
 
     it('returns childOwnerAccountID when all conditions are met', () => {
         const {result} = renderHook(() =>
-            useReportPreviewSenderID({
+            useReportPreviewDetails({
                 action: validAction,
                 iouReport: iouReportR14932,
                 report: chatReportR14932,
+                ...policiesMock,
             }),
         );
-        expect(result.current).toBe(iouReportR14932.ownerAccountID);
+        expect(result.current.reportPreviewSenderID).toBe(iouReportR14932.ownerAccountID);
     });
 });

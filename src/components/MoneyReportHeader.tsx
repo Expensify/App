@@ -60,6 +60,7 @@ import {
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
+import useReportPreviewDetails from '@pages/home/report/useReportPreviewDetails';
 import variables from '@styles/variables';
 import {
     approveMoneyRequest,
@@ -185,6 +186,15 @@ function MoneyReportHeader({
     const isExported = isExportedUtils(reportActions);
     const integrationNameFromExportMessage = isExported ? getIntegrationNameFromExportMessageUtils(reportActions) : null;
 
+    const [reportPreviewAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`, {
+        canBeMissing: true,
+        selector: (actions) => Object.entries(actions ?? {}).find(([id]) => id === moneyRequestReport?.parentReportActionID)?.[1],
+    });
+
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+    });
+
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isCancelPaymentModalVisible, setIsCancelPaymentModalVisible] = useState(false);
     const [isDeleteExpenseModalVisible, setIsDeleteExpenseModalVisible] = useState(false);
@@ -219,6 +229,8 @@ function MoneyReportHeader({
         () => Object.fromEntries(Object.entries(allViolations ?? {}).filter(([key]) => transactionIDs.includes(key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')))),
         [allViolations, transactionIDs],
     );
+
+    const details = useReportPreviewDetails({report: chatReport, iouReport: moneyRequestReport, action: reportPreviewAction, policy, innerPolicies: policies, personalDetails});
 
     const messagePDF = useMemo(() => {
         if (!reportPDFFilename) {
@@ -944,6 +956,7 @@ function MoneyReportHeader({
             <HeaderWithBackButton
                 shouldShowReportAvatarWithDisplay
                 shouldShowPinButton={false}
+                singleAvatarDetails={details}
                 report={moneyRequestReport}
                 policy={policy}
                 shouldShowBackButton={shouldShowBackButton}

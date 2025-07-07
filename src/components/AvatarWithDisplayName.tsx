@@ -27,6 +27,8 @@ import {
     navigateToDetailsPage,
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
+import type {AvatarDetails} from '@pages/home/report/useReportPreviewDetails';
+import {getReportPreviewSenderAvatar} from '@pages/home/report/useReportPreviewDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -73,6 +75,9 @@ type AvatarWithDisplayNameProps = {
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
+
+    /** If we want to override the default avatar behavior and set a single avatar, we should pass this prop. */
+    singleAvatarDetails?: AvatarDetails;
 };
 
 const fallbackIcon: Icon = {
@@ -167,6 +172,7 @@ function AvatarWithDisplayName({
     shouldEnableAvatarNavigation = true,
     shouldUseCustomSearchTitleName = false,
     transactions = [],
+    singleAvatarDetails,
     openParentReportInCurrentTab = false,
     avatarBorderColor: avatarBorderColorProp,
 }: AvatarWithDisplayNameProps) {
@@ -236,25 +242,41 @@ function AvatarWithDisplayName({
             Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
         }
     }, [report, shouldEnableDetailPageNavigation, goToDetailsPage]);
+
     const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
-    const avatar = (
-        <View accessibilityLabel={title}>
-            {shouldShowSubscriptAvatar ? (
+
+    const getAvatar = () => {
+        if (shouldShowSubscriptAvatar) {
+            return (
                 <SubscriptAvatar
                     backgroundColor={avatarBorderColor}
                     mainAvatar={icons.at(0) ?? fallbackIcon}
                     secondaryAvatar={icons.at(1)}
                     size={size}
                 />
-            ) : (
+            );
+        }
+
+        if (!singleAvatarDetails || singleAvatarDetails.shouldDisplayAllActors || !singleAvatarDetails.reportPreviewSenderID) {
+            return (
                 <MultipleAvatars
                     icons={icons}
                     size={size}
                     secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
                 />
-            )}
-        </View>
-    );
+            );
+        }
+
+        return getReportPreviewSenderAvatar({
+            reportPreviewDetails: singleAvatarDetails,
+            personalDetails,
+            containerStyles: [styles.actionAvatar, styles.mr3],
+            actorAccountID: actorAccountID?.current,
+        });
+    };
+
+    const avatar = <View accessibilityLabel={title}>{getAvatar()}</View>;
+
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {!!report && !!title && (
