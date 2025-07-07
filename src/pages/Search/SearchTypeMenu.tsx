@@ -22,7 +22,6 @@ import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAllFilters} from '@libs/actions/Search';
-import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -71,6 +70,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         const mergedCards = mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList);
         return [mergedCards, Object.keys(mergedCards).length > 0];
     }, [userCardList, workspaceCardFeeds]);
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const taxRates = getAllTaxRates();
     const {clearSelectedTransactions} = useSearchContext();
     const {typeMenuSections} = useSearchTypeMenuSections(hash);
@@ -88,17 +88,13 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         });
     }, [typeMenuSections]);
 
-    const cardFeedNamesWithType = useMemo(() => {
-        return getCardFeedNamesWithType({workspaceCardFeeds, translate});
-    }, [translate, workspaceCardFeeds]);
-
     const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, index: number) => {
             let title = item.name;
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies);
+                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies);
             }
 
             const isItemFocused = Number(key) === hash;
@@ -144,7 +140,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             reports,
             taxRates,
             allCards,
-            cardFeedNamesWithType,
+            allFeeds,
             allPolicies,
         ],
     );
@@ -239,7 +235,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                             const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
                             const flattenedIndex = previousItemCount + itemIndex;
                             const focused = activeItemIndex === flattenedIndex;
-                            const shouldShowTooltip = item.translationPath === 'common.expenseReports' && !focused && shouldShowExpenseReportsTypeTooltip;
+                            const shouldShowTooltip = item.translationPath === 'common.reports' && !focused && shouldShowExpenseReportsTypeTooltip;
 
                             const onPress = singleExecution(() => {
                                 if (shouldShowTooltip) {

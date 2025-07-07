@@ -5,7 +5,6 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import {clearAllFilters} from '@libs/actions/Search';
-import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -50,8 +49,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const allCards = useMemo(() => {
         return mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList);
     }, [userCardList, workspaceCardFeeds]);
-
-    const cardFeedNamesWithType = useMemo(() => getCardFeedNamesWithType({workspaceCardFeeds, translate}), [workspaceCardFeeds, translate]);
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
 
     // this is a performance fix, rendering popover menu takes a lot of time and we don't need this component initially, that's why we postpone rendering it until everything else is rendered
     const [delayPopoverMenuFirstRender, setDelayPopoverMenuFirstRender] = useState(true);
@@ -85,7 +83,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
 
             if (savedSearchTitle === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies);
+                savedSearchTitle = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies);
             }
 
             const isItemFocused = Number(key) === hash;
@@ -124,7 +122,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             savedSearchesMenuItems: menuItems,
             isSavedSearchActive: savedSearchFocused,
         };
-    }, [savedSearches, hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies]);
+    }, [savedSearches, hash, getOverflowMenu, styles.textSupporting, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies]);
 
     const activeItemIndex = useMemo(() => {
         // If we have a suggested search, then none of the menu items are active
@@ -176,7 +174,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 return sectionItems;
             })
             .flat();
-    }, [typeMenuSections, translate, styles.textSupporting, activeItemIndex, theme.iconSuccessFill, theme.icon, theme.border, singleExecution]);
+    }, [typeMenuSections, translate, styles.textSupporting, activeItemIndex, theme.iconSuccessFill, theme.border, singleExecution]);
 
     const processSavedSearches = useCallback(() => {
         if (!savedSearches) {
