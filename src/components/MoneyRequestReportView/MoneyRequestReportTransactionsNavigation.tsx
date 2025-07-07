@@ -1,8 +1,8 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
+import useOnyx from '@hooks/useOnyx';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {generateReportID} from '@libs/ReportUtils';
@@ -38,8 +38,6 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, parentR
 
         return {prevTransactionID: prevID, nextTransactionID: nextID};
     }, [currentTransactionID, transactionIDsList]);
-
-    const backTo = Navigation.getActiveRoute();
 
     /**
      * We clear the sibling transactionThreadIDs when unmounting this component
@@ -86,10 +84,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, parentR
             isPrevButtonDisabled={!prevTransactionID}
             isNextButtonDisabled={!nextTransactionID}
             onNext={(e) => {
+                const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
                 navigateToReportByTransactionID(nextTransactionID);
             }}
             onPrevious={(e) => {
+                const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
                 navigateToReportByTransactionID(prevTransactionID);
             }}
