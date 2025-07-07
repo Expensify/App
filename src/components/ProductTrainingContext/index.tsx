@@ -4,7 +4,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
+import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -294,19 +294,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                         fill={theme.tooltipHighlightText}
                         medium
                     />
-                    <Text style={[styles.productTrainingTooltipText, styles.textWrap, styles.mw100]}>
-                        {tooltip.content.map(({text, isBold}) => {
-                            const translatedText = translate(text);
-                            return (
-                                <Text
-                                    key={text}
-                                    style={[styles.productTrainingTooltipText, isBold && styles.textBold]}
-                                >
-                                    {translatedText}
-                                </Text>
-                            );
-                        })}
-                    </Text>
+                    <RenderHTML html={translate(tooltip.content)} />
                     {!tooltip?.shouldRenderActionButtons && (
                         <PressableWithoutFeedback
                             shouldUseAutoHitSlop
@@ -352,14 +340,10 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
         styles.textAlignCenter,
         styles.gap3,
         styles.pv2,
-        styles.productTrainingTooltipText,
-        styles.textWrap,
-        styles.mw100,
         styles.flex1,
         styles.justifyContentBetween,
         styles.ph2,
         styles.gap2,
-        styles.textBold,
         theme.tooltipHighlightText,
         theme.icon,
         translate,

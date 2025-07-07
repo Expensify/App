@@ -6915,66 +6915,23 @@ const translations = {
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
-        conciergeLHNGBR: {
-            part1: '始めましょう',
-            part2: 'ここにいます！',
-        },
-        saveSearchTooltip: {
-            part1: '保存した検索の名前を変更する',
-            part2: 'ここにいます！',
-        },
-        bottomNavInboxTooltip: {
-            part1: '何を確認しますか？',
-            part2: 'あなたの注意が必要です',
-            part3: 'および',
-            part4: '経費についてチャットする。',
-        },
-        workspaceChatTooltip: {
-            part1: 'とチャット',
-            part2: '承認者',
-        },
-        globalCreateTooltip: {
-            part1: '経費を作成',
-            part2: ', チャットを開始,',
-            part3: 'その他。',
-            part4: '試してみてください！',
-        },
-        GBRRBRChat: {
-            part1: 'あなたは🟢を見るでしょう',
-            part2: '取るべき行動',
-            part3: '、\nおよび 🔴 に',
-            part4: 'レビューする項目。',
-        },
-        accountSwitcher: {
-            part1: 'アクセスする',
-            part2: 'Copilotアカウント',
-            part3: 'ここ',
-        },
-        expenseReportsFilter: {
-            part1: 'ようこそ！すべてのあなたの',
-            part2: '会社のレポート',
-            part3: 'here.',
-        },
+        conciergeLHNGBR: '<tooltip>ここから<strong>始めましょう！</strong></tooltip>',
+        saveSearchTooltip: '<tooltip><strong>保存した検索に名前を付け直す</strong>にはこちら！</tooltip>',
+        globalCreateTooltip: '<tooltip><strong>経費を作成</strong>、チャットを開始、さらにいろいろ。試してみてください！</tooltip>',
+        bottomNavInboxTooltip: '<tooltip><strong>注意が必要なもの</strong>を確認して、<strong>経費についてチャット</strong>しましょう。</tooltip>',
+        workspaceChatTooltip: '<tooltip><strong>承認者とチャット</strong>しましょう</tooltip>',
+        GBRRBRChat: '<tooltip><strong>対応が必要なアクション</strong>には🟢、\n<strong>確認が必要な項目</strong>には🔴が表示されます。</tooltip>',
+        accountSwitcher: '<tooltip><strong>コパイロットアカウント</strong>にアクセスするにはこちら</tooltip>',
+        expenseReportsFilter: '<tooltip>ようこそ！<strong>会社のすべてのレポート</strong>をここで確認できます。</tooltip>',
         scanTestTooltip: {
-            part1: 'Scanの動作を確認しますか？',
-            part2: 'テスト領収書を試してみてください！',
-            part3: '私たちの〜を選んでください',
-            part4: 'テストマネージャー',
-            part5: '試してみてください！',
-            part6: '今、',
-            part7: '経費を提出する',
-            part8: 'そして魔法が起こるのを見てください！',
-            tryItOut: '試してみてください',
+            main: '<tooltip><strong>テスト用レシートをスキャン</strong>して仕組みを確認しましょう！</tooltip>',
+            manager: '<tooltip><strong>テストマネージャー</strong>を選んで試してみましょう！</tooltip>',
+            confirmation: '<tooltip>次に、<strong>経費を提出</strong>して魔法を見てみましょう！</tooltip>',
+            tryItOut: '試してみる',
             noThanks: '結構です',
         },
-        outstandingFilter: {
-            part1: '以下の条件に一致する経費をフィルタリング',
-            part2: '承認が必要です',
-        },
-        scanTestDriveTooltip: {
-            part1: 'この領収書を送信先',
-            part2: 'テストドライブを完了してください！',
-        },
+        outstandingFilter: '<tooltip><strong>承認が必要な</strong>経費で絞り込みます</tooltip>',
+        scanTestDriveTooltip: '<tooltip>このレシートを送信して<strong>テストドライブを完了しましょう！</strong></tooltip>',
     },
     discardChangesConfirmation: {
         title: '変更を破棄しますか？',
