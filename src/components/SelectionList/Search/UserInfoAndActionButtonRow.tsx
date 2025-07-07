@@ -49,8 +49,6 @@ function UserInfoAndActionButtonRow({
                     goToItem={handleActionButtonPress}
                     isSelected={item.isSelected}
                     isLoading={item.isActionLoading}
-                    policyID={item.policyID}
-                    reportID={item.reportID}
                 />
             </View>
         </View>
