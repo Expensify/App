@@ -30,9 +30,7 @@ function InitialURLContextProvider({children}: InitialURLContextProviderProps) {
             if (!initURL) {
                 return;
             }
-            setInitialURL(
-                CONFIG.IS_HYBRID_APP ? Navigation.parseHybridAppUrl(initURL as Route) : initURL as Route 
-            );
+            setInitialURL(initURL as Route);
         });
     }, []);
 

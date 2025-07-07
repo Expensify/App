@@ -119,6 +119,7 @@ function Expensify() {
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
     const isHybridAppReady = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isHybridAppReady : isSplashVisible);
+    console.debug('inspect', {shouldInit, isSplashVisible, isHybridAppReady, shouldHideSplash, isAuthenticated});
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
@@ -206,7 +207,7 @@ function Expensify() {
             if(!url) {
                 return;
             }
-            setInitialUrl(CONFIG.IS_HYBRID_APP ? Navigation.parseHybridAppUrl(url as Route) : url as Route);
+            setInitialUrl(url as Route);
             Report.openReportFromDeepLink(url ?? '');
         });
 
