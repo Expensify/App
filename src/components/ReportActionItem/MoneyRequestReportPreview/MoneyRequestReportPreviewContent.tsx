@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, FlatList, View} from 'react-native';
 import type {LayoutChangeEvent, ListRenderItemInfo, ViewToken} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
@@ -117,6 +117,7 @@ function MoneyRequestReportPreviewContent({
     chatReportMetadata,
 }: MoneyRequestReportPreviewContentProps) {
     const shouldShowLoading = !!chatReportMetadata?.isLoadingInitialReportActions && !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0;
+    const shouldShowLoadingDefferedValue = useDeferredValue(shouldShowLoading);
     const lastTransaction = transactions?.at(0);
     const shouldShowEmptyPlaceholder = transactions.length === 0;
     const theme = useTheme();
@@ -709,7 +710,7 @@ function MoneyRequestReportPreviewContent({
                                             )}
                                         </View>
                                     </View>
-                                    {!currentWidth || shouldShowLoading ? (
+                                    {!currentWidth || shouldShowLoading || shouldShowLoadingDefferedValue ? (
                                         <View
                                             style={[
                                                 {

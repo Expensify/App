@@ -11,11 +11,10 @@ const DEFAULT_VIOLATIONS: Record<string, TransactionViolation[]> = {};
 
 function useReportWithTransactionsAndViolations(reportID?: string): [OnyxEntry<Report>, Transaction[], OnyxCollection<TransactionViolation[]>] {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
-    const [transactions, transactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (_transactions) => reportTransactionsSelector(_transactions, reportID),
         canBeMissing: true,
     });
-    console.log('%%transactionsMetadata', transactionsMetadata.status);
     const {isOffline} = useNetwork();
     const filteredTransactions = transactions?.filter((transaction) => isOffline || transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const [violations] = useOnyx(
