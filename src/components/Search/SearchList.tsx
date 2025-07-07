@@ -3,7 +3,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, 
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
-import Animated, {Easing, LinearTransition} from 'react-native-reanimated';
+import Animated, {Easing, FadeOutUp, SequencedTransition} from 'react-native-reanimated';
 import type {FlatListPropsWithLayout} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -313,38 +313,43 @@ function SearchList(
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             return (
-                <ListItem
-                    showTooltip
-                    isFocused={isItemFocused}
-                    onSelectRow={onSelectRow}
-                    onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
-                        // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
-                        if (isMobileChrome() && event.nativeEvent) {
-                            if (!event.nativeEvent.sourceCapabilities) {
-                                return;
+                <Animated.View
+                    exiting={FadeOutUp.easing(easing)}
+                    entering={undefined}
+                >
+                    <ListItem
+                        showTooltip
+                        isFocused={isItemFocused}
+                        onSelectRow={onSelectRow}
+                        onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
+                            // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
+                            if (isMobileChrome() && event.nativeEvent) {
+                                if (!event.nativeEvent.sourceCapabilities) {
+                                    return;
+                                }
+                                // Ignore the focus if it's caused by a touch event on mobile chrome.
+                                // For example, a long press will trigger a focus event on mobile chrome
+                                if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
+                                    return;
+                                }
                             }
-                            // Ignore the focus if it's caused by a touch event on mobile chrome.
-                            // For example, a long press will trigger a focus event on mobile chrome
-                            if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
-                                return;
-                            }
-                        }
-                        setFocusedIndex(index);
-                    }}
-                    onLongPressRow={handleLongPressRow}
-                    onCheckboxPress={onCheckboxPress}
-                    canSelectMultiple={canSelectMultiple}
-                    item={{
-                        shouldAnimateInHighlight: isItemHighlighted,
-                        ...item,
-                    }}
-                    shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                    queryJSONHash={hash}
-                    policies={policies}
-                    isDisabled={isDisabled}
-                    allReports={allReports}
-                    groupBy={groupBy}
-                />
+                            setFocusedIndex(index);
+                        }}
+                        onLongPressRow={handleLongPressRow}
+                        onCheckboxPress={onCheckboxPress}
+                        canSelectMultiple={canSelectMultiple}
+                        item={{
+                            shouldAnimateInHighlight: isItemHighlighted,
+                            ...item,
+                        }}
+                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                        queryJSONHash={hash}
+                        policies={policies}
+                        isDisabled={isDisabled}
+                        allReports={allReports}
+                        groupBy={groupBy}
+                    />
+                </Animated.View>
             );
         },
         [
@@ -417,7 +422,8 @@ function SearchList(
                 onViewableItemsChanged={onViewableItemsChanged}
                 onScrollToIndexFailed={onScrollToIndexFailed}
                 onLayout={onLayout}
-                itemLayoutAnimation={shouldAnimate ? LinearTransition.duration(400).easing(easing) : undefined}
+                itemLayoutAnimation={shouldAnimate ? SequencedTransition : undefined}
+                skipEnteringExitingAnimations
             />
             <Modal
                 isVisible={isModalVisible}
