@@ -27,6 +27,12 @@ RCT_EXPORT_MODULE()
     NSLog(@"[ReactNativeHybridApp] `sendAuthToken` should never be called in standalone `New Expensify` app");
 }
 
+- (void)getInitialURL:(RCTPromiseResolveBlock)resolve
+                      reject:(RCTPromiseRejectBlock)reject {
+    NSLog(@"[ReactNativeHybridApp] `getInitialURL` should never be called in standalone `New Expensify` app");                
+    reject(@"NOT_IMPLEMENTED", @"This method is not available in standalone New Expensify app", nil);
+}
+
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params
 {
