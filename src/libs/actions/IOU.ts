@@ -11020,7 +11020,7 @@ function bulkHold(
 
         // Skip when the search hash is still the default value
         if (searchHash === -1) {
-            Log.warn('Search Hash (-1) is the default and not initalized, while the snapshot contains trasaction: {transactionID}');
+            Log.warn('Search Hash (-1) is the default and not initialized, while the snapshot contains transaction: {transactionID}');
             return;
         }
 

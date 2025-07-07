@@ -4692,6 +4692,7 @@ describe('actions/IOU', () => {
                                 expect(unheldTotal).toEqual(200);
                                 expect(unheldNonReimbursableTotal).toEqual(0);
 
+                                // First transaction thread
                                 const thread1LastVisibleActionCreated = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction1Thread.reportID}`]?.lastVisibleActionCreated;
                                 const connection1 = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction1Thread.reportID}`,
@@ -4706,7 +4707,7 @@ describe('actions/IOU', () => {
                                     },
                                 });
 
-                                // Second transction thread
+                                // Second transaction thread
                                 const thread2LastVisibleActionCreated = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction2Thread.reportID}`]?.lastVisibleActionCreated;
                                 const connection2 = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction2Thread.reportID}`,
