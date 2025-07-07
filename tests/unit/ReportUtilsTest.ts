@@ -3976,7 +3976,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            // Popluating Onyx with required data
+            // Populating Onyx with required data
             await Onyx.multiSet({
                 ...fakePolicyReports,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`]: {
