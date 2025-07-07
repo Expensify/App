@@ -117,9 +117,10 @@ function SettlementButton({
     const lastPaymentPolicy = isLastPaymentPolicy ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${lastPaymentMethod}`] : undefined;
     const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const bankAccount = bankAccountList[lastBankAccountID ?? CONST.DEFAULT_NUMBER_ID];
-    // whether the user has single policy and the expense isn't inside a workspace
-    const hasSinglePolicy = !policy && activeAdminPolicies.length === 1;
-    const hasMultiplePolicies = !policy && activeAdminPolicies.length > 1;
+    const isExpenseReport = isExpenseReportUtil(iouReport);
+    // whether the user has single policy and the expense is p2p
+    const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
+    const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles);
     const hasIntentToPay = formattedPaymentMethods.length === 1 && !lastPaymentMethod;
@@ -212,7 +213,6 @@ function SettlementButton({
 
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
-        const isExpenseReport = isExpenseReportUtil(iouReport);
         const paymentMethods = {
             [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
                 text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
