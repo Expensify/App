@@ -56,6 +56,27 @@ get_repo_info() {
     echo "Expensify/App"
 }
 
+# Function to get the GraphQL ID of the main deprecation issue
+get_main_issue_id() {
+    # Issue #507850 in Expensify/Expensify repository
+    local main_issue_id
+    if main_issue_id=$(gh api graphql -f query="
+        query {
+            repository(owner: \"Expensify\", name: \"Expensify\") {
+                issue(number: 507850) {
+                    id
+                }
+            }
+        }
+    " --jq '.data.repository.issue.id' 2>/dev/null); then
+        echo "$main_issue_id"
+        return 0
+    else
+        echo "Error: Could not get main deprecation issue ID" >&2
+        return 1
+    fi
+}
+
 # Function to check if an issue with the same title already exists
 check_duplicate_issue() {
     local title="$1"
@@ -116,8 +137,8 @@ $(get_parent_issue_reference)
 
 ## Details
 - **Module**: [${file_path}](https://github.com/Expensify/App/blob/main/${file_path})
-- **Onyx Key**: `${onyx_key}`
-- **Reference**: `${content}`
+- **Onyx Key**: \`${onyx_key}\`
+- **Reference**: \`${content}\`
 
 $(get_tdd_instructions)
 EOF
@@ -228,8 +249,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         file_path="${line#\*\*\*}"
         current_file_path="$file_path"
 
-                # Create parent issue
-        parent_title="Refactor ${file_path} Onyx.connect references"
+        # Create parent issue
+        parent_title="Refactor \`${file_path}\` to remove \`Onyx.connect()\` references"
         parent_body=$(build_parent_issue_body "$file_path")
 
         if [[ "$DRY_RUN" == true ]]; then
@@ -273,6 +294,30 @@ while IFS= read -r line || [[ -n "$line" ]]; do
                 else
                     echo "Created parent issue #$parent_number with ID: $parent_id"
                     ((parent_issues_created++))
+
+                    # Link this parent issue to the main deprecation issue
+                    echo "Linking parent issue to main deprecation issue #507850..."
+                    if main_issue_id=$(get_main_issue_id); then
+                        if gh api graphql -H "GraphQL-Features: sub_issues" -f "query=mutation addSubIssue {
+                            addSubIssue(input: {
+                                issueId: \"$main_issue_id\",
+                                subIssueId: \"$parent_id\"
+                            }) {
+                                issue {
+                                    title
+                                }
+                                subIssue {
+                                    title
+                                }
+                            }
+                        }" > /dev/null 2>&1; then
+                            echo "Linked parent issue to main deprecation issue"
+                        else
+                            echo "Warning: Failed to link parent issue to main deprecation issue" >&2
+                        fi
+                    else
+                        echo "Warning: Could not get main deprecation issue ID for linking" >&2
+                    fi
                 fi
             else
                 echo "Failed to create parent issue for $file_path" >&2
@@ -294,7 +339,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         fi
 
                 # Create sub-issue
-        sub_title="Remove Onyx.connect reference: ${onyx_key} in ${current_file_path}"
+        sub_title="Remove \`Onyx.connect()\` for the key: \`${onyx_key}\` in \`${current_file_path}\`"
         sub_body=$(build_sub_issue_body "$current_file_path" "$onyx_key" "$content")
 
                 if [[ "$DRY_RUN" == true ]]; then

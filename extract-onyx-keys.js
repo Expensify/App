@@ -12,7 +12,7 @@ function getAllFiles(dirPath, arrayOfFiles = []) {
     const files = fs.readdirSync(dirPath);
     let filesList = [...arrayOfFiles];
 
-    files.forEach(file => {
+    files.forEach((file) => {
         const fullPath = path.join(dirPath, file);
 
         if (fs.statSync(fullPath).isDirectory()) {
@@ -31,7 +31,7 @@ function getAllFiles(dirPath, arrayOfFiles = []) {
 function extractOnyxKeys(content) {
     const results = [];
 
-        // Look for Onyx.connect( patterns
+    // Look for Onyx.connect( patterns
     const onyxConnectRegex = /Onyx\.connect\s*\(/g;
     let match = onyxConnectRegex.exec(content);
 
@@ -67,7 +67,7 @@ function extractOnyxKeys(content) {
                 results.push({
                     key,
                     line: lineNumber,
-                    context: connectContent.trim().substring(0, 100) + (connectContent.length > 100 ? '...' : '')
+                    context: connectContent.trim().substring(0, 100) + (connectContent.length > 100 ? '...' : ''),
                 });
             }
         }
@@ -92,7 +92,7 @@ function extractKeyProperty(connectContent) {
         // key: 'string'
         /key\s*:\s*['"`]([^'"`]+)['"`]/,
         // key: `template string`
-        /key\s*:\s*`([^`]+)`/
+        /key\s*:\s*`([^`]+)`/,
     ];
 
     for (const pattern of keyPatterns) {
@@ -128,7 +128,7 @@ function main() {
     const results = {};
     let totalConnections = 0;
 
-    files.forEach(filePath => {
+    files.forEach((filePath) => {
         try {
             const content = fs.readFileSync(filePath, 'utf8');
             const keys = extractOnyxKeys(content, filePath);
@@ -146,26 +146,28 @@ function main() {
     // Display results
     console.log(`📊 Found ${totalConnections} Onyx.connect() calls in ${Object.keys(results).length} files\n`);
 
-    Object.keys(results).sort().forEach(filePath => {
-        console.log(`***${filePath}`);
-        results[filePath].forEach(result => {
-            console.log(`>>> Line ${result.line}: ${result.key}`);
+    Object.keys(results)
+        .sort()
+        .forEach((filePath) => {
+            console.log(`***${filePath}`);
+            results[filePath].forEach((result) => {
+                console.log(`>>> Line ${result.line}: ${result.key}`);
+            });
+            console.log('');
         });
-        console.log('');
-    });
 
     // Summary of unique keys
     const allKeys = [];
-    Object.values(results).forEach(fileResults => {
-        fileResults.forEach(result => {
+    Object.values(results).forEach((fileResults) => {
+        fileResults.forEach((result) => {
             allKeys.push(result.key);
         });
     });
 
     const uniqueKeys = [...new Set(allKeys)].sort();
     console.log(`\n📋 Summary: ${uniqueKeys.length} unique keys found:`);
-    uniqueKeys.forEach(key => {
-        const count = allKeys.filter(k => k === key).length;
+    uniqueKeys.forEach((key) => {
+        const count = allKeys.filter((k) => k === key).length;
         console.log(`   • ${key} (used ${count} time${count > 1 ? 's' : ''})`);
     });
 }
@@ -178,5 +180,5 @@ if (require.main === module) {
 module.exports = {
     getAllFiles,
     extractOnyxKeys,
-    extractKeyProperty
+    extractKeyProperty,
 };

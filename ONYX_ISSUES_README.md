@@ -75,6 +75,7 @@ Once you're satisfied with the dry-run output, create the actual issues by runni
 
 This will:
 - Create parent issues for each file (format: "Refactor {file-path} Onyx.connect references")
+- Link each parent issue to the main deprecation issue [#507850](https://github.com/Expensify/Expensify/issues/507850)
 - Create sub-issues for each Onyx.connect reference (format: "Remove Onyx.connect reference: {onyx-key} in {file-path}")
 - Link sub-issues to their parent issues using GitHub's native sub-issue functionality
 - Provide a summary of created issues
@@ -102,6 +103,12 @@ This will:
 - Creates proper parent-child relationships between issues
 - Sub-issues appear directly in the parent issue's interface
 - Provides a clean, native GitHub experience for issue hierarchy
+
+### Three-Level Issue Hierarchy
+- **Main Deprecation Issue**: [Expensify/Expensify#507850](https://github.com/Expensify/Expensify/issues/507850) (top level)
+- **Parent Issues**: One per file, linked as sub-issues of the main deprecation issue
+- **Sub-Issues**: Individual Onyx.connect references, linked as sub-issues of their parent file issue
+- Creates a complete hierarchical structure: Main Issue → File Issues → Reference Issues
 
 ### Duplicate Detection
 - Automatically searches for existing issues with the same title before creating new ones
@@ -139,6 +146,8 @@ Repository: Expensify/App
 
 Creating parent issue: Refactor src/libs/ActiveClientManager/index.ts Onyx.connect references
 Created parent issue #123 with ID: MDU6SXNzdWUxMjM0NTY3ODk=
+Linking parent issue to main deprecation issue #507850...
+Linked parent issue to main deprecation issue
 
 Creating sub-issue: Remove Onyx.connect reference: ONYXKEYS.ACTIVE_CLIENTS in src/libs/ActiveClientManager/index.ts
 Skipped - duplicate sub-issue already exists: #125
@@ -178,8 +187,15 @@ You can view all created issues at: https://github.com/Expensify/App/issues
    - If you still hit limits, wait a few minutes and try again
 
 4. **Permission Errors**
-   - Ensure you have write permissions to the repository
+   - Ensure you have write permissions to the Expensify/App repository
+   - Ensure you have read access to the Expensify/Expensify repository (for linking to the main deprecation issue)
    - Check that your GitHub token has the necessary scopes
+
+5. **Main Issue Linking Failures**
+   - If you see "Failed to link parent issue to main deprecation issue"
+   - This may be due to insufficient permissions to access Expensify/Expensify repository
+   - The parent and sub-issues will still be created and linked to each other
+   - You can manually link parent issues to [#507850](https://github.com/Expensify/Expensify/issues/507850) if needed
 
 
 
