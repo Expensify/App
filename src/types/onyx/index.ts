@@ -103,6 +103,7 @@ import type SidePanel from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
 import type Task from './Task';
 import type Transaction from './Transaction';
+import type MergeTransaction from './MergeTransaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type TravelProvisioning from './TravelProvisioning';
@@ -209,6 +210,7 @@ export type {
     TaxRates,
     TaxRatesWithDefault,
     Transaction,
+    MergeTransaction,
     TransactionViolation,
     TransactionViolations,
     TravelSettings,
