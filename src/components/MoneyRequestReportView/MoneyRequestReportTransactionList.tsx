@@ -238,7 +238,7 @@ function MoneyRequestReportTransactionList({
                                     }}
                                     accessibilityLabel={CONST.ROLE.CHECKBOX}
                                     isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
-                                    isChecked={selectedTransactionIDs.length === transactionsWithoutPendingDelete.length}
+                                    isChecked={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length}
                                 />
                                 {isMediumScreenWidth && <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>}
                             </View>
