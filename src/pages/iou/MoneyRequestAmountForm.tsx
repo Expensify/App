@@ -183,6 +183,7 @@ function MoneyRequestAmountForm(
             return;
         }
         initializeAmount(absoluteAmount);
+        setIsNegative(false);
         // we want to re-initialize the state only when the selected tab
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectedTab]);
