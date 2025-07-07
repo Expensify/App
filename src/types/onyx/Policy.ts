@@ -1384,6 +1384,15 @@ type Connections = {
 
     /** QuickBooks Desktop integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: Connection<QBDConnectionData, QBDConnectionConfig>;
+
+    /** Other unsupported connections from onboarding flow */
+    other?: any;
+    sap?: any;
+    oracle?: any;
+    microsoftDynamics?: any;
+    financialForce?: any;
+    billCom?: any;
+    zenefits?: any;
 };
 
 /** All integration connections, including unsupported ones */
@@ -1393,11 +1402,11 @@ type AllConnections = Connections & {
     quickbooksDesktop: any;
 };
 
-/** Names of integration connections */
-type ConnectionName = keyof Connections;
+/** Names of officially supported integration connections */
+type ConnectionName = typeof CONST.POLICY.CONNECTIONS.NAME[keyof typeof CONST.POLICY.CONNECTIONS.NAME];
 
-/** Names of all integration connections */
-type AllConnectionName = keyof AllConnections;
+/** Names of all integration connections including onboarding types */
+type AllConnectionName = ConnectionName | keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY;
 
 /** Merchant Category Code. This is a way to identify the type of merchant (and type of spend) when a credit card is swiped.  */
 type MccGroup = {
