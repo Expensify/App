@@ -80,6 +80,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const {windowHeight} = useWindowDimensions();
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
 
+    // Currently Expensify Cards only support USD, once support for more currencies is implemented, we will need to update this
     const policyCurrency = CONST.CURRENCY.USD;
 
     const allCards = useMemo(() => {
