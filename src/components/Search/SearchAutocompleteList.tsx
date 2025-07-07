@@ -204,6 +204,10 @@ function SearchAutocompleteList(
         // Thus passing an empty object to the `allCards` parameter.
         return Object.values(getCardFeedsForDisplay(allFeeds, {}));
     }, [allFeeds]);
+    const dateAutoCompleteList = useMemo(
+        () => Object.values(CONST.SEARCH.DATE_PRESETS).map((datePreset) => ({value: datePreset, text: translate(`search.filters.date.presets.${datePreset}`)})),
+        [translate],
+    );
 
     const getParticipantsAutocompleteList = useMemo(
         () =>
@@ -454,6 +458,23 @@ function SearchAutocompleteList(
                 return Object.values(CONST.SEARCH.ACTION_FILTERS).map((status) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ACTION,
                     text: status,
+                }));
+            }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED: {
+                const filteredDates = dateAutoCompleteList
+                    .filter((date) => date.text.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(date.text.toLowerCase()))
+                    .sort()
+                    .slice(0, 10);
+                return filteredDates.map((date) => ({
+                    filterKey: autocompleteKey,
+                    text: date.text,
+                    autocompleteID: date.value,
+                    mapKey: autocompleteKey,
                 }));
             }
             default: {
