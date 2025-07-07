@@ -812,6 +812,20 @@ function buildUserReadableQueryString(
 
                 return acc;
             }, [] as QueryFilter[]);
+        } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+            displayQueryFilters = queryFilter.reduce((acc, filter) => {
+                const cardValue = filter.value.toString();
+                const cardID = parseInt(cardValue, 10);
+
+                if (cardList?.[cardID]) {
+                    if (Number.isNaN(cardID)) {
+                        acc.push({operator: filter.operator, value: cardID});
+                    } else {
+                        acc.push({operator: filter.operator, value: getCardDescription(cardID, cardList) || cardID});
+                    }
+                }
+                return acc;
+            }, [] as QueryFilter[]);
         } else {
             displayQueryFilters = queryFilter.map((filter) => ({
                 operator: filter.operator,
