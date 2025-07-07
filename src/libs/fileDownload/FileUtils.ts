@@ -331,15 +331,7 @@ const resizeImageIfNeeded = (file: FileObject) => {
     if (!file || !Str.isImage(file.name ?? '') || (file?.size ?? 0) <= CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
         return Promise.resolve(file);
     }
-    return getImageDimensionsAfterResize(file).then(({width, height}) =>
-        getImageManipulator({
-            fileUri: file.uri ?? '',
-            width,
-            height,
-            fileName: file.name ?? '',
-            type: file.type,
-        }),
-    );
+    return getImageDimensionsAfterResize(file).then(({width, height}) => getImageManipulator({fileUri: file.uri ?? '', width, height, fileName: file.name ?? '', type: file.type}));
 };
 
 const createFile = (file: File): FileObject => {
@@ -386,6 +378,16 @@ const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: bo
         });
 };
 
+const getConfirmModalPrompt = (attachmentInvalidReason: TranslationPaths | undefined) => {
+    if (!attachmentInvalidReason) {
+        return '';
+    }
+    if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
+        return translateLocal(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
+    }
+    return translateLocal(attachmentInvalidReason);
+};
+
 const isValidReceiptExtension = (file: FileObject) => {
     const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
     return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
@@ -393,9 +395,17 @@ const isValidReceiptExtension = (file: FileObject) => {
     );
 };
 
+const isHeicOrHeifImage = (file: FileObject) => {
+    return (
+        file?.type?.startsWith('image') &&
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (file.name?.toLowerCase().endsWith('.heic') || file.name?.toLowerCase().endsWith('.heif'))
+    );
+};
+
 const validateAttachment = (file: FileObject, isCheckingMultipleFiles?: boolean, isValidatingReceipt?: boolean) => {
     const maxFileSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
-    if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > maxFileSize) {
+    if (!Str.isImage(file.name ?? '') && !isHeicOrHeifImage(file) && (file?.size ?? 0) > maxFileSize) {
         return isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
 
@@ -509,4 +519,6 @@ export {
     validateAttachment,
     isValidReceiptExtension,
     getFileValidationErrorText,
+    isHeicOrHeifImage,
+    getConfirmModalPrompt,
 };

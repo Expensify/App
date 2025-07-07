@@ -224,6 +224,7 @@ type GetValidReportsConfig = {
     shouldSeparateSelfDMChat?: boolean;
     excludeNonAdminWorkspaces?: boolean;
     isPerDiemRequest?: boolean;
+    showRBR?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type GetValidReportsReturnTypeCombined = {
@@ -865,6 +866,15 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     }
 
+    if (reportID && !lastMessageTextFromReport && lastReportAction) {
+        const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+        // If the report is a one-transaction report, get the last message text from combined report actions so the LHN can display modifications to the transaction thread or the report itself
+        const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allSortedReportActions[reportID]);
+        if (transactionThreadReportID) {
+            lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
+        }
+    }
+
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
@@ -1042,6 +1052,7 @@ function getReportOption(participant: Participant): OptionData {
     option.isDisabled = isDraftReport(participant.reportID);
     option.selected = participant.selected;
     option.isSelected = participant.selected;
+    option.brickRoadIndicator = null;
     return option;
 }
 
@@ -1605,6 +1616,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         shouldSeparateWorkspaceChat,
         excludeNonAdminWorkspaces,
         isPerDiemRequest = false,
+        showRBR = true,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
@@ -1750,6 +1762,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
             isSelected,
             isBold,
             lastIOUCreationDate,
+            brickRoadIndicator: showRBR ? option.brickRoadIndicator : null,
         };
 
         if (shouldSeparateWorkspaceChat && newReportOption.isOwnPolicyExpenseChat && !newReportOption.private_isArchived) {

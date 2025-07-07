@@ -19,6 +19,9 @@ import {LOCALES} from './LOCALES';
 const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 
+// Using 28 days to align with OldDot and because all months are guaranteed to be at least 28 days.
+const MONTH_DAYS = Object.freeze([...Array(28).keys()].map((i) => i + 1));
+
 const DEFAULT_NUMBER_ID = 0;
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
@@ -418,6 +421,7 @@ const CONST = {
         ORDINAL_DAY_OF_MONTH: 'do',
         MONTH_DAY_YEAR_ORDINAL_FORMAT: 'MMMM do, yyyy',
         SECONDS_PER_DAY: 24 * 60 * 60,
+        MONTH_DAYS,
     },
     SMS: {
         DOMAIN: '@expensify.sms',
@@ -623,7 +627,7 @@ const CONST = {
     },
     BETAS: {
         ALL: 'all',
-        AUTO_SUBMIT: 'autoSubmit',
+        ASAP_SUBMIT: 'asapSubmit',
         DEFAULT_ROOMS: 'defaultRooms',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
@@ -1453,12 +1457,12 @@ const CONST = {
     TIMING: {
         GET_ORDERED_REPORT_IDS: 'get_ordered_report_ids',
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
-        OPEN_APP: 'open_app',
         SPLASH_SCREEN: 'splash_screen',
         OPEN_SEARCH: 'open_search',
         OPEN_REPORT: 'open_report',
         OPEN_REPORT_FROM_PREVIEW: 'open_report_from_preview',
         OPEN_REPORT_THREAD: 'open_report_thread',
+        OPEN_REPORT_SEARCH: 'open_report_search',
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         SEND_MESSAGE: 'send_message',
@@ -3186,6 +3190,7 @@ const CONST = {
             AMEX_CUSTOM_FEED: 'AmexCustomFeed',
             SELECT_COUNTRY: 'SelectCountry',
             PLAID_CONNECTION: 'PlaidConnection',
+            SELECT_STATEMENT_CLOSE_DATE: 'SelectStatementCloseDate',
         },
         CARD_TYPE: {
             AMEX: 'amex',
@@ -3226,6 +3231,11 @@ const CONST = {
         DELETE_TRANSACTIONS: {
             RESTRICT: 'corporate',
             ALLOW: 'personal',
+        },
+        STATEMENT_CLOSE_DATE: {
+            LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+            LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
+            CUSTOM_DAY_OF_MONTH: 'customDayOfMonth',
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
@@ -5065,15 +5075,15 @@ const CONST = {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
             NAVIGATE: 'NAVIGATE',
-            NAVIGATE_DEPRECATED: 'NAVIGATE_DEPRECATED',
             SET_PARAMS: 'SET_PARAMS',
+            PRELOAD: 'PRELOAD',
+            POP_TO: 'POP_TO',
 
             /** These action types are custom for RootNavigator */
             DISMISS_MODAL: 'DISMISS_MODAL',
             OPEN_WORKSPACE_SPLIT: 'OPEN_WORKSPACE_SPLIT',
             SET_HISTORY_PARAM: 'SET_HISTORY_PARAM',
             REPLACE_PARAMS: 'REPLACE_PARAMS',
-            PRELOAD: 'PRELOAD',
         },
     },
     TIME_PERIOD: {
@@ -6168,6 +6178,7 @@ const CONST = {
             CHAT: 'chat',
         },
         ACTION_FILTERS: {
+            APPROVE: 'approve',
             PAY: 'pay',
             EXPORT: 'export',
         },
@@ -6374,131 +6385,6 @@ const CONST = {
             ONYXKEYS.PERSONAL_DETAILS_LIST,
             ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
         ],
-    },
-
-    /**
-     * SEARCH_TYPE_FILTERS_KEYS is an object keyed by the different search types.
-     * Each value is then an array of arrays where each inner array is a separate section in the UI.
-     */
-    get SEARCH_TYPE_FILTERS_KEYS() {
-        return {
-            [this.SEARCH.DATA_TYPES.EXPENSE]: [
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-                    this.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.PAID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-                ],
-            ],
-            [this.SEARCH.DATA_TYPES.INVOICE]: [
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.PAID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-                ],
-            ],
-            [this.SEARCH.DATA_TYPES.TRIP]: [
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-                    this.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAG,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
-                ],
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.PAID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-                ],
-            ],
-            [this.SEARCH.DATA_TYPES.CHAT]: [
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.IN,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                ],
-            ],
-            [this.SEARCH.DATA_TYPES.TASK]: [
-                [
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.IN,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
-                    this.SEARCH.SYNTAX_FILTER_KEYS.DATE,
-                ],
-            ],
-        } as const;
     },
 
     EXPENSE: {
@@ -6722,12 +6608,6 @@ const CONST = {
         VISIBLE: 'visible',
         READY_TO_BE_HIDDEN: 'readyToBeHidden',
         HIDDEN: `hidden`,
-    },
-
-    HYBRID_APP_SIGN_IN_STATE: {
-        NOT_STARTED: 'notStarted',
-        STARTED: 'started',
-        FINISHED: 'finished',
     },
 
     CSV_IMPORT_COLUMNS: {
