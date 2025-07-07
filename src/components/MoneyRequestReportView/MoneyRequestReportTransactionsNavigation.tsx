@@ -66,12 +66,14 @@ function MoneyRequestReportTransactionsNavigation({currentReportID, parentReport
             isPrevButtonDisabled={!prevReportID}
             isNextButtonDisabled={!nextReportID}
             onNext={(e) => {
+                const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: nextReportID, parentReportActionID: nextParentReportActionID, parentReportID, backTo}), {
                     forceReplace: true,
                 });
             }}
             onPrevious={(e) => {
+                const backTo = Navigation.getActiveRoute();
                 e?.preventDefault();
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: prevReportID, parentReportActionID: prevParentReportActionID, parentReportID, backTo}), {
                     forceReplace: true,
