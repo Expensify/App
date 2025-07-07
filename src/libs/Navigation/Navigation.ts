@@ -288,15 +288,6 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
         return;
     }
 
-    /**
-     * In react-navigation 7 the behavior of the `navigate` function has slightly changed.
-     * If it detects that a screen that we want to navigate to is already in the stack, it doesn't go back anymore.
-     * More: https://reactnavigation.org/docs/upgrading-from-6.x#the-navigate-method-no-longer-goes-back-use-popto-instead
-     */
-    if (minimalAction.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
-        minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.NAVIGATE_DEPRECATED;
-    }
-
     const indexOfBackToRoute = targetState.routes.findLastIndex((route) => doesRouteMatchToMinimalActionPayload(route, minimalAction, compareParams));
     const distanceToPop = targetState.routes.length - indexOfBackToRoute - 1;
 
@@ -308,11 +299,10 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
     }
 
     /**
-     * If we are not comparing params, we want to use navigate action because it will replace params in the route already existing in the state if necessary.
-     * This part will need refactor after migrating to react-navigation 7. We will use popTo instead.
+     * If we are not comparing params, we want to use popTo action because it will replace params in the route already existing in the state if necessary.
      */
     if (!compareParams) {
-        navigationRef.current.dispatch(minimalAction);
+        navigationRef.current.dispatch({...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO});
         return;
     }
 

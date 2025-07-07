@@ -94,7 +94,7 @@ function Expensify() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, {canBeMissing: true});
     const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA, {canBeMissing: true});
-    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: true});
+    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: true});
     const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false, canBeMissing: true});
     const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false, canBeMissing: true});
     const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: true});
@@ -204,9 +204,11 @@ function Expensify() {
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
-            if(!url) {
-                return;
+            // We use custom deeplink handler in setup/hybridApp
+            if (CONFIG.IS_HYBRID_APP) {
+                Report.doneCheckingPublicRoom();
             }
+
             setInitialUrl(url as Route);
             Report.openReportFromDeepLink(url ?? '');
         });

@@ -4,9 +4,12 @@ import CONST from '@src/CONST';
 
 export default function () {
     Timing.start(CONST.TIMING.SPLASH_SCREEN);
-    Timing.start(CONST.TIMING.OPEN_APP);
 
-    AppState.addEventListener('change', () => {
+    AppState.addEventListener('change', (state) => {
+        if (state === 'active') {
+            return;
+        }
+
         Timing.clearData();
     });
 }
