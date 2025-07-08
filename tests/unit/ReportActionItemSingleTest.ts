@@ -105,6 +105,13 @@ const validAction = {
 };
 
 describe('useAvatarDetails', () => {
+    const mockedOwnerAccountID = 15593135;
+    const mockedOwnerAccountAvatar = personalDetails[mockedOwnerAccountID].avatar;
+
+    const mockedManagerAccountID = 51760358;
+    const mockedManagerAccountAvatar = personalDetails[mockedManagerAccountID].avatar;
+    const mockedDMChatRoom = {...chatReportR14932, chatType: undefined};
+
     const policiesMock = {
         personalDetails,
         policies: {
@@ -141,31 +148,37 @@ describe('useAvatarDetails', () => {
         return waitForBatchedUpdates();
     });
 
-    it('returns undefined when action is not a report preview', () => {
+    it('returns avatar with no reportPreviewSenderID when action is not a report preview', () => {
         const {result} = renderHook(() =>
             useReportPreviewDetails({
                 action: actionR14932,
                 iouReport: iouReportR14932,
-                report: chatReportR14932,
+                report: mockedDMChatRoom,
                 ...policiesMock,
             }),
         );
+
+        expect(result.current.primaryAvatar.source).toBe(mockedOwnerAccountAvatar);
+        expect(result.current.secondaryAvatar.source).toBeFalsy();
         expect(result.current.reportPreviewSenderID).toBeUndefined();
     });
 
-    it('returns childManagerAccountID when all conditions are met for Send Money flow', () => {
+    it('returns childManagerAccountID and his avatar when all conditions are met for Send Money flow', () => {
         const {result} = renderHook(() =>
             useReportPreviewDetails({
                 action: {...validAction, childMoneyRequestCount: 0},
                 iouReport: iouReportR14932,
-                report: chatReportR14932,
+                report: mockedDMChatRoom,
                 ...policiesMock,
             }),
         );
+
+        expect(result.current.primaryAvatar.source).toBe(mockedManagerAccountAvatar);
+        expect(result.current.secondaryAvatar.source).toBeFalsy();
         expect(result.current.reportPreviewSenderID).toBe(iouReportR14932.managerID);
     });
 
-    it('returns undefined when there are multiple attendees', async () => {
+    it('returns both avatars & no reportPreviewSenderID when there are multiple attendees', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}`, {
             ...transactionR14932,
             comment: {
@@ -182,14 +195,17 @@ describe('useAvatarDetails', () => {
             useReportPreviewDetails({
                 action: validAction,
                 iouReport: iouReportR14932,
-                report: chatReportR14932,
+                report: mockedDMChatRoom,
                 ...policiesMock,
             }),
         );
+
+        expect(result.current.primaryAvatar.source).toBe(mockedManagerAccountAvatar);
+        expect(result.current.secondaryAvatar.source).toBe(mockedOwnerAccountAvatar);
         expect(result.current.reportPreviewSenderID).toBeUndefined();
     });
 
-    it('returns undefined when amounts have different signs', async () => {
+    it('returns both avatars & no reportPreviewSenderID when amounts have different signs', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}`, {
             ...transactionR14932,
             amount: 100,
@@ -202,22 +218,28 @@ describe('useAvatarDetails', () => {
             useReportPreviewDetails({
                 action: validAction,
                 iouReport: iouReportR14932,
-                report: chatReportR14932,
+                report: mockedDMChatRoom,
                 ...policiesMock,
             }),
         );
+
+        expect(result.current.primaryAvatar.source).toBe(mockedManagerAccountAvatar);
+        expect(result.current.secondaryAvatar.source).toBe(mockedOwnerAccountAvatar);
         expect(result.current.reportPreviewSenderID).toBeUndefined();
     });
 
-    it('returns childOwnerAccountID when all conditions are met', () => {
+    it('returns childOwnerAccountID as reportPreviewSenderID and a single avatar when all conditions are met', () => {
         const {result} = renderHook(() =>
             useReportPreviewDetails({
                 action: validAction,
                 iouReport: iouReportR14932,
-                report: chatReportR14932,
+                report: mockedDMChatRoom,
                 ...policiesMock,
             }),
         );
+
+        expect(result.current.primaryAvatar.source).toBe(mockedOwnerAccountAvatar);
+        expect(result.current.secondaryAvatar.source).toBeFalsy();
         expect(result.current.reportPreviewSenderID).toBe(iouReportR14932.ownerAccountID);
     });
 });

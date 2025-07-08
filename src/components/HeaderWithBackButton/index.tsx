@@ -140,6 +140,7 @@ function HeaderWithBackButton({
         titleColor,
         translate,
         openParentReportInCurrentTab,
+        singleAvatarDetails,
     ]);
     const ThreeDotMenuButton = useMemo(() => {
         if (shouldShowThreeDotsButton) {

@@ -245,7 +245,7 @@ function AvatarWithDisplayName({
 
     const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
 
-    const getAvatar = () => {
+    const getAvatar = useCallback(() => {
         if (shouldShowSubscriptAvatar) {
             return (
                 <SubscriptAvatar
@@ -273,7 +273,7 @@ function AvatarWithDisplayName({
             containerStyles: [styles.actionAvatar, styles.mr3],
             actorAccountID: actorAccountID?.current,
         });
-    };
+    }, [StyleUtils, avatarBorderColor, icons, personalDetails, shouldShowSubscriptAvatar, singleAvatarDetails, size, styles]);
 
     const avatar = <View accessibilityLabel={title}>{getAvatar()}</View>;
 
