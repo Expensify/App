@@ -88,8 +88,22 @@ const restrictedImportPaths = [
         message: "Please use '@src/libs/memoize' instead.",
     },
     {
+        name: 'lodash/isEqual',
+        message: "Please use 'deepEqual' from 'fast-equals' instead.",
+    },
+    {
+        name: 'lodash',
+        importNames: ['isEqual'],
+        message: "Please use 'deepEqual' from 'fast-equals' instead.",
+    },
+    {
         name: 'react-native-animatable',
         message: "Please use 'react-native-reanimated' instead.",
+    },
+    {
+        name: 'react-native-onyx',
+        importNames: ['useOnyx'],
+        message: "Please use '@hooks/useOnyx' instead.",
     },
 ];
 
@@ -216,6 +230,7 @@ module.exports = {
         'rulesdir/no-multiple-onyx-in-file': 'off',
         'rulesdir/prefer-underscore-method': 'off',
         'rulesdir/prefer-import-module-contents': 'off',
+        'rulesdir/no-beta-handler': 'error',
 
         // React and React Native specific rules
         'react-native-a11y/has-accessibility-hint': ['off'],
@@ -292,6 +307,7 @@ module.exports = {
                     '@libs': './src/libs',
                     '@navigation': './src/libs/Navigation',
                     '@pages': './src/pages',
+                    '@prompts': './prompts',
                     '@styles': './src/styles',
                     // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                     '@src': './src',

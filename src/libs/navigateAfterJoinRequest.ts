@@ -8,7 +8,7 @@ const navigateAfterJoinRequest = () => {
         Navigation.goBack();
     }
     Navigation.setNavigationActionToMicrotaskQueue(() => {
-        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
+        Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
     });
 };
 export default navigateAfterJoinRequest;

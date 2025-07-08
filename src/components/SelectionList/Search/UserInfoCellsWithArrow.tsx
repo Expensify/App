@@ -12,8 +12,7 @@ import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import UserInfoCell from './UserInfoCell';
 
 function UserInfoCellsWithArrow({
-    shouldDisplayArrowIcon,
-    shouldShowToRecipient = true,
+    shouldShowToRecipient,
     participantFrom,
     participantFromDisplayName,
     participantTo,
@@ -23,8 +22,7 @@ function UserInfoCellsWithArrow({
     infoCellsAvatarStyle,
     fromRecipientStyle,
 }: {
-    shouldDisplayArrowIcon: boolean;
-    shouldShowToRecipient?: boolean;
+    shouldShowToRecipient: boolean;
     participantFrom: SearchPersonalDetails | PersonalDetails;
     participantFromDisplayName: string;
     participantTo: SearchPersonalDetails | PersonalDetails;
@@ -36,6 +34,10 @@ function UserInfoCellsWithArrow({
 }) {
     const styles = useThemeStyles();
     const theme = useTheme();
+
+    if (!participantFrom) {
+        return null;
+    }
 
     return (
         <>
@@ -49,25 +51,26 @@ function UserInfoCellsWithArrow({
                     avatarStyle={infoCellsAvatarStyle}
                 />
             </View>
-            {shouldDisplayArrowIcon && (
-                <Icon
-                    src={Expensicons.ArrowRightLong}
-                    width={variables.iconSizeXXSmall}
-                    height={variables.iconSizeXXSmall}
-                    fill={theme.icon}
-                />
-            )}
             {shouldShowToRecipient && (
-                <View style={[styles.flex1, styles.mw50]}>
-                    <UserInfoCell
-                        accountID={participantTo.accountID}
-                        avatar={participantTo.avatar}
-                        displayName={participantToDisplayName}
-                        avatarSize={avatarSize}
-                        textStyle={infoCellsTextStyle}
-                        avatarStyle={infoCellsAvatarStyle}
+                <>
+                    <Icon
+                        src={Expensicons.ArrowRightLong}
+                        width={variables.iconSizeXXSmall}
+                        height={variables.iconSizeXXSmall}
+                        fill={theme.icon}
+                        testID="ArrowRightLong Icon"
                     />
-                </View>
+                    <View style={[styles.flex1, styles.mw50]}>
+                        <UserInfoCell
+                            accountID={participantTo.accountID}
+                            avatar={participantTo.avatar}
+                            displayName={participantToDisplayName}
+                            avatarSize={avatarSize}
+                            textStyle={infoCellsTextStyle}
+                            avatarStyle={infoCellsAvatarStyle}
+                        />
+                    </View>
+                </>
             )}
         </>
     );

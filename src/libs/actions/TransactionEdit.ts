@@ -1,8 +1,11 @@
+import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import type {Connection, OnyxEntry} from 'react-native-onyx';
+import {formatCurrentUserToAttendee} from '@libs/IOUUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
-import {getDraftTransactions} from './Transaction';
+import type {PersonalDetails, Transaction} from '@src/types/onyx';
+import {generateTransactionID, getDraftTransactions} from './Transaction';
 
 let connection: Connection;
 
@@ -86,13 +89,69 @@ function removeDraftTransaction(transactionID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-function removeDraftTransactions() {
-    const draftTransactions = getDraftTransactions();
-    const draftTransactionsSet = draftTransactions.reduce((acc, item) => {
-        acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
-        return acc;
-    }, {} as Record<string, null>);
-    Onyx.multiSet(draftTransactionsSet);
+function removeDraftSplitTransaction(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-export {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup, createDraftTransaction, removeDraftTransaction, removeDraftTransactions};
+function removeDraftTransactions(shouldExcludeInitialTransaction = false) {
+    const draftTransactions = getDraftTransactions();
+    const draftTransactionsSet = draftTransactions.reduce(
+        (acc, item) => {
+            if (shouldExcludeInitialTransaction && item.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+                return acc;
+            }
+            acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
+            return acc;
+        },
+        {} as Record<string, null>,
+    );
+    return Onyx.multiSet(draftTransactionsSet);
+}
+
+function removeTransactionReceipt(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: null});
+}
+
+type BuildOptimisticTransactionParams = {
+    initialTransaction: Partial<Transaction>;
+    currentUserPersonalDetails: PersonalDetails;
+    reportID: string;
+};
+
+function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUserPersonalDetails, reportID}: BuildOptimisticTransactionParams): Transaction {
+    const newTransactionID = generateTransactionID();
+    const {currency, iouRequestType, isFromGlobalCreate, splitPayerAccountIDs} = initialTransaction ?? {};
+    const newTransaction = {
+        amount: 0,
+        created: format(new Date(), 'yyyy-MM-dd'),
+        currency,
+        comment: {attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID)},
+        iouRequestType,
+        reportID,
+        transactionID: newTransactionID,
+        isFromGlobalCreate,
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        splitPayerAccountIDs,
+    } as Transaction;
+    createDraftTransaction(newTransaction);
+    return newTransaction;
+}
+
+export {
+    createBackupTransaction,
+    removeBackupTransaction,
+    restoreOriginalTransactionFromBackup,
+    createDraftTransaction,
+    removeDraftTransaction,
+    removeTransactionReceipt,
+    removeDraftTransactions,
+    removeDraftSplitTransaction,
+    buildOptimisticTransactionAndCreateDraft,
+};

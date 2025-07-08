@@ -73,8 +73,8 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const isOpen = isOpenTaskReport(report);
-    const isReportArchived = useReportIsArchived(report?.parentReportID);
-    const canActuallyModifyTask = canModifyTask(report, currentUserPersonalDetails.accountID, isReportArchived);
+    const isParentReportArchived = useReportIsArchived(report?.parentReportID);
+    const canActuallyModifyTask = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
     const isTaskNonEditable = isTaskReport(report) && (!canActuallyModifyTask || !isOpen);
 
     useFocusEffect(

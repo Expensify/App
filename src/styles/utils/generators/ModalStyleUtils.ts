@@ -1,5 +1,6 @@
 import type {ViewStyle} from 'react-native';
 import type {ModalProps} from 'react-native-modal';
+import {isMobileSafari} from '@libs/Browser';
 import type {ThemeStyles} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -41,11 +42,21 @@ type GetModalStylesStyleUtil = {
         popoverAnchorPosition?: ViewStyle,
         innerContainerStyle?: ViewStyle,
         outerStyle?: ViewStyle,
+        shouldUseModalPaddingStyle?: boolean,
+        modalOverlapsWithTopSafeArea?: boolean,
     ) => GetModalStyles;
 };
 
 const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({theme, styles}) => ({
-    getModalStyles: (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}): GetModalStyles => {
+    getModalStyles: (
+        type,
+        windowDimensions,
+        popoverAnchorPosition = {},
+        innerContainerStyle = {},
+        outerStyle = {},
+        shouldUseModalPaddingStyle = true,
+        modalOverlapsWithTopSafeArea = false,
+    ): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
         let modalStyle: GetModalStyles['modalStyle'] = {
@@ -65,6 +76,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
 
         switch (type) {
             case CONST.MODAL.MODAL_TYPE.FULLSCREEN:
+                modalStyle = {...modalStyle, height: '100%'};
                 modalContainerStyle = {};
                 swipeDirection = 'down';
                 animationIn = 'slideInUp';
@@ -158,6 +170,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     ...modalStyle,
                     ...{
                         alignItems: 'center',
+                        justifyContent: 'center',
                     },
                 };
                 modalContainerStyle = {
@@ -212,14 +225,22 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     width: '100%',
                     borderTopLeftRadius: variables.componentBorderRadiusLarge,
                     borderTopRightRadius: variables.componentBorderRadiusLarge,
-                    paddingTop: variables.componentBorderRadiusLarge,
-                    paddingBottom: variables.componentBorderRadiusLarge,
                     justifyContent: 'center',
                     overflow: 'hidden',
                     boxShadow: theme.shadow,
+                    // Workaround for Safari not supporting interactive-widget=resizes-content, sets max height of a container modal.
+                    // This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
+                    // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
+                    ...(isMobileSafari() ? {maxHeight: `${windowDimensions.windowHeight}px`} : {}),
                 };
 
-                shouldAddBottomSafeAreaPadding = true;
+                if (shouldUseModalPaddingStyle) {
+                    modalContainerStyle.paddingTop = variables.componentBorderRadiusLarge;
+                    modalContainerStyle.paddingBottom = variables.componentBorderRadiusLarge;
+                }
+
+                shouldAddBottomSafeAreaPadding = innerContainerStyle.paddingBottom !== 0;
+                shouldAddTopSafeAreaMargin = modalOverlapsWithTopSafeArea;
                 swipeDirection = undefined;
                 animationIn = 'slideInUp';
                 animationOut = 'slideOutDown';

@@ -45,6 +45,9 @@ type SharedTooltipProps = {
 
     /** Callback when tooltip is clicked */
     onTooltipPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
+
+    /** Whether to compute horizontal shift for native */
+    computeHorizontalShiftForNative?: boolean;
 };
 
 type GenericTooltipState = {

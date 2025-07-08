@@ -1,9 +1,11 @@
 import React, {useRef} from 'react';
 import type {View} from 'react-native';
+import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
+import QRShare from '@components/QRShare';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
@@ -61,6 +63,17 @@ function AppDownloadLinksPage() {
                 title={translate('initialSettingsPage.aboutPage.appDownloadLinks')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
+
+            <QRShare
+                url={CONST.EXPENSIFY_MOBILE_URL}
+                logo={expensifyLogo}
+                logoRatio={CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO}
+                logoMarginRatio={CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO}
+                shouldShowExpensifyLogo={false}
+                additionalStyles={[styles.qrCodeAppDownloadLinksStyles, styles.shareCodeContainerDownloadPadding]}
+                size={CONST.QR_CODE_SIZE.APP_DOWNLOAD_LINKS}
+            />
+
             <ScrollView style={[styles.mt3]}>
                 {menuItems.map((item: DownloadMenuItem) => (
                     <MenuItem

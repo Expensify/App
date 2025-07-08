@@ -6,6 +6,7 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -34,16 +35,7 @@ function RequestEarlyCancellationPage() {
         cancelBillingSubscription(cancellationReason, cancellationNote);
     };
 
-    const acknowledgementText = useMemo(
-        () => (
-            <Text>
-                {translate('subscription.requestEarlyCancellation.acknowledgement.part1')}
-                <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>{translate('subscription.requestEarlyCancellation.acknowledgement.link')}</TextLink>
-                {translate('subscription.requestEarlyCancellation.acknowledgement.part2')}
-            </Text>
-        ),
-        [translate],
-    );
+    const acknowledgementText = useMemo(() => <RenderHTML html={translate('subscription.requestEarlyCancellation.acknowledgement')} />, [translate]);
 
     const manualCancellationContent = useMemo(
         () => (
@@ -78,7 +70,7 @@ function RequestEarlyCancellationPage() {
                     <Text style={[styles.mv4, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.info')}</Text>
                     <Text>
                         {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.part1')}
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route)}>
+                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.route)}>
                             {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.link')}
                         </TextLink>
                         {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.part2')}
