@@ -503,6 +503,12 @@ function IOURequestStepScan({
                 return;
             }
 
+            // If the initial transaction already has the participants selected, then we can skip the participants step and go straight to the confirmation step.
+            if (initialTransaction?.participants && initialTransaction?.participants.length > 0) {
+                navigateToConfirmationPage(false, initialTransaction?.reportID);
+                return;
+            }
+
             // If there was no reportID, then that means the user started this flow from the global + menu
             // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
             if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
@@ -527,6 +533,9 @@ function IOURequestStepScan({
             report,
             reportNameValuePairs,
             iouType,
+            initialTransaction?.participants,
+            initialTransaction?.currency,
+            initialTransaction?.reportID,
             activePolicy,
             initialTransactionID,
             navigateToConfirmationPage,
@@ -536,7 +545,6 @@ function IOURequestStepScan({
             currentUserPersonalDetails?.login,
             currentUserPersonalDetails.accountID,
             reportID,
-            initialTransaction?.currency,
             transactionTaxCode,
             transactionTaxAmount,
             policy,
