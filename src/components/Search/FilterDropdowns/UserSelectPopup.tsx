@@ -1,5 +1,5 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -16,7 +16,6 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -45,7 +44,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: (onyxSession) => onyxSession?.accountID});
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const [searchTerm, setSearchTerm] = useState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [selectedOptions, setSelectedOptions] = useState<Option[]>(() => {
         return value.reduce<OptionData[]>((acc, id) => {
@@ -83,6 +82,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         const {personalDetails: filteredOptionsList, recentReports} = filterAndOrderOptions(optionsList, cleanSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            canInviteUser: false,
         });
 
         const personalDetailList = filteredOptionsList
@@ -153,10 +153,6 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         onChange([]);
         closeOverlay();
     }, [closeOverlay, onChange]);
-
-    useEffect(() => {
-        searchInServer(debouncedSearchTerm.trim());
-    }, [debouncedSearchTerm]);
 
     const isLoadingNewOptions = !!isSearchingForReports;
     const dataLength = sections.flatMap((section) => section.data).length;
