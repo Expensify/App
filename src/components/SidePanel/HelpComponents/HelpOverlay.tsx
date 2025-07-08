@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import Animated, {Keyframe} from 'react-native-reanimated';
 import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -18,9 +18,9 @@ function HelpOverlay({isRHPVisible, onBackdropPress}: HelpOverlayProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const CustomFadeIn = new Keyframe(getModalInAnimation('fadeIn')).duration(CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
+    const CustomFadeIn = useMemo(() => new Keyframe(getModalInAnimation('fadeIn')).duration(CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN), []);
 
-    const CustomFadeOut = new Keyframe(getModalOutAnimation('fadeOut')).duration(CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT);
+    const CustomFadeOut = useMemo(() => new Keyframe(getModalOutAnimation('fadeOut')).duration(CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT), []);
 
     return (
         <Animated.View
