@@ -715,7 +715,7 @@ function getFilterDisplayValue(
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${filterValue}`]?.name ?? filterValue;
     }
-    if (DATE_FILTER_KEYS.includes(filterName as SearchDateFilterKeys)) {
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED) {
         return isSearchDatePreset(filterValue) ? translateLocal(`search.filters.date.presets.${filterValue}`) : filterValue;
     }
     return filterValue;
