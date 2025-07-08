@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
+import Onyx from 'react-native-onyx';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
@@ -77,13 +78,21 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
                 const secondTransaction = secondTransactionID ? getTransactionOrDraftTransaction(secondTransactionID) : undefined;
 
                 if (secondTransaction) {
-                    updateDraftTransactions({
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`]: {
-                            ...secondTransaction,
-                            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                    updateDraftTransactions([
+                        {
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
+                            value: {
+                                ...secondTransaction,
+                                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                            },
                         },
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`]: null,
-                    });
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`,
+                            value: null,
+                        },
+                    ]);
                 }
                 return;
             }
