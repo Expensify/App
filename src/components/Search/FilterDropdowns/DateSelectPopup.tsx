@@ -37,7 +37,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange}: DateSe
     const styles = useThemeStyles();
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
-    const shouldShowHorizontalRule = presets ? presets.length > 0 : false;
+    const shouldShowHorizontalRule = !!presets?.length;
 
     const applyChanges = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
