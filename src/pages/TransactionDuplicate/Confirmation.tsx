@@ -41,6 +41,7 @@ function Confirmation() {
     const [reviewDuplicates, reviewDuplicatesResult] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES, {canBeMissing: true});
     const newTransaction = useMemo(() => TransactionUtils.buildNewTransactionAfterReviewingDuplicates(reviewDuplicates), [reviewDuplicates]);
     const transactionID = TransactionUtils.getTransactionID(route.params.threadReportID);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, {
         canBeMissing: false,
@@ -138,6 +139,7 @@ function Confirmation() {
                         {/* We need that provider here because MoneyRequestView component requires that */}
                         <ShowContextMenuContext.Provider value={contextValue}>
                             <MoneyRequestView
+                                allReports={allReports}
                                 report={report}
                                 shouldShowAnimatedBackground={false}
                                 readonly
