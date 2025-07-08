@@ -184,6 +184,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
 
     useEffect(() => Performance.measureTTI(), []);
+
     useEffect(() => {
         if (preferredLocale) {
             return;
@@ -248,8 +249,9 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.getStarted');
         welcomeText = shouldUseNarrowLayout ? translate('welcomeText.getStarted') : '';
     } else if (shouldShowValidateCodeForm) {
-        if (account?.requiresTwoFactorAuth) {
-            // We will only know this after a user signs in successfully, without their 2FA code
+        // Only show the authenticator prompt after the magic code has been submitted
+        const isTwoFactorStage = account?.requiresTwoFactorAuth && !!credentials?.validateCode;
+        if (isTwoFactorStage) {
             welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
             welcomeText = isUsingRecoveryCode ? translate('validateCodeForm.enterRecoveryCode') : translate('validateCodeForm.enterAuthenticatorCode');
         } else {
