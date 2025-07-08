@@ -1,7 +1,7 @@
 import mapValues from 'lodash/mapValues';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -81,6 +81,9 @@ import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestViewProps = {
+    /** All the data of the report collection */
+    allReports: OnyxCollection<OnyxTypes.Report>;
+
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -108,7 +111,7 @@ const receiptImageViolationNames: OnyxTypes.ViolationName[] = [
 
 const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE];
 
-function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
+function MoneyRequestView({allReports, report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
@@ -116,14 +119,11 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const {getReportRHPActiveRoute} = useActiveRoute();
     const parentReportID = report?.parentReportID;
     const policyID = report?.policyID;
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: true});
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`, {
-        selector: (chatReportValue) => chatReportValue && {reportID: chatReportValue.reportID, errorFields: chatReportValue.errorFields},
-        canBeMissing: true,
-    });
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`];
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
-    const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${updatedTransaction?.reportID}`, {canBeMissing: true});
+    const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${updatedTransaction?.reportID}`];
     const targetPolicyID = updatedTransaction?.reportID ? transactionReport?.policyID : policyID;
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`, {canBeMissing: true});
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
