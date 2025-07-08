@@ -635,7 +635,6 @@ const CONST = {
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
-        NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         CUSTOM_RULES: 'customRules',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
@@ -6229,7 +6228,7 @@ const CONST = {
         },
         STATUS: {
             EXPENSE: {
-                ALL: 'all',
+                ALL: '',
                 UNREPORTED: 'unreported',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
@@ -6238,17 +6237,17 @@ const CONST = {
                 PAID: 'paid',
             },
             INVOICE: {
-                ALL: 'all',
+                ALL: '',
                 OUTSTANDING: 'outstanding',
                 PAID: 'paid',
             },
             TRIP: {
-                ALL: 'all',
+                ALL: '',
                 CURRENT: 'current',
                 PAST: 'past',
             },
             CHAT: {
-                ALL: 'all',
+                ALL: '',
                 UNREAD: 'unread',
                 SENT: 'sent',
                 ATTACHMENTS: 'attachments',
@@ -6256,7 +6255,7 @@ const CONST = {
                 PINNED: 'pinned',
             },
             TASK: {
-                ALL: 'all',
+                ALL: '',
                 OUTSTANDING: 'outstanding',
                 COMPLETED: 'completed',
             },
