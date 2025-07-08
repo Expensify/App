@@ -90,19 +90,21 @@ function MoneyRequestReportPreview({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
-    const onCarouselLayout = useCallback(() => {
-        return (e: LayoutChangeEvent) => {
+    const onCarouselLayout = useCallback(
+        (e: LayoutChangeEvent) => {
             currentWidth.current = e.nativeEvent.layout.width;
             onLayout();
-        };
-    }, [onLayout]);
+        },
+        [onLayout],
+    );
 
-    const onWrapperLayout = useCallback(() => {
-        return (e: LayoutChangeEvent) => {
+    const onWrapperLayout = useCallback(
+        (e: LayoutChangeEvent) => {
             currentWrapperWidth.current = e.nativeEvent.layout.width;
             onLayout();
-        };
-    }, [onLayout]);
+        },
+        [onLayout],
+    );
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
