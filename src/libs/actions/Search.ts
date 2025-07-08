@@ -14,6 +14,7 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getSubmitToAccountID, getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {buildOptimisticExportIntegrationAction, hasHeldExpenses} from '@libs/ReportUtils';
+import type {SuggestedSearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
@@ -42,7 +43,13 @@ Onyx.connect({
     waitForCollectionCallback: true,
 });
 
-function handleActionButtonPress(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void, isInMobileSelectionMode: boolean) {
+function handleActionButtonPress(
+    hash: number,
+    item: TransactionListItemType | TransactionReportGroupListItemType,
+    goToItem: () => void,
+    isInMobileSelectionMode: boolean,
+    currentSearchKey?: SuggestedSearchKey,
+) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
@@ -56,14 +63,15 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | T
 
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
+            // JACK_TODO: ADD CURRENT SEARCH KEY TO THIS TOO
             getPayActionCallback(hash, item, goToItem);
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
-            approveMoneyRequestOnSearch(hash, [item.reportID], transactionID);
+            approveMoneyRequestOnSearch(hash, [item.reportID], transactionID, currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
             const policy = (allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] ?? {}) as SearchPolicy;
-            submitMoneyRequestOnSearch(hash, [item], [policy], transactionID);
+            submitMoneyRequestOnSearch(hash, [item], [policy], transactionID, currentSearchKey);
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -74,7 +82,7 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | T
                 return;
             }
 
-            exportToIntegrationOnSearch(hash, item.reportID, connectedIntegration);
+            exportToIntegrationOnSearch(hash, item.reportID, connectedIntegration, currentSearchKey);
             return;
         }
         default:
@@ -297,7 +305,7 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
-function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], policy: SearchPolicy[], transactionIDList?: string[]) {
+function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], policy: SearchPolicy[], transactionIDList?: string[], currentSearchKey?: SuggestedSearchKey) {
     const createActionLoadingData = (isLoading: boolean): OnyxUpdate[] => [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -326,7 +334,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, finallyData});
 }
 
-function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], transactionIDList?: string[]) {
+function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], transactionIDList?: string[], currentSearchKey?: SuggestedSearchKey) {
     const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport>): OnyxUpdate[] => [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -346,7 +354,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], trans
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, finallyData});
 }
 
-function exportToIntegrationOnSearch(hash: number, reportID: string, connectionName: ConnectionName) {
+function exportToIntegrationOnSearch(hash: number, reportID: string, connectionName: ConnectionName, currentSearchKey?: SuggestedSearchKey) {
     const action = buildOptimisticExportIntegrationAction(connectionName);
     const optimisticReportActionID = action.reportActionID;
 
