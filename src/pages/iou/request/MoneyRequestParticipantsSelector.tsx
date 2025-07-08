@@ -1,7 +1,8 @@
 import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
@@ -17,6 +18,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
@@ -84,16 +86,22 @@ type MoneyRequestParticipantsSelectorProps = {
     isPerDiemRequest?: boolean;
 };
 
-function MoneyRequestParticipantsSelector({
-    participants = CONST.EMPTY_ARRAY,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onFinish = (_value?: string) => {},
-    onParticipantsAdded,
-    iouType,
-    action,
-    isWorkspacesOnly = false,
-    isPerDiemRequest = false,
-}: MoneyRequestParticipantsSelectorProps) {
+type InputFocusRef = {
+    focus?: () => void;
+};
+
+function MoneyRequestParticipantsSelector(
+    {
+        participants = CONST.EMPTY_ARRAY,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        onFinish = (_value?: string) => {},
+        onParticipantsAdded,
+        iouType,
+        action,
+        isPerDiemRequest = false,
+    }: MoneyRequestParticipantsSelectorProps,
+    ref: Ref<InputFocusRef>,
+) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -116,6 +124,7 @@ function MoneyRequestParticipantsSelector({
     });
     const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
+    const selectionListRef = useRef<SelectionListHandle | null>(null);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -609,12 +618,24 @@ function MoneyRequestParticipantsSelector({
         );
     }, [iouType, ClickableImportContactTextComponent]);
 
+    useImperativeHandle(ref, () => ({
+        focus: () => {
+            if (!textInputAutoFocus) {
+                return;
+            }
+            selectionListRef.current?.focusTextInput?.();
+        },
+    }));
+
     return (
         <>
             <ContactPermissionModal
                 onGrant={initiateContactImportAndSetState}
                 onDeny={setContactPermissionState}
-                onFocusTextInput={() => setTextInputAutoFocus(true)}
+                onFocusTextInput={() => {
+                    setTextInputAutoFocus(true);
+                    selectionListRef.current?.focusTextInput?.();
+                }}
             />
             <SelectionList
                 onConfirm={handleConfirmSelection}
@@ -642,7 +663,8 @@ function MoneyRequestParticipantsSelector({
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}
                 isLoadingNewOptions={!!isSearchingForReports}
                 shouldShowListEmptyContent={shouldShowListEmptyContent}
-                textInputAutoFocus={textInputAutoFocus}
+                textInputAutoFocus={!isNative}
+                ref={selectionListRef}
             />
         </>
     );
@@ -651,7 +673,7 @@ function MoneyRequestParticipantsSelector({
 MoneyRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
 export default memo(
-    MoneyRequestParticipantsSelector,
+    forwardRef(MoneyRequestParticipantsSelector),
     (prevProps, nextProps) =>
         deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType && prevProps.isWorkspacesOnly === nextProps.isWorkspacesOnly,
 );

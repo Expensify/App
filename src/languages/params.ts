@@ -677,6 +677,10 @@ type FileLimitParams = {
     fileLimit: number;
 };
 
+type FileTypeParams = {
+    fileType: string;
+};
+
 type CompanyCardBankName = {
     bankName: string;
 };
@@ -806,6 +810,7 @@ export type {
     AutoPayApprovedReportsLimitErrorParams,
     FeatureNameParams,
     FileLimitParams,
+    FileTypeParams,
     SpreadSheetColumnParams,
     SpreadFieldNameParams,
     AssignedCardParams,
