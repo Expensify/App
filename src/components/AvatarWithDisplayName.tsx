@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import type {ColorValue, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import SingleReportAvatar from '@components/ReportActionItem/SingleReportAvatar';
 import useOnyx from '@hooks/useOnyx';
 import type {ReportAvatarDetails} from '@hooks/useReportAvatarDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -41,6 +40,7 @@ import {FallbackAvatar} from './Icon/Expensicons';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import SingleReportAvatar from './ReportActionItem/SingleReportAvatar';
 import type {TransactionListItemType} from './SelectionList/types';
 import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
@@ -245,55 +245,71 @@ function AvatarWithDisplayName({
 
     const shouldUseFullTitle = isMoneyRequestOrReport || isAnonymous;
 
-    const getAvatar = useCallback(() => {
-        if (shouldShowSubscriptAvatar) {
+    const getAvatar = useCallback(
+        (accountID: number) => {
+            if (shouldShowSubscriptAvatar) {
+                return (
+                    <SubscriptAvatar
+                        backgroundColor={avatarBorderColor}
+                        mainAvatar={icons.at(0) ?? fallbackIcon}
+                        secondaryAvatar={icons.at(1)}
+                        size={size}
+                    />
+                );
+            }
+
+            if (!singleAvatarDetails || singleAvatarDetails.shouldDisplayAllActors || !singleAvatarDetails.reportPreviewSenderID) {
+                return (
+                    <MultipleAvatars
+                        icons={icons}
+                        size={size}
+                        secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
+                    />
+                );
+            }
+
             return (
-                <SubscriptAvatar
-                    backgroundColor={avatarBorderColor}
-                    mainAvatar={icons.at(0) ?? fallbackIcon}
-                    secondaryAvatar={icons.at(1)}
-                    size={size}
+                <SingleReportAvatar
+                    reportPreviewDetails={singleAvatarDetails}
+                    personalDetails={personalDetails}
+                    containerStyles={[styles.actionAvatar, styles.mr3]}
+                    actorAccountID={accountID}
                 />
             );
-        }
+        },
+        [StyleUtils, avatarBorderColor, icons, personalDetails, shouldShowSubscriptAvatar, singleAvatarDetails, size, styles],
+    );
 
-        if (!singleAvatarDetails || singleAvatarDetails.shouldDisplayAllActors || !singleAvatarDetails.reportPreviewSenderID) {
+    const getWrappedAvatar = useCallback(
+        (accountID: number) => {
+            const avatar = getAvatar(accountID);
+
+            if (!shouldEnableAvatarNavigation) {
+                return <View accessibilityLabel={title}>{avatar}</View>;
+            }
+
             return (
-                <MultipleAvatars
-                    icons={icons}
-                    size={size}
-                    secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(avatarBorderColor)]}
-                />
+                <View accessibilityLabel={title}>
+                    <PressableWithoutFeedback
+                        onPress={showActorDetails}
+                        accessibilityLabel={title}
+                        role={getButtonRole(true)}
+                    >
+                        {avatar}
+                    </PressableWithoutFeedback>
+                </View>
             );
-        }
+        },
+        [getAvatar, shouldEnableAvatarNavigation, showActorDetails, title],
+    );
 
-        return (
-            <SingleReportAvatar
-                reportPreviewDetails={singleAvatarDetails}
-                personalDetails={personalDetails}
-                containerStyles={[styles.actionAvatar, styles.mr3]}
-                actorAccountID={actorAccountID.current}
-            />
-        );
-    }, [StyleUtils, avatarBorderColor, icons, personalDetails, shouldShowSubscriptAvatar, singleAvatarDetails, size, styles]);
-
-    const avatar = <View accessibilityLabel={title}>{getAvatar()}</View>;
+    const WrappedAvatar = getWrappedAvatar(actorAccountID?.current ?? CONST.DEFAULT_NUMBER_ID);
 
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {!!report && !!title && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    {shouldEnableAvatarNavigation ? (
-                        <PressableWithoutFeedback
-                            onPress={showActorDetails}
-                            accessibilityLabel={title}
-                            role={getButtonRole(true)}
-                        >
-                            {avatar}
-                        </PressableWithoutFeedback>
-                    ) : (
-                        avatar
-                    )}
+                    {WrappedAvatar}
                     <View style={[styles.flex1, styles.flexColumn]}>
                         {getCustomDisplayName(
                             shouldUseCustomSearchTitleName,
