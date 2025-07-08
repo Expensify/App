@@ -2,7 +2,6 @@ import {PortalHost} from '@gorhom/portal';
 import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
@@ -11,6 +10,7 @@ import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
+import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removeFailedReport} from '@libs/actions/Report';
@@ -214,7 +214,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
             >
                 <HeaderGap />
                 {reportHeaderView}
-                <View style={[styles.overflowHidden, styles.flex1]}>
+                <View style={[styles.overflowHidden, styles.justifyContentEnd, styles.flex1]}>
                     {shouldDisplayMoneyRequestActionsList ? (
                         <MoneyRequestReportActionsList
                             report={report}
