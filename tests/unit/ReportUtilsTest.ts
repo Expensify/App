@@ -106,7 +106,7 @@ jest.mock('@libs/Permissions');
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     setNavigationActionToMicrotaskQueue: jest.fn(),
-    getTopmostReportId: jest.fn(() => '2'),
+    getCurrentRouteReportID: jest.fn(() => '2'),
 }));
 
 const testDate = DateUtils.getDBTime();
