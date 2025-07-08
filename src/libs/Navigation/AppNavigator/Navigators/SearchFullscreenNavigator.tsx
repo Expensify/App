@@ -1,5 +1,4 @@
 import React from 'react';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -21,7 +20,7 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<AuthScreens
     // These options can be used here because the full screen navigator has the same structure as the split navigator in terms of the central screens, but it does not have a sidebar.
     const {centralScreen: centralScreenOptions} = useSplitNavigatorScreenOptions();
 
-    usePreloadFullScreenNavigators(NAVIGATION_TABS.SEARCH);
+    usePreloadFullScreenNavigators();
 
     return (
         <FreezeWrapper>

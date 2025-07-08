@@ -110,6 +110,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         }
 
         hideInboxTooltip();
+        // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
         navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}});
     }, [hideInboxTooltip, selectedTab]);
 
@@ -119,6 +120,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
+            // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
             navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}});
         });
     }, [selectedTab]);
@@ -128,6 +130,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             return;
         }
         interceptAnonymousUser(() => {
+            // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
             navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}});
         });
     }, [selectedTab]);

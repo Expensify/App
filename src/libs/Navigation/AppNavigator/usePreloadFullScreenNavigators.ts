@@ -1,4 +1,5 @@
-import {findFocusedRoute, useFocusEffect, useNavigation} from '@react-navigation/native';
+import {findFocusedRoute, useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import type {NavigatorScreenParams} from '@react-navigation/native';
 import {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -9,7 +10,14 @@ import {getSettingsTabStateFromSessionStorage} from '@libs/Navigation/helpers/la
 import {TAB_TO_FULLSCREEN} from '@libs/Navigation/linkingConfig/RELATIONS';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList, FullScreenName, SearchFullscreenNavigatorParamList, SettingsSplitNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {
+    AuthScreensParamList,
+    FullScreenName,
+    NavigationPartialRoute,
+    SearchFullscreenNavigatorParamList,
+    SettingsSplitNavigatorParamList,
+    WorkspaceSplitNavigatorParamList,
+} from '@libs/Navigation/types';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -28,7 +36,7 @@ function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreen
         return;
     }
 
-    const focusedWorkspaceRoute = findFocusedRoute(lastWorkspacesSplitNavigator.state);
+    const focusedWorkspaceRoute = findFocusedRoute(lastWorkspacesSplitNavigator.state) as NavigationPartialRoute<keyof WorkspaceSplitNavigatorParamList>;
 
     if (!focusedWorkspaceRoute || !focusedWorkspaceRoute?.params) {
         return;
@@ -45,7 +53,7 @@ function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreen
     navigation.preload(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
         screen: focusedWorkspaceRoute.name,
         params: focusedWorkspaceRoute.params,
-    });
+    } as NavigatorScreenParams<WorkspaceSplitNavigatorParamList>);
 }
 
 function preloadReportsTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
@@ -90,16 +98,16 @@ function preloadAccountTab(navigation: PlatformStackNavigationProp<AuthScreensPa
 }
 
 function preloadInboxTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
-    const payload = getIsNarrowLayout() ? {screen: SCREENS.HOME} : {screen: SCREENS.REPORT};
-    navigation.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, payload);
+    navigation.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {screen: SCREENS.HOME});
 }
 
 /**
  * Hook that preloads all fullscreen navigators except the current one.
  * This helps improve performance by preloading navigators that might be needed soon.
  */
-function usePreloadFullScreenNavigators(fullscreenTabName: keyof typeof NAVIGATION_TABS) {
+function usePreloadFullScreenNavigators() {
     const navigation = useNavigation<PlatformStackNavigationProp<AuthScreensParamList>>();
+    const route = useRoute();
     const state = navigation.getState();
     const preloadedRoutes = useMemo(() => state.preloadedRoutes, [state]);
     const subscriptionPlan = useSubscriptionPlan();
@@ -113,8 +121,8 @@ function usePreloadFullScreenNavigators(fullscreenTabName: keyof typeof NAVIGATI
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Object.values(NAVIGATION_TABS)
                     .filter((tabName) => {
-                        const isCurrentTab = tabName === fullscreenTabName;
-                        const isRouteAlreadyPreloaded = preloadedRoutes.some((preloadedRoute) => TAB_TO_FULLSCREEN[fullscreenTabName].includes(preloadedRoute.name as FullScreenName));
+                        const isCurrentTab = TAB_TO_FULLSCREEN[tabName].includes(route.name as FullScreenName);
+                        const isRouteAlreadyPreloaded = preloadedRoutes.some((preloadedRoute) => TAB_TO_FULLSCREEN[tabName].includes(preloadedRoute.name as FullScreenName));
                         return !isCurrentTab && !isRouteAlreadyPreloaded;
                     })
                     .forEach((tabName) => {
@@ -136,7 +144,7 @@ function usePreloadFullScreenNavigators(fullscreenTabName: keyof typeof NAVIGATI
                         }
                     });
             });
-        }, [fullscreenTabName, navigation, preloadedRoutes, subscriptionPlan]),
+        }, [navigation, preloadedRoutes, route.name, subscriptionPlan]),
     );
 }
 

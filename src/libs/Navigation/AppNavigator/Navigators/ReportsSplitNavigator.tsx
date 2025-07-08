@@ -1,5 +1,4 @@
 import React, {useState} from 'react';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import usePermissions from '@hooks/usePermissions';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
@@ -39,7 +38,7 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
         return initialReport?.reportID ?? '';
     });
 
-    usePreloadFullScreenNavigators(NAVIGATION_TABS.HOME);
+    usePreloadFullScreenNavigators();
 
     return (
         <FreezeWrapper>
