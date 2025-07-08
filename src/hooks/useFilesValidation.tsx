@@ -40,15 +40,12 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
     const [currentErrorIndex, setCurrentErrorIndex] = useState(0);
     const {setIsLoaderVisible} = useFullScreenLoader();
 
-    console.log({validFilesToUpload});
-
     const validatedPDFs = useRef<FileObject[]>([]);
     const validFiles = useRef<FileObject[]>([]);
     const filesToValidate = useRef<FileObject[]>([]);
     const collectedErrors = useRef<ErrorObject[]>([]);
 
     const resetValidationState = useCallback(() => {
-        console.log('reset');
         setIsErrorModalVisible(false);
         setPdfFilesToRender([]);
         setIsLoaderVisible(false);
