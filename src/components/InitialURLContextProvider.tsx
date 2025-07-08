@@ -1,9 +1,7 @@
 import React, {createContext, useEffect, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
-import Navigation from '@navigation/Navigation';
 import type {AppProps} from '@src/App';
-import CONFIG from '@src/CONFIG';
 import type {Route} from '@src/ROUTES';
 
 type InitialUrlContextType = {
