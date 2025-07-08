@@ -206,13 +206,6 @@ function AttachmentComposerModal({onConfirm, onModalShow = () => {}, onModalHide
             if (!fileObjects.length || fileObjects.some((fileObject) => !isDirectoryCheck(fileObject))) {
                 return;
             }
-            if (fileObjects.length > CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT) {
-                const validFiles = fileObjects.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
-                setValidFilesToUpload(validFiles);
-                setFileError(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
-                setIsFileErrorModalVisible(true);
-                return;
-            }
             validateFiles(fileObjects);
         },
         [cleanFileObjectName, isDirectoryCheck, validateFiles],
