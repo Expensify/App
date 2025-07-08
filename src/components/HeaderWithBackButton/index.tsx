@@ -8,6 +8,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import PrevNextButtons from '@components/PrevNextButtons';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -70,6 +71,7 @@ function HeaderWithBackButton({
     shouldNavigateToTopMostReport = false,
     shouldDisplayHelpButton = true,
     shouldDisplaySearchRouter = false,
+    shouldDisplayNavigationArrows = false,
     progressBarPercentage,
     style,
     subTitleLink = '',
@@ -304,6 +306,14 @@ function HeaderWithBackButton({
                         </Tooltip>
                     )}
                 </View>
+                {shouldDisplayNavigationArrows && (
+                    <PrevNextButtons
+                        isPrevButtonDisabled={false}
+                        isNextButtonDisabled={false}
+                        onNext={() => {}}
+                        onPrevious={() => {}}
+                    />
+                )}
                 {shouldDisplayHelpButton && <HelpButton />}
                 {shouldDisplaySearchRouter && <SearchButton />}
             </View>

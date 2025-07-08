@@ -10,6 +10,7 @@ import type ReportNextStep from '@src/types/onyx/ReportNextStep';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import PrevNextButtons from './PrevNextButtons';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
@@ -34,7 +35,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     }, [nextStep.message]);
 
     return (
-        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
+        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.headerStatusBarContainer]}>
             <View style={[styles.mr3]}>
                 <Icon
                     src={iconMap[nextStep.icon] || Expensicons.Hourglass}

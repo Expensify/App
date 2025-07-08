@@ -107,6 +107,7 @@ import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkel
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import type {PopoverMenuItem} from './PopoverMenu';
+import PrevNextButtons from './PrevNextButtons';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import {useSearchContext} from './Search/SearchContext';
@@ -951,6 +952,7 @@ function MoneyReportHeader({
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBorderBottom={false}
                 shouldEnableDetailPageNavigation
+                shouldDisplayNavigationArrows={!shouldUseNarrowLayout}
             >
                 {!shouldDisplayNarrowVersion && (
                     <View style={[styles.flexRow, styles.gap2]}>
@@ -990,14 +992,24 @@ function MoneyReportHeader({
                             />
                         </View>
                     )}
-                    {shouldShowNextStep && !!optimisticNextStep?.message?.length && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
-                    {shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline && <MoneyReportHeaderStatusBarSkeleton />}
-                    {!!statusBarProps && (
-                        <MoneyRequestHeaderStatusBar
-                            icon={statusBarProps.icon}
-                            description={statusBarProps.description}
-                        />
-                    )}
+                    <View style={[styles.flexRow, styles.containerWithSpaceBetween]}>
+                        {shouldShowNextStep && !!optimisticNextStep?.message?.length && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
+                        {shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline && <MoneyReportHeaderStatusBarSkeleton />}
+                        {!!statusBarProps && (
+                            <MoneyRequestHeaderStatusBar
+                                icon={statusBarProps.icon}
+                                description={statusBarProps.description}
+                            />
+                        )}
+                        {shouldUseNarrowLayout && (
+                            <PrevNextButtons
+                                isPrevButtonDisabled={false}
+                                isNextButtonDisabled={false}
+                                onNext={() => {}}
+                                onPrevious={() => {}}
+                            />
+                        )}
+                    </View>
                 </View>
             )}
             <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />

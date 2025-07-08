@@ -6,6 +6,7 @@ import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PrevNextButtons from '@components/PrevNextButtons';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import useNetwork from '@hooks/useNetwork';
@@ -31,6 +32,7 @@ import ROUTES from '@src/ROUTES';
 import type {ThemeStyles} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
+import MoneyRequestReportNavigation from './MoneyRequestReportNavigation';
 
 type MoneyRequestReportViewProps = {
     /** The report */
