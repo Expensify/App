@@ -10,6 +10,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
+import useReportAvatarDetails from '@hooks/useReportAvatarDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
@@ -60,7 +61,6 @@ import {
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
-import useReportPreviewDetails from '@pages/home/report/useReportPreviewDetails';
 import variables from '@styles/variables';
 import {
     approveMoneyRequest,
@@ -230,7 +230,7 @@ function MoneyReportHeader({
         [allViolations, transactionIDs],
     );
 
-    const details = useReportPreviewDetails({report: chatReport, iouReport: moneyRequestReport, action: reportPreviewAction, policy, innerPolicies: policies, personalDetails});
+    const details = useReportAvatarDetails({report: chatReport, iouReport: moneyRequestReport, action: reportPreviewAction, policy, innerPolicies: policies, personalDetails});
 
     const messagePDF = useMemo(() => {
         if (!reportPDFFilename) {

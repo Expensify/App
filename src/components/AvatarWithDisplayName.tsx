@@ -4,10 +4,12 @@ import type {ColorValue, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
+import type {ReportAvatarDetails} from '@hooks/useReportAvatarDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getReportSingleAvatar from '@libs/getReportSingleAvatar';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import type {DisplayNameWithTooltips} from '@libs/ReportUtils';
@@ -27,8 +29,6 @@ import {
     navigateToDetailsPage,
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
-import type {AvatarDetails} from '@pages/home/report/useReportPreviewDetails';
-import {getReportPreviewSenderAvatar} from '@pages/home/report/useReportPreviewDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -77,7 +77,7 @@ type AvatarWithDisplayNameProps = {
     avatarBorderColor?: ColorValue;
 
     /** If we want to override the default avatar behavior and set a single avatar, we should pass this prop. */
-    singleAvatarDetails?: AvatarDetails;
+    singleAvatarDetails?: ReportAvatarDetails;
 };
 
 const fallbackIcon: Icon = {
@@ -267,7 +267,7 @@ function AvatarWithDisplayName({
             );
         }
 
-        return getReportPreviewSenderAvatar({
+        return getReportSingleAvatar({
             reportPreviewDetails: singleAvatarDetails,
             personalDetails,
             containerStyles: [styles.actionAvatar, styles.mr3],

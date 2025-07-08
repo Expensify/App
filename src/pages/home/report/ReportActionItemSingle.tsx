@@ -11,11 +11,13 @@ import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useReportAvatarDetails from '@hooks/useReportAvatarDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
+import getReportSingleAvatar from '@libs/getReportSingleAvatar';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getReportActionMessage} from '@libs/ReportActionsUtils';
@@ -27,7 +29,6 @@ import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
-import useReportPreviewDetails, {getReportPreviewSenderAvatar} from './useReportPreviewDetails';
 
 type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** All the data of the action */
@@ -102,7 +103,7 @@ function ReportActionItemSingle({
     const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
 
-    const reportPreviewDetails = useReportPreviewDetails({
+    const reportPreviewDetails = useReportAvatarDetails({
         action,
         report,
         iouReport,
@@ -188,7 +189,7 @@ function ReportActionItemSingle({
             );
         }
 
-        return getReportPreviewSenderAvatar({
+        return getReportSingleAvatar({
             reportPreviewDetails,
             personalDetails,
             containerStyles: [styles.actionAvatar],

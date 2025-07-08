@@ -2,8 +2,8 @@ import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {ReportAvatarDetails} from '@hooks/useReportAvatarDetails';
 import type {Action} from '@hooks/useSingleExecution';
-import type {AvatarDetails} from '@pages/home/report/useReportPreviewDetails';
 import type {StepCounterParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
@@ -164,7 +164,7 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     openParentReportInCurrentTab?: boolean;
 
     /** If we want to override the default avatar behavior and set a single avatar, we should pass this prop. */
-    singleAvatarDetails?: AvatarDetails;
+    singleAvatarDetails?: ReportAvatarDetails;
 };
 
 export type {ThreeDotsMenuItem};

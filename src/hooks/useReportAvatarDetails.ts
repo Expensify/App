@@ -1,11 +1,5 @@
-import React from 'react';
-import type {ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Avatar from '@components/Avatar';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
-import useOnyx from '@hooks/useOnyx';
 import {selectAllTransactionsForReport} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -26,8 +20,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+import useOnyx from './useOnyx';
 
-type AvatarDetails = {
+type ReportAvatarDetails = {
     reportPreviewSenderID: number | undefined;
     reportPreviewAction: OnyxEntry<ReportAction>;
     primaryAvatar: Icon;
@@ -218,7 +213,7 @@ function getIconDetails({
  * It was originally based on actions; now, it uses transactions and unique emails as a fallback.
  * For a reason why, see https://github.com/Expensify/App/pull/64802 discussion.
  */
-function useReportPreviewDetails({iouReport, report, action, ...rest}: AvatarDetailsProps): AvatarDetails {
+function useReportAvatarDetails({iouReport, report, action, ...rest}: AvatarDetailsProps): ReportAvatarDetails {
     const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`, {
         canBeMissing: true,
         selector: (actions) => Object.values(actions ?? {}).filter(isMoneyRequestAction),
@@ -288,40 +283,5 @@ function useReportPreviewDetails({iouReport, report, action, ...rest}: AvatarDet
     };
 }
 
-function getReportPreviewSenderAvatar({
-    reportPreviewDetails,
-    personalDetails,
-    containerStyles,
-    actorAccountID,
-}: {
-    reportPreviewDetails: AvatarDetails;
-    personalDetails: PersonalDetailsList | undefined;
-    containerStyles: ViewStyle[];
-    actorAccountID: number | null | undefined;
-}) {
-    const {primaryAvatar, isWorkspaceActor, fallbackIcon: reportFallbackIcon, reportPreviewAction} = reportPreviewDetails;
-    const delegatePersonalDetails = reportPreviewAction?.delegateAccountID ? personalDetails?.[reportPreviewAction?.delegateAccountID] : undefined;
-
-    return (
-        <UserDetailsTooltip
-            accountID={Number(delegatePersonalDetails && !isWorkspaceActor ? actorAccountID : (primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID))}
-            delegateAccountID={reportPreviewAction?.delegateAccountID}
-            icon={primaryAvatar}
-        >
-            <View>
-                <Avatar
-                    containerStyles={containerStyles}
-                    source={primaryAvatar.source}
-                    type={primaryAvatar.type}
-                    name={primaryAvatar.name}
-                    avatarID={primaryAvatar.id}
-                    fallbackIcon={reportFallbackIcon}
-                />
-            </View>
-        </UserDetailsTooltip>
-    );
-}
-
-export default useReportPreviewDetails;
-export {getReportPreviewSenderAvatar};
-export type {AvatarDetails};
+export default useReportAvatarDetails;
+export type {ReportAvatarDetails};
