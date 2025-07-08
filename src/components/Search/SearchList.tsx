@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {FlatListPropsWithLayout} from 'react-native-reanimated';
+import {ValueOf} from 'type-fest';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -14,7 +15,14 @@ import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import type TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ExtendedTargetedEvent, ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {
+    ExtendedTargetedEvent,
+    ReportActionListItemType,
+    SortableColumnName,
+    TaskListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -78,6 +86,8 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
 
     /** Invoked on mount and layout changes */
     onLayout?: () => void;
+
+    columns?: SortableColumnName[];
 };
 
 const onScrollToIndexFailed = () => {};
@@ -102,6 +112,7 @@ function SearchList(
         queryJSON,
         onViewableItemsChanged,
         onLayout,
+        columns,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -335,6 +346,7 @@ function SearchList(
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     queryJSONHash={hash}
                     policies={policies}
+                    columns={columns}
                     isDisabled={isDisabled}
                     allReports={allReports}
                     groupBy={groupBy}
@@ -355,6 +367,7 @@ function SearchList(
             setFocusedIndex,
             shouldPreventDefaultFocusOnSelectRow,
             allReports,
+            columns,
         ],
     );
 
