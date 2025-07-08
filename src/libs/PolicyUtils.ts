@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
+import type {Locale, OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -36,6 +36,7 @@ import {hasSynchronizationErrorMessage, isAuthenticationError} from './actions/c
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
+import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
@@ -1445,6 +1446,32 @@ function isUserInvitedToWorkspace(): boolean {
     );
 }
 
+/**
+ * Checks if the policy was last modified while the user was offline.
+ */
+function wasPolicyLastModifiedWhileOffline(
+    policy: OnyxEntry<Policy>,
+    isOffline: boolean,
+    lastOfflineAt: Date | undefined,
+    lastOnlineAt: Date | undefined,
+    locale: Locale = CONST.LOCALES.DEFAULT,
+): boolean {
+    if (!lastOfflineAt || !lastOnlineAt || isEmptyObject(policy)) {
+        return false;
+    }
+
+    const policyLastModifiedAt = DateUtils.getLocalDateFromDatetime(locale, policy.lastModified);
+    if (policyLastModifiedAt <= lastOfflineAt) {
+        return false;
+    }
+
+    if (isOffline || policyLastModifiedAt < lastOnlineAt) {
+        return true;
+    }
+
+    return false;
+}
+
 export {
     canEditTaxRate,
     escapeTagName,
@@ -1593,6 +1620,7 @@ export {
     isUserInvitedToWorkspace,
     getPolicyRole,
     hasIndependentTags,
+    wasPolicyLastModifiedWhileOffline,
 };
 
 export type {MemberEmailsToAccountIDs};
