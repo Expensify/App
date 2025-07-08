@@ -809,9 +809,6 @@ function buildUserReadableQueryString(
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
     }
 
-    console.log('title');
-    console.log(title);
-
     return title;
 }
 
