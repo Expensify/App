@@ -1,23 +1,15 @@
 import {findFocusedRoute, useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
-import type {NavigatorScreenParams} from '@react-navigation/native';
 import {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import {getSettingsTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
+import {getSettingsTabStateFromSessionStorage, getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {TAB_TO_FULLSCREEN} from '@libs/Navigation/linkingConfig/RELATIONS';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {
-    AuthScreensParamList,
-    FullScreenName,
-    NavigationPartialRoute,
-    SearchFullscreenNavigatorParamList,
-    SettingsSplitNavigatorParamList,
-    WorkspaceSplitNavigatorParamList,
-} from '@libs/Navigation/types';
+import type {AuthScreensParamList, FullScreenName, SearchFullscreenNavigatorParamList, SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -25,35 +17,13 @@ import SCREENS from '@src/SCREENS';
 import {getPreservedNavigatorState} from './createSplitNavigator/usePreserveNavigatorState';
 
 function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
-    const lastWorkspacesSplitNavigator = navigation.getState().routes.findLast((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
+    const state = getWorkspacesTabStateFromSessionStorage() ?? navigation.getState();
+    const lastWorkspacesSplitNavigator = state.routes.findLast((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
 
-    if (!lastWorkspacesSplitNavigator) {
-        navigation.preload(SCREENS.WORKSPACES_LIST, {});
+    if (lastWorkspacesSplitNavigator) {
         return;
     }
-
-    if (!lastWorkspacesSplitNavigator?.state) {
-        return;
-    }
-
-    const focusedWorkspaceRoute = findFocusedRoute(lastWorkspacesSplitNavigator.state) as NavigationPartialRoute<keyof WorkspaceSplitNavigatorParamList>;
-
-    if (!focusedWorkspaceRoute || !focusedWorkspaceRoute?.params) {
-        return;
-    }
-
-    if (getIsNarrowLayout()) {
-        navigation.preload(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
-            screen: SCREENS.WORKSPACE.INITIAL,
-            params: focusedWorkspaceRoute.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL],
-        });
-        return;
-    }
-
-    navigation.preload(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
-        screen: focusedWorkspaceRoute.name,
-        params: focusedWorkspaceRoute.params,
-    } as NavigatorScreenParams<WorkspaceSplitNavigatorParamList>);
+    navigation.preload(SCREENS.WORKSPACES_LIST, {});
 }
 
 function preloadReportsTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
