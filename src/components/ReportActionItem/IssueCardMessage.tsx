@@ -9,11 +9,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getExpensifyCardFromReportAction} from '@libs/CardMessageUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCardIssuedMessage, getOriginalMessage, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import type {IssueNewCardOriginalMessage} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 type IssueCardMessageProps = {
     action: OnyxEntry<ReportAction>;
