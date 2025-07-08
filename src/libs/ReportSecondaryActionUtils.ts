@@ -32,6 +32,7 @@ import {
     isExported as isExportedUtils,
     isInvoiceReport as isInvoiceReportUtils,
     isIOUReport as isIOUReportUtils,
+    isMergeableMoneyRequestReport,
     isOpenReport as isOpenReportUtils,
     isPayer as isPayerUtils,
     isProcessingReport as isProcessingReportUtils,
@@ -489,6 +490,10 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
     return true;
 }
 
+function isMergeAction(parentReport: Report, isReportArchived: boolean): boolean {
+    return isMergeableMoneyRequestReport(parentReport, isReportArchived);
+}
+
 function getSecondaryReportActions({
     report,
     chatReport,
@@ -499,6 +504,7 @@ function getSecondaryReportActions({
     reportActions,
     policies,
     isChatReportArchived = false,
+    isReportArchived = false,
 }: {
     report: Report;
     chatReport: OnyxEntry<Report>;
@@ -510,6 +516,7 @@ function getSecondaryReportActions({
     policies?: OnyxCollection<Policy>;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
+    isReportArchived?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -557,6 +564,10 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
+    if (isMergeAction(report, isReportArchived)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
+    }
+
     if (isChangeWorkspaceAction(report, policies)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
@@ -591,6 +602,7 @@ function getSecondaryTransactionThreadActions(
     reportTransaction: Transaction,
     reportActions: ReportAction[],
     policy: OnyxEntry<Policy>,
+    isParentReportArchived: boolean,
 ): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -600,6 +612,10 @@ function getSecondaryTransactionThreadActions(
 
     if (isSplitAction(parentReport, [reportTransaction], policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
+    }
+
+    if (isMergeAction(parentReport, isParentReportArchived)) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE);
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);

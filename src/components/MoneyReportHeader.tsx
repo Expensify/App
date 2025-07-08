@@ -77,7 +77,7 @@ import {
     submitReport,
     unapproveExpenseReport,
 } from '@userActions/IOU';
-import {markAsCash as markAsCashAction} from '@userActions/Transaction';
+import {markAsCash as markAsCashAction, setMergeTransactionKey} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -695,8 +695,9 @@ function MoneyReportHeader({
             reportActions,
             policies,
             isChatReportArchived,
+            isReportArchived: isArchivedReport,
         });
-    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, chatReport, isChatReportArchived]);
+    }, [moneyRequestReport, transactions, violations, policy, reportNameValuePairs, reportActions, policies, chatReport, isChatReportArchived, isArchivedReport]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {
@@ -801,6 +802,20 @@ function MoneyReportHeader({
 
                 const currentTransaction = transactions.at(0);
                 initSplitExpense(currentTransaction, moneyRequestReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+            },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
+            text: translate('common.merge'),
+            icon: Expensicons.DocumentMerge,
+            value: CONST.REPORT.SECONDARY_ACTIONS.MERGE,
+            onSelected: () => {
+                const currentTransaction = transactions.at(0);
+                if (!moneyRequestReport || !currentTransaction) {
+                    return;
+                }
+
+                setMergeTransactionKey(currentTransaction.transactionID, {targetTransactionID: currentTransaction.transactionID});
+                Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(currentTransaction.transactionID, Navigation.getReportRHPActiveRoute()));
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE]: {

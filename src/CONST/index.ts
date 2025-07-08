@@ -1052,6 +1052,7 @@ const CONST = {
             REOPEN: 'reopen',
             EXPORT: 'export',
             PAY: 'pay',
+            MERGE: 'merge',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1082,6 +1083,7 @@ const CONST = {
             SPLIT: 'split',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+            MERGE: 'merge',
         },
         ADD_EXPENSE_OPTIONS: {
             CREATE_NEW_EXPENSE: 'createNewExpense',

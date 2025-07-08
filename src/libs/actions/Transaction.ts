@@ -25,7 +25,18 @@ import {getAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, RecentWaypoint, Report, ReportAction, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {
+    MergeTransaction,
+    PersonalDetails,
+    Policy,
+    RecentWaypoint,
+    Report,
+    ReportAction,
+    ReviewDuplicates,
+    Transaction,
+    TransactionViolation,
+    TransactionViolations,
+} from '@src/types/onyx';
 import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -917,6 +928,13 @@ function getDraftTransactions(): Transaction[] {
     return Object.values(allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 }
 
+/**
+ * Sets merge transaction data for a specific transaction
+ */
+function setMergeTransactionKey(transactionID: string, values: Partial<MergeTransaction>) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values);
+}
+
 export {
     saveWaypoint,
     removeWaypoint,
@@ -938,4 +956,5 @@ export {
     revert,
     changeTransactionsReport,
     setTransactionReport,
+    setMergeTransactionKey,
 };
