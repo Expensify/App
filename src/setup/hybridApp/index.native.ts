@@ -30,6 +30,8 @@ if (CONFIG.IS_HYBRID_APP) {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const originalAddEventListener = Linking.addEventListener;
 
+    // We wrap the original addEventListener to parse the URL before passing it to the handler.
+    // This simplifies usage of the Linking module all over the app.
     Linking.addEventListener = (type: 'url', handler: (event: {url: string}) => void) => {
         const handlerWithParsedHybridAppUrl = (event: {url: string}) => {
             const transformedUrl = parseHybridAppUrl(event.url as HybridAppRoute | Route);
