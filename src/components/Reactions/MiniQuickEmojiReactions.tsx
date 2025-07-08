@@ -16,6 +16,8 @@ import {emojiPickerRef, showEmojiPicker} from '@userActions/EmojiPickerAction';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportActionReactions} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {BaseQuickEmojiReactionsProps} from './QuickEmojiReactions/types';
 
 type MiniQuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {
@@ -38,7 +40,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
     const ref = useRef<View>(null);
     const {translate, preferredLocale} = useLocalize();
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
-    const [emojiReactions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {canBeMissing: true});
+    const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {canBeMissing: true});
 
     const openEmojiPicker = () => {
         onPressOpenPicker();

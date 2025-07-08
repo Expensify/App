@@ -11,6 +11,8 @@ import {getLocalizedEmojiName, getPreferredEmojiCode} from '@libs/EmojiUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportActionReactions} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {BaseQuickEmojiReactionsProps} from './types';
 
 function BaseQuickEmojiReactions({
@@ -24,7 +26,7 @@ function BaseQuickEmojiReactions({
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
-    const [emojiReactions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {canBeMissing: true});
+    const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {canBeMissing: true});
 
     return (
         <View style={styles.quickReactionsContainer}>
