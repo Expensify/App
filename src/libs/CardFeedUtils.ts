@@ -1,4 +1,4 @@
-import type {OnyxCollection} from 'react-native-onyx/dist/types';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionList/Search/CardListItem';
 import type IllustrationsType from '@styles/theme/illustrations/types';
@@ -6,7 +6,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getBankName, getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl, getPlaidInstitutionId, isCard, isCardClosed, isCardHiddenFromSearch} from './CardUtils';
+import {
+    getBankName,
+    getCardFeedIcon,
+    getCompanyFeeds,
+    getCustomOrFormattedFeedName,
+    getPlaidInstitutionIconUrl,
+    getPlaidInstitutionId,
+    isCard,
+    isCardClosed,
+    isCardHiddenFromSearch,
+} from './CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
 
