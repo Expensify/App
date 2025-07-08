@@ -314,8 +314,9 @@ function SearchList(
 
             return (
                 <Animated.View
-                    exiting={FadeOutUp.easing(easing)}
+                    exiting={shouldAnimate ? FadeOutUp.easing(easing) : undefined}
                     entering={undefined}
+                    style={styles.overflowHidden}
                 >
                     <ListItem
                         showTooltip
@@ -353,19 +354,21 @@ function SearchList(
             );
         },
         [
-            ListItem,
-            canSelectMultiple,
             focusedIndex,
-            handleLongPressRow,
             itemsToHighlight,
-            onCheckboxPress,
+            shouldAnimate,
+            styles.overflowHidden,
+            ListItem,
             onSelectRow,
-            policies,
+            handleLongPressRow,
+            onCheckboxPress,
+            canSelectMultiple,
+            shouldPreventDefaultFocusOnSelectRow,
             hash,
+            policies,
+            allReports,
             groupBy,
             setFocusedIndex,
-            shouldPreventDefaultFocusOnSelectRow,
-            allReports,
         ],
     );
 
@@ -422,8 +425,7 @@ function SearchList(
                 onViewableItemsChanged={onViewableItemsChanged}
                 onScrollToIndexFailed={onScrollToIndexFailed}
                 onLayout={onLayout}
-                itemLayoutAnimation={shouldAnimate ? SequencedTransition : undefined}
-                skipEnteringExitingAnimations
+                itemLayoutAnimation={shouldAnimate ? SequencedTransition.reverse().duration(2 * CONST.ANIMATED_TRANSITION) : undefined}
             />
             <Modal
                 isVisible={isModalVisible}
