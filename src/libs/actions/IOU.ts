@@ -11378,7 +11378,7 @@ function shouldOptimisticallyUpdateSearch(currentSearchQueryJSON: SearchQueryJSO
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
         status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-        from: [`${currentUserPersonalDetails?.accountID}`],
+        to: [`${currentUserPersonalDetails?.accountID}`],
     });
     const approveQueryJSON = buildSearchQueryJSON(approveQueryString);
 
