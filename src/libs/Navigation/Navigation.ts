@@ -115,7 +115,6 @@ const getTopmostReportActionId = (state = navigationRef.getState()) => getTopmos
  */
 const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 
-
 /**
  * Returns the current active route.
  */
