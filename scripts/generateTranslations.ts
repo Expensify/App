@@ -93,7 +93,9 @@ class TranslationGenerator {
     private readonly verbose: boolean;
 
     /**
-     * Can I come up with a better name for this?
+     * If a conmplex template expression comes from an existing translation file rather than ChatGPT, then the hashes of its spans will be serialized from the translated version of those spans.
+     * This map provides us a way to look up the English hash for each translated span hash, so that when we're transforming the English file and we encounter a translated expression hash,
+     * we can look up English hash and use it to look up the translation for that hash (since the translation map is keyed by English string hashes).
      */
     private readonly translatedSpanHashToEnglishSpanHash = new Map<number, number>();
 
@@ -153,7 +155,6 @@ class TranslationGenerator {
                 }
 
                 const translationKey = this.getTranslationKey(enNode);
-                console.log(`RORY_DEBUG traverseASTsInParallel: translationKey for node: ${translationKey}`);
                 for (const targetLanguage of this.targetLanguages) {
                     const translatedNode = nodes[targetLanguage];
                     if (!this.shouldNodeBeTranslated(translatedNode)) {
@@ -186,19 +187,14 @@ class TranslationGenerator {
             // Map of translations
             const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
 
-            console.log('RORY_DEBUG translations so far', translationsForLocale);
-
             // Extract strings to translate
             const stringsToTranslate = new Map<number, StringWithContext>();
             this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
-
-            console.log('RORY_DEBUG got stringsToTranslate', stringsToTranslate);
 
             // Translate all the strings in parallel (up to 8 at a time)
             const translationPromises = [];
             for (const [key, {text, context}] of stringsToTranslate) {
                 if (translationsForLocale.has(key)) {
-                    console.log('RORY_DEBUG skipping translation for key', key);
                     continue;
                 }
                 const translationPromise = promisePool.add(() => this.translator.translate(targetLanguage, text, context).then((result) => translationsForLocale.set(key, result)));
@@ -411,7 +407,6 @@ class TranslationGenerator {
         if (this.shouldNodeBeTranslated(node)) {
             const context = this.getContextForNode(node);
             const translationKey = this.getTranslationKey(node);
-            // console.log('RORY_DEBUG extractStringsToTranslate: translationKey for node', translationKey, node.getText());
 
             // String literals and no-substitution templates can be translated directly
             if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
@@ -426,10 +421,6 @@ class TranslationGenerator {
                     if (this.verbose) {
                         console.debug('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
                     }
-                    // console.log(
-                    //     'RORY_DEBUG extractStringsToTranslate: traversing spans',
-                    //     node.templateSpans.map((span) => span.getText()),
-                    // );
                     node.templateSpans.forEach((span) => this.extractStringsToTranslate(span, stringsToTranslate));
                     stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context});
                 }
@@ -463,7 +454,6 @@ class TranslationGenerator {
      * If the template contains any complex spans, those must be translated first, and those translations need to be passed in.
      */
     private stringToTemplateExpression(input: string, translatedComplexExpressions = new Map<number, ts.Expression>()): ts.TemplateExpression {
-        console.log('RORY_DEBUG converting string to template expression', input);
         const regex = /\$\{([^}]*)}/g;
         const matches = [...input.matchAll(regex)];
 
@@ -532,7 +522,6 @@ class TranslationGenerator {
 
                     if (ts.isTemplateExpression(node)) {
                         const translatedTemplate = translations.get(this.getTranslationKey(node));
-                        console.log('RORY_DEBUG createTransformer translationKey for template', this.getTranslationKey(node), translatedTemplate);
                         if (!translatedTemplate) {
                             console.warn('⚠️ No translation found for template expression', node.getText());
                             return node;
