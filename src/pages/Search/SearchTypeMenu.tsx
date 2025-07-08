@@ -213,11 +213,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         }
 
         const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-
-        return flattenedMenuItems.findIndex((item) => {
-            const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
-            return searchQueryJSON?.hash === hash;
-        });
+        return flattenedMenuItems.findIndex((item) => item.hash === hash);
     }, [hash, isSavedSearchActive, typeMenuSections]);
 
     return (
@@ -243,7 +239,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                 }
                                 clearAllFilters();
                                 clearSelectedTransactions();
-                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.getSearchQuery()}));
+                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                             });
 
                             const isInitialItem = initialSearchKeys.current.includes(item.key);

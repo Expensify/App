@@ -131,10 +131,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         }
 
         const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-        return flattenedMenuItems.findIndex((item) => {
-            const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
-            return searchQueryJSON?.hash === hash;
-        });
+        return flattenedMenuItems.findIndex((item) => item.hash === hash);
     }, [hash, isSavedSearchActive, typeMenuSections]);
 
     const popoverMenuItems = useMemo(() => {
@@ -166,7 +163,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                         shouldCallAfterModalHide: true,
                         onSelected: singleExecution(() => {
                             clearAllFilters();
-                            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.getSearchQuery()}));
+                            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                         }),
                     });
                 });

@@ -1,7 +1,6 @@
 import {useMemo} from 'react';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {createTypeMenuSections} from '@libs/SearchUIUtils';
+import {createTypeMenuSections, getSuggestedSearches} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
@@ -16,6 +15,10 @@ const useSearchTypeMenuSections = (hash = 0) => {
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
 
+    const suggestedSearches = useMemo(() => {
+        return getSuggestedSearches(session) ?? {};
+    }, [session]);
+
     const hasCardFeed = useMemo(() => {
         return Object.keys(mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList)).length > 0;
     }, [userCardList, workspaceCardFeeds]);
@@ -23,12 +26,8 @@ const useSearchTypeMenuSections = (hash = 0) => {
     const typeMenuSections = useMemo(() => createTypeMenuSections(session, hasCardFeed, allPolicies), [allPolicies, hasCardFeed, session]);
 
     const currentSearch = useMemo(() => {
-        const flatMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
-        return flatMenuItems.find((menuItem) => {
-            const menuHash = buildSearchQueryJSON(menuItem.getSearchQuery())?.hash;
-            return menuHash === hash;
-        });
-    }, [hash, typeMenuSections]);
+        return Object.values(suggestedSearches).find((search) => search.hash === hash);
+    }, [hash, suggestedSearches]);
 
     return {typeMenuSections, currentSearch};
 };

@@ -1355,7 +1355,7 @@ describe('SearchUIUtils', () => {
             const expectedQueries = ['type:expense sortBy:date sortOrder:desc', 'type:expense sortBy:date sortOrder:desc groupBy:reports', 'type:chat sortBy:date sortOrder:desc'];
 
             menuItems.forEach((item, index) => {
-                expect(item.getSearchQuery()).toStrictEqual(expectedQueries.at(index));
+                expect(item.searchQuery).toStrictEqual(expectedQueries.at(index));
             });
         });
     });

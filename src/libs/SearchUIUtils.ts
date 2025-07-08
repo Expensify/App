@@ -7,7 +7,7 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
-import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SearchQueryString, SearchStatus, SingularSearchStatus, SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SearchStatus, SingularSearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import TransactionGroupListItem from '@components/SelectionList/Search/TransactionGroupListItem';
@@ -76,7 +76,7 @@ import {
     isOpenExpenseReport,
     isSettled,
 } from './ReportUtils';
-import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues} from './SearchQueryUtils';
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
@@ -198,6 +198,8 @@ type SearchTypeMenuItem = {
     translationPath: TranslationPaths;
     type: SearchDataTypes;
     icon: IconAsset;
+    hash: number;
+    searchQuery: string;
     emptyState?: {
         headerMedia: DotLottieAnimation;
         title: TranslationPaths;
@@ -210,12 +212,170 @@ type SearchTypeMenuItem = {
             isDisabled?: boolean;
         }>;
     };
-    getSearchQuery: (policyID?: string) => SearchQueryString;
 };
 
 type SearchDateModifier = ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>;
 
 type SearchDateModifierLower = Lowercase<SearchDateModifier>;
+
+function getSuggestedSearches(session?: OnyxTypes.Session): Record<SuggestedSearchKey, SearchTypeMenuItem> {
+    return {
+        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES]: {
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES,
+            translationPath: 'common.expenses',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Receipt,
+            searchQuery: buildCannedSearchQuery(),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.REPORTS]: {
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.REPORTS,
+            translationPath: 'common.reports',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Document,
+            searchQuery: buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS}),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.CHATS]: {
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.CHATS,
+            translationPath: 'common.chats',
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            icon: Expensicons.ChatBubbles,
+            searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT}),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT]: {
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT,
+            translationPath: 'common.submit',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Pencil,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
+                from: [`${session?.accountID}`],
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE]: {
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE,
+            translationPath: 'search.bulkActions.approve',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.ThumbsUp,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
+                to: [`${session?.accountID}`],
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY]: {
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY,
+            translationPath: 'search.bulkActions.pay',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.MoneyBag,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                action: CONST.SEARCH.ACTION_FILTERS.PAY,
+                reimbursable: CONST.SEARCH.BOOLEAN.YES,
+                payer: session?.accountID?.toString(),
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT]: {
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT,
+            translationPath: 'common.export',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.CheckCircle,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
+                exporter: [`${session?.accountID}`],
+                exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH]: {
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS_ONLY,
+            translationPath: 'search.unapproved',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Hourglass,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                reimbursable: CONST.SEARCH.BOOLEAN.YES,
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS]: {
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH,
+            translationPath: 'search.unapprovedCash',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.MoneyHourglass,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
+                // s77rt this should be update to use the default feed
+                feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
+                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS_ONLY]: {
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS_ONLY,
+            translationPath: 'search.unapproved',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Hourglass,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
+                // s77rt this should be update to use the default feed
+                feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
+                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH_ONLY]: {
+            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH_ONLY,
+            translationPath: 'search.unapproved',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.Hourglass,
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+                reimbursable: CONST.SEARCH.BOOLEAN.YES,
+            }),
+            get hash() {
+                return buildSearchQueryJSON(this.searchQuery)?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+    };
+}
 
 /**
  * @private
@@ -1295,42 +1455,16 @@ function isCorrectSearchUserName(displayName?: string) {
 
 function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardFeed: boolean, policies: OnyxCollection<OnyxTypes.Policy> = {}): SearchTypeMenuSection[] {
     const email = session?.email;
+    const suggestedSearches = getSuggestedSearches(session);
 
     // Start building the sections by requiring the following sections to always be present
     const typeMenuSections: SearchTypeMenuSection[] = [
         {
             translationPath: 'common.explore',
             menuItems: [
-                {
-                    key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES,
-                    translationPath: 'common.expenses',
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    icon: Expensicons.Receipt,
-                    getSearchQuery: (policyID?: string) => {
-                        const queryString = buildCannedSearchQuery({policyID});
-                        return queryString;
-                    },
-                },
-                {
-                    key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.REPORTS,
-                    translationPath: 'common.reports',
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    icon: Expensicons.Document,
-                    getSearchQuery: (policyID?: string) => {
-                        const queryString = buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS, policyID});
-                        return queryString;
-                    },
-                },
-                {
-                    key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.CHATS,
-                    translationPath: 'common.chats',
-                    type: CONST.SEARCH.DATA_TYPES.CHAT,
-                    icon: Expensicons.ChatBubbles,
-                    getSearchQuery: (policyID?: string) => {
-                        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, policyID});
-                        return queryString;
-                    },
-                },
+                suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES],
+                suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.REPORTS],
+                suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.CHATS],
             ],
         },
     ];
@@ -1395,10 +1529,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
         if (showSubmitSuggestion) {
             const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
             section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT,
-                translationPath: 'common.submit',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.Pencil,
+                ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptySubmitResults.title',
@@ -1439,85 +1570,38 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                               ]
                             : [],
                 },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
-                        from: [`${session.accountID}`],
-                    });
-                    return queryString;
-                },
             });
         }
 
         if (showApproveSuggestion) {
             section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE,
-                translationPath: 'search.bulkActions.approve',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.ThumbsUp,
+                ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyApproveResults.title',
                     subtitle: 'search.searchResults.emptyApproveResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
-                        to: [`${session.accountID}`],
-                    });
-                    return queryString;
                 },
             });
         }
 
         if (showPaySuggestion) {
             section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY,
-                translationPath: 'search.bulkActions.pay',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.MoneyBag,
+                ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyPayResults.title',
                     subtitle: 'search.searchResults.emptyPayResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.PAY,
-                        reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                        payer: session.accountID?.toString(),
-                    });
-                    return queryString;
                 },
             });
         }
 
         if (showExportSuggestion) {
             section.menuItems.push({
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT,
-                translationPath: 'common.export',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.CheckCircle,
+                ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPORT],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyExportResults.title',
                     subtitle: 'search.searchResults.emptyExportResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
-                        exporter: [`${session.accountID}`],
-                        exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
-                    });
-                    return queryString;
                 },
             });
         }
@@ -1560,88 +1644,38 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
     if (showShowUnapprovedCashSuggestion && showShowUnapprovedCompanyCardsSuggestion) {
         accountingSection.menuItems.push(
             {
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH,
-                translationPath: 'search.unapprovedCash',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.MoneyHourglass,
+                ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
                     subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
-                        reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                    });
-                    return queryString;
                 },
             },
             {
-                key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS,
-                translationPath: 'search.unapprovedCompanyCards',
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                icon: Expensicons.CreditCardHourglass,
+                ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS],
                 emptyState: {
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptyUnapprovedResults.title',
                     subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
-                },
-                getSearchQuery: () => {
-                    const queryString = buildQueryStringFromFilterFormValues({
-                        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
-                        // s77rt this should be update to use the default feed
-                        feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
-                        status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
-                    });
-                    return queryString;
                 },
             },
         );
     } else if (showShowUnapprovedCashSuggestion) {
         accountingSection.menuItems.push({
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED,
-            translationPath: 'search.unapproved',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Hourglass,
+            ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_CASH_ONLY],
             emptyState: {
                 headerMedia: DotLottieAnimations.Fireworks,
                 title: 'search.searchResults.emptyUnapprovedResults.title',
                 subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
-            },
-            getSearchQuery: () => {
-                const queryString = buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                    status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
-                    reimbursable: CONST.SEARCH.BOOLEAN.YES,
-                });
-                return queryString;
             },
         });
     } else if (showShowUnapprovedCompanyCardsSuggestion) {
         accountingSection.menuItems.push({
-            key: CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED,
-            translationPath: 'search.unapproved',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Hourglass,
+            ...suggestedSearches[CONST.SEARCH.SUGGESTED_SEARCH_KEYS.UNAPPROVED_COMPANY_CARDS_ONLY],
             emptyState: {
                 headerMedia: DotLottieAnimations.Fireworks,
                 title: 'search.searchResults.emptyUnapprovedResults.title',
                 subtitle: 'search.searchResults.emptyUnapprovedResults.subtitle',
-            },
-            getSearchQuery: () => {
-                const queryString = buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
-                    // s77rt this should be update to use the default feed
-                    feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
-                    status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
-                });
-                return queryString;
             },
         });
     }
@@ -1734,6 +1768,7 @@ function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCa
 }
 
 export {
+    getSuggestedSearches,
     getListItem,
     getSections,
     getShouldShowMerchant,
