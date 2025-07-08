@@ -2912,10 +2912,6 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
-                ORACLE: 'oracle',
-                SAP: 'sap',
-                MICROSOFT_DYNAMICS: 'microsoftDynamics',
-                OTHER: 'other',
             },
             ROUTE: {
                 QBO: 'quickbooks-online',
@@ -2938,6 +2934,7 @@ const CONST = {
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
             },
+            CORPORATE: ['quickbooksDesktop', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics', 'other'],
             AUTH_HELP_LINKS: {
                 intacct:
                     "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
@@ -3016,20 +3013,7 @@ const CONST = {
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
-        get POLICY_CONNECTIONS_TYPE_CORPORATE() {
-            return [
-                this.CONNECTIONS.NAME.QBD,
-                this.CONNECTIONS.NAME.NETSUITE,
-                this.CONNECTIONS.NAME.SAGE_INTACCT,
-                this.CONNECTIONS.NAME.ORACLE,
-                this.CONNECTIONS.NAME.SAP,
-                this.CONNECTIONS.NAME.MICROSOFT_DYNAMICS,
-                this.CONNECTIONS.NAME.OTHER,
-            ];
-        },
-        get POLICY_CONNECTIONS_SUPPORTED() {
-            return [this.CONNECTIONS.NAME.QBO, this.CONNECTIONS.NAME.XERO, this.CONNECTIONS.NAME.NETSUITE, this.CONNECTIONS.NAME.SAGE_INTACCT, this.CONNECTIONS.NAME.QBD];
-        },
+
         ACCESS_VARIANTS: {
             PAID: 'paid',
             ADMIN: 'admin',

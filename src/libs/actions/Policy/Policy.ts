@@ -1900,9 +1900,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
 
     // Determine workspace type based on user reported integration
     const workspaceType =
-        userReportedIntegration && (CONST.POLICY.POLICY_CONNECTIONS_TYPE_CORPORATE as readonly string[]).includes(userReportedIntegration)
-            ? CONST.POLICY.TYPE.CORPORATE
-            : CONST.POLICY.TYPE.TEAM;
+        userReportedIntegration && (CONST.POLICY.CONNECTIONS.CORPORATE as readonly string[]).includes(userReportedIntegration) ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM;
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     const optimisticData: OnyxUpdate[] = [

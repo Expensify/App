@@ -1384,31 +1384,20 @@ type Connections = {
 
     /** QuickBooks Desktop integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: Connection<QBDConnectionData, QBDConnectionConfig>;
-
-    /** Other connection for onboarding flow */
-    other?: Connection<Record<string, unknown>, Record<string, unknown>>;
-
-    /** SAP connection for onboarding flow */
-    sap?: Connection<Record<string, unknown>, Record<string, unknown>>;
-
-    /** Oracle connection for onboarding flow */
-    oracle?: Connection<Record<string, unknown>, Record<string, unknown>>;
-
-    /** Microsoft Dynamics connection for onboarding flow */
-    microsoftDynamics?: Connection<Record<string, unknown>, Record<string, unknown>>;
-
-    /** Bill.com connection for onboarding flow */
-    billCom?: Connection<Record<string, unknown>, Record<string, unknown>>;
-
-    /** Zenefits connection for onboarding flow */
-    zenefits?: Connection<Record<string, unknown>, Record<string, unknown>>;
 };
 
-/** Names of officially supported integration connections */
-type ConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+/** All integration connections, including unsupported ones */
+type AllConnections = Connections & {
+    /** Quickbooks Desktop integration connection */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    quickbooksDesktop: any;
+};
 
-/** Names of all integration connections including onboarding types */
-type AllConnectionName = ConnectionName | keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY;
+/** Names of integration connections */
+type ConnectionName = keyof Connections;
+
+/** Names of all integration connections */
+type AllConnectionName = keyof AllConnections;
 
 /** Merchant Category Code. This is a way to identify the type of merchant (and type of spend) when a credit card is swiped.  */
 type MccGroup = {
@@ -1921,7 +1910,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
 
 /** Names of policy connection services */
-type PolicyConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+type PolicyConnectionName = ConnectionName;
 
 /** Policy connection sync progress state */
 type PolicyConnectionSyncProgress = {

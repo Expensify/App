@@ -91,16 +91,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
 
-    // Type guard to ensure we only use supported connections
-    const accountingIntegrations = CONST.POLICY.POLICY_CONNECTIONS_SUPPORTED;
-    const getSupportedConnection = (connectionName: string | undefined): ConnectionName | undefined => {
-        if (!connectionName || !(accountingIntegrations as readonly string[]).includes(connectionName)) {
-            return undefined;
-        }
-        return connectionName as ConnectionName;
-    };
-
-    const connectedIntegration = getSupportedConnection(getConnectedIntegration(policy, accountingIntegrations)) ?? getSupportedConnection(connectionSyncProgress?.connectionName);
+    const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
+    const accountingIntegrations = Object.values(connectionNames);
+    const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
 
     const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
@@ -109,7 +102,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const successfulDate = getIntegrationLastSuccessfulDate(
         getLocalDateFromDatetime,
         connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined,
-        connectedIntegration === getSupportedConnection(connectionSyncProgress?.connectionName) ? connectionSyncProgress : undefined,
+        connectedIntegration === connectionSyncProgress?.connectionName ? connectionSyncProgress : undefined,
     );
 
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
@@ -521,7 +514,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         // Else, display the following and link to their Concierge DM.
         return [translate('workspace.accounting.talkToConcierge'), conciergeReportID];
-    }, [account, conciergeReportID, policy?.chatReportIDAdmins, translate]);
+    }, [account, conciergeReportID, translate]);
 
     return (
         <AccessOrNotFoundWrapper
