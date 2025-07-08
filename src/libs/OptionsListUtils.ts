@@ -62,6 +62,7 @@ import {
     getExportIntegrationLastMessageText,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
+    getLastVisibleMessage,
     getLeaveRoomMessage,
     getMentionedAccountIDsFromAction,
     getMessageOfOldDotReportAction,
@@ -78,6 +79,7 @@ import {
     isActionableAddPaymentCard,
     isActionableJoinRequest,
     isActionOfType,
+    isAddCommentAction,
     isClosedAction,
     isCreatedTaskReportAction,
     isDeletedAction,
@@ -224,6 +226,7 @@ type GetValidReportsConfig = {
     shouldSeparateSelfDMChat?: boolean;
     excludeNonAdminWorkspaces?: boolean;
     isPerDiemRequest?: boolean;
+    showRBR?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type GetValidReportsReturnTypeCombined = {
@@ -717,6 +720,7 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>, isReportArchived = false): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
+    const lastVisibleMessage = getLastVisibleMessage(report?.reportID);
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
@@ -872,6 +876,11 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         if (transactionThreadReportID) {
             lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
         }
+    }
+
+    // If the last action is AddComment and no last message text was determined yet, use getLastVisibleMessage to get the preview text
+    if (reportID && !lastMessageTextFromReport && isAddCommentAction(lastReportAction)) {
+        lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
@@ -1051,6 +1060,7 @@ function getReportOption(participant: Participant): OptionData {
     option.isDisabled = isDraftReport(participant.reportID);
     option.selected = participant.selected;
     option.isSelected = participant.selected;
+    option.brickRoadIndicator = null;
     return option;
 }
 
@@ -1614,6 +1624,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
         shouldSeparateWorkspaceChat,
         excludeNonAdminWorkspaces,
         isPerDiemRequest = false,
+        showRBR = true,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
@@ -1759,6 +1770,7 @@ function getValidReports(reports: OptionList['reports'], config: GetValidReports
             isSelected,
             isBold,
             lastIOUCreationDate,
+            brickRoadIndicator: showRBR ? option.brickRoadIndicator : null,
         };
 
         if (shouldSeparateWorkspaceChat && newReportOption.isOwnPolicyExpenseChat && !newReportOption.private_isArchived) {
