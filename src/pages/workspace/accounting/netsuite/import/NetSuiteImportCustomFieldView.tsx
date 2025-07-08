@@ -80,7 +80,7 @@ function NetSuiteImportCustomFieldView({
                 );
             }
         }
-        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importCustomField));
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importCustomField));
     }, [allRecords, customField, importCustomField, policyID, valueIndex]);
 
     return (
