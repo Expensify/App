@@ -315,7 +315,7 @@ function AttachmentPickerWithMenuItems({
         <AttachmentPicker
             allowMultiple={isMultipleDragAndDropEnabled}
             fileLimit={isMultipleDragAndDropEnabled ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
-            shouldValidateImage={false}
+            shouldValidateImage={!isMultipleDragAndDropEnabled}
         >
             {({openPicker}) => {
                 const triggerAttachmentPicker = () => {
