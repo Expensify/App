@@ -4,7 +4,6 @@ import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react
 import type {TextInputProps} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import {Gesture, GestureDetector, GestureHandlerRootView} from 'react-native-gesture-handler';
-import {runOnJS} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
