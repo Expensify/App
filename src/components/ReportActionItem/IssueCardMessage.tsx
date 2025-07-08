@@ -1,5 +1,5 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx, type OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import {useSession} from '@components/OnyxProvider';
 import RenderHTML from '@components/RenderHTML';
@@ -12,6 +12,7 @@ import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import type {IssueNewCardOriginalMessage} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type IssueCardMessageProps = {
     action: OnyxEntry<ReportAction>;
@@ -21,7 +22,7 @@ type IssueCardMessageProps = {
 function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const session = useSession();
     const assigneeAccountID = (getOriginalMessage(action) as IssueNewCardOriginalMessage)?.assigneeAccountID;
     const expensifyCard = getExpensifyCardFromReportAction({reportAction: action, policyID});
     const isAssigneeCurrentUser = !isEmptyObject(session) && session.accountID === assigneeAccountID;
