@@ -275,8 +275,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [isBannerVisible, setIsBannerVisible] = useState(true);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
-    const wasReportAccessibleRef = useRef(false);
-
     const [isComposerFocus, setIsComposerFocus] = useState(false);
     const shouldAdjustScrollView = useMemo(() => isComposerFocus && !modal?.willAlertModalBecomeVisible, [isComposerFocus, modal]);
     const viewportOffsetTop = useViewportOffsetTop(shouldAdjustScrollView);
@@ -323,14 +321,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
         hideEmojiPicker(true);
     }, [prevIsFocused, isFocused]);
-
-    useEffect(() => {
-        if (!report?.reportID) {
-            wasReportAccessibleRef.current = false;
-            return;
-        }
-        wasReportAccessibleRef.current = true;
-    }, [report]);
 
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(() => {
@@ -450,7 +440,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
 
             // eslint-disable-next-line react-compiler/react-compiler
-            if (!wasReportAccessibleRef.current && !firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+            if (!firstRenderRef.current && !reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
                 // eslint-disable-next-line react-compiler/react-compiler
                 return true;
             }
