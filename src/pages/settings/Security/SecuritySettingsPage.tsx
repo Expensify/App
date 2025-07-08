@@ -3,7 +3,6 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, use
 import type {RefObject} from 'react';
 import {Dimensions, View} from 'react-native';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -24,7 +23,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -61,7 +60,6 @@ function SecuritySettingsPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
-    const {isBetaEnabled} = usePermissions();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isUserValidated = account?.validated;
@@ -137,10 +135,7 @@ function SecuritySettingsPage() {
                     Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
                 },
             },
-        ];
-
-        if (isBetaEnabled(CONST.BETAS.NEWDOT_MERGE_ACCOUNTS)) {
-            baseMenuItems.push({
+            {
                 translationKey: 'mergeAccountsPage.mergeAccount',
                 icon: Expensicons.ArrowCollapse,
                 action: () => {
@@ -154,8 +149,8 @@ function SecuritySettingsPage() {
                     }
                     Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route);
                 },
-            });
-        }
+            },
+        ];
 
         if (isAccountLocked) {
             baseMenuItems.push({
@@ -196,7 +191,7 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles, isActingAsDelegate, showDelegateNoAccessModal, isBetaEnabled, isAccountLocked, showLockedAccountModal]);
+    }, [translate, waitForNavigate, styles, isActingAsDelegate, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>
