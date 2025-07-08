@@ -104,7 +104,7 @@ function Expensify() {
 
     useDebugShortcut();
 
-    const [initialUrl, setInitialUrl] = useState<string | null>(null);
+    const [initialUrl, setInitialUrl] = useState<Route | null>(null);
 
     useEffect(() => {
         if (isCheckingPublicRoom) {
@@ -209,18 +209,14 @@ function Expensify() {
             // We use custom deeplink handler in setup/hybridApp
             if (CONFIG.IS_HYBRID_APP) {
                 Report.doneCheckingPublicRoom();
-                return;
             }
-            setInitialUrl(url);
+
+            setInitialUrl(url as Route);
             Report.openReportFromDeepLink(url ?? '');
         });
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            // We use custom deeplink handler in setup/hybridApp
-            if (CONFIG.IS_HYBRID_APP) {
-                return;
-            }
             Report.openReportFromDeepLink(state.url);
         });
 
