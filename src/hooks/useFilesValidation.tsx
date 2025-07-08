@@ -1,19 +1,26 @@
-import { Str } from 'expensify-common';
-import React, { useCallback, useRef, useState } from 'react';
-import { InteractionManager } from 'react-native';
-import type { ValueOf } from 'type-fest';
-import type { FileObject } from '@components/AttachmentModal';
+import {Str} from 'expensify-common';
+import React, {useCallback, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
+import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@components/AttachmentModal';
 import ConfirmModal from '@components/ConfirmModal';
-import { useFullScreenLoader } from '@components/FullScreenLoaderContext';
+import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import { getFileValidationErrorText, isHeicOrHeifImage, normalizeFileObject, resizeImageIfNeeded, splitExtensionFromFileName, validateAttachment, validateImageForCorruption } from '@libs/fileDownload/FileUtils';
+import {
+    getFileValidationErrorText,
+    isHeicOrHeifImage,
+    normalizeFileObject,
+    resizeImageIfNeeded,
+    splitExtensionFromFileName,
+    validateAttachment,
+    validateImageForCorruption,
+} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import CONST from '@src/CONST';
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
-
 
 type ErrorObject = {
     error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>;
