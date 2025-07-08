@@ -418,9 +418,14 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === getCurrentUserAccountID() : false;
     const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
     const isSingleTransaction = reportTransactions.length === 1;
+    const isInvoiceReport = isInvoiceReportUtils(report);
 
     if (isUnreported) {
         return isOwner;
+    }
+
+    if (isInvoiceReport) {
+        return report?.ownerAccountID === getCurrentUserAccountID();
     }
 
     // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.

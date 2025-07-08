@@ -6227,7 +6227,7 @@ const translations = {
         addressError: '地址是必需的',
         reasonError: '原因是必需的',
         successTitle: '您的卡片正在路上！',
-        successDescription: '几天后到达时，您需要激活它。在此期间，您的虚拟卡已准备好使用。',
+        successDescription: '几天后到达时，您需要激活它。在此期间，您可以使用虚拟卡。',
     },
     eReceipt: {
         guaranteed: '保证电子收据',
