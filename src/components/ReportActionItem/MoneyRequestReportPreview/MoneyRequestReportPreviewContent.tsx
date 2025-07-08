@@ -116,7 +116,7 @@ function MoneyRequestReportPreviewContent({
     onPress,
     chatReportMetadata,
 }: MoneyRequestReportPreviewContentProps) {
-    const shouldShowLoading = !!chatReportMetadata?.isLoadingInitialReportActions && !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0;
+    const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0;
     const shouldShowLoadingDefferedValue = useDeferredValue(shouldShowLoading);
     const lastTransaction = transactions?.at(0);
     const shouldShowEmptyPlaceholder = transactions.length === 0;
