@@ -474,6 +474,7 @@ describe('generateTranslations', () => {
                     }
                     return statusText.length > 0 ? \`1 expense (\${statusText.join(', ')})\` : '1 expense';
                 },
+                extraComplex: (payer: string) => \`\${payer ? \`\${payer} as payer \` : ''}paid elsewhere\`,
             };
             export default strings;
         `),
@@ -498,6 +499,7 @@ describe('generateTranslations', () => {
                     }
                     return statusText.length > 0 ? \`[it] 1 expense (\${statusText.join(', ')})\` : '[it] 1 expense';
                 },
+                extraComplex: (payer: string) => \`[it] \${payer ? \`[it] \${payer} as payer \` : ''}paid elsewhere\`,
             };
             export default strings;
         `),
@@ -534,6 +536,7 @@ describe('generateTranslations', () => {
                     }
                     return statusText.length > 0 ? \`1 expense (\${statusText.join(', ')})\` : '1 expense';
                 },
+                extraComplex: (payer: string) => \`\${payer ? \`\${payer} as payer \` : ''}paid elsewhere\`,
                 newKey: 'New value!',
             };
             export default strings;
