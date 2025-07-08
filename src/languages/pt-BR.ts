@@ -617,6 +617,8 @@ const translations = {
         getTheApp: 'Obtenha o aplicativo',
         scanReceiptsOnTheGo: 'Digitalize recibos com seu celular',
         headsUp: 'Atenção!',
+        submitTo: 'Enviar para',
+        forwardTo: 'Encaminhar para',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',

@@ -617,6 +617,8 @@ const translations = {
         getTheApp: '获取应用程序',
         scanReceiptsOnTheGo: '用手机扫描收据',
         headsUp: '\u6CE8\u610F\uFF01',
+        submitTo: '提交到',
+        forwardTo: '转发到',
     },
     supportalNoAccess: {
         title: '慢一点',
