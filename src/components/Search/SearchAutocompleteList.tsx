@@ -495,6 +495,7 @@ function SearchAutocompleteList(
         allCards,
         booleanTypes,
         workspaceList,
+        datePresetAutoCompleteList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
