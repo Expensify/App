@@ -355,7 +355,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 </View>
             );
         },
-        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, focusedRouteName, isExecuting, singleExecution],
+        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, isScreenFocused, focusedRouteName, isExecuting, singleExecution],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
