@@ -9957,7 +9957,7 @@ function isReportOutstanding(
     if (!iouReport || isEmptyObject(iouReport)) {
         return false;
     }
-    const activeReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${Navigation.getTopmostReportId()}`];
+    const activeReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${Navigation.getCurrentRouteReportID()}`];
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
     const shouldAllowSubmittedReport = isInstantSubmitEnabled(policy) || isProcessingReport(activeReport);
