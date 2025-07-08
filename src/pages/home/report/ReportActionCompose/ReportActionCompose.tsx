@@ -52,7 +52,7 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
+import {getTransactionID, hasReceipt as hasReceiptTransactionUtils, isDistanceRequest} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import Navigation from '@navigation/Navigation';
 import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
@@ -225,8 +225,6 @@ function ReportActionCompose({
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isTransactionsView = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
 
-    const shouldAddOrReplaceReceipt = (isTransactionThreadView || isIOUReport(report) || isExpenseReport(report)) && !isTransactionsView;
-
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
         canEvict: false,
         canBeMissing: true,
@@ -237,6 +235,8 @@ function ReportActionCompose({
     const transactionID = useMemo(() => getTransactionID(reportID) ?? linkedTransactionID, [reportID, linkedTransactionID]);
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+
+    const shouldAddOrReplaceReceipt = (isTransactionThreadView || isIOUReport(report) || isExpenseReport(report)) && !isTransactionsView && !isDistanceRequest(transaction);
 
     const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
     const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
