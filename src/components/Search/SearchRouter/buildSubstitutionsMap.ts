@@ -1,9 +1,8 @@
 import type {OnyxCollection} from 'react-native-onyx';
-import type {SearchAutocompleteQueryRange, SearchDateFilterKeys, SearchFilterKey} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
-import {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 
@@ -69,7 +68,8 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
-            DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
         ) {
             const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeeds, policies);
 
