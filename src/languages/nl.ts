@@ -5983,6 +5983,7 @@ const translations = {
                 members: 'Lid',
                 cards: 'Kaart',
             },
+            feed: 'Feed',
         },
         groupBy: 'Groep per',
         moneyRequestReport: {
