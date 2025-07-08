@@ -184,17 +184,7 @@ function TransactionPreviewContent({
         }
 
         return calculateAmount(isReportAPolicyExpenseChat ? 1 : originalParticipantCount - 1, amount ?? 0, requestCurrency ?? '', action?.actorAccountID === sessionAccountID);
-    }, [
-        shouldShowSplitShare,
-        isReportAPolicyExpenseChat,
-        participantAccountIDs.length,
-        transaction?.comment?.splits,
-        amount,
-        requestCurrency,
-        sessionAccountID,
-        isBillSplit,
-        action,
-    ]);
+    }, [shouldShowSplitShare, isReportAPolicyExpenseChat, participantAccountIDs.length, transaction?.comment?.splits, amount, requestCurrency, sessionAccountID, isBillSplit, action]);
 
     const shouldWrapDisplayAmount = !(isBillSplit || shouldShowMerchantOrDescription || isTransactionScanning);
     const previewTextViewGap = (shouldShowCategoryOrTag || !shouldWrapDisplayAmount) && styles.gap2;
