@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -133,6 +134,7 @@ function AttachmentPickerWithMenuItems({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const {isProduction} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
+    const {setIsLoaderVisible} = useFullScreenLoader();
 
     const isManualDistanceTrackingEnabled = isBetaEnabled(CONST.BETAS.MANUAL_DISTANCE);
 
@@ -314,6 +316,12 @@ function AttachmentPickerWithMenuItems({
     return (
         <AttachmentPicker
             allowMultiple={isMultipleDragAndDropEnabled}
+            onOpenPicker={() => {
+                if (!isMultipleDragAndDropEnabled) {
+                    return;
+                }
+                setIsLoaderVisible(true);
+            }}
             fileLimit={isMultipleDragAndDropEnabled ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
             shouldValidateImage={!isMultipleDragAndDropEnabled}
         >
@@ -322,7 +330,11 @@ function AttachmentPickerWithMenuItems({
                     onTriggerAttachmentPicker();
                     openPicker({
                         onPicked: (data) => displayFilesInModal(data),
-                        onCanceled: onCanceledAttachmentPicker,
+                        onCanceled: () => {
+                            onCanceledAttachmentPicker?.();
+                            setIsLoaderVisible(false);
+                        },
+                        onClosed: () => setIsLoaderVisible(false),
                     });
                 };
                 const menuItems = [
@@ -445,7 +457,10 @@ function AttachmentPickerWithMenuItems({
                                 }
                             }}
                             anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}
-                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            }}
                             menuItems={menuItems}
                             anchorRef={actionButtonRef}
                         />
