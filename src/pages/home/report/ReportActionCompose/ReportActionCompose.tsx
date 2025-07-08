@@ -239,7 +239,7 @@ function ReportActionCompose({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
 
     const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
-    const isSingleTransactionView = useMemo(() => !!transaction && reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
+    const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
 
     const shouldDisplayDualDropZone = useMemo(() => {
         const parentReport = getParentReport(report);
@@ -655,7 +655,7 @@ function ReportActionCompose({
                                                 }
                                             }}
                                             onReceiptDrop={handleAddingReceipt}
-                                            shouldAcceptSingleReceipt={isSingleTransactionView}
+                                            shouldAcceptSingleReceipt={isSingleTransactionView || isTransactionThreadView}
                                         />
                                     )}
                                     {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && !shouldDisplayDualDropZone && (
