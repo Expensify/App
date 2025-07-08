@@ -167,7 +167,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
      * Callback to handle scrolling to the new search result.
      */
     const handleSelectionListScroll = useCallback(
-        (data: SearchListItem[], ref: SelectionListHandle | null) => {
+        (data: SearchListItem[]) => (ref: SelectionListHandle | null) => {
             // Early return if there's no ref, new transaction wasn't brought in by this hook
             // or there's no new search result key
             if (!ref || !triggeredByHookRef.current || newSearchResultKey === null) {
@@ -204,7 +204,14 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             }
 
             // Perform the scrolling action
-            ref.scrollToIndex(indexOfNewItem);
+            if (indexOfNewItem === data.length - 1) {
+                // Scrolling to last item needs a delay to work due to FlatList internal bug.
+                setTimeout(() => {
+                    ref.scrollToIndex(indexOfNewItem);
+                }, 200);
+            } else {
+                ref.scrollToIndex(indexOfNewItem);
+            }
             // Reset the trigger flag to prevent unintended future scrolls and highlights
             triggeredByHookRef.current = false;
         },

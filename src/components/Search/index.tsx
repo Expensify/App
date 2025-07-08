@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
-import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -174,7 +174,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         [reportActions],
     );
     const {translate} = useLocalize();
-    const searchListRef = useRef<SelectionListHandle | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -594,7 +593,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     return (
         <SearchScopeProvider isOnSearch>
             <SearchList
-                ref={searchListRef}
+                ref={handleSelectionListScroll(sortedSelectedData)}
                 data={sortedSelectedData}
                 ListItem={ListItem}
                 onSelectRow={openReport}
@@ -634,7 +633,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 }
                 queryJSON={queryJSON}
                 onViewableItemsChanged={onViewableItemsChanged}
-                onLayout={() => handleSelectionListScroll(sortedSelectedData, searchListRef.current)}
             />
         </SearchScopeProvider>
     );
