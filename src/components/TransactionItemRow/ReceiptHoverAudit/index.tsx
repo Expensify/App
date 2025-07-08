@@ -28,22 +28,20 @@ function ReceiptHoverAudit({notes, shouldShowAuditResult}: ReceiptHoverAuditProp
     }
 
     return (
-        <View style={[styles.ph5, styles.pv3]}>
-            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                <Text style={[styles.textLabel]}>{translate('common.receipt')}</Text>
-                {!!auditText && (
-                    <>
-                        <Text style={[styles.textLabel]}>{` • ${auditText}`}</Text>
-                        <Icon
-                            width={12}
-                            height={12}
-                            src={notes.length ? Expensicons.DotIndicator : Expensicons.Checkmark}
-                            fill={notes.length ? theme.danger : theme.success}
-                            additionalStyles={styles.ml1}
-                        />
-                    </>
-                )}
-            </View>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.pv4]}>
+            <Text style={[styles.textLabel]}>{translate('common.receipt')}</Text>
+            {!!auditText && (
+                <>
+                    <Text style={[styles.textLabel]}>{` • ${auditText}`}</Text>
+                    <Icon
+                        width={12}
+                        height={12}
+                        src={notes.length ? Expensicons.DotIndicator : Expensicons.Checkmark}
+                        fill={notes.length ? theme.danger : theme.success}
+                        additionalStyles={styles.ml1}
+                    />
+                </>
+            )}
         </View>
     );
 }

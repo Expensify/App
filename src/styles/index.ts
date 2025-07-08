@@ -5946,8 +5946,7 @@ const styles = (theme: ThemeColors) =>
             position: 'absolute',
             top: '0px',
             width: '100%',
-            height: '48px',
-            background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.55))',
+            background: 'linear-gradient(0deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)',
         },
 
         topBarWrapper: {
