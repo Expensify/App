@@ -164,6 +164,22 @@ IMPORTANT: It's easily to confuse this error with a very similar one: `Failed to
 This error indicates that YAPL JS (OldDot's JavaScript code) hasn't been built properly. In order to fix that, do the following:
 1. cd to `Mobile-Expensify`
 2. run `npm run grunt:build:shared`
+
+### Error: `No JDK found / Please select a valid JDK`
+Android Studio and Gradle require a JDK (Java Development Kit) to build the app. If you're seeing this error or being prompted to select a JDK, it means no valid JDK has been configured. Our project requires JDK 17, so make sure you select or install that version.
+
+**To fix this:**
+- Open Android Studio.
+- Go to File > Project Structure > SDK Location.
+- Under JDK Location:
+    - Set the path to a previously installed JDK 17
+    - Or select the default JDK bundled with Android Studio (on macOS, that's usually at /Applications/Android Studio.app/Contents/jbr) only if it is JDK 17
+
+Alternatively, from the terminal:
+```
+export JAVA_HOME=$(/usr/libexec/java_home -v17)
+```
+
 ### How to find an `.apk`, and install it on your device?
 
 After a successful build, gradle creates an `.apk` file, which you can install on your android devices/emulators. There is a chance that eg. the app failed to install after a successful build, or you want to test the app on another device. In this case you **don't need to rebuild the app**, because you can reuse the existing `.apk`. These are the steps how to do it:
