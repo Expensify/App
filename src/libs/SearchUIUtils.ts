@@ -218,6 +218,11 @@ type SearchDateModifier = ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>;
 
 type SearchDateModifierLower = Lowercase<SearchDateModifier>;
 
+/**
+ * Returns a list of all possible searches in the LHN, along with their query & hash.
+ * *NOTE* When rendering the LHN, you should use the "createTypeMenuSections" method, which
+ * contains the conditionals for rendering each of these.
+ */
 function getSuggestedSearches(session?: OnyxTypes.Session): Record<SuggestedSearchKey, SearchTypeMenuItem> {
     return {
         [CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES]: {

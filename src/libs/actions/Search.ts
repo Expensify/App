@@ -63,8 +63,7 @@ function handleActionButtonPress(
 
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
-            // JACK_TODO: ADD CURRENT SEARCH KEY TO THIS TOO
-            getPayActionCallback(hash, item, goToItem);
+            getPayActionCallback(hash, item, goToItem, currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             approveMoneyRequestOnSearch(hash, [item.reportID], transactionID, currentSearchKey);
@@ -104,7 +103,8 @@ function getLastPolicyPaymentMethod(policyID: string | undefined, lastPaymentMet
     return lastPolicyPaymentMethod;
 }
 
-function getPayActionCallback(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void) {
+// JACK_TODO: Implement currentSearchKey optimistic updates
+function getPayActionCallback(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void, currentSearchKey?: SuggestedSearchKey) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod);
 
     if (!lastPolicyPaymentMethod) {
@@ -305,6 +305,7 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
+// JACK_TODO: Implement currentSearchKey optimistic updates
 function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], policy: SearchPolicy[], transactionIDList?: string[], currentSearchKey?: SuggestedSearchKey) {
     const createActionLoadingData = (isLoading: boolean): OnyxUpdate[] => [
         {
@@ -319,6 +320,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
             },
         },
     ];
+
     const optimisticData: OnyxUpdate[] = createActionLoadingData(true);
     const finallyData: OnyxUpdate[] = createActionLoadingData(false);
 
@@ -334,6 +336,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, finallyData});
 }
 
+// JACK_TODO: Implement currentSearchKey optimistic updates
 function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], transactionIDList?: string[], currentSearchKey?: SuggestedSearchKey) {
     const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport>): OnyxUpdate[] => [
         {
@@ -354,6 +357,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], trans
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, finallyData});
 }
 
+// JACK_TODO: Implement currentSearchKey optimistic updates
 function exportToIntegrationOnSearch(hash: number, reportID: string, connectionName: ConnectionName, currentSearchKey?: SuggestedSearchKey) {
     const action = buildOptimisticExportIntegrationAction(connectionName);
     const optimisticReportActionID = action.reportActionID;
