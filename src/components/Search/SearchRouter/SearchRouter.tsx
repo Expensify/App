@@ -431,7 +431,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     return (
         <GestureHandlerRootView style={{flex: 1}}>
             <GestureDetector gesture={Gesture.Tap().runOnJS(true).onFinalize(Keyboard.dismiss)}>
-                {' '}
                 <View
                     style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
                     testID={SearchRouter.displayName}
