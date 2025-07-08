@@ -13,7 +13,6 @@ import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
-type ConnectionConfigType<T extends ConnectionNameExceptNetSuite> = T extends keyof Connections ? (Connections[T] extends {config: infer C} ? C : never) : never;
 
 function removePolicyConnection(policyID: string, connectionName: PolicyConnectionName) {
     const optimisticData: OnyxUpdate[] = [
