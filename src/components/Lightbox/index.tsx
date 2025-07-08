@@ -193,6 +193,13 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         }
     }, [hasSiblingCarouselItems, isActive, isFallbackVisible, isLightboxImageLoaded, isLightboxVisible]);
 
+    // Clear cache when component unmounts
+    useEffect(() => {
+        return () => {
+            cachedImageDimensions.delete(uri);
+        };
+    }, [uri]);
+
     const scaleChange = useCallback(
         (scale: number) => {
             onScaleChangedProp?.(scale);
