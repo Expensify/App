@@ -15,8 +15,6 @@ if (expensifyClassicContent || showExpensifyClassicBadge) {
     tab.id = 'platform-tab-expensify-classic';
     if (!newExpensifyContent) {
         tab.classList.toggle('badge');
-    } else {
-        tab.classList.toggle('active');
     }
     platformTabs.appendChild(tab);
 }
@@ -32,8 +30,6 @@ if (newExpensifyContent || showNewExpensifyBadge) {
     tab.id = 'platform-tab-new-expensify';
     if (!expensifyClassicContent) {
         tab.classList.toggle('badge');
-    } else {
-        tab.classList.toggle('active');
     }
     platformTabs.appendChild(tab);
 }
