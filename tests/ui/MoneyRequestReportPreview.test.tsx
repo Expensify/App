@@ -67,6 +67,10 @@ const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = n
                 <ScreenWrapper testID="test">
                     <PortalProvider>
                         <MoneyRequestReportPreview
+                            allReports={{
+                                [`${ONYXKEYS.COLLECTION.REPORT}${mockChatReport.iouReportID}`]: mockChatReport,
+                            }}
+                            policies={{}}
                             policyID={mockChatReport.policyID}
                             action={mockAction}
                             iouReportID={mockIOUReport.iouReportID}
