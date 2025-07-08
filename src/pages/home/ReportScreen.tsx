@@ -611,6 +611,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 isTopMostReportId &&
                 reportDetailScreens.find((r) => r === currentRoute?.name) &&
                 !!currentRoute?.params &&
+                typeof currentRoute.params === 'object' &&
                 'reportID' in currentRoute.params &&
                 reportIDFromRoute === currentRoute.params.reportID;
             // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.

@@ -1,10 +1,10 @@
 import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {Ref} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
 import Button from '@components/Button';
@@ -18,10 +18,12 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -77,23 +79,26 @@ type MoneyRequestParticipantsSelectorProps = {
     /** The action of the IOU, i.e. create, split, move */
     action: IOUAction;
 
-    /** Whether the IOU is workspaces only */
-    isWorkspacesOnly?: boolean;
-
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
 };
 
-function MoneyRequestParticipantsSelector({
-    participants = CONST.EMPTY_ARRAY,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onFinish = (_value?: string) => {},
-    onParticipantsAdded,
-    iouType,
-    action,
-    isWorkspacesOnly = false,
-    isPerDiemRequest = false,
-}: MoneyRequestParticipantsSelectorProps) {
+type InputFocusRef = {
+    focus?: () => void;
+};
+
+function MoneyRequestParticipantsSelector(
+    {
+        participants = CONST.EMPTY_ARRAY,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        onFinish = (_value?: string) => {},
+        onParticipantsAdded,
+        iouType,
+        action,
+        isPerDiemRequest = false,
+    }: MoneyRequestParticipantsSelectorProps,
+    ref: Ref<InputFocusRef>,
+) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -116,6 +121,7 @@ function MoneyRequestParticipantsSelector({
     });
     const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
+    const selectionListRef = useRef<SelectionListHandle | null>(null);
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -187,6 +193,7 @@ function MoneyRequestParticipantsSelector({
                 includeSelfDM: !isMovingTransactionFromTrackExpense(action) && iouType !== CONST.IOU.TYPE.INVOICE,
                 canShowManagerMcTest: !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT,
                 isPerDiemRequest,
+                showRBR: false,
             },
         );
 
@@ -282,70 +289,41 @@ function MoneyRequestParticipantsSelector({
             shouldShow: (chatOptions.workspaceChats ?? []).length > 0,
         });
 
-        if (!isWorkspacesOnly) {
+        newSections.push({
+            title: translate('workspace.invoices.paymentMethods.personal'),
+            data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
+            shouldShow: !!chatOptions.selfDMChat,
+        });
+
+        newSections.push({
+            title: translate('common.recents'),
+            data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
+            shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
+        });
+
+        newSections.push({
+            title: translate('common.contacts'),
+            data: chatOptions.personalDetails,
+            shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
+        });
+
+        if (
+            chatOptions.userToInvite &&
+            !isCurrentUser({
+                ...chatOptions.userToInvite,
+                accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                status: chatOptions.userToInvite?.status ?? undefined,
+            }) &&
+            !isPerDiemRequest
+        ) {
             newSections.push({
-                title: translate('workspace.invoices.paymentMethods.personal'),
-                data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
-                shouldShow: !!chatOptions.selfDMChat,
+                title: undefined,
+                data: [chatOptions.userToInvite].map((participant) => {
+                    const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
+                    return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
+                }),
+                shouldShow: true,
             });
-
-            newSections.push({
-                title: translate('common.recents'),
-                data: isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports,
-                shouldShow: (isPerDiemRequest ? chatOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : chatOptions.recentReports).length > 0,
-            });
-
-            newSections.push({
-                title: translate('common.contacts'),
-                data: chatOptions.personalDetails,
-                shouldShow: chatOptions.personalDetails.length > 0 && !isPerDiemRequest,
-            });
-
-            if (
-                chatOptions.userToInvite &&
-                !isCurrentUser({
-                    ...chatOptions.userToInvite,
-                    accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    status: chatOptions.userToInvite?.status ?? undefined,
-                }) &&
-                !isPerDiemRequest
-            ) {
-                newSections.push({
-                    title: translate('workspace.invoices.paymentMethods.personal'),
-                    data: chatOptions.selfDMChat ? [chatOptions.selfDMChat] : [],
-                    shouldShow: !!chatOptions.selfDMChat,
-                });
-
-                newSections.push({
-                    title: translate('common.recents'),
-                    data: chatOptions.recentReports,
-                    shouldShow: chatOptions.recentReports.length > 0,
-                });
-
-                newSections.push({
-                    title: translate('common.contacts'),
-                    data: chatOptions.personalDetails,
-                    shouldShow: chatOptions.personalDetails.length > 0,
-                });
-
-                if (
-                    chatOptions.userToInvite &&
-                    !isCurrentUser({
-                        ...chatOptions.userToInvite,
-                        accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                        status: chatOptions.userToInvite?.status ?? undefined,
-                    })
-                ) {
-                    newSections.push({
-                        title: undefined,
-                        data: [chatOptions.userToInvite].map((participant) => {
-                            const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
-                            return isPolicyExpenseChat ? getPolicyExpenseReportOption(participant) : getParticipantsOption(participant, personalDetails);
-                        }),
-                        shouldShow: true,
-                    });
-                }
-            }
         }
 
         let headerMessage = '';
@@ -361,12 +339,11 @@ function MoneyRequestParticipantsSelector({
         participants,
         chatOptions.recentReports,
         chatOptions.personalDetails,
-        chatOptions.workspaceChats,
         chatOptions.selfDMChat,
+        chatOptions.workspaceChats,
         chatOptions.userToInvite,
         personalDetails,
         translate,
-        isWorkspacesOnly,
         showImportContacts,
         inputHelperText,
         isPerDiemRequest,
@@ -608,12 +585,24 @@ function MoneyRequestParticipantsSelector({
         );
     }, [iouType, ClickableImportContactTextComponent]);
 
+    useImperativeHandle(ref, () => ({
+        focus: () => {
+            if (!textInputAutoFocus) {
+                return;
+            }
+            selectionListRef.current?.focusTextInput?.();
+        },
+    }));
+
     return (
         <>
             <ContactPermissionModal
                 onGrant={initiateContactImportAndSetState}
                 onDeny={setContactPermissionState}
-                onFocusTextInput={() => setTextInputAutoFocus(true)}
+                onFocusTextInput={() => {
+                    setTextInputAutoFocus(true);
+                    selectionListRef.current?.focusTextInput?.();
+                }}
             />
             <SelectionList
                 onConfirm={handleConfirmSelection}
@@ -641,7 +630,8 @@ function MoneyRequestParticipantsSelector({
                 canSelectMultiple={isIOUSplit && isAllowedToSplit}
                 isLoadingNewOptions={!!isSearchingForReports}
                 shouldShowListEmptyContent={shouldShowListEmptyContent}
-                textInputAutoFocus={textInputAutoFocus}
+                textInputAutoFocus={!isNative}
+                ref={selectionListRef}
             />
         </>
     );
@@ -650,7 +640,6 @@ function MoneyRequestParticipantsSelector({
 MoneyRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
 export default memo(
-    MoneyRequestParticipantsSelector,
-    (prevProps, nextProps) =>
-        deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType && prevProps.isWorkspacesOnly === nextProps.isWorkspacesOnly,
+    forwardRef(MoneyRequestParticipantsSelector),
+    (prevProps, nextProps) => deepEqual(prevProps.participants, nextProps.participants) && prevProps.iouType === nextProps.iouType,
 );
