@@ -46,7 +46,7 @@ Here are some commonly used fields for report titles. For a full list of all for
 | Formula | Example | Description |
 | -- | -- | -- |
 | `{report:id}` | R00I7J3xs5fn | Unique report ID in a base 62 representation |
-| `{report:oldID}` | R3513250790654885 | unique report ID |
+| `{report:oldID}` | 3513250790654885 | unique report ID |
 | `{report:total}` | $325.34 | Total amount on report |
 | `{report:reimbursable}` | $143.43 | Reimbursable amount |
 | `{report:currency}` | USD | Currency used |
