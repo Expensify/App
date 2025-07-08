@@ -187,7 +187,6 @@ function TransactionPreviewContent({
     }, [
         shouldShowSplitShare,
         isReportAPolicyExpenseChat,
-        action?.actorAccountID,
         participantAccountIDs.length,
         transaction?.comment?.splits,
         amount,
