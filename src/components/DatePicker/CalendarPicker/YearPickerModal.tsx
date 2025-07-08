@@ -14,6 +14,9 @@ type YearPickerModalProps = {
     /** Whether the modal is visible */
     isVisible: boolean;
 
+    /** Whether the picker is displayed over RHP */
+    isRHPVisible: boolean;
+
     /** The list of years to render */
     years: CalendarPickerListItem[];
 
@@ -27,7 +30,7 @@ type YearPickerModalProps = {
     onClose?: () => void;
 };
 
-function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear(), onYearChange, onClose}: YearPickerModalProps) {
+function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear(), onYearChange, onClose, isRHPVisible}: YearPickerModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
@@ -59,6 +62,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             onBackdropPress={onClose}
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldUseReanimatedModal
+            backdropOpacity={isRHPVisible ? 0 : undefined}
         >
             <ScreenWrapper
                 style={[styles.pb0]}
