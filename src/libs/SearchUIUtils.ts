@@ -760,7 +760,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
     }
 
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
-    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived) && isAllowedToApproveExpenseReport) {
+    if (canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived) && isAllowedToApproveExpenseReport) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
