@@ -220,21 +220,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
                             onPress={addApprovalAction}
                         />
-                        <MenuItem
-                            title={translate('workflowsPage.importApprovalWorkflow')}
-                            titleStyle={styles.textStrong}
-                            icon={Table}
-                            iconHeight={20}
-                            iconWidth={20}
-                            style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                            onPress={() => {
-                                if (isAccountLocked) {
-                                    showLockedAccountModal();
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(route.params.policyID));
-                            }}
-                        />
                     </>
                 ),
                 disabled: isSmartLimitEnabled,

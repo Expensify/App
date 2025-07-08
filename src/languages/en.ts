@@ -1866,7 +1866,6 @@ const translations = {
         submissionFrequencyDateOfMonth: 'Date of month',
         addApprovalsTitle: 'Add approvals',
         addApprovalButton: 'Add approval workflow',
-        importApprovalWorkflow: 'Import approval workflow',
         addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
         approver: 'Approver',
         connectBankAccount: 'Connect bank account',
