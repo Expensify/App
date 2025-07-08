@@ -223,7 +223,6 @@ function ReportActionCompose({
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
 
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
-    const isTransactionsView = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
         canEvict: false,
@@ -236,10 +235,10 @@ function ReportActionCompose({
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
 
-    const shouldAddOrReplaceReceipt = (isTransactionThreadView || isIOUReport(report) || isExpenseReport(report)) && !isTransactionsView && !isDistanceRequest(transaction);
+    const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
+    const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && !isDistanceRequest(transaction);
 
     const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
-    const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
 
     const shouldDisplayDualDropZone = useMemo(() => {
         const parentReport = getParentReport(report);
