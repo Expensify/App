@@ -2,7 +2,6 @@ import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
@@ -31,7 +30,7 @@ function SettingsSplitNavigator() {
     const route = useRoute();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
 
-    usePreloadFullScreenNavigators(NAVIGATION_TABS.SETTINGS);
+    usePreloadFullScreenNavigators();
 
     return (
         <FocusTrapForScreens>

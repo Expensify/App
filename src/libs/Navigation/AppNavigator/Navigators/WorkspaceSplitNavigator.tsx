@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
-import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import {workspaceSplitsWithoutEnteringAnimation} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
@@ -40,7 +39,7 @@ const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
 function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>) {
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
 
-    usePreloadFullScreenNavigators(NAVIGATION_TABS.WORKSPACES);
+    usePreloadFullScreenNavigators();
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('transitionEnd', () => {
