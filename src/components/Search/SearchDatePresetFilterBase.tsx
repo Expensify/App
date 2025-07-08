@@ -153,6 +153,7 @@ function SearchDatePresetFilterBase({defaultDateValues, selectedDateModifier, on
                         isSelected: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] === preset,
                     }}
                     onSelectRow={() => setDateValue(CONST.SEARCH.DATE_MODIFIERS.ON, preset)}
+                    wrapperStyle={styles.flexReset}
                 />
             ))}
             {shouldShowHorizontalRule && (
