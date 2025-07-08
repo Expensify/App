@@ -27,6 +27,7 @@ import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyU
 import type {OptionData} from '@libs/ReportUtils';
 import {
     getAutocompleteCategories,
+    getAutocompleteDatePresets,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,
     getAutocompleteTags,
@@ -204,10 +205,7 @@ function SearchAutocompleteList(
         // Thus passing an empty object to the `allCards` parameter.
         return Object.values(getCardFeedsForDisplay(allFeeds, {}));
     }, [allFeeds]);
-    const dateAutoCompleteList = useMemo(
-        () => Object.values(CONST.SEARCH.DATE_PRESETS).map((datePreset) => ({value: datePreset, text: translate(`search.filters.date.presets.${datePreset}`)})),
-        [translate],
-    );
+    const datePresetAutoCompleteList = useMemo(() => getAutocompleteDatePresets(translate), [translate]);
 
     const getParticipantsAutocompleteList = useMemo(
         () =>
@@ -466,7 +464,7 @@ function SearchAutocompleteList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED: {
-                const filteredDates = dateAutoCompleteList
+                const filteredDates = datePresetAutoCompleteList[autocompleteKey]
                     .filter((date) => date.text.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(date.text.toLowerCase()))
                     .sort()
                     .slice(0, 10);
