@@ -771,15 +771,18 @@ function buildUserReadableQueryString(
         } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
             displayQueryFilters = queryFilter.reduce((acc, filter) => {
                 const feedKey = filter.value.toString();
-                const workspaceFeedKey = getWorkspaceCardFeedKey(feedKey);
-
-                const workspaceValue = cardFeedNamesWithType[workspaceFeedKey];
-                const domainValue = cardFeedNamesWithType[feedKey];
-
-                if ((workspaceValue && workspaceValue.type === 'workspace') || (domainValue && domainValue.type === 'domain')) {
-                    const value = workspaceValue?.type === 'workspace' ? workspaceValue.name : domainValue.name;
-                    acc.push({operator: filter.operator, value});
+                const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeeds, cardList);
+                const plaidFeedName = feedKey?.split(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)?.at(1);
+                const regularBank = feedKey?.split('_')?.at(1) ?? CONST.DEFAULT_NUMBER_ID;
+                const plaidValue = cardFeedsForDisplay[`${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}${plaidFeedName}` as OnyxTypes.CompanyCardFeed]?.name;
+                if (plaidFeedName) {
+                    if (plaidValue) {
+                        acc.push({operator: filter.operator, value: plaidValue});
+                    }
+                    return acc;
                 }
+                const value = cardFeedsForDisplay[regularBank as OnyxTypes.CompanyCardFeed]?.name ?? feedKey;
+                acc.push({operator: filter.operator, value});
 
                 return acc;
             }, [] as QueryFilter[]);
@@ -805,6 +808,9 @@ function buildUserReadableQueryString(
         }
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
     }
+
+    console.log('title');
+    console.log(title);
 
     return title;
 }
