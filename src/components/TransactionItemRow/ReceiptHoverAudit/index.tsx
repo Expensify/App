@@ -28,7 +28,7 @@ function ReceiptHoverAudit({notes, shouldShowAuditResult}: ReceiptHoverAuditProp
     }
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.pv4]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.pt3, styles.pb5]}>
             <Text style={[styles.textLabel]}>{translate('common.receipt')}</Text>
             {!!auditText && (
                 <>
