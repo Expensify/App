@@ -20,6 +20,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -32,7 +33,7 @@ import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasSeenTourSelector} from '@libs/onboardingSelectors';
-import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {areAllGroupPoliciesExpenseChatDisabled, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
@@ -95,6 +96,8 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         canBeMissing: true,
     });
+    const {isOffline} = useNetwork();
+    const shouldShowNewWorkspaceButton = Object.values(allPolicies ?? {}).every((policy) => !shouldShowPolicy(policy, !!isOffline, session?.email));
 
     const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
 
@@ -234,7 +237,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                 title: translate('search.searchResults.emptyReportResults.title'),
                 subtitle: translate(hasSeenTour ? 'search.searchResults.emptyReportResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyReportResults.subtitle'),
                 buttons: [
-                    ...(!hasSeenTour
+                    ...(!hasSeenTour && shouldShowNewWorkspaceButton
                         ? [
                               {
                                   buttonText: translate('emptySearchView.takeATestDrive'),
@@ -301,7 +304,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                         title: translate('search.searchResults.emptyExpenseResults.title'),
                         subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
                         buttons: [
-                            ...(!hasSeenTour
+                            ...(!hasSeenTour && shouldShowNewWorkspaceButton
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
@@ -332,7 +335,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
                         subtitle: translate(hasSeenTour ? 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyInvoiceResults.subtitle'),
                         buttons: [
-                            ...(!hasSeenTour
+                            ...(!hasSeenTour && shouldShowNewWorkspaceButton
                                 ? [
                                       {
                                           buttonText: translate('emptySearchView.takeATestDrive'),
@@ -391,6 +394,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
         viewTourReport,
         viewTourReportID,
         transactions,
+        shouldShowNewWorkspaceButton,
     ]);
 
     return (
