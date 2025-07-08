@@ -205,7 +205,7 @@ function navigate(route: Route, options?: LinkToOptions) {
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
  * these parameters shouldn't be included in the comparison.
  */
-const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'policyID'];
+const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'policyID', 'pop'];
 
 /**
  * @private
@@ -316,11 +316,10 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
     }
 
     /**
-     * If we are not comparing params, we want to use navigate action because it will replace params in the route already existing in the state if necessary.
-     * This part will need refactor after migrating to react-navigation 7. We will use popTo instead.
+     * If we are not comparing params, we want to use popTo action because it will replace params in the route already existing in the state if necessary.
      */
     if (!compareParams) {
-        navigationRef.current.dispatch(minimalAction);
+        navigationRef.current.dispatch({...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO});
         return;
     }
 
@@ -603,6 +602,10 @@ function popRootToTop() {
     navigationRef.current?.dispatch({...StackActions.popToTop(), target: rootState.key});
 }
 
+function pop(target: string) {
+    navigationRef.current?.dispatch({...StackActions.pop(), target});
+}
+
 function removeScreenFromNavigationState(screen: string) {
     isNavigationReady().then(() => {
         navigationRef.current?.dispatch((state) => {
@@ -666,6 +669,7 @@ export default {
     setNavigationActionToMicrotaskQueue,
     popToTop,
     popRootToTop,
+    pop,
     removeScreenFromNavigationState,
     removeScreenByKey,
     getReportRouteByID,

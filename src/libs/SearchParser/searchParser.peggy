@@ -30,7 +30,7 @@
 {
   const defaultValues = {
     type: "expense",
-    status: "all",
+    status: "",
     sortBy: "date",
     sortOrder: "desc",
   };
@@ -137,6 +137,7 @@ key "key"
       / createdBy
       / reimbursable
       / billable
+      / action
     )
 
 filterKey
