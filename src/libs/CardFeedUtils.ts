@@ -1,11 +1,12 @@
+import type {OnyxCollection} from 'react-native-onyx/dist/types';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionList/Search/CardListItem';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getBankName, getCardFeedIcon, getPlaidInstitutionIconUrl, getPlaidInstitutionId, isCard, isCardClosed, isCardHiddenFromSearch} from './CardUtils';
+import {getBankName, getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidInstitutionIconUrl, getPlaidInstitutionId, isCard, isCardClosed, isCardHiddenFromSearch} from './CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
 
@@ -18,6 +19,11 @@ type GetCardFeedData = {
     workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined;
     translate: LocaleContextProps['translate'];
 };
+type CardFeedForDisplay = {
+    feed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
+    name: string;
+};
+type CardFeedsForDisplay = Record<CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK, CardFeedForDisplay>;
 
 function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Record<string, DomainFeedData>) {
     const bankFrequency: Record<string, number> = {};
@@ -391,6 +397,42 @@ const generateSelectedCards = (
     return [...new Set([...selectedCards, ...(cards ?? [])])];
 };
 
+/**
+ * Given a collection of card feeds, return formatted card feeds.
+ *
+ * The `allCards` parameter is only used to determine if we should add the "Expensify Card" feed.
+ */
+function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCards: CardList): CardFeedsForDisplay {
+    const cardFeedsForDisplay = {} as CardFeedsForDisplay;
+    const hasExpensifyCard = Object.values(allCards).some((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);
+
+    Object.values(allCardFeeds ?? {}).forEach((cardFeeds) => {
+        Object.keys(getCompanyFeeds(cardFeeds, true, true)).forEach((key) => {
+            const feed = key as CompanyCardFeed;
+
+            if (cardFeedsForDisplay[feed]) {
+                return;
+            }
+
+            cardFeedsForDisplay[feed] = {
+                feed,
+                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames, false) ?? feed,
+            };
+        });
+    });
+
+    if (hasExpensifyCard) {
+        // s77rt check if the value that we should send to the backend is "Expensify Card" (same as displayed text)
+        // And if so update buildSubstitutionsMap to handle highlighting
+        cardFeedsForDisplay[CONST.EXPENSIFY_CARD.BANK] = {
+            feed: CONST.EXPENSIFY_CARD.BANK,
+            name: CONST.EXPENSIFY_CARD.BANK,
+        };
+    }
+
+    return cardFeedsForDisplay;
+}
+
 export type {CardFilterItem, CardFeedNamesWithType};
 export {
     buildCardsData,
@@ -403,4 +445,5 @@ export {
     getWorkspaceCardFeedKey,
     generateDomainFeedData,
     getDomainFeedData,
+    getCardFeedsForDisplay,
 };
