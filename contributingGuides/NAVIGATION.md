@@ -65,7 +65,7 @@ Navigation.navigate(ROUTES.HOME);
 // Navigation with parameters
 Navigation.navigate(
     ROUTES.SEARCH_ROOT.getRoute({
-        query: 'type:expense status:all search',
+        query: 'type:expense search',
         // additional parameters...
     }),
 );
@@ -503,7 +503,7 @@ In Expensify, we use an extended implementation of this function because:
 
 Here are examples how the state is generated based on route:
 
--   `settings/workspaces/1/overview`
+-   `workspaces/1/overview`
 
 ```json
 {
@@ -536,7 +536,7 @@ Here are examples how the state is generated based on route:
                         "params": {
                             "policyID": "1"
                         },
-                        "path": "/settings/workspaces/1/overview",
+                        "path": "workspaces/1/overview",
                         "key": "Workspace_Overview-key"
                     }
                 ]

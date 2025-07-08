@@ -45,6 +45,7 @@ import type {
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport} from './actions/Report';
+import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {isDevelopment} from './Environment/Environment';
@@ -533,10 +534,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         // Use Map.get() for faster lookups with default values
         const from = personalDetailsMap.get(transactionItem.accountID.toString()) ?? emptyPersonalDetails;
         const to = transactionItem.managerID && !shouldShowBlankTo ? (personalDetailsMap.get(transactionItem.managerID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
-        // const isPolicyExpenseChat = !!reports.find((rp) => rp.policyID === transactionItem.policyID && rp.isPolicyExpenseChat);
 
-        // console.log({reports})
-        // console.log({isPolicyExpenseChat});
         const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
         const transactionSection: TransactionListItemType = {
@@ -557,7 +555,6 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
             isAmountColumnWide: shouldShowAmountInWideColumn,
             isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
             violations: transactionViolations,
-            // isPolicyExpenseChat,
 
             // Manually copying all the properties from transactionItem
             transactionID: transactionItem.transactionID,
@@ -918,13 +915,14 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             const isIOUReport = reportItem.type === CONST.REPORT.TYPE.IOU;
 
             const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
+            const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
             reportIDToTransactions[reportKey] = {
                 ...reportItem,
                 groupedBy: CONST.SEARCH.GROUP_BY.REPORTS,
                 action: getAction(data, allViolations, key),
                 keyForList: reportItem.reportID,
                 from: data.personalDetailsList?.[reportItem.accountID ?? CONST.DEFAULT_NUMBER_ID],
-                to: reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
+                to: !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails,
                 transactions,
                 ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
             };
@@ -942,7 +940,6 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
             const to = transactionItem.managerID && !shouldShowBlankTo ? (data.personalDetailsList?.[transactionItem.managerID] ?? emptyPersonalDetails) : emptyPersonalDetails;
-            // const isPolicyExpenseChat = !!reports.find((rp) => rp.policyID === transactionItem.policyID && rp.isPolicyExpenseChat);
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
@@ -965,7 +962,6 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 violations: transactionViolations,
                 isAmountColumnWide: shouldShowAmountInWideColumn,
                 isTaxAmountColumnWide: shouldShowTaxAmountInWideColumn,
-                // isPolicyExpenseChat,
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
@@ -1291,7 +1287,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     type: CONST.SEARCH.DATA_TYPES.CHAT,
                     icon: Expensicons.ChatBubbles,
                     getSearchQuery: (policyID?: string) => {
-                        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                        const queryString = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, policyID});
                         return queryString;
                     },
                 },
@@ -1302,46 +1298,48 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
     // Begin adding conditional sections, based on the policies the user has access to
     const showSubmitSuggestion = Object.values(policies).filter((p) => isPaidGroupPolicy(p)).length > 0;
 
-    const showApproveSuggestion =
-        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
-            if (!policy || !email || !isPaidGroupPolicy(policy)) {
-                return false;
-            }
-
-            const isPolicyApprover = policy.approver === email;
-            const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
-                return employee.submitsTo === email || employee.forwardsTo === email;
-            });
-
-            return isPolicyApprover || isSubmittedTo;
-        }).length > 0;
-
-    const showPaySuggestion =
-        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
-            if (!policy || !isPaidGroupPolicy(policy)) {
-                return false;
-            }
-
-            const reimburser = policy.reimburser;
-            const isReimburser = reimburser === email;
-            const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
-
-            if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-                return reimburser ? isReimburser : isAdmin;
-            }
-
-            if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
-                return isAdmin;
-            }
-
+    const showPaySuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
+        if (!policy || !isPaidGroupPolicy(policy)) {
             return false;
-        }).length > 0;
+        }
+
+        const reimburser = policy.reimburser;
+        const isReimburser = reimburser === email;
+        const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
+
+        if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+            return reimburser ? isReimburser : isAdmin;
+        }
+
+        if (policy.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL) {
+            return isAdmin;
+        }
+
+        return false;
+    });
+
+    const showApproveSuggestion = Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
+        if (!policy || !email || !isPaidGroupPolicy(policy)) {
+            return false;
+        }
+
+        if (policy.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
+            return false;
+        }
+
+        const isPolicyApprover = policy.approver === email;
+        const isSubmittedTo = Object.values(policy.employeeList ?? {}).some((employee) => {
+            return employee.submitsTo === email || employee.forwardsTo === email;
+        });
+
+        return isPolicyApprover || isSubmittedTo;
+    });
 
     // TODO: This option will be enabled soon (removing the && false). We are waiting on changes to support this
     // feature fully, but lets keep the code here for simplicity
     // https://github.com/Expensify/Expensify/issues/505933
     const showExportSuggestion =
-        Object.values(policies).filter<OnyxTypes.Policy>((policy): policy is OnyxTypes.Policy => {
+        Object.values(policies).some((policy): policy is OnyxTypes.Policy => {
             if (!policy || !email) {
                 return false;
             }
@@ -1353,7 +1351,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
             const isXeroExporter = policy.connections?.xero?.config?.export?.exporter === email;
 
             return isIntacctExporter || isNetSuiteExporter || isQuickbooksDesktopExporter || isQuickbooksOnlineExporter || isXeroExporter;
-        }).length > 0 && false;
+        }) && false;
 
     // We suggest specific filters for users based on their access in specific policies. Show the todo section
     // only if any of these items are available
@@ -1366,6 +1364,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
         };
 
         if (showSubmitSuggestion) {
+            const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled(policies);
             section.menuItems.push({
                 translationPath: 'common.submit',
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -1374,39 +1373,41 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     headerMedia: DotLottieAnimations.Fireworks,
                     title: 'search.searchResults.emptySubmitResults.title',
                     subtitle: 'search.searchResults.emptySubmitResults.subtitle',
-                    buttons: [
-                        {
-                            success: true,
-                            buttonText: 'report.newReport.createReport',
-                            buttonAction: () => {
-                                interceptAnonymousUser(() => {
-                                    const activePolicy = getActivePolicy();
-                                    const groupPoliciesWithChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled();
-                                    const personalDetails = getPersonalDetailsForAccountID(session.accountID) as OnyxTypes.PersonalDetails;
+                    buttons:
+                        groupPoliciesWithChatEnabled.length > 0
+                            ? [
+                                  {
+                                      success: true,
+                                      buttonText: 'report.newReport.createReport',
+                                      buttonAction: () => {
+                                          interceptAnonymousUser(() => {
+                                              const activePolicy = getActivePolicy();
+                                              const personalDetails = getPersonalDetailsForAccountID(session.accountID) as OnyxTypes.PersonalDetails;
 
-                                    let workspaceIDForReportCreation: string | undefined;
+                                              let workspaceIDForReportCreation: string | undefined;
 
-                                    // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
-                                    if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                        workspaceIDForReportCreation = activePolicy.id;
-                                    } else if (groupPoliciesWithChatEnabled.length === 1) {
-                                        workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
-                                    }
+                                              // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
+                                              if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
+                                                  workspaceIDForReportCreation = activePolicy.id;
+                                              } else if (groupPoliciesWithChatEnabled.length === 1) {
+                                                  workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
+                                              }
 
-                                    if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
-                                        const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
-                                        Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                        });
-                                        return;
-                                    }
+                                              if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
+                                                  const createdReportID = createNewReport(personalDetails, workspaceIDForReportCreation);
+                                                  Navigation.setNavigationActionToMicrotaskQueue(() => {
+                                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+                                                  });
+                                                  return;
+                                              }
 
-                                    // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
-                                    Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
-                                });
-                            },
-                        },
-                    ],
+                                              // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
+                                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
+                                          });
+                                      },
+                                  },
+                              ]
+                            : [],
                 },
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
@@ -1434,7 +1435,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+                        action: CONST.SEARCH.ACTION_FILTERS.APPROVE,
                         to: [`${session.accountID}`],
                     });
                     return queryString;
@@ -1456,7 +1457,8 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
-                        status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.DONE],
+                        action: CONST.SEARCH.ACTION_FILTERS.PAY,
+                        reimbursable: CONST.SEARCH.BOOLEAN.YES,
                         payer: session.accountID?.toString(),
                     });
                     return queryString;
@@ -1477,8 +1479,8 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                 getSearchQuery: () => {
                     const queryString = buildQueryStringFromFilterFormValues({
                         groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                        action: CONST.SEARCH.ACTION_FILTERS.EXPORT,
                         exporter: [`${session.accountID}`],
-                        status: [CONST.SEARCH.STATUS.EXPENSE.APPROVED, CONST.SEARCH.STATUS.EXPENSE.PAID, CONST.SEARCH.STATUS.EXPENSE.DONE],
                         exportedOn: CONST.SEARCH.DATE_PRESETS.NEVER,
                     });
                     return queryString;
@@ -1555,6 +1557,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                     const queryString = buildQueryStringFromFilterFormValues({
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                         groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
+                        // s77rt this should be update to use the default feed
                         feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
                         status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                     });
@@ -1596,6 +1599,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
                 const queryString = buildQueryStringFromFilterFormValues({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     groupBy: CONST.SEARCH.GROUP_BY.MEMBERS,
+                    // s77rt this should be update to use the default feed
                     feed: [CONST.COMPANY_CARDS.BANKS.BANK_OF_AMERICA],
                     status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
                 });
@@ -1667,11 +1671,11 @@ function getStatusOptions(type: SearchDataTypes, groupBy: SearchGroupBy | undefi
 
 function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
     const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
-        {translation: 'common.expense', value: CONST.SEARCH.DATA_TYPES.EXPENSE},
-        {translation: 'common.chat', value: CONST.SEARCH.DATA_TYPES.CHAT},
-        {translation: 'common.invoice', value: CONST.SEARCH.DATA_TYPES.INVOICE},
-        {translation: 'common.trip', value: CONST.SEARCH.DATA_TYPES.TRIP},
-        {translation: 'common.task', value: CONST.SEARCH.DATA_TYPES.TASK},
+        {text: translateLocal('common.expense'), value: CONST.SEARCH.DATA_TYPES.EXPENSE},
+        {text: translateLocal('common.chat'), value: CONST.SEARCH.DATA_TYPES.CHAT},
+        {text: translateLocal('common.invoice'), value: CONST.SEARCH.DATA_TYPES.INVOICE},
+        {text: translateLocal('common.trip'), value: CONST.SEARCH.DATA_TYPES.TRIP},
+        {text: translateLocal('common.task'), value: CONST.SEARCH.DATA_TYPES.TASK},
     ];
     const shouldHideInvoiceOption = !canSendInvoice(policies, currentUserLogin) && !hasInvoiceReports();
 
@@ -1680,7 +1684,15 @@ function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserL
 }
 
 function getGroupByOptions() {
-    return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({translation: `search.filters.groupBy.${value}`, value}));
+    return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translateLocal(`search.filters.groupBy.${value}`), value}));
+}
+
+function getFeedOptions(allCardFeeds: OnyxCollection<OnyxTypes.CardFeeds>, allCards: OnyxTypes.CardList) {
+    // s77rt confirm if the feed value is just the feed key or if it should be prefixed with [fundID]_
+    return Object.values(getCardFeedsForDisplay(allCardFeeds, allCards)).map<SingleSelectItem<OnyxTypes.CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK>>((cardFeed) => ({
+        text: cardFeed.name,
+        value: cardFeed.feed,
+    }));
 }
 
 export {
@@ -1710,6 +1722,7 @@ export {
     getStatusOptions,
     getTypeOptions,
     getGroupByOptions,
+    getFeedOptions,
     getWideAmountIndicators,
     isTransactionAmountTooLong,
     isTransactionTaxAmountTooLong,
