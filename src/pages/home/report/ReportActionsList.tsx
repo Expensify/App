@@ -168,6 +168,7 @@ function ReportActionsList({
     const isFocused = useIsFocused();
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
     const participantsContext = useContext(PersonalDetailsContext);
@@ -586,6 +587,7 @@ function ReportActionsList({
             return (
                 <ReportActionsListItemRenderer
                     allReports={allReports}
+                    policies={policies}
                     reportAction={reportAction}
                     reportActions={reportActions}
                     parentReportAction={parentReportAction}
@@ -615,6 +617,8 @@ function ReportActionsList({
             parentReportActionForTransactionThread,
             report,
             transactionThreadReport,
+            policies,
+            transactions,
             linkedReportActionID,
             visibleReportActions,
             mostRecentIOUReportActionID,
@@ -622,7 +626,6 @@ function ReportActionsList({
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             shouldUseThreadDividerLine,
-            transactions,
         ],
     );
 
