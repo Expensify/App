@@ -117,9 +117,10 @@ class TranslationGenerator {
 
         // If a compareRef is provided, fetch the old version of the files, and traverse the ASTs in parallel to extract existing translations
         if (this.compareRef) {
-            // A map of locale => translations node, where "translations node" refers to the main object in en.ts and
-            // other locale files that contains all the translations.
             const allLocales: Locale[] = [LOCALES.EN, ...this.targetLanguages];
+
+            // An array of labeled "translation nodes", where "translations node" refers to the main object in en.ts and
+            // other locale files that contains all the translations.
             const oldTranslationNodes: Array<LabeledNode<Locale>> = [];
             const downloadPromises = [];
             for (const targetLanguage of allLocales) {
@@ -142,7 +143,7 @@ class TranslationGenerator {
             await Promise.all(downloadPromises);
 
             // Traverse ASTs of all downloaded files in parallel, building a map of {locale => {translationKey => translation}}
-            // Note: that traversing in parallel is not just a performance optimization. We need the translation key
+            // Note: traversing in parallel is not just a performance optimization. We need the translation key
             // from en.ts to map to translations in other files, but we can't rely on dot-notation style paths alone
             // because sometimes there are strings defined elsewhere, such as in functions or nested templates.
             // So instead, we rely on the fact that the AST structure of en.ts will very nearly match the AST structure of other locales.
@@ -154,7 +155,9 @@ class TranslationGenerator {
                     return;
                 }
 
+                // Use English for the translation key
                 const translationKey = this.getTranslationKey(enNode);
+
                 for (const targetLanguage of this.targetLanguages) {
                     const translatedNode = nodes[targetLanguage];
                     if (!this.shouldNodeBeTranslated(translatedNode)) {
@@ -172,6 +175,7 @@ class TranslationGenerator {
                     translationsForLocale.set(translationKey, serializedNode);
                     translations.set(targetLanguage, translationsForLocale);
 
+                    // For complex template expressions, we need a way to look up the English span hash for each translated span hash, so we track those here
                     if (ts.isTemplateExpression(enNode) && ts.isTemplateExpression(translatedNode) && !this.isSimpleTemplateExpression(enNode)) {
                         for (let i = 0; i < enNode.templateSpans.length; i++) {
                             const enSpan = enNode.templateSpans[i];
@@ -195,6 +199,7 @@ class TranslationGenerator {
             const translationPromises = [];
             for (const [key, {text, context}] of stringsToTranslate) {
                 if (translationsForLocale.has(key)) {
+                    // This means that the translation for this key was already parsed from an existing translation file, so we don't need to translate it with ChatGPT
                     continue;
                 }
                 const translationPromise = promisePool.add(() => this.translator.translate(targetLanguage, text, context).then((result) => translationsForLocale.set(key, result)));

@@ -463,7 +463,7 @@ describe('generateTranslations', () => {
                 greeting: 'Hello',
                 unchanged: 'Unchanged',
                 func: (name: string) => \`Hello \${name}\`,
-                noSubstitutionTemplate: \`Helloooo\`,
+                noSubstitutionTemplate: \`Salutations\`,
                 complexFunc: (numScanning: number, numPending: number) => {
                     const statusText: string[] = [];
                     if (numScanning > 0) {
@@ -488,7 +488,7 @@ describe('generateTranslations', () => {
                 greeting: '[it] Hello',
                 unchanged: '[it] Unchanged',
                 func: (name: string) => \`[it] Hello \${name}\`,
-                noSubstitutionTemplate: \`[it] Helloooo\`,
+                noSubstitutionTemplate: \`[it] Salutations\`,
                 complexFunc: (numScanning: number, numPending: number) => {
                     const statusText: string[] = [];
                     if (numScanning > 0) {
@@ -525,7 +525,7 @@ describe('generateTranslations', () => {
                 greeting: 'Hello',
                 unchanged: 'Unchanged',
                 func: (name: string) => \`Hello \${name}\`,
-                noSubstitutionTemplate: \`Helloooo\`,
+                noSubstitutionTemplate: \`Salutations\`,
                 complexFunc: (numScanning: number, numPending: number) => {
                     const statusText: string[] = [];
                     if (numScanning > 0) {
@@ -554,7 +554,7 @@ describe('generateTranslations', () => {
         expect(itContent).toContain('[it] Unchanged');
         // eslint-disable-next-line no-template-curly-in-string
         expect(itContent).toContain('[it] Hello ${name}');
-        expect(itContent).toContain('[it] Helloooo');
+        expect(itContent).toContain('[it] Salutations');
         expect(itContent).toContain('[it] New value!');
         expect(translateSpy).toHaveBeenCalledTimes(1);
         expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined);
