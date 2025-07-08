@@ -6,6 +6,10 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
 import type CONST from '@src/CONST';
+<<<<<<< HEAD
+=======
+import type MobileSelectionMode from '@src/types/onyx/MobileSelectionMode';
+>>>>>>> 27fc4644c51 (perf: Move remaining useOnyx calls up in the Search component tree)
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
 

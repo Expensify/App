@@ -1,9 +1,8 @@
 import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SelectionList from '@components/SelectionList';
@@ -18,7 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
-import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
@@ -40,7 +39,7 @@ import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
@@ -85,6 +84,18 @@ type SearchAutocompleteListProps = {
 
     /** Ref for textInput */
     textInputRef?: React.RefObject<AnimatedTextInputRef | null>;
+
+    /** Personal details */
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+
+    /** Reports */
+    reports: OnyxCollection<OnyxTypes.Report>;
+
+    /** All feeds */
+    allFeeds: Record<string, OnyxTypes.CardFeeds | undefined>;
+
+    /** All cards */
+    allCards: OnyxTypes.CardList;
 };
 
 const defaultListOptions = {
@@ -147,6 +158,10 @@ function SearchAutocompleteList(
         shouldSubscribeToArrowKeyEvents = true,
         onHighlightFirstItem,
         textInputRef,
+        personalDetails,
+        reports,
+        allFeeds,
+        allCards,
     }: SearchAutocompleteListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -156,8 +171,6 @@ function SearchAutocompleteList(
 
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
-    const personalDetails = usePersonalDetails();
-    const [reports = getEmptyObject<NonNullable<OnyxCollection<Report>>>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const taxRates = getAllTaxRates();
 
     const {options, areOptionsInitialized} = useOptionsList();
@@ -197,11 +210,7 @@ function SearchAutocompleteList(
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
     const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
 
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
-    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
-    const cardAutocompleteList = Object.values(allCards);
+    const cardAutocompleteList = useMemo(() => Object.values(allCards), [allCards]);
     const feedAutoCompleteList = useMemo(() => {
         // We don't want to show the "Expensify Card" feed in the autocomplete suggestion list
         // Thus passing an empty object to the `allCards` parameter.

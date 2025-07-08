@@ -61,7 +61,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const taxRates = useMemo(() => getAllTaxRates(), []);
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {inputQuery: originalInputQuery} = queryJSON;
@@ -387,6 +387,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 setTextQuery={setTextAndUpdateSelection}
                                 updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                                 ref={listRef}
+                                personalDetails={personalDetails}
+                                reports={reports}
+                                workspaceCardFeeds={workspaceCardFeeds}
+                                allCards={allCards}
                             />
                         </View>
                     )}
@@ -454,6 +458,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                             ref={listRef}
                             shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
+                            personalDetails={personalDetails}
+                            reports={reports}
+                            workspaceCardFeeds={workspaceCardFeeds}
+                            allCards={allCards}
                         />
                     </View>
                 </View>
