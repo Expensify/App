@@ -92,6 +92,11 @@ class TranslationGenerator {
      */
     private readonly verbose: boolean;
 
+    /**
+     * Can I come up with a better name for this?
+     */
+    private readonly translatedSpanHashToEnglishSpanHash = new Map<number, number>();
+
     constructor(config: {targetLanguages: TranslationTargetLocale[]; languagesDir: string; sourceFile: string; translator: Translator; compareRef: string; verbose: boolean}) {
         this.targetLanguages = config.targetLanguages;
         this.languagesDir = config.languagesDir;
@@ -148,6 +153,7 @@ class TranslationGenerator {
                 }
 
                 const translationKey = this.getTranslationKey(enNode);
+                console.log(`RORY_DEBUG traverseASTsInParallel: translationKey for node: ${translationKey}`);
                 for (const targetLanguage of this.targetLanguages) {
                     const translatedNode = nodes[targetLanguage];
                     if (!this.shouldNodeBeTranslated(translatedNode)) {
@@ -164,6 +170,14 @@ class TranslationGenerator {
                             : this.templateExpressionToString(translatedNode);
                     translationsForLocale.set(translationKey, serializedNode);
                     translations.set(targetLanguage, translationsForLocale);
+
+                    if (ts.isTemplateExpression(enNode) && ts.isTemplateExpression(translatedNode) && !this.isSimpleTemplateExpression(enNode)) {
+                        for (let i = 0; i < enNode.templateSpans.length; i++) {
+                            const enSpan = enNode.templateSpans[i];
+                            const translatedSpan = translatedNode.templateSpans[i];
+                            this.translatedSpanHashToEnglishSpanHash.set(hashStr(translatedSpan.expression.getText()), hashStr(enSpan.expression.getText()));
+                        }
+                    }
                 }
             });
         }
@@ -172,14 +186,19 @@ class TranslationGenerator {
             // Map of translations
             const translationsForLocale = translations.get(targetLanguage) ?? new Map<number, string>();
 
+            console.log('RORY_DEBUG translations so far', translationsForLocale);
+
             // Extract strings to translate
             const stringsToTranslate = new Map<number, StringWithContext>();
             this.extractStringsToTranslate(this.sourceFile, stringsToTranslate);
+
+            console.log('RORY_DEBUG got stringsToTranslate', stringsToTranslate);
 
             // Translate all the strings in parallel (up to 8 at a time)
             const translationPromises = [];
             for (const [key, {text, context}] of stringsToTranslate) {
                 if (translationsForLocale.has(key)) {
+                    console.log('RORY_DEBUG skipping translation for key', key);
                     continue;
                 }
                 const translationPromise = promisePool.add(() => this.translator.translate(targetLanguage, text, context).then((result) => translationsForLocale.set(key, result)));
@@ -391,22 +410,28 @@ class TranslationGenerator {
     private extractStringsToTranslate(node: ts.Node, stringsToTranslate: Map<number, StringWithContext>) {
         if (this.shouldNodeBeTranslated(node)) {
             const context = this.getContextForNode(node);
+            const translationKey = this.getTranslationKey(node);
+            // console.log('RORY_DEBUG extractStringsToTranslate: translationKey for node', translationKey, node.getText());
 
             // String literals and no-substitution templates can be translated directly
             if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
-                stringsToTranslate.set(this.getTranslationKey(node), {text: node.text, context});
+                stringsToTranslate.set(translationKey, {text: node.text, context});
             }
 
             // Template expressions must be encoded directly before they can be translated
             else if (ts.isTemplateExpression(node)) {
                 if (this.isSimpleTemplateExpression(node)) {
-                    stringsToTranslate.set(this.getTranslationKey(node), {text: this.templateExpressionToString(node), context});
+                    stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context});
                 } else {
                     if (this.verbose) {
                         console.debug('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
                     }
+                    // console.log(
+                    //     'RORY_DEBUG extractStringsToTranslate: traversing spans',
+                    //     node.templateSpans.map((span) => span.getText()),
+                    // );
                     node.templateSpans.forEach((span) => this.extractStringsToTranslate(span, stringsToTranslate));
-                    stringsToTranslate.set(this.getTranslationKey(node), {text: this.templateExpressionToString(node), context});
+                    stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context});
                 }
             }
         }
@@ -438,6 +463,7 @@ class TranslationGenerator {
      * If the template contains any complex spans, those must be translated first, and those translations need to be passed in.
      */
     private stringToTemplateExpression(input: string, translatedComplexExpressions = new Map<number, ts.Expression>()): ts.TemplateExpression {
+        console.log('RORY_DEBUG converting string to template expression', input);
         const regex = /\$\{([^}]*)}/g;
         const matches = [...input.matchAll(regex)];
 
@@ -457,7 +483,14 @@ class TranslationGenerator {
             if (/^\d+$/.test(trimmed)) {
                 // It's a hash reference to a complex span
                 const hashed = Number(trimmed);
-                const translatedExpression = translatedComplexExpressions.get(hashed);
+
+                // If the translated, serialized template expression came from an existing translation file, then the hash of the complex expression will be a hash of the translated expression.
+                // If the translated, serialized template expression came from ChatGPT, then the hash of the complex expression will be a hash of the English expression.
+                // Meanwhile, translatedComplexExpressions is keyed by English hashes, because it comes from createTransformer, which is parsing and transforming an English file.
+                // So when rebuilding the template expression from its serialized form, we first search for the translated expression assuming the expression is serialized with English hashes.
+                // If that fails, we look up the English expression hash associated with the translated expression hash, then look up the translated expression using the English hash.
+                const translatedExpression = translatedComplexExpressions.get(hashed) ?? translatedComplexExpressions.get(this.translatedSpanHashToEnglishSpanHash.get(hashed) ?? hashed);
+
                 if (!translatedExpression) {
                     throw new Error(`No template found for hash: ${hashed}`);
                 }
@@ -499,6 +532,7 @@ class TranslationGenerator {
 
                     if (ts.isTemplateExpression(node)) {
                         const translatedTemplate = translations.get(this.getTranslationKey(node));
+                        console.log('RORY_DEBUG createTransformer translationKey for template', this.getTranslationKey(node), translatedTemplate);
                         if (!translatedTemplate) {
                             console.warn('⚠️ No translation found for template expression', node.getText());
                             return node;

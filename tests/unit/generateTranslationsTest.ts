@@ -30,7 +30,7 @@ describe('generateTranslations', () => {
         process.env.LANGUAGES_DIR = LANGUAGES_DIR;
 
         // Set dry-run flag for tests
-        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--locales', 'it'];
+        process.argv = ['ts-node', 'generateTranslations.ts', '--dry-run', '--verbose', '--locales', 'it'];
     });
 
     afterEach(() => {
