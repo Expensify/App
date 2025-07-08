@@ -10,7 +10,19 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, CurrencyList, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {
+    BankAccountList,
+    Card,
+    CardFeeds,
+    CardList,
+    CompanyCardFeed,
+    CurrencyList,
+    ExpensifyCardSettings,
+    PersonalDetailsList,
+    Policy,
+    PrivatePersonalDetails,
+    WorkspaceCardsList,
+} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
 import type {CardFeedData, CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -18,7 +30,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import {filterObject} from './ObjectUtils';
-import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getDisplayNameOrDefault, isMissingPrivatePersonalDetails} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
@@ -680,6 +692,37 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
+function isCardPendingIssue(card?: Card) {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
+}
+
+function isCardPendingActivate(card?: Card) {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
+}
+
+function isCardPendingReplace(card?: Card) {
+    return (
+        (isCardPendingActivate(card) || isCardPendingIssue(card)) &&
+        !!card?.nameValuePairs?.terminationReason &&
+        card?.nameValuePairs?.statusChanges?.at(-1)?.status === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED
+    );
+}
+
+function isVirtualCardReplaced(card?: Card) {
+    return card?.nameValuePairs?.isVirtual && card?.nameValuePairs?.statusChanges?.at(-1)?.status === CONST.EXPENSIFY_CARD.STATE.OPEN;
+}
+
+function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: PrivatePersonalDetails): boolean {
+    return (
+        card?.bank === CONST.EXPENSIFY_CARD.BANK &&
+        (isCardPendingIssue(card) || isCardPendingActivate(card) || isCardPendingReplace(card) || isMissingPrivatePersonalDetails(privatePersonalDetails))
+    );
+}
+
+function hasPendingExpensifyCardAction(cards: CardList | undefined = allCards, privatePersonalDetails?: PrivatePersonalDetails) {
+    return Object.values(cards ?? {}).some((card) => isExpensifyCardPendingAction(card, privatePersonalDetails));
+}
+
 function getFundIdFromSettingsKey(key: string) {
     const prefix = ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS;
     if (!key?.startsWith(prefix)) {
@@ -738,7 +781,13 @@ export {
     hasCardListObject,
     isExpensifyCardFullySetUp,
     filterInactiveCards,
+    isCardPendingIssue,
+    isCardPendingActivate,
+    hasPendingExpensifyCardAction,
+    isExpensifyCardPendingAction,
     getFundIdFromSettingsKey,
+    isCardPendingReplace,
+    isVirtualCardReplaced,
     getCardsByCardholderName,
     filterCardsByPersonalDetails,
     getCompanyCardDescription,
