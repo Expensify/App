@@ -2934,6 +2934,7 @@ const CONST = {
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
             },
+            CORPORATE: ['quickbooksDesktop', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics', 'other'],
             AUTH_HELP_LINKS: {
                 intacct:
                     "https://help.expensify.com/articles/expensify-classic/connections/sage-intacct/Sage-Intacct-Troubleshooting#:~:text=First%20make%20sure%20that%20you,your%20company's%20Web%20Services%20authorizations.",
