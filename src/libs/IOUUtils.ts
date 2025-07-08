@@ -1,11 +1,13 @@
 import Onyx from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Report} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, Report, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import {getMoneyRequestParticipantsFromReport} from './actions/IOU';
 import type {IOURequestType} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -216,6 +218,19 @@ function shouldStartLocationPermissionFlow() {
     );
 }
 
+function setMultipleMoneyRequestParticipantsFromReport(transactionIDs: string[], reportValue: OnyxEntry<Report>) {
+    const participants = getMoneyRequestParticipantsFromReport(reportValue);
+    const updatedTransactions: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${string}`, NullishDeep<Transaction>> = {};
+    transactionIDs.forEach((transactionID) => {
+        updatedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] = {
+            participants,
+            participantsAutoAssigned: true,
+        };
+    });
+    // eslint-disable-next-line rulesdir/prefer-actions-set-data
+    return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, updatedTransactions);
+}
+
 export {
     calculateAmount,
     insertTagIntoTransactionTagsString,
@@ -228,4 +243,5 @@ export {
     formatCurrentUserToAttendee,
     shouldStartLocationPermissionFlow,
     navigateToParticipantPage,
+    setMultipleMoneyRequestParticipantsFromReport,
 };
