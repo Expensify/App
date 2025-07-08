@@ -3,13 +3,13 @@ import {View} from 'react-native';
 import type {ColorValue, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import SingleReportAvatar from '@components/ReportActionItem/SingleReportAvatar';
 import useOnyx from '@hooks/useOnyx';
 import type {ReportAvatarDetails} from '@hooks/useReportAvatarDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getReportSingleAvatar from '@libs/getReportSingleAvatar';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import type {DisplayNameWithTooltips} from '@libs/ReportUtils';
@@ -267,12 +267,14 @@ function AvatarWithDisplayName({
             );
         }
 
-        return getReportSingleAvatar({
-            reportPreviewDetails: singleAvatarDetails,
-            personalDetails,
-            containerStyles: [styles.actionAvatar, styles.mr3],
-            actorAccountID: actorAccountID?.current,
-        });
+        return (
+            <SingleReportAvatar
+                reportPreviewDetails={singleAvatarDetails}
+                personalDetails={personalDetails}
+                containerStyles={[styles.actionAvatar, styles.mr3]}
+                actorAccountID={actorAccountID.current}
+            />
+        );
     }, [StyleUtils, avatarBorderColor, icons, personalDetails, shouldShowSubscriptAvatar, singleAvatarDetails, size, styles]);
 
     const avatar = <View accessibilityLabel={title}>{getAvatar()}</View>;

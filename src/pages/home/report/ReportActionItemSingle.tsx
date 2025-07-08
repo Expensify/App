@@ -5,6 +5,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import SingleReportAvatar from '@components/ReportActionItem/SingleReportAvatar';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -17,7 +18,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
-import getReportSingleAvatar from '@libs/getReportSingleAvatar';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getReportActionMessage} from '@libs/ReportActionsUtils';
@@ -189,12 +189,14 @@ function ReportActionItemSingle({
             );
         }
 
-        return getReportSingleAvatar({
-            reportPreviewDetails,
-            personalDetails,
-            containerStyles: [styles.actionAvatar],
-            actorAccountID,
-        });
+        return (
+            <SingleReportAvatar
+                reportPreviewDetails={reportPreviewDetails}
+                personalDetails={personalDetails}
+                containerStyles={[styles.actionAvatar]}
+                actorAccountID={actorAccountID}
+            />
+        );
     };
 
     const hasEmojiStatus = !shouldDisplayAllActors && status?.emojiCode;

@@ -7,7 +7,7 @@ import type {ReportAvatarDetails} from '@hooks/useReportAvatarDetails';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
-function getReportSingleAvatar({
+function SingleReportAvatar({
     reportPreviewDetails,
     personalDetails,
     containerStyles,
@@ -41,4 +41,4 @@ function getReportSingleAvatar({
     );
 }
 
-export default getReportSingleAvatar;
+export default SingleReportAvatar;
