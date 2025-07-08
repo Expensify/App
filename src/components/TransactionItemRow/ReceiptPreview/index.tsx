@@ -2,15 +2,16 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
+import EReceipt from '@components/EReceipt';
 import BaseImage from '@components/Image/BaseImage';
 import type {ImageOnLoadEvent} from '@components/Image/types';
-import ReceiptAudit from '@components/ReceiptAudit';
+import ReceiptHoverAudit from '@components/TransactionItemRow/ReceiptHoverAudit';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 const showPreviewDelay = 270;
 const animationDuration = 200;
 
-function ReceiptPreview({source, hovered}: {source: string; hovered: boolean}) {
+function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''}: {source: string; hovered: boolean; isEReceipt?: boolean; transactionID?: string}) {
     const [shouldShow, setShouldShow] = useState(false);
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
     const styles = useThemeStyles();
@@ -55,7 +56,7 @@ function ReceiptPreview({source, hovered}: {source: string; hovered: boolean}) {
         };
     }, [hovered]);
 
-    if (!shouldShow || !source) {
+    if (!shouldShow || (!source && !isEReceipt)) {
         return null;
     }
 
@@ -65,15 +66,18 @@ function ReceiptPreview({source, hovered}: {source: string; hovered: boolean}) {
             exiting={FadeOut.duration(animationDuration)}
             style={[styles.receiptPreview, styles.dFlex, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}
         >
-            <View style={[styles.w100]}>
-                <BaseImage
-                    source={{uri: source}}
-                    style={[styles.w100, {aspectRatio, height: 'auto'}]}
-                    onLoad={handleLoad}
-                />
-            </View>
-            <View style={[styles.pAbsolute, {left: 20, top: 12}]}>
-                <ReceiptAudit
+            {!!source && (
+                <View style={[styles.w100]}>
+                    <BaseImage
+                        source={{uri: source}}
+                        style={[styles.w100, {aspectRatio}]}
+                        onLoad={handleLoad}
+                    />
+                </View>
+            )}
+            {!!isEReceipt && <EReceipt transactionID={transactionID} />}
+            <View style={styles.receiptPreviewAuditWrapper}>
+                <ReceiptHoverAudit
                     shouldShowAuditResult
                     notes={[]}
                 />

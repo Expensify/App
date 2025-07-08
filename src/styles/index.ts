@@ -5937,9 +5937,17 @@ const styles = (theme: ThemeColors) =>
             maxHeight: 620,
             borderRadius: variables.componentBorderRadiusLarge,
             borderWidth: 1,
-            borderColor: theme.text,
+            borderColor: theme.border,
             overflow: 'hidden',
             boxShadow: theme.shadow,
+        },
+
+        receiptPreviewAuditWrapper: {
+            position: 'absolute',
+            top: '0px',
+            width: '100%',
+            height: '48px',
+            background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.55))',
         },
 
         topBarWrapper: {

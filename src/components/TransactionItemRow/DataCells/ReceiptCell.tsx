@@ -59,6 +59,8 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
             <ReceiptPreview
                 source={source}
                 hovered={hovered}
+                isEReceipt={transactionItem.hasEReceipt && !hasReceiptSource(transactionItem)}
+                transactionID={transactionItem.transactionID}
             />
         </View>
     );
