@@ -14,7 +14,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
-import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {openSearch, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
@@ -147,6 +146,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {
+        currentSearchKey,
         setCurrentSearchHash,
         setSelectedTransactions,
         selectedTransactions,
@@ -163,7 +163,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
-    const {currentSearch} = useSearchTypeMenuSections(hash);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
@@ -255,8 +254,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             return [];
         }
 
-        return getSections(type, searchResults.data, searchResults.search, groupBy, reportActions, currentSearch?.key);
-    }, [currentSearch?.key, groupBy, isDataLoaded, reportActions, searchResults, type]);
+        return getSections(type, searchResults.data, searchResults.search, groupBy, reportActions, currentSearchKey);
+    }, [currentSearchKey, groupBy, isDataLoaded, reportActions, searchResults, type]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */

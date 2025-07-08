@@ -81,7 +81,7 @@ function EmptySearchView({hash, type, groupBy, hasResults}: EmptySearchViewProps
     const styles = useThemeStyles();
     const contextMenuAnchor = useRef<RNText>(null);
     const [modalVisible, setModalVisible] = useState(false);
-    const {typeMenuSections} = useSearchTypeMenuSections(hash);
+    const {typeMenuSections} = useSearchTypeMenuSections();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});

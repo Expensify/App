@@ -73,7 +73,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const taxRates = getAllTaxRates();
     const {clearSelectedTransactions} = useSearchContext();
-    const {typeMenuSections} = useSearchTypeMenuSections(hash);
+    const {typeMenuSections} = useSearchTypeMenuSections();
     const initialSearchKeys = useRef<string[]>([]);
 
     // The first time we render all of the sections the user can see, we need to mark these as 'rendered', such that we

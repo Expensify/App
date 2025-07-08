@@ -1,12 +1,21 @@
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+import useOnyx from '@hooks/useOnyx';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
-import {isTransactionCardGroupListItemType, isTransactionListItemType, isTransactionMemberGroupListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {
+    getSuggestedSearches,
+    isTransactionCardGroupListItemType,
+    isTransactionListItemType,
+    isTransactionMemberGroupListItemType,
+    isTransactionReportGroupListItemType,
+} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {SearchContext, SearchContextData} from './types';
 
 const defaultSearchContextData: SearchContextData = {
     currentSearchHash: -1,
+    currentSearchKey: undefined,
     selectedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
@@ -33,6 +42,7 @@ const defaultSearchContext: SearchContext = {
 const Context = React.createContext<SearchContext>(defaultSearchContext);
 
 function SearchContextProvider({children}: ChildrenProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [shouldShowExportModeOption, setShouldShowExportModeOption] = useState(false);
     const [isExportMode, setExportMode] = useState(false);
     const [shouldShowFiltersBarLoading, setShouldShowFiltersBarLoading] = useState(false);
@@ -40,12 +50,19 @@ function SearchContextProvider({children}: ChildrenProps) {
     const [searchContextData, setSearchContextData] = useState(defaultSearchContextData);
     const areTransactionsEmpty = useRef(true);
 
-    const setCurrentSearchHash = useCallback((searchHash: number) => {
-        setSearchContextData((prevState) => ({
-            ...prevState,
-            currentSearchHash: searchHash,
-        }));
-    }, []);
+    const setCurrentSearchHash = useCallback(
+        (searchHash: number) => {
+            const suggestedSearches = getSuggestedSearches(session);
+            const currentSearch = Object.values(suggestedSearches).find((search) => search.hash === searchHash);
+
+            setSearchContextData((prevState) => ({
+                ...prevState,
+                currentSearchHash: searchHash,
+                currentSearchKey: currentSearch?.key,
+            }));
+        },
+        [session],
+    );
 
     const setSelectedTransactions: SearchContext['setSelectedTransactions'] = useCallback((selectedTransactions, data = []) => {
         if (selectedTransactions instanceof Array) {
