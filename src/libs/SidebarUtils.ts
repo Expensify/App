@@ -82,6 +82,7 @@ import {
     formatReportLastMessageText,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getChatRoomSubtitle,
+    getDeletedTransactionMessage,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getIcons,
@@ -780,6 +781,8 @@ function getOptionData({
             result.alternateText = getReopenedMessage();
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
             result.alternateText = getTravelUpdateMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
+            result.alternateText = getDeletedTransactionMessage(lastAction);
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0

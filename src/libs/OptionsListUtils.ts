@@ -69,6 +69,7 @@ import {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getReceiptScanFailedMessage,
+    getRenamedAction,
     getReopenedMessage,
     getReportActionHtml,
     getReportActionMessageText,
@@ -92,6 +93,7 @@ import {
     isPendingRemove,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
+    isRenamedAction,
     isReportPreviewAction,
     isTaskAction,
     isThreadParentMessage,
@@ -847,6 +849,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = getPolicyChangeMessage(lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
         lastMessageTextFromReport = getTravelUpdateMessage(lastReportAction);
+    } else if (isRenamedAction(lastReportAction)) {
+        lastMessageTextFromReport = getRenamedAction(lastReportAction, isExpenseReport(report));
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
