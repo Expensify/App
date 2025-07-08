@@ -1302,6 +1302,9 @@ const translations = {
     transactionMerge: {
         listPage: {
             header: 'Merge expenses',
+            noEligibleExpenseFound: 'No eligible expenses found',
+            noEligibleExpenseFoundSubtitle: "You don't have any expenses that can be merged with this one. Learn more about eligible expenses",
+            mergeButton: 'Merge Transactions',
         },
         receiptPage: {
             header: 'Select receipt',
