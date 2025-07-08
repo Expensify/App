@@ -3013,7 +3013,6 @@ const CONST = {
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
-
         ACCESS_VARIANTS: {
             PAID: 'paid',
             ADMIN: 'admin',

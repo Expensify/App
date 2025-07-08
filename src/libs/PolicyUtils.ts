@@ -1189,15 +1189,7 @@ function getValidConnectedIntegration(policy: Policy | undefined, accountingInte
 }
 
 function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
-    const connectionConfig = connectedIntegration ? policy?.connections?.[connectedIntegration]?.config : undefined;
-    return !!(
-        connectionConfig &&
-        'autoSync' in connectionConfig &&
-        connectionConfig.autoSync &&
-        typeof connectionConfig.autoSync === 'object' &&
-        'enabled' in connectionConfig.autoSync &&
-        connectionConfig.autoSync.enabled
-    );
+    return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled) ?? false;
 }
 
 function hasUnsupportedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {

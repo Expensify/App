@@ -12,7 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {hasIntegrationAutoSync} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -76,7 +75,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
 
     const {connection} = route.params;
     const connectionName = getConnectionNameFromRouteParam(connection) as ConnectionName;
-    const autoSync = hasIntegrationAutoSync(policy, connectionName);
+    const autoSync = !!policy?.connections?.[connectionName]?.config?.autoSync?.enabled;
     const shouldShow = !!fullySetUpCardSetting.cardSetting?.paymentBankAccountID;
 
     const handleToggleContinuousReconciliation = (value: boolean) => {

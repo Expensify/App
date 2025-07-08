@@ -23,7 +23,7 @@ function getConnectionNameFromRouteParam(routeParam: ValueOf<typeof CONST.POLICY
 }
 
 function getRouteParamForConnection(connectionName: ConnectionName) {
-    return NAME_ROUTE_MAPPING[connectionName as keyof typeof NAME_ROUTE_MAPPING];
+    return NAME_ROUTE_MAPPING[connectionName];
 }
 
 export {getConnectionNameFromRouteParam, getRouteParamForConnection};
