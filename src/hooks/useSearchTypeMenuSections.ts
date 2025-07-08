@@ -1,10 +1,10 @@
 import {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
