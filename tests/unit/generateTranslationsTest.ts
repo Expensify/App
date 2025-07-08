@@ -462,6 +462,18 @@ describe('generateTranslations', () => {
             const strings = {
                 greeting: 'Hello',
                 unchanged: 'Unchanged',
+                func: (name: string) => \`Hello \${name}\`,
+                noSubstitutionTemplate: \`Helloooo\`,
+                complexFunc: (numScanning: number, numPending: number) => {
+                    const statusText: string[] = [];
+                    if (numScanning > 0) {
+                        statusText.push(\`\${numScanning} scanning\`);
+                    }
+                    if (numPending > 0) {
+                        statusText.push(\`\${numPending} pending\`);
+                    }
+                    return statusText.length > 0 ? \`1 expense (\${statusText.join(', ')})\` : '1 expense';
+                },
             };
             export default strings;
         `),
@@ -474,6 +486,18 @@ describe('generateTranslations', () => {
             const strings = {
                 greeting: '[it] Hello',
                 unchanged: '[it] Unchanged',
+                func: (name: string) => \`[it] Hello \${name}\`,
+                noSubstitutionTemplate: \`[it] Helloooo\`,
+                complexFunc: (numScanning: number, numPending: number) => {
+                    const statusText: string[] = [];
+                    if (numScanning > 0) {
+                        statusText.push(\`[it] \${numScanning} scanning\`);
+                    }
+                    if (numPending > 0) {
+                        statusText.push(\`[it] \${numPending} pending\`);
+                    }
+                    return statusText.length > 0 ? \`[it] 1 expense (\${statusText.join(', ')})\` : '[it] 1 expense';
+                },
             };
             export default strings;
         `),
@@ -498,6 +522,18 @@ describe('generateTranslations', () => {
             const strings = {
                 greeting: 'Hello',
                 unchanged: 'Unchanged',
+                func: (name: string) => \`Hello \${name}\`,
+                noSubstitutionTemplate: \`Helloooo\`,
+                complexFunc: (numScanning: number, numPending: number) => {
+                    const statusText: string[] = [];
+                    if (numScanning > 0) {
+                        statusText.push(\`\${numScanning} scanning\`);
+                    }
+                    if (numPending > 0) {
+                        statusText.push(\`\${numPending} pending\`);
+                    }
+                    return statusText.length > 0 ? \`1 expense (\${statusText.join(', ')})\` : '1 expense';
+                },
                 newKey: 'New value!',
             };
             export default strings;
@@ -513,6 +549,9 @@ describe('generateTranslations', () => {
 
         expect(itContent).toContain('[it] Hello');
         expect(itContent).toContain('[it] Unchanged');
+        // eslint-disable-next-line no-template-curly-in-string
+        expect(itContent).toContain('[it] Hello ${name}');
+        expect(itContent).toContain('[it] Helloooo');
         expect(itContent).toContain('[it] New value!');
         expect(translateSpy).toHaveBeenCalledTimes(1);
         expect(translateSpy).toHaveBeenCalledWith('it', 'New value!', undefined);
