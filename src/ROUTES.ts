@@ -1766,6 +1766,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/company-cards/settings/feed-name',
         getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/settings/feed-name` as const,
     },
+    WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE: {
+        route: 'workspaces/:policyID/company-cards/settings/statement-close-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/settings/statement-close-date` as const,
+    },
     WORKSPACE_RULES: {
         route: 'workspaces/:policyID/rules',
         getRoute: (policyID: string | undefined) => {
