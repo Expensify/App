@@ -240,8 +240,17 @@ function useFilesValidation(proceedWithFilesAction: (files: FileObject[]) => voi
             }
         }
 
-        proceedWithFilesAction(validFilesToUpload);
-        hideModalAndReset();
+        // If we're validating attachments need to use InteractionManager to ensure
+        // the error modal is dismissed before opening the attachment modal
+        if (!isValidatingReceipts && fileError) {
+            setIsErrorModalVisible(false);
+            InteractionManager.runAfterInteractions(() => {
+                proceedWithFilesAction(validFilesToUpload);
+            });
+        } else {
+            proceedWithFilesAction(validFilesToUpload);
+            hideModalAndReset();
+        }
     };
 
     const PDFValidationComponent = pdfFilesToRender.length
