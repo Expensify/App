@@ -9,7 +9,7 @@ import {putOnHold} from '@libs/actions/IOU';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
-import {getOriginalMessage} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isWhisperAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
@@ -25,6 +25,7 @@ import {
     canEditReportDescription,
     canEditRoomVisibility,
     canEditWriteCapability,
+    canFlagReportAction,
     canHoldUnholdReportAction,
     findLastAccessedReport,
     getAllAncestorReportActions,
@@ -59,6 +60,7 @@ import {
     shouldDisableThread,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
+    shouldShowFlagComment,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -74,7 +76,7 @@ import {chatReportR14932 as mockedChatReport} from '../../__mocks__/reportData/r
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import {convertedInvoiceChat} from '../data/Invoice';
 import createRandomPolicy from '../utils/collections/policies';
-import createRandomReportAction from '../utils/collections/reportActions';
+import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import {
     createAdminRoom,
     createAnnounceRoom,
@@ -2258,7 +2260,7 @@ describe('ReportUtils', () => {
             ).toBeFalsy();
         });
 
-        it('should return false when the user’s email is domain-based and the includeDomainEmail is false', () => {
+        it('should return false when the users email is domain-based and the includeDomainEmail is false', () => {
             const report = LHNTestUtils.getFakeReport();
             const currentReportId = '';
             const isInFocusMode = false;
@@ -3917,6 +3919,279 @@ describe('ReportUtils', () => {
 
             // Then it should return false (since this is a 1:1 DM and not a group chat, and none of the other conditions are met)
             expect(result).toBe(false);
+        });
+    });
+
+    describe('isWhisperAction', () => {
+        it('an action where reportAction.message.whisperedTo has accountIDs is a whisper action', () => {
+            const whisperReportAction: ReportAction = {
+                ...createRandomReportAction(1),
+            };
+            expect(isWhisperAction(whisperReportAction)).toBe(true);
+        });
+        it('an action where reportAction.originalMessage.whisperedTo does not exist is not a whisper action', () => {
+            const nonWhisperReportAction = {
+                ...createRandomReportAction(1),
+                message: [
+                    {
+                        whisperedTo: undefined,
+                    },
+                ],
+            } as ReportAction;
+            expect(isWhisperAction(nonWhisperReportAction)).toBe(false);
+        });
+    });
+
+    describe('canFlagReportAction', () => {
+        describe('a whisper action', () => {
+            const whisperReportAction: ReportAction = {
+                ...createRandomReportAction(1),
+            };
+
+            it('cannot be flagged if it is from concierge', () => {
+                const whisperReportActionFromConcierge = {
+                    ...whisperReportAction,
+                    actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                };
+
+                // The reportID doesn't matter because there is an early return for whisper actions and the report is not looked at
+                expect(canFlagReportAction(whisperReportActionFromConcierge, '123456')).toBe(false);
+            });
+
+            it('cannot be flagged if it is from the current user', () => {
+                const whisperReportActionFromCurrentUser = {
+                    ...whisperReportAction,
+                    actorAccountID: currentUserAccountID,
+                };
+
+                // The reportID doesn't matter because there is an early return for whisper actions and the report is not looked at
+                expect(canFlagReportAction(whisperReportActionFromCurrentUser, '123456')).toBe(false);
+            });
+
+            it('can be flagged if it is not from concierge or the current user', () => {
+                expect(canFlagReportAction(whisperReportAction, '123456')).toBe(true);
+            });
+        });
+
+        describe('a non-whisper action', () => {
+            const report = {
+                ...createRandomReport(1),
+            };
+            const nonWhisperReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        whisperedTo: undefined,
+                    },
+                ],
+            } as ReportAction;
+
+            beforeAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
+            });
+
+            it('cannot be flagged if it is from the current user', () => {
+                const nonWhisperReportActionFromCurrentUser = {
+                    ...nonWhisperReportAction,
+                    actorAccountID: currentUserAccountID,
+                };
+                expect(canFlagReportAction(nonWhisperReportActionFromCurrentUser, report.reportID)).toBe(false);
+            });
+
+            it('cannot be flagged if the action name is something other than ADD_COMMENT', () => {
+                const nonWhisperReportActionWithDifferentActionName = {
+                    ...nonWhisperReportAction,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                };
+                expect(canFlagReportAction(nonWhisperReportActionWithDifferentActionName, report.reportID)).toBe(false);
+            });
+
+            it('cannot be flagged if the action is deleted', () => {
+                const deletedReportAction = {
+                    ...nonWhisperReportAction,
+                    message: [
+                        {
+                            whisperedTo: undefined,
+                            html: '',
+                            deleted: getRandomDate(),
+                        },
+                    ],
+                } as ReportAction;
+                expect(canFlagReportAction(deletedReportAction, report.reportID)).toBe(false);
+            });
+
+            it('cannot be flagged if the action is a created task report', () => {
+                const createdTaskReportAction = {
+                    ...nonWhisperReportAction,
+                    originalMessage: {
+                        // This signifies that the action is a created task report along with the ADD_COMMENT action name
+                        taskReportID: '123456',
+                    },
+                } as ReportAction;
+                expect(canFlagReportAction(createdTaskReportAction, report.reportID)).toBe(false);
+            });
+
+            it('cannot be flagged if the report does not exist', () => {
+                // cspell:disable-next-line
+                expect(canFlagReportAction(nonWhisperReportAction, 'starwarsisthebest')).toBe(false);
+            });
+
+            it('cannot be flagged if the report is not allowed to be commented on', () => {
+                // eslint-disable-next-line rulesdir/no-negated-variables
+                const reportThatCannotBeCommentedOn = {
+                    ...createRandomReport(2),
+
+                    // If the permissions does not contain WRITE, then it cannot be commented on
+                    permissions: [],
+                } as Report;
+                expect(canFlagReportAction(nonWhisperReportAction, reportThatCannotBeCommentedOn.reportID)).toBe(false);
+            });
+
+            it('can be flagged', () => {
+                expect(canFlagReportAction(nonWhisperReportAction, report.reportID)).toBe(true);
+            });
+        });
+    });
+
+    // Note: shouldShowFlagComment() calls isArchivedNonExpenseReport() which has it's own unit tests, so whether
+    // the report is an expense report or not does not need to be tested here.
+    describe('shouldShowFlagComment', () => {
+        const validReportAction: ReportAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+
+            // Actor is not the current user or Concierge
+            actorAccountID: 123456,
+        };
+
+        describe('can flag report action', () => {
+            let expenseReport: Report;
+            const reportActionThatCanBeFlagged: ReportAction = {
+                ...validReportAction,
+            };
+
+            // eslint-disable-next-line rulesdir/no-negated-variables
+            const reportActionThatCannotBeFlagged: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+
+                // If the actor is Concierge, the report action cannot be flagged
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            };
+
+            beforeAll(async () => {
+                expenseReport = {
+                    ...createRandomReport(60000),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, null);
+            });
+
+            it('should return true for an archived expense report with an action that can be flagged', () => {
+                expect(shouldShowFlagComment(reportActionThatCanBeFlagged, expenseReport, true)).toBe(true);
+            });
+
+            it('should return true for a non-archived expense report with an action that can be flagged', () => {
+                expect(shouldShowFlagComment(reportActionThatCanBeFlagged, expenseReport, false)).toBe(true);
+            });
+
+            it('should return false for an archived expense report with an action that cannot be flagged', () => {
+                expect(shouldShowFlagComment(reportActionThatCannotBeFlagged, expenseReport, true)).toBe(false);
+            });
+
+            it('should return false for a non-archived expense report with an action that cannot be flagged', () => {
+                expect(shouldShowFlagComment(reportActionThatCannotBeFlagged, expenseReport, false)).toBe(false);
+            });
+        });
+
+        describe('Chat with Chronos', () => {
+            let chatReport: Report;
+
+            beforeAll(async () => {
+                chatReport = {
+                    ...createRandomReport(60000),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CHRONOS]),
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
+            });
+
+            it('should return false for an archived chat report', () => {
+                expect(shouldShowFlagComment(validReportAction, chatReport, true)).toBe(false);
+            });
+
+            it('should return false for a non-archived chat report', () => {
+                expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
+            });
+        });
+
+        describe('Chat with Concierge', () => {
+            let chatReport: Report;
+
+            beforeAll(async () => {
+                chatReport = {
+                    ...createRandomReport(60000),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: buildParticipantsFromAccountIDs([currentUserAccountID, CONST.ACCOUNT_ID.CONCIERGE]),
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+                await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, chatReport.reportID);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
+                await Onyx.set(`${ONYXKEYS.CONCIERGE_REPORT_ID}`, null);
+            });
+
+            it('should return false for an archived chat report', () => {
+                expect(shouldShowFlagComment(validReportAction, chatReport, true)).toBe(false);
+            });
+
+            it('should return false for a non-archived chat report', () => {
+                expect(shouldShowFlagComment(validReportAction, chatReport, false)).toBe(false);
+            });
+        });
+
+        describe('Action from Concierge', () => {
+            let chatReport: Report;
+            const actionFromConcierge: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+            };
+
+            beforeAll(async () => {
+                chatReport = {
+                    ...createRandomReport(60000),
+                    type: CONST.REPORT.TYPE.CHAT,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            });
+
+            afterAll(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, null);
+            });
+
+            it('should return false for an archived chat report', () => {
+                expect(shouldShowFlagComment(actionFromConcierge, chatReport, true)).toBe(false);
+            });
+
+            it('should return false for a non-archived chat report', () => {
+                expect(shouldShowFlagComment(actionFromConcierge, chatReport, false)).toBe(false);
+            });
         });
     });
 });
