@@ -503,7 +503,7 @@ In Expensify, we use an extended implementation of this function because:
 
 Here are examples how the state is generated based on route:
 
--   `workspaces/1/overview`
+-   `settings/workspaces/1/overview`
 
 ```json
 {
@@ -536,7 +536,7 @@ Here are examples how the state is generated based on route:
                         "params": {
                             "policyID": "1"
                         },
-                        "path": "workspaces/1/overview",
+                        "path": "/settings/workspaces/1/overview",
                         "key": "Workspace_Overview-key"
                     }
                 ]
