@@ -1,14 +1,13 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Animated, {Easing, Keyframe} from 'react-native-reanimated';
+import Animated, {Keyframe} from 'react-native-reanimated';
 import type {BackdropProps} from '@components/Modal/ReanimatedModal/types';
+import {easing} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-
-const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
 function Backdrop({
     style,
