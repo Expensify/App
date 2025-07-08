@@ -154,6 +154,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
             onPress={onLinkPress}
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...bind}
             linkHasImage={linkHasImage}
         >
