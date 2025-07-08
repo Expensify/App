@@ -10866,24 +10866,24 @@ function bulkHold(
 
             // If the transactionThread is optimistic, we need the transactionThreadReportID and transactionThreadCreatedReportActionID.
             holdData[transactionID].transactionThreadReportID = transactionThreadReport.reportID;
-            (holdData[transactionID].transactionThreadCreatedReportActionID = createdActionForTransactionThread.reportActionID),
-                optimisticData.push(
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
-                        value: {...transactionThreadReport, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-                    },
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
-                        value: {[createdActionForTransactionThread.reportActionID]: createdActionForTransactionThread},
-                    },
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                        value: {[iouAction.reportActionID]: {childReportID: transactionThreadReport.reportID}},
-                    },
-                );
+            holdData[transactionID].transactionThreadCreatedReportActionID = createdActionForTransactionThread.reportActionID;
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
+                    value: {...transactionThreadReport, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
+                    value: {[createdActionForTransactionThread.reportActionID]: createdActionForTransactionThread},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                    value: {[iouAction.reportActionID]: {childReportID: transactionThreadReport.reportID}},
+                },
+            );
 
             successData.push(
                 {
