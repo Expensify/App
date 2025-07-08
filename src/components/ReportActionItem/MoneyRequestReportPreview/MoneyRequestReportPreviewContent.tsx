@@ -117,7 +117,7 @@ function MoneyRequestReportPreviewContent({
     chatReportMetadata,
 }: MoneyRequestReportPreviewContentProps) {
     const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0;
-    const shouldShowLoadingDeferredValue = useDeferredValue(shouldShowLoading);
+    const shouldShowLoadingDeferred = useDeferredValue(shouldShowLoading);
     const lastTransaction = transactions?.at(0);
     const shouldShowEmptyPlaceholder = transactions.length === 0;
     const theme = useTheme();
@@ -710,7 +710,7 @@ function MoneyRequestReportPreviewContent({
                                             )}
                                         </View>
                                     </View>
-                                    {!currentWidth || shouldShowLoading || shouldShowLoadingDeferredValue ? (
+                                    {!currentWidth || shouldShowLoading || shouldShowLoadingDeferred ? (
                                         <View
                                             style={[
                                                 {
