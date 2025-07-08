@@ -269,7 +269,7 @@ function ButtonWithDropdownMenu<IValueType>({
                               }
                             : () => {
                                   onOptionSelected?.(item);
-                                  if (!item.shouldUpdateSelectedIndex && typeof item.shouldUpdateSelectedIndex === 'boolean') {
+                                  if (item.shouldUpdateSelectedIndex === false) {
                                       return;
                                   }
 
