@@ -130,6 +130,8 @@ function IOURequestStepScan({
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
 
+    const shouldAcceptMultipleFiles = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && !isEditing && !backTo;
+
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
         opacity: blinkOpacity.get(),
@@ -532,7 +534,7 @@ function IOURequestStepScan({
 
         files.forEach((file, index) => {
             const transaction =
-                !isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt)
+                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt)
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
@@ -817,7 +819,7 @@ function IOURequestStepScan({
                 <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                     <AttachmentPicker
                         onOpenPicker={() => setIsLoaderVisible(true)}
-                        fileLimit={isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
+                        fileLimit={shouldAcceptMultipleFiles ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
                     >
                         {({openPicker}) => (
                             <PressableWithFeedback

@@ -121,7 +121,7 @@ function IOURequestStepScan({
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const canUseMultiScan = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_SCAN) && !isEditing && iouType !== CONST.IOU.TYPE.SPLIT && !backTo && !backToReport;
-    const isReplacingReceipt = isEditing && hasReceipt(initialTransaction);
+    const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
 
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}),
@@ -573,7 +573,7 @@ function IOURequestStepScan({
         files.forEach((file, index) => {
             const source = URL.createObjectURL(file as Blob);
             const transaction =
-                !isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt)
+                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt)
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
