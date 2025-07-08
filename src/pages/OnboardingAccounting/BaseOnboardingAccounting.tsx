@@ -242,17 +242,15 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         });
 
         // We need to wait the policy is created before navigating out the onboarding flow
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            navigateAfterOnboardingWithMicrotaskQueue(
-                isSmallScreenWidth,
-                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                policyID,
-                adminsChatReportID,
-                // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
-                // See https://github.com/Expensify/App/issues/57167 for more details
-                (session?.email ?? '').includes('+'),
-            );
-        });
+        navigateAfterOnboardingWithMicrotaskQueue(
+            isSmallScreenWidth,
+            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+            policyID,
+            adminsChatReportID,
+            // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
+            // See https://github.com/Expensify/App/issues/57167 for more details
+            (session?.email ?? '').includes('+'),
+        );
     }, [
         isBetaEnabled,
         isSmallScreenWidth,
