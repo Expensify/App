@@ -67,6 +67,7 @@ function Confirmation() {
         selector: (allTransactions) => reviewDuplicates?.duplicates.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]),
         canBeMissing: true,
     });
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const transactionsMergeParams = useMemo(
         () => TransactionUtils.buildMergeDuplicatesParams(reviewDuplicates, duplicates ?? [], newTransaction),
         [duplicates, reviewDuplicates, newTransaction],
@@ -141,6 +142,7 @@ function Confirmation() {
                             <MoneyRequestView
                                 allReports={allReports}
                                 report={report}
+                                policy={policy}
                                 shouldShowAnimatedBackground={false}
                                 readonly
                                 isFromReviewDuplicates
