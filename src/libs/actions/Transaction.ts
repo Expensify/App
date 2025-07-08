@@ -5,7 +5,7 @@ import lodashHas from 'lodash/has';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {ChangeTransactionsReportParams, DismissViolationParams, GetRouteParams, MarkAsCashParams, TransactionThreadInfo} from '@libs/API/parameters';
+import type {ChangeTransactionsReportParams, DismissViolationParams, GetRouteParams, GetTransactionsForMergingParams, MarkAsCashParams, TransactionThreadInfo} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
@@ -935,6 +935,17 @@ function setMergeTransactionKey(transactionID: string, values: Partial<MergeTran
     Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values);
 }
 
+/**
+ * Fetches eligible transactions for merging
+ */
+function getTransactionsForMerging(transactionID: string) {
+    const parameters: GetTransactionsForMergingParams = {
+        transactionID,
+    };
+
+    API.read(READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING, parameters);
+}
+
 export {
     saveWaypoint,
     removeWaypoint,
@@ -957,4 +968,5 @@ export {
     changeTransactionsReport,
     setTransactionReport,
     setMergeTransactionKey,
+    getTransactionsForMerging,
 };
