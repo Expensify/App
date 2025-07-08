@@ -953,9 +953,7 @@ function initMoneyRequest({reportID, policy, isFromGlobalCreate, currentIouReque
         }
     }
 
-    // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
-    // Use set() here so that there is no way that data will be leaked between objects when it gets reset
-    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
+    const newTransaction = {
         amount: 0,
         comment,
         created,
@@ -967,7 +965,13 @@ function initMoneyRequest({reportID, policy, isFromGlobalCreate, currentIouReque
         isFromGlobalCreate,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         splitPayerAccountIDs: currentUserPersonalDetails ? [currentUserPersonalDetails.accountID] : undefined,
-    });
+    };
+
+    // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
+    // Use set() here so that there is no way that data will be leaked between objects when it gets reset
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, newTransaction);
+
+    return newTransaction;
 }
 
 function createDraftTransaction(transaction: OnyxTypes.Transaction) {
@@ -5478,7 +5482,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         transactionParams,
         moneyRequestReportID,
     });
-    const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
+    const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
 
     const customUnitRate = getPerDiemRateCustomUnitRate(policyParams.policy, customUnit.customUnitRateID);
 
@@ -9244,14 +9248,14 @@ function canSubmitReport(
     );
 }
 
-function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string | undefined): OnyxEntry<ReportAction> {
+function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, updatedIouReport: OnyxEntry<OnyxTypes.Report>): OnyxEntry<ReportAction> {
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
     return Object.values(chatReportActions).find((action) => {
         if (!action) {
             return false;
         }
-        const iouReport = getReportOrDraftReport(action.childReportID);
+        const iouReport = updatedIouReport?.reportID === action.childReportID ? updatedIouReport : getReportOrDraftReport(action.childReportID);
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         // eslint-disable-next-line deprecation/deprecation
         const policy = getPolicy(iouReport?.policyID);
@@ -9268,17 +9272,12 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
         const isSubmittedExpenseReport = isExpenseReport(iouReport) && iouReport?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED;
         const shouldShowSettlementButton = isSubmittedExpenseReport ? canApprove : canUserPay || canApprove;
 
-        return (
-            action.childReportID?.toString() !== excludedIOUReportID &&
-            action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
-            shouldShowSettlementButton &&
-            !isDeletedAction(action)
-        );
+        return action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton && !isDeletedAction(action);
     });
 }
 
-function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string | undefined): boolean {
-    return !!getIOUReportActionToApproveOrPay(chatReport, excludedIOUReportID);
+function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, updatedIouReport: OnyxEntry<OnyxTypes.Report>): boolean {
+    return !!getIOUReportActionToApproveOrPay(chatReport, updatedIouReport);
 }
 
 function isLastApprover(approvalChain: string[]): boolean {
@@ -9328,27 +9327,28 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
             },
         },
     };
+    const updatedExpenseReport = {
+        ...expenseReport,
+        lastMessageText: getReportActionText(optimisticApprovedReportAction),
+        lastMessageHtml: getReportActionHtml(optimisticApprovedReportAction),
+        stateNum: predictedNextState,
+        statusNum: predictedNextStatus,
+        managerID,
+        pendingFields: {
+            partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        },
+    };
     const optimisticIOUReportData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
-        value: {
-            ...expenseReport,
-            lastMessageText: getReportActionText(optimisticApprovedReportAction),
-            lastMessageHtml: getReportActionHtml(optimisticApprovedReportAction),
-            stateNum: predictedNextState,
-            statusNum: predictedNextStatus,
-            managerID,
-            pendingFields: {
-                partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-            },
-        },
+        value: updatedExpenseReport,
     };
 
     const optimisticChatReportData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
         value: {
-            hasOutstandingChildRequest: hasIOUToApproveOrPay(chatReport, expenseReport.reportID),
+            hasOutstandingChildRequest: hasIOUToApproveOrPay(chatReport, updatedExpenseReport),
         },
     };
 
