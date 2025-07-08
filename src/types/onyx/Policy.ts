@@ -1385,25 +1385,27 @@ type Connections = {
     /** QuickBooks Desktop integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: Connection<QBDConnectionData, QBDConnectionConfig>;
 
-    /** Other unsupported connections from onboarding flow */
-    other?: any;
-    sap?: any;
-    oracle?: any;
-    microsoftDynamics?: any;
-    financialForce?: any;
-    billCom?: any;
-    zenefits?: any;
-};
+    /** Other connection for onboarding flow */
+    other?: Connection<Record<string, unknown>, Record<string, unknown>>;
 
-/** All integration connections, including unsupported ones */
-type AllConnections = Connections & {
-    /** Quickbooks Desktop integration connection */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    quickbooksDesktop: any;
+    /** SAP connection for onboarding flow */
+    sap?: Connection<Record<string, unknown>, Record<string, unknown>>;
+
+    /** Oracle connection for onboarding flow */
+    oracle?: Connection<Record<string, unknown>, Record<string, unknown>>;
+
+    /** Microsoft Dynamics connection for onboarding flow */
+    microsoftDynamics?: Connection<Record<string, unknown>, Record<string, unknown>>;
+
+    /** Bill.com connection for onboarding flow */
+    billCom?: Connection<Record<string, unknown>, Record<string, unknown>>;
+
+    /** Zenefits connection for onboarding flow */
+    zenefits?: Connection<Record<string, unknown>, Record<string, unknown>>;
 };
 
 /** Names of officially supported integration connections */
-type ConnectionName = (typeof CONST.POLICY.CONNECTIONS.NAME)[keyof typeof CONST.POLICY.CONNECTIONS.NAME];
+type ConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
 
 /** Names of all integration connections including onboarding types */
 type AllConnectionName = ConnectionName | keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY;
@@ -1919,7 +1921,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
 
 /** Names of policy connection services */
-type PolicyConnectionName = ConnectionName;
+type PolicyConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
 
 /** Policy connection sync progress state */
 type PolicyConnectionSyncProgress = {

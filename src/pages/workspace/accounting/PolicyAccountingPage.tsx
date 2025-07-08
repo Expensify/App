@@ -94,7 +94,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     // Type guard to ensure we only use supported connections
     const accountingIntegrations = CONST.POLICY.POLICY_CONNECTIONS_SUPPORTED;
     const getSupportedConnection = (connectionName: string | undefined): ConnectionName | undefined => {
-        if (!connectionName || !accountingIntegrations.includes(connectionName as any)) {
+        if (!connectionName || !(accountingIntegrations as readonly string[]).includes(connectionName)) {
             return undefined;
         }
         return connectionName as ConnectionName;
@@ -521,7 +521,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         // Else, display the following and link to their Concierge DM.
         return [translate('workspace.accounting.talkToConcierge'), conciergeReportID];
-    }, [account, conciergeReportID, translate]);
+    }, [account, conciergeReportID, policy?.chatReportIDAdmins, translate]);
 
     return (
         <AccessOrNotFoundWrapper

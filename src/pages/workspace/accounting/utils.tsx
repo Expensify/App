@@ -337,11 +337,12 @@ function getSynchronizationErrorMessage(
     const syncError = translateLocal('workspace.accounting.syncError', {connectionName});
 
     const connection = policy?.connections?.[connectionName];
-    if (isSyncInProgress || isEmptyObject(connection?.lastSync) || connection?.lastSync?.isSuccessful !== false || !connection?.lastSync?.errorDate) {
+    const lastSync = connection?.lastSync;
+    if (isSyncInProgress || isEmptyObject(lastSync) || lastSync?.isSuccessful !== false || !lastSync?.errorDate) {
         return;
     }
 
-    return `${syncError} ("${connection?.lastSync?.errorMessage}")`;
+    return `${syncError} ("${lastSync?.errorMessage}")`;
 }
 
 function getQBDReimbursableAccounts(
