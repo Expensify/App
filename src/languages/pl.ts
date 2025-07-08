@@ -5969,6 +5969,7 @@ const translations = {
                 members: 'Członek',
                 cards: 'Karta',
             },
+            feed: 'Kanal',
         },
         groupBy: 'Grupa według',
         moneyRequestReport: {

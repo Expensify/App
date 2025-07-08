@@ -5949,6 +5949,7 @@ const translations = {
                 members: 'Member', // s77rt use singular key name
                 cards: 'Card', // s77rt use singular key name
             },
+            feed: 'Feed',
         },
         groupBy: 'Group by',
         moneyRequestReport: {

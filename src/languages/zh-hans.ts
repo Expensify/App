@@ -5878,6 +5878,7 @@ const translations = {
                 members: '成员',
                 cards: '卡片',
             },
+            feed: '通道',
         },
         groupBy: '组别',
         moneyRequestReport: {
