@@ -505,7 +505,8 @@ function IOURequestStepScan({
 
             // If the initial transaction already has the participants selected, then we can skip the participants step and go straight to the confirmation step.
             if (initialTransaction?.participants && initialTransaction?.participants.length > 0) {
-                navigateToConfirmationPage(false, initialTransaction?.reportID);
+                const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipants(receiptFile.transactionID, initialTransaction?.participants));
+                Promise.all(setParticipantsPromises).then(() => navigateToConfirmationPage(false, initialTransaction?.reportID));
                 return;
             }
 
