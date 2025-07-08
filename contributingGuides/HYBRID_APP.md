@@ -127,6 +127,15 @@ It's a valid question, especially because clean builds may take some time. On th
 3. Whenever `package-lock.json` has changed - this may indicate that some packages with native code were bumped (however it's not always necessary, see [[#Should I rebuild HybridApp after bumping a `node_module`?]])
 4. Whenever you've updated `.env` files
 This means that if you changed only React Native code, and didn't pull any changes, the rebuilt is probably not necessary. If something doesn't work, you can always restart the Metro bundler using the following command `npm run start --reset-cache`
+
+💡 **Tip**: If you're still experiencing build issues after running `npm run clean`, try a full Git clean:
+
+```
+git clean -fdx
+```
+This will remove all untracked files and directories, ensuring no lingering artifacts interfere with the build process.
+**Warning**: This will delete **all untracked files**, including anything not committed—make sure you’ve backed up anything important.
+
 ### Should I rebuild HybridApp after bumping a `node_modules` library?
 The `package-lock.json` file contains information about exact versions of `node_modules` that will be installed on your machine. If you've bumped a dependency on your PR you can easily check to see if you would need to rebuild the app by going to the `./node_modules/<PACKAGE_NAME>`, and seeing if there are any Objective-C, Swift, Java, Kotlin or C++ files. Usually they are located in `ios` or `android` folders.
 ### How to clear platform-specific cache?
