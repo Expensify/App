@@ -63,7 +63,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [workspaceCardFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
-    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [allFeeds = {}] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {inputQuery: originalInputQuery} = queryJSON;
     const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
     const [shouldUseAnimation, setShouldUseAnimation] = useState(false);
@@ -389,8 +389,8 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 ref={listRef}
                                 personalDetails={personalDetails}
                                 reports={reports}
-                                workspaceCardFeeds={workspaceCardFeeds}
                                 allCards={allCards}
+                                allFeeds={allFeeds}
                             />
                         </View>
                     )}
@@ -460,8 +460,8 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
                             personalDetails={personalDetails}
                             reports={reports}
-                            workspaceCardFeeds={workspaceCardFeeds}
                             allCards={allCards}
+                            allFeeds={allFeeds}
                         />
                     </View>
                 </View>
