@@ -5,7 +5,11 @@ title: Workflows
 
 # Workflows
 
-Setting up workflows on your workspace automates how expenses move from submission to payment. They keep things organized and help you control when expenses are submitted, who approves them, and how they get paid. (Only workspace admins can set them up.)
+Setting up workflows on your workspace automates how expenses move from submission to payment. They keep things organized and help you control when expenses are submitted, who approves them, and how they get paid. 
+
+**Note:** Only admins can configure workspace workflows.
+
+---
 
 - **Approval setup**: Assign approvers to review expenses before they’re paid. You can even customize approvers for different team members.
 
