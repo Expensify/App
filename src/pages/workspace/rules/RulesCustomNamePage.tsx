@@ -16,6 +16,7 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -80,7 +81,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
     };
 
     const titleError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
-    const titleFieldError = titleError && typeof titleError === 'object' ? titleError['defaultValue'] : null;
+    const titleFieldError = getLatestErrorField({errorFields: titleError ?? {}}, 'defaultValue');
 
     return (
         <AccessOrNotFoundWrapper
