@@ -317,7 +317,7 @@ function IOURequestStepScan({
     }, [backTo]);
 
     const navigateToConfirmationPage = useCallback(
-        (isTestTransaction = false, reportIDParam: string | undefined = undefined) => {
+        (shouldNavigateToSubmit = false, reportIDParam: string | undefined = undefined) => {
             switch (iouType) {
                 case CONST.IOU.TYPE.REQUEST:
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, initialTransactionID, reportID, backToReport));
@@ -329,7 +329,7 @@ function IOURequestStepScan({
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
                             CONST.IOU.ACTION.CREATE,
-                            isTestTransaction ? CONST.IOU.TYPE.SUBMIT : iouType,
+                            shouldNavigateToSubmit ? CONST.IOU.TYPE.SUBMIT : iouType,
                             initialTransactionID,
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             reportIDParam || reportID,
@@ -503,17 +503,16 @@ function IOURequestStepScan({
                 return;
             }
 
-            // If the initial transaction already has the participants selected, then we can skip the participants step and go straight to the confirmation step.
-            if (initialTransaction?.participants && initialTransaction?.participants.length > 0) {
-                const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipants(receiptFile.transactionID, initialTransaction?.participants));
-                Promise.all(setParticipantsPromises).then(() => navigateToConfirmationPage(false, initialTransaction?.reportID));
-                return;
-            }
-
             // If there was no reportID, then that means the user started this flow from the global + menu
             // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-            if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
-                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            if (
+                (!initialTransaction?.participants || initialTransaction?.participants?.at(0)?.reportID === activePolicyExpenseChat?.reportID) &&
+                iouType === CONST.IOU.TYPE.CREATE &&
+                isPaidGroupPolicy(activePolicy) &&
+                activePolicy?.isPolicyExpenseChatEnabled &&
+                !shouldRestrictUserBillableActions(activePolicy.id)
+            ) {
                 const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat));
                 Promise.all(setParticipantsPromises).then(() =>
                     Navigation.navigate(
@@ -526,6 +525,12 @@ function IOURequestStepScan({
                     ),
                 );
             } else {
+                // If the initial transaction already has the participants selected, then we can skip the participants step and go straight to the confirmation step.
+                if (initialTransaction?.participants && initialTransaction?.participants.length > 0) {
+                    const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipants(receiptFile.transactionID, initialTransaction?.participants));
+                    Promise.all(setParticipantsPromises).then(() => navigateToConfirmationPage(true, initialTransaction?.reportID));
+                    return;
+                }
                 navigateToParticipantPage(iouType, initialTransactionID, reportID);
             }
         },
