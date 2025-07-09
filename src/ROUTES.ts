@@ -2142,21 +2142,21 @@ const ROUTES = {
         },
     },
     POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
-        route: 'settings/workspaces/:policyID/accounting/xero/advanced/autosync',
+        route: 'workspaces/:policyID/accounting/xero/advanced/autosync',
         getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_AUTO_SYNC route');
             }
-            return getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/xero/advanced/autosync` as const, backTo);
+            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/advanced/autosync` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD: {
-        route: 'settings/workspaces/:policyID/accounting/xero/advanced/autosync/accounting-method',
+        route: 'workspaces/:policyID/accounting/xero/advanced/autosync/accounting-method',
         getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD route');
             }
-            return getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/xero/advanced/autosync/accounting-method` as const, backTo);
+            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/advanced/autosync/accounting-method` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR: {
