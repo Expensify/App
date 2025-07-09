@@ -1,6 +1,5 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
@@ -11,7 +10,7 @@ export default createOnyxDerivedValueConfig({
     dependencies: [ONYXKEYS.COLLECTION.TRANSACTION, ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS],
     compute: ([transactions, violations], {sourceValues, currentValue}) => {
         if (!transactions) {
-            return CONST.EMPTY_OBJECT;
+            return {};
         }
 
         // If there is a source value for transactions or transaction violations, we need to process only the transactions that have been updated or added
