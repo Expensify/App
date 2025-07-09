@@ -109,7 +109,7 @@ function usePaymentOptions({
             [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
                 text: translate('iou.settleBusiness', {formattedAmount: ''}),
                 icon: Expensicons.Building,
-                value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                value: CONST.IOU.PAYMENT_TYPE.VBBA,
                 shouldUpdateSelectedIndex: false,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {

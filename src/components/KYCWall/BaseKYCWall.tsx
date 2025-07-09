@@ -193,15 +193,15 @@ function KYCWall({
                     return;
                 }
 
-                const clickedElementLocation = getClickedTargetLocation(targetElement as HTMLDivElement);
-                const position = getAnchorPosition(clickedElementLocation);
-
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (paymentMethod || policy) {
                     setShouldShowAddPaymentMenu(false);
                     selectPaymentMethod(paymentMethod, policy);
                     return;
                 }
+
+                const clickedElementLocation = getClickedTargetLocation(targetElement as HTMLDivElement);
+                const position = getAnchorPosition(clickedElementLocation);
 
                 setPositionAddPaymentMenu(position);
                 setShouldShowAddPaymentMenu(true);
@@ -212,11 +212,18 @@ function KYCWall({
                 // Ask the user to upgrade to a gold wallet as this means they have not yet gone through our Know Your Customer (KYC) checks
                 const hasActivatedWallet = userWallet?.tierName && [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM].some((name) => name === userWallet.tierName);
 
-                if (!hasActivatedWallet) {
+                if (!hasActivatedWallet && !policy) {
                     Log.info('[KYC Wallet] User does not have active wallet');
 
                     Navigation.navigate(enablePaymentsRoute);
 
+                    return;
+                }
+
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                if (paymentMethod || policy) {
+                    setShouldShowAddPaymentMenu(false);
+                    selectPaymentMethod(paymentMethod, policy);
                     return;
                 }
             }
