@@ -158,25 +158,24 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 shouldValidateOnChange={shouldValidateOnChange}
                 shouldTrimValues={false}
                 footerContent={
-                    <View style={styles.mb2}>
-                        <OfflineWithFeedback
-                            shouldDisplayErrorAbove
-                            errors={onboardingErrorMessage ? {addWorkEmailError: onboardingErrorMessage} : undefined}
-                            errorRowStyles={[styles.mt2, styles.textWrap]}
-                            onClose={() => setOnboardingErrorMessage('')}
-                        >
-                            <Button
-                                large
-                                text={translate('common.skip')}
-                                testID="onboardingPrivateEmailSkipButton"
-                                onPress={() => {
-                                    setOnboardingErrorMessage('');
+                    <OfflineWithFeedback
+                        shouldDisplayErrorAbove
+                        style={styles.mb3}
+                        errors={onboardingErrorMessage ? {addWorkEmailError: onboardingErrorMessage} : undefined}
+                        errorRowStyles={[styles.mt2, styles.textWrap]}
+                        onClose={() => setOnboardingErrorMessage('')}
+                    >
+                        <Button
+                            large
+                            text={translate('common.skip')}
+                            testID="onboardingPrivateEmailSkipButton"
+                            onPress={() => {
+                                setOnboardingErrorMessage('');
 
-                                    setOnboardingMergeAccountStepValue(true, true);
-                                }}
-                            />
-                        </OfflineWithFeedback>
-                    </View>
+                                setOnboardingMergeAccountStepValue(true, true);
+                            }}
+                        />
+                    </OfflineWithFeedback>
                 }
                 shouldRenderFooterAboveSubmit
                 shouldHideFixErrorsAlert
