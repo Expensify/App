@@ -5,7 +5,7 @@ title: Wallet
 
 # Wallet
 
-This is where you manage all your connected cards and bank accounts — both business and personal.
+Your Wallet is the hub for all things money in Expensify. This is where you connect and manage your business and personal bank accounts, view company card details, and control how money moves in and out of your organization. Whether you're reimbursing employees, collecting payments, or issuing Expensify Cards, it all starts here.
 
 ---
 
