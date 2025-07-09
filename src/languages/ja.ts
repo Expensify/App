@@ -1156,7 +1156,7 @@ const translations = {
         automaticallyForwarded: `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>で承認済み`,
         forwarded: `承認済み`,
         rejectedThisReport: 'このレポートを拒否しました',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `精算を開始しました。${submitterDisplayName} が銀行口座を追加するまで、支払いは保留されます。`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `支払いを開始しましたが、${submitterDisplayName}が銀行口座を追加するのを待っています。`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}が支払いをキャンセルしました`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `${submitterDisplayName}が30日以内にExpensifyウォレットを有効にしなかったため、${amount}の支払いをキャンセルしました。`,
