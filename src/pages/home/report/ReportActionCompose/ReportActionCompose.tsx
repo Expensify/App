@@ -43,8 +43,6 @@ import {
     chatIncludesConcierge,
     getParentReport,
     getReportRecipientAccountIDs,
-    isExpenseReport,
-    isIOUReport,
     isReportApproved,
     isReportTransactionThread,
     isSelfDM,
