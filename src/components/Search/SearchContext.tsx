@@ -3,6 +3,7 @@ import {isMoneyRequestReport} from '@libs/ReportUtils';
 import {isTransactionCardGroupListItemType, isTransactionListItemType, isTransactionMemberGroupListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchContext, SearchContextData} from './types';
 
 const defaultSearchContextData: SearchContextData = {
@@ -41,10 +42,15 @@ function SearchContextProvider({children}: ChildrenProps) {
     const areTransactionsEmpty = useRef(true);
 
     const setCurrentSearchHash = useCallback((searchHash: number) => {
-        setSearchContextData((prevState) => ({
-            ...prevState,
-            currentSearchHash: searchHash,
-        }));
+        setSearchContextData((prevState) => {
+            if (searchHash === prevState.currentSearchHash) {
+                return prevState;
+            }
+            return {
+                ...prevState,
+                currentSearchHash: searchHash,
+            };
+        });
     }, []);
 
     const setSelectedTransactions: SearchContext['setSelectedTransactions'] = useCallback((selectedTransactions, data = []) => {
@@ -107,6 +113,10 @@ function SearchContextProvider({children}: ChildrenProps) {
             if (searchHashOrClearIDsFlag === searchContextData.currentSearchHash) {
                 return;
             }
+
+            if (searchContextData.selectedReports.length === 0 && isEmptyObject(searchContextData.selectedTransactions) && !searchContextData.shouldTurnOffSelectionMode) {
+                return;
+            }
             setSearchContextData((prevState) => ({
                 ...prevState,
                 shouldTurnOffSelectionMode,
@@ -116,7 +126,13 @@ function SearchContextProvider({children}: ChildrenProps) {
             setShouldShowExportModeOption(false);
             setExportMode(false);
         },
-        [searchContextData.currentSearchHash, setSelectedTransactions],
+        [
+            searchContextData.currentSearchHash,
+            searchContextData.selectedReports.length,
+            searchContextData.selectedTransactions,
+            searchContextData.shouldTurnOffSelectionMode,
+            setSelectedTransactions,
+        ],
     );
 
     const removeTransaction: SearchContext['removeTransaction'] = useCallback(

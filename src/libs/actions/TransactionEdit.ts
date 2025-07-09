@@ -1,6 +1,6 @@
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import type {Connection, OnyxEntry} from 'react-native-onyx';
+import type {Connection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {formatCurrentUserToAttendee} from '@libs/IOUUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -112,6 +112,10 @@ function removeDraftTransactions(shouldExcludeInitialTransaction = false) {
     return Onyx.multiSet(draftTransactionsSet);
 }
 
+function updateDraftTransactions(transactionsUpdates: OnyxUpdate[]) {
+    Onyx.update(transactionsUpdates);
+}
+
 function removeTransactionReceipt(transactionID: string | undefined) {
     if (!transactionID) {
         return;
@@ -153,5 +157,6 @@ export {
     removeTransactionReceipt,
     removeDraftTransactions,
     removeDraftSplitTransaction,
+    updateDraftTransactions,
     buildOptimisticTransactionAndCreateDraft,
 };

@@ -13,7 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {escapeTagName, getCleanedTagName, getTagList} from '@libs/PolicyUtils';
+import {escapeTagName, getCleanedTagName, getTagListByOrderWeight} from '@libs/PolicyUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -46,7 +46,7 @@ function EditTagPage({route}: EditTagPageProps) {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
             const tagName = values.tagName.trim();
             const escapedTagName = escapeTagName(values.tagName.trim());
-            const {tags} = getTagList(policyTags, route.params.orderWeight);
+            const {tags} = getTagListByOrderWeight(policyTags, route.params.orderWeight);
             if (!isRequiredFulfilled(tagName)) {
                 errors.tagName = translate('workspace.tags.tagRequiredError');
             } else if (escapedTagName === '0') {
