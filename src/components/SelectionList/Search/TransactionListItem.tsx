@@ -87,6 +87,10 @@ function TransactionListItem<TItem extends ListItem>({
         handleActionButtonPressUtil(currentSearchHash, transactionItem, () => onSelectRow(item), shouldUseNarrowLayout && !!canSelectMultiple);
     }, [canSelectMultiple, currentSearchHash, item, onSelectRow, shouldUseNarrowLayout, transactionItem]);
 
+    const handleCheckboxPress = useCallback(() => {
+        onCheckboxPress?.(item);
+    }, [item, onCheckboxPress]);
+
     return (
         <BaseListItem
             item={item}
@@ -119,7 +123,7 @@ function TransactionListItem<TItem extends ListItem>({
                         transactionItem={transactionItem}
                         shouldShowTooltip={showTooltip}
                         onButtonPress={handleActionButtonPress}
-                        onCheckboxPress={() => onCheckboxPress?.(item)}
+                        onCheckboxPress={handleCheckboxPress}
                         shouldUseNarrowLayout={!isLargeScreenWidth}
                         columns={columns}
                         isParentHovered={hovered}
