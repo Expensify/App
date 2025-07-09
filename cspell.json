@@ -98,6 +98,7 @@
         "Charleson",
         "Checkmark",
         "checkmarked",
+        "chien",
         "Chronos",
         "citi",
         "clawback",
@@ -136,6 +137,7 @@
         "deeplinks",
         "delegators",
         "delish",
+        "describedby",
         "Deutsch",
         "devportal",
         "DFOLLY",
@@ -295,6 +297,7 @@
         "killall",
         "Kowalski",
         "Krasoń",
+        "labelledby",
         "Lagertha",
         "laggy",
         "lastiPhoneLogin",
@@ -682,7 +685,8 @@
         "zoneinfo",
         "zxcv",
         "zxldvw",
-        "مثال"
+        "مثال",
+        "pnrs"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
@@ -711,6 +715,7 @@
         "assets/emojis/es.ts",
         "patches/**",
         "docs/assets/Files/**",
+        "docs/sitemap.xml",
         "ios/NewExpensify.xcodeproj/**",
         "ios/GoogleService-Info.plist",
         "ios/GoogleService-Info-DEV.plist",

@@ -419,7 +419,7 @@ function MagicCodeInput(
                             inputStyle={[styles.inputTransparent]}
                             role={CONST.ROLE.PRESENTATION}
                             style={[styles.inputTransparent]}
-                            textInputContainerStyles={[styles.borderNone]}
+                            textInputContainerStyles={[styles.borderNone, styles.bgTransparent]}
                             testID={testID}
                         />
                     </View>
@@ -435,6 +435,7 @@ function MagicCodeInput(
                                 StyleUtils.getHeightOfMagicCodeInput(),
                                 hasError || errorText ? styles.borderColorDanger : {},
                                 focusedIndex === index ? styles.borderColorFocus : {},
+                                styles.pt0,
                             ]}
                         >
                             <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(value, maxLength).at(index) ?? ''}</Text>
