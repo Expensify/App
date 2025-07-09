@@ -17,7 +17,8 @@ If you have multiple Expensify accounts, you can merge them into a single login.
 - You **cannot merge**:
   - A company account into a personal account.
   - Two company accounts on private domains.
-- If your company uses **SAML authentication**, your domain admin must approve the request. You’ll be prompted to **Switch to Classic** to initiate this.
+
+**Note:** If your company uses **SAML authentication**, a domain admin must approve the request. In that case, you’ll be prompted to **Switch to Classic** to initiate this.
 
 ---
 
