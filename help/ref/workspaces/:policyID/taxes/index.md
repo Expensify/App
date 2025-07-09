@@ -13,6 +13,6 @@ Track VAT, GST, or any other regional taxes right in Expensify. Perfect for stay
 
 - **Managing tax rates**: You can turn rates on or off, update their values, or delete them entirely. Use bulk actions to move faster, or make changes one at a time.
 
-Learn more about setting up tax rates here ➡️ **[Tax Settings](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes)**. 
+Learn more about workspace tax settings here ➡️ **[Track Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes)**. 
 
 ---
