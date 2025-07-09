@@ -98,6 +98,7 @@ function MoneyRequestParticipantsSelector(
         onParticipantsAdded,
         iouType,
         action,
+        isWorkspacesOnly = false,
         isPerDiemRequest = false,
     }: MoneyRequestParticipantsSelectorProps,
     ref: Ref<InputFocusRef>,
