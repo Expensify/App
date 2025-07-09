@@ -1,3 +1,4 @@
+import noop from 'lodash/noop';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Animated, {Easing, Keyframe} from 'react-native-reanimated';
@@ -59,7 +60,7 @@ function Backdrop({
                 accessible
                 accessibilityLabel={translate('modal.backdropLabel')}
                 onPress={onBackdropPress}
-                style={[styles.userSelectNone, styles.cursorAuto]}
+                style={[styles.userSelectNone, onBackdropPress && onBackdropPress !== noop ? styles.cursorPointer : styles.cursorAuto]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {isBackdropVisible && (
