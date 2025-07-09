@@ -1,14 +1,19 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import LottieAnimations from '@components/LottieAnimations';
+import RenderHTML from '@components/RenderHTML';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setMergeTransactionKey} from '@libs/actions/Transaction';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -25,6 +30,9 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
+
     useEffect(() => {
         getTransactionsForMerging(transactionID);
     }, [transactionID]);
@@ -32,11 +40,11 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const sections = useMemo(() => {
         return [
             {
-                data: (mergeTransaction?.eligibleTransactions ?? []).map((transaction) => ({
-                    ...transaction,
-                    keyForList: transaction.transactionID,
-                    isSelected: transaction.transactionID === mergeTransaction?.sourceTransactionID,
-                    errors: transaction.errors as Errors | undefined,
+                data: (mergeTransaction?.eligibleTransactions ?? []).map((eligibleTransaction) => ({
+                    ...eligibleTransaction,
+                    keyForList: eligibleTransaction.transactionID,
+                    isSelected: eligibleTransaction.transactionID === mergeTransaction?.sourceTransactionID,
+                    errors: eligibleTransaction.errors as Errors | undefined,
                 })),
                 shouldShow: true,
             },
@@ -50,6 +58,18 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             });
         },
         [transactionID],
+    );
+
+    const headerContent = useMemo(
+        () => (
+            <View style={[styles.ph5, styles.pb5]}>
+                <Text style={[styles.textLabel, styles.minHeight5]}>
+                    <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge')} />
+                    <Text style={[styles.textBold]}> {report?.reportName ?? ''}</Text>
+                </Text>
+            </View>
+        ),
+        [report?.reportName, translate, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.textBold],
     );
 
     if (mergeTransaction?.eligibleTransactions?.length === 0) {
@@ -80,6 +100,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             showLoadingPlaceholder
             LoadingPlaceholderComponent={MergeExpensesSkeleton}
             fixedNumItemsForLoader={3}
+            headerContent={headerContent}
             onConfirm={console.log}
         />
     );

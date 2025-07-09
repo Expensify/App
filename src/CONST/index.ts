@@ -3028,6 +3028,7 @@ const CONST = {
         FinancialForce: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
         'Sage Intacct': 'https://help.expensify.com/articles/new-expensify/connections/sage-intacct/Configure-Sage-Intacct',
         Certinia: 'https://help.expensify.com/articles/expensify-classic/connections/certinia/Connect-To-Certinia',
+        MERGE_EXPENSES: 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Merging-expenses',
     },
 
     CUSTOM_UNITS: {
