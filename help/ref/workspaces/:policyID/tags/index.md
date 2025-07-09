@@ -5,7 +5,9 @@ title: Tags
 
 # Tag Settings
 
-Tags help you track extra details on expenses—like projects, cost centers, locations, or clients—so you can organize your spend beyond just categories. You can add them manually or sync them automatically from your accounting software like QuickBooks Online, Xero, NetSuite, or Intacct.
+Tags help you track extra details on expenses—like projects, cost centers, locations, or clients—so you can organize your spend beyond just categories. You can add them manually or sync them automatically from your accounting software.
+
+---
 
 - **How to add tags**: Click the green + button to add tags manually, or upload up to 50,000 at once with a spreadsheet. Using an accounting integration? Your tags will sync automatically.
 
