@@ -50,7 +50,7 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getTransactionID, hasReceipt as hasReceiptTransactionUtils, isDistanceRequest} from '@libs/TransactionUtils';
+import {getTransactionID, isDistanceRequest} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import Navigation from '@navigation/Navigation';
 import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
@@ -235,8 +235,6 @@ function ReportActionCompose({
 
     const isSingleTransactionView = useMemo(() => !!transaction && !!reportTransactions && reportTransactions.length === 1, [transaction, reportTransactions]);
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && !isDistanceRequest(transaction);
-
-    const hasReceipt = useMemo(() => hasReceiptTransactionUtils(transaction), [transaction]);
 
     const shouldDisplayDualDropZone = useMemo(() => {
         const parentReport = getParentReport(report);
@@ -669,10 +667,10 @@ function ReportActionCompose({
                                         {/* TODO: remove beta check after the feature is enabled */}
                                         {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && shouldDisplayDualDropZone && (
                                             <DualDropZone
-                                                isEditing={isTransactionThreadView && hasReceipt}
+                                                isEditing={shouldAddOrReplaceReceipt}
                                                 onAttachmentDrop={handleAttachmentDrop}
                                                 onReceiptDrop={handleAddingReceipt}
-                                                shouldAcceptSingleReceipt={isSingleTransactionView || isTransactionThreadView}
+                                                shouldAcceptSingleReceipt={shouldAddOrReplaceReceipt}
                                             />
                                         )}
                                         {isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && !shouldDisplayDualDropZone && (
