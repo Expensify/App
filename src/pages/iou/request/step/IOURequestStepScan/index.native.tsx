@@ -130,6 +130,8 @@ function IOURequestStepScan({
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
     }, [initialTransaction, initialTransactionID, optimisticTransactions]);
 
+    const shouldAcceptMultipleFiles = isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) && !isEditing && !backTo;
+
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
         opacity: blinkOpacity.get(),
@@ -442,8 +444,14 @@ function IOURequestStepScan({
 
             // If there was no reportID, then that means the user started this flow from the global + menu
             // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-            if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
-                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+            if (
+                (!initialTransaction?.participants || initialTransaction?.participants?.at(0)?.reportID === activePolicyExpenseChat?.reportID) &&
+                iouType === CONST.IOU.TYPE.CREATE &&
+                isPaidGroupPolicy(activePolicy) &&
+                activePolicy?.isPolicyExpenseChatEnabled &&
+                !shouldRestrictUserBillableActions(activePolicy.id)
+            ) {
                 const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat));
                 Promise.all(setParticipantsPromises).then(() =>
                     Navigation.navigate(
@@ -456,6 +464,12 @@ function IOURequestStepScan({
                     ),
                 );
             } else {
+                // If the initial transaction already has the participants selected, then we can skip the participants step and go straight to the confirmation step.
+                if (initialTransaction?.participants && initialTransaction?.participants.length > 0) {
+                    const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipants(receiptFile.transactionID, initialTransaction?.participants));
+                    Promise.all(setParticipantsPromises).then(() => navigateToConfirmationPage(false, initialTransaction?.reportID));
+                    return;
+                }
                 navigateToParticipantPage(iouType, initialTransactionID, reportID);
             }
         },
@@ -464,16 +478,18 @@ function IOURequestStepScan({
             report,
             reportNameValuePairs,
             iouType,
+            initialTransaction?.participants,
+            initialTransaction?.currency,
+            initialTransaction?.reportID,
             activePolicy,
             initialTransactionID,
             navigateToConfirmationPage,
             shouldSkipConfirmation,
             personalDetails,
             createTransaction,
-            currentUserPersonalDetails.login,
+            currentUserPersonalDetails?.login,
             currentUserPersonalDetails.accountID,
             reportID,
-            initialTransaction?.currency,
             transactionTaxCode,
             transactionTaxAmount,
             policy,
@@ -532,7 +548,7 @@ function IOURequestStepScan({
 
         files.forEach((file, index) => {
             const transaction =
-                !isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt)
+                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && !initialTransaction?.receipt?.source)
                     ? (initialTransaction as Partial<Transaction>)
                     : buildOptimisticTransactionAndCreateDraft({
                           initialTransaction: initialTransaction as Partial<Transaction>,
@@ -817,7 +833,7 @@ function IOURequestStepScan({
                 <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                     <AttachmentPicker
                         onOpenPicker={() => setIsLoaderVisible(true)}
-                        fileLimit={isBetaEnabled(CONST.BETAS.NEWDOT_MULTI_FILES_DRAG_AND_DROP) ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
+                        fileLimit={shouldAcceptMultipleFiles ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
                     >
                         {({openPicker}) => (
                             <PressableWithFeedback

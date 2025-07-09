@@ -244,6 +244,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                                 pendingAction={reportPendingAction}
                                 isComposerFullSize={!!isComposerFullSize}
                                 lastReportAction={lastReportAction}
+                                reportTransactions={transactions}
                             />
                             <PortalHost name="suggestions" />
                         </>
