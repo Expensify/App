@@ -188,6 +188,30 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
         members.push(...personalDetailsFormatted);
 
+        if (inviteOptions.userToInvite) {
+            const hasUnselectedUserToInvite = !selectedLogins.some((selectedLogin) => selectedLogin === inviteOptions.userToInvite?.login);
+
+            if (hasUnselectedUserToInvite) {
+                const userToInviteFormatted = formatMemberForList(inviteOptions.userToInvite);
+                const userToInvite = {
+                    ...userToInviteFormatted,
+                    icons: userToInviteFormatted.icons?.map((icon) => ({
+                        ...icon,
+                        source: icon.source === FallbackAvatar ? '' : icon.source,
+                    })),
+                    rightElement: (
+                        <MemberRightIcon
+                            role={policy?.employeeList?.[userToInviteFormatted.login]?.role}
+                            owner={policy?.owner}
+                            login={userToInviteFormatted.login}
+                        />
+                    ),
+                };
+                
+                members.push(userToInvite);
+            }
+        }
+
         const filteredMembers =
             debouncedSearchTerm !== '' ? tokenizedSearch(members, getSearchValueForPhoneOrEmail(debouncedSearchTerm), (option) => [option.text ?? '', option.login ?? '']) : members;
 
@@ -208,6 +232,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         approversEmail,
         personalDetailLogins,
         inviteOptions.personalDetails,
+        inviteOptions.userToInvite,
     ]);
 
     const goBack = useCallback(() => {
