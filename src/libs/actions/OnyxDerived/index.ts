@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import ONYX_DERIVED_VALUES from './ONYX_DERIVED_VALUES';
 import type {DerivedValueContext} from './types';
+import {setDerivedValue} from './utils';
 
 /**
  * Initialize all Onyx derived values, store them in Onyx, and setup listeners to update them when dependencies change.
@@ -41,7 +42,7 @@ function init() {
                     };
                     derivedValue = compute(dependencyValues, initialContext);
                     dependencyValues = values;
-                    Onyx.set(key, derivedValue ?? null);
+                    setDerivedValue(key, derivedValue ?? null);
                 });
             }
 
