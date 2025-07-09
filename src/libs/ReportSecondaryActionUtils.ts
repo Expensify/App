@@ -294,7 +294,8 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportClosed = isClosedReportUtils(report);
 
-    if (isReportPayer && arePaymentsEnabled && (isReportApproved || isReportClosed)) {
+    const isReportSettled = isSettled(report);
+    if (isReportPayer && arePaymentsEnabled && (isReportApproved || isReportClosed || isReportSettled)) {
         return true;
     }
 
@@ -425,7 +426,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     }
 
     if (isInvoiceReport) {
-        return report?.ownerAccountID === getCurrentUserAccountID();
+        return report?.ownerAccountID === getCurrentUserAccountID() && isReportOpenOrProcessing;
     }
 
     // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.

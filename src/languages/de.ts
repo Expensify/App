@@ -1157,8 +1157,7 @@ const translations = {
         automaticallyForwarded: `genehmigt über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Arbeitsbereichsregeln</a>`,
         forwarded: `genehmigt`,
         rejectedThisReport: 'diesen Bericht abgelehnt',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) =>
-            `hat begonnen, die Abrechnung zu erledigen. Die Zahlung wird zurückgehalten, bis ${submitterDisplayName} ein Bankkonto hinzufügt.`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein Bankkonto hinzufügt.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''} hat die Zahlung storniert`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `hat die Zahlung von ${amount} storniert, weil ${submitterDisplayName} ihre Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
@@ -1549,6 +1548,7 @@ const translations = {
             phrase4: 'Datenschutz',
         },
         help: 'Hilfe',
+        whatIsNew: 'Was ist neu',
         accountSettings: 'Kontoeinstellungen',
         account: 'Konto',
         general: 'Allgemein',
