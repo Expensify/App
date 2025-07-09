@@ -4407,7 +4407,7 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
 }
 
 function getCashExpenseReimbursableMode(policyID: string): PolicyCashExpenseMode | undefined {
-    const policy = getPolicy(policyID);
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     if (!policy) {
         return undefined;
     }
@@ -4433,7 +4433,7 @@ function getCashExpenseReimbursableMode(policyID: string): PolicyCashExpenseMode
  * @param reimbursableMode - reimbursable mode to set for the given policy
  */
 function setPolicyReimbursableMode(policyID: string, reimbursableMode: PolicyCashExpenseMode) {
-    const policy = getPolicy(policyID);
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
     const originalDefaultReimbursable = policy?.defaultReimbursable;
     const originalDefaultReimbursableDisabled = policy?.disabledFields?.reimbursable;
