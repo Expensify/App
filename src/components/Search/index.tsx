@@ -1,6 +1,7 @@
 import {useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
+import type {ContentStyle} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {View} from 'react-native';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -57,7 +58,7 @@ import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactio
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-    contentContainerStyle?: StyleProp<ViewStyle>;
+    contentContainerStyle?: ContentStyle;
     currentSearchResults?: SearchResults;
     lastNonEmptySearchResults?: SearchResults;
     handleSearch: (value: SearchParams) => void;
@@ -202,6 +203,10 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     }, [selectedTransactions, selectionMode?.isEnabled, shouldTurnOffSelectionMode]);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
         const selectedKeys = Object.keys(selectedTransactions).filter((key) => selectedTransactions[key]);
         if (!isSmallScreenWidth) {
             if (selectedKeys.length === 0) {
@@ -219,11 +224,12 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     }, [isSmallScreenWidth, selectedTransactions, selectionMode?.isEnabled]);
 
     useEffect(() => {
-        if (isOffline) {
+        if (!isFocused || isOffline) {
             return;
         }
 
         handleSearch({queryJSON, offset});
+        // We don't need to run the effect on change of isFocused.
     }, [handleSearch, isOffline, offset, queryJSON]);
 
     useEffect(() => {
@@ -264,6 +270,10 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const isRefreshingSelection = useRef(false);
 
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
         if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
             return;
         }
@@ -319,7 +329,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [data, setSelectedTransactions, isExportMode]);
+    }, [data, setSelectedTransactions, isExportMode, isFocused]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -345,7 +355,11 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     }, [selectedTransactions]);
 
     useEffect(() => {
-        if (!data.length || isRefreshingSelection.current || !isFocused) {
+        if (!isFocused) {
+            return;
+        }
+
+        if (!data.length || isRefreshingSelection.current) {
             return;
         }
         const areItemsGrouped = !!groupBy;
@@ -458,6 +472,10 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const onViewableItemsChanged = useCallback(
         ({viewableItems}: {viewableItems: ViewToken[]}) => {
+            if (!isFocused) {
+                return;
+            }
+
             const isFirstItemVisible = viewableItems.at(0)?.index === 1;
             // If the user is still loading the search results, or if they are scrolling down, don't refresh the search results
             if (shouldShowLoadingState || !isFirstItemVisible) {
@@ -470,7 +488,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             // Therefore, when the user scrolls to the top, we need to refresh the search results.
             setOffset(0);
         },
-        [shouldShowLoadingState],
+        [shouldShowLoadingState, isFocused],
     );
 
     if (shouldShowLoadingState) {
@@ -543,7 +561,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     }
 
     const fetchMoreResults = () => {
-        if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
+        if (!isFocused || !searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
         }
         setOffset(offset + CONST.SEARCH.RESULTS_PAGE_SIZE);
@@ -618,7 +636,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         />
                     )
                 }
-                contentContainerStyle={[contentContainerStyle, styles.pb3]}
+                contentContainerStyle={{...contentContainerStyle, ...styles.pb3}}
                 containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 onScroll={onSearchListScroll}
