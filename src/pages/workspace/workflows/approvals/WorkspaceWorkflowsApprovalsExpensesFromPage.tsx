@@ -207,7 +207,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         />
                     ),
                 };
-                
+
                 members.push(userToInvite);
             }
         }
