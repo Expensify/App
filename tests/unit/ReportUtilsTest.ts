@@ -4026,7 +4026,7 @@ describe('ReportUtils', () => {
             expect(canLeaveChat(report, reportPolicy)).toBe(true);
         });
 
-        it('should return false if the chat is public room and the user is annonymous', async () => {
+        it('should return false if the chat is public room and the user is the guest', async () => {
             const report: Report = {
                 ...createRandomReport(1),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
