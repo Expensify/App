@@ -214,7 +214,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const isSystemChat = useMemo(() => isSystemChatUtil(report), [report]);
     const isGroupChat = useMemo(() => isGroupChatUtil(report), [report]);
-    const isRootGroupChat = useMemo(() => isRootGroupChatUtil(report, !!reportNameValuePairs?.private_isArchived), [report, reportNameValuePairs]);
+    const isRootGroupChat = useMemo(() => isRootGroupChatUtil(report, isReportArchived), [report, isReportArchived]);
     const isThread = useMemo(() => isThreadUtil(report), [report]);
     const shouldOpenRoomMembersPage = isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin);
     const participants = useMemo(() => {

@@ -24,6 +24,8 @@ import {
     canEditReportDescription,
     canEditWriteCapability,
     canHoldUnholdReportAction,
+    canJoinChat,
+    canLeaveChat,
     findLastAccessedReport,
     getAllAncestorReportActions,
     getApprovalChain,
@@ -50,6 +52,7 @@ import {
     isDeprecatedGroupDM,
     isPayer,
     isReportOutstanding,
+    isRootGroupChat,
     parseReportRouteParams,
     prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
@@ -3318,73 +3321,33 @@ describe('ReportUtils', () => {
                 parentReportActionID: '1',
                 parentReportID: '1',
                 type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    [currentUserAccountID]: {
-                        notificationPreference: 'always',
-                    },
-                    1: {
-                        notificationPreference: 'always',
-                    },
-                    2: {
-                        notificationPreference: 'always',
-                    },
-                },
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
-            expect(isDeprecatedGroupDM(report, false)).toBeFalsy();
+            expect(isDeprecatedGroupDM(report)).toBeFalsy();
         });
 
         it('should return false if the report is a task report', () => {
             const report: Report = {
                 ...createRandomReport(0),
                 type: CONST.REPORT.TYPE.TASK,
-                participants: {
-                    [currentUserAccountID]: {
-                        notificationPreference: 'always',
-                    },
-                    1: {
-                        notificationPreference: 'always',
-                    },
-                    2: {
-                        notificationPreference: 'always',
-                    },
-                },
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
-            expect(isDeprecatedGroupDM(report, false)).toBeFalsy();
+            expect(isDeprecatedGroupDM(report)).toBeFalsy();
         });
 
         it('should return false if the report is a money request report', () => {
             const report: Report = {
                 ...createRandomReport(0),
                 type: CONST.REPORT.TYPE.EXPENSE,
-                participants: {
-                    [currentUserAccountID]: {
-                        notificationPreference: 'always',
-                    },
-                    1: {
-                        notificationPreference: 'always',
-                    },
-                    2: {
-                        notificationPreference: 'always',
-                    },
-                },
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
-            expect(isDeprecatedGroupDM(report, false)).toBeFalsy();
+            expect(isDeprecatedGroupDM(report)).toBeFalsy();
         });
 
         it('should return false if the report is an archived room', () => {
             const report: Report = {
                 ...createRandomReport(0),
-                participants: {
-                    [currentUserAccountID]: {
-                        notificationPreference: 'always',
-                    },
-                    1: {
-                        notificationPreference: 'always',
-                    },
-                    2: {
-                        notificationPreference: 'always',
-                    },
-                },
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
             expect(isDeprecatedGroupDM(report, true)).toBeFalsy();
         });
@@ -3393,56 +3356,29 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(0),
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-                participants: {
-                    [currentUserAccountID]: {
-                        notificationPreference: 'always',
-                    },
-                    1: {
-                        notificationPreference: 'always',
-                    },
-                    2: {
-                        notificationPreference: 'always',
-                    },
-                },
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
-            expect(isDeprecatedGroupDM(report, false)).toBeFalsy();
+            expect(isDeprecatedGroupDM(report)).toBeFalsy();
         });
 
-        it('should return false if the report has less than 2 participant', () => {
+        it('should return false if the report has less than 2 participants', () => {
             const report: Report = {
                 ...createRandomReport(0),
                 chatType: undefined,
                 type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    [currentUserAccountID]: {
-                        notificationPreference: 'always',
-                    },
-                    1: {
-                        notificationPreference: 'always',
-                    },
-                },
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
-            expect(isDeprecatedGroupDM(report, false)).toBeFalsy();
+            expect(isDeprecatedGroupDM(report)).toBeFalsy();
         });
 
-        it('should return true if the report has more than 2 participant', () => {
+        it('should return true if the report has more than 2 participants', () => {
             const report: Report = {
                 ...createRandomReport(0),
                 chatType: undefined,
                 type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    [currentUserAccountID]: {
-                        notificationPreference: 'always',
-                    },
-                    1: {
-                        notificationPreference: 'always',
-                    },
-                    2: {
-                        notificationPreference: 'always',
-                    },
-                },
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
             };
-            expect(isDeprecatedGroupDM(report, false)).toBeTruthy();
+            expect(isDeprecatedGroupDM(report)).toBeTruthy();
         });
     });
 
@@ -3632,6 +3568,259 @@ describe('ReportUtils', () => {
 
             // Then it should return false (since this is a 1:1 DM and not a group chat, and none of the other conditions are met)
             expect(result).toBe(false);
+        });
+    });
+
+    describe('canLeaveChat', () => {
+        beforeEach(async () => {
+            jest.clearAllMocks();
+
+            await Onyx.clear();
+        });
+
+        it('should return true for root group chat', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            };
+
+            expect(canLeaveChat(report, undefined, undefined)).toBe(true);
+        });
+
+        it('should return true for policy expense chat if the user is not the owner and the user is not an admin', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                isOwnPolicyExpenseChat: false,
+                policyID: '1',
+            };
+
+            const reportPolicy: Policy = {
+                ...createRandomPolicy(1),
+                role: CONST.POLICY.ROLE.USER,
+            };
+
+            expect(canLeaveChat(report, reportPolicy)).toBe(true);
+        });
+
+        it('should return false if the chat is public room and the user is annonymous', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC,
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID, authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+
+            expect(canLeaveChat(report, undefined)).toBe(false);
+        });
+
+        it('should return false if the report is hidden for the current user', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    ...buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            expect(canLeaveChat(report, undefined)).toBe(false);
+        });
+
+        it('should return false for selfDM reports', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            };
+
+            expect(canLeaveChat(report, undefined)).toBe(false);
+        });
+
+        it('should return false for the public announce room if the user is a member of the policy', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                visibility: CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE,
+            };
+
+            const reportPolicy: Policy = {
+                ...createRandomPolicy(1),
+                role: CONST.POLICY.ROLE.USER,
+            };
+
+            expect(canLeaveChat(report, reportPolicy)).toBe(false);
+        });
+
+        it('should return true for the invoice room if the user is not the sender or receiver', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                invoiceReceiver: {
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                    accountID: 1234,
+                },
+                policyID: '1',
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            const reportPolicy: Policy = {
+                ...createRandomPolicy(1),
+                role: CONST.POLICY.ROLE.USER,
+            };
+
+            expect(canLeaveChat(report, reportPolicy)).toBe(true);
+        });
+
+        it('should return true for chat thread if the user is joined', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            expect(canLeaveChat(report, undefined)).toBe(true);
+        });
+
+        it('should return true for user created policy room', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            const reportPolicy: Policy = {
+                ...createRandomPolicy(1),
+                role: CONST.POLICY.ROLE.USER,
+            };
+
+            expect(canLeaveChat(report, reportPolicy)).toBe(true);
+        });
+    });
+
+    describe('canJoinChat', () => {
+        beforeEach(async () => {
+            jest.clearAllMocks();
+
+            await Onyx.clear();
+        });
+
+        it('should return false if the parent report action is a whisper action', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+            };
+
+            const parentReportAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    whisperedTo: [1234],
+                },
+            };
+
+            expect(canJoinChat(report, parentReportAction, undefined)).toBe(false);
+        });
+
+        it('should return false if the report is not hidden for the current user', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            expect(canJoinChat(report, undefined, undefined)).toBe(false);
+        });
+
+        it('should return false if the report is one of these types: group chat, selfDM, invoice room, system chat, expense chat', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            };
+
+            expect(canJoinChat(report, undefined, undefined)).toBe(false);
+        });
+
+        it('should return false if the report is archived', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+            };
+
+            expect(canJoinChat(report, undefined, undefined, true)).toBe(false);
+        });
+
+        it('should return true if the report is chat thread', async () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    ...buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+                    [currentUserAccountID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                    },
+                },
+                chatType: undefined,
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+
+            expect(canJoinChat(report, undefined, undefined)).toBe(true);
+        });
+    });
+
+    describe('isRootGroupChat', () => {
+        it('should return false if the report is chat thread', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+            };
+
+            expect(isRootGroupChat(report)).toBe(false);
+        });
+
+        it('should return true if the report is a group chat and it is not a chat thread', () => {
+            const report: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            };
+
+            expect(isRootGroupChat(report)).toBe(true);
+        });
+
+        it('should return true if the report is a deprecated group DM and it is not a chat thread', () => {
+            const report: Report = {
+                ...createRandomReport(0),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1, 2]),
+            };
+            expect(isRootGroupChat(report)).toBe(true);
         });
     });
 });

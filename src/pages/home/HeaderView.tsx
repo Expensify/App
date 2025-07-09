@@ -26,6 +26,7 @@ import Tooltip from '@components/Tooltip';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
@@ -119,12 +120,13 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSelfDM = isSelfDMReportUtils(report);
-    const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, !!reportNameValuePairs?.private_isArchived);
+    const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, isReportArchived);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;

@@ -39,7 +39,7 @@ function RoomNamePage({report}: RoomNamePageProps) {
     const {translate} = useLocalize();
     const reportID = report?.reportID;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const isReportArchived = useReportIsArchived(reportID);
+    const isReportArchived = useReportIsArchived(report?.reportID);
 
     const goBack = useCallback(() => {
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, route.params.backTo)));

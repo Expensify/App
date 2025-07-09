@@ -9223,7 +9223,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
  * - More than 2 participants.
  *
  */
-function isDeprecatedGroupDM(report: OnyxEntry<Report>, isReportArchived: boolean): boolean {
+function isDeprecatedGroupDM(report: OnyxEntry<Report>, isReportArchived = false): boolean {
     return !!(
         report &&
         !isChatThread(report) &&
@@ -9243,7 +9243,7 @@ function isDeprecatedGroupDM(report: OnyxEntry<Report>, isReportArchived: boolea
 /**
  * A "root" group chat is the top level group chat and does not refer to any threads off of a Group Chat
  */
-function isRootGroupChat(report: OnyxEntry<Report>, isReportArchived: boolean): boolean {
+function isRootGroupChat(report: OnyxEntry<Report>, isReportArchived = false): boolean {
     return !isChatThread(report) && (isGroupChat(report) || isDeprecatedGroupDM(report, isReportArchived));
 }
 
@@ -9715,7 +9715,7 @@ function isAdminOwnerApproverOrReportOwner(report: OnyxEntry<Report>, policy: On
 /**
  * Whether the user can join a report
  */
-function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction>, policy: OnyxInputOrEntry<Policy>, isReportArchived: boolean): boolean {
+function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction>, policy: OnyxInputOrEntry<Policy>, isReportArchived = false): boolean {
     // We disabled thread functions for whisper action
     // So we should not show join option for existing thread on whisper message that has already been left, or manually leave it
     if (isWhisperAction(parentReportAction)) {
@@ -9748,7 +9748,7 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxInputOrE
 /**
  * Whether the user can leave a report
  */
-function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived: boolean): boolean {
+function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived = false): boolean {
     if (isRootGroupChat(report, isReportArchived)) {
         return true;
     }
