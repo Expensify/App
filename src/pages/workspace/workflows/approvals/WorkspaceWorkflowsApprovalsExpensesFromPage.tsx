@@ -188,6 +188,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
         members.push(...personalDetailsFormatted);
 
+        // Add userToInvite option if available
         if (inviteOptions.userToInvite) {
             const hasUnselectedUserToInvite = !selectedLogins.some((selectedLogin) => selectedLogin === inviteOptions.userToInvite?.login);
 
