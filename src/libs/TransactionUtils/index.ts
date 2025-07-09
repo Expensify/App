@@ -1423,7 +1423,7 @@ function updateDuplicatesTransactionsViolations(transactionID: string, transacti
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
-            value: optimisticViolations,
+            value: optimisticViolations.length > 0 ? optimisticViolations : null,
         });
 
         onyxData.failureData?.push({
