@@ -123,6 +123,8 @@ function BaseRecordTroubleshootDataToolMenu({
         });
     }, [shouldShowProfileTool]);
 
+    const onStopProfiling = useMemo(() => (shouldShowProfileTool ? stopProfiling : () => Promise.resolve()), [shouldShowProfileTool]);
+
     const onToggle = () => {
         if (shouldShowProfileTool) {
             onToggleProfiling();
@@ -151,25 +153,83 @@ function BaseRecordTroubleshootDataToolMenu({
         const logsWithParsedMessages = parseStringifiedMessages(logs);
 
         const infoFileName = `App_Info_${pkg.version}.json`;
-        getAppInfo().then((appInfo) => {
-            zipRef.current?.file(infoFileName, appInfo);
-
-            onDisableLogging(logsWithParsedMessages).then(() => {
-                disableLoggingAndFlushLogs();
-                setShouldRecordTroubleshootData(false);
-                setIsDisabled(false);
-            });
-        });
-    };
-
-    const onStopProfiling = useMemo(() => (shouldShowProfileTool ? stopProfiling : () => Promise.resolve()), [shouldShowProfileTool]);
-
-    const onDisableSwitch = useCallback(() => {
+        // Try to move the stop profiling logic here, platform based
         if (getPlatform() === CONST.PLATFORM.WEB) {
             onStopProfiling(true, newFileName).then(() => {
-                onDownloadZip?.();
+                getAppInfo().then((appInfo) => {
+                    zipRef.current?.file(infoFileName, appInfo);
+
+                    onDisableLogging(logsWithParsedMessages).then(() => {
+                        disableLoggingAndFlushLogs();
+                        setShouldRecordTroubleshootData(false);
+                        setIsDisabled(false);
+                        onDownloadZip?.();
+                    });
+                });
             });
-        } else if (getPlatform() === CONST.PLATFORM.DESKTOP) {
+            // This is the default ios fallback, android and desktop will be added later
+        } else {
+            onStopProfiling(true, newFileName).then((path) => {
+                if (!path) {
+                    return;
+                }
+
+                const newFilePath = `${pathToBeUsed}/${newFileName}`;
+
+                RNFS.exists(newFilePath)
+                    .then((fileExists) => {
+                        if (!fileExists) {
+                            return;
+                        }
+
+                        return RNFS.unlink(newFilePath).then(() => {
+                            Log.hmmm('[ProfilingToolMenu] existing file deleted successfully');
+                        });
+                    })
+                    .catch((error) => {
+                        const typedError = error as Error;
+                        Log.hmmm('[ProfilingToolMenu] error checking/deleting existing file: ', typedError.message);
+                    })
+                    .then(() => {
+                        RNFS.copyFile(path, newFilePath)
+                            .then(() => {
+                                getAppInfo().then((appInfo) => {
+                                    zipRef.current?.file(infoFileName, appInfo);
+
+                                    onDisableLogging(logsWithParsedMessages).then(() => {
+                                        disableLoggingAndFlushLogs();
+                                        setShouldRecordTroubleshootData(false);
+                                        setIsDisabled(false);
+                                        onDownloadZip?.();
+                                    });
+                                });
+                                Log.hmmm('[ProfilingToolMenu] file copied successfully');
+                                // setShareUrls([`file://${newFilePath}`, `file://${file?.path}`]);
+                                setShareUrls([`file://${newFilePath}`]);
+                            })
+                            .catch((err) => {
+                                console.error('[ProfilingToolMenu] error copying file: ', err);
+                            });
+                    })
+                    .catch((error: Record<string, unknown>) => {
+                        console.error('[ProfilingToolMenu] error copying file: ', error);
+                        Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
+                    });
+            });
+        }
+        // getAppInfo().then((appInfo) => {
+        //     zipRef.current?.file(infoFileName, appInfo);
+
+        //     onDisableLogging(logsWithParsedMessages).then(() => {
+        //         disableLoggingAndFlushLogs();
+        //         setShouldRecordTroubleshootData(false);
+        //         setIsDisabled(false);
+        //     });
+        // });
+    };
+
+    const onDisableSwitch = useCallback(() => {
+        if (getPlatform() === CONST.PLATFORM.DESKTOP) {
             onDownloadZip?.();
         } else if (getPlatform() === CONST.PLATFORM.ANDROID) {
             onStopProfiling(true, newFileName).then((path) => {
