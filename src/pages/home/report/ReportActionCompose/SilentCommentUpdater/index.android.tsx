@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SilentCommentUpdaterProps from './types';
 

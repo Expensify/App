@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SilentCommentUpdaterProps from './types';
