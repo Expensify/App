@@ -3389,11 +3389,6 @@ function openReportFromDeepLink(url: string) {
         return;
     }
 
-    if (CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`${route}`)) {
-        Navigation.navigate(route as Route);
-        return;
-    }
-
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
