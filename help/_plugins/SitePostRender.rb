@@ -279,7 +279,7 @@ module Jekyll
     end
 
     def self.process_bold(node, indent_level)
-      "<Text style={styles.textBold}>#{CGI.escapeHTML(CGI.escapeHTML(node.text))}</Text>"
+      "<Text style={styles.textBold}>#{CGI.escapeHTML(node.text)}</Text>"
     end
 
     def self.process_italic(node, indent_level)
