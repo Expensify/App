@@ -224,8 +224,8 @@ PODS:
     - "GoogleUtilities/NSData+zlib (~> 7.7)"
   - fmt (11.0.2)
   - ForkInputMask (7.3.3)
-  - FullStory (1.52.0)
-  - fullstory_react-native (1.7.2):
+  - FullStory (1.61.0)
+  - fullstory_react-native (1.7.6):
     - DoubleConversion
     - FullStory (~> 1.14)
     - glog
@@ -3268,7 +3268,7 @@ DEPENDENCIES:
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
-  - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.52.0-xcframework.tar.gz\"}`)"
+  - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.61.0-xcframework.tar.gz\"}`)"
   - "fullstory_react-native (from `../node_modules/@fullstory/react-native`)"
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - GzipSwift
@@ -3469,7 +3469,7 @@ EXTERNAL SOURCES:
   fmt:
     :podspec: "../node_modules/react-native/third-party-podspecs/fmt.podspec"
   FullStory:
-    :http: https://ios-releases.fullstory.com/fullstory-1.52.0-xcframework.tar.gz
+    :http: https://ios-releases.fullstory.com/fullstory-1.61.0-xcframework.tar.gz
   fullstory_react-native:
     :path: "../node_modules/@fullstory/react-native"
   glog:
@@ -3708,7 +3708,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   FullStory:
-    :http: https://ios-releases.fullstory.com/fullstory-1.52.0-xcframework.tar.gz
+    :http: https://ios-releases.fullstory.com/fullstory-1.61.0-xcframework.tar.gz
 
 SPEC CHECKSUMS:
   Airship: aa8a8f48805425d1a292db60d79235d4a4afa1cb
@@ -3741,8 +3741,8 @@ SPEC CHECKSUMS:
   FirebaseRemoteConfig: 2d6e2cfdb49af79535c8af8a80a4a5009038ec2b
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
-  FullStory: c8a10b2358c0d33c57be84d16e4c440b0434b33d
-  fullstory_react-native: 86d27070ffd12056ffb70d215cfc41f851f9c2f3
+  FullStory: 3bf0840584001b8fba01e90f9f660db43025521d
+  fullstory_react-native: de45429230721cfea8895d92d648bc0537c97c57
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
@@ -3888,6 +3888,6 @@ SPEC CHECKSUMS:
   VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
   Yoga: c758bfb934100bb4bf9cbaccb52557cee35e8bdf
 
-PODFILE CHECKSUM: 7259116b0f802ccccad12de2f41d2b5abec35add
+PODFILE CHECKSUM: fae540af843e015cab27e19d05fc3cf1c2d7e234
 
 COCOAPODS: 1.15.2
