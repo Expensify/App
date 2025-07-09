@@ -1538,6 +1538,7 @@ const translations = {
             phrase4: 'Prywatność',
         },
         help: 'Pomoc',
+        whatIsNew: 'Co nowego',
         accountSettings: 'Ustawienia konta',
         account: 'Konto',
         general: 'Ogólne',

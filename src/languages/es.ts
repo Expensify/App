@@ -1523,6 +1523,7 @@ const translations = {
             phrase4: 'Privacidad',
         },
         help: 'Ayuda',
+        whatIsNew: 'Qué hay de nuevo',
         accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',
         general: 'General',
