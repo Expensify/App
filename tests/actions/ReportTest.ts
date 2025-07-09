@@ -11,6 +11,7 @@ describe('actions/Report', () => {
 // import type {Mock} from 'jest-mock';
 // import Onyx from 'react-native-onyx';
 // import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+// import {getOnboardingMessages} from '@libs/actions/Welcome/OnboardingFlow';
 // import {WRITE_COMMANDS} from '@libs/API/types';
 // import HttpUtils from '@libs/HttpUtils';
 // import {getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -27,7 +28,7 @@ describe('actions/Report', () => {
 // import type * as OnyxTypes from '@src/types/onyx';
 // import createCollection from '../utils/collections/createCollection';
 // import createRandomReportAction from '../utils/collections/reportActions';
-// import createRandomReport from '../utils/collections/reports';
+// import {createRandomReport} from '../utils/collections/reports';
 // import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 // import PusherHelper from '../utils/PusherHelper';
 // import * as TestHelper from '../utils/TestHelper';
@@ -1550,6 +1551,7 @@ describe('actions/Report', () => {
 //             });
 //         });
 //         expect(getOriginalMessage(reportPreviewAction)?.linkedReportID).toBe(reportID);
+//         expect(reportPreviewAction?.actorAccountID).toBe(accountID);
 
 //         await new Promise<void>((resolve) => {
 //             const connection = Onyx.connect({
@@ -1558,9 +1560,10 @@ describe('actions/Report', () => {
 //                 callback: (reports) => {
 //                     Onyx.disconnect(connection);
 //                     const createdReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-
+//                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
 //                     // assert correctness of crucial onyx data
 //                     expect(createdReport?.reportID).toBe(reportID);
+//                     expect(parentPolicyExpenseChat?.lastVisibleActionCreated).toBe(reportPreviewAction?.created);
 //                     expect(createdReport?.total).toBe(0);
 //                     expect(createdReport?.parentReportActionID).toBe(reportPreviewAction?.reportActionID);
 
@@ -1596,10 +1599,11 @@ describe('actions/Report', () => {
 //             const adminsChatReportID = '7957055873634067';
 //             const onboardingPolicyID = 'A70D00C752416807';
 //             const engagementChoice = CONST.INTRO_CHOICES.MANAGE_TEAM;
+//             const {onboardingMessages} = getOnboardingMessages();
 
 //             Report.completeOnboarding({
 //                 engagementChoice,
-//                 onboardingMessage: CONST.ONBOARDING_MESSAGES[engagementChoice],
+//                 onboardingMessage: onboardingMessages[engagementChoice],
 //                 adminsChatReportID,
 //                 onboardingPolicyID,
 //                 companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
