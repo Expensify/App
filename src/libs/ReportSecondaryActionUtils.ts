@@ -221,12 +221,25 @@ function isUnapproveAction(report: Report, policy?: Policy): boolean {
     const isReportApproved = isReportApprovedUtils({report});
     const isReportSettled = isSettled(report);
     const isPaymentProcessing = report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     if (isReportSettled || isPaymentProcessing) {
         return false;
     }
 
-    return isExpenseReport && isReportApprover && isReportApproved;
+    if (!isExpenseReport || !isReportApproved) {
+        return false;
+    }
+
+    // Only final approver or admins can unapprove approved reports
+    if (report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
+        const finalApproverAccountID = report.managerID;
+        const isFinalApprover = finalApproverAccountID === getCurrentUserAccountID();
+        return isFinalApprover || isAdmin;
+    }
+
+    // Managers or admins can unapprove non-finally approved reports
+    return isReportApprover;
 }
 
 function isCancelPaymentAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
