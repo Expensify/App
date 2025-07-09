@@ -1,14 +1,13 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Animated, {Easing, Keyframe} from 'react-native-reanimated';
+import Animated, {Keyframe} from 'react-native-reanimated';
 import type {BackdropProps} from '@components/Modal/ReanimatedModal/types';
+import {easing} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-
-const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
 function Backdrop({
     style,
@@ -26,17 +25,17 @@ function Backdrop({
         const FadeIn = new Keyframe({
             from: {opacity: 0},
             to: {
-                opacity: 0.72,
+                opacity: backdropOpacity,
                 easing,
             },
         });
 
         return FadeIn.duration(animationInTiming);
-    }, [animationInTiming]);
+    }, [animationInTiming, backdropOpacity]);
 
     const Exiting = useMemo(() => {
         const FadeOut = new Keyframe({
-            from: {opacity: 0.72},
+            from: {opacity: backdropOpacity},
             to: {
                 opacity: 0,
                 easing,
@@ -44,7 +43,7 @@ function Backdrop({
         });
 
         return FadeOut.duration(animationOutTiming);
-    }, [animationOutTiming]);
+    }, [animationOutTiming, backdropOpacity]);
 
     const backdropStyle = useMemo(
         () => ({
@@ -74,14 +73,18 @@ function Backdrop({
     }
     return (
         isBackdropVisible && (
-            <Animated.View
-                entering={Entering}
-                exiting={Exiting}
+            <View
                 style={[styles.userSelectNone]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
-                <View style={[styles.modalBackdrop, backdropStyle, style]}>{!!customBackdrop && customBackdrop}</View>
-            </Animated.View>
+                <Animated.View
+                    entering={Entering}
+                    exiting={Exiting}
+                    style={[styles.modalBackdrop, backdropStyle, style]}
+                >
+                    {!!customBackdrop && customBackdrop}
+                </Animated.View>
+            </View>
         )
     );
 }
