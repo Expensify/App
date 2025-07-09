@@ -109,7 +109,7 @@ function SearchPage({route}: SearchPageProps) {
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
     const headerButtonsOptions = useMemo(() => {
-        if (selectedTransactionsKeys.length === 0 || !status || !hash) {
+        if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return [];
         }
 
