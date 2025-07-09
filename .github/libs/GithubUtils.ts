@@ -571,25 +571,6 @@ class GithubUtils {
     }
 
     /**
-     * Get the contents of a file from the API at a given ref as a string.
-     */
-    static async getFileContents(path: string, ref = 'main'): Promise<string> {
-        const {data} = await this.octokit.repos.getContent({
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            path,
-            ref,
-        });
-        if (Array.isArray(data)) {
-            throw new Error(`Provided path ${path} refers to a directory, not a file`);
-        }
-        if (!('content' in data)) {
-            throw new Error(`Provided path ${path} is invalid`);
-        }
-        return Buffer.from(data.content, 'base64').toString('utf8');
-    }
-
-    /**
      * Get commits between two tags via the GitHub API
      */
     static async getCommitHistoryBetweenTags(fromTag: string, toTag: string): Promise<CommitType[]> {
