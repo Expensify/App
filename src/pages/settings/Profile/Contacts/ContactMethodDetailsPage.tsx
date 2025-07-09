@@ -59,7 +59,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [myDomainSecurityGroups, myDomainSecurityGroupsResult] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {canBeMissing: true});
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP, {canBeMissing: true});
-    const [isLoadingReportData, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true, canBeMissing: true});
+    const [isLoadingReportData = true, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
     const [isValidateCodeFormVisible, setIsValidateCodeFormVisible] = useState(true);
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);

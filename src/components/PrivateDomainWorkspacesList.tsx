@@ -7,7 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {askToJoinPolicy, joinAccessiblePolicy} from '@userActions/Policy/Member';
 import {completeOnboarding} from '@userActions/Report';
@@ -58,8 +58,7 @@ function PrivateDomainWorkspacesList({footerContent}: PrivateDomainWorkspacesLis
             });
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID(policy.policyID);
-
-            navigateAfterOnboarding(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), policy.automaticJoiningEnabled ? policy.policyID : undefined);
+            navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), policy.automaticJoiningEnabled ? policy.policyID : undefined);
         },
         [onboardingMessages, onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, isBetaEnabled],
     );
