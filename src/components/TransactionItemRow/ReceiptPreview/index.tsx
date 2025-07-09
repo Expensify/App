@@ -1,11 +1,13 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
+import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import EReceipt from '@components/EReceipt';
 import BaseImage from '@components/Image/BaseImage';
 import type {ImageOnLoadEvent} from '@components/Image/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 
 const showPreviewDelay = 270;
 const animationDuration = 200;
@@ -14,7 +16,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''
     const [shouldShow, setShouldShow] = useState(false);
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
     const styles = useThemeStyles();
-
+    const [scaleFactor, setScaleFactor] = useState(0);
     const [aspectRatio, setAspectRatio] = useState<string | number | undefined>(undefined);
 
     const updateAspectRatio = useCallback(
@@ -36,6 +38,11 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''
         },
         [updateAspectRatio],
     );
+
+    const onLayout = (e: LayoutChangeEvent) => {
+        const {width} = e.nativeEvent.layout;
+        setScaleFactor(width / variables.eReceiptBGHWidth);
+    };
 
     useEffect(() => {
         if (hovered) {
@@ -75,10 +82,19 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''
                 </View>
             )}
             {!!isEReceipt && (
-                <EReceipt
-                    transactionID={transactionID}
-                    isThumbnail
-                />
+                <View
+                    onLayout={onLayout}
+                    style={[
+                        styles.w100,
+                        styles.dFlex,
+                        styles.flexColumn,
+                        styles.alignItemsCenter,
+                        styles.justifyContentCenter,
+                        {aspectRatio: variables.eReceiptBGHWidth / variables.eReceiptBGHeight, scale: scaleFactor},
+                    ]}
+                >
+                    <EReceipt transactionID={transactionID} />
+                </View>
             )}
         </Animated.View>,
         document.body,
