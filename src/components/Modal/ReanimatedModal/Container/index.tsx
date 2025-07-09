@@ -9,8 +9,8 @@ import CONST from '@src/CONST';
 
 function Container({
     style,
-    animationInTiming = 300,
-    animationOutTiming = 300,
+    animationInTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN,
+    animationOutTiming = CONST.MODAL.ANIMATION_TIMING.DEFAULT_OUT,
     onCloseCallBack,
     onOpenCallBack,
     animationIn,

@@ -44,6 +44,7 @@ type GetModalStylesStyleUtil = {
         outerStyle?: ViewStyle,
         shouldUseModalPaddingStyle?: boolean,
         modalOverlapsWithTopSafeArea?: boolean,
+        shouldUseReanimatedModal?: boolean,
     ) => GetModalStyles;
 };
 
@@ -56,6 +57,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         outerStyle = {},
         shouldUseModalPaddingStyle = true,
         modalOverlapsWithTopSafeArea = false,
+        shouldUseReanimatedModal = false,
     ): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
@@ -285,22 +287,28 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     overflow: 'hidden',
                 };
 
-                animationIn = {
-                    from: {
-                        translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
-                    },
-                    to: {
-                        translateX: 0,
-                    },
-                };
-                animationOut = {
-                    from: {
-                        translateX: 0,
-                    },
-                    to: {
-                        translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
-                    },
-                };
+                if (shouldUseReanimatedModal) {
+                    animationIn = 'slideInRight';
+                    animationOut = 'slideOutRight';
+                } else {
+                    animationIn = {
+                        from: {
+                            translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
+                        },
+                        to: {
+                            translateX: 0,
+                        },
+                    };
+                    animationOut = {
+                        from: {
+                            translateX: 0,
+                        },
+                        to: {
+                            translateX: isSmallScreenWidth ? windowWidth : variables.sideBarWidth,
+                        },
+                    };
+                }
+
                 hideBackdrop = true;
                 swipeDirection = undefined;
                 shouldAddBottomSafeAreaPadding = true;

@@ -44,6 +44,7 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
             hideModalContentWhileAnimating
             useNativeDriver
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={styles.pb0}

@@ -22,7 +22,6 @@ import getPlatform from '@libs/getPlatform';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
 import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ModalContent from './ModalContent';
@@ -95,6 +94,8 @@ function BaseModal(
         disableAnimationIn = false,
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+        hasBackdrop,
+        backdropOpacity,
         shouldUseReanimatedModal = false,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
@@ -254,8 +255,21 @@ function BaseModal(
                 outerStyle,
                 shouldUseModalPaddingStyle,
                 modalOverlapsWithTopSafeArea,
+                shouldUseReanimatedModal,
             ),
-        [StyleUtils, type, windowWidth, windowHeight, isSmallScreenWidth, popoverAnchorPosition, innerContainerStyle, outerStyle, shouldUseModalPaddingStyle, modalOverlapsWithTopSafeArea],
+        [
+            StyleUtils,
+            type,
+            windowWidth,
+            windowHeight,
+            isSmallScreenWidth,
+            popoverAnchorPosition,
+            innerContainerStyle,
+            outerStyle,
+            shouldUseModalPaddingStyle,
+            modalOverlapsWithTopSafeArea,
+            shouldUseReanimatedModal,
+        ],
     );
 
     const modalPaddingStyles = useMemo(() => {
@@ -346,9 +360,9 @@ function BaseModal(
                         swipeThreshold={swipeThreshold}
                         isVisible={isVisible}
                         backdropColor={theme.overlay}
-                        backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
+                        backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : backdropOpacity}
                         backdropTransitionOutTiming={0}
-                        hasBackdrop={fullscreen}
+                        hasBackdrop={hasBackdrop ?? fullscreen}
                         coverScreen={fullscreen}
                         style={[modalStyle, sidePanelStyle]}
                         deviceHeight={windowHeight}

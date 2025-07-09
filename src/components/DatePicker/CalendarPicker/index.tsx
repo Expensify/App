@@ -7,10 +7,12 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ArrowIcon from './ArrowIcon';
 import Day from './Day';
 import generateMonthMatrix from './generateMonthMatrix';
@@ -67,6 +69,9 @@ function CalendarPicker({
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
     const isFirstRender = useRef(true);
 
+    const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED, canBeMissing: true});
+    const isRHPVisibleWhenOpened = useRef(isRHPVisible).current;
+
     const currentMonthView = currentDateView.getMonth();
     const currentYearView = currentDateView.getFullYear();
     const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
@@ -86,7 +91,6 @@ function CalendarPicker({
     );
 
     const onYearSelected = (year: number) => {
-        setIsYearPickerVisible(false);
         setCurrentDateView((prev) => {
             const newCurrentDateView = setYear(new Date(prev), year);
             setYears((prevYears) =>
@@ -97,6 +101,7 @@ function CalendarPicker({
             );
             return newCurrentDateView;
         });
+        requestAnimationFrame(() => setIsYearPickerVisible(false));
     };
 
     /**
@@ -301,6 +306,7 @@ function CalendarPicker({
                 years={years}
                 currentYear={currentYearView}
                 onYearChange={onYearSelected}
+                isRHPVisible={isRHPVisibleWhenOpened}
                 onClose={() => setIsYearPickerVisible(false)}
             />
         </View>

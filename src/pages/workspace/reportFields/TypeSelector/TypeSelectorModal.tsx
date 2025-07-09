@@ -42,6 +42,7 @@ function TypeSelectorModal({isVisible, currentType, label, subtitle, onTypeSelec
             hideModalContentWhileAnimating
             useNativeDriver
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 style={styles.pb0}

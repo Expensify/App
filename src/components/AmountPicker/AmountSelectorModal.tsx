@@ -50,6 +50,7 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
             hideModalContentWhileAnimating
             useNativeDriver
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldUseReanimatedModal
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
