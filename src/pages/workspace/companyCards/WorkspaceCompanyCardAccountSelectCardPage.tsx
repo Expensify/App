@@ -32,7 +32,7 @@ type WorkspaceCompanyCardAccountSelectCardProps = PlatformStackScreenProps<Setti
 function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCardAccountSelectCardProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {policyID, cardID} = route.params;
+    const {policyID, cardID, backTo} = route.params;
     const bank = decodeURIComponent(route.params.bank);
     const policy = usePolicy(policyID);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
@@ -116,7 +116,7 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
             onChangeText={setSearchText}
             onSelectRow={updateExportAccount}
             initiallyFocusedOptionKey={exportMenuItem?.data?.find((mode) => mode.isSelected)?.keyForList}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank), {compareParams: false})}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, bank, backTo), {compareParams: false})}
             headerTitleAlreadyTranslated={exportMenuItem?.description}
             listEmptyContent={listEmptyContent}
             connectionName={connectedIntegration}
