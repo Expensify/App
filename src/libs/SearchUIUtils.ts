@@ -510,12 +510,7 @@ function getTransactionViolations(allViolations: OnyxCollection<OnyxTypes.Transa
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getTransactionsSections(
-    data: OnyxTypes.SearchResults['data'],
-    metadata: OnyxTypes.SearchResults['search'],
-    currentSearch: SuggestedSearchKey,
-    reportActions: Record<string, OnyxTypes.ReportActions | undefined> = {},
-): TransactionListItemType[] {
+function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], currentSearch: SuggestedSearchKey): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(data);
@@ -539,7 +534,6 @@ function getTransactionsSections(
         const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
         const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const shouldShowBlankTo = !report || isOpenExpenseReport(report);
-        const actions = Object.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
 
         const transactionViolations = getTransactionViolations(allViolations, transactionItem);
         // Use Map.get() for faster lookups with default values
@@ -549,7 +543,7 @@ function getTransactionsSections(
         const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to, policy);
 
         const transactionSection: TransactionListItemType = {
-            action: getAction(data, allViolations, key, currentSearch, actions),
+            action: getAction(data, allViolations, key, currentSearch),
             from,
             to,
             formattedFrom,
@@ -704,7 +698,7 @@ function getAction(
     }
 
     const policy = getPolicyFromKey(data, report) as OnyxTypes.Policy;
-    const isExportAvailable = isExportAction(report, policy, reportActions);
+    const isExportAvailable = isExportAction(report, policy, reportActions) && !isTransaction;
 
     if (isSettled(report) && !isExportAvailable) {
         return CONST.SEARCH.ACTION_TYPES.PAID;
@@ -923,7 +917,7 @@ function getReportSections(
     data: OnyxTypes.SearchResults['data'],
     metadata: OnyxTypes.SearchResults['search'],
     currentSearch: SuggestedSearchKey,
-    reportActions: Record<string, OnyxTypes.ReportActions | undefined> = {},
+    reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): TransactionGroupListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
@@ -941,7 +935,7 @@ function getReportSections(
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
             const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
             const isIOUReport = reportItem.type === CONST.REPORT.TYPE.IOU;
-            const actions = Object.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`] ?? {});
+            const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`];
 
             const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
             const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
@@ -1048,7 +1042,7 @@ function getSections(
     data: OnyxTypes.SearchResults['data'],
     metadata: OnyxTypes.SearchResults['search'],
     groupBy?: SearchGroupBy,
-    reportActions: Record<string, OnyxTypes.ReportActions | undefined> = {},
+    reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
     currentSearch: SuggestedSearchKey = CONST.SEARCH.SUGGESTED_SEARCH_KEYS.EXPENSES,
 ) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
@@ -1071,7 +1065,7 @@ function getSections(
         }
     }
 
-    return getTransactionsSections(data, metadata, currentSearch, reportActions);
+    return getTransactionsSections(data, metadata, currentSearch);
 }
 
 /**
