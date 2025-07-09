@@ -55,8 +55,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {LastPaymentMethod, SearchResults, Transaction} from '@src/types/onyx';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import type {SearchResults, Transaction} from '@src/types/onyx';
 import SearchPageNarrow from './SearchPageNarrow';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
