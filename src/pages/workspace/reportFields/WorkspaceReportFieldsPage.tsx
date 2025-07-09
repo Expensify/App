@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {ActivityIndicator} from 'react-native';
+import Onyx from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import FlatList from '@components/FlatList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -159,9 +160,20 @@ function WorkspaceReportFieldsPage({
 
     const reportTitlePendingFields = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields ?? {};
     const titleError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
-    const defaultValueError = (titleError as {defaultValue?: string})?.defaultValue;
-    const errorMessage = defaultValueError && typeof defaultValueError === 'object' ? Object.values(defaultValueError)[0] : defaultValueError;
-    const reportTitleErrors = errorMessage ? {error: errorMessage} : policy?.errorFields?.fieldList;
+    const reportTitleErrors = titleError && typeof titleError === 'object' ? titleError['defaultValue'] : null;
+    
+    const clearTitleFieldError = () => {
+        if (!policyID) {
+            return;
+        }
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            errorFields: {
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: null,
+                },
+            },
+        });
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -212,7 +224,8 @@ function WorkspaceReportFieldsPage({
                             <OfflineWithFeedback
                                 pendingAction={reportTitlePendingFields.defaultValue}
                                 errors={reportTitleErrors}
-                                onClose={() => clearPolicyErrorField(policyID, 'fieldList')}
+                                errorRowStyles={styles.mh0}
+                                onClose={clearTitleFieldError}
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.rules.expenseReportRules.customNameTitle')}
