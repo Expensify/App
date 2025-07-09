@@ -39,6 +39,12 @@ type MoneyRequestAmountFormProps = {
     /** Currency chosen by user or saved in Onyx */
     currency?: string;
 
+    /** Unit of the amount. E.g. 'km', 'mi' */
+    unit?: string;
+
+    /** The decimals of the currency/unit. If not provided, it will be inferred from the currency */
+    decimals?: number;
+
     /** Whether the amount is being edited or not */
     isEditing?: boolean;
 
@@ -68,6 +74,12 @@ type MoneyRequestAmountFormProps = {
 
     /** Whether the user input should be kept or not */
     shouldKeepUserInput?: boolean;
+
+    /** Extra symbol to be shown after the amount input */
+    extraSymbol?: React.ReactNode;
+
+    /** Whether to hide the currency symbol */
+    hideCurrencySymbol?: boolean;
 };
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
@@ -93,6 +105,10 @@ function MoneyRequestAmountForm(
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
         shouldKeepUserInput = false,
+        decimals,
+        extraSymbol,
+        hideCurrencySymbol = false,
+        unit,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -227,9 +243,9 @@ function MoneyRequestAmountForm(
                 return;
             }
 
-            onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
+            onSubmitButtonPress({amount: currentAmount, currency: unit ?? currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount],
+        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount, unit],
     );
 
     const buttonText: string = useMemo(() => {
@@ -258,7 +274,10 @@ function MoneyRequestAmountForm(
                 <MoneyRequestAmountInput
                     amount={amount}
                     autoGrowExtraSpace={variables.w80}
+                    hideCurrencySymbol={hideCurrencySymbol}
                     currency={currency}
+                    decimals={decimals}
+                    extraSymbol={extraSymbol}
                     isCurrencyPressable={isCurrencyPressable}
                     onCurrencyButtonPress={onCurrencyButtonPress}
                     onAmountChange={() => {
@@ -349,4 +368,4 @@ function MoneyRequestAmountForm(
 MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
 export default React.forwardRef(MoneyRequestAmountForm);
-export type {CurrentMoney};
+export type {CurrentMoney, MoneyRequestAmountFormProps};
