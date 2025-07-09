@@ -52,10 +52,6 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         [transactionID],
     );
 
-    if (!mergeTransaction?.eligibleTransactions) {
-        return <MergeExpensesSkeleton />;
-    }
-
     if (mergeTransaction?.eligibleTransactions?.length === 0) {
         return (
             <EmptyStateComponent
@@ -81,6 +77,9 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             showConfirmButton
             confirmButtonText={translate('common.continue')}
             onSelectRow={handleSelectRow}
+            showLoadingPlaceholder
+            LoadingPlaceholderComponent={MergeExpensesSkeleton}
+            fixedNumItemsForLoader={3}
             onConfirm={console.log}
         />
     );

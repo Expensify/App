@@ -9,7 +9,12 @@ const longBarWidth = 120;
 const mediumBarWidth = 60;
 const shortBarWidth = 40;
 
-function MergeExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: number}) {
+type MergeExpensesSkeletonProps = {
+    fixedNumItems?: number;
+    speed?: number;
+};
+
+function MergeExpensesSkeleton({fixedNumItems, speed}: MergeExpensesSkeletonProps) {
     const containerRef = useRef<View>(null);
     const styles = useThemeStyles();
     const [pageWidth, setPageWidth] = React.useState(0);
@@ -72,8 +77,9 @@ function MergeExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: numbe
                 itemViewHeight={64}
                 itemViewStyle={[styles.highlightBG, styles.mb2, styles.br2, styles.ml3, styles.mr3]}
                 shouldAnimate
-                fixedNumItems={fixedNumberOfItems}
+                fixedNumItems={fixedNumItems}
                 renderSkeletonItem={skeletonItem}
+                speed={speed}
             />
         </View>
     );
