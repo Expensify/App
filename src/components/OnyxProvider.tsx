@@ -14,6 +14,7 @@ const [FrequentlyUsedEmojisProvider, , useFrequentlyUsedEmojis] = createOnyxCont
 const [PreferredEmojiSkinToneProvider, PreferredEmojiSkinToneContext] = createOnyxContext(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 const [SessionProvider, , useSession] = createOnyxContext(ONYXKEYS.SESSION);
 const [PolicyCategoriesProvider, , usePolicyCategories] = createOnyxContext(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+const [PolicyTagsProvider, , usePolicyTags] = createOnyxContext(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
 type OnyxProviderProps = {
     /** Rendered child component */
@@ -33,6 +34,7 @@ function OnyxProvider(props: OnyxProviderProps) {
                 PreferredEmojiSkinToneProvider,
                 SessionProvider,
                 PolicyCategoriesProvider,
+                PolicyTagsProvider,
             ]}
         >
             {props.children}
@@ -55,4 +57,5 @@ export {
     useBlockedFromConcierge,
     useSession,
     usePolicyCategories,
+    usePolicyTags,
 };

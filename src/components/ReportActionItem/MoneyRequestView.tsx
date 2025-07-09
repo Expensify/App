@@ -7,6 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePolicyCategories, usePolicyTags} from '@components/OnyxProvider';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import Switch from '@components/Switch';
@@ -78,7 +79,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
-import {usePolicyCategories} from '@components/OnyxProvider';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestViewProps = {
@@ -126,10 +126,11 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`];
     const allPolicyCategories = usePolicyCategories();
-    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]
+    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${updatedTransaction?.reportID}`];
     const targetPolicyID = updatedTransaction?.reportID ? transactionReport?.policyID : policyID;
-    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`, {canBeMissing: true});
+    const allPolicyTags = usePolicyTags();
+    const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`];
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
