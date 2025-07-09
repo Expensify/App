@@ -7,6 +7,8 @@ title: Report Settings
 
 Keep your reports clean, consistent, and easy to manage by customizing titles and adding report-level details.
 
+---
+
 - **Report title**: Use the Custom Report Names feature (under workspace Rules) to create naming templates for new reports. It’s a smarter way to keep things organized and make reports easier to find. You also have the option to prevent members from changing the custom report names you set.
 
 - **Report fields**: Collect high-level info—like project names, client codes, or trip types—that applies to the whole report, not just individual expenses. Report fields are filled out once and apply to all expenses in that report.
