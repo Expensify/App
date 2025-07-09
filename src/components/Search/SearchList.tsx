@@ -108,7 +108,7 @@ function SearchList(
     const styles = useThemeStyles();
     const {hash, groupBy} = queryJSON;
     const flattenedTransactions = groupBy ? (data as TransactionGroupListItemType[]).flatMap((item) => item.transactions) : data;
-    const flattenedTransactionWithoutPendingDelete = flattenedTransactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const flattenedTransactionWithoutPendingDelete = flattenedTransactions.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const selectedItemsLength = flattenedTransactions.reduce((acc, item) => {
         return item?.isSelected ? acc + 1 : acc;
     }, 0);
