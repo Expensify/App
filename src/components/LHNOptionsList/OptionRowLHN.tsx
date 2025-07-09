@@ -108,6 +108,11 @@ function OptionRowLHN({
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
 
+    const alternateTextContainsCustomEmojiWithText = useMemo(
+        () => containsCustomEmojiUtils(optionItem?.alternateText) && !containsOnlyCustomEmoji(optionItem?.alternateText),
+        [optionItem?.alternateText],
+    );
+
     if (!optionItem && !isOptionFocused) {
         // rendering null as a render item causes the FlashList to render all
         // its children and consume significant memory on the first render. We can avoid this by
@@ -137,10 +142,6 @@ function OptionRowLHN({
     const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const alternateTextContainsCustomEmojiWithText = useMemo(
-        () => containsCustomEmojiUtils(optionItem.alternateText) && !containsOnlyCustomEmoji(optionItem.alternateText),
-        [optionItem.alternateText],
-    );
 
     /**
      * Show the ReportActionContextMenu modal popover.
