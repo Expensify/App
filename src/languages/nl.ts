@@ -1542,6 +1542,7 @@ const translations = {
             phrase4: 'Privacy',
         },
         help: 'Help',
+        whatIsNew: 'Wat is nieuw',
         accountSettings: 'Accountinstellingen',
         account: 'Account',
         general: 'Algemeen',
