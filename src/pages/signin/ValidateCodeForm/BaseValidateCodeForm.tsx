@@ -24,7 +24,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidRecoveryCode, isValidTwoFactorCode, isValidValidateCode} from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
-import {resetSignInFlow, setNewDotSignInState} from '@userActions/HybridApp';
+import {resetSignInFlow} from '@userActions/HybridApp';
 import {clearAccountMessages, isAnonymousUser as isAnonymousUserUtil, clearSignInData as sessionActionsClearSignInData, signIn, signInWithValidateCode} from '@userActions/Session';
 import {resendValidateCode as userActionsResendValidateCode} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
@@ -295,7 +295,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
         const recoveryCodeOr2faCode = isUsingRecoveryCode ? recoveryCode : twoFactorAuthCode;
 
-        setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
         const accountID = credentials?.accountID;
         if (accountID) {
             signInWithValidateCode(accountID, validateCode, recoveryCodeOr2faCode);
