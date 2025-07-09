@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
@@ -10,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type ReceiptWithTransactionIDAndSource = Receipt & ReceiptFile;
 
@@ -40,7 +41,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
     const [page, setPage] = useState<number>(-1);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
 
-    const [receipts = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+    const [receipts = getEmptyArray<ReceiptWithTransactionIDAndSource>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) =>
             Object.values(items ?? {})
                 .map((transaction) => (transaction?.receipt ? {...transaction?.receipt, transactionID: transaction.transactionID} : undefined))

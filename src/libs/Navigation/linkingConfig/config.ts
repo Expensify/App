@@ -684,6 +684,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.route,
                         },
@@ -1328,20 +1331,16 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             screens: {
                                 distance: {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.route,
-                                    exact: true,
                                 },
                                 manual: {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.route,
-                                    exact: true,
                                 },
                                 scan: {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route,
-                                    exact: true,
                                 },
                                 // eslint-disable-next-line @typescript-eslint/naming-convention
                                 'per-diem': {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.route,
-                                    exact: true,
                                 },
                             },
                         },

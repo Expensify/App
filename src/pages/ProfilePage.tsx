@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -19,6 +18,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -71,7 +71,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isDebugModeEnabled = !!account?.isDebugModeEnabled;
-    const guideCalendarLink = account?.guideCalendarLink ?? '';
+    const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
 
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const isCurrentUser = session?.accountID === accountID;

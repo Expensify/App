@@ -2,6 +2,7 @@ import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {ReportAvatarDetails} from '@hooks/useReportAvatarDetails';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
@@ -161,6 +162,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     shouldMinimizeMenuButton?: boolean;
     /** Whether to open the parent report link in the current tab if possible */
     openParentReportInCurrentTab?: boolean;
+
+    /** If we want to override the default avatar behavior and set a single avatar, we should pass this prop. */
+    singleAvatarDetails?: ReportAvatarDetails;
 };
 
 export type {ThreeDotsMenuItem};
