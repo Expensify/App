@@ -287,6 +287,7 @@ const translations = {
         count: 'Count',
         cancel: 'Cancel',
         dismiss: 'Dismiss',
+        proceed: 'Proceed',
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
@@ -3391,6 +3392,8 @@ const translations = {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the invite button above.',
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Go to workspace',
+            duplicateWorkspace: 'Duplicate Workspace',
+            duplicateWorkspacePrefix: 'Duplicate',
             goToWorkspaces: 'Go to workspaces',
             clearFilter: 'Clear filter',
             workspaceName: 'Workspace name',
@@ -4757,6 +4760,14 @@ const translations = {
             importedFromAccountingSoftware: 'The taxes below are imported from your',
             taxCode: 'Tax code',
             updateTaxCodeFailureMessage: 'An error occurred while updating the tax code, please try again',
+        },
+        duplicateWorkspace: {
+            title: 'Name your new workspace',
+            selectFeatures: 'Select features to copy',
+            whichFeatures: 'Which features do you want to copy over to your new workspace?',
+            confirmDuplicate: 'Are you sure you want to proceed?',
+            confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
+                `You are about to share ${newWorkspaceName ?? ''} this with the ${totalMembers ?? 0} people who have ${oldWorkspaceName ?? ''} shared with them. Please be aware that each of these people will receive a notification informing them that they are now on the ${newWorkspaceName ?? ''}.`,
         },
         emptyWorkspace: {
             title: 'Create a workspace',

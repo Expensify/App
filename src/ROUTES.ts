@@ -1821,6 +1821,14 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/per-diem`, backTo);
         },
     },
+    WORKSPACE_DUPLICATE: {
+        route: 'workspace/:policyID/duplicate',
+        getRoute: (policyID: string) => `workspace/${policyID}/duplicate` as const,
+    },
+    WORKSPACE_DUPLICATE_SELECT_FEATURES: {
+        route: 'workspace/:policyID/duplicate/select-features',
+        getRoute: (policyID: string) => `workspace/${policyID}/duplicate/select-features` as const,
+    },
     WORKSPACE_PER_DIEM_IMPORT: {
         route: 'workspaces/:policyID/per-diem/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/per-diem/import` as const,

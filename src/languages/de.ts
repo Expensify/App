@@ -296,6 +296,7 @@ const translations = {
         count: 'Zählen',
         cancel: 'Abbrechen',
         dismiss: 'Verwerfen',
+        proceed: 'Proceed',
         yes: 'Ja',
         no: 'No',
         ok: 'OK',
@@ -3400,6 +3401,8 @@ const translations = {
             memberNotFound: 'Mitglied nicht gefunden. Um ein neues Mitglied zum Arbeitsbereich einzuladen, verwenden Sie bitte die Einladungsschaltfläche oben.',
             notAuthorized: `Sie haben keinen Zugriff auf diese Seite. Wenn Sie versuchen, diesem Arbeitsbereich beizutreten, bitten Sie einfach den Besitzer des Arbeitsbereichs, Sie als Mitglied hinzuzufügen. Etwas anderes? Kontaktieren Sie ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Zum Arbeitsbereich gehen',
+            duplicateWorkspace: 'Duplicate Workspace',
+            duplicateWorkspacePrefix: 'Duplicate',
             goToWorkspaces: 'Zu Arbeitsbereichen gehen',
             clearFilter: 'Filter löschen',
             workspaceName: 'Arbeitsbereichsname',
@@ -4780,6 +4783,13 @@ const translations = {
             importedFromAccountingSoftware: 'Die unten aufgeführten Steuern werden von Ihrem importiert',
             taxCode: 'Steuercode',
             updateTaxCodeFailureMessage: 'Beim Aktualisieren des Steuercodes ist ein Fehler aufgetreten, bitte versuchen Sie es erneut.',
+        },
+        duplicateWorkspace: {
+            title: 'Name your new workspace',
+            selectFeatures: 'Select features to copy',
+            whichFeatures: 'Which features do you want to copy over to your new workspace?',
+            confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
+                `You are about to share ${newWorkspaceName ?? ''} this with the ${totalMembers ?? 0} people who have ${oldWorkspaceName ?? ''} shared with them. Please be aware that each of these people will receive a notification informing them that they are now on the ${newWorkspaceName ?? ''}.`,
         },
         emptyWorkspace: {
             title: 'Erstellen Sie einen Arbeitsbereich',

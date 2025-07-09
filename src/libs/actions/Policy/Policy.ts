@@ -100,11 +100,13 @@ import type {
     Transaction,
     TransactionViolations,
 } from '@src/types/onyx';
+import type {AddNewCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import DuplicateWorkspace from '../../../types/onyx/DuplicateWorkspace';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories} from './Category';
 
 type ReportCreationData = Record<
@@ -1658,6 +1660,14 @@ function clearDeleteWorkspaceError(policyID: string) {
  */
 function removeWorkspace(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
+}
+
+function setDuplicateWorkspaceData(data: Partial<DuplicateWorkspace>) {
+    Onyx.merge(ONYXKEYS.DUPLICATE_WORKSPACE, {...data});
+}
+
+function clearDuplicateWorkspace() {
+    Onyx.set(ONYXKEYS.DUPLICATE_WORKSPACE, {});
 }
 
 /**
@@ -5487,6 +5497,8 @@ export {
     setPolicyMaxExpenseAge,
     updateCustomRules,
     setPolicyProhibitedExpense,
+    setDuplicateWorkspaceData,
+    clearDuplicateWorkspace,
     setPolicyBillableMode,
     disableWorkspaceBillableExpenses,
     setWorkspaceEReceiptsEnabled,

@@ -296,6 +296,7 @@ const translations = {
         count: 'Liczba',
         cancel: 'Anuluj',
         dismiss: 'Odrzuć',
+        proceed: 'Proceed',
         yes: 'Tak',
         no: 'Nie',
         ok: 'OK',
@@ -3411,6 +3412,8 @@ const translations = {
             memberNotFound: 'Nie znaleziono członka. Aby zaprosić nowego członka do przestrzeni roboczej, użyj przycisku zaproszenia powyżej.',
             notAuthorized: `Nie masz dostępu do tej strony. Jeśli próbujesz dołączyć do tego miejsca pracy, poproś właściciela miejsca pracy o dodanie Cię jako członka. Coś innego? Skontaktuj się z ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Przejdź do przestrzeni roboczej',
+            duplicateWorkspace: 'Duplicate Workspace',
+            duplicateWorkspacePrefix: 'Duplicate',
             goToWorkspaces: 'Przejdź do przestrzeni roboczych',
             clearFilter: 'Wyczyść filtr',
             workspaceName: 'Nazwa przestrzeni roboczej',
@@ -4784,6 +4787,13 @@ const translations = {
             importedFromAccountingSoftware: 'Poniższe podatki są importowane z Twojego',
             taxCode: 'Kod podatkowy',
             updateTaxCodeFailureMessage: 'Wystąpił błąd podczas aktualizacji kodu podatkowego, spróbuj ponownie.',
+        },
+        duplicateWorkspace: {
+            title: 'Name your new workspace',
+            selectFeatures: 'Select features to copy',
+            whichFeatures: 'Which features do you want to copy over to your new workspace?',
+            confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
+                `You are about to share ${newWorkspaceName ?? ''} this with the ${totalMembers ?? 0} people who have ${oldWorkspaceName ?? ''} shared with them. Please be aware that each of these people will receive a notification informing them that they are now on the ${newWorkspaceName ?? ''}.`,
         },
         emptyWorkspace: {
             title: 'Utwórz przestrzeń roboczą',

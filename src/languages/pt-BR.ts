@@ -296,6 +296,7 @@ const translations = {
         count: 'Contagem',
         cancel: 'Cancelar',
         dismiss: 'Dispensar',
+        proceed: 'Proceed',
         yes: 'Sim',
         no: 'Não',
         ok: 'OK',
@@ -3415,6 +3416,8 @@ const translations = {
             memberNotFound: 'Membro não encontrado. Para convidar um novo membro para o espaço de trabalho, por favor, use o botão de convite acima.',
             notAuthorized: `Você não tem acesso a esta página. Se você está tentando entrar neste espaço de trabalho, basta pedir ao proprietário do espaço de trabalho para adicioná-lo como membro. Algo mais? Entre em contato com ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Ir para o espaço de trabalho',
+            duplicateWorkspace: 'Duplicate Workspace',
+            duplicateWorkspacePrefix: 'Duplicate',
             goToWorkspaces: 'Ir para espaços de trabalho',
             clearFilter: 'Limpar filtro',
             workspaceName: 'Nome do espaço de trabalho',
@@ -4789,6 +4792,13 @@ const translations = {
             importedFromAccountingSoftware: 'Os impostos abaixo são importados do seu',
             taxCode: 'Código fiscal',
             updateTaxCodeFailureMessage: 'Ocorreu um erro ao atualizar o código de imposto, por favor, tente novamente.',
+        },
+        duplicateWorkspace: {
+            title: 'Name your new workspace',
+            selectFeatures: 'Select features to copy',
+            whichFeatures: 'Which features do you want to copy over to your new workspace?',
+            confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
+                `You are about to share ${newWorkspaceName ?? ''} this with the ${totalMembers ?? 0} people who have ${oldWorkspaceName ?? ''} shared with them. Please be aware that each of these people will receive a notification informing them that they are now on the ${newWorkspaceName ?? ''}.`,
         },
         emptyWorkspace: {
             title: 'Criar um espaço de trabalho',

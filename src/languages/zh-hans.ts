@@ -296,6 +296,7 @@ const translations = {
         count: '计数',
         cancel: '取消',
         dismiss: '忽略',
+        proceed: 'Proceed',
         yes: '是的',
         no: '不',
         ok: '好的',
@@ -3375,6 +3376,8 @@ const translations = {
             memberNotFound: '未找到成员。要邀请新成员加入工作区，请使用上面的邀请按钮。',
             notAuthorized: `您无权访问此页面。如果您正在尝试加入此工作区，请请求工作区所有者将您添加为成员。还有其他问题？请联系${CONST.EMAIL.CONCIERGE}。`,
             goToWorkspace: '前往工作区',
+            duplicateWorkspace: 'Duplicate Workspace',
+            duplicateWorkspacePrefix: 'Duplicate',
             goToWorkspaces: '前往工作区',
             clearFilter: '清除筛选器',
             workspaceName: '工作区名称',
@@ -4713,6 +4716,13 @@ const translations = {
             importedFromAccountingSoftware: '以下税费是从您的',
             taxCode: '税码',
             updateTaxCodeFailureMessage: '更新税码时发生错误，请重试',
+        },
+        duplicateWorkspace: {
+            title: 'Name your new workspace',
+            selectFeatures: 'Select features to copy',
+            whichFeatures: 'Which features do you want to copy over to your new workspace?',
+            confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
+                `You are about to share ${newWorkspaceName ?? ''} this with the ${totalMembers ?? 0} people who have ${oldWorkspaceName ?? ''} shared with them. Please be aware that each of these people will receive a notification informing them that they are now on the ${newWorkspaceName ?? ''}.`,
         },
         emptyWorkspace: {
             title: '创建一个工作区',

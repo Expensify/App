@@ -296,6 +296,7 @@ const translations = {
         count: 'Contare',
         cancel: 'Annulla',
         dismiss: 'Ignora',
+        proceed: 'Proceed',
         yes: 'Sì',
         no: 'No',
         ok: 'OK',
@@ -3411,6 +3412,8 @@ const translations = {
             memberNotFound: 'Membro non trovato. Per invitare un nuovo membro al workspace, utilizza il pulsante di invito sopra.',
             notAuthorized: `Non hai accesso a questa pagina. Se stai cercando di unirti a questo spazio di lavoro, chiedi semplicemente al proprietario dello spazio di lavoro di aggiungerti come membro. Qualcos'altro? Contatta ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: 'Vai allo spazio di lavoro',
+            duplicateWorkspace: 'Duplicate Workspace',
+            duplicateWorkspacePrefix: 'Duplicate',
             goToWorkspaces: 'Vai agli spazi di lavoro',
             clearFilter: 'Cancella filtro',
             workspaceName: 'Nome del workspace',
@@ -4793,6 +4796,13 @@ const translations = {
             importedFromAccountingSoftware: 'Le tasse sottostanti sono importate dal tuo',
             taxCode: 'Codice fiscale',
             updateTaxCodeFailureMessage: "Si è verificato un errore durante l'aggiornamento del codice fiscale, riprova.",
+        },
+        duplicateWorkspace: {
+            title: 'Name your new workspace',
+            selectFeatures: 'Select features to copy',
+            whichFeatures: 'Which features do you want to copy over to your new workspace?',
+            confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
+                `You are about to share ${newWorkspaceName ?? ''} this with the ${totalMembers ?? 0} people who have ${oldWorkspaceName ?? ''} shared with them. Please be aware that each of these people will receive a notification informing them that they are now on the ${newWorkspaceName ?? ''}.`,
         },
         emptyWorkspace: {
             title: "Crea un'area di lavoro",

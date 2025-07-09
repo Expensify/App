@@ -58,6 +58,7 @@ import type PersonalBankAccount from './PersonalBankAccount';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
+import type DuplicateWorkspace from './DuplicateWorkspace';
 import type Policy from './Policy';
 import type {PolicyConnectionName, PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
@@ -139,6 +140,7 @@ export type {
     CurrencyList,
     CustomStatusDraft,
     DismissedReferralBanners,
+    DuplicateWorkspace,
     Download,
     WorkspaceCardsList,
     ExpensifyCardSettings,

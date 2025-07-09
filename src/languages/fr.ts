@@ -296,6 +296,7 @@ const translations = {
         count: 'Compter',
         cancel: 'Annuler',
         dismiss: 'Ignorer',
+        proceed: 'Proceed',
         yes: 'Oui',
         no: 'No',
         ok: "D'accord",
@@ -3405,6 +3406,8 @@ const translations = {
             memberNotFound: "Membre introuvable. Pour inviter un nouveau membre à l'espace de travail, veuillez utiliser le bouton d'invitation ci-dessus.",
             notAuthorized: `Vous n'avez pas accès à cette page. Si vous essayez de rejoindre cet espace de travail, demandez simplement au propriétaire de l'espace de travail de vous ajouter en tant que membre. Autre chose ? Contactez ${CONST.EMAIL.CONCIERGE}.`,
             goToWorkspace: "Aller à l'espace de travail",
+            duplicateWorkspace: 'Duplicate Workspace',
+            duplicateWorkspacePrefix: 'Duplicate',
             goToWorkspaces: 'Aller aux espaces de travail',
             clearFilter: 'Effacer le filtre',
             workspaceName: "Nom de l'espace de travail",
@@ -4793,6 +4796,14 @@ const translations = {
             importedFromAccountingSoftware: 'Les taxes ci-dessous sont importées de votre',
             taxCode: 'Code fiscal',
             updateTaxCodeFailureMessage: "Une erreur s'est produite lors de la mise à jour du code fiscal, veuillez réessayer.",
+        },
+        duplicateWorkspace: {
+            title: 'Name your new workspace',
+            selectFeatures: 'Select features to copy',
+            whichFeatures: 'Which features do you want to copy over to your new workspace?',
+            confirmDuplicate: 'Are you sure you want to proceed?',
+            confirmTitle: ({newWorkspaceName, oldWorkspaceName, totalMembers}: {newWorkspaceName?: string; oldWorkspaceName?: string; totalMembers?: number}) =>
+                `You are about to share ${newWorkspaceName ?? ''} this with the ${totalMembers ?? 0} people who have ${oldWorkspaceName ?? ''} shared with them. Please be aware that each of these people will receive a notification informing them that they are now on the ${newWorkspaceName ?? ''}.`,
         },
         emptyWorkspace: {
             title: 'Créer un espace de travail',
