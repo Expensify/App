@@ -892,9 +892,9 @@ function MoneyReportHeader({
         [connectedIntegrationName, styles.noWrap, styles.textStrong, translate],
     );
 
-    const {selectionMode} = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
-    if (selectionMode?.isEnabled) {
+    if (isMobileSelectionModeEnabled) {
         return (
             <HeaderWithBackButton
                 title={translate('common.selectMultiple')}
