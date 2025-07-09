@@ -6215,9 +6215,6 @@ const CONST = {
             MEMBERS: 'members',
             CARDS: 'cards',
         },
-        EXPORT_STATUS: {
-            PENDING: 'pending',
-        },
         BOOLEAN: {
             YES: 'yes',
             NO: 'no',
