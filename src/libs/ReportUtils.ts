@@ -29,6 +29,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
     Beta,
+    DraftReportComments,
     IntroSelected,
     NewGroupChatDraft,
     OnyxInputOrEntry,
@@ -80,7 +81,7 @@ import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, Onboar
 import type {AddCommentOrAttachmentParams} from './API/parameters';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {hasValidDraftComment} from './DraftCommentUtils';
+import {hasValidDraftComment, isValidDraftComment} from './DraftCommentUtils';
 import {getEnvironment, getEnvironmentURL} from './Environment/Environment';
 import type EnvironmentType from './Environment/getEnvironment/types';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';

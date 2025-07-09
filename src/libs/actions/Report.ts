@@ -1757,10 +1757,11 @@ function saveReportDraftComment(reportID: string, comment: string | null, callba
         WRITE_COMMANDS.SAVE_REPORT_DRAFT_COMMENT,
         {
             reportID,
-            // comment is quoted to intentionally preserve whitespace, otherwise it will be trimmed by the WAF _and_ Auth's SParseHTTP function
+            // comment is quoted to intentionally preserve trailing whitespace as the user types
+            // otherwise it will be trimmed by the WAF _and_ Auth's SParseHTTP function
             comment: `"${comment}"`,
         },
-        {optimisticData: [{onyxMethod: Onyx.METHOD.SET, key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, value: comment}]},
+        {optimisticData: [{onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, value: {[reportID]: prepareDraftComment(comment)}}]},
         {
             checkAndFixConflictingRequest: (persistedRequests) =>
                 resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.SAVE_REPORT_DRAFT_COMMENT && request.data?.reportID === reportID),

@@ -8,6 +8,7 @@ import RemoveEmptyReportActionsDrafts from './migrations/RemoveEmptyReportAction
 import RenameCardIsVirtual from './migrations/RenameCardIsVirtual';
 import RenameReceiptFilename from './migrations/RenameReceiptFilename';
 import TransactionBackupsToCollection from './migrations/TransactionBackupsToCollection';
+import MoveDraftsToNVP from './migrations/MoveDraftsToNVP';
 
 export default function () {
     const startTime = Date.now();
@@ -25,6 +26,7 @@ export default function () {
             PronounsMigration,
             MoveIsOptimisticReportToMetadata,
             PendingMembersToMetadata,
+            MoveDraftsToNVP,
         ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the
