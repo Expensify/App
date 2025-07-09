@@ -54,7 +54,7 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
 
         const cardStyle = StyleUtils.getCardStyles(screen.width);
 
-        // animetionEnabled is checked here to avoid animating preloaded routes on web on the narrow layout
+        // animationEnabled is checked here to avoid animating preloaded routes on web on the narrow layout
         if (animationEnabled && (!isFullScreenModal || shouldUseNarrowLayout)) {
             cardStyle.transform = [{translateX}];
         }
