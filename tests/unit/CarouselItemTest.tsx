@@ -3,7 +3,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselItem';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxProvider from '@components/OnyxListItemProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {translateLocal} from '@libs/Localize';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';

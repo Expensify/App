@@ -2,7 +2,7 @@ import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxProvider from '@components/OnyxListItemProvider';
 import {translateLocal} from '@libs/Localize';
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import EmptySearchView from '@pages/Search/EmptySearchView';

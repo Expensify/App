@@ -1,5 +1,5 @@
 import {useMemo} from 'react';
-import {usePersonalDetails, useSession} from '@components/OnyxProvider';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import type {PersonalDetails} from '@src/types/onyx';
 
 function useCurrentUserPersonalDetails() {

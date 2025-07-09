@@ -2,7 +2,7 @@ import {render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxProvider from '@components/OnyxListItemProvider';
 import IOURequestStepConfirmationWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepConfirmation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as IOU from '../../../src/libs/actions/IOU';

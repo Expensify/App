@@ -1,7 +1,7 @@
 import type {FlashList} from '@shopify/flash-list';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import emojis from '@assets/emojis';
-import {useFrequentlyUsedEmojis} from '@components/OnyxProvider';
+import {useFrequentlyUsedEmojis} from '@components/OnyxListItemProvider';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredEmojiSkinTone from '@hooks/usePreferredEmojiSkinTone';

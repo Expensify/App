@@ -5,7 +5,7 @@ import type {ReactElement} from 'react';
 import React from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxProvider from '@components/OnyxListItemProvider';
 import {EnvironmentProvider} from '@components/withEnvironment';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';

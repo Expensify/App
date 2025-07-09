@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxProvider from '@components/OnyxListItemProvider';
 import TransactionItemRow from '@components/TransactionItemRow';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import CONST from '@src/CONST';

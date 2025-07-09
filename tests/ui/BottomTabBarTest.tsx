@@ -6,7 +6,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxProvider from '@components/OnyxListItemProvider';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';

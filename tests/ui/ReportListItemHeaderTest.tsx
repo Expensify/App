@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxProvider from '@components/OnyxListItemProvider';
 import {Context as SearchContext} from '@components/Search/SearchContext';
 import ReportListItemHeader from '@components/SelectionList/Search/ReportListItemHeader';
 import type {TransactionReportGroupListItemType} from '@components/SelectionList/types';

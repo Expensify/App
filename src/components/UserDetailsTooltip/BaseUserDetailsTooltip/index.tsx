@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type UserDetailsTooltipProps from '@components/UserDetailsTooltip/types';

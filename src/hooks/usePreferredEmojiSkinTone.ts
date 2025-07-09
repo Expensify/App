@@ -1,5 +1,5 @@
 import {useCallback, useContext} from 'react';
-import {PreferredEmojiSkinToneContext} from '@components/OnyxProvider';
+import {PreferredEmojiSkinToneContext} from '@components/OnyxListItemProvider';
 import * as User from '@userActions/User';
 
 export default function usePreferredEmojiSkinTone() {

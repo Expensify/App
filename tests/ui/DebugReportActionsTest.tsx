@@ -1,7 +1,7 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxProvider from '@components/OnyxListItemProvider';
 import type Navigation from '@libs/Navigation/Navigation';
 import DebugReportActions from '@pages/Debug/Report/DebugReportActions';
 import CONST from '@src/CONST';

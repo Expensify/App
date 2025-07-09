@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
-import {usePersonalDetails, useSession} from '@components/OnyxProvider';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import useLocalize from '@hooks/useLocalize';

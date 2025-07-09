@@ -1,6 +1,6 @@
 import React from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
-import OnyxProvider from '@components/OnyxProvider';
+import OnyxProvider from '@components/OnyxListItemProvider';
 import OptionRow from '@components/OptionRow';
 import type {OptionRowProps} from '@components/OptionRow';
 
