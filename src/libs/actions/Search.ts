@@ -305,24 +305,23 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
-// JACK_TODO: Implement currentSearchKey optimistic updates
 function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], policy: SearchPolicy[], transactionIDList?: string[], currentSearchKey?: SuggestedSearchKey) {
-    const createActionLoadingData = (isLoading: boolean): OnyxUpdate[] => [
+    const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport> | null): OnyxUpdate[] => [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 data: transactionIDList
-                    ? (Object.fromEntries(
-                          transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {isActionLoading: isLoading}]),
-                      ) as Partial<SearchTransaction>)
-                    : (Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {isActionLoading: isLoading}])) as Partial<SearchReport>),
+                    ? (Object.fromEntries(transactionIDList.map((transactionID) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, update])) as Partial<SearchTransaction>)
+                    : (Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, update])) as Partial<SearchReport>),
             },
         },
     ];
 
-    const optimisticData: OnyxUpdate[] = createActionLoadingData(true);
-    const finallyData: OnyxUpdate[] = createActionLoadingData(false);
+    const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
+    const failureData: OnyxUpdate[] = createOnyxData({isActionLoading: false});
+    // If we are on the 'Submit' suggested search, optimistically remove the report from the view once the action is taken
+    const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.SUBMIT ? createOnyxData(null) : [];
 
     const report = (reportList.at(0) ?? {}) as SearchReport;
     const parameters: SubmitReportParams = {
@@ -333,12 +332,12 @@ function submitMoneyRequestOnSearch(hash: number, reportList: SearchReport[], po
 
     // The SubmitReport command is not 1:1:1 yet, which means creating a separate SubmitMoneyRequestOnSearch command is not feasible until https://github.com/Expensify/Expensify/issues/451223 is done.
     // In the meantime, we'll call SubmitReport which works for a single expense only, so not bulk actions are possible.
-    API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
 // JACK_TODO: Implement currentSearchKey optimistic updates
 function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], transactionIDList?: string[], currentSearchKey?: SuggestedSearchKey) {
-    const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport>): OnyxUpdate[] => [
+    const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport> | null): OnyxUpdate[] => [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -349,12 +348,13 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], trans
             },
         },
     ];
+
     const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
-    const failureData: OnyxUpdate[] = createOnyxData({errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
-    const finallyData: OnyxUpdate[] = createOnyxData({isActionLoading: false});
+    const failureData: OnyxUpdate[] = createOnyxData({isActionLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+    const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.APPROVE ? createOnyxData(null) : [];
 
     playSound(SOUNDS.SUCCESS);
-    API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, finallyData});
+    API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, successData});
 }
 
 // JACK_TODO: Implement currentSearchKey optimistic updates
