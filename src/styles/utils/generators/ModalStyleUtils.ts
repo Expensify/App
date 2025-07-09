@@ -239,7 +239,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     modalContainerStyle.paddingBottom = variables.componentBorderRadiusLarge;
                 }
 
-                shouldAddBottomSafeAreaPadding = innerContainerStyle.paddingBottom !== 0;
+                shouldAddBottomSafeAreaPadding = true
                 shouldAddTopSafeAreaMargin = modalOverlapsWithTopSafeArea;
                 swipeDirection = undefined;
                 animationIn = 'slideInUp';
