@@ -1548,6 +1548,7 @@ const translations = {
             phrase4: 'Confidentialité',
         },
         help: 'Aide',
+        whatIsNew: 'Quoi de neuf',
         accountSettings: 'Paramètres du compte',
         account: 'Compte',
         general: 'Général',
@@ -6271,7 +6272,8 @@ const translations = {
         levelThreeResult: 'Message supprimé du canal avec un avertissement anonyme et le message est signalé pour examen.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitez-les',
+        inviteToSubmitExpense: 'Inviter à soumettre des dépenses',
+        inviteToChat: 'Inviter uniquement à discuter',
         nothing: 'Ne rien faire',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -6348,7 +6350,7 @@ const translations = {
         addressError: "L'adresse est requise",
         reasonError: 'La raison est requise',
         successTitle: 'Ihre neue Karte ist auf dem Weg!',
-        successDescription: 'Sie müssen sie aktivieren, sobald sie in wenigen Werktagen ankommt. In der Zwischenzeit ist Ihre virtuelle Karte einsatzbereit.',
+        successDescription: "Vous devrez l'activer une fois qu'elle arrivera dans quelques jours ouvrables. En attendant, vous pouvez utiliser une carte virtuelle.",
     },
     eReceipt: {
         guaranteed: 'eReçu garanti',

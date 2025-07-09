@@ -184,11 +184,11 @@ function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePair
     }
 
     const parentReport = getParentReport(report);
-    if (parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+    if (parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL && reimbursableSpend > 0) {
         return parentReport?.invoiceReceiver?.accountID === getCurrentUserAccountID();
     }
 
-    return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
 function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]) {

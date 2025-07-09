@@ -1540,6 +1540,7 @@ const translations = {
             phrase4: 'Privacidade',
         },
         help: 'Ajuda',
+        whatIsNew: 'O que há de novo',
         accountSettings: 'Configurações da conta',
         account: 'Conta',
         general: 'Geral',
@@ -6264,7 +6265,8 @@ const translations = {
         levelThreeResult: 'Mensagem removida do canal, além de um aviso anônimo, e a mensagem foi relatada para revisão.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Convide-os',
+        inviteToSubmitExpense: 'Convidar para enviar despesas',
+        inviteToChat: 'Convidar apenas para conversar',
         nothing: 'Não faça nada',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -6341,7 +6343,7 @@ const translations = {
         addressError: 'Endereço é obrigatório',
         reasonError: 'Motivo é obrigatório',
         successTitle: 'Seu novo cartão está a caminho!',
-        successDescription: 'Você precisará ativá-lo assim que ele chegar em alguns dias úteis. Enquanto isso, seu cartão virtual já está pronto para uso.',
+        successDescription: 'Você precisará ativá-lo assim que ele chegar em alguns dias úteis. Enquanto isso, você pode usar um cartão virtual.',
     },
     eReceipt: {
         guaranteed: 'eReceipt garantido',

@@ -3784,7 +3784,14 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     let createdWorkspaceParams: CreateWorkspaceParams | undefined;
 
     if (isDraftReportLocal) {
-        const workspaceData = buildPolicyData(undefined, policy?.makeMeAdmin, policy?.name, policy?.id, chatReport?.reportID, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
+        const workspaceData = buildPolicyData({
+            policyOwnerEmail: undefined,
+            makeMeAdmin: policy?.makeMeAdmin,
+            policyName: policy?.name,
+            policyID: policy?.id,
+            expenseReportId: chatReport?.reportID,
+            engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+        });
         createdWorkspaceParams = workspaceData.params;
         optimisticData.push(...workspaceData.optimisticData);
         successData.push(...workspaceData.successData);
@@ -8829,7 +8836,11 @@ function getPayMoneyRequestParams(
             failureData: policyFailureData,
             successData: policySuccessData,
             params,
-        } = buildPolicyData(currentUserEmail, true, undefined, payerPolicyID);
+        } = buildPolicyData({
+            policyOwnerEmail: currentUserEmail,
+            makeMeAdmin: true,
+            policyID: payerPolicyID,
+        });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
 
         policyParams = {

@@ -1338,7 +1338,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 // eslint-disable-next-line @typescript-eslint/naming-convention
                                 'per-diem': {
                                     path: ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.route,
-                                    exact: true,
                                 },
                             },
                         },
