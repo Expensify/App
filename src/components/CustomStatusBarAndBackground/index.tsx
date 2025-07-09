@@ -23,6 +23,8 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     const [statusBarStyle, setStatusBarStyle] = useState<StatusBarStyle>();
     const [closingReactNativeApp = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.closingReactNativeApp, canBeMissing: true});
 
+    // Include `closingReactNativeApp` to disable the StatusBar when switching from HybridApp to OldDot,
+    // preventing unexpected status bar blinking during the transition
     const isDisabled = (!isNested && !isRootStatusBarEnabled) || closingReactNativeApp;
 
     // Disable the root status bar when a nested status bar is rendered
