@@ -158,9 +158,9 @@ function WorkspaceReportFieldsPage({
         [shouldUseNarrowLayout, styles.ph5, styles.ph8, styles.popoverMenuText, styles.textStrong, navigateToReportFieldsSettings],
     );
 
-    const reportTitlePendingFields = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields ?? {};
     const titleError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
     const reportTitleErrors = titleError && typeof titleError === 'object' ? titleError['defaultValue'] : null;
+    const reportTitlePendingFields = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields ?? {};
     
     const clearTitleFieldError = () => {
         if (!policyID) {
@@ -223,6 +223,7 @@ function WorkspaceReportFieldsPage({
                         >
                             <OfflineWithFeedback
                                 pendingAction={reportTitlePendingFields.defaultValue}
+                                shouldForceOpacity={!!reportTitlePendingFields.defaultValue}
                                 errors={reportTitleErrors}
                                 errorRowStyles={styles.mh0}
                                 onClose={clearTitleFieldError}
