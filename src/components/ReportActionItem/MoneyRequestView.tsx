@@ -78,6 +78,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+import {usePolicyCategories} from '@components/OnyxProvider';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestViewProps = {
@@ -124,7 +125,8 @@ function MoneyRequestView({allReports, report, policy, shouldShowAnimatedBackgro
     const policyID = report?.policyID;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.parentReportID}`];
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const allPolicyCategories = usePolicyCategories();
+    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]
     const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${updatedTransaction?.reportID}`];
     const targetPolicyID = updatedTransaction?.reportID ? transactionReport?.policyID : policyID;
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`, {canBeMissing: true});
