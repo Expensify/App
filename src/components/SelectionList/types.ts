@@ -213,8 +213,8 @@ type ListItem<K extends string | number = string> = {
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
 
-    /** Used to initiate payment from search page */
-    hash?: number;
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
 };
 
 type TransactionListItemType = ListItem &
@@ -266,9 +266,6 @@ type TransactionListItemType = ListItem &
 
         /** Attendees in the transaction */
         attendees?: Attendee[];
-
-        /** IOUs report */
-        iouReportID?: string | undefined;
 
         /** Precomputed violations */
         violations?: TransactionViolation[];
@@ -439,7 +436,10 @@ type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem> & Transaction;
 
-type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
+type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
+};
 
 type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
@@ -816,6 +816,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

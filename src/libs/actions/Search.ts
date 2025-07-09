@@ -12,15 +12,15 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
-import {getPersonalPolicy, getSubmitToAccountID} from '@libs/PolicyUtils';
+import {getSubmitToAccountID} from '@libs/PolicyUtils';
 import {hasHeldExpenses} from '@libs/ReportUtils';
 import {isTransactionGroupListItemType, isTransactionListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src/types/onyx';
-import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 
@@ -42,7 +42,7 @@ Onyx.connect({
 });
 
 function handleActionButtonPress(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void, isInMobileSelectionMode: boolean) {
-    // The transactionIDList is needed to handle actions taken on `status:all` where transactions on single expense reports can be approved/paid.
+    // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
@@ -70,30 +70,18 @@ function handleActionButtonPress(hash: number, item: TransactionListItemType | T
     }
 }
 
-function getLastPolicyBankAccountID(policyID: string | undefined, reportType: keyof LastPaymentMethodType = 'lastUsed'): number | undefined {
+function getLastPolicyPaymentMethod(policyID: string | undefined, lastPaymentMethods: OnyxEntry<LastPaymentMethod>) {
     if (!policyID) {
-        return undefined;
+        return null;
     }
-    const lastPolicyPaymentMethod = lastPaymentMethod?.[policyID];
-    return typeof lastPolicyPaymentMethod === 'string' ? undefined : (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.bankAccountID;
-}
-
-function getLastPolicyPaymentMethod(
-    policyID: string | undefined,
-    lastPaymentMethods: OnyxEntry<LastPaymentMethod>,
-    reportType: keyof LastPaymentMethodType = 'lastUsed',
-    isIOUReport?: boolean,
-): ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined {
-    if (!policyID) {
-        return undefined;
+    let lastPolicyPaymentMethod = null;
+    if (typeof lastPaymentMethods?.[policyID] === 'string') {
+        lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    } else {
+        lastPolicyPaymentMethod = (lastPaymentMethods?.[policyID] as LastPaymentMethodType)?.lastUsed.name as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
     }
 
-    const personalPolicy = getPersonalPolicy();
-
-    const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] ?? (isIOUReport && personalPolicy ? lastPaymentMethods?.[personalPolicy.id] : undefined);
-    const result = typeof lastPolicyPaymentMethod === 'string' ? lastPolicyPaymentMethod : (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.name;
-
-    return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
+    return lastPolicyPaymentMethod;
 }
 
 function getPayActionCallback(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void) {
@@ -434,10 +422,20 @@ function clearAllFilters() {
 }
 
 function clearAdvancedFilters() {
-    const values: Partial<Record<ValueOf<typeof FILTER_KEYS>, null>> = {};
+    const values: Partial<Nullable<SearchAdvancedFiltersForm>> = {};
     Object.values(FILTER_KEYS)
-        .filter((key) => !([FILTER_KEYS.TYPE, FILTER_KEYS.STATUS, FILTER_KEYS.GROUP_BY] as string[]).includes(key))
+        .filter((key) => key !== FILTER_KEYS.GROUP_BY)
         .forEach((key) => {
+            if (key === FILTER_KEYS.TYPE) {
+                values[key] = CONST.SEARCH.DATA_TYPES.EXPENSE;
+                return;
+            }
+
+            if (key === FILTER_KEYS.STATUS) {
+                values[key] = CONST.SEARCH.STATUS.EXPENSE.ALL;
+                return;
+            }
+
             values[key] = null;
         });
 
@@ -464,5 +462,4 @@ export {
     openSearchFiltersCardPage,
     openSearchPage as openSearch,
     getLastPolicyPaymentMethod,
-    getLastPolicyBankAccountID,
 };

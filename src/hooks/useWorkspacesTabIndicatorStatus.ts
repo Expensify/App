@@ -1,5 +1,4 @@
 import {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
@@ -7,6 +6,7 @@ import {shouldShowCustomUnitsError, shouldShowEmployeeListError, shouldShowPolic
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 import useTheme from './useTheme';
 
 type WorkspacesTabIndicatorStatus = ValueOf<typeof CONST.INDICATOR_STATUS>;
