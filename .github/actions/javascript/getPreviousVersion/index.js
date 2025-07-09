@@ -11560,8 +11560,8 @@ exports["default"] = run;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const GIT_CONST = {
-    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER,
-    APP_REPO: process.env.GITHUB_REPOSITORY.split('/').at(1) ?? '',
+    GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
+    APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
     MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
 };
 const CONST = {
@@ -12292,6 +12292,24 @@ class GithubUtils {
             archive_format: 'zip',
         })
             .then((response) => response.url);
+    }
+    /**
+     * Get the contents of a file from the API at a given ref as a string.
+     */
+    static async getFileContents(path, ref = 'main') {
+        const { data } = await this.octokit.repos.getContent({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            path,
+            ref,
+        });
+        if (Array.isArray(data)) {
+            throw new Error(`Provided path ${path} refers to a directory, not a file`);
+        }
+        if (!('content' in data)) {
+            throw new Error(`Provided path ${path} is invalid`);
+        }
+        return Buffer.from(data.content, 'base64').toString('utf8');
     }
     /**
      * Get commits between two tags via the GitHub API

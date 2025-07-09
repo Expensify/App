@@ -264,6 +264,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -545,6 +546,7 @@ const translations = {
         longID: 'ID largo',
         bankAccounts: 'Cuentas bancarias',
         chooseFile: 'Elegir archivo',
+        chooseFiles: 'Elegir archivos',
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
         enabled: 'Habilitado',
@@ -944,9 +946,13 @@ const translations = {
     },
     receipt: {
         upload: 'Subir recibo',
+        uploadMultiple: 'Subir recibos',
         dragReceiptBeforeEmail: 'Arrastra un recibo a esta página, reenvíalo a ',
+        dragReceiptsBeforeEmail: 'Arrastra recibos a esta página, reenvíalos a ',
         dragReceiptAfterEmail: ' o elije un archivo para subir a continuación.',
+        dragReceiptsAfterEmail: ' o elije archivos para subir a continuación.',
         chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
+        chooseReceipts: 'Elige recibos para subir o reenvía recibos a ',
         takePhoto: 'Haz una foto',
         cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
         deniedCameraAccess: 'No se ha concedido el acceso a la cámara, siga ',
@@ -1131,7 +1137,7 @@ const translations = {
         automaticallyForwarded: `aprobó mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
         forwarded: `aprobó`,
         rejectedThisReport: 'rechazó este informe',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceló el pago`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
@@ -1517,6 +1523,7 @@ const translations = {
             phrase4: 'Privacidad',
         },
         help: 'Ayuda',
+        whatIsNew: 'Qué hay de nuevo',
         accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',
         general: 'General',
@@ -2616,11 +2623,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `Para añadir una cuenta bancaria verificada, <a href="${contactMethodRoute}">asegúrate de que tu nombre de usuario principal sea un correo electrónico válido</a> y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.`,
         hasBeenThrottledError: 'Se ha producido un error al intentar añadir tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
-        hasCurrencyError: {
-            phrase1: '¡Ups! Parece que la moneda de tu espacio de trabajo no está configurada en USD. Para continuar, ve a ',
-            link: 'la configuración del área de trabajo',
-            phrase2: ', configúrala en USD e inténtalo nuevamente.',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `¡Ups! Parece que la moneda de tu espacio de trabajo no está configurada en USD. Para continuar, ve a <a href="${workspaceRoute}">la configuración del área de trabajo</a>, configúrala en USD e inténtalo nuevamente.`,
         error: {
             youNeedToSelectAnOption: 'Debes seleccionar una opción para continuar',
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
@@ -3298,8 +3302,8 @@ const translations = {
             message: 'Tu administrador ha desactivado Expensify Travel. Por favor, sigue la política de reservas de tu empresa para organizar tus viajes.',
         },
         verifyCompany: {
-            title: '¡Empieza a viajar hoy mismo!',
-            message: `Por favor, contacta a tu gestor de cuenta o a salesteam@expensify.com para solicitar una demostración de Travel y habilitarlo para tu empresa.`,
+            title: 'Estamos revisando tu solicitud...',
+            message: `Estamos realizando algunas comprobaciones para verificar que tu cuenta esté lista para Expensify Travel. ¡Nos pondremos en contacto contigo en breve!`,
         },
         updates: {
             bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
@@ -4268,6 +4272,11 @@ const translations = {
                     pleaseSelectFeedType: 'Seleccione un tipo de pienso antes de continuar',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Último día del mes',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Último día hábil del mes',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Día personalizado del mes',
+            },
             assignCard: 'Asignar tarjeta',
             findCard: 'Encontrar tarjeta',
             cardNumber: 'Número de la tarjeta',
@@ -4284,6 +4293,7 @@ const translations = {
             startDateDescription: 'Importaremos todas las transacciones desde esta fecha en adelante. Si no se especifica una fecha, iremos tan atrás como lo permita tu banco.',
             fromTheBeginning: 'Desde el principio',
             customStartDate: 'Fecha de inicio personalizada',
+            customCloseDate: 'Fecha de cierre personalizada',
             letsDoubleCheck: 'Verifiquemos que todo esté bien.',
             confirmationDescription: 'Comenzaremos a importar transacciones inmediatamente.',
             cardholder: 'Titular de la tarjeta',
@@ -4509,6 +4519,7 @@ const translations = {
                 removeCardFeedDescription: '¿Estás seguro de que deseas eliminar esta fuente de tarjetas? Esto anulará la asignación de todas las tarjetas.',
                 error: {
                     feedNameRequired: 'Se requiere el nombre de la fuente de la tarjeta',
+                    statementCloseDateRequired: 'Por favor, selecciona una fecha de cierre del estado de cuenta.',
                 },
                 corporate: 'Restringir eliminación de transacciones',
                 personal: 'Permitir eliminación de transacciones',
@@ -4535,6 +4546,8 @@ const translations = {
                 expensifyCardBannerSubtitle:
                     'Disfruta de una devolución en cada compra en Estados Unidos, hasta un 50% de descuento en tu factura de Expensify, tarjetas virtuales ilimitadas y mucho más.',
                 expensifyCardBannerLearnMoreButton: 'Más información',
+                statementCloseDateTitle: 'Fecha de cierre del estado de cuenta',
+                statementCloseDateDescription: 'Indícanos cuándo cierra el estado de cuenta de tu tarjeta y crearemos uno correspondiente en Expensify.',
             },
             workflows: {
                 title: 'Flujos de trabajo',
@@ -5958,11 +5971,12 @@ const translations = {
                 members: 'Miembro',
                 cards: 'Tarjeta',
             },
+            feed: 'Feed',
         },
         groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este informe no tiene gastos.',
-            emptyStateSubtitle: 'Puedes añadir gastos a este informe usando el botón de arriba.',
+            emptyStateSubtitle: 'Puedes agregar gastos a este informe\n usando el botón de abajo o la opción "Agregar gasto" en el menú Más de arriba.',
         },
         noCategory: 'Sin categoría',
         noTag: 'Sin etiqueta',
@@ -6679,7 +6693,8 @@ const translations = {
         copied: '¡Copiado!',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitar',
+        inviteToSubmitExpense: 'Invitar a enviar gastos',
+        inviteToChat: 'Invitar solo a chatear',
         nothing: 'No hacer nada',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -6777,7 +6792,7 @@ const translations = {
         addressError: 'La dirección es obligatoria',
         reasonError: 'Se requiere justificación',
         successTitle: '¡Tu nueva tarjeta está en camino!',
-        successDescription: 'Tendrás que activarla cuando llegue en unos días hábiles. Mientras tanto, tu tarjeta virtual está lista para usar.',
+        successDescription: 'Tendrás que activarla cuando llegue en unos días hábiles. Mientras tanto, puedes usar una tarjeta virtual.',
     },
     eReceipt: {
         guaranteed: 'eRecibo garantizado',
@@ -6825,7 +6840,7 @@ const translations = {
         categoryOutOfPolicy: 'La categoría ya no es válida',
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `${surcharge}% de recargo aplicado`,
         customUnitOutOfPolicy: 'Tasa inválida para este espacio de trabajo',
-        duplicatedTransaction: 'Duplicado',
+        duplicatedTransaction: 'Posible duplicado',
         fieldRequired: 'Los campos del informe son obligatorios',
         futureDate: 'Fecha futura no permitida',
         invoiceMarkup: ({invoiceMarkup}: ViolationsInvoiceMarkupParams) => `Incrementado un ${invoiceMarkup}%`,

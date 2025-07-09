@@ -733,6 +733,12 @@ function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): repo
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER);
 }
 
+function isActionableMentionInviteToSubmitExpenseConfirmWhisper(
+    reportAction: OnyxEntry<ReportAction>,
+): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER);
+}
+
 /**
  * Checks if a given report action corresponds to an actionable report mention whisper.
  * @param reportAction
@@ -875,7 +881,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxInputOrEntry<
     // If the action's message text is empty and it is not a deleted parent with visible child actions, hide it. Else, consider the action to be displayable.
     return (
         shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction) &&
-        !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
+        (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) || isActionableMentionWhisper(reportAction)) &&
         !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction))
     );
 }
@@ -2986,6 +2992,7 @@ export {
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableMentionWhisper,
+    isActionableMentionInviteToSubmitExpenseConfirmWhisper,
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
     isExpenseChatWelcomeWhisper,

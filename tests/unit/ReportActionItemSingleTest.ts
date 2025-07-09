@@ -1,21 +1,12 @@
 import {screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
-
-const ONYXKEYS = {
-    PERSONAL_DETAILS_LIST: 'personalDetailsList',
-    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
-    COLLECTION: {
-        REPORT_ACTIONS: 'reportActions_',
-        POLICY: 'policy_',
-    },
-    NETWORK: 'network',
-} as const;
 
 describe('ReportActionItemSingle', () => {
     beforeAll(() =>
