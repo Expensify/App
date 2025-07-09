@@ -5970,6 +5970,7 @@ const translations = {
                 members: 'Miembro',
                 cards: 'Tarjeta',
             },
+            feed: 'Feed',
         },
         groupBy: 'Agrupar por',
         moneyRequestReport: {
@@ -6789,7 +6790,7 @@ const translations = {
         addressError: 'La dirección es obligatoria',
         reasonError: 'Se requiere justificación',
         successTitle: '¡Tu nueva tarjeta está en camino!',
-        successDescription: 'Tendrás que activarla cuando llegue en unos días hábiles. Mientras tanto, tu tarjeta virtual está lista para usar.',
+        successDescription: 'Tendrás que activarla cuando llegue en unos días hábiles. Mientras tanto, puedes usar una tarjeta virtual.',
     },
     eReceipt: {
         guaranteed: 'eRecibo garantizado',
