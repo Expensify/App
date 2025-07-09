@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import {useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
@@ -315,6 +315,19 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
+
+    const reportIdRef = useRef<string | undefined>(null);
+
+    useFocusEffect(() => {
+        if (!reportIdRef.current && reportOnyx?.reportID) {
+            reportIdRef.current = reportOnyx?.reportID;
+        } else {
+            if (reportOnyx?.reportID) {
+                return;
+            }
+            Navigation.goBack();
+        }
+    });
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
