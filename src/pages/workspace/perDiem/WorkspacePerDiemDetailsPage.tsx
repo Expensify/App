@@ -1,7 +1,4 @@
 import React, {useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
-import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
