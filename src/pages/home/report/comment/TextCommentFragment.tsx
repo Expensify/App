@@ -70,7 +70,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     // on native, we render it as text, not as html
     // on other device, only render it as text if the only difference is <br /> tag
     const containsOnlyEmojis = containsOnlyEmojisUtil(text ?? '');
-    const containsOnlyCustomEmoji = containsOnlyCustomEmojiUtil(text);
+    const containsOnlyCustomEmoji = useMemo(() => containsOnlyCustomEmojiUtil(text), [text]);
     const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';

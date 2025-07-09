@@ -137,7 +137,11 @@ function OptionRowLHN({
     const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const alternateTextContainsCustomEmojiWithText = containsCustomEmojiUtils(optionItem.alternateText) && !containsOnlyCustomEmoji(optionItem.alternateText);
+    const alternateTextContainsCustomEmojiWithText = useMemo(
+        () => containsCustomEmojiUtils(optionItem.alternateText) && !containsOnlyCustomEmoji(optionItem.alternateText),
+        [optionItem.alternateText],
+    );
+
     /**
      * Show the ReportActionContextMenu modal popover.
      *

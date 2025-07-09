@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {useContext} from 'react';
+import React, {useContext, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Text as RNText, StyleSheet} from 'react-native';
 import type {TextProps as RNTextProps, TextStyle} from 'react-native';
@@ -51,7 +51,12 @@ function Text(
     if (!componentStyle.lineHeight && componentStyle.fontSize === variables.fontSizeNormal && shouldUseDefaultLineHeight) {
         componentStyle.lineHeight = variables.fontSizeNormalHeight;
     }
-    if (typeof children === 'string' && containsOnlyCustomEmoji(children)) {
+
+    const isOnlyCustomEmoji = useMemo(() => {
+        return typeof children === 'string' ? containsOnlyCustomEmoji(children) : false;
+    }, [children]);
+
+    if (isOnlyCustomEmoji) {
         componentStyle.fontFamily = FontUtils.fontFamily.single.CUSTOM_EMOJI_FONT?.fontFamily;
     }
 

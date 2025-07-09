@@ -1,4 +1,5 @@
 import {Str} from 'expensify-common';
+import {useMemo} from 'react';
 import {containsCustomEmoji} from '@libs/EmojiUtils';
 
 /**
@@ -9,5 +10,6 @@ export default function shouldRenderAsText(html: string, text: string): boolean 
     // More info: https://github.com/Expensify/App/pull/35838#issuecomment-1964839350
     const htmlWithoutLineBreak = Str.replaceAll(html, '<br />', '\n');
     const htmlWithoutEmojiOpenTag = Str.replaceAll(htmlWithoutLineBreak, '<emoji>', '');
-    return Str.replaceAll(htmlWithoutEmojiOpenTag, '</emoji>', '') === text && !containsCustomEmoji(text);
+    const hasCustomEmoji = useMemo(() => containsCustomEmoji(text), [text]);
+    return Str.replaceAll(htmlWithoutEmojiOpenTag, '</emoji>', '') === text && !hasCustomEmoji;
 }
