@@ -16,8 +16,11 @@ Keep your reports clean, consistent, and easy to manage by customizing titles an
 ---
 
 ## Turn on and Manage Report Fields
-1. Under **Workspaces > More Features**, toggle on Report Fields (this setting requires the Control plan)
-2. Head to **Workspaces > Reports > Report  to add, edit, or delete fields
+
+**Note:** This setting requires the Control plan. 
+
+1. Under **Workspaces > More Features**, toggle on **Report fields** 
+2. Head to **Workspaces > [Workspace Name] > Reports**  to add, edit, or delete fields
 
 You can choose from field types like Text, Date, or a List with predefined options — whatever best fits your workflow. Learn more ➡️ **[Enable Report Fields](https://help.expensify.com/articles/new-expensify/workspaces/Enable-Report-Fields)**. 
 
