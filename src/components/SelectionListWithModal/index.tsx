@@ -17,11 +17,19 @@ type SelectionListWithModalProps<TItem extends ListItem> = SelectionListProps<TI
     onTurnOnSelectionMode?: (item: TItem | null) => void;
     isSelected?: (item: TItem) => boolean;
     isScreenFocused?: boolean;
-    selectedItemKeys?: Array<string | number>;
 };
 
 function SelectionListWithModal<TItem extends ListItem>(
-    {turnOnSelectionModeOnLongPress, onTurnOnSelectionMode, onLongPressRow, isScreenFocused = false, sections, isSelected, selectedItemKeys, ...rest}: SelectionListWithModalProps<TItem>,
+    {
+        turnOnSelectionModeOnLongPress,
+        onTurnOnSelectionMode,
+        onLongPressRow,
+        isScreenFocused = false,
+        sections,
+        isSelected,
+        selectedItems: selectedItemsProp,
+        ...rest
+    }: SelectionListWithModalProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -33,7 +41,7 @@ function SelectionListWithModal<TItem extends ListItem>(
     const {isSmallScreenWidth} = useResponsiveLayout();
     const isFocused = useIsFocused();
 
-    const {selectionMode} = useMobileSelectionMode();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     // Check if selection should be on when the modal is opened
     const wasSelectionOnRef = useRef(false);
     // Keep track of the number of selected items to determine if we should turn off selection mode
@@ -42,7 +50,7 @@ function SelectionListWithModal<TItem extends ListItem>(
     useEffect(() => {
         // We can access 0 index safely as we are not displaying multiple sections in table view
         const selectedItems =
-            selectedItemKeys ??
+            selectedItemsProp ??
             sections[0].data.filter((item) => {
                 if (isSelected) {
                     return isSelected(item);
@@ -52,7 +60,7 @@ function SelectionListWithModal<TItem extends ListItem>(
         selectionRef.current = selectedItems.length;
 
         if (!isSmallScreenWidth) {
-            if (selectedItems.length === 0) {
+            if (selectedItems.length === 0 && isMobileSelectionModeEnabled) {
                 turnOffMobileSelectionMode();
             }
             return;
@@ -63,13 +71,13 @@ function SelectionListWithModal<TItem extends ListItem>(
         if (!wasSelectionOnRef.current && selectedItems.length > 0) {
             wasSelectionOnRef.current = true;
         }
-        if (selectedItems.length > 0 && !selectionMode?.isEnabled) {
+        if (selectedItems.length > 0 && !isMobileSelectionModeEnabled) {
             turnOnMobileSelectionMode();
-        } else if (selectedItems.length === 0 && selectionMode?.isEnabled && !wasSelectionOnRef.current) {
+        } else if (selectedItems.length === 0 && isMobileSelectionModeEnabled && !wasSelectionOnRef.current) {
             turnOffMobileSelectionMode();
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [sections, selectedItemKeys, selectionMode, isSmallScreenWidth, isSelected, isFocused]);
+    }, [sections, selectedItemsProp, isMobileSelectionModeEnabled, isSmallScreenWidth, isSelected, isFocused]);
 
     useEffect(
         () => () => {
@@ -86,7 +94,7 @@ function SelectionListWithModal<TItem extends ListItem>(
         if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || (!isFocused && !isScreenFocused)) {
             return;
         }
-        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+        if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
             rest?.onCheckboxPress?.(item);
             return;
         }
@@ -113,6 +121,7 @@ function SelectionListWithModal<TItem extends ListItem>(
             <SelectionList
                 ref={ref}
                 sections={sections}
+                selectedItems={selectedItemsProp}
                 onLongPressRow={handleLongPressRow}
                 isScreenFocused={isScreenFocused}
                 isSmallScreenWidth={isSmallScreenWidth}
@@ -136,4 +145,5 @@ function SelectionListWithModal<TItem extends ListItem>(
     );
 }
 
+export type {SelectionListWithModalProps};
 export default forwardRef(SelectionListWithModal);

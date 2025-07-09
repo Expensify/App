@@ -1,11 +1,12 @@
+import type {OnyxCollection} from 'react-native-onyx/dist/types';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionList/Search/CardListItem';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CardFeeds, CardList, CompanyCardFeed, PersonalDetailsList, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getBankName, getCardFeedIcon, isCard, isCardClosed, isCardHiddenFromSearch} from './CardUtils';
+import {getBankName, getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, isCard, isCardClosed, isCardHiddenFromSearch} from './CardUtils';
 import {getDescriptionForPolicyDomainCard, getPolicy} from './PolicyUtils';
 import type {OptionData} from './ReportUtils';
 
@@ -18,6 +19,11 @@ type GetCardFeedData = {
     workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined;
     translate: LocaleContextProps['translate'];
 };
+type CardFeedForDisplay = {
+    feed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK;
+    name: string;
+};
+type CardFeedsForDisplay = Record<CompanyCardFeed | typeof CONST.EXPENSIFY_CARD.BANK, CardFeedForDisplay>;
 
 function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Record<string, DomainFeedData>) {
     const bankFrequency: Record<string, number> = {};
@@ -125,24 +131,27 @@ function buildCardsData(
  * @returns a record where keys are domain names and values contain domain feed data.
  */
 function generateDomainFeedData(cardList: CardList | undefined): Record<string, DomainFeedData> {
-    return Object.values(cardList ?? {}).reduce((domainFeedData, currentCard) => {
-        // Cards in cardList can also be domain cards, we use them to compute domain feed
-        if (!currentCard?.domainName?.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard) && currentCard.fundID) {
-            if (domainFeedData[`${currentCard.fundID}_${currentCard.bank}`]) {
-                domainFeedData[`${currentCard.fundID}_${currentCard.bank}`].correspondingCardIDs.push(currentCard.cardID.toString());
-            } else {
-                // if the cards belongs to the same domain, every card of it should have the same fundID
-                // eslint-disable-next-line no-param-reassign
-                domainFeedData[`${currentCard.fundID}_${currentCard.bank}`] = {
-                    fundID: currentCard.fundID,
-                    domainName: currentCard.domainName,
-                    bank: currentCard?.bank,
-                    correspondingCardIDs: [currentCard.cardID?.toString()],
-                };
+    return Object.values(cardList ?? {}).reduce(
+        (domainFeedData, currentCard) => {
+            // Cards in cardList can also be domain cards, we use them to compute domain feed
+            if (!currentCard?.domainName?.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard) && currentCard.fundID) {
+                if (domainFeedData[`${currentCard.fundID}_${currentCard.bank}`]) {
+                    domainFeedData[`${currentCard.fundID}_${currentCard.bank}`].correspondingCardIDs.push(currentCard.cardID.toString());
+                } else {
+                    // if the cards belongs to the same domain, every card of it should have the same fundID
+                    // eslint-disable-next-line no-param-reassign
+                    domainFeedData[`${currentCard.fundID}_${currentCard.bank}`] = {
+                        fundID: currentCard.fundID,
+                        domainName: currentCard.domainName,
+                        bank: currentCard?.bank,
+                        correspondingCardIDs: [currentCard.cardID?.toString()],
+                    };
+                }
             }
-        }
-        return domainFeedData;
-    }, {} as Record<string, DomainFeedData>);
+            return domainFeedData;
+        },
+        {} as Record<string, DomainFeedData>,
+    );
 }
 
 function getDomainFeedData(workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined) {
@@ -162,6 +171,8 @@ function getWorkspaceCardFeedData(cardFeed: WorkspaceCardsList | undefined, repe
     const {domainName, bank} = representativeCard;
     const isBankRepeating = repeatingBanks.includes(bank);
     const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line deprecation/deprecation
     const correspondingPolicy = getPolicy(policyID?.toUpperCase());
     const cardFeedLabel = isBankRepeating ? correspondingPolicy?.name : undefined;
     const cardFeedBankName = bank === CONST.EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : getBankName(bank as CompanyCardFeed);
@@ -379,6 +390,42 @@ const generateSelectedCards = (
     return [...new Set([...selectedCards, ...(cards ?? [])])];
 };
 
+/**
+ * Given a collection of card feeds, return formatted card feeds.
+ *
+ * The `allCards` parameter is only used to determine if we should add the "Expensify Card" feed.
+ */
+function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCards: CardList): CardFeedsForDisplay {
+    const cardFeedsForDisplay = {} as CardFeedsForDisplay;
+    const hasExpensifyCard = Object.values(allCards).some((card) => card.bank === CONST.EXPENSIFY_CARD.BANK);
+
+    Object.values(allCardFeeds ?? {}).forEach((cardFeeds) => {
+        Object.keys(getCompanyFeeds(cardFeeds, true, true)).forEach((key) => {
+            const feed = key as CompanyCardFeed;
+
+            if (cardFeedsForDisplay[feed]) {
+                return;
+            }
+
+            cardFeedsForDisplay[feed] = {
+                feed,
+                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames, false) ?? feed,
+            };
+        });
+    });
+
+    if (hasExpensifyCard) {
+        // s77rt check if the value that we should send to the backend is "Expensify Card" (same as displayed text)
+        // And if so update buildSubstitutionsMap to handle highlighting
+        cardFeedsForDisplay[CONST.EXPENSIFY_CARD.BANK] = {
+            feed: CONST.EXPENSIFY_CARD.BANK,
+            name: CONST.EXPENSIFY_CARD.BANK,
+        };
+    }
+
+    return cardFeedsForDisplay;
+}
+
 export type {CardFilterItem, CardFeedNamesWithType};
 export {
     buildCardsData,
@@ -391,4 +438,5 @@ export {
     getWorkspaceCardFeedKey,
     generateDomainFeedData,
     getDomainFeedData,
+    getCardFeedsForDisplay,
 };

@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -9,6 +8,7 @@ import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type BankInfoSubStepProps from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
@@ -21,7 +21,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {CorpayFormField} from '@src/types/onyx';
 
 const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
+const {COUNTRY, ACCOUNT_HOLDER_NAME} = INPUT_IDS.ADDITIONAL_DATA;
 
 function getInputComponent(field: CorpayFormField) {
     if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
@@ -39,10 +39,13 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
     }, [corpayFields]);
     const fieldIds = accountHolderDetailsFields?.map((field) => field.id);
 
-    const subStepKeys = accountHolderDetailsFields?.reduce((acc, field) => {
-        acc[field.id as keyof ReimbursementAccountForm] = field.id as keyof ReimbursementAccountForm;
-        return acc;
-    }, {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>);
+    const subStepKeys = accountHolderDetailsFields?.reduce(
+        (acc, field) => {
+            acc[field.id as keyof ReimbursementAccountForm] = field.id as keyof ReimbursementAccountForm;
+            return acc;
+        },
+        {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>,
+    );
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
@@ -131,6 +134,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                             street: 'accountHolderAddress1',
                             city: 'accountHolderCity',
                         }}
+                        hint={field.id === ACCOUNT_HOLDER_NAME ? translate('bankInfoStep.accountHolderNameDescription') : undefined}
                     />
                 </View>
             );

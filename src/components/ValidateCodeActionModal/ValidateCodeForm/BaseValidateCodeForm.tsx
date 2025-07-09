@@ -3,7 +3,6 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MagicCodeInput from '@components/MagicCodeInput';
@@ -13,6 +12,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,8 +23,9 @@ import {clearValidateCodeActionError} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Account} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ValidateCodeFormHandle = {
     focus: () => void;
@@ -80,9 +81,6 @@ type ValidateCodeFormProps = {
     /** Whether the form is loading or not */
     isLoading?: boolean;
 
-    /** Whether to allow auto submit again after the previous attempt fails */
-    allowResubmit?: boolean;
-
     /** Whether to show skip button */
     shouldShowSkipButton?: boolean;
 
@@ -104,7 +102,6 @@ function BaseValidateCodeForm({
     hideSubmitButton,
     submitButtonText,
     isLoading,
-    allowResubmit,
     shouldShowSkipButton = false,
     handleSkipButtonPress,
 }: ValidateCodeFormProps) {
@@ -116,7 +113,7 @@ function BaseValidateCodeForm({
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
-    const [account = {}] = useOnyx(ONYXKEYS.ACCOUNT, {
+    const [account = getEmptyObject<Account>()] = useOnyx(ONYXKEYS.ACCOUNT, {
         canBeMissing: true,
     });
 
@@ -271,7 +268,6 @@ function BaseValidateCodeForm({
                 hasError={canShowError && !isEmptyObject(finalValidateError)}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
-                allowResubmit={allowResubmit}
             />
             {shouldShowTimer && (
                 <Text style={[styles.mt5]}>
@@ -327,6 +323,7 @@ function BaseValidateCodeForm({
                     <Button
                         text={translate('common.skip')}
                         onPress={handleSkipButtonPress}
+                        style={[styles.mt4]}
                         success={false}
                         large
                     />
@@ -336,7 +333,7 @@ function BaseValidateCodeForm({
                         isDisabled={isOffline}
                         text={submitButtonText ?? translate('common.verify')}
                         onPress={validateAndSubmitForm}
-                        style={[styles.mt4]}
+                        style={[shouldShowSkipButton ? styles.mt3 : styles.mt4]}
                         success
                         large
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

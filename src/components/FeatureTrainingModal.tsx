@@ -1,8 +1,8 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import type {ImageContentFit} from 'expo-image';
-import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {Image, InteractionManager, View} from 'react-native';
-import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {ImageResizeMode, ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {MergeExclusive} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
@@ -18,11 +18,16 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import CheckboxWithLabel from './CheckboxWithLabel';
+import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import ImageSVG from './ImageSVG';
+import type ImageSVGProps from './ImageSVG/types';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
 import type DotLottieAnimation from './LottieAnimations/types';
 import Modal from './Modal';
+import OfflineIndicator from './OfflineIndicator';
+import RenderHTML from './RenderHTML';
+import ScrollView from './ScrollView';
 import Text from './Text';
 import VideoPlayer from './VideoPlayer';
 
@@ -60,6 +65,9 @@ type BaseFeatureTrainingModalProps = {
     /** Secondary description rendered with additional space */
     secondaryDescription?: string;
 
+    /** Style for the title */
+    titleStyles?: StyleProp<TextStyle>;
+
     /** Whether to show `Don't show me this again` option */
     shouldShowDismissModalOption?: boolean;
 
@@ -67,7 +75,7 @@ type BaseFeatureTrainingModalProps = {
     confirmText: string;
 
     /** A callback to call when user confirms the tutorial */
-    onConfirm?: () => void;
+    onConfirm?: (willShowAgain: boolean) => void;
 
     /** A callback to call when modal closes */
     onClose?: () => void;
@@ -98,6 +106,30 @@ type BaseFeatureTrainingModalProps = {
 
     /** Whether the modal image is a SVG */
     shouldRenderSVG?: boolean;
+
+    /** Whether the modal description is written in HTML */
+    shouldRenderHTMLDescription?: boolean;
+
+    /** Whether the modal will be closed on confirm */
+    shouldCloseOnConfirm?: boolean;
+
+    /** Whether the modal should avoid the keyboard */
+    avoidKeyboard?: boolean;
+
+    /** Whether the modal content is scrollable */
+    shouldUseScrollView?: boolean;
+
+    /** Whether the modal is displaying a confirmation loading spinner (useful when fetching data from API during confirmation) */
+    shouldShowConfirmationLoader?: boolean;
+
+    /** Whether the user can confirm the tutorial while offline */
+    canConfirmWhileOffline?: boolean;
+
+    /** Whether to navigate back when closing the modal */
+    shouldGoBack?: boolean;
+
+    /** Whether to call onHelp when modal is hidden completely */
+    shouldCallOnHelpWhenModalHidden?: boolean;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -119,10 +151,10 @@ type FeatureTrainingModalSVGProps = {
     contentFitImage?: ImageContentFit;
 
     /** The width of the image */
-    imageWidth?: number;
+    imageWidth?: ImageSVGProps['width'];
 
     /** The height of the image */
-    imageHeight?: number;
+    imageHeight?: ImageSVGProps['height'];
 };
 
 // This page requires either an icon or a video/animation, but not both
@@ -137,10 +169,11 @@ function FeatureTrainingModal({
     illustrationAspectRatio: illustrationAspectRatioProp,
     image,
     contentFitImage,
-    width = variables.onboardingModalWidth,
+    width = variables.featureTrainingModalWidth,
     title = '',
     description = '',
     secondaryDescription = '',
+    titleStyles,
     shouldShowDismissModalOption = false,
     confirmText = '',
     onConfirm = () => {},
@@ -155,6 +188,14 @@ function FeatureTrainingModal({
     imageHeight,
     isModalDisabled = true,
     shouldRenderSVG = true,
+    shouldRenderHTMLDescription = false,
+    shouldCloseOnConfirm = true,
+    avoidKeyboard = false,
+    shouldUseScrollView = false,
+    shouldShowConfirmationLoader = false,
+    canConfirmWhileOffline = true,
+    shouldGoBack = true,
+    shouldCallOnHelpWhenModalHidden = false,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -167,6 +208,7 @@ function FeatureTrainingModal({
     const [illustrationAspectRatio, setIllustrationAspectRatio] = useState(illustrationAspectRatioProp ?? VIDEO_ASPECT_RATIO);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
+    const hasHelpButtonBeenPressed = useRef(false);
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
@@ -291,15 +333,19 @@ function FeatureTrainingModal({
         }
         setIsModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
-            Navigation.goBack();
+            if (shouldGoBack) {
+                Navigation.goBack();
+            }
             onClose?.();
         });
-    }, [onClose, willShowAgain]);
+    }, [onClose, shouldGoBack, willShowAgain]);
 
     const closeAndConfirmModal = useCallback(() => {
-        closeModal();
-        onConfirm?.();
-    }, [onConfirm, closeModal]);
+        if (shouldCloseOnConfirm) {
+            closeModal();
+        }
+        onConfirm?.(willShowAgain);
+    }, [shouldCloseOnConfirm, onConfirm, closeModal, willShowAgain]);
 
     /**
      * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
@@ -309,14 +355,17 @@ function FeatureTrainingModal({
      */
     useLayoutEffect(parseFSAttributes, []);
 
+    const Wrapper = shouldUseScrollView ? ScrollView : View;
+
     return (
         <Modal
+            avoidKeyboard={avoidKeyboard}
             isVisible={isModalVisible}
             type={onboardingIsMediumOrLargerScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
             onClose={closeModal}
             innerContainerStyle={{
                 boxShadow: 'none',
-                paddingBottom: 20,
+                ...(shouldUseScrollView ? styles.pb0 : styles.pb5),
                 paddingTop: onboardingIsMediumOrLargerScreenWidth ? undefined : MODAL_PADDING,
                 ...(onboardingIsMediumOrLargerScreenWidth
                     ? // Override styles defined by MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
@@ -328,9 +377,18 @@ function FeatureTrainingModal({
                     : {}),
                 ...modalInnerContainerStyle,
             }}
+            onModalHide={() => {
+                if (!shouldCallOnHelpWhenModalHidden || !hasHelpButtonBeenPressed.current) {
+                    return;
+                }
+                onHelp();
+            }}
+            shouldUseReanimatedModal
         >
-            <View
+            <Wrapper
                 style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width)]}
+                contentContainerStyle={shouldUseScrollView ? styles.pb5 : undefined}
+                keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
                 fsClass={CONST.FULL_STORY.UNMASK}
                 testID={CONST.FULL_STORY.UNMASK}
             >
@@ -340,8 +398,8 @@ function FeatureTrainingModal({
                 <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>
                     {!!title && !!description && (
                         <View style={[onboardingIsMediumOrLargerScreenWidth ? [styles.gap1, styles.mb8] : [styles.mb10], contentInnerContainerStyles]}>
-                            {typeof title === 'string' ? <Text style={[styles.textHeadlineH1]}>{title}</Text> : title}
-                            <Text style={styles.textSupporting}>{description}</Text>
+                            {typeof title === 'string' ? <Text style={[styles.textHeadlineH1, titleStyles]}>{title}</Text> : title}
+                            {shouldRenderHTMLDescription ? <RenderHTML html={description} /> : <Text style={styles.textSupporting}>{description}</Text>}
                             {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
                             {children}
                         </View>
@@ -359,21 +417,30 @@ function FeatureTrainingModal({
                         <Button
                             large
                             style={[styles.mb3]}
-                            onPress={onHelp}
+                            onPress={() => {
+                                if (shouldCallOnHelpWhenModalHidden) {
+                                    setIsModalVisible(false);
+                                    hasHelpButtonBeenPressed.current = true;
+                                    return;
+                                }
+                                onHelp();
+                            }}
                             text={helpText}
                         />
                     )}
-                    <Button
-                        large
-                        success
-                        pressOnEnter
-                        onPress={closeAndConfirmModal}
-                        text={confirmText}
+                    <FormAlertWithSubmitButton
+                        onSubmit={closeAndConfirmModal}
+                        isLoading={shouldShowConfirmationLoader}
+                        buttonText={confirmText}
+                        enabledWhenOffline={canConfirmWhileOffline}
                     />
+                    {!canConfirmWhileOffline && <OfflineIndicator />}
                 </View>
-            </View>
+            </Wrapper>
         </Modal>
     );
 }
 
 export default FeatureTrainingModal;
+
+export type {FeatureTrainingModalProps};

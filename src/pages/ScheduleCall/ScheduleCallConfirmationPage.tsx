@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {addMinutes, format} from 'date-fns';
 import React, {useCallback, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -15,16 +14,19 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmBooking} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ScheduleCallParamList} from '@libs/Navigation/types';
+import {getDefaultAvatarURL} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PersonalDetails} from '@src/types/onyx';
 
 function ScheduleCallConfirmationPage() {
     const styles = useThemeStyles();
@@ -52,9 +54,17 @@ function ScheduleCallConfirmationPage() {
         );
     }, [currentUserPersonalDetails, scheduleCallDraft, userTimezone]);
 
-    const guideDetails = useMemo(
-        () => (scheduleCallDraft?.guide?.accountID ? personalDetails?.[scheduleCallDraft?.guide?.accountID] : null),
-        [personalDetails, scheduleCallDraft?.guide?.accountID],
+    const guideDetails: PersonalDetails | null = useMemo(
+        () =>
+            scheduleCallDraft?.guide?.accountID
+                ? (personalDetails?.[scheduleCallDraft.guide.accountID] ?? {
+                      accountID: scheduleCallDraft.guide.accountID,
+                      login: scheduleCallDraft.guide.email,
+                      displayName: scheduleCallDraft.guide.email,
+                      avatar: getDefaultAvatarURL(scheduleCallDraft.guide.accountID),
+                  })
+                : null,
+        [personalDetails, scheduleCallDraft?.guide?.accountID, scheduleCallDraft?.guide?.email],
     );
 
     const dateTimeString = useMemo(() => {

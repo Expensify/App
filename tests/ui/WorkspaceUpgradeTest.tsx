@@ -18,8 +18,6 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@components/ConfirmedRoute.tsx');
-
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();

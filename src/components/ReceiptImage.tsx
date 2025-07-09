@@ -9,7 +9,7 @@ import EReceiptThumbnail from './EReceiptThumbnail';
 import type {IconSize} from './EReceiptThumbnail';
 import EReceiptWithSizeCalculation from './EReceiptWithSizeCalculation';
 import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
-import Image from './Image';
+import ImageWithLoading from './ImageWithLoading';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import type {TransactionListItemType} from './SelectionList/types';
@@ -80,6 +80,9 @@ type ReceiptImageProps = (
     /** The style of the loading indicator */
     loadingIndicatorStyles?: StyleProp<ViewStyle>;
 
+    /** Styles applied to the thumbnail container */
+    thumbnailContainerStyles?: StyleProp<ViewStyle>;
+
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
 
@@ -130,6 +133,7 @@ function ReceiptImage({
     isPerDiemRequest,
     shouldUseFullHeight,
     loadingIndicatorStyles,
+    thumbnailContainerStyles,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -180,7 +184,7 @@ function ReceiptImage({
         return (
             <ThumbnailImage
                 previewSourceURL={source ?? ''}
-                style={[styles.w100, styles.h100]}
+                style={[styles.w100, styles.h100, thumbnailContainerStyles]}
                 isAuthTokenRequired={isAuthTokenRequired ?? false}
                 shouldDynamicallyResize={false}
                 fallbackIcon={fallbackIcon}
@@ -193,12 +197,13 @@ function ReceiptImage({
     }
 
     return (
-        <Image
+        <ImageWithLoading
             source={{uri: source}}
             style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
-            isAuthTokenRequired={isAuthTokenRequired}
+            isAuthTokenRequired={!!isAuthTokenRequired}
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
+            shouldShowOfflineIndicator={false}
         />
     );
 }

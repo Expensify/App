@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Badge from '@components/Badge';
 import ConfirmModal from '@components/ConfirmModal';
@@ -17,6 +16,7 @@ import ScrollView from '@components/ScrollView';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {filterInactiveCards, getTranslationKeyForLimitType, maskCard} from '@libs/CardUtils';
@@ -52,6 +52,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const [isDeleted, setIsDeleted] = useState(false);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {
@@ -72,15 +73,24 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         openCardDetailsPage(Number(cardID));
     }, [cardID]);
 
+    useEffect(() => {
+        if (!isDeleted) {
+            return;
+        }
+        return () => {
+            deactivateCardAction(defaultFundID, card);
+        };
+    }, [isDeleted, defaultFundID, card]);
+
     const {isOffline} = useNetwork({onReconnect: fetchCardDetails});
 
     useEffect(() => fetchCardDetails(), [fetchCardDetails]);
 
     const deactivateCard = () => {
+        setIsDeleted(true);
         setIsDeactivateModalVisible(false);
-        Navigation.goBack();
-        InteractionManager.runAfterInteractions(() => {
-            deactivateCardAction(defaultFundID, card);
+        requestAnimationFrame(() => {
+            Navigation.goBack();
         });
     };
 

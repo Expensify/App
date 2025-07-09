@@ -1,12 +1,17 @@
-import {setFailed} from '@actions/core';
+import {getInput, setFailed} from '@actions/core';
 import {context} from '@actions/github';
 import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, IssueCommentEvent} from '@octokit/webhooks-types';
 import {format} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
-import OpenAIUtils from '@github/libs/OpenAIUtils';
-import type {AssistantResponse} from '@github/libs/OpenAIUtils';
+import sanitizeJSONStringValues from '@github/libs/sanitizeJSONStringValues';
+import OpenAIUtils from '../../../../scripts/utils/OpenAIUtils';
+
+type AssistantResponse = {
+    action: typeof CONST.NO_ACTION | typeof CONST.ACTION_REQUIRED;
+    message: string;
+};
 
 function isCommentCreatedEvent(payload: IssueCommentEvent): payload is IssueCommentCreatedEvent {
     return payload.action === CONST.ACTIONS.CREATED;
@@ -56,12 +61,16 @@ async function run() {
         return;
     }
 
+    const apiKey = getInput('PROPOSAL_POLICE_API_KEY', {required: true});
+    const assistantID = getInput('PROPOSAL_POLICE_ASSISTANT_ID', {required: true});
+    const openAI = new OpenAIUtils(apiKey);
+
     const prompt = isCommentCreatedEvent(payload)
         ? `I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${payload.comment?.body}`
         : `I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${payload.changes.body?.from}.\n\nEdited comment content: ${payload.comment?.body}`;
 
-    const assistantResponse = await OpenAIUtils.prompt(prompt);
-    const parsedAssistantResponse = JSON.parse(OpenAIUtils.sanitizeJSONStringValues(assistantResponse)) as AssistantResponse;
+    const assistantResponse = await openAI.promptAssistant(assistantID, prompt);
+    const parsedAssistantResponse = JSON.parse(sanitizeJSONStringValues(assistantResponse)) as AssistantResponse;
     console.log('parsedAssistantResponse: ', parsedAssistantResponse);
 
     // fallback to empty strings to avoid crashing in case parsing fails and we fallback to empty object

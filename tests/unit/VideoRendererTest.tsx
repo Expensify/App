@@ -37,11 +37,12 @@ jest.mock('@components/VideoPlayerPreview', () => {
 const mockShowContextMenuValue = {
     anchor: null,
     report: undefined,
-    reportNameValuePairs: undefined,
+    isReportArchived: false,
     action: undefined,
     transactionThreadReport: undefined,
     checkIfContextMenuActive: () => {},
     isDisabled: true,
+    onShowContextMenu: (callback: () => void) => callback(),
 };
 const mockTNodeAttributes = {
     [CONST.ATTACHMENT_SOURCE_ATTRIBUTE]: 'video/test.mp4',

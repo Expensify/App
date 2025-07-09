@@ -6,6 +6,7 @@ import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
@@ -27,7 +28,6 @@ jest.mock('@react-navigation/native', () => ({
     useNavigation: () => undefined,
     useFocusEffect: () => undefined,
 }));
-jest.mock('@components/ConfirmedRoute.tsx');
 
 describe('Sidebar', () => {
     beforeAll(() => {
@@ -36,6 +36,8 @@ describe('Sidebar', () => {
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
         initOnyxDerivedValues();
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
     });
 
     beforeEach(() => {
@@ -406,6 +408,7 @@ describe('Sidebar', () => {
                 managerID: 4,
                 policyName: fakePolicy.name,
                 policyID: fakeReport.policyID,
+                reportName: 'Report Name',
                 total: -10000,
                 currency: 'USD',
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
@@ -458,7 +461,7 @@ describe('Sidebar', () => {
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(4);
                         expect(displayNames.at(0)).toHaveTextContent(`Email One's expenses`);
-                        expect(displayNames.at(1)).toHaveTextContent('Workspace-Test-001 owes $100.00');
+                        expect(displayNames.at(1)).toHaveTextContent('Report Name');
                         expect(displayNames.at(2)).toHaveTextContent('Email Three');
                         expect(displayNames.at(3)).toHaveTextContent('Email Two');
                     })
@@ -817,8 +820,8 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             ...reportDraftCommentCollectionDataSet,
                             [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report4.reportID}`]: 'report4 draft',
-                            ...reportCollectionDataSet,
                             [`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`]: report4,
+                            ...reportCollectionDataSet,
                         }),
                     )
 

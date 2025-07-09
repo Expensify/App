@@ -459,7 +459,7 @@ export default {
         paddingVertical: 4,
     },
 
-    pv1half: {
+    pv1Half: {
         paddingVertical: 6,
     },
 
@@ -723,6 +723,10 @@ export default {
         gap: 4,
     },
 
+    gapHalf: {
+        gap: 2,
+    },
+
     gap2: {
         gap: 8,
     },
@@ -757,6 +761,10 @@ export default {
 
     columnGap3: {
         columnGap: 12,
+    },
+
+    minHeight4: {
+        minHeight: 16,
     },
 
     minHeight5: {

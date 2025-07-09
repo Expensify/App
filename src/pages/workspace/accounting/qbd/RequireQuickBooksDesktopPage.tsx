@@ -27,6 +27,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID={RequireQuickBooksDesktopModal.displayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.qbd.qbdSetup')}

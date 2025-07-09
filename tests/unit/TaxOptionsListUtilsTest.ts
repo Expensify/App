@@ -1,11 +1,18 @@
 import type {Section} from '@libs/OptionsListUtils';
-import * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
+import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
+import IntlStore from '@src/languages/IntlStore';
 import type {Policy, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('TaxOptionsListUtils', () => {
+    beforeAll(() => {
+        IntlStore.load('en');
+        return waitForBatchedUpdates();
+    });
     it('getTaxRatesSection()', () => {
         const search = 'rate';
         const emptySearch = '';
+        const tokenizeSearch = 'Tax 2';
         const wrongSearch = 'bla bla';
 
         const taxRatesWithDefault: TaxRatesWithDefault = {
@@ -111,7 +118,7 @@ describe('TaxOptionsListUtils', () => {
             },
         ];
 
-        const result = TaxOptionsListUtils.getTaxRatesSection({
+        const result = getTaxRatesSection({
             policy,
             searchValue: emptySearch,
             transaction,
@@ -119,14 +126,21 @@ describe('TaxOptionsListUtils', () => {
 
         expect(result).toStrictEqual(resultList);
 
-        const searchResult = TaxOptionsListUtils.getTaxRatesSection({
+        const searchResult = getTaxRatesSection({
             policy,
             searchValue: search,
             transaction,
         });
         expect(searchResult).toStrictEqual(searchResultList);
 
-        const wrongSearchResult = TaxOptionsListUtils.getTaxRatesSection({
+        const tokenizeSearchResult = getTaxRatesSection({
+            policy,
+            searchValue: tokenizeSearch,
+            transaction,
+        });
+        expect(tokenizeSearchResult).toStrictEqual(searchResultList);
+
+        const wrongSearchResult = getTaxRatesSection({
             policy,
             searchValue: wrongSearch,
             transaction,

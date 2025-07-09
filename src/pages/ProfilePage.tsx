@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -19,6 +18,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -71,7 +71,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isDebugModeEnabled = !!account?.isDebugModeEnabled;
-    const guideCalendarLink = account?.guideCalendarLink ?? '';
+    const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
 
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const isCurrentUser = session?.accountID === accountID;
@@ -147,13 +147,15 @@ function ProfilePage({route}: ProfilePageProps) {
     const notificationPreference = shouldShowNotificationPreference
         ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}` as TranslationPaths)
         : '';
+    const isConcierge = isConciergeChatReport(report);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (isValidAccountRoute(accountID) && !loginParams) {
+        // Concierge's profile page information is already available in CONST.ts
+        if (isValidAccountRoute(accountID) && !loginParams && !isConcierge) {
             openPublicProfilePage(accountID);
         }
-    }, [accountID, loginParams]);
+    }, [accountID, loginParams, isConcierge]);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
@@ -168,8 +170,6 @@ function ProfilePage({route}: ProfilePageProps) {
         return result;
     }, [accountID, isCurrentUser, loginParams, report]);
 
-    const isConcierge = isConciergeChatReport(report);
-
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
             <FullPageNotFoundView shouldShow={shouldShowBlockingView}>
@@ -182,7 +182,7 @@ function ProfilePage({route}: ProfilePageProps) {
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <PressableWithoutFocus
                                 style={[styles.noOutline, styles.mb4]}
-                                onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID))}
+                                onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID, Navigation.getActiveRoute()))}
                                 accessibilityLabel={translate('common.profile')}
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 disabled={!hasAvatar}

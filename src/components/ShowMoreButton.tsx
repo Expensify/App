@@ -4,7 +4,6 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as NumberFormatUtils from '@libs/NumberFormatUtils';
 import Button from './Button';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
@@ -24,7 +23,7 @@ type ShowMoreButtonProps = {
 };
 
 function ShowMoreButton({containerStyle, currentCount, totalCount, onPress}: ShowMoreButtonProps) {
-    const {translate, preferredLocale} = useLocalize();
+    const {translate, numberFormat} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -37,7 +36,7 @@ function ShowMoreButton({containerStyle, currentCount, totalCount, onPress}: Sho
                     {`${translate('common.showing')} `}
                     <Text style={styles.textStrong}>{currentCount}</Text>
                     {` ${translate('common.of')} `}
-                    <Text style={styles.textStrong}>{NumberFormatUtils.format(preferredLocale, totalCount)}</Text>
+                    <Text style={styles.textStrong}>{numberFormat(totalCount)}</Text>
                 </Text>
             )}
             <View style={[styles.w100, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
