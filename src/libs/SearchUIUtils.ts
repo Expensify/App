@@ -55,7 +55,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getActivePolicy, getGroupPaidPoliciesWithExpenseChatEnabled, getPoliciesWithLinkedFeed, getPolicy, isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {canReview} from './ReportPreviewActionUtils';
 import {
@@ -1256,7 +1256,11 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardFeed: boolean, policies: OnyxCollection<OnyxTypes.Policy> = {}): SearchTypeMenuSection[] {
+function createTypeMenuSections(
+    session: OnyxTypes.Session | undefined,
+    feeds: OnyxCollection<OnyxTypes.CardFeeds>,
+    policies: OnyxCollection<OnyxTypes.Policy> = {},
+): SearchTypeMenuSection[] {
     const email = session?.email;
 
     // Start building the sections by requiring the following sections to always be present
@@ -1498,6 +1502,8 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
     let showShowUnapprovedCompanyCardsSuggestion = false;
     let shouldShowReconciliationSuggestion = false;
 
+    const policiesWithLinkedFeed = getPoliciesWithLinkedFeed(feeds);
+
     Object.values(policies).some((policy) => {
         if (!policy || !isPaidGroupPolicy(policy)) {
             return false;
@@ -1509,7 +1515,7 @@ function createTypeMenuSections(session: OnyxTypes.Session | undefined, hasCardF
 
         shouldShowStatementsSuggestion ||= false; // s77rt TODO
         showShowUnapprovedCashSuggestion ||= isAdmin && isApprovalEnabled && isPaymentEnabled;
-        showShowUnapprovedCompanyCardsSuggestion ||= isAdmin && isApprovalEnabled && hasCardFeed;
+        showShowUnapprovedCompanyCardsSuggestion ||= isAdmin && isApprovalEnabled && policiesWithLinkedFeed.has(policy.id);
         shouldShowReconciliationSuggestion ||= false; // s77rt TODO
 
         // We don't need to check the rest of the policies if we already determined that all suggestion items should be displayed

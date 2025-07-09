@@ -44,13 +44,10 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [processedMenuItems, setProcessedMenuItems] = useState<PopoverMenuItem[]>([]);
 
-    const [allCards, hasCardFeed] = useMemo(() => {
-        const mergedCards = mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList);
-        return [mergedCards, Object.keys(mergedCards).length > 0];
-    }, [userCardList, workspaceCardFeeds]);
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
 
-    const typeMenuSections = useMemo(() => createTypeMenuSections(session, hasCardFeed, allPolicies), [session, hasCardFeed, allPolicies]);
+    const typeMenuSections = useMemo(() => createTypeMenuSections(session, allFeeds, allPolicies), [session, allFeeds, allPolicies]);
 
     // this is a performance fix, rendering popover menu takes a lot of time and we don't need this component initially, that's why we postpone rendering it until everything else is rendered
     const [delayPopoverMenuFirstRender, setDelayPopoverMenuFirstRender] = useState(true);

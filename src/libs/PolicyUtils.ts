@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
+import type {CardFeeds, OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -1441,6 +1441,22 @@ function isUserInvitedToWorkspace(): boolean {
     );
 }
 
+function getPoliciesWithLinkedFeed(feeds: OnyxCollection<CardFeeds>) {
+    const policies = new Set<string>();
+
+    Object.values(feeds ?? {}).forEach((cardFeeds) => {
+        Object.values(cardFeeds?.settings?.companyCards ?? {}).forEach((feed) => {
+            if (!feed.preferredPolicy) {
+                return;
+            }
+
+            policies.add(feed.preferredPolicy);
+        });
+    });
+
+    return policies;
+}
+
 export {
     canEditTaxRate,
     escapeTagName,
@@ -1588,6 +1604,7 @@ export {
     isUserInvitedToWorkspace,
     getPolicyRole,
     hasIndependentTags,
+    getPoliciesWithLinkedFeed,
 };
 
 export type {MemberEmailsToAccountIDs};
