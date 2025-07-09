@@ -103,7 +103,6 @@ function getLastPolicyPaymentMethod(policyID: string | undefined, lastPaymentMet
     return lastPolicyPaymentMethod;
 }
 
-// JACK_TODO: Implement currentSearchKey optimistic updates
 function getPayActionCallback(hash: number, item: TransactionListItemType | TransactionReportGroupListItemType, goToItem: () => void, currentSearchKey?: SuggestedSearchKey) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod);
 
@@ -117,13 +116,13 @@ function getPayActionCallback(hash: number, item: TransactionListItemType | Tran
     const transactionID = isTransactionListItemType(item) ? [item.transactionID] : undefined;
 
     if (lastPolicyPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionID);
+        payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionID, currentSearchKey);
         return;
     }
 
     const hasVBBA = !!allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]?.achAccount?.bankAccountID;
     if (hasVBBA) {
-        payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionID);
+        payMoneyRequestOnSearch(hash, [{reportID: item.reportID, amount, paymentType: lastPolicyPaymentMethod}], transactionID, currentSearchKey);
         return;
     }
 
@@ -397,8 +396,8 @@ function exportToIntegrationOnSearch(hash: number, reportID: string, connectionN
     API.write(WRITE_COMMANDS.REPORT_EXPORT, params, {optimisticData, failureData, finallyData});
 }
 
-function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], transactionIDList?: string[]) {
-    const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport>): OnyxUpdate[] => [
+function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], transactionIDList?: string[], currentSearchKey?: SuggestedSearchKey) {
+    const createOnyxData = (update: Partial<SearchTransaction> | Partial<SearchReport> | null): OnyxUpdate[] => [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -411,14 +410,14 @@ function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], trans
     ];
 
     const optimisticData: OnyxUpdate[] = createOnyxData({isActionLoading: true});
-    const failureData: OnyxUpdate[] = createOnyxData({errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
-    const finallyData: OnyxUpdate[] = createOnyxData({isActionLoading: false});
+    const failureData: OnyxUpdate[] = createOnyxData({isActionLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+    const successData: OnyxUpdate[] = currentSearchKey === CONST.SEARCH.SUGGESTED_SEARCH_KEYS.PAY ? createOnyxData(null) : [];
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(
         SIDE_EFFECT_REQUEST_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH,
         {hash, paymentData: JSON.stringify(paymentData)},
-        {optimisticData, failureData, finallyData},
+        {optimisticData, failureData, successData},
     ).then((response) => {
         if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
             return;
