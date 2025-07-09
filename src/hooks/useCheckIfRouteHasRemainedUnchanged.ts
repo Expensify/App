@@ -57,8 +57,10 @@ function useCheckIfRouteHasRemainedUnchanged(videoUrl: string) {
             const route = navigationRef.getCurrentRoute();
             // If the app is launched with the attachment route, it will always remain on the report screen.
             // Thus, it can be considered as still being on the rendered route.
-            isOnInitialRenderedRouteRef.current = route?.name === SCREENS.ATTACHMENTS;
+            isOnInitialRenderedRouteRef.current = navigation.isFocused() || route?.name === SCREENS.ATTACHMENTS;
         });
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
