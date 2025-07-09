@@ -1,14 +1,14 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import { DraftReportComments } from '@src/types/onyx';
 
-let draftCommentCollection: OnyxCollection<string> = {};
+let draftCommentCollection: OnyxEntry<DraftReportComments> = {};
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+    key: ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS,
     callback: (nextVal) => {
         draftCommentCollection = nextVal;
     },
-    waitForCollectionCallback: true,
 });
 
 /**
@@ -17,7 +17,7 @@ Onyx.connect({
  * A valid use-case of this function is outside React components, like in utility functions.
  */
 function getDraftComment(reportID: string): OnyxEntry<string> | null | undefined {
-    return draftCommentCollection?.[ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT + reportID];
+    return draftCommentCollection?.[reportID];
 }
 
 /**
@@ -30,6 +30,7 @@ function isValidDraftComment(comment?: string | null): boolean {
 
 /**
  * Returns true if the report has a valid draft comment.
+ * @deprecated prefer useOnyx to access when possible
  */
 function hasValidDraftComment(reportID: string): boolean {
     return isValidDraftComment(getDraftComment(reportID));

@@ -34,20 +34,18 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
-import {getDraftComment} from '@libs/DraftCommentUtils';
 import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getPreferredSkinToneIndex, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
-import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
+import {shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
 import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollPosition';
 import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
-import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
@@ -248,20 +246,17 @@ function ComposerWithSuggestions(
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
-    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
-    const [draftReportComments] = useOnyx(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {canBeMissing: true, selector: (draftReportComments) => draftReportComments?.[reportID]});
-    console.log('draftReportComments', draftReportComments);
-    console.log('draftComment', draftComment);
+    const [draftReportComment] = useOnyx(ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, {canBeMissing: true, selector: (draftReportComments) => draftReportComments?.[reportID]});
     const [value, setValue] = useState(() => {
-        if (draftReportComments) {
-            emojisPresentBefore.current = extractEmojis(draftReportComments);
+        if (draftReportComment) {
+            emojisPresentBefore.current = extractEmojis(draftReportComment);
         }
-        return draftReportComments ?? '';
+        return draftReportComment ?? '';
     });
 
     useEffect(() => {
-        setValue(draftReportComments ?? '');
-    }, [draftReportComments]);
+        setValue(draftReportComment ?? '');
+    }, [draftReportComment]);
 
     const commentRef = useRef(value);
 
@@ -851,18 +846,6 @@ function ComposerWithSuggestions(
                 setSelection={setSelection}
                 resetKeyboardInput={resetKeyboardInput}
             />
-
-            {/* CQ TODO do we actually need this? */}
-
-            {/*{isValidReportIDFromPath(reportID) && (
-                <SilentCommentUpdater
-                    reportID={reportID}
-                    value={value}
-                    updateComment={updateComment}
-                    commentRef={commentRef}
-                    isCommentPendingSaved={isCommentPendingSaved}
-                />
-            )}*/}
 
             {/* Only used for testing so far */}
             {children}
