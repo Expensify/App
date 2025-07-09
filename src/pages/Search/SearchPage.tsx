@@ -449,7 +449,7 @@ function SearchPage({route}: SearchPageProps) {
     };
 
     const createExportAll = useCallback(() => {
-        if (selectedTransactionsKeys.length === 0 || !status || !hash) {
+        if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return [];
         }
 
