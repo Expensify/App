@@ -4,7 +4,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, ScrollView, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
@@ -613,7 +613,7 @@ function MoneyRequestReportActionsList({
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
                 {isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState ? (
-                    <>
+                    <ScrollView>
                         <MoneyRequestViewReportFields
                             report={report}
                             policy={policy}
@@ -622,7 +622,7 @@ function MoneyRequestReportActionsList({
                             reportId={report.reportID}
                             policy={policy}
                         />
-                    </>
+                    </ScrollView>
                 ) : (
                     <FlatList
                         initialNumToRender={INITIAL_NUM_TO_RENDER}
