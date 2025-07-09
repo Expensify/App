@@ -13,13 +13,27 @@ type GestureProps = {
     deviceWidth?: number | null;
 };
 
+type SwipeDirection = ValueOf<typeof CONST.SWIPE_DIRECTION>;
+
+type GestureHandlerProps = {
+    /** Callback to be fired on swipe gesture. */
+    onSwipeComplete?: () => void;
+
+    /** Threshold for swipe gesture. */
+    swipeThreshold: number;
+
+    /** Threshold for swipe gesture. */
+    swipeDirection?: SwipeDirection | SwipeDirection[];
+};
+
 type AnimationInType = 'fadeIn' | 'slideInUp' | 'slideInRight';
 type AnimationOutType = 'fadeOut' | 'slideOutDown' | 'slideOutRight';
 
 type AnimationOut = ValueOf<Pick<ReactNativeModalProps, 'animationOut'>>;
 
 type ReanimatedModalProps = ViewProps &
-    GestureProps & {
+    GestureProps &
+    GestureHandlerProps & {
         /** Content inside the modal */
         children: ReactNode;
 
@@ -168,4 +182,4 @@ type ContainerProps = {
 };
 
 export default ReanimatedModalProps;
-export type {BackdropProps, ContainerProps, AnimationOut, AnimationInType, AnimationOutType};
+export type {BackdropProps, ContainerProps, GestureHandlerProps, AnimationOut, AnimationInType, AnimationOutType, SwipeDirection};
