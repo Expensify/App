@@ -1538,6 +1538,7 @@ const translations = {
             phrase4: 'Privacy',
         },
         help: 'Help',
+        whatIsNew: "What's new",
         accountSettings: 'Account settings',
         account: 'Account',
         general: 'General',
@@ -6241,7 +6242,8 @@ const translations = {
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invite them',
+        inviteToSubmitExpense: 'Invite to submit expenses',
+        inviteToChat: 'Invite to chat only',
         nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -6318,7 +6320,7 @@ const translations = {
         addressError: 'Address is required',
         reasonError: 'Reason is required',
         successTitle: 'Your new card is on the way!',
-        successDescription: "You'll need to activate it once it arrives in a few business days. In the meantime, your virtual card is ready to use.",
+        successDescription: "You'll need to activate it once it arrives in a few business days. In the meantime, you can use a virtual card.",
     },
     eReceipt: {
         guaranteed: 'Guaranteed eReceipt',

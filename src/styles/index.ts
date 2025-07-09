@@ -1306,7 +1306,7 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
             justifyContent: 'center',
             height: '100%',
-            backgroundColor: 'transparent',
+            backgroundColor: theme.appBG,
             overflow: 'hidden',
             borderWidth: 1,
             padding: 8,

@@ -1553,6 +1553,7 @@ const translations = {
             phrase4: 'プライバシー',
         },
         help: '助けて',
+        whatIsNew: '新着情報',
         accountSettings: 'アカウント設定',
         account: 'アカウント',
         general: '一般',
@@ -6248,7 +6249,8 @@ const translations = {
         levelThreeResult: 'チャンネルからメッセージが削除され、匿名の警告が行われ、メッセージがレビューのために報告されました。',
     },
     actionableMentionWhisperOptions: {
-        invite: '招待する',
+        inviteToSubmitExpense: '経費の提出に招待する',
+        inviteToChat: 'チャットのみ招待',
         nothing: '何もしない',
     },
     actionableMentionJoinWorkspaceOptions: {

@@ -1556,6 +1556,7 @@ const translations = {
             phrase4: 'Privacy',
         },
         help: 'Help',
+        whatIsNew: 'Wat is nieuw',
         accountSettings: 'Accountinstellingen',
         account: 'Account',
         general: 'Algemeen',
@@ -6281,8 +6282,9 @@ const translations = {
         levelThreeResult: 'Bericht verwijderd uit kanaal plus anonieme waarschuwing en bericht is gerapporteerd voor beoordeling.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Nodig hen uit',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Uitnodigen om onkosten in te dienen',
+        inviteToChat: 'Alleen uitnodigen om te chatten',
+        nothing: 'Niets doen',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accepteren',
@@ -6358,7 +6360,7 @@ const translations = {
         addressError: 'Adres is vereist',
         reasonError: 'Reden is vereist',
         successTitle: 'Uw nieuwe kaart is onderweg!',
-        successDescription: 'U moet deze activeren zodra deze over een paar werkdagen aankomt. In de tussentijd kunt u uw virtuele kaart gebruiken.',
+        successDescription: 'U moet deze activeren zodra deze over een paar werkdagen aankomt. In de tussentijd kunt u een virtuele kaart gebruiken.',
     },
     eReceipt: {
         guaranteed: 'Gegarandeerd eReceipt',

@@ -414,6 +414,23 @@ function getTagList(policyTagList: OnyxEntry<PolicyTagLists>, tagIndex: number):
     );
 }
 
+/**
+ * Gets a tag list of a policy by a tag's orderWeight.
+ */
+function getTagListByOrderWeight(policyTagList: OnyxEntry<PolicyTagLists>, orderWeight: number): ValueOf<PolicyTagLists> {
+    const tagListEmpty = {
+        name: '',
+        required: false,
+        tags: {},
+        orderWeight: 0,
+    };
+    if (isEmptyObject(policyTagList)) {
+        return tagListEmpty;
+    }
+
+    return Object.values(policyTagList).find((tag) => tag.orderWeight === orderWeight) ?? tagListEmpty;
+}
+
 function getTagNamesFromTagsLists(policyTagLists: PolicyTagLists): string[] {
     const uniqueTagNames = new Set<string>();
 
@@ -1465,6 +1482,7 @@ export {
     getPolicyEmployeeListByIdWithoutCurrentUser,
     getSortedTagKeys,
     getTagList,
+    getTagListByOrderWeight,
     getTagListName,
     getTagLists,
     getTaxByID,

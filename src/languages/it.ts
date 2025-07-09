@@ -1554,6 +1554,7 @@ const translations = {
             phrase4: 'Privacy',
         },
         help: 'Aiuto',
+        whatIsNew: 'Novità',
         accountSettings: 'Impostazioni account',
         account: 'Account',
         general: 'Generale',
@@ -6288,8 +6289,9 @@ const translations = {
         levelThreeResult: 'Messaggio rimosso dal canale più avviso anonimo e messaggio segnalato per revisione.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Invitali',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Invita a inviare le spese',
+        inviteToChat: 'Invita solo a chattare',
+        nothing: 'Non fare nulla',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accetta',
@@ -6364,7 +6366,7 @@ const translations = {
         shipNewCardButton: 'Spedisci nuova carta',
         addressError: 'Indirizzo richiesto',
         successTitle: 'La tua nuova carta è in arrivo!',
-        successDescription: "Dovrai attivarla quando arriverà tra pochi giorni lavorativi. Nel frattempo, la tua carta virtuale è pronta all'uso.",
+        successDescription: 'Dovrai attivarla quando arriverà tra pochi giorni lavorativi. Nel frattempo, puoi utilizzare una carta virtuale.',
         reasonError: 'Il motivo è obbligatorio',
     },
     eReceipt: {
