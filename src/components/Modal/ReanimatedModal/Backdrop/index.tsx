@@ -1,12 +1,11 @@
 import React, {useMemo} from 'react';
-import Animated, {Easing, Keyframe} from 'react-native-reanimated';
+import Animated, {Keyframe} from 'react-native-reanimated';
 import type {BackdropProps} from '@components/Modal/ReanimatedModal/types';
+import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-
-const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
 
 function Backdrop({
     style,
@@ -19,24 +18,12 @@ function Backdrop({
     const {translate} = useLocalize();
 
     const Entering = useMemo(() => {
-        const FadeIn = new Keyframe({
-            from: {opacity: 0},
-            to: {
-                opacity: 0.72,
-                easing,
-            },
-        });
+        const FadeIn = new Keyframe(getModalInAnimation('fadeIn'));
         return FadeIn.duration(animationInTiming);
     }, [animationInTiming]);
 
     const Exiting = useMemo(() => {
-        const FadeOut = new Keyframe({
-            from: {opacity: 0.72},
-            to: {
-                opacity: 0,
-                easing,
-            },
-        });
+        const FadeOut = new Keyframe(getModalOutAnimation('fadeOut'));
 
         return FadeOut.duration(animationOutTiming);
     }, [animationOutTiming]);

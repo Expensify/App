@@ -276,6 +276,7 @@ import type {
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
+    WorkspaceRouteParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
     YourPlanPriceValueParams,
@@ -561,6 +562,7 @@ const translations = {
         longID: 'Long ID',
         bankAccounts: '银行账户',
         chooseFile: '选择文件',
+        chooseFiles: '选择文件',
         dropTitle: 'Let it go',
         dropMessage: '在此处拖放您的文件',
         ignore: 'Ignore',
@@ -950,9 +952,13 @@ const translations = {
     },
     receipt: {
         upload: '上传收据',
+        uploadMultiple: '上传收据',
         dragReceiptBeforeEmail: '将收据拖到此页面上，转发收据到',
+        dragReceiptsBeforeEmail: '将收据拖到此页面上，转发收据到',
         dragReceiptAfterEmail: '或选择下面的文件上传。',
+        dragReceiptsAfterEmail: '或选择下面的文件上传。',
         chooseReceipt: '选择要上传的收据或转发收据到',
+        chooseReceipts: '选择要上传的收据或转发收据到',
         takePhoto: '拍照',
         cameraAccess: '需要相机权限来拍摄收据照片。',
         deniedCameraAccess: '相机访问权限仍未授予，请按照以下步骤操作',
@@ -2620,11 +2626,8 @@ const translations = {
         hasPhoneLoginError: ({contactMethodRoute}: ContactMethodParams) =>
             `要连接银行账户，请 <a href="${contactMethodRoute}">添加一个电子邮件作为您的主要登录方式</a> 并重试。您可以添加电话号码作为辅助登录。`,
         hasBeenThrottledError: '添加您的银行账户时发生错误。请稍等几分钟后重试。',
-        hasCurrencyError: {
-            phrase1: '哎呀！您的工作区货币似乎设置为不同于 USD 的货币。要继续，请前往',
-            link: '您的工作区设置',
-            phrase2: '将其设置为美元，然后重试。',
-        },
+        hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
+            `哎呀！您的工作区货币似乎设置为不同于 USD 的货币。要继续，请前往 <a href="${workspaceRoute}">您的工作区设置</a> 将其设置为美元，然后重试。`,
         error: {
             youNeedToSelectAnOption: '请选择一个选项继续',
             noBankAccountAvailable: '抱歉，没有可用的银行账户。',
@@ -4222,6 +4225,11 @@ const translations = {
                     pleaseSelectFeedType: '请在继续之前选择一个订阅类型',
                 },
             },
+            statementCloseDate: {
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '本月最后一天',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: '本月最后一个工作日',
+                [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: '本月自定义日期',
+            },
             assignCard: '分配卡片',
             findCard: '查找卡片',
             cardNumber: '卡号',
@@ -4238,6 +4246,7 @@ const translations = {
             startDateDescription: '我们将从此日期开始导入所有交易。如果未指定日期，我们将根据您的银行允许的最早日期进行导入。',
             fromTheBeginning: '从头开始',
             customStartDate: '自定义开始日期',
+            customCloseDate: '自定义关闭日期',
             letsDoubleCheck: '让我们仔细检查一下，确保一切正常。',
             confirmationDescription: '我们将立即开始导入交易。',
             cardholder: '持卡人',
@@ -4455,6 +4464,7 @@ const translations = {
                 removeCardFeedDescription: '您确定要移除此卡片源吗？这将取消分配所有卡片。',
                 error: {
                     feedNameRequired: '卡片摘要名称是必需的',
+                    statementCloseDateRequired: '请选择报表关闭日期。',
                 },
                 corporate: '限制删除交易',
                 personal: '允许删除交易',
@@ -4479,6 +4489,8 @@ const translations = {
                 expensifyCardBannerTitle: '获取Expensify卡',
                 expensifyCardBannerSubtitle: '享受每笔美国消费的现金返还，Expensify账单最高可享50%折扣，无限虚拟卡等更多优惠。',
                 expensifyCardBannerLearnMoreButton: '了解更多',
+                statementCloseDateTitle: '对账单关闭日期',
+                statementCloseDateDescription: '让我们知道您的银行卡对账单何时关闭，我们将在 Expensify 中创建匹配的对账单。',
             },
             workflows: {
                 title: '工作流程',
@@ -5865,6 +5877,7 @@ const translations = {
                 members: '成员',
                 cards: '卡片',
             },
+            feed: '通道',
         },
         groupBy: '组别',
         moneyRequestReport: {
@@ -6139,8 +6152,9 @@ const translations = {
         levelThreeResult: '消息已从频道中移除，并收到匿名警告，消息已提交审核。',
     },
     actionableMentionWhisperOptions: {
-        invite: '邀请他们',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: '邀请提交费用',
+        inviteToChat: '仅邀请聊天',
+        nothing: '什么都不做',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: '接受',
@@ -6214,7 +6228,7 @@ const translations = {
         addressError: '地址是必需的',
         reasonError: '原因是必需的',
         successTitle: '您的卡片正在路上！',
-        successDescription: '几天后到达时，您需要激活它。在此期间，您的虚拟卡已准备好使用。',
+        successDescription: '几天后到达时，您需要激活它。在此期间，您可以使用虚拟卡。',
     },
     eReceipt: {
         guaranteed: '保证电子收据',
