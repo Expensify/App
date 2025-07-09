@@ -15,6 +15,7 @@ const [PreferredEmojiSkinToneProvider, PreferredEmojiSkinToneContext] = createOn
 const [SessionProvider, , useSession] = createOnyxContext(ONYXKEYS.SESSION);
 const [PolicyCategoriesProvider, , usePolicyCategories] = createOnyxContext(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
 const [PolicyTagsProvider, , usePolicyTags] = createOnyxContext(ONYXKEYS.COLLECTION.POLICY_TAGS);
+const [ReportTransactionsAndViolationsProvider, , useAllReportsTransactionsAndViolations] = createOnyxContext(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
 
 type OnyxProviderProps = {
     /** Rendered child component */
@@ -35,6 +36,7 @@ function OnyxProvider(props: OnyxProviderProps) {
                 SessionProvider,
                 PolicyCategoriesProvider,
                 PolicyTagsProvider,
+                ReportTransactionsAndViolationsProvider,
             ]}
         >
             {props.children}
@@ -58,4 +60,5 @@ export {
     useSession,
     usePolicyCategories,
     usePolicyTags,
+    useAllReportsTransactionsAndViolations,
 };

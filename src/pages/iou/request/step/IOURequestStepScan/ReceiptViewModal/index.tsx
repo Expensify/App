@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type ReceiptWithTransactionIDAndSource = Receipt & ReceiptFile;
 
@@ -40,7 +41,7 @@ function ReceiptViewModal({route}: ReceiptViewModalProps) {
     const [page, setPage] = useState<number>(-1);
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
 
-    const [receipts = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
+    const [receipts = getEmptyArray<ReceiptWithTransactionIDAndSource>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) =>
             Object.values(items ?? {})
                 .map((transaction) => (transaction?.receipt ? {...transaction?.receipt, transactionID: transaction.transactionID} : undefined))
