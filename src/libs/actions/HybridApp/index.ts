@@ -7,6 +7,7 @@ function closeReactNativeApp({shouldSignOut, shouldSetNVP}: {shouldSignOut: bool
     if (CONFIG.IS_HYBRID_APP) {
         Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true});
     }
+    // eslint-disable-next-line no-restricted-properties
     HybridAppModule.closeReactNativeApp({shouldSignOut, shouldSetNVP});
 }
 
