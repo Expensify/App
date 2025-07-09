@@ -146,6 +146,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
     const {
+        currentSearchKey,
         setCurrentSearchHash,
         setSelectedTransactions,
         selectedTransactions,
@@ -252,8 +253,9 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         if (searchResults === undefined || !isDataLoaded) {
             return [];
         }
-        return getSections(type, status, searchResults.data, searchResults.search, groupBy);
-    }, [searchResults, isDataLoaded, type, status, groupBy]);
+
+        return getSections(type, searchResults.data, searchResults.search, groupBy, reportActions, currentSearchKey);
+    }, [currentSearchKey, groupBy, isDataLoaded, reportActions, searchResults, type]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
