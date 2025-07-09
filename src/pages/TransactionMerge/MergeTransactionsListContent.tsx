@@ -1,18 +1,25 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import LottieAnimations from '@components/LottieAnimations';
+import SelectionList from '@components/SelectionList';
+import type {ListItem} from '@components/SelectionList/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getTransactionsForMerging} from '@libs/actions/Transaction';
+import {getTransactionsForMerging, setMergeTransactionKey} from '@libs/actions/Transaction';
 import CONST from '@src/CONST';
 import type {MergeTransaction} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type Transaction from '@src/types/onyx/Transaction';
+import MergeTransactionItem from './MergeTransactionItem';
 
 type MergeTransactionsListContentProps = {
     transactionID: string;
     mergeTransaction: OnyxEntry<MergeTransaction>;
 };
+
+type MergeTransactionListItemType = Transaction & ListItem;
 
 function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
     const {translate} = useLocalize();
@@ -21,6 +28,29 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     useEffect(() => {
         getTransactionsForMerging(transactionID);
     }, [transactionID]);
+
+    const sections = useMemo(() => {
+        return [
+            {
+                data: (mergeTransaction?.eligibleTransactions ?? []).map((transaction) => ({
+                    ...transaction,
+                    keyForList: transaction.transactionID,
+                    isSelected: transaction.transactionID === mergeTransaction?.sourceTransactionID,
+                    errors: transaction.errors as Errors | undefined,
+                })),
+                shouldShow: true,
+            },
+        ];
+    }, [mergeTransaction]);
+
+    const handleSelectRow = useCallback(
+        (item: MergeTransactionListItemType) => {
+            setMergeTransactionKey(transactionID, {
+                sourceTransactionID: item.transactionID,
+            });
+        },
+        [transactionID],
+    );
 
     if (!mergeTransaction?.eligibleTransactions) {
         return <MergeExpensesSkeleton />;
@@ -42,7 +72,18 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         );
     }
 
-    return null;
+    return (
+        <SelectionList<MergeTransactionListItemType>
+            sections={sections}
+            shouldShowTextInput={false}
+            ListItem={MergeTransactionItem}
+            confirmButtonStyles={[styles.justifyContentCenter]}
+            showConfirmButton
+            confirmButtonText={translate('common.continue')}
+            onSelectRow={handleSelectRow}
+            onConfirm={console.log}
+        />
+    );
 }
 
 MergeTransactionsListContent.displayName = 'MergeTransactionsListContent';
