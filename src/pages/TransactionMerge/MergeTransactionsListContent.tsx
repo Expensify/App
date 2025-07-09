@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-import LottieAnimations from '@components/LottieAnimations';
+import {EmptyShelves} from '@components/Icon/Illustrations';
 import RenderHTML from '@components/RenderHTML';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -72,18 +72,25 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         [report?.reportName, translate, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.textBold],
     );
 
+    const subTitleContent = useMemo(() => {
+        return (
+            <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
+                <RenderHTML html={translate('transactionMerge.listPage.noEligibleExpenseFoundSubtitle')} />
+            </Text>
+        );
+    }, [translate, styles.textAlignCenter, styles.textSupporting, styles.textNormal]);
+
     if (mergeTransaction?.eligibleTransactions?.length === 0) {
         return (
             <EmptyStateComponent
                 cardStyles={[styles.appBG]}
-                cardContentStyles={[styles.pt5, styles.pb0]}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                headerMedia={LottieAnimations.GenericEmptyState}
+                cardContentStyles={[styles.p0]}
+                headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
+                headerMedia={EmptyShelves}
                 title={translate('transactionMerge.listPage.noEligibleExpenseFound')}
-                subtitle={translate('transactionMerge.listPage.noEligibleExpenseFoundSubtitle')}
-                headerStyles={[styles.emptyStateMoneyRequestReport]}
-                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                headerContentStyles={styles.emptyStateFolderWebStyles}
+                subtitleText={subTitleContent}
+                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
+                headerContentStyles={styles.emptyStateCardIllustration}
             />
         );
     }
