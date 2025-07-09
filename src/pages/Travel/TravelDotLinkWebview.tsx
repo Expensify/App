@@ -17,7 +17,7 @@ function TravelDotLinkWebview({route}: TravelDotLinkWebviewProps) {
     const webViewRef = useRef<WebView>(null);
     const styles = useThemeStyles();
 
-    const url = buildTravelDotURL(token, isTestAccount ?? false);
+    const url = buildTravelDotURL(token, isTestAccount === 'true');
 
     return (
         <ScreenWrapper

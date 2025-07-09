@@ -1724,7 +1724,7 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
     [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: {
         token: string;
-        isTestAccount?: boolean;
+        isTestAccount?: string;
     };
     [SCREENS.TRAVEL.TRIP_SUMMARY]: {
         reportID: string;
