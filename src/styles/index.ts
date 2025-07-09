@@ -3348,6 +3348,25 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.inputHeight,
         },
 
+        magicCodeInputValue: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            position: 'relative',
+        },
+
+        magicCodeInputCursor: {
+            fontSize: variables.lineHeighTaskTitle,
+            color: theme.heading,
+            lineHeight: variables.inputHeight,
+            position: 'absolute',
+            width: '100%',
+            textAlign: 'center',
+            fontWeight: FontUtils.fontWeight.thin,
+            transform: 'translate(-50%)',
+            left: '50%',
+        },
+
         // Manually style transparent, in iOS Safari, an input in a container with its opacity set to
         // 0 (completely transparent) cannot handle user interaction, hence the Paste option is never shown
         inputTransparent: {
