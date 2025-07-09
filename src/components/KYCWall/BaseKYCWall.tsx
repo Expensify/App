@@ -201,6 +201,12 @@ function KYCWall({
                     return;
                 }
 
+                if (iouPaymentType && isExpenseReport) {
+                    setShouldShowAddPaymentMenu(false);
+                    selectPaymentMethod(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
+                    return;
+                }
+
                 const clickedElementLocation = getClickedTargetLocation(targetElement as HTMLDivElement);
                 const position = getAnchorPosition(clickedElementLocation);
 
