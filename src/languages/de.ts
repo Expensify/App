@@ -5990,6 +5990,7 @@ const translations = {
                 members: 'Mitglied',
                 cards: 'Karte',
             },
+            feed: 'Feed',
         },
         groupBy: 'Gruppe nach',
         moneyRequestReport: {
@@ -6271,7 +6272,8 @@ const translations = {
         levelThreeResult: 'Nachricht aus dem Kanal entfernt, anonyme Warnung gesendet und Nachricht zur Überprüfung gemeldet.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Lade sie ein',
+        inviteToSubmitExpense: 'Zum Einreichen von Ausgaben einladen',
+        inviteToChat: 'Nur zum Chatten einladen',
         nothing: 'Nichts tun',
     },
     actionableMentionJoinWorkspaceOptions: {
@@ -6348,7 +6350,7 @@ const translations = {
         addressError: 'Adresse ist erforderlich',
         reasonError: 'Grund ist erforderlich',
         successTitle: 'Ihre neue Karte ist auf dem Weg!',
-        successDescription: 'Sie müssen sie aktivieren, sobald sie in wenigen Werktagen ankommt. In der Zwischenzeit ist Ihre virtuelle Karte einsatzbereit.',
+        successDescription: 'Sie müssen sie aktivieren, sobald sie in wenigen Werktagen ankommt. In der Zwischenzeit können Sie eine virtuelle Karte verwenden.',
     },
     eReceipt: {
         guaranteed: 'Garantierter eReceipt',

@@ -5963,6 +5963,7 @@ const translations = {
                 members: 'メンバー',
                 cards: 'カード',
             },
+            feed: 'フィード',
         },
         groupBy: 'グループ',
         moneyRequestReport: {
@@ -6244,7 +6245,8 @@ const translations = {
         levelThreeResult: 'チャンネルからメッセージが削除され、匿名の警告が行われ、メッセージがレビューのために報告されました。',
     },
     actionableMentionWhisperOptions: {
-        invite: '招待する',
+        inviteToSubmitExpense: '経費の提出に招待する',
+        inviteToChat: 'チャットのみ招待',
         nothing: '何もしない',
     },
     actionableMentionJoinWorkspaceOptions: {
