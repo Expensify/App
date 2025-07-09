@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectCircle from '@components/SelectCircle';
 import Text from '@components/Text';
+import useOnyx from '@hooks/useOnyx';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';

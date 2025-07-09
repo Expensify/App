@@ -1,12 +1,12 @@
 import type {ReactNode} from 'react';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import Text from '@components/Text';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -148,6 +148,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent}: Dro
                     width: CONST.POPOVER_DROPDOWN_WIDTH,
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
+                shouldSkipRemeasurement
             >
                 {popoverContent}
             </PopoverWithMeasuredContent>
