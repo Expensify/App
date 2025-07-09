@@ -117,6 +117,7 @@ function MoneyRequestReportPreviewContent({
     chatReportMetadata,
 }: MoneyRequestReportPreviewContentProps) {
     const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0;
+    // hasOnceLoadedReportActions is set as true one render before transactions are hydrated, to avoid showing empty state we need to defer loading state, so that it waits one more render for transactions
     const shouldShowLoadingDeferred = useDeferredValue(shouldShowLoading);
     const lastTransaction = transactions?.at(0);
     const shouldShowEmptyPlaceholder = transactions.length === 0;
