@@ -57,7 +57,10 @@ function SearchSidebar({state}: SearchSidebarProps) {
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
 
-    const isDataLoaded = isSearchDataLoaded(currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults, queryJSON);
+    const searchResultsToUse = (currentSearchResults?.hasResults ?? currentSearchResults?.hasMoreResults) ? currentSearchResults : lastNonEmptySearchResults;
+
+    const isDataLoaded = isSearchDataLoaded(searchResultsToUse, queryJSON);
+
     const shouldShowLoadingState = route?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT ? false : !isOffline && !isDataLoaded;
 
     if (shouldUseNarrowLayout) {
