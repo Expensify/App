@@ -30,7 +30,6 @@ import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     buildTransactionThread,
     changeMoneyRequestHoldStatus,
-    generateReportID,
     getArchiveReason,
     getBankAccountRoute,
     getIntegrationIcon,
@@ -616,11 +615,11 @@ function MoneyReportHeader({
                 onPress={() => {
                     let threadID = transactionThreadReportID ?? getFirstDuplicateThreadID(transactions, reportActions);
                     if (!threadID) {
-                        threadID = generateReportID();
                         const duplicateTransaction = transactions.find((reportTransaction) => isDuplicate(reportTransaction));
                         const transactionID = duplicateTransaction?.transactionID;
                         const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
-                        const optimisticTransactionThread = buildTransactionThread(iouAction, moneyRequestReport, undefined, threadID);
+                        const optimisticTransactionThread = buildTransactionThread(iouAction, moneyRequestReport);
+                        threadID = optimisticTransactionThread.reportID;
                         openReport(threadID, undefined, session?.email ? [session?.email] : [], optimisticTransactionThread, iouAction?.reportActionID);
                     }
                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
