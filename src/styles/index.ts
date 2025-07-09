@@ -5940,13 +5940,7 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
             overflow: 'hidden',
             boxShadow: theme.shadow,
-        },
-
-        receiptPreviewAuditWrapper: {
-            position: 'absolute',
-            top: '0px',
-            width: '100%',
-            background: 'linear-gradient(0deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5)',
+            backgroundColor: theme.appBG,
         },
 
         topBarWrapper: {

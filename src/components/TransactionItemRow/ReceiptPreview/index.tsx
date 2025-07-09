@@ -5,7 +5,6 @@ import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import EReceipt from '@components/EReceipt';
 import BaseImage from '@components/Image/BaseImage';
 import type {ImageOnLoadEvent} from '@components/Image/types';
-import ReceiptHoverAudit from '@components/TransactionItemRow/ReceiptHoverAudit';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 const showPreviewDelay = 270;
@@ -75,13 +74,12 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''
                     />
                 </View>
             )}
-            {!!isEReceipt && <EReceipt transactionID={transactionID} />}
-            <View style={styles.receiptPreviewAuditWrapper}>
-                <ReceiptHoverAudit
-                    shouldShowAuditResult
-                    notes={[]}
+            {!!isEReceipt && (
+                <EReceipt
+                    transactionID={transactionID}
+                    isThumbnail
                 />
-            </View>
+            )}
         </Animated.View>,
         document.body,
     );
