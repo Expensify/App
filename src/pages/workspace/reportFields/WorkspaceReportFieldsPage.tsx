@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {ActivityIndicator} from 'react-native';
-import Onyx from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import FlatList from '@components/FlatList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -26,7 +25,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
-import {enablePolicyReportFields, setPolicyPreventMemberCreatedTitle, clearPolicyErrorField} from '@libs/actions/Policy/Policy';
+import {enablePolicyReportFields, setPolicyPreventMemberCreatedTitle, clearPolicyTitleFieldError} from '@libs/actions/Policy/Policy';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -37,7 +36,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -161,18 +159,9 @@ function WorkspaceReportFieldsPage({
     const titleError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
     const reportTitleErrors = titleError && typeof titleError === 'object' ? titleError['defaultValue'] : null;
     const reportTitlePendingFields = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields ?? {};
-    
+
     const clearTitleFieldError = () => {
-        if (!policyID) {
-            return;
-        }
-        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-            errorFields: {
-                fieldList: {
-                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: null,
-                },
-            },
-        });
+        clearPolicyTitleFieldError(policyID);
     };
 
     return (

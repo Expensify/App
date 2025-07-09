@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -21,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {setPolicyDefaultReportTitle} from '@userActions/Policy/Policy';
+import {setPolicyDefaultReportTitle, clearPolicyTitleFieldError} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -64,16 +63,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
     );
 
     const clearTitleFieldError = () => {
-        if (!policyID) {
-            return;
-        }
-        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-            errorFields: {
-                fieldList: {
-                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: null,
-                },
-            },
-        });
+        clearPolicyTitleFieldError(policyID);
     };
 
     // Get pending action for loading state
