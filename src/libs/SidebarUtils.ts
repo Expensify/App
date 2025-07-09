@@ -240,13 +240,7 @@ function shouldDisplayReportInLHN(
     const isSystemChat = isSystemChatUtil(report);
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const shouldOverrideHidden =
-        hasValidDraftComment(report.reportID) ||
-        hasErrorsOtherThanFailedReceipt ||
-        isFocused ||
-        isSystemChat ||
-        !!report.isPinned ||
-        (!isInFocusMode && isReportArchived) ||
-        reportAttributes?.[report?.reportID]?.requiresAttention;
+        hasValidDraftComment(report.reportID) || hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || !!report.isPinned || reportAttributes?.[report?.reportID]?.requiresAttention;
 
     if (isHidden && !shouldOverrideHidden) {
         return {shouldDisplay: false};
@@ -584,7 +578,7 @@ function getOptionData({
     result.isPolicyExpenseChat = isPolicyExpenseChat(report);
     result.isExpenseRequest = isExpenseRequest(report);
     result.isMoneyRequestReport = isMoneyRequestReport(report);
-    result.shouldShowSubscript = shouldReportShowSubscript(report);
+    result.shouldShowSubscript = shouldReportShowSubscript(report, !!result.private_isArchived);
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = reportAttributes?.brickRoadStatus;
     result.ownerAccountID = report.ownerAccountID;
@@ -626,7 +620,7 @@ function getOptionData({
     const lastAction = visibleReportActionItems[report.reportID];
     // lastActorAccountID can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const lastActorAccountID = report.lastActorAccountID || lastAction?.actorAccountID;
+    const lastActorAccountID = lastAction?.actorAccountID || report.lastActorAccountID;
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
     // to get data from.
@@ -650,7 +644,7 @@ function getOptionData({
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, policy, reportNameValuePairs);
+        lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, policy, !!result?.private_isArchived);
     }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
@@ -713,7 +707,7 @@ function getOptionData({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE)) {
             result.alternateText = translateLocal('workspaceActions.downgradedWorkspace');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
-            result.alternateText = getIntegrationSyncFailedMessage(lastAction);
+            result.alternateText = getIntegrationSyncFailedMessage(lastAction, report?.policyID);
         } else if (
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY) ||
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY) ||
