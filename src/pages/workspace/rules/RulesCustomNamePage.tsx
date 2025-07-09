@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -20,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {clearPolicyErrorField, setPolicyDefaultReportTitle} from '@userActions/Policy/Policy';
+import {setPolicyDefaultReportTitle} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -62,8 +63,17 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
         [translate],
     );
 
-    const clearFieldListError = () => {
-        clearPolicyErrorField(policyID, 'fieldList');
+    const clearTitleFieldError = () => {
+        if (!policyID) {
+            return;
+        }
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            errorFields: {
+                fieldList: {
+                    [CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: null,
+                },
+            },
+        });
     };
 
     // Get pending action for loading state
@@ -71,7 +81,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
 
     // Clear errors when modal is dismissed
     useBeforeRemove(() => {
-        clearFieldListError();
+        clearTitleFieldError();
     });
 
     const submitForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_CUSTOM_NAME_MODAL_FORM>) => {
@@ -80,9 +90,7 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
     };
 
     const titleError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
-    const defaultValueError = (titleError as {defaultValue?: string})?.defaultValue;
-    const errorMessage = defaultValueError && typeof defaultValueError === 'object' ? Object.values(defaultValueError)[0] : defaultValueError;
-    const reportTitleErrors = errorMessage ? {error: errorMessage} : policy?.errorFields?.fieldList;
+    const titleFieldError = titleError && typeof titleError === 'object' ? titleError['defaultValue'] : null;
 
     return (
         <AccessOrNotFoundWrapper
@@ -123,9 +131,9 @@ function RulesCustomNamePage({route}: RulesCustomNamePageProps) {
                 >
                     <OfflineWithFeedback
                         pendingAction={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue}
-                        errors={reportTitleErrors}
+                        errors={titleFieldError}
                         errorRowStyles={styles.mh0}
-                        onClose={clearFieldListError}
+                        onClose={clearTitleFieldError}
                     >
                         <InputWrapper
                             InputComponent={TextInput}
