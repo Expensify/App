@@ -3203,6 +3203,18 @@ const translations = {
             consent: 'Gelieve in te stemmen met de privacyverklaring.',
         },
     },
+    docusignStep: {
+        subheader: 'Docusign-formulier',
+        pleaseComplete:
+            'Vul het ACH-autorisatieformulier in via de onderstaande Docusign-link en upload daarna een ondertekende kopie hier zodat we rechtstreeks geld van uw bankrekening kunnen afschrijven.',
+        pleaseCompleteTheBusinessAccount: 'Vul de aanvraag voor een zakelijke rekening en de automatische incassoregeling in.',
+        pleaseCompleteTheDirect:
+            'Vul de automatische incassoregeling in via de onderstaande Docusign-link en upload daarna een ondertekende kopie hier zodat we rechtstreeks geld van uw bankrekening kunnen afschrijven.',
+        takeMeTo: 'Ga naar Docusign',
+        uploadAdditional: 'Upload extra documentatie',
+        pleaseUpload: 'Upload het DEFT-formulier en de ondertekende Docusign-pagina.',
+        pleaseUploadTheDirect: 'Upload de automatische incassoregelingen en de Docusign-handtekeningenpagina.',
+    },
     finishStep: {
         connect: 'Bankrekening koppelen',
         letsFinish: 'Laten we in de chat afronden!',

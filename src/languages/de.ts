@@ -3185,6 +3185,18 @@ const translations = {
             consent: 'Bitte stimmen Sie der Datenschutzerklärung zu.',
         },
     },
+    docusignStep: {
+        subheader: 'Docusign-Formular',
+        pleaseComplete:
+            'Bitte füllen Sie das ACH-Autorisierungsformular über den untenstehenden Docusign-Link aus und laden Sie anschließend die unterschriebene Kopie hier hoch, damit wir direkt von Ihrem Bankkonto abbuchen können.',
+        pleaseCompleteTheBusinessAccount: 'Bitte füllen Sie den Antrag für ein Geschäftskonto und die Vereinbarung zum Lastschrifteinzug aus.',
+        pleaseCompleteTheDirect:
+            'Bitte füllen Sie die Vereinbarung zum Lastschrifteinzug über den untenstehenden Docusign-Link aus und laden Sie anschließend die unterschriebene Kopie hier hoch, damit wir direkt von Ihrem Bankkonto abbuchen können.',
+        takeMeTo: 'Zu Docusign',
+        uploadAdditional: 'Zusätzliche Dokumente hochladen',
+        pleaseUpload: 'Bitte laden Sie das DEFT-Formular und die unterschriebene Docusign-Seite hoch.',
+        pleaseUploadTheDirect: 'Bitte laden Sie die Lastschriftvereinbarung und die Docusign-Unterschriftsseite hoch.',
+    },
     finishStep: {
         connect: 'Bankkonto verbinden',
         letsFinish: 'Lass uns im Chat fertig werden!',

@@ -3197,6 +3197,18 @@ const translations = {
             consent: "Si prega di acconsentire all'informativa sulla privacy",
         },
     },
+    docusignStep: {
+        subheader: 'Modulo Docusign',
+        pleaseComplete:
+            'Completa il modulo di autorizzazione ACH tramite il link Docusign qui sotto e carica una copia firmata qui per consentirci di prelevare fondi direttamente dal tuo conto bancario.',
+        pleaseCompleteTheBusinessAccount: 'Completa la richiesta di conto aziendale e l’accordo di addebito diretto.',
+        pleaseCompleteTheDirect:
+            'Completa l’accordo di addebito diretto tramite il link Docusign qui sotto e carica una copia firmata qui per consentirci di prelevare fondi direttamente dal tuo conto bancario.',
+        takeMeTo: 'Vai a Docusign',
+        uploadAdditional: 'Carica documentazione aggiuntiva',
+        pleaseUpload: 'Carica il modulo DEFT e la pagina di firma Docusign.',
+        pleaseUploadTheDirect: 'Carica l’accordo di addebito diretto e la pagina di firma Docusign.',
+    },
     finishStep: {
         connect: 'Collega conto bancario',
         letsFinish: 'Finisciamo in chat!',

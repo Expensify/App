@@ -3202,6 +3202,18 @@ const translations = {
             consent: 'Por favor, consinta com o aviso de privacidade',
         },
     },
+    docusignStep: {
+        subheader: 'Formulário Docusign',
+        pleaseComplete:
+            'Por favor, preencha o formulário de autorização ACH pelo link do Docusign abaixo e envie uma cópia assinada aqui para que possamos debitar diretamente da sua conta bancária.',
+        pleaseCompleteTheBusinessAccount: 'Por favor, preencha a Solicitação de Conta Empresarial e o Acordo de Débito Direto.',
+        pleaseCompleteTheDirect:
+            'Por favor, preencha o Acordo de Débito Direto usando o link do Docusign abaixo e envie uma cópia assinada aqui para que possamos debitar diretamente da sua conta bancária.',
+        takeMeTo: 'Ir para o Docusign',
+        uploadAdditional: 'Enviar documentação adicional',
+        pleaseUpload: 'Por favor, envie o formulário DEFT e a página de assinatura do Docusign.',
+        pleaseUploadTheDirect: 'Por favor, envie os Acordos de Débito Direto e a página de assinatura do Docusign.',
+    },
     finishStep: {
         connect: 'Conectar conta bancária',
         letsFinish: 'Vamos terminar no chat!',

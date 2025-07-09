@@ -3190,6 +3190,18 @@ const translations = {
             consent: "Veuillez consentir à l'avis de confidentialité",
         },
     },
+    docusignStep: {
+        subheader: 'Formulaire Docusign',
+        pleaseComplete:
+            'Veuillez remplir le formulaire d’autorisation ACH via le lien Docusign ci-dessous, puis téléversez une copie signée ici afin que nous puissions prélever les fonds directement de votre compte bancaire.',
+        pleaseCompleteTheBusinessAccount: 'Veuillez remplir la demande de compte professionnel et l’accord de prélèvement automatique.',
+        pleaseCompleteTheDirect:
+            'Veuillez remplir l’accord de prélèvement automatique via le lien Docusign ci-dessous, puis téléversez une copie signée ici afin que nous puissions prélever les fonds directement de votre compte bancaire.',
+        takeMeTo: 'Aller à Docusign',
+        uploadAdditional: 'Téléverser des documents supplémentaires',
+        pleaseUpload: 'Veuillez téléverser le formulaire DEFT et la page de signature Docusign.',
+        pleaseUploadTheDirect: 'Veuillez téléverser les accords de prélèvement automatique et la page de signature Docusign.',
+    },
     finishStep: {
         connect: 'Connecter un compte bancaire',
         letsFinish: 'Terminons dans le chat !',
