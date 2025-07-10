@@ -221,6 +221,7 @@ function ReportActionCompose({
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
 
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
+    const isTransactionsView = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
         canEvict: false,
@@ -228,7 +229,8 @@ function ReportActionCompose({
     });
 
     const iouAction = reportActions ? Object.values(reportActions).find((action) => isMoneyRequestAction(action)) : null;
-    const linkedTransactionID = iouAction ? getLinkedTransactionID(iouAction) : undefined;
+    const linkedTransactionID = iouAction && !isTransactionsView ? getLinkedTransactionID(iouAction) : undefined;
+
     const transactionID = useMemo(() => getTransactionID(reportID) ?? linkedTransactionID, [reportID, linkedTransactionID]);
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
