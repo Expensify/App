@@ -32,6 +32,12 @@ type MoneyRequestAmountInputProps = {
     /** Currency chosen by user or saved in Onyx */
     currency?: string;
 
+    /** The decimals of the currency/unit. If not provided, it will be inferred from the currency */
+    decimals?: number;
+
+    /** Extra symbol to be shown after the amount input */
+    extraSymbol?: React.ReactNode;
+
     /** Whether the currency symbol is pressable */
     isCurrencyPressable?: boolean;
 
@@ -136,6 +142,8 @@ function MoneyRequestAmountInput(
         testID,
         submitBehavior,
         shouldApplyPaddingToContainer = false,
+        decimals: decimalsProp,
+        extraSymbol,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -146,7 +154,7 @@ function MoneyRequestAmountInput(
 
     const amountRef = useRef<string | undefined>(undefined);
 
-    const decimals = getCurrencyDecimals(currency);
+    const decimals = decimalsProp ?? getCurrencyDecimals(currency);
     const selectedAmountAsString = amount ? onFormatAmount(amount, currency) : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
@@ -348,6 +356,7 @@ function MoneyRequestAmountInput(
             testID={testID}
             submitBehavior={submitBehavior}
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
+            extraSymbol={extraSymbol}
         />
     );
 }
