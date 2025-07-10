@@ -1761,7 +1761,7 @@ function saveReportDraftComment(reportID: string, comment: string | null, callba
             // otherwise it will be trimmed by the WAF _and_ Auth's SParseHTTP function
             comment: `"${comment}"`,
         },
-        {optimisticData: [{onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, value: {[reportID]: prepareDraftComment(comment)}}]},
+        {optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_DRAFT_REPORT_COMMENTS, value: {[reportID]: prepareDraftComment(comment)}}]},
         {
             checkAndFixConflictingRequest: (persistedRequests) =>
                 resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.SAVE_REPORT_DRAFT_COMMENT && request.data?.reportID === reportID),
