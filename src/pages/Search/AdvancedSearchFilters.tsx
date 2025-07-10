@@ -381,21 +381,20 @@ function getFilterParticipantDisplayTitle(accountIDs: string[], personalDetails:
 
 function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filterKey: SearchFilterKey, translate: LocaleContextProps['translate']) {
     if (DATE_FILTER_KEYS.includes(filterKey as SearchDateFilterKeys)) {
-        // the value of date filter is a combination of dateBefore + dateAfter values
+        const keyOn = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
         const keyBefore = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.BEFORE}`;
         const keyAfter = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.AFTER}`;
-        const keyOn = `${filterKey}${CONST.SEARCH.DATE_MODIFIERS.ON}` as `${SearchDateFilterKeys}${typeof CONST.SEARCH.DATE_MODIFIERS.ON}`;
+        const dateOn = filters[keyOn];
         const dateBefore = filters[keyBefore];
         const dateAfter = filters[keyAfter];
-        const dateOn = filters[keyOn];
         const dateValue = [];
-
-        if (dateBefore) {
-            dateValue.push(translate('search.filters.date.before', {date: dateBefore}));
-        }
 
         if (dateOn) {
             dateValue.push(isSearchDatePreset(dateOn) ? translate(`search.filters.date.presets.${dateOn}`) : translate('search.filters.date.on', {date: dateOn}));
+        }
+
+        if (dateBefore) {
+            dateValue.push(translate('search.filters.date.before', {date: dateBefore}));
         }
 
         if (dateAfter) {

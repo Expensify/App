@@ -38,7 +38,8 @@ function IOURequestStepAccountant({
             createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID, action);
             return;
         }
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, Navigation.getActiveRoute(), action));
+
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, undefined, action));
     }, [iouType, transactionID, reportID, action, currentUserLogin]);
 
     const navigateBack = useCallback(() => {

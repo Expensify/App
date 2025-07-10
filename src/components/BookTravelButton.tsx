@@ -1,7 +1,6 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
-import React, {useCallback, useContext, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,6 +14,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import colors from '@styles/theme/colors';
+import closeReactNativeApp from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +22,6 @@ import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
-import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import {RocketDude} from './Icon/Illustrations';
 import Text from './Text';
@@ -62,7 +61,6 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: false});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {isBlockedFromSpotnanaTravel, isBetaEnabled} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
     const [isVerificationModalVisible, setVerificationModalVisibility] = useState(false);
@@ -72,7 +70,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
     const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
     // Flag indicating whether NewDot was launched exclusively for Travel,
     // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
-    const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: false});
+    const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.isSingleNewDotEntry, canBeMissing: false});
 
     const hidePreventionModal = () => setPreventionModalVisibility(false);
     const hideVerificationModal = () => setVerificationModalVisibility(false);
@@ -137,8 +135,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
 
                     // Close NewDot if it was opened only for Travel, as its purpose is now fulfilled.
                     Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-                    HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
-                    setRootStatusBarEnabled(false);
+                    closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
                 })
                 ?.catch(() => {
                     setErrorMessage(translate('travel.errorMessage'));
@@ -170,17 +167,16 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         isBlockedFromSpotnanaTravel,
         primaryContactMethod,
         policy,
+        groupPaidPolicies.length,
         travelSettings?.hasAcceptedTerms,
+        travelSettings?.lastTravelSignupRequestTime,
+        isBetaEnabled,
         styles.flexRow,
         styles.link,
         StyleUtils,
         translate,
         wasNewDotLaunchedJustForTravel,
-        setRootStatusBarEnabled,
         isUserValidated,
-        groupPaidPolicies.length,
-        isBetaEnabled,
-        travelSettings?.lastTravelSignupRequestTime,
     ]);
 
     return (

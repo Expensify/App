@@ -1,7 +1,6 @@
 import type {ImageStyle} from 'expo-image';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import type TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
@@ -10,15 +9,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type ValidSkeletons = typeof SearchRowSkeleton | typeof TableRowSkeleton;
 type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;
-type EmptyStateButton = {
-    buttonText?: string;
-    buttonAction?: () => void;
-    success?: boolean;
-    icon?: IconAsset;
-    isDisabled?: boolean;
-    style?: StyleProp<ViewStyle>;
-    dropDownOptions?: Array<DropdownOption<ValueOf<{readonly CREATE_NEW_EXPENSE: 'createNewExpense'; readonly ADD_UNREPORTED_EXPENSE: 'addUnreportedExpense'}>>>;
-};
+type EmptyStateButton = {buttonText?: string; buttonAction?: () => void; success?: boolean; icon?: IconAsset; isDisabled?: boolean; style?: StyleProp<ViewStyle>};
 
 type SharedProps<T> = {
     SkeletonComponent?: ValidSkeletons;
