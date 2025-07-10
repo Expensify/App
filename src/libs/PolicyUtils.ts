@@ -448,6 +448,13 @@ function getCleanedTagName(tag: string) {
 }
 
 /**
+ * Converts a colon-delimited tag string to a comma-separated one, trimming leading/trailing colons.
+ */
+function getCommaSeperatedTagNameWithSanitizedColons(tag: string) {
+    return tag?.replace(/^:+|:+$/g, '').replace(/:+/g, ', ');
+}
+
+/**
  * Escape colon from tag name
  */
 function escapeTagName(tag: string) {
@@ -1468,6 +1475,7 @@ export {
     getPerDiemCustomUnits,
     getAdminEmployees,
     getCleanedTagName,
+    getCommaSeperatedTagNameWithSanitizedColons,
     getConnectedIntegration,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
