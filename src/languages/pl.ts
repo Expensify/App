@@ -1152,8 +1152,7 @@ const translations = {
         automaticallyForwarded: `zatwierdzono poprzez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady przestrzeni roboczej</a>`,
         forwarded: `zatwierdzony`,
         rejectedThisReport: 'odrzucono ten raport',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) =>
-            `rozpoczęto rozliczanie. Płatność jest wstrzymana, dopóki ${submitterDisplayName} nie doda konta bankowego.`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `rozpoczęto płatność, ale oczekuje na ${submitterDisplayName}, aby dodał konto bankowe.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''} anulował płatność`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `anulowano płatność w wysokości ${amount}, ponieważ ${submitterDisplayName} nie aktywował swojego Portfela Expensify w ciągu 30 dni`,
@@ -5974,7 +5973,7 @@ const translations = {
         groupBy: 'Grupa według',
         moneyRequestReport: {
             emptyStateTitle: 'Ten raport nie zawiera wydatków.',
-            emptyStateSubtitle: 'Możesz dodać wydatki do tego raportu, używając przycisku powyżej.',
+            emptyStateSubtitle: 'Możesz dodać wydatki do tego raportu\n za pomocą przycisku poniżej lub opcji „Dodaj wydatek” w menu Więcej powyżej.',
         },
         noCategory: 'Brak kategorii',
         noTag: 'Brak tagu',
@@ -6251,9 +6250,8 @@ const translations = {
         levelThreeResult: 'Wiadomość usunięta z kanału, dodano anonimowe ostrzeżenie, a wiadomość została zgłoszona do przeglądu.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Zaproś do przesyłania wydatków',
-        inviteToChat: 'Zaproś tylko do czatu',
-        nothing: 'Nie rób nic',
+        invite: 'Zaproś ich',
+        nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Akceptuj',
