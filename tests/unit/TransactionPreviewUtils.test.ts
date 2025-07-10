@@ -177,6 +177,18 @@ describe('TransactionPreviewUtils', () => {
 
             expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.approved'});
         });
+
+        it('should display the correct amount for a bill split transaction', () => {
+            const functionArgs = {...basicProps, isBillSplit: true};
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.displayAmountText.text).toEqual('$1.00');
+        });
+
+        it('should display the correct amount for a bill split transaction after updating the amount', () => {
+            const functionArgs = {...basicProps, isBillSplit: true, transaction: {...basicProps.transaction, modifiedAmount: 50}};
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.displayAmountText.text).toEqual('$0.50');
+        });
     });
 
     describe('createTransactionPreviewConditionals', () => {
