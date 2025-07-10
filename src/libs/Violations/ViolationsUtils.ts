@@ -172,7 +172,7 @@ function getTagViolationMessagesForMultiLevelTags(tagName: string, errorIndexes:
         return translate('violations.someTagLevelsRequired', {tagName});
     }
     const tagsWithIndexes = _keyBy(Object.values(tags), 'orderWeight');
-    return errorIndexes.map((i) => translate('violations.someTagLevelsRequired', {tagName: tagsWithIndexes[i]?.name})).join(', ');
+    return errorIndexes.map((i) => translate('violations.someTagLevelsRequired', {tagName: tagsWithIndexes[i]?.name})).join('. ');
 }
 
 /**
