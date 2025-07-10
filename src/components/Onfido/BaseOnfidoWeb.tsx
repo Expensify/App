@@ -40,7 +40,6 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             colorContentTitle: theme.text,
             colorContentSubtitle: theme.text,
             colorContentBody: theme.text,
-            colorContentSecondary: theme.text,
             borderRadiusButton: `${variables.buttonBorderRadius}px`,
             colorBackgroundSurfaceModal: theme.appBG,
             colorBorderDocTypeButton: theme.border,
