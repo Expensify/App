@@ -10,4 +10,4 @@
   
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/50782
 - E/App issue: https://github.com/Expensify/App/issues/64900
-- PR introducing patch: <Link to E/App (or Mobile-Expensify) PR that added the patch>
+- PR introducing patch: [#65804](https://github.com/Expensify/App/pull/65804)
