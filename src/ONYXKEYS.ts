@@ -532,9 +532,6 @@ const ONYXKEYS = {
     /** Set this gets redirected from global reimbursements flow */
     IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW: 'isComingFromGlobalReimbursementsFlow',
 
-    /** Stores HybridApp specific state required to interoperate with OldDot */
-    HYBRID_APP: 'hybridApp',
-
     /** Stores information for OpenUnreportedExpensesPage API call pagination */
     HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS: 'hasMoreUnreportedTransactionsResults',
 
