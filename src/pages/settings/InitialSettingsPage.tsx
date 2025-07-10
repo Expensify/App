@@ -232,6 +232,16 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     },
                 },
                 {
+                    translationKey: 'initialSettingsPage.whatIsNew',
+                    icon: Expensicons.TreasureChest,
+                    iconRight: Expensicons.NewWindow,
+                    shouldShowRightIcon: true,
+                    link: CONST.WHATS_NEW_URL,
+                    action: () => {
+                        openExternalLink(CONST.WHATS_NEW_URL);
+                    },
+                },
+                {
                     translationKey: 'exitSurvey.goToExpensifyClassic',
                     icon: Expensicons.ExpensifyLogoNew,
                     ...(CONFIG.IS_HYBRID_APP
@@ -287,7 +297,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const getMenuItemsSection = useCallback(
         (menuItemsData: Menu) => {
             const openPopover = (link: string | (() => Promise<string>) | undefined, event: GestureResponderEvent | MouseEvent) => {
-                if (!Navigation.isActiveRoute(ROUTES.SETTINGS)) {
+                if (!isScreenFocused) {
                     return;
                 }
 
@@ -350,7 +360,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 </View>
             );
         },
-        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, focusedRouteName, isExecuting, singleExecution],
+        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, isScreenFocused, focusedRouteName, isExecuting, singleExecution],
     );
 
     const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);

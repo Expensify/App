@@ -230,6 +230,7 @@ module.exports = {
         'rulesdir/no-multiple-onyx-in-file': 'off',
         'rulesdir/prefer-underscore-method': 'off',
         'rulesdir/prefer-import-module-contents': 'off',
+        'rulesdir/no-beta-handler': 'error',
 
         // React and React Native specific rules
         'react-native-a11y/has-accessibility-hint': ['off'],
