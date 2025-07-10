@@ -1,3 +1,4 @@
+import type {ViewStyle} from 'react-native';
 import {Easing} from 'react-native-reanimated';
 import type {ValidKeyframeProps} from 'react-native-reanimated/lib/typescript/commonTypes';
 import type {AnimationInType, AnimationOutType} from './types';
@@ -35,6 +36,22 @@ function getModalInAnimation(animationType: AnimationInType): ValidKeyframeProps
     }
 }
 
+/**
+ * @returns A function that takes a number between 0 and 1 and returns a ViewStyle object.
+ */
+function getModalInAnimationStyle(animationType: AnimationInType): (progress: number) => ViewStyle {
+    switch (animationType) {
+        case 'slideInRight':
+            return (progress) => ({transform: [{translateX: `${100 * (1 - progress)}%`}]});
+        case 'slideInUp':
+            return (progress) => ({transform: [{translateY: `${100 * (1 - progress)}%`}]});
+        case 'fadeIn':
+            return (progress) => ({opacity: progress});
+        default:
+            throw new Error('Unknown animation type');
+    }
+}
+
 function getModalOutAnimation(animationType: AnimationOutType): ValidKeyframeProps {
     switch (animationType) {
         case 'slideOutRight':
@@ -66,4 +83,4 @@ function getModalOutAnimation(animationType: AnimationOutType): ValidKeyframePro
     }
 }
 
-export {getModalInAnimation, getModalOutAnimation};
+export {getModalInAnimation, getModalInAnimationStyle, getModalOutAnimation, easing};

@@ -1,15 +1,14 @@
 import React, {useEffect, useMemo, useRef} from 'react';
-import Animated, {Easing, Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
+import {easing, getModalInAnimationStyle, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0).factory();
-
-function Container({style, animationInTiming = 300, animationOutTiming = 300, onOpenCallBack, onCloseCallBack, ...props}: ReanimatedModalProps & ContainerProps) {
+function Container({style, animationIn, animationOut, animationInTiming = 300, animationOutTiming = 300, onOpenCallBack, onCloseCallBack, ...props}: ReanimatedModalProps & ContainerProps) {
     const styles = useThemeStyles();
     const onCloseCallbackRef = useRef(onCloseCallBack);
-    const opacity = useSharedValue(0);
+    const initProgress = useSharedValue(0);
     const isInitiated = useSharedValue(false);
 
     useEffect(() => {
@@ -21,23 +20,17 @@ function Container({style, animationInTiming = 300, animationOutTiming = 300, on
             return;
         }
         isInitiated.set(true);
-        opacity.set(withTiming(1, {duration: animationInTiming, easing}, onOpenCallBack));
-    }, [animationInTiming, onOpenCallBack, opacity, isInitiated]);
+        initProgress.set(withTiming(1, {duration: animationInTiming, easing}, onOpenCallBack));
+    }, [animationInTiming, onOpenCallBack, initProgress, isInitiated]);
 
-    const animatedStyles = useAnimatedStyle(() => ({opacity: opacity.get()}), [opacity]);
+    const animatedStyles = useAnimatedStyle(() => getModalInAnimationStyle(animationIn)(initProgress.get()), [initProgress]);
 
     const Exiting = useMemo(() => {
-        const FadeOut = new Keyframe({
-            from: {opacity: 1},
-            to: {
-                opacity: 0,
-                easing,
-            },
-        });
+        const AnimationOut = new Keyframe(getModalOutAnimation(animationOut));
 
         // eslint-disable-next-line react-compiler/react-compiler
-        return FadeOut.duration(animationOutTiming).withCallback(() => onCloseCallbackRef.current());
-    }, [animationOutTiming]);
+        return AnimationOut.duration(animationOutTiming).withCallback(() => onCloseCallbackRef.current());
+    }, [animationOut, animationOutTiming]);
 
     return (
         <Animated.View
