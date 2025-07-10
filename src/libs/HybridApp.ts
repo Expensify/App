@@ -17,6 +17,7 @@ let currentSession: OnyxEntry<Session>;
 Onyx.connect({
     key: ONYXKEYS.HYBRID_APP,
     callback: (hybridApp) => {
+        currentHybridApp = hybridApp;
         handleChangeInHybridAppSignInFlow(hybridApp, currentTryNewDot, currentCredentials, currentSession);
     },
 });
@@ -24,6 +25,7 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (tryNewDot) => {
+        currentTryNewDot = tryNewDot;
         handleChangeInHybridAppSignInFlow(currentHybridApp, tryNewDot, currentCredentials, currentSession);
     },
 });
@@ -41,6 +43,8 @@ Onyx.connect({
     callback: (session: OnyxEntry<Session>) => {
         if (!currentSession?.authToken && session?.authToken) {
             handleChangeInHybridAppSignInFlow(currentHybridApp, currentTryNewDot, currentCredentials, session);
+        } else if (isAnonymousUser(currentSession) && !isAnonymousUser(session)) {
+            handleChangeInHybridAppSignInFlow(currentHybridApp, currentTryNewDot, currentCredentials, session, true);
         }
         currentSession = session;
     },
@@ -61,15 +65,12 @@ function shouldUseOldApp(tryNewDot?: TryNewDot) {
     return tryNewDot?.classicRedirect?.dismissed === true;
 }
 
-function handleChangeInHybridAppSignInFlow(hybridApp: OnyxEntry<HybridApp>, tryNewDot: OnyxEntry<TryNewDot>, credentials: OnyxEntry<Credentials>, session: OnyxEntry<Session>) {
+function handleChangeInHybridAppSignInFlow(hybridApp: OnyxEntry<HybridApp>, tryNewDot: OnyxEntry<TryNewDot>, credentials: OnyxEntry<Credentials>, session: OnyxEntry<Session>, usingSignInModal = false) {
     if (!CONFIG.IS_HYBRID_APP) {
         return;
     }
 
-    currentHybridApp = hybridApp;
-    currentTryNewDot = tryNewDot;
-
-    if (!hybridApp?.useNewDotSignInPage || !session?.authToken) {
+    if (!session?.authToken || (!hybridApp?.useNewDotSignInPage && !usingSignInModal)) {
         return;
     }
 

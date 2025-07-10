@@ -156,10 +156,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
-        if (CONFIG.IS_HYBRID_APP) {
-            resetSignInFlow();
-        }
-
         userActionsResendValidateCode(credentials?.login ?? '');
         inputValidateCodeRef.current?.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
@@ -239,15 +235,11 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        const isAnonymousUser = isAnonymousUserUtil(session);
-
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (account?.isLoading || hybridApp?.readyToShowAuthScreens || (session?.authToken && !isAnonymousUser)) {
+        if (account?.isLoading) {
             return;
         }
-        if (CONFIG.IS_HYBRID_APP) {
-            resetSignInFlow();
-        }
+
         if (account?.errors) {
             clearAccountMessages();
         }
