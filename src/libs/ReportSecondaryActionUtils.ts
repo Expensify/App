@@ -232,11 +232,8 @@ function isUnapproveAction(report: Report, policy?: Policy): boolean {
         return false;
     }
 
-    // Only final approver or admins can unapprove approved reports
     if (report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
-        const finalApproverAccountID = report.managerID;
-        const isFinalApprover = finalApproverAccountID === getCurrentUserAccountID();
-        return isFinalApprover || isAdmin;
+        return isManager || isAdmin;
     }
 
     // Managers or admins can unapprove non-finally approved reports
