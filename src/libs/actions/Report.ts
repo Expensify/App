@@ -3429,7 +3429,7 @@ function openReportFromDeepLink(url: string) {
                                 return;
                             }
 
-                            if(isAuthenticated) {
+                            if (isAuthenticated) {
                                 return;
                             }
 
