@@ -646,6 +646,7 @@ const CONST = {
         TRACK_FLOWS: 'trackFlows',
         EUR_BILLING: 'eurBilling',
         MANUAL_DISTANCE: 'manualDistance',
+        VACATION_DELEGATE: 'vacationDelegate',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
