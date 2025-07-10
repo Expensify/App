@@ -675,6 +675,7 @@ const translations = {
     },
     dropzone: {
         addAttachments: 'Bijlagen toevoegen',
+        addReceipt: 'Bon toevoegen',
         scanReceipts: 'Bonnen scannen',
         replaceReceipt: 'Bon vervangen',
     },
