@@ -3,7 +3,6 @@ import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import AnonymousReportFooter from '@components/AnonymousReportFooter';
 import ArchivedReportFooter from '@components/ArchivedReportFooter';
 import Banner from '@components/Banner';
@@ -14,6 +13,7 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import SwipeableView from '@components/SwipeableView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,6 +47,9 @@ type ReportFooterProps = {
     /** Report metadata */
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 
+    /** Report transactions */
+    reportTransactions?: OnyxEntry<OnyxTypes.Transaction[]>;
+
     /** The policy of the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -79,6 +82,7 @@ function ReportFooter({
     isComposerFullSize = false,
     onComposerBlur,
     onComposerFocus,
+    reportTransactions,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -86,7 +90,7 @@ function ReportFooter({
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [shouldShowComposeInput] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {initialValue: false, canBeMissing: true});
+    const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {canBeMissing: true});
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS, canBeMissing: false});
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
         selector: (dateString) => {
@@ -103,8 +107,9 @@ function ReportFooter({
         },
         canBeMissing: true,
     });
-    const isReportArchived = useReportIsArchived(report?.reportID);
+
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
 
     const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth) < variables.anonymousReportFooterBreakpoint;
@@ -225,6 +230,7 @@ function ReportFooter({
                             isComposerFullSize={isComposerFullSize}
                             isReportReadyForDisplay={isReportReadyForDisplay}
                             didHideComposerInput={didHideComposerInput}
+                            reportTransactions={reportTransactions}
                         />
                     </SwipeableView>
                 </View>
@@ -245,5 +251,6 @@ export default memo(
         prevProps.isReportReadyForDisplay === nextProps.isReportReadyForDisplay &&
         deepEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
         deepEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
-        deepEqual(prevProps.policy?.role, nextProps.policy?.role),
+        deepEqual(prevProps.policy?.role, nextProps.policy?.role) &&
+        deepEqual(prevProps.reportTransactions, nextProps.reportTransactions),
 );

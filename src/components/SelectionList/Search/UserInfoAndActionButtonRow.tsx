@@ -49,8 +49,6 @@ function UserInfoAndActionButtonRow({
                     goToItem={handleActionButtonPress}
                     isSelected={item.isSelected}
                     isLoading={item.isActionLoading}
-                    policyID={item.policyID}
-                    reportID={item.reportID}
                     isDisabled={item?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                 />
             </View>
