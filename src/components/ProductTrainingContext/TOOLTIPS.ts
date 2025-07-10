@@ -139,7 +139,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(SCAN_TEST_TOOLTIP),
         name: SCAN_TEST_TOOLTIP,
         priority: 900,
-        shouldShow: ({isUserInPaidPolicy, hasBeenAddedToNudgeMigration}) => /* !isUserInPaidPolicy && */ !hasBeenAddedToNudgeMigration,
+        shouldShow: ({isUserInPaidPolicy, hasBeenAddedToNudgeMigration}) =>  !isUserInPaidPolicy && !hasBeenAddedToNudgeMigration,
         shouldRenderActionButtons: true,
     },
     [SCAN_TEST_TOOLTIP_MANAGER]: {
