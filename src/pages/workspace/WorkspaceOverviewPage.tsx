@@ -206,13 +206,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         setIsDeleteModalOpen(true);
     }, [setIsDeletingPaidWorkspace]);
 
-    useEffect(() => {
-        if (!isDeleteModalOpen) {
-            return;
-        }
-        dropdownMenuRef.current?.setIsMenuVisible(false);
-    }, [isDeleteModalOpen]);
-
     const handleBackButtonPress = () => {
         if (isComingFromGlobalReimbursementsFlow) {
             setIsComingFromGlobalReimbursementsFlow(false);
@@ -261,7 +254,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 onSelected: onDeleteWorkspace,
                 disabled: isLoadingBill,
                 shouldShowLoadingSpinnerIcon: isLoadingBill,
-                shouldCloseModalOnSelect: false,
+                shouldCloseModalOnSelect: !shouldCalculateBillNewDot(),
             });
         }
         return (
