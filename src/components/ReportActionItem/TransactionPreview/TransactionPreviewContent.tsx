@@ -28,7 +28,7 @@ import {canEditMoneyRequest, getTransactionDetails, getWorkspaceIcon, isPolicyEx
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
-import {isScanning} from '@libs/TransactionUtils';
+import {isCardTransaction as isCardTransactionUtils, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -136,6 +136,7 @@ function TransactionPreviewContent({
     const participantAccountIDs = isMoneyRequestAction(action) && isBillSplit ? (getOriginalMessage(action)?.participantAccountIDs ?? []) : [managerID, ownerAccountID];
     const participantAvatars = getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
     const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
+    const isCardTransaction = isCardTransactionUtils(transaction);
     if (isReportAPolicyExpenseChat && isBillSplit) {
         sortedParticipantAvatars.push(getWorkspaceIcon(chatReport));
     }
@@ -342,7 +343,7 @@ function TransactionPreviewContent({
                             </View>
                         </View>
                     )}
-                    {isReviewDuplicateTransactionPage && !isIOUSettled && !isApproved && areThereDuplicates && (
+                    {isReviewDuplicateTransactionPage && !isIOUSettled && !isApproved && !isCardTransaction && areThereDuplicates && (
                         <Button
                             text={translate('violations.keepThisOne')}
                             success
