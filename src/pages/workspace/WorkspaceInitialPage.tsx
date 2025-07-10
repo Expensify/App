@@ -125,7 +125,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const wasRendered = useRef(false);
-    const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(accountID, policy?.id)?.reportID;
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(accountID, policy?.id, allReports)?.reportID;
     const [currentUserPolicyExpenseChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentUserPolicyExpenseChatReportID}`, {canBeMissing: true});
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(currentUserPolicyExpenseChat);
     const isPolicyExpenseChatEnabled = !!policy?.isPolicyExpenseChatEnabled;
@@ -487,7 +488,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             ))}
                         </View>
                     </OfflineWithFeedback>
-                    {isPolicyExpenseChatEnabled && (
+                    {isPolicyExpenseChatEnabled && !!currentUserPolicyExpenseChatReportID && (
                         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
                             <OfflineWithFeedback pendingAction={reportPendingAction}>

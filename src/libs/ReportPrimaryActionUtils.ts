@@ -127,6 +127,10 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
         return false;
     }
 
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+        return false;
+    }
+
     const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
 
@@ -311,10 +315,6 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     const {report, reportTransactions, violations, policy, reportNameValuePairs, reportActions, isChatReportArchived, chatReport, invoiceReceiverPolicy} = params;
 
     const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
-
-    if (isAddExpenseAction(report, reportTransactions, isChatReportArchived)) {
-        return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
-    }
 
     if (isMarkAsCashAction(report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
