@@ -1154,8 +1154,7 @@ const translations = {
         automaticallyForwarded: `aprovado via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>`,
         forwarded: `aprovado`,
         rejectedThisReport: 'rejeitou este relatório',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) =>
-            `começou a acertar as contas. O pagamento está em espera até que ${submitterDisplayName} adicione uma conta bancária.`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `iniciou o pagamento, mas está aguardando ${submitterDisplayName} adicionar uma conta bancária.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''} cancelou o pagamento`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `cancelou o pagamento de ${amount}, porque ${submitterDisplayName} não ativou sua Expensify Wallet dentro de 30 dias`,
@@ -1539,6 +1538,7 @@ const translations = {
             phrase4: 'Privacidade',
         },
         help: 'Ajuda',
+        whatIsNew: 'O que há de novo',
         accountSettings: 'Configurações da conta',
         account: 'Conta',
         general: 'Geral',
@@ -5986,7 +5986,7 @@ const translations = {
         groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este relatório não possui despesas.',
-            emptyStateSubtitle: 'Você pode adicionar despesas a este relatório usando o botão acima.',
+            emptyStateSubtitle: 'Você pode adicionar despesas a este relatório\n usando o botão abaixo ou a opção "Adicionar despesa" no menu Mais acima.',
         },
         noCategory: 'Sem categoria',
         noTag: 'Sem etiqueta',

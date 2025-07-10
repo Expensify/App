@@ -234,6 +234,16 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     },
                 },
                 {
+                    translationKey: 'initialSettingsPage.whatIsNew',
+                    icon: Expensicons.TreasureChest,
+                    iconRight: Expensicons.NewWindow,
+                    shouldShowRightIcon: true,
+                    link: CONST.WHATS_NEW_URL,
+                    action: () => {
+                        openExternalLink(CONST.WHATS_NEW_URL);
+                    },
+                },
+                {
                     translationKey: 'exitSurvey.goToExpensifyClassic',
                     icon: Expensicons.ExpensifyLogoNew,
                     ...(CONFIG.IS_HYBRID_APP
