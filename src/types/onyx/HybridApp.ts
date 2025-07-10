@@ -3,7 +3,7 @@ type HybridApp = {
     /** Specifies if the transition from OldDot was made to display a specific subset of screens in NewDot */
     isSingleNewDotEntry?: boolean;
 
-    /** Indicates if the NewDot is being closed */
+    /** Indicates if NewDot is being closed */
     closingReactNativeApp?: boolean;
 };
 
