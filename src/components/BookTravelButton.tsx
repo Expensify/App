@@ -157,8 +157,6 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         styles.link,
         StyleUtils,
         translate,
-        wasNewDotLaunchedJustForTravel,
-        setRootStatusBarEnabled,
         isUserValidated,
         groupPaidPolicies.length,
         isBetaEnabled,
