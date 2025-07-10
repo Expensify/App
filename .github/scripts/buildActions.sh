@@ -54,8 +54,13 @@ for ((i=0; i < ${#GITHUB_ACTIONS[@]}; i++)); do
   ACTION_DIR=$(dirname "$ACTION")
   ACTION_NAME=$(basename "$ACTION" .ts)
 
-   OUTPUT_FILE="$ACTION_DIR/index.js"
-  echo "$NOTE_DONT_EDIT$(cat "$OUTPUT_FILE")" > "$OUTPUT_FILE"
+  # Wait for the background build to finish
+  wait "${ASYNC_BUILDS[$i]}"
+    OUTPUT_FILE="$ACTION_DIR/index.js"
+    # Only add the note if it doesn't already exist
+    if ! grep -q "NOTE: This is a compiled file" "$OUTPUT_FILE"; then
+        echo "$NOTE_DONT_EDIT$(cat "$OUTPUT_FILE")" > "$OUTPUT_FILE"
+    fi
   if ! wait "${ASYNC_BUILDS[$i]}"; then
     echo "❌ $ACTION_NAME failed to build: $ACTION_DIR/index.js"
   fi
