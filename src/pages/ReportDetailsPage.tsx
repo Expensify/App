@@ -30,6 +30,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -161,6 +162,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const {removeTransaction} = useSearchContext();
 
     const transactionThreadReportID = useMemo(() => getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline), [reportActions, isOffline, report, chatReport]);
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
@@ -472,7 +475,11 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     if (!report?.policyID) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID, Navigation.getActiveRoute()));
+                    if (isSmallScreenWidth) {
+                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID, Navigation.getActiveRoute()));
+                    } else {
+                        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(report?.policyID));
+                    }
                 },
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
@@ -541,6 +548,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isTaskActionable,
         isRootGroupChat,
         leaveChat,
+        isSmallScreenWidth,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
