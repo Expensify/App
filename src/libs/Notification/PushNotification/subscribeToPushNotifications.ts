@@ -41,12 +41,12 @@ Onyx.connect({
 
 let isSingleNewDotEntry: boolean | undefined;
 Onyx.connect({
-    key: ONYXKEYS.HYBRID_APP,
+    key: ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY,
     callback: (value) => {
         if (!value) {
             return;
         }
-        isSingleNewDotEntry = value?.isSingleNewDotEntry;
+        isSingleNewDotEntry = value;
     },
 });
 
@@ -129,7 +129,8 @@ function navigateToReport({reportID}: PushNotificationData): Promise<void> {
                 }
 
                 Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID});
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID), undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
+                const backTo = Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(String(reportID))) ? undefined : Navigation.getActiveRoute();
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(reportID), undefined, undefined, undefined, undefined, backTo));
                 updateLastVisitedPath(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
             } catch (error) {
                 let errorMessage = String(error);

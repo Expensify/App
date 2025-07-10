@@ -4,6 +4,7 @@
 import * as IOU from '@libs/actions/IOU';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Task from '@userActions/Task';
 
@@ -17,11 +18,10 @@ describe('ReportUtils', () => {
         expect(ReportUtils.getReport).toBeUndefined();
     });
 
-    // TODO: Re-enable this test when isOneTransactionReport is fixed https://github.com/Expensify/App/issues/64333
-    // it('does not export isOneTransactionReport', () => {
-    //     // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-    //     expect(ReportUtils.isOneTransactionReport).toBeUndefined();
-    // });
+    it('does not export isOneTransactionReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.isOneTransactionReport).toBeUndefined();
+    });
 
     it('does not export getPolicy', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
@@ -98,6 +98,13 @@ describe('Policy', () => {
     it('does not export getPolicy', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(Policy.getPolicy).toBeUndefined();
+    });
+});
+
+describe('TransactionUtils', () => {
+    it('does not export getTransaction', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(TransactionUtils.getTransaction).toBeUndefined();
     });
 });
 
