@@ -1,5 +1,4 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,12 +54,6 @@ import {
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
-});
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isReportArchived = false) {
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -465,13 +458,13 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     return false;
 }
 
-function isRetractAction(report: Report, policy?: Policy): boolean {
+function isRetractAction(report: Report, policy?: Policy, betas?: OnyxEntry<Beta[]>): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
 
     // This should be removed after we change how instant submit works
     const isInstantSubmit = isInstantSubmitEnabled(policy);
 
-    if (!isExpenseReport || (isInstantSubmit && !Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas))) {
+    if (!isExpenseReport || (isInstantSubmit && !Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas))) {
         return false;
     }
 
@@ -517,6 +510,7 @@ function getSecondaryReportActions({
     reportActions,
     policies,
     isChatReportArchived = false,
+    betas = [],
 }: {
     report: Report;
     chatReport: OnyxEntry<Report>;
@@ -528,6 +522,7 @@ function getSecondaryReportActions({
     policies?: OnyxCollection<Policy>;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
+    betas?: OnyxEntry<Beta[]>;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -574,7 +569,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
     }
 
-    if (isRetractAction(report, policy)) {
+    if (isRetractAction(report, policy, betas)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.RETRACT);
     }
 
