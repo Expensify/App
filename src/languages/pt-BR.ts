@@ -922,6 +922,7 @@ const translations = {
     },
     spreadsheet: {
         upload: 'Carregar uma planilha',
+        import: 'Importar planilha',
         dragAndDrop: 'Arraste e solte sua planilha aqui ou escolha um arquivo abaixo. Formatos suportados: .csv, .txt, .xls e .xlsx.',
         chooseSpreadsheet: 'Selecione um arquivo de planilha para importar. Formatos suportados: .csv, .txt, .xls e .xlsx.',
         fileContainsHeader: 'O arquivo contém cabeçalhos de coluna',
