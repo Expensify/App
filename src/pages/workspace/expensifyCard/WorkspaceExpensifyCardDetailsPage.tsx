@@ -4,6 +4,7 @@ import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import Badge from '@components/Badge';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -70,8 +71,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const translationForLimitType = getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
 
     const fetchCardDetails = useCallback(() => {
-        openCardDetailsPage(Number(cardID));
-    }, [cardID]);
+        openCardDetailsPage(Number(cardID), defaultFundID);
+    }, [cardID, defaultFundID]);
 
     useEffect(() => {
         if (!isDeleted) {
@@ -93,6 +94,10 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
             Navigation.goBack();
         });
     };
+
+    if (card?.isLoading) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     if (!card && !isLoadingOnyxValue(cardsListResult)) {
         return <NotFoundPage />;
