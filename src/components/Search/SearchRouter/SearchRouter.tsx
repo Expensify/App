@@ -3,7 +3,7 @@ import {deepEqual} from 'fast-equals';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import type {TextInputProps} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {Gesture, GestureDetector, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -18,6 +18,7 @@ import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {scrollToRight} from '@libs/InputUtils';
@@ -375,13 +376,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     }
                 } else {
                     backHistory(() => {
-                        onRouterClose();
                         if (item?.reportID) {
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                         } else if ('login' in item) {
                             navigateToAndOpenReport(item.login ? [item.login] : [], false);
                         }
                     });
+                    onRouterClose();
 
                     const endTime = Date.now();
                     Log.info('[CMD_K_DEBUG] Navigation item handled', false, {
@@ -428,62 +429,64 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
 
     return (
-        <View
-            style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
-            testID={SearchRouter.displayName}
-            ref={ref}
-            onStartShouldSetResponder={() => true}
-            onResponderRelease={Keyboard.dismiss}
-        >
-            {shouldUseNarrowLayout && (
-                <HeaderWithBackButton
-                    title={translate('common.search')}
-                    onBackButtonPress={() => onRouterClose()}
-                    shouldDisplayHelpButton={false}
-                />
-            )}
-            {isRecentSearchesDataLoaded && (
-                <>
-                    <SearchInputSelectionWrapper
-                        value={textInputValue}
-                        isFullWidth={shouldUseNarrowLayout}
-                        onSearchQueryChange={onSearchQueryChange}
-                        onSubmit={() => {
-                            const focusedOption = listRef.current?.getFocusedOption();
+        <GestureHandlerRootView style={{flex: 1}}>
+            <GestureDetector gesture={Gesture.Tap().runOnJS(true).onFinalize(Keyboard.dismiss)}>
+                <View
+                    style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
+                    testID={SearchRouter.displayName}
+                    ref={ref}
+                >
+                    {shouldUseNarrowLayout && (
+                        <HeaderWithBackButton
+                            title={translate('common.search')}
+                            onBackButtonPress={() => onRouterClose()}
+                            shouldDisplayHelpButton={false}
+                        />
+                    )}
+                    {isRecentSearchesDataLoaded && (
+                        <>
+                            <SearchInputSelectionWrapper
+                                value={textInputValue}
+                                isFullWidth={shouldUseNarrowLayout}
+                                onSearchQueryChange={onSearchQueryChange}
+                                onSubmit={() => {
+                                    const focusedOption = listRef.current?.getFocusedOption();
 
-                            if (!focusedOption) {
-                                submitSearch(textInputValue);
-                                return;
-                            }
+                                    if (!focusedOption) {
+                                        submitSearch(textInputValue);
+                                        return;
+                                    }
 
-                            onListItemPress(focusedOption);
-                        }}
-                        caretHidden={shouldHideInputCaret}
-                        autocompleteListRef={listRef}
-                        shouldShowOfflineMessage
-                        wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
-                        outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
-                        wrapperFocusedStyle={styles.borderColorFocus}
-                        isSearchingForReports={isSearchingForReports}
-                        selection={selection}
-                        substitutionMap={autocompleteSubstitutions}
-                        ref={textInputRef}
-                    />
-                    <SearchAutocompleteList
-                        autocompleteQueryValue={autocompleteQueryValue || textInputValue}
-                        handleSearch={searchInServer}
-                        searchQueryItem={searchQueryItem}
-                        getAdditionalSections={getAdditionalSections}
-                        onListItemPress={onListItemPress}
-                        setTextQuery={setTextAndUpdateSelection}
-                        updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                        onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
-                        ref={listRef}
-                        textInputRef={textInputRef}
-                    />
-                </>
-            )}
-        </View>
+                                    onListItemPress(focusedOption);
+                                }}
+                                caretHidden={shouldHideInputCaret}
+                                autocompleteListRef={listRef}
+                                shouldShowOfflineMessage
+                                wrapperStyle={{...styles.border, ...styles.alignItemsCenter}}
+                                outerWrapperStyle={[shouldUseNarrowLayout ? styles.mv3 : styles.mv2, shouldUseNarrowLayout ? styles.mh5 : styles.mh2]}
+                                wrapperFocusedStyle={styles.borderColorFocus}
+                                isSearchingForReports={isSearchingForReports}
+                                selection={selection}
+                                substitutionMap={autocompleteSubstitutions}
+                                ref={textInputRef}
+                            />
+                            <SearchAutocompleteList
+                                autocompleteQueryValue={autocompleteQueryValue || textInputValue}
+                                handleSearch={searchInServer}
+                                searchQueryItem={searchQueryItem}
+                                getAdditionalSections={getAdditionalSections}
+                                onListItemPress={onListItemPress}
+                                setTextQuery={setTextAndUpdateSelection}
+                                updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                                onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
+                                ref={listRef}
+                                textInputRef={textInputRef}
+                            />
+                        </>
+                    )}
+                </View>
+            </GestureDetector>
+        </GestureHandlerRootView>
     );
 }
 
