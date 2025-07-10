@@ -16,7 +16,7 @@ function useSearchResults<TValue extends ListItem>(data: TValue[], filterData: (
     useEffect(() => {
         startTransition(() => {
             const normalizedSearchQuery = inputValue.trim().toLowerCase();
-            const filtered = normalizedSearchQuery.length ? data.filter((item) => filterData(item, normalizedSearchQuery)) : data;
+            const filtered = normalizedSearchQuery.length ? data.filter((item) => filterData(item, normalizedSearchQuery)) : [...data];
             const sorted = sortData(filtered);
             setResult(sorted);
         });
