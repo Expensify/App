@@ -15,6 +15,7 @@ import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import OnboardingAccounting from '@pages/OnboardingAccounting';
 import OnboardingEmployees from '@pages/OnboardingEmployees';
+import OnboardingInterestedFeatures from '@pages/OnboardingInterestedFeatures';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPrivateDomain from '@pages/OnboardingPrivateDomain';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
@@ -139,6 +140,10 @@ function OnboardingModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.ACCOUNTING}
                                 component={OnboardingAccounting}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.INTERESTED_FEATURES}
+                                component={OnboardingInterestedFeatures}
                             />
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.WORKSPACE_OPTIONAL}
