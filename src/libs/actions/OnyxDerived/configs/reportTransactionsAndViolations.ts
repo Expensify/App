@@ -1,9 +1,10 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
+import type {Transaction, TransactionViolation} from '@src/types/onyx';
 
 let previousTransactions: OnyxCollection<Transaction> = {};
+let previousViolations: OnyxCollection<TransactionViolation[]> = {};
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
@@ -57,15 +58,22 @@ export default createOnyxDerivedValueConfig({
 
             const transactionID = transaction.transactionID;
             const transactionViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+            const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
+            const previousTransactionViolations = previousViolations?.[violationKey];
 
+            // If violations exist and have length > 0, add them to the structure
             if (transactionViolations && transactionViolations.length > 0) {
-                reportTransactionsAndViolations[reportID].violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = transactionViolations;
+                reportTransactionsAndViolations[reportID].violations[violationKey] = transactionViolations;
+            } else if (previousTransactionViolations && previousTransactionViolations.length > 0) {
+                // If violations were removed (previous had violations but current doesn't), remove them from the structure
+                delete reportTransactionsAndViolations[reportID].violations[violationKey];
             }
 
             reportTransactionsAndViolations[reportID].transactions[transactionKey] = transaction;
         }
 
         previousTransactions = transactions;
+        previousViolations = violations;
 
         return reportTransactionsAndViolations;
     },
