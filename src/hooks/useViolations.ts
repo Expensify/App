@@ -49,7 +49,6 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
         return validationFields.includes(field) ? field : 'receipt';
     },
     rter: () => 'merchant',
-    rterRejectedExpense: () => 'merchant',
     smartscanFailed: () => 'receipt',
     someTagLevelsRequired: () => 'tag',
     tagOutOfPolicy: () => 'tag',

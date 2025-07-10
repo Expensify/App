@@ -11558,7 +11558,7 @@ function declineMoneyRequest(transactionID: string, reportID: string, comment: s
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             },
         });
-        movedToReportID = reportID;
+        // movedToReportID = reportID;
         urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
     }
 
