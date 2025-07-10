@@ -22,14 +22,20 @@ function Backdrop({
     const {translate} = useLocalize();
 
     const Entering = useMemo(() => {
+        if (!backdropOpacity) {
+            return;
+        }
         const FadeIn = new Keyframe(getModalInAnimation('fadeIn'));
         return FadeIn.duration(animationInTiming);
-    }, [animationInTiming]);
+    }, [animationInTiming, backdropOpacity]);
 
     const Exiting = useMemo(() => {
+        if (!backdropOpacity) {
+            return;
+        }
         const FadeOut = new Keyframe(getModalOutAnimation('fadeOut'));
         return FadeOut.duration(animationOutTiming);
-    }, [animationOutTiming]);
+    }, [animationOutTiming, backdropOpacity]);
 
     const backdropStyle = useMemo(
         () => ({
