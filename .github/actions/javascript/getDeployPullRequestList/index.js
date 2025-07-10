@@ -11744,6 +11744,21 @@ exports["default"] = CONST;
 
 /***/ }),
 
+/***/ 9513:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isEmptyObject = void 0;
+function isEmptyObject(obj) {
+    return Object.keys(obj ?? {}).length === 0;
+}
+exports.isEmptyObject = isEmptyObject;
+
+
+/***/ }),
+
 /***/ 1547:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -12020,8 +12035,8 @@ const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
 const plugin_throttling_1 = __nccwpck_require__(9968);
 const request_error_1 = __nccwpck_require__(537);
-const EmptyObject_1 = __nccwpck_require__(8227);
-const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
+const EmptyObject_1 = __nccwpck_require__(9513);
+const arrayDifference_1 = __importDefault(__nccwpck_require__(7532));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 class GithubUtils {
     static internalOctokit;
@@ -12525,6 +12540,24 @@ exports["default"] = GithubUtils;
 
 /***/ }),
 
+/***/ 7532:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+/**
+ * This function is an equivalent of _.difference, it takes two arrays and returns the difference between them.
+ * It returns an array of items that are in the first array but not in the second array.
+ */
+function arrayDifference(array1, array2) {
+    return [array1, array2].reduce((a, b) => a.filter((c) => !b.includes(c)));
+}
+exports["default"] = arrayDifference;
+
+
+/***/ }),
+
 /***/ 3902:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -12659,39 +12692,6 @@ function getPreviousVersion(currentVersion, level) {
     return getVersionStringFromNumber(major, minor, patch, build - 1);
 }
 exports.getPreviousVersion = getPreviousVersion;
-
-
-/***/ }),
-
-/***/ 8227:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isEmptyObject = void 0;
-function isEmptyObject(obj) {
-    return Object.keys(obj ?? {}).length === 0;
-}
-exports.isEmptyObject = isEmptyObject;
-
-
-/***/ }),
-
-/***/ 7034:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-/**
- * This function is an equivalent of _.difference, it takes two arrays and returns the difference between them.
- * It returns an array of items that are in the first array but not in the second array.
- */
-function arrayDifference(array1, array2) {
-    return [array1, array2].reduce((a, b) => a.filter((c) => !b.includes(c)));
-}
-exports["default"] = arrayDifference;
 
 
 /***/ }),
