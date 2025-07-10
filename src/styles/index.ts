@@ -3348,23 +3348,30 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.inputHeight,
         },
 
-        magicCodeInputValue: {
+        magicCodeInputValueContainer: {
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
             position: 'relative',
         },
 
+        magicCodeInputCursorContainer: {
+            position: 'absolute',
+            textAlign: 'center',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            overflow: 'visible',
+            width: '100%',
+        },
+
         magicCodeInputCursor: {
-            fontSize: variables.lineHeighTaskTitle,
+            fontSize: variables.fontSizeXXLarge,
             color: theme.heading,
             lineHeight: variables.inputHeight,
-            position: 'absolute',
-            width: '100%',
             textAlign: 'center',
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_THIN.fontFamily,
             fontWeight: FontUtils.fontWeight.thin,
-            transform: 'translate(-50%)',
-            left: '50%',
         },
 
         // Manually style transparent, in iOS Safari, an input in a container with its opacity set to

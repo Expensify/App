@@ -386,7 +386,7 @@ function MagicCodeInput(
 
     useEffect(() => {
         cursorOpacity.set(withRepeat(withSequence(withDelay(500, withTiming(0, {duration: 0})), withDelay(500, withTiming(1, {duration: 0}))), -1, false));
-    }, [cursorOpacity]);
+    }, []);
 
     const animatedCursorStyle = useAnimatedStyle(() => ({
         opacity: cursorOpacity.get(),
@@ -436,9 +436,8 @@ function MagicCodeInput(
                     </View>
                 </GestureDetector>
                 {getInputPlaceholderSlots(maxLength).map((index) => {
-                    const char = decomposeString(value, maxLength).at(index)?.trim();
+                    const char = decomposeString(value, maxLength).at(index)?.trim() ?? '';
                     const isFocused = focusedIndex === index;
-                    const isFilled = !!char;
 
                     return (
                         <View
@@ -452,20 +451,16 @@ function MagicCodeInput(
                                     hasError || errorText ? styles.borderColorDanger : {},
                                     focusedIndex === index ? styles.borderColorFocus : {},
                                     styles.pt0,
+                                    {position: 'relative'},
                                 ]}
                             >
-                                <View style={styles.magicCodeInputValue}>
+                                <View style={styles.magicCodeInputValueContainer}>
                                     <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{char}</Text>
-                                    {isFocused && (
-                                        <Animated.Text style={[styles.magicCodeInputCursor, animatedCursorStyle]}>
-                                            {isFilled && (
-                                                <Text style={{opacity: 0}}>
-                                                    {char}
-                                                    {'  '}
-                                                </Text>
-                                            )}
-                                            │
-                                        </Animated.Text>
+                                    {isFocused && !isDisableKeyboard && (
+                                        <View style={[styles.magicCodeInputCursorContainer]}>
+                                            {!!char && <Text style={[styles.magicCodeInput, styles.textAlignCenter, styles.opacity0]}>{char} </Text>}
+                                            <Animated.Text style={[styles.magicCodeInputCursor, animatedCursorStyle]}>|</Animated.Text>
+                                        </View>
                                     )}
                                 </View>
                             </View>
