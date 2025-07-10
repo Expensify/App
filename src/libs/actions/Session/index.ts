@@ -145,7 +145,7 @@ function setSupportAuthToken(supportAuthToken: string, email: string, accountID:
     Onyx.set(ONYXKEYS.LAST_VISITED_PATH, '');
 }
 
-function getShortLivedLoginParams() {
+function getShortLivedLoginParams(isSupportAuthTokenUsed = false) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -162,6 +162,7 @@ function getShortLivedLoginParams() {
             value: {
                 signedInWithShortLivedAuthToken: true,
                 isAuthenticatingWithShortLivedToken: true,
+                isSupportAuthTokenUsed,
             },
         },
     ];
@@ -180,6 +181,7 @@ function getShortLivedLoginParams() {
             key: ONYXKEYS.SESSION,
             value: {
                 signedInWithShortLivedAuthToken: null,
+                isSupportAuthTokenUsed: null,
                 isAuthenticatingWithShortLivedToken: false,
             },
         },
@@ -192,7 +194,7 @@ function getShortLivedLoginParams() {
  * This method should be used when we are being redirected from oldDot to NewDot on a supportal request
  */
 function signInWithSupportAuthToken(authToken: string) {
-    const {optimisticData, finallyData} = getShortLivedLoginParams();
+    const {optimisticData, finallyData} = getShortLivedLoginParams(true);
     API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, {authToken}, {optimisticData, finallyData});
 }
 
