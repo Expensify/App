@@ -1756,7 +1756,7 @@ describe('actions/Report', () => {
     });
 
     describe('buildOptimisticChangePolicyData', () => {
-        it('should build the optimistic data next step for the change policy data', async () => {
+        it('should build the optimistic data next step for the change policy data', () => {
             const report: OnyxTypes.Report = {
                 ...createRandomReport(1),
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
