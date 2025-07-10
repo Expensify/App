@@ -1,5 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
+import ConfirmModal from '@components/ConfirmModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
@@ -58,7 +60,7 @@ import {
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
-import {removeDraftTransactions} from '@userActions/TransactionEdit';
+import {removeDraftTransaction, removeDraftTransactions, updateDraftTransactions} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -89,6 +91,7 @@ function IOURequestStepConfirmation({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
 
+    const [isRemoveConfirmModalVisible, setRemoveConfirmModalVisible] = useState(false);
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: (items) => Object.values(items ?? {}),
         canBeMissing: true,
@@ -984,6 +987,35 @@ function IOURequestStepConfirmation({
         }
     };
 
+    const removeCurrentTransaction = () => {
+        if (currentTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+            const nextTransaction = transactions.at(currentTransactionIndex + 1);
+            if (nextTransaction) {
+                updateDraftTransactions([
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
+                        value: {
+                            ...nextTransaction,
+                            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${nextTransaction.transactionID}`,
+                        value: null,
+                    },
+                ]);
+            }
+            setRemoveConfirmModalVisible(false);
+            return;
+        }
+
+        removeDraftTransaction(currentTransactionID);
+        setRemoveConfirmModalVisible(false);
+        showPreviousTransaction();
+    };
+
     const shouldShowThreeDotsButton =
         requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense;
 
@@ -1074,6 +1106,7 @@ function IOURequestStepConfirmation({
                         iouCategory={transaction?.category}
                         onConfirm={onConfirm}
                         onSendMoney={sendMoney}
+                        showRemoveExpenseConfirmModal={() => setRemoveConfirmModalVisible(true)}
                         receiptPath={receiptPath}
                         receiptFilename={receiptFilename}
                         iouType={iouType}
@@ -1095,6 +1128,16 @@ function IOURequestStepConfirmation({
                         isReceiptEditable
                     />
                 </View>
+                <ConfirmModal
+                    title={translate('iou.removeExpense')}
+                    isVisible={isRemoveConfirmModalVisible}
+                    onConfirm={removeCurrentTransaction}
+                    onCancel={() => setRemoveConfirmModalVisible(false)}
+                    prompt={translate('iou.removeExpenseConfirmation')}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
             </DragAndDropProvider>
         </ScreenWrapper>
     );
