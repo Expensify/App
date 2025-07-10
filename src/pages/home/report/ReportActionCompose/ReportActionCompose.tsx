@@ -221,7 +221,7 @@ function ReportActionCompose({
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
 
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
-    const isTransactionsView = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
+    const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
         canEvict: false,
