@@ -196,6 +196,10 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
         return true;
     }
 
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+        return false;
+    }
+
     const transactionIDs = reportTransactions.map((t) => t.transactionID);
 
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations);
@@ -295,7 +299,8 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportClosed = isClosedReportUtils(report);
 
-    if (isReportPayer && arePaymentsEnabled && (isReportApproved || isReportClosed)) {
+    const isReportSettled = isSettled(report);
+    if (isReportPayer && arePaymentsEnabled && (isReportApproved || isReportClosed || isReportSettled)) {
         return true;
     }
 
@@ -419,6 +424,7 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     const isOwner = transactionID ? getIOUActionForTransactionID(reportActions, transactionID)?.actorAccountID === getCurrentUserAccountID() : false;
     const isReportOpenOrProcessing = isOpenReportUtils(report) || isProcessingReportUtils(report);
     const isSingleTransaction = reportTransactions.length === 1;
+    const isInvoiceReport = isInvoiceReportUtils(report);
 
     if (reportTransactions.length > 0 && reportTransactions.every((t) => isDemoTransaction(t))) {
         return true;
@@ -426,6 +432,10 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
 
     if (isUnreported) {
         return isOwner;
+    }
+
+    if (isInvoiceReport) {
+        return report?.ownerAccountID === getCurrentUserAccountID() && isReportOpenOrProcessing;
     }
 
     // Users cannot delete a report in the unreported or IOU cases, but they can delete individual transactions.
