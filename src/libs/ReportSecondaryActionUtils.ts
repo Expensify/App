@@ -222,6 +222,7 @@ function isUnapproveAction(report: Report, policy?: Policy): boolean {
     const isReportSettled = isSettled(report);
     const isPaymentProcessing = report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = report.managerID === getCurrentUserAccountID();
 
     if (isReportSettled || isPaymentProcessing) {
         return false;
