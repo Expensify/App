@@ -58,11 +58,21 @@ function MoneyRequestReportPreview({
     const [isMoneyPreviewContentReady, setIsMoneyPreviewContentReady] = useState(false);
 
     const onLayout = useCallback(() => {
-        if (!currentWidth.current || !currentWrapperWidth.current || isMoneyPreviewContentReady) {
+        if (!currentWidth.current || !currentWrapperWidth.current) {
             return;
         }
+
+        if (shouldUseNarrowLayout) {
+            setIsMoneyPreviewContentReady(!isMoneyPreviewContentReady);
+            return;
+        }
+
+        if (isMoneyPreviewContentReady) {
+            return;
+        }
+
         setIsMoneyPreviewContentReady(true);
-    }, [isMoneyPreviewContentReady]);
+    }, [isMoneyPreviewContentReady, shouldUseNarrowLayout]);
 
     const reportPreviewStyles = useMemo(
         () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, transactions.length, currentWidth?.current, currentWrapperWidth?.current),
