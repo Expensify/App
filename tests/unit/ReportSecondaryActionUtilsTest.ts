@@ -1099,7 +1099,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.EXPORT_TO_ACCOUNTING)).toBe(true);
     });
 
-    it('includes REMOVE HOLD option for admin', async () => {
+    it('includes REMOVE HOLD option for admin', () => {
         const report = {} as unknown as Report;
         const policy = {
             role: CONST.POLICY.ROLE.ADMIN,
@@ -1162,7 +1162,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.HOLD)).toBe(true);
     });
 
-    it('includes REMOVE HOLD option for admin', async () => {
+    it('includes REMOVE HOLD option for admin', () => {
         const report = {} as unknown as Report;
         const policy = {
             role: CONST.POLICY.ROLE.ADMIN,
