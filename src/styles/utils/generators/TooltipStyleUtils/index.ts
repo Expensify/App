@@ -42,6 +42,7 @@ type TooltipParams = {
     tooltipTargetWidth: number;
     tooltipTargetHeight: number;
     maxWidth: number;
+    minWidth?: number;
     tooltipContentWidth?: number;
     tooltipWrapperHeight?: number;
     manualShiftHorizontal?: number;
@@ -75,6 +76,7 @@ type GetTooltipStylesStyleUtil = {getTooltipStyles: (props: TooltipParams) => To
  * @param tooltipTargetWidth - The width of the tooltip's target
  * @param tooltipTargetHeight - The height of the tooltip's target
  * @param maxWidth - The tooltip's max width.
+ * @param minWidth - The tooltip's min width.
  * @param tooltipContentWidth - The tooltip's inner content measured width.
  * @param tooltipWrapperHeight - The tooltip's wrapper measured height.
  * @param [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
@@ -95,6 +97,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
         tooltipTargetWidth,
         tooltipTargetHeight,
         maxWidth,
+        minWidth,
         tooltipContentWidth,
         tooltipWrapperHeight,
         manualShiftHorizontal = 0,
@@ -118,8 +121,12 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
         // We calculate tooltip width based on the tooltip's content width
         // so the tooltip wrapper is just big enough to fit content and prevent white space.
         // NOTE: Add 1 to the tooltipWidth to prevent truncated text in Safari
-        const tooltipWidth = tooltipContentWidth && tooltipContentWidth + tooltipHorizontalPadding + 1;
+        let tooltipWidth = tooltipContentWidth && tooltipContentWidth + tooltipHorizontalPadding + 1;
         const tooltipHeight = tooltipWrapperHeight;
+
+        if (tooltipWidth && minWidth && tooltipWidth < minWidth) {
+            tooltipWidth = minWidth;
+        }
 
         const isTooltipSizeReady = tooltipWidth !== undefined && tooltipHeight !== undefined;
 
@@ -204,7 +211,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                     break;
                 case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER:
                 default:
-                    pointerWrapperLeft = tooltipWidth / 2 - pointerWidth / 2;
+                    pointerWrapperLeft = tooltipWidth / 2 - pointerWidth / 2 - manualShiftHorizontal;
                     rootWrapperLeft += tooltipTargetWidth / 2 - tooltipWidth / 2;
             }
 
