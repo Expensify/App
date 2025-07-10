@@ -1154,8 +1154,7 @@ const translations = {
         automaticallyForwarded: `goedgekeurd via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimteregels</a>`,
         forwarded: `goedgekeurd`,
         rejectedThisReport: 'heeft dit rapport afgewezen',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) =>
-            `is begonnen met afrekenen. Betaling wordt vastgehouden totdat ${submitterDisplayName} een bankrekening toevoegt.`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `is met de betaling begonnen, maar wacht op ${submitterDisplayName} om een bankrekening toe te voegen.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}heeft de betaling geannuleerd`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `heeft de betaling van ${amount} geannuleerd, omdat ${submitterDisplayName} hun Expensify Wallet niet binnen 30 dagen heeft geactiveerd.`,
@@ -1542,6 +1541,7 @@ const translations = {
             phrase4: 'Privacy',
         },
         help: 'Help',
+        whatIsNew: 'Wat is nieuw',
         accountSettings: 'Accountinstellingen',
         account: 'Account',
         general: 'Algemeen',
@@ -5988,7 +5988,7 @@ const translations = {
         groupBy: 'Groep per',
         moneyRequestReport: {
             emptyStateTitle: 'Dit rapport heeft geen uitgaven.',
-            emptyStateSubtitle: 'Je kunt uitgaven aan dit rapport toevoegen met de knop hierboven.',
+            emptyStateSubtitle: 'U kunt uitgaven aan dit rapport toevoegen\n via de knop hieronder of de optie "Uitgave toevoegen" in het menu Meer hierboven.',
         },
         noCategory: 'Geen categorie',
         noTag: 'Geen tag',
@@ -6265,8 +6265,9 @@ const translations = {
         levelThreeResult: 'Bericht verwijderd uit kanaal plus anonieme waarschuwing en bericht is gerapporteerd voor beoordeling.',
     },
     actionableMentionWhisperOptions: {
-        invite: 'Nodig hen uit',
-        nothing: 'Do nothing',
+        inviteToSubmitExpense: 'Uitnodigen om onkosten in te dienen',
+        inviteToChat: 'Alleen uitnodigen om te chatten',
+        nothing: 'Niets doen',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accepteren',
@@ -6342,7 +6343,7 @@ const translations = {
         addressError: 'Adres is vereist',
         reasonError: 'Reden is vereist',
         successTitle: 'Uw nieuwe kaart is onderweg!',
-        successDescription: 'U moet deze activeren zodra deze over een paar werkdagen aankomt. In de tussentijd kunt u uw virtuele kaart gebruiken.',
+        successDescription: 'U moet deze activeren zodra deze over een paar werkdagen aankomt. In de tussentijd kunt u een virtuele kaart gebruiken.',
     },
     eReceipt: {
         guaranteed: 'Gegarandeerd eReceipt',
