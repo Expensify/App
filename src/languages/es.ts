@@ -1137,7 +1137,7 @@ const translations = {
         automaticallyForwarded: `aprobó mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
         forwarded: `aprobó`,
         rejectedThisReport: 'rechazó este informe',
-        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
+        waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria.`,
         adminCanceledRequest: ({manager}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceló el pago`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
@@ -1523,6 +1523,7 @@ const translations = {
             phrase4: 'Privacidad',
         },
         help: 'Ayuda',
+        whatIsNew: 'Qué hay de nuevo',
         accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',
         general: 'General',
@@ -5975,7 +5976,7 @@ const translations = {
         groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este informe no tiene gastos.',
-            emptyStateSubtitle: 'Puedes añadir gastos a este informe usando el botón de arriba.',
+            emptyStateSubtitle: 'Puedes agregar gastos a este informe\n usando el botón de abajo o la opción "Agregar gasto" en el menú Más de arriba.',
         },
         noCategory: 'Sin categoría',
         noTag: 'Sin etiqueta',
