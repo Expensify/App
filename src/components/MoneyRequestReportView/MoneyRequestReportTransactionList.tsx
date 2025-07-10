@@ -4,29 +4,22 @@ import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import type {TupleToUnion} from 'type-fest';
-import {getButtonRole} from '@components/Button/utils';
 import Checkbox from '@components/Checkbox';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
-import TransactionItemRow from '@components/TransactionItemRow';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
-import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
-import {useMouseContext} from '@hooks/useMouseContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setActiveTransactionThreadIDs} from '@libs/actions/TransactionThreadNavigation';
-import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -41,6 +34,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
+import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionItem';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 type MoneyRequestReportTransactionListProps = {
@@ -78,17 +72,6 @@ const sortableColumnNames = [
     CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
     CONST.SEARCH.TABLE_COLUMNS.TAG,
     CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-];
-
-const allReportColumns = [
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.RECEIPT,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TYPE,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.DATE,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.MERCHANT,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.CATEGORY,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TAG,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS,
-    CONST.REPORT.TRANSACTION_LIST.COLUMNS.TOTAL_AMOUNT,
 ];
 
 type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
@@ -135,9 +118,6 @@ function MoneyRequestReportTransactionList({
         return pendingAction && styles.opacitySemiTransparent;
     }, [styles.opacitySemiTransparent, transactions]);
 
-    const {bind} = useHover();
-    const {isMouseDownOnInput, setMouseUp} = useMouseContext();
-
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
@@ -167,12 +147,6 @@ function MoneyRequestReportTransactionList({
         }, [clearSelectedTransactions]),
     );
 
-    const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
-        bind.onMouseLeave();
-        e.stopPropagation();
-        setMouseUp();
-    };
-
     const [sortConfig, setSortConfig] = useState<SortedTransactions>({
         sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
         sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
@@ -190,8 +164,8 @@ function MoneyRequestReportTransactionList({
     }, [newTransactions, sortBy, sortOrder, transactions]);
 
     const navigateToTransaction = useCallback(
-        (activeTransaction: OnyxTypes.Transaction) => {
-            const iouAction = getIOUActionForTransactionID(reportActions, activeTransaction.transactionID);
+        (activeTransactionID: string) => {
+            const iouAction = getIOUActionForTransactionID(reportActions, activeTransactionID);
             const reportIDToNavigate = iouAction?.childReportID;
             if (!reportIDToNavigate) {
                 return;
@@ -220,8 +194,34 @@ function MoneyRequestReportTransactionList({
         };
     }, [transactions]);
 
-    const pressableStyle = [styles.overflowHidden];
     const isEmptyTransactions = isEmpty(transactions);
+
+    const handleLongPress = useCallback(
+        (transactionID: string) => {
+            if (!isSmallScreenWidth) {
+                return;
+            }
+            if (isMobileSelectionModeEnabled) {
+                toggleTransaction(transactionID);
+                return;
+            }
+            setSelectedTransactionID(transactionID);
+            setIsModalVisible(true);
+        },
+        [isSmallScreenWidth, isMobileSelectionModeEnabled, toggleTransaction, setSelectedTransactionID, setIsModalVisible],
+    );
+
+    const handleOnPress = useCallback(
+        (transactionID: string) => {
+            if (isMobileSelectionModeEnabled) {
+                toggleTransaction(transactionID);
+                return;
+            }
+
+            navigateToTransaction(transactionID);
+        },
+        [isMobileSelectionModeEnabled, toggleTransaction, navigateToTransaction],
+    );
 
     const listHorizontalPadding = styles.ph5;
     return (
@@ -268,60 +268,19 @@ function MoneyRequestReportTransactionList({
                     <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
                         {sortedTransactions.map((transaction) => {
                             return (
-                                <PressableWithFeedback
+                                <MoneyRequestReportTransactionItem
                                     key={transaction.transactionID}
-                                    onPress={(e) => {
-                                        if (isMouseDownOnInput) {
-                                            e?.stopPropagation();
-                                            return;
-                                        }
-
-                                        if (isMobileSelectionModeEnabled) {
-                                            toggleTransaction(transaction.transactionID);
-                                            return;
-                                        }
-
-                                        navigateToTransaction(transaction);
-                                    }}
-                                    accessibilityLabel={translate('iou.viewDetails')}
-                                    role={getButtonRole(true)}
-                                    isNested
-                                    hoverDimmingValue={1}
-                                    onMouseDown={(e) => e.preventDefault()}
-                                    id={transaction.transactionID}
-                                    style={[pressableStyle, styles.userSelectNone]}
-                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                    onMouseLeave={handleMouseLeave}
-                                    onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
-                                    onPressOut={() => ControlSelection.unblock()}
-                                    onLongPress={() => {
-                                        if (!isSmallScreenWidth) {
-                                            return;
-                                        }
-                                        if (isMobileSelectionModeEnabled) {
-                                            toggleTransaction(transaction.transactionID);
-                                            return;
-                                        }
-                                        setSelectedTransactionID(transaction.transactionID);
-                                        setIsModalVisible(true);
-                                    }}
-                                    disabled={isTransactionPendingDelete(transaction)}
-                                >
-                                    <TransactionItemRow
-                                        transactionItem={transaction}
-                                        isSelected={isTransactionSelected(transaction.transactionID)}
-                                        dateColumnSize={dateColumnSize}
-                                        amountColumnSize={amountColumnSize}
-                                        taxAmountColumnSize={taxAmountColumnSize}
-                                        shouldShowTooltip
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
-                                        shouldShowCheckbox={isMobileSelectionModeEnabled || !isSmallScreenWidth}
-                                        onCheckboxPress={toggleTransaction}
-                                        columns={allReportColumns}
-                                        scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
-                                        isInReportTableView
-                                    />
-                                </PressableWithFeedback>
+                                    transaction={transaction}
+                                    isSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                    toggleTransaction={toggleTransaction}
+                                    isSelected={isTransactionSelected(transaction.transactionID)}
+                                    handleOnPress={handleOnPress}
+                                    handleLongPress={handleLongPress}
+                                    dateColumnSize={dateColumnSize}
+                                    amountColumnSize={amountColumnSize}
+                                    taxAmountColumnSize={taxAmountColumnSize}
+                                    scrollToNewTransaction={scrollToNewTransaction}
+                                />
                             );
                         })}
                     </View>

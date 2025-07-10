@@ -136,7 +136,7 @@ function TransactionListItem<TItem extends ListItem>({
                     onCheckboxPress={handleCheckboxPress}
                     shouldUseNarrowLayout={!isLargeScreenWidth}
                     columns={columns}
-                    isParentHovered={hovered}
+                    // isParentHovered={hovered}
                     isActionLoading={isLoading ?? transactionItem.isActionLoading}
                     isSelected={!!transactionItem.isSelected}
                     dateColumnSize={dateColumnSize}
