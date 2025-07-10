@@ -97,6 +97,7 @@ import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
 import {linkingConfig} from './Navigation/linkingConfig';
 import Navigation, {navigationRef} from './Navigation/Navigation';
+import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
 import Permissions from './Permissions';
@@ -9960,7 +9961,9 @@ function isReportOutstanding(
     if (!iouReport || isEmptyObject(iouReport)) {
         return false;
     }
-    const activeReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${Navigation.getCurrentRouteReportID()}`];
+    const currentRoute = navigationRef.getCurrentRoute();
+    const params = currentRoute?.params as MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION] | ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+    const activeReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID}`];
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
     const shouldAllowSubmittedReport = isInstantSubmitEnabled(policy) || isProcessingReport(activeReport);

@@ -33,7 +33,7 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
-import type {MoneyRequestNavigatorParamList, NavigationPartialRoute, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
+import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, State} from './types';
 
 // Routes which are part of the flow to set up 2FA
 const SET_UP_2FA_ROUTES: Route[] = [
@@ -105,12 +105,6 @@ function canNavigate(methodName: string, params: CanNavigateParams = {}): boolea
  * Extracts from the topmost report its id.
  */
 const getTopmostReportId = (state = navigationRef.getState()) => getTopmostReportParams(state)?.reportID;
-
-/** Extracts from the current route its reportID. This function should only be used in: Report Screens, Money Request Screens */
-const getCurrentRouteReportID = () => {
-    const currentRoute = navigationRef.getCurrentRoute();
-    return (currentRoute?.params as MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION] | ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportID;
-};
 
 /**
  * Extracts from the topmost report its action id.
@@ -691,7 +685,6 @@ export default {
     replaceWithSplitNavigator,
     isTopmostRouteModalScreen,
     isOnboardingFlow,
-    getCurrentRouteReportID,
 };
 
 export {navigationRef};
