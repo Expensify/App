@@ -30,7 +30,6 @@ import {
     isInvoiceReport,
     isIOUReport,
     isOpenExpenseReport,
-    isOpenReport,
     isPayer,
     isProcessingReport,
     isReportApproved,
@@ -38,7 +37,14 @@ import {
     isSettled,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+import {
+    allHavePendingRTERViolation,
+    hasAnyTransactionWithoutRTERViolation,
+    isPending,
+    isPendingCardOrScanningTransaction,
+    isScanning,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
+} from './TransactionUtils';
 
 function canSubmit(
     report: Report,
@@ -52,10 +58,7 @@ function canSubmit(
         return false;
     }
 
-    const isExpense = isExpenseReport(report);
-    const isSubmitter = isCurrentUserSubmitter(report.reportID);
-    const isOpen = isOpenReport(report);
-    const isManager = report.managerID === getCurrentUserAccountID();
+    const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const hasBeenReopened = hasReportBeenReopened(reportActions);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
@@ -64,20 +67,25 @@ function canSubmit(
         return false;
     }
 
-    const hasAnyViolations =
-        hasMissingSmartscanFields(report.reportID, transactions) ||
-        hasViolations(report.reportID, violations) ||
-        hasNoticeTypeViolations(report.reportID, violations, true) ||
-        hasWarningTypeViolations(report.reportID, violations, true);
-    const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
-
     const submitToAccountID = getSubmitToAccountID(policy, report);
-
+    
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
     }
 
-    const baseCanSubmit = isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !hasAnyViolations && !isAnyReceiptBeingScanned;
+    const hasOnlyPendingCardOrScanFailTransactions = transactions && transactions.length > 0 && transactions.every((t) => isPendingCardOrScanningTransaction(t));
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations);
+    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions ?? [], violations);
+
+    const baseCanSubmit =
+        isOpenExpenseReport(report) &&
+        (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID || isAdmin) &&
+        !hasOnlyPendingCardOrScanFailTransactions &&
+        !hasAllPendingRTERViolations &&
+        hasTransactionWithoutRTERViolation &&
+        !isReportArchived &&
+        transactions &&
+        transactions.length > 0;
 
     // If a report has been reopened, we allow submission regardless of the auto reporting frequency.
     if (baseCanSubmit && hasBeenReopened) {
