@@ -725,7 +725,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], allViolations: OnyxCol
 
     // Only check for violations if we need to (when user has permission to review)
     if ((isSubmitter || isApprover || isAdmin) && hasViolations(report.reportID, allViolations, undefined, allReportTransactions)) {
-        if (isSubmitter && !isApprover && !isAdmin && !canReview(report, allViolations, policy, allReportTransactions, isIOUReportArchived || isChatReportArchived)) {
+        if (isSubmitter && !isApprover && !isAdmin && !canReview(report, allViolations, isIOUReportArchived || isChatReportArchived, policy, allReportTransactions)) {
             return CONST.SEARCH.ACTION_TYPES.VIEW;
         }
         return CONST.SEARCH.ACTION_TYPES.REVIEW;
