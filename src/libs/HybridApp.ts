@@ -4,8 +4,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, HybridApp, Session, TryNewDot} from '@src/types/onyx';
-import {setReadyToShowAuthScreens, setUseNewDotSignInPage} from './actions/HybridApp';
-import {closeReactNativeApp, isAnonymousUser} from './actions/Session';
+import {closeReactNativeApp, setReadyToShowAuthScreens, setUseNewDotSignInPage} from './actions/HybridApp';
+import {isAnonymousUser} from './actions/Session';
 import Log from './Log';
 import {getCurrentUserEmail} from './Network/NetworkStore';
 
