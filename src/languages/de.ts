@@ -2563,7 +2563,8 @@ const translations = {
         noAccess: 'Dieser Chat oder diese Ausgabe wurde möglicherweise gelöscht oder Sie haben keinen Zugriff darauf.\n\nBei Fragen wenden Sie sich bitte an concierge@expensify.com',
         goBackHome: 'Zurück zur Startseite',
         commentYouLookingForCannotBeFound: 'Der gesuchte Kommentar konnte nicht gefunden werden. Geh zurück zum Chat',
-        contactConcierge: 'Bei Fragen wende dich bitte an concierge@expensify.com',
+        contactConcierge: 'Bei Fragen wenden Sie sich bitte an concierge@expensify.com',
+        goToChatInstead: 'Geh stattdessen zum Chat.',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oops... ${isBreakLine ? '\n' : ''}Etwas ist schiefgelaufen`,

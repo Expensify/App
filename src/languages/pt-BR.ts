@@ -2580,7 +2580,8 @@ const translations = {
         noAccess: 'Este chat ou despesa pode ter sido excluído ou você não tem acesso a ele.\n\nPara qualquer dúvida, entre em contato com concierge@expensify.com',
         goBackHome: 'Voltar para a página inicial',
         commentYouLookingForCannotBeFound: 'O comentário que você está procurando não foi encontrado. Volte para o chat',
-        contactConcierge: 'Se tiver alguma dúvida, entre em contato com concierge@expensify.com',
+        contactConcierge: 'Para qualquer dúvida, entre em contato com concierge@expensify.com',
+        goToChatInstead: 'Vá para o chat em vez disso.',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Ops... ${isBreakLine ? '\n' : ''}Algo deu errado`,

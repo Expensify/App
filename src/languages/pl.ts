@@ -2577,7 +2577,8 @@ const translations = {
         noAccess: 'Ten czat lub wydatek mógł zostać usunięty lub nie masz do niego dostępu.\n\nW razie pytań prosimy o kontakt na concierge@expensify.com',
         goBackHome: 'Wróć do strony głównej',
         commentYouLookingForCannotBeFound: 'Nie można znaleźć komentarza, którego szukasz. Wróć do czatu',
-        contactConcierge: 'W razie pytań skontaktuj się z concierge@expensify.com',
+        contactConcierge: 'W razie pytań prosimy o kontakt na concierge@expensify.com',
+        goToChatInstead: 'Przejdź do czatu zamiast tego.',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Ups... ${isBreakLine ? '\n' : ''}Coś poszło nie tak`,

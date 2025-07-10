@@ -2576,6 +2576,7 @@ const translations = {
         goBackHome: 'Torna alla pagina principale',
         commentYouLookingForCannotBeFound: 'Il commento che stai cercando non è stato trovato. Torna alla chat',
         contactConcierge: 'Per qualsiasi domanda, contatta concierge@expensify.com',
+        goToChatInstead: 'Vai alla chat invece.',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oops... ${isBreakLine ? '\n' : ''}Qualcosa è andato storto`,

@@ -2553,6 +2553,7 @@ const translations = {
         goBackHome: '返回主页',
         commentYouLookingForCannotBeFound: '找不到您要查找的评论。返回聊天',
         contactConcierge: '如有任何疑问，请联系 concierge@expensify.com',
+        goToChatInstead: '请前往聊天界面。',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `抱歉... ${isBreakLine ? '\n' : ''}出现了问题`,

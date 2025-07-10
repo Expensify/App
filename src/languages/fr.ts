@@ -2564,6 +2564,7 @@ const translations = {
         goBackHome: "Retourner à la page d'accueil",
         commentYouLookingForCannotBeFound: 'Le commentaire que vous recherchez est introuvable. Retournez à la discussion',
         contactConcierge: 'Pour toute question, veuillez contacter concierge@expensify.com',
+        goToChatInstead: 'Allez plutôt dans la discussion.',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oups... ${isBreakLine ? '\n' : ''}Quelque chose a mal tourné`,

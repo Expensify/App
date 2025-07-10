@@ -2582,7 +2582,8 @@ const translations = {
         noAccess: 'Deze chat of uitgave is mogelijk verwijderd of je hebt er geen toegang toe.\n\nVoor vragen kun je contact opnemen met concierge@expensify.com',
         goBackHome: 'Ga terug naar de startpagina',
         commentYouLookingForCannotBeFound: 'De opmerking die je zoekt, is niet gevonden. Ga terug naar de chat',
-        contactConcierge: 'Heb je vragen? Neem dan contact op met concierge@expensify.com',
+        contactConcierge: 'Voor vragen kun je contact opnemen met concierge@expensify.com',
+        goToChatInstead: 'Ga in plaats daarvan naar de chat.',
     },
     errorPage: {
         title: ({isBreakLine}: {isBreakLine: boolean}) => `Oeps... ${isBreakLine ? '\n' : ''}Er is iets misgegaan`,
