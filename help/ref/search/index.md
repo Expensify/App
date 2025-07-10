@@ -5,19 +5,15 @@ title: Reports Page
 
 # Reports Page
 
-The Reports page helps you explore, filter, and take action on all your reports and related expenses. It complements the Inbox by giving you a complete view of your expense history.
+The Reports page helps you explore and filter all reports and related expenses. It complements the Inbox by giving you a complete view of your expense history and what expenses and reports require your action. Use this page to create and download spending reports, track report actions, and view the recent expense activity on your workspace(s).
 
 ---
 
-## Expenses
+## Expenses & Reports
 
 - **Managing expenses**: Click on any expense row to see its details in a side panel. Use checkboxes to select multiple expenses, then use bulk actions like Move, Download, or Delete from the action menu.
 
 - **Filters**: Looking for something specific? Use filters to narrow things down by date, category, merchant, tag, workspace, or report status. You can also combine filters with keywords for even more precise results.
-
----
-
-## Reports
 
 - **Sort reports by status**:
       - Draft – Only you can see it
@@ -49,3 +45,6 @@ The Reports page helps you explore, filter, and take action on all your reports 
 
 - [The Reports Page](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Getting-Started-with-the-Reports-Page)
 - [Understanding Reports Statuses and Actions](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions)
+- [Suggested Search](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Suggested-Search)
+- [Search and Download Expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses)
+
