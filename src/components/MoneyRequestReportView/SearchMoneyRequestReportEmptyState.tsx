@@ -86,6 +86,7 @@ function SearchMoneyRequestReportEmptyState({reportId, policy}: {reportId?: stri
                         success: true,
                         isDisabled: false,
                         dropDownOptions,
+                        icon: canAddExpense ? undefined : Expensicons.ReceiptPlus,
                     },
                 ]}
             />
