@@ -205,15 +205,14 @@ function ReportFooter({
         setDidHideComposerInput(true);
     }, [shouldShowComposeInput, didHideComposerInput]);
 
-    const animatedStyle = useAnimatedStyle(
-        () => ({
+    const animatedStyle = useAnimatedStyle(() => {
+        return {
             position: 'absolute',
             bottom: 0,
             width: '100%',
-            transform: [{translateY: -keyboardHeight.value}],
-        }),
-        [],
-    );
+            transform: [{translateY: -keyboardHeight.get()}],
+        };
+    });
 
     return (
         <>
@@ -248,7 +247,7 @@ function ReportFooter({
                 </View>
             )}
             {!shouldHideComposer && (!!shouldShowComposeInput || !shouldUseNarrowLayout) && (
-                <Animated.View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose, animatedStyle]}>
+                <Animated.View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose, !isComposerFullSize && animatedStyle]}>
                     <ReportActionCompose
                         onSubmit={onSubmitComment}
                         onComposerFocus={onComposerFocus}
