@@ -1,13 +1,9 @@
 import React from 'react';
 import SearchDatePresetFilterBase from '@components/Search/SearchDatePresetFilterBase';
-import useEnvironment from '@hooks/useEnvironment';
 import CONST from '@src/CONST';
 
 function SearchFiltersPostedPage() {
-    const {isDevelopment} = useEnvironment();
-
-    // s77rt remove DEV lock
-    const presets = isDevelopment ? [CONST.SEARCH.DATE_PRESETS.LAST_MONTH] : undefined;
+    const presets = [CONST.SEARCH.DATE_PRESETS.LAST_MONTH];
 
     return (
         <SearchDatePresetFilterBase
