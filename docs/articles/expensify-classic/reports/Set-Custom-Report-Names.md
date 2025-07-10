@@ -98,6 +98,4 @@ Add `|` functions to format results:
 | `substr:x:y` | `{report:policyname|substr:20|frontpart}` → Sales | Chains multiple functions |
 | `domain` | `{report:submit:from:email|domain}` → email.com | Returns email domain |
 
----
-
 </div>
