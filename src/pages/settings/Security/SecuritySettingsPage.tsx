@@ -150,8 +150,8 @@ function SecuritySettingsPage() {
                         showLockedAccountModal();
                         return;
                     }
-                    if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.INVOICING) {
-                        // Route to screen for showing the blocking RHP
+                    // @ts-expect-error - There is no pricing for invoicing subscription type, so we need to define a seperate constant for it which is not defined in the subscription type enum
+                    if (privateSubscription?.type === CONST.INVOICING_SUBSCRIPTION_TYPE) {
                         Navigation.navigate(
                             ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
                         );
