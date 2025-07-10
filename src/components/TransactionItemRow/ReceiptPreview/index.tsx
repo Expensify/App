@@ -12,13 +12,16 @@ import variables from '@styles/variables';
 
 const showPreviewDelay = 270;
 const animationDuration = 200;
+const eReceiptAspectRatio = variables.eReceiptBGHWidth / variables.eReceiptBGHeight;
 
-function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''}: {source: string; hovered: boolean; isEReceipt?: boolean; transactionID?: string}) {
+type ReceiptPreviewProps = {source: string; hovered: boolean; isEReceipt: boolean; transactionID: string};
+
+function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''}: ReceiptPreviewProps) {
     const [shouldShow, setShouldShow] = useState(false);
     const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
     const styles = useThemeStyles();
-    const [scaleFactor, setScaleFactor] = useState(0);
-    const [aspectRatio, setAspectRatio] = useState<string | number | undefined>(undefined);
+    const [eReceiptScaleFactor, setEReceiptScaleFactor] = useState(0);
+    const [imageAspectRatio, setImageAspectRatio] = useState<string | number | undefined>(undefined);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const updateAspectRatio = useCallback(
@@ -27,7 +30,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''
                 return;
             }
 
-            setAspectRatio(height ? width / height : 'auto');
+            setImageAspectRatio(height ? width / height : 'auto');
         },
         [source],
     );
@@ -43,7 +46,7 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''
 
     const onLayout = (e: LayoutChangeEvent) => {
         const {width} = e.nativeEvent.layout;
-        setScaleFactor(width / variables.eReceiptBGHWidth);
+        setEReceiptScaleFactor(width / variables.eReceiptBGHWidth);
     };
 
     useEffect(() => {
@@ -68,33 +71,28 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionID = ''
         return null;
     }
 
+    const shouldShowEReceipt = !source && isEReceipt;
+
     return ReactDOM.createPortal(
         <Animated.View
             entering={FadeIn.duration(animationDuration)}
             exiting={FadeOut.duration(animationDuration)}
             style={[styles.receiptPreview, styles.dFlex, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}
         >
-            {!!source && (
+            {shouldShowEReceipt ? (
+                <View
+                    onLayout={onLayout}
+                    style={[styles.w100, styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter, {aspectRatio: eReceiptAspectRatio, scale: eReceiptScaleFactor}]}
+                >
+                    <EReceipt transactionID={transactionID} />
+                </View>
+            ) : (
                 <View style={[styles.w100]}>
                     <BaseImage
                         source={{uri: source}}
-                        style={[styles.w100, {aspectRatio}]}
+                        style={[styles.w100, {aspectRatio: imageAspectRatio}]}
                         onLoad={handleLoad}
                     />
-                </View>
-            )}
-            {!!isEReceipt && (
-                <View
-                    onLayout={onLayout}
-                    style={[
-                        styles.w100,
-                        styles.flexColumn,
-                        styles.alignItemsCenter,
-                        styles.justifyContentCenter,
-                        {aspectRatio: variables.eReceiptBGHWidth / variables.eReceiptBGHeight, scale: scaleFactor},
-                    ]}
-                >
-                    <EReceipt transactionID={transactionID} />
                 </View>
             )}
         </Animated.View>,

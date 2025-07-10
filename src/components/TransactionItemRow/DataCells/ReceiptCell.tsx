@@ -21,6 +21,7 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
     const StyleUtils = useStyleUtils();
     const backgroundStyles = isSelected ? StyleUtils.getBackgroundColorStyle(theme.buttonHoveredBG) : StyleUtils.getBackgroundColorStyle(theme.border);
     const {hovered, bind} = useHover();
+    const isEReceipt = transactionItem.hasEReceipt && !hasReceiptSource(transactionItem);
     let source = transactionItem?.receipt?.source ?? '';
 
     if (source && typeof source === 'string') {
@@ -43,7 +44,7 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
         >
             <ReceiptImage
                 source={source}
-                isEReceipt={transactionItem.hasEReceipt && !hasReceiptSource(transactionItem)}
+                isEReceipt={isEReceipt}
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
                 isAuthTokenRequired
@@ -59,7 +60,7 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
             <ReceiptPreview
                 source={source}
                 hovered={hovered}
-                isEReceipt={transactionItem.hasEReceipt && !hasReceiptSource(transactionItem)}
+                isEReceipt={isEReceipt}
                 transactionID={transactionItem.transactionID}
             />
         </View>
