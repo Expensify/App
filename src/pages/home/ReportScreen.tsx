@@ -161,7 +161,7 @@ function useKeyboardAnimation() {
 
             inset.value = e.height;
             // Math.max is needed to prevent overscroll when keyboard hides (and user scrolled to the top, for example)
-            offset.value = Math.max(e.height + scrollY.value, 0);
+            offset.value = Math.max(e.height - scrollY.value, 0);
         },
         onInteractive: (e) => {
             'worklet';
@@ -189,7 +189,6 @@ function useKeyboardAnimation() {
     const onScroll = useAnimatedScrollHandler({
         onScroll: (e) => {
             scrollY.set(e.contentOffset.y);
-            // scroll.value = e.contentOffset.y - inset.value;
         },
     });
 
@@ -211,7 +210,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const currentReportIDValue = useCurrentReportID();
-    const {scrollY, onScroll} = useKeyboardAnimation();
+    const {scrollY, height: keyboardHeight, inset: keyboardInset, offset: keyboardOffset, onScroll} = useKeyboardAnimation();
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {initialValue: false, canBeMissing: true});
@@ -894,34 +893,37 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             transactionThreadReportID={transactionThreadReportID}
                                             onScroll={onScroll}
                                             scrollingVerticalOffset={scrollY}
-                                        />
-                                    ) : null}
-                                    {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
-                                        <MoneyRequestReportActionsList
-                                            report={report}
-                                            policy={policy}
-                                            reportActions={reportActions}
-                                            transactions={reportTransactions}
-                                            newTransactions={newTransactions}
-                                            hasOlderActions={hasOlderActions}
-                                            hasNewerActions={hasNewerActions}
-                                            showReportActionsLoadingState={reportMetadata?.isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
-                                        />
-                                    ) : null}
-                                    {isCurrentReportLoadedFromOnyx ? (
-                                        <ReportFooter
-                                            onComposerFocus={onComposerFocus}
-                                            onComposerBlur={onComposerBlur}
-                                            report={report}
-                                            reportMetadata={reportMetadata}
-                                            policy={policy}
-                                            pendingAction={reportPendingAction}
-                                            isComposerFullSize={!!isComposerFullSize}
-                                            lastReportAction={lastReportAction}
-                                            nativeID="composer"
+                                            keyboardInset={keyboardInset}
+                                            keyboardOffset={keyboardOffset}
                                         />
                                     ) : null}
                                 </View>
+                                {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                    <MoneyRequestReportActionsList
+                                        report={report}
+                                        policy={policy}
+                                        reportActions={reportActions}
+                                        transactions={reportTransactions}
+                                        newTransactions={newTransactions}
+                                        hasOlderActions={hasOlderActions}
+                                        hasNewerActions={hasNewerActions}
+                                        showReportActionsLoadingState={reportMetadata?.isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
+                                    />
+                                ) : null}
+                                {isCurrentReportLoadedFromOnyx ? (
+                                    <ReportFooter
+                                        onComposerFocus={onComposerFocus}
+                                        onComposerBlur={onComposerBlur}
+                                        report={report}
+                                        reportMetadata={reportMetadata}
+                                        policy={policy}
+                                        pendingAction={reportPendingAction}
+                                        isComposerFullSize={!!isComposerFullSize}
+                                        lastReportAction={lastReportAction}
+                                        nativeID="composer"
+                                        keyboardHeight={keyboardHeight}
+                                    />
+                                ) : null}
                                 <PortalHost name="suggestions" />
                             </DragAndDropProvider>
                         </FullPageNotFoundView>
