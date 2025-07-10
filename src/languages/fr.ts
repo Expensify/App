@@ -5950,6 +5950,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Le mois dernier',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Dernière relevé',
                 },
             },
             status: 'Statut',
@@ -6270,8 +6271,7 @@ const translations = {
         levelThreeResult: 'Message supprimé du canal avec un avertissement anonyme et le message est signalé pour examen.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Inviter à soumettre des dépenses',
-        inviteToChat: 'Inviter uniquement à discuter',
+        invite: 'Invitez-les',
         nothing: 'Ne rien faire',
     },
     actionableMentionJoinWorkspaceOptions: {

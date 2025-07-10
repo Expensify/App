@@ -5945,6 +5945,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nooit',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Laatste maand',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Laatste verklaring',
                 },
             },
             status: 'Status',
@@ -6265,9 +6266,8 @@ const translations = {
         levelThreeResult: 'Bericht verwijderd uit kanaal plus anonieme waarschuwing en bericht is gerapporteerd voor beoordeling.',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Uitnodigen om onkosten in te dienen',
-        inviteToChat: 'Alleen uitnodigen om te chatten',
-        nothing: 'Niets doen',
+        invite: 'Nodig hen uit',
+        nothing: 'Do nothing',
     },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accepteren',

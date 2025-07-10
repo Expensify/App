@@ -237,7 +237,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.POSTED_BEFORE]: string;
         [FILTER_KEYS.CURRENCY]: string[];
         [FILTER_KEYS.CATEGORY]: string[];
-        [FILTER_KEYS.POLICY_ID]: string;
+        [FILTER_KEYS.POLICY_ID]: string[];
         [FILTER_KEYS.CARD_ID]: string[];
         [FILTER_KEYS.FEED]: string[];
         [FILTER_KEYS.MERCHANT]: string;

@@ -777,9 +777,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 : 0;
 
         // Reset the current page to 1 when the user types something
-        if (prevTextInputValue !== textInputValue) {
-            setCurrentPage(1);
-        }
+        setCurrentPage(1);
 
         updateAndScrollToFocusedIndex(newSelectedIndex);
     }, [

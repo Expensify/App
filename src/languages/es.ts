@@ -5933,6 +5933,7 @@ const translations = {
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'El mes pasado',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Último extracto',
                 },
             },
             status: 'Estado',
@@ -6693,8 +6694,7 @@ const translations = {
         copied: '¡Copiado!',
     },
     actionableMentionWhisperOptions: {
-        inviteToSubmitExpense: 'Invitar a enviar gastos',
-        inviteToChat: 'Invitar solo a chatear',
+        invite: 'Invitar',
         nothing: 'No hacer nada',
     },
     actionableMentionJoinWorkspaceOptions: {
