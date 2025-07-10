@@ -5798,6 +5798,7 @@ export {
     addPolicyReport,
     broadcastUserIsLeavingRoom,
     broadcastUserIsTyping,
+    buildOptimisticChangePolicyData,
     clearAddRoomMemberError,
     clearAvatarErrors,
     clearDeleteTransactionNavigateBackUrl,

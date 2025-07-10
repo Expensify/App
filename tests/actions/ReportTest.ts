@@ -1754,4 +1754,23 @@ describe('actions/Report', () => {
             expect(Object.keys(selfDMReportActions ?? {}).length).toBe(3);
         });
     });
+
+    describe('buildOptimisticChangePolicyData', () => {
+        it('should build the optimistic data next step for the change policy data', async () => {
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1),
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const policyID = '1';
+            const nextStepResult = {
+                type: 'neutral',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                message: [{text: 'Waiting for '}, {text: '', type: 'strong', clickToCopyText: undefined}, {text: ' to '}, {text: 'approve'}, {text: ' %expenses.'}],
+            };
+            const data = Report.buildOptimisticChangePolicyData(report, policyID);
+            const nextStepData = data?.optimisticData.find((item) => item.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${report.reportID}`);
+            expect(nextStepData?.value).toEqual(nextStepResult);
+        });
+    });
 });
