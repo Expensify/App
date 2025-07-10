@@ -186,8 +186,16 @@ function BaseSelectionList<TItem extends ListItem>(
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
     const isItemSelected = useCallback(
-        (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
-        [isSelected, selectedItems, canSelectMultiple],
+        (item: TItem) => {
+            if (item.isSelected !== undefined) {
+                return item.isSelected;
+            }
+            if (isSelected) {
+                return isSelected(item);
+            }
+            return selectedItems.includes(item.keyForList ?? '');
+        },
+        [isSelected, selectedItems],
     );
 
     /**
@@ -217,12 +225,20 @@ function BaseSelectionList<TItem extends ListItem>(
             offset += sectionHeaderHeight;
 
             section.data?.forEach((item, optionIndex) => {
-                // Add item to the general flattened array
-                allOptions.push({
-                    ...item,
-                    sectionIndex,
-                    index: optionIndex,
-                });
+                // Add item to the general flattened array. Selected items should be in front of the array.
+                if (isItemSelected(item) && !canSelectMultiple) {
+                    allOptions.unshift({
+                        ...item,
+                        sectionIndex,
+                        index: 0,
+                    });
+                } else {
+                    allOptions.push({
+                        ...item,
+                        sectionIndex,
+                        index: optionIndex,
+                    });
+                }
 
                 // If disabled, add to the disabled indexes array
                 const isItemDisabled = !!section.isDisabled || (item.isDisabled && !isItemSelected(item));
@@ -276,12 +292,34 @@ function BaseSelectionList<TItem extends ListItem>(
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
         const processedSections = getSectionsWithIndexOffset(
             sections.map((section) => {
-                const data = !isEmpty(section.data) && remainingOptionsLimit > 0 ? section.data.slice(0, remainingOptionsLimit) : [];
-                remainingOptionsLimit -= data.length;
+                if (isEmpty(section.data) || remainingOptionsLimit <= 0) {
+                    return {
+                        ...section,
+                        data: [],
+                    };
+                }
+
+                let sectionData = section.data;
+                if (!canSelectMultiple) {
+                    const sectionSelectedItems: TItem[] = [];
+                    const sectionUnselectedItems: TItem[] = [];
+                    section.data.forEach((item) => {
+                        if (isItemSelected(item)) {
+                            sectionSelectedItems.push(item);
+                        } else {
+                            sectionUnselectedItems.push(item);
+                        }
+                    });
+
+                    sectionData = [...sectionSelectedItems, ...sectionUnselectedItems];
+                }
+
+                const slicedData = sectionData.slice(0, remainingOptionsLimit);
+                remainingOptionsLimit -= slicedData.length;
 
                 return {
                     ...section,
-                    data,
+                    data: slicedData,
                 };
             }),
         );
