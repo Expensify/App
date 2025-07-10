@@ -162,8 +162,8 @@ function SearchAutocompleteList(
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
-        return getSearchOptions(options, betas ?? []);
-    }, [areOptionsInitialized, betas, options]);
+        return getSearchOptions(options, betas ?? [], true, true, autocompleteQueryValue, 30);
+    }, [areOptionsInitialized, betas, options, autocompleteQueryValue]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
 
@@ -501,7 +501,7 @@ function SearchAutocompleteList(
     /**
      * Builds a suffix tree and returns a function to search in it.
      */
-    const {search: filterOptions, isInitialized: isFastSearchInitialized} = useFastSearchFromOptions(searchOptions, {includeUserToInvite: true});
+    const isFastSearchInitialized = true;
 
     const recentReportsOptions = useMemo(() => {
         const actionId = `filter_options_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -535,15 +535,14 @@ function SearchAutocompleteList(
                 return orderedReportOptions;
             }
 
-            const filteredOptions = filterOptions(autocompleteQueryValue);
-            const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filteredOptions, autocompleteQueryValue, {
+            const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, autocompleteQueryValue, {
                 sortByReportTypeInSearch: true,
                 preferChatRoomsOverThreads: true,
             });
 
             const reportOptions: OptionData[] = [...orderedOptions.recentReports, ...orderedOptions.personalDetails];
-            if (filteredOptions.userToInvite) {
-                reportOptions.push(filteredOptions.userToInvite);
+            if (searchOptions.userToInvite) {
+                reportOptions.push(searchOptions.userToInvite);
             }
 
             const finalOptions = reportOptions.slice(0, 20);
@@ -555,7 +554,7 @@ function SearchAutocompleteList(
                 duration: endTime - startTime,
                 recentReportsFiltered: orderedOptions.recentReports.length,
                 personalDetailsFiltered: orderedOptions.personalDetails.length,
-                hasUserToInvite: !!filteredOptions.userToInvite,
+                hasUserToInvite: !!searchOptions.userToInvite,
                 finalResultCount: finalOptions.length,
                 timestamp: endTime,
             });
@@ -574,7 +573,7 @@ function SearchAutocompleteList(
             });
             throw error;
         }
-    }, [autocompleteQueryValue, filterOptions, searchOptions, isFastSearchInitialized]);
+    }, [autocompleteQueryValue, searchOptions, isFastSearchInitialized]);
 
     const debounceHandleSearch = useDebounce(
         useCallback(() => {
