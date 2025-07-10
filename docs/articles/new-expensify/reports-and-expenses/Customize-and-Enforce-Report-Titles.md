@@ -42,8 +42,8 @@ Automatically generate standardized report titles across your workspace using fo
 
 | Formula | Example | Description |
 | -- | -- | -- |
-| {report:id} | R00I7J3xs5fn | Unique report ID in a base 62 representation |
-| {report:oldID} | R3513250790654885 | unique report ID |
+| `{report:id}` | R00I7J3xs5fn | Unique report ID in a base 62 representation |
+| `{report:oldID}` | R3513250790654885 | unique report ID |
 | `{report:total}` | $325.34 | Total amount on report |
 | `{report:type}` | Expense Report | Report type (Expense Report, Invoice, Bill) |
 | `{report:reimbursable}` | $143.43 | Reimbursable amount |
