@@ -1630,9 +1630,10 @@ const translations = {
             afterEmail: '他のアカウントに統合することはできません。代わりに他のアカウントをこのアカウントに統合してください。',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'マージできません',
-            afterEmail: '請求書発行済みアカウントの請求オーナーであるため、他のアカウントに統合することはできません。代わりに他のアカウントをこのアカウントに統合してください。',
+            beforeEmail: '次のアカウントには統合できません: ',
+            afterEmail: '。このアカウントには請求書が発行された請求関係があります。',
         },
+
         mergeFailureTooManyAttempts: {
             heading: '後でもう一度お試しください。',
             description: 'アカウントの統合を試みる回数が多すぎます。後でもう一度お試しください。',

@@ -1631,9 +1631,10 @@ const translations = {
             afterEmail: 'in andere accounts. Voeg in plaats daarvan andere accounts samen in dit account.',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'Je kunt niet samenvoegen',
-            afterEmail: 'in andere accounts omdat het de factuureigenaar van een gefactureerd account is. Voeg in plaats daarvan andere accounts samen in dit account.',
+            beforeEmail: 'Je kunt accounts niet samenvoegen met ',
+            afterEmail: ' omdat dit account een gefactureerde factureringsrelatie heeft.',
         },
+
         mergeFailureTooManyAttempts: {
             heading: 'Probeer het later opnieuw',
             description: 'Er waren te veel pogingen om accounts samen te voegen. Probeer het later opnieuw.',

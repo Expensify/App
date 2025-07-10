@@ -1627,9 +1627,10 @@ const translations = {
             afterEmail: 'do innych kont. Proszę połączyć inne konta z nim zamiast tego.',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'Nie możesz połączyć',
-            afterEmail: 'do innych kont, ponieważ jest właścicielem rozliczeń konta fakturowanego. Proszę połączyć inne konta z nim zamiast tego.',
+            beforeEmail: 'Nie możesz połączyć kont z ',
+            afterEmail: ', ponieważ to konto ma wystawioną fakturę w ramach relacji rozliczeniowej.',
         },
+
         mergeFailureTooManyAttempts: {
             heading: 'Spróbuj ponownie później',
             description: 'Było zbyt wiele prób połączenia kont. Proszę spróbować ponownie później.',

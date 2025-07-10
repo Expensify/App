@@ -1636,9 +1636,10 @@ const translations = {
             afterEmail: "dans d'autres comptes. Veuillez fusionner les autres comptes avec celui-ci à la place.",
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'Vous ne pouvez pas fusionner',
-            afterEmail: "dans d'autres comptes car c'est le propriétaire de facturation d'un compte facturé. Veuillez plutôt fusionner d'autres comptes avec celui-ci.",
+            beforeEmail: 'Vous ne pouvez pas fusionner des comptes avec ',
+            afterEmail: ' car ce compte possède une relation de facturation facturée.',
         },
+
         mergeFailureTooManyAttempts: {
             heading: 'Réessayez plus tard',
             description: 'Il y a eu trop de tentatives de fusion de comptes. Veuillez réessayer plus tard.',

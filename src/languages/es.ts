@@ -1613,8 +1613,8 @@ const translations = {
             afterEmail: ' en otras cuentas. Por favor, fusiona otras cuentas en esta en su lugar.',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'No puedes fusionar ',
-            afterEmail: ' en otras cuentas porque es el propietario de facturación de una cuenta facturada. Por favor, fusiona otras cuentas en esta en su lugar.',
+            beforeEmail: 'No puedes fusionar cuentas en ',
+            afterEmail: ' porque esta cuenta tiene una relación de facturación con factura emitida.',
         },
         mergeFailureTooManyAttempts: {
             heading: 'Inténtalo de nuevo más tarde',

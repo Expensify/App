@@ -3343,6 +3343,7 @@ const CONST = {
         TYPE: {
             ANNUAL: 'yearly2018',
             PAY_PER_USE: 'monthly2018',
+            INVOICING: 'invoicing2018',
         },
     },
     get SUBSCRIPTION_PRICES() {

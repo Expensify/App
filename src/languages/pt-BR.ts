@@ -1628,9 +1628,10 @@ const translations = {
             afterEmail: 'em outras contas. Por favor, mescle outras contas nela em vez disso.',
         },
         mergeFailureInvoicedAccount: {
-            beforeEmail: 'Você não pode mesclar',
-            afterEmail: 'em outras contas porque é o proprietário de faturamento de uma conta faturada. Por favor, mescle outras contas nele em vez disso.',
+            beforeEmail: 'Você não pode mesclar contas com ',
+            afterEmail: ' porque esta conta possui uma relação de faturamento com nota fiscal emitida.',
         },
+
         mergeFailureTooManyAttempts: {
             heading: 'Tente novamente mais tarde',
             description: 'Houve muitas tentativas de mesclar contas. Por favor, tente novamente mais tarde.',
