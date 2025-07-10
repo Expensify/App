@@ -4,12 +4,16 @@ import EmptyStateComponent from '@components/EmptyStateComponent';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isAddExpenseAction} from '@libs/ReportPrimaryActionUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import {startMoneyRequest} from '@userActions/IOU';
 import {openUnreportedExpense} from '@userActions/Report';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
@@ -18,23 +22,30 @@ const minModalHeight = 380;
 function SearchMoneyRequestReportEmptyState({reportId, policy}: {reportId?: string; policy?: Policy}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportId}`, {canBeMissing: true});
+    const isChatReportArchived = useReportIsArchived(reportId);
+    const shouldShowAddExpense = report && isAddExpenseAction(report, [], isChatReportArchived);
 
     const addExpenseDropdownOptions = [
-        {
-            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
-            text: translate('iou.createNewExpense'),
-            icon: Expensicons.Plus,
-            onSelected: () => {
-                if (!reportId) {
-                    return;
-                }
-                if (policy && shouldRestrictUserBillableActions(policy.id)) {
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                    return;
-                }
-                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId);
-            },
-        },
+        ...(shouldShowAddExpense
+            ? [
+                  {
+                      value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
+                      text: translate('iou.createNewExpense'),
+                      icon: Expensicons.Plus,
+                      onSelected: () => {
+                          if (!reportId) {
+                              return;
+                          }
+                          if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                              return;
+                          }
+                          startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportId);
+                      },
+                  },
+              ]
+            : []),
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
             text: translate('iou.addUnreportedExpense'),
