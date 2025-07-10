@@ -104,6 +104,7 @@ type TransactionItemRowProps = {
     isInSingleTransactionReport?: boolean;
     shouldShowRadioButton?: boolean;
     onRadioButtonPress?: (transactionID: string) => void;
+    shouldShowErrors?: boolean;
 };
 
 /** If merchant name is empty or (none), then it falls back to description if screen is narrow */
@@ -147,6 +148,7 @@ function TransactionItemRow({
     isInSingleTransactionReport = false,
     shouldShowRadioButton = false,
     onRadioButtonPress = () => {},
+    shouldShowErrors = true,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -478,11 +480,13 @@ function TransactionItemRow({
                                             />
                                         </View>
                                     )}
-                                    <TransactionItemRowRBRWithOnyx
-                                        transaction={transactionItem}
-                                        containerStyles={[styles.mt2, styles.minHeight4]}
-                                        missingFieldError={missingFieldError}
-                                    />
+                                    {shouldShowErrors && (
+                                        <TransactionItemRowRBRWithOnyx
+                                            transaction={transactionItem}
+                                            containerStyles={[styles.mt2, styles.minHeight4]}
+                                            missingFieldError={missingFieldError}
+                                        />
+                                    )}
                                 </View>
                                 <ChatBubbleCell
                                     transaction={transactionItem}
@@ -520,10 +524,12 @@ function TransactionItemRow({
                                     </View>
                                 )}
                             </View>
-                            <TransactionItemRowRBRWithOnyx
-                                transaction={transactionItem}
-                                missingFieldError={missingFieldError}
-                            />
+                            {shouldShowErrors && (
+                                <TransactionItemRowRBRWithOnyx
+                                    transaction={transactionItem}
+                                    missingFieldError={missingFieldError}
+                                />
+                            )}
                         </View>
                     </Animated.View>
                 )}
